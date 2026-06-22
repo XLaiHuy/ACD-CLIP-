@@ -40,7 +40,18 @@ def train(
         scheduler.step()
 
     for epoch in range(start_epoch, total_epoch):
-        logger.info(f"training epoch {epoch + 1} / {total_epoch}")
+        # Update dynamic conv temperature (annealing from 30.0 down to 1.0 over first 10 epochs)
+        current_temp = max(30.0 - 2.9 * epoch, 1.0)
+        has_dynamic_conv = False
+        for m in model.modules():
+            if m.__class__.__name__ == "DynamicDepthwiseConv2d":
+                m.temperature = current_temp
+                has_dynamic_conv = True
+        
+        if has_dynamic_conv:
+            logger.info(f"training epoch {epoch + 1} / {total_epoch} (Dynamic Conv Temp tau = {current_temp:.2f})")
+        else:
+            logger.info(f"training epoch {epoch + 1} / {total_epoch}")
         loss_list = []
         seg_loss_list = []
         tqdm_train_loader = tqdm(train_loader)
@@ -188,6 +199,11 @@ def main():
         default=4 if os.name != 'nt' else 0,
         help="Number of workers for data loading (default: 4 on Linux, 0 on Windows)"
     )
+    parser.add_argument(
+        "--use_dynamic_conv",
+        action="store_true",
+        help="Use Dynamic Depthwise Separable Convolution in visual adapter blocks"
+    )
 
     args = parser.parse_args()
     # ========================================================
@@ -222,6 +238,7 @@ def main():
         text_adapt_weight=args.text_adapt_weight,
         lora_rank=args.lora_rank,
         lora_alpha=args.lora_alpha,
+        use_dynamic_conv=args.use_dynamic_conv,
     ).to(device)
     model.eval()
 
@@ -240,16 +257,43 @@ def main():
     logger.info(f"Frozen parameters: {frozen_params:,}")
 
     # set optimizer
-    optimizer = torch.optim.Adam([
-        {
-            "params": model.text_adapter.parameters(),
-            "lr": args.text_lr,
-        },
-        {
-            "params": model.image_adapter.parameters(),
-            "lr": args.image_lr,
-        },
-    ])
+    if args.use_dynamic_conv:
+        image_dw_params = []
+        image_other_params = []
+        for name, param in model.image_adapter.named_parameters():
+            if not param.requires_grad:
+                continue
+            if "depthwise" in name or "bias" in name or "bn" in name:
+                image_dw_params.append(param)
+            else:
+                image_other_params.append(param)
+        
+        optimizer = torch.optim.Adam([
+            {
+                "params": model.text_adapter.parameters(),
+                "lr": args.text_lr,
+            },
+            {
+                "params": image_other_params,
+                "lr": args.image_lr,
+            },
+            {
+                "params": image_dw_params,
+                "lr": args.image_lr,
+                "weight_decay": 0.0,
+            },
+        ])
+    else:
+        optimizer = torch.optim.Adam([
+            {
+                "params": model.text_adapter.parameters(),
+                "lr": args.text_lr,
+            },
+            {
+                "params": model.image_adapter.parameters(),
+                "lr": args.image_lr,
+            },
+        ])
     lr_scheduler = StepLR(
         optimizer,
         step_size=1,

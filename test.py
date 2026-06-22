@@ -169,6 +169,11 @@ def main():
         default=4 if os.name != 'nt' else 0,
         help="Number of workers for data loading (default: 4 on Linux, 0 on Windows)"
     )
+    parser.add_argument(
+        "--use_dynamic_conv",
+        action="store_true",
+        help="Use Dynamic Depthwise Separable Convolution in visual adapter blocks"
+    )
 
     args = parser.parse_args()
     # ========================================================
@@ -199,6 +204,7 @@ def main():
         conv_lora_rank=args.conv_lora_rank,
         conv_lora_alpha=args.conv_lora_alpha,
         conv_kernel_size_list=args.conv_kernel_size_list,
+        use_dynamic_conv=args.use_dynamic_conv,
     ).to(device)
     model.eval()
     ckp_files = glob(args.save_path + "/adapter_*.pth")

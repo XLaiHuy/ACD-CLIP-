@@ -258,11 +258,227 @@ class ASPPImageFeatureAdapter(nn.Module):
         return out
 
 
+class attention2d(nn.Module):
+    def __init__(self, in_planes, ratios, K, temperature, init_weight=True):
+        super(attention2d, self).__init__()
+        self.avgpool = nn.AdaptiveAvgPool2d(1)
+        if in_planes != 3:
+            hidden_planes = int(in_planes * ratios) + 1
+        else:
+            hidden_planes = K
+        self.fc1 = nn.Conv2d(in_planes, hidden_planes, 1, bias=False)
+        self.fc2 = nn.Conv2d(hidden_planes, K, 1, bias=True)
+        self.temperature = temperature
+        if init_weight:
+            self._initialize_weights()
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            if isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+
+    def forward(self, x):
+        x = self.avgpool(x)
+        x = self.fc1(x)
+        x = F.silu(x)
+        x = self.fc2(x).view(x.size(0), -1)
+        return F.softmax(x / self.temperature, dim=1)
+
+
+class DynamicDepthwiseConv2d(nn.Module):
+    def __init__(self, channels, kernel_size, stride=1, padding=0, dilation=1, bias=False, K=4, temperature=30.0):
+        super(DynamicDepthwiseConv2d, self).__init__()
+        self.channels = channels
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.padding = padding
+        self.dilation = dilation
+        self.bias = bias
+        self.K = K
+        self.temperature = temperature
+        
+        self.attention = attention2d(channels, 0.25, K, temperature)
+        
+        # K base filters: shape [K, channels, 1, kernel_size, kernel_size]
+        self.weight = nn.Parameter(
+            torch.randn(K, channels, 1, kernel_size, kernel_size), 
+            requires_grad=True
+        )
+        if bias:
+            self.bias_param = nn.Parameter(torch.zeros(K, channels), requires_grad=True)
+        else:
+            self.bias_param = None
+            
+        self.init_weights()
+
+    def init_weights(self):
+        for i in range(self.K):
+            nn.init.kaiming_uniform_(self.weight[i])
+
+    def forward(self, x):
+        # x shape: [B, C, H, W]
+        batch_size, channels, height, width = x.size()
+        
+        # Get attention weights: [B, K]
+        softmax_attention = self.attention(x)
+        
+        outputs = []
+        for i in range(batch_size):
+            # Combine base kernels for sample i
+            # self.weight has shape: [K, C, 1, k, k]
+            # softmax_attention[i] has shape: [K]
+            w_i = (softmax_attention[i].view(self.K, 1, 1, 1, 1) * self.weight).sum(dim=0)
+            
+            if self.bias_param is not None:
+                b_i = (softmax_attention[i].view(self.K, 1) * self.bias_param).sum(dim=0)
+            else:
+                b_i = None
+                
+            # Perform depthwise convolution for sample i (groups = channels)
+            out_i = F.conv2d(
+                x[i:i+1],
+                weight=w_i,
+                bias=b_i,
+                stride=self.stride,
+                padding=self.padding,
+                dilation=self.dilation,
+                groups=channels
+            )
+            outputs.append(out_i)
+            
+        return torch.cat(outputs, dim=0)
+
+
+class DynamicDepthwiseSeparableConv2d(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, K=4, temperature=30.0):
+        super(DynamicDepthwiseSeparableConv2d, self).__init__()
+        # 1. Dynamic depthwise conv
+        self.depthwise = DynamicDepthwiseConv2d(
+            channels=in_channels,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=padding,
+            bias=False,
+            K=K,
+            temperature=temperature
+        )
+        self.dw_bn = nn.BatchNorm2d(in_channels)
+        self.dw_act = nn.SiLU(inplace=True)
+
+        # 2. Pointwise 1x1 static conv
+        self.pointwise = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False)
+        self.pw_bn = nn.BatchNorm2d(out_channels)
+        self.pw_act = nn.SiLU(inplace=True)
+
+    def forward(self, x):
+        # DW -> BN -> SiLU -> PW -> BN -> SiLU
+        x = self.dw_act(self.dw_bn(self.depthwise(x)))
+        x = self.pw_act(self.pw_bn(self.pointwise(x)))
+        return x
+
+
+class DynamicDepthwiseConvLoraBlock(nn.Module):
+    def __init__(
+            self,
+            c_in,
+            c_out=768,
+            lora_rank=16,
+            lora_alpha=2.0,
+            conv_lora_rank=8,
+            conv_lora_alpha=2.0,
+            conv_kernel_size=3,
+    ):
+        super(DynamicDepthwiseConvLoraBlock, self).__init__()
+        self.lora_scale = lora_alpha / lora_rank ** 0.5
+        self.conv_lora_scale = conv_lora_alpha / conv_lora_rank
+
+        self.lora_A = nn.Parameter(torch.randn(c_in, lora_rank))
+        self.conv_lora_A = DynamicDepthwiseSeparableConv2d(
+            in_channels=lora_rank, 
+            out_channels=conv_lora_rank, 
+            kernel_size=conv_kernel_size, 
+            padding=conv_kernel_size // 2
+        )
+        self.conv_lora_B = DynamicDepthwiseSeparableConv2d(
+            in_channels=conv_lora_rank, 
+            out_channels=lora_rank, 
+            kernel_size=conv_kernel_size, 
+            padding=conv_kernel_size // 2
+        )
+        self.lora_B = nn.Parameter(torch.randn(lora_rank, c_out))
+
+        self.init_weights()
+
+    def init_weights(self):
+        nn.init.kaiming_uniform_(self.lora_A)
+        nn.init.normal_(self.lora_B, mean=0, std=0.02)
+
+    def forward(self, x):
+        patch_size, B = int(math.sqrt(x.shape[0])), x.shape[1]
+        
+        down_lora_output = x @ self.lora_A  # [H * W, bs, lora_rank]
+        down_lora_output = down_lora_output.permute(1, 2, 0).view(B, -1, patch_size, patch_size)  # [bs, lora_rank, H, W]
+        up_lora_input = self.conv_lora_A(down_lora_output)  # [bs, conv_lora_rank, H, W]
+        
+        up_lora_output = self.conv_lora_B(up_lora_input) * self.conv_lora_scale  # [bs, lora_rank, H, W]
+        up_lora_output = up_lora_output.view(B, -1, patch_size * patch_size).permute(2, 0, 1)  # [H * W, bs, lora_rank]
+        up_lora_output = up_lora_output @ self.lora_B * self.lora_scale  # [H * W, bs, c_out]
+        return up_lora_output
+
+
+class DynamicDepthwiseConvLoraAdapter(nn.Module):
+    def __init__(
+            self,
+            c_in,
+            c_out=768,
+            lora_rank=16,
+            lora_alpha=2.0,
+            conv_lora_rank=8,
+            conv_lora_alpha=2.0,
+            conv_kernel_size_list=(3, 5)
+    ):
+        super(DynamicDepthwiseConvLoraAdapter, self).__init__()
+        kernel_size_list = conv_kernel_size_list
+        self.conv_lora_blocks = nn.ModuleList([
+            DynamicDepthwiseConvLoraBlock(
+                c_in=c_in,
+                c_out=c_out,
+                lora_rank=lora_rank,
+                lora_alpha=lora_alpha,
+                conv_lora_rank=conv_lora_rank,
+                conv_lora_alpha=conv_lora_alpha,
+                conv_kernel_size=kernel_size
+            ) for kernel_size in kernel_size_list
+        ])
+        self.fusion_conv = nn.Conv2d(len(kernel_size_list) * c_out, c_out, kernel_size=1, stride=1, padding=0,
+                                     bias=False)
+
+    def forward(self, x):
+        patch_size, B = int(math.sqrt(x.shape[0])), x.shape[1]
+        outputs = [block(x).permute(1, 2, 0) for block in self.conv_lora_blocks]
+        outputs = [out.view(B, -1, patch_size, patch_size) for out in outputs]
+        outputs = torch.cat(outputs, dim=1)
+        outputs = self.fusion_conv(outputs)
+        outputs = outputs.view(B, -1, patch_size * patch_size).permute(2, 0, 1)
+        return outputs
+
+
 if __name__ == '__main__':
     conv_lora_adapter = ConvLoraAdapter(c_in=1024, c_out=1024, lora_rank=16, lora_alpha=2.0, conv_lora_rank=8,
                                         conv_lora_alpha=2.0)
     x = torch.randn(1369, 4, 1024)  # [H * W, bs, c_in]
-    print(x[:, 0, :].min())
+    print("ConvLoraAdapter input min:", x[:, 0, :].min().item())
     output = conv_lora_adapter(x)
-    print(output[:, 0, :].min())
-    print(output.shape)  # 应该是 [1369, 4, 768]
+    print("ConvLoraAdapter output min:", output[:, 0, :].min().item())
+    print("ConvLoraAdapter output shape:", output.shape)  # 应该是 [1369, 4, 768]
+
+    dynamic_adapter = DynamicDepthwiseConvLoraAdapter(c_in=1024, c_out=1024, lora_rank=16, lora_alpha=2.0, conv_lora_rank=8,
+                                                      conv_lora_alpha=2.0)
+    output_dyn = dynamic_adapter(x)
+    print("DynamicDepthwiseConvLoraAdapter output shape:", output_dyn.shape)
+

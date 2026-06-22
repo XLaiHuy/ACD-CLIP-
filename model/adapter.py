@@ -42,7 +42,7 @@ if 'triton' in sys.modules and isinstance(sys.modules['triton'], MagicMock):
     vmamba.WITH_TRITON = False
 
 from vmamba import SS2D
-from .adapter_modules import TextDoraAdapter, MLPAdapter, ConvLoraAdapter
+from .adapter_modules import TextDoraAdapter, MLPAdapter, ConvLoraAdapter, DynamicDepthwiseConvLoraAdapter
 
 
 class MambaDFGBlock(nn.Module):
@@ -148,6 +148,7 @@ class ACDCLIP(nn.Module):
             conv_lora_rank: int = 8,
             conv_lora_alpha: float = 2,
             conv_kernel_size_list=(3, 5),
+            use_dynamic_conv: bool = False,
             **kwargs,
     ):
         super().__init__()
@@ -165,14 +166,24 @@ class ACDCLIP(nn.Module):
         image_adapt_weights = nn.ModuleList(
             [AddWeight(image_adapt_weight) for _ in range(n_groups)]
         )
-        image_lora_adapters = nn.ModuleList(
-            [
-                ConvLoraAdapter(1024, 1024, lora_rank, lora_alpha, conv_lora_rank, conv_lora_alpha,
-                                conv_kernel_size_list)
-                for _ in
-                range(n_groups)
-            ]
-        )
+        if use_dynamic_conv:
+            image_lora_adapters = nn.ModuleList(
+                [
+                    DynamicDepthwiseConvLoraAdapter(1024, 1024, lora_rank, lora_alpha, conv_lora_rank, conv_lora_alpha,
+                                                    conv_kernel_size_list)
+                    for _ in
+                    range(n_groups)
+                ]
+            )
+        else:
+            image_lora_adapters = nn.ModuleList(
+                [
+                    ConvLoraAdapter(1024, 1024, lora_rank, lora_alpha, conv_lora_rank, conv_lora_alpha,
+                                    conv_kernel_size_list)
+                    for _ in
+                    range(n_groups)
+                ]
+            )
         seg_proj = nn.ModuleList(
             [MLPAdapter(1024, 768, 256) for _ in range(n_groups)]
         )
