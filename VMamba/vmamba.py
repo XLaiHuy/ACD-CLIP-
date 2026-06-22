@@ -851,6 +851,13 @@ class SelectiveScanCuda(torch.autograd.Function):
                 backend = "oflex"
             elif WITH_SELECTIVESCAN_MAMBA:
                 backend = "mamba"
+        
+        # Redirection if the requested backend is not compiled but the alternative is
+        if backend == "mamba" and not WITH_SELECTIVESCAN_MAMBA and WITH_SELECTIVESCAN_OFLEX:
+            backend = "oflex"
+        elif backend == "oflex" and not WITH_SELECTIVESCAN_OFLEX and WITH_SELECTIVESCAN_MAMBA:
+            backend = "mamba"
+
         ctx.backend = backend
         if backend == "oflex":
             out, x, *rest = selective_scan_cuda_oflex.fwd(u, delta, A, B, C, D, delta_bias, delta_softplus, 1, oflex)
