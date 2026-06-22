@@ -182,6 +182,12 @@ def main():
         default="",
         help="Path to checkpoint to resume training from (default: '')"
     )
+    parser.add_argument(
+        "--num_workers",
+        type=int,
+        default=4 if os.name != 'nt' else 0,
+        help="Number of workers for data loading (default: 4 on Linux, 0 on Windows)"
+    )
 
     args = parser.parse_args()
     # ========================================================
@@ -276,7 +282,7 @@ def main():
         dataset, 
         batch_size=args.batch_size, 
         shuffle=True,
-        num_workers=4 if os.name != 'nt' else 0,
+        num_workers=args.num_workers,
         pin_memory=True
     )
     logger.info("training ...")

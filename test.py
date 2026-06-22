@@ -163,6 +163,12 @@ def main():
     parser.add_argument("--batch_size", type=int, default=84)
     parser.add_argument("--cuda_device", type=int, default=0)
     parser.add_argument("--save_path", type=str, default="ckpt/issue")
+    parser.add_argument(
+        "--num_workers",
+        type=int,
+        default=4 if os.name != 'nt' else 0,
+        help="Number of workers for data loading (default: 4 on Linux, 0 on Windows)"
+    )
 
     args = parser.parse_args()
     # ========================================================
@@ -231,7 +237,11 @@ def main():
 
         for class_name, image_dataset in image_datasets.items():
             image_dataloader = torch.utils.data.DataLoader(
-                image_dataset, batch_size=args.batch_size, shuffle=False
+                image_dataset, 
+                batch_size=args.batch_size, 
+                shuffle=False,
+                num_workers=args.num_workers,
+                pin_memory=True
             )
             with torch.no_grad():
                 class_text_embeddings = text_embeddings[class_name]
