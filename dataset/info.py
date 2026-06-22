@@ -1,4 +1,4 @@
-BASE_PATH = "."
+BASE_PATH = "C:/Users/HUY/Documents/ACD-CLIP++"
 DATA_PATH = {
     "Brain": f"{BASE_PATH}/data/MedAD/Brain_AD",
     "Liver": f"{BASE_PATH}/data/MedAD/Liver_AD",
@@ -20,7 +20,7 @@ CLASS_NAMES = {
     "Retina": ["Retina"],
     "Colon_clinicDB": ["Colon_clinicDB"],
     "Colon_colonDB": ["Colon_colonDB"],
-    "Colon_Kvasir": ["Kvasir"],
+    "Colon_Kvasir": ["Colon_Kvasir"],
     "Colon_cvc300": ["CVC-300"],
     "MVTec": [
         "bottle",
@@ -125,7 +125,7 @@ REAL_NAMES = {
         "Colon_colonDB": "colon endoscopy image",
     },
     "Colon_cvc300": {"CVC-300": "colon endoscopy image"},
-    "Colon_Kvasir": {"Kvasir": "colon endoscopy image"},
+    "Colon_Kvasir": {"Colon_Kvasir": "colon endoscopy image"},
     "MPDD": {
         "connector": "metal clamps with black adjustment knobs",
         "tubes": "scattered metal objects",

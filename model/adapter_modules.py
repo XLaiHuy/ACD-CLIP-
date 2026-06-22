@@ -43,6 +43,46 @@ class TextLoraAdapter(nn.Module):
         return lora_output
 
 
+class TextDoraAdapter(nn.Module):
+    def __init__(self, c_in, c_out=768, r=16, alpha=2.0):
+        super(TextDoraAdapter, self).__init__()
+        self.c_in = c_in
+        self.c_out = c_out
+        self.r = r
+        self.scale = alpha / (r ** 0.5)
+
+        # Base weight (frozen)
+        self.weight = nn.Parameter(
+            torch.eye(c_in, c_out) if c_in == c_out else torch.randn(c_in, c_out) * 0.02,
+            requires_grad=False
+        )
+
+        # LoRA parameters
+        self.lora_A = nn.Parameter(torch.randn(c_in, r))
+        self.lora_B = nn.Parameter(torch.zeros(r, c_out))  # Initialize with zeros
+
+        # Learnable magnitude parameter m
+        self.m = nn.Parameter(self.weight.norm(p=2, dim=0, keepdim=True))
+
+        self.init_weights()
+
+    def init_weights(self):
+        nn.init.kaiming_uniform_(self.lora_A)
+        # lora_B is already initialized to 0
+
+    def forward(self, x):
+        # x shape: [H * W, bs, c_in]
+        delta_W = (self.lora_A @ self.lora_B) * self.scale  # [c_in, c_out]
+        W_full = self.weight + delta_W                      # [c_in, c_out]
+        
+        # Column-wise L2 norm normalization
+        W_norm = W_full / W_full.norm(p=2, dim=0, keepdim=True)
+        W_dora = self.m * W_norm                           # [c_in, c_out]
+        
+        return x @ W_dora                                  # [H * W, bs, c_out]
+
+
+
 class ConvLoraBlock(nn.Module):
     def __init__(
             self,

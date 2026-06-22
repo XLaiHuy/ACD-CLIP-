@@ -4,7 +4,112 @@ import torch.nn.functional as F
 from kornia.filters import gaussian_blur2d
 from torch import nn
 
-from .adapter_modules import TextLoraAdapter, MLPAdapter, ConvLoraAdapter
+import sys
+import os
+import math
+
+# Try to mock triton if not installed, to prevent VMamba's import-time jit decorator errors
+try:
+    import triton
+except ImportError:
+    from unittest.mock import MagicMock
+    triton_mock = MagicMock()
+    triton_mock.jit = lambda f: f
+    triton_mock.__path__ = []
+    sys.modules['triton'] = triton_mock
+    sys.modules['triton.language'] = MagicMock()
+    sys.modules['triton.backends'] = MagicMock()
+    sys.modules['triton.backends.compiler'] = MagicMock()
+    sys.modules['triton.compiler'] = MagicMock()
+    sys.modules['triton.compiler.compiler'] = MagicMock()
+
+# Dynamically import SS2D from VMamba repo
+vmamba_path = "C:/Users/HUY/Documents/ACD-CLIP++/VMamba"
+if os.path.exists(vmamba_path):
+    sys.path.append(vmamba_path)
+else:
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../VMamba")))
+
+import vmamba
+# Ensure Triton is disabled if we had to mock it
+if 'triton' in sys.modules and isinstance(sys.modules['triton'], MagicMock):
+    vmamba.WITH_TRITON = False
+
+from vmamba import SS2D
+from .adapter_modules import TextDoraAdapter, MLPAdapter, ConvLoraAdapter
+
+
+class MambaDFGBlock(nn.Module):
+    def __init__(self, c_in=768, d_k=256, n_groups=3):
+        super().__init__()
+        self.n_groups = n_groups
+        self.mamba_ln1 = nn.LayerNorm(c_in)
+        self.mamba_linear1 = nn.Linear(c_in, 2 * c_in)
+        self.mamba_silu = nn.SiLU()
+        self.mamba_ss2d = SS2D(d_model=2*c_in, channel_first=False, forward_type="v0")
+        self.mamba_linear2 = nn.Linear(2 * c_in, c_in)
+        self.mamba_ln2 = nn.LayerNorm(c_in)
+        
+        # Learnable blending weight gamma (init 0)
+        self.gamma = nn.Parameter(torch.zeros(1))
+        
+        # Cross-Attention projections
+        self.query_proj = nn.Linear(c_in, d_k)
+        self.key_proj = nn.Linear(c_in, d_k)
+        
+    def forward(self, img_feat, T_norm, T_abnorm, tau):
+        # img_feat: [bs, patch_num, c_in]
+        # T_norm: [bs, n_groups, c_in]
+        # T_abnorm: [bs, n_groups, c_in]
+        # tau: scalar parameter
+        
+        bs, patch_num, c_in = img_feat.shape
+        H = int(math.sqrt(patch_num))
+        
+        # 1. Mamba Dual-Pooling
+        v_avg = img_feat.mean(dim=1) # [bs, c_in]
+        
+        # v_mamba branch
+        V_i_2D = img_feat.view(bs, H, H, c_in) # [bs, H, H, c_in]
+        x_mamba = self.mamba_ln1(V_i_2D)
+        x_mamba = self.mamba_linear1(x_mamba)
+        x_mamba = self.mamba_silu(x_mamba)
+        x_mamba = self.mamba_ss2d(x_mamba) # [bs, H, H, 2*c_in]
+        x_mamba = self.mamba_linear2(x_mamba)
+        x_mamba = self.mamba_ln2(x_mamba)
+        v_mamba = x_mamba.mean(dim=[1, 2]) # GAP -> [bs, c_in]
+        
+        v_global = v_avg + self.gamma * v_mamba # [bs, c_in]
+        
+        # 2. Cross-Attention
+        Q = self.query_proj(v_global).unsqueeze(1) # [bs, 1, d_k]
+        
+        K_norm = self.key_proj(T_norm) # [bs, n_groups, d_k]
+        K_abnorm = self.key_proj(T_abnorm) # [bs, n_groups, d_k]
+        
+        # Attention normal
+        scores_norm = torch.bmm(Q, K_norm.transpose(1, 2)) / (K_norm.shape[-1] ** 0.5) # [bs, 1, n_groups]
+        attn_norm = F.softmax(scores_norm, dim=-1)
+        T_normal_fused = torch.bmm(attn_norm, T_norm).squeeze(1) # [bs, c_in]
+        
+        # Attention abnormal
+        scores_abnorm = torch.bmm(Q, K_abnorm.transpose(1, 2)) / (K_abnorm.shape[-1] ** 0.5) # [bs, 1, n_groups]
+        attn_abnorm = F.softmax(scores_abnorm, dim=-1)
+        T_abnormal_fused = torch.bmm(attn_abnorm, T_abnorm).squeeze(1) # [bs, c_in]
+        
+        # 3. Cosine Similarity Map
+        img_feat_norm = F.normalize(img_feat, p=2, dim=-1) # [bs, patch_num, c_in]
+        T_normal_fused_norm = F.normalize(T_normal_fused, p=2, dim=-1).unsqueeze(1) # [bs, 1, c_in]
+        T_abnormal_fused_norm = F.normalize(T_abnormal_fused, p=2, dim=-1).unsqueeze(1) # [bs, 1, c_in]
+        
+        sim_n = torch.sum(img_feat_norm * T_normal_fused_norm, dim=-1) / tau  # [bs, patch_num]
+        sim_a = torch.sum(img_feat_norm * T_abnormal_fused_norm, dim=-1) / tau  # [bs, patch_num]
+        
+        seg_logits = torch.stack([sim_n, sim_a], dim=1) # [bs, 2, patch_num]
+        seg_logits = seg_logits.view(bs, 2, H, H) # [bs, 2, H, H]
+        
+        return seg_logits
+
 
 
 class AddWeight(nn.Module):
@@ -74,13 +179,9 @@ class ACDCLIP(nn.Module):
         det_image_layer_norms = nn.ModuleList(
             [nn.LayerNorm(768) for _ in range(n_groups)]
         )
-        # 动态路由门：预测文本-图像的交互权重
+        # 动态路由门：Mamba Dual-Pooling + Cross-Attention DFG
         vision_text_gate = nn.ModuleList([
-            nn.Sequential(
-                nn.Linear(768, 256),
-                nn.GELU(),
-                nn.Linear(256, n_groups * 2)  # 输出n_stages权重（图像各阶段）
-            ) for _ in range(n_groups)
+            MambaDFGBlock(c_in=768, d_k=256, n_groups=n_groups) for _ in range(n_groups)
         ])
         self.image_adapter = nn.ModuleDict(
             {
@@ -93,11 +194,14 @@ class ACDCLIP(nn.Module):
                 "vision_text_gate": vision_text_gate,
             }
         )
+        # Register learnable temperature tau to image_adapter so it is saved/loaded in state_dict
+        self.image_adapter.register_parameter('tau', nn.Parameter(torch.tensor(0.07)))
+
         text_adapt_weights = nn.ModuleList(
             [AddWeight(text_adapt_weight, is_text=True) for _ in range(n_groups)]
         )
         text_lora_adapters = nn.ModuleList(
-            [TextLoraAdapter(768, 768, r=lora_rank, alpha=lora_alpha) for _ in range(n_groups)]
+            [TextDoraAdapter(768, 768, r=lora_rank, alpha=lora_alpha) for _ in range(n_groups)]
         )
         text_layer_norms = nn.ModuleList(
             [nn.LayerNorm(768) for _ in range(n_groups)]
@@ -215,18 +319,18 @@ class ACDCLIP(nn.Module):
         group_seg_preds = []
         for i in range(self.n_groups):
             img_feat = vision_tokens[i]  # [bs, patch_num, 768]
-            gate_weights = self.image_adapter["vision_text_gate"][i](img_feat.mean(dim=1, keepdim=True)).squeeze(
-                1)  # [bs, 2 * n_groups]
-            gate_weights = gate_weights.view(B, self.n_groups, 2)  # [bs, n_groups, 2]
-            gate_weights = F.softmax(gate_weights, dim=1)
-            img_feat = 10 * img_feat
-            # [n_groups, bs, 768, 2] -> [bs, n_groups, 768, 2]
-            group_text_features = text_features.permute(1, 0, 2, 3)
-            group_text_features = group_text_features * gate_weights.unsqueeze(2)  # [bs, n_groups, 768, 2]
-            group_text_features = group_text_features.sum(dim=1)  # [bs, 768, 2]
-            fused_feature = torch.matmul(img_feat, group_text_features)  # [bs, patch_num, 2]
-            seg_logits = fused_feature.permute(0, 2, 1).view(B, 2, H, H)  # [bs, 2, H, H]
-            group_seg_preds.append(seg_logits)  # [bs, 2, H, H]
+            
+            # T_norm and T_abnorm from text_features
+            # text_features has shape [n_groups, bs, 768, 2]
+            T_norm = text_features[:, :, :, 0].permute(1, 0, 2)  # [bs, n_groups, 768]
+            T_abnorm = text_features[:, :, :, 1].permute(1, 0, 2)  # [bs, n_groups, 768]
+            
+            # Forward through MambaDFGBlock
+            seg_logits = self.image_adapter["vision_text_gate"][i](
+                img_feat, T_norm, T_abnorm, self.image_adapter.tau
+            )
+            group_seg_preds.append(seg_logits)
+            
         if test_mode:
             sigma = 1 if domain == "Industrial" else 1.5
             kernel_size = 7 if domain == "Industrial" else 9

@@ -67,12 +67,20 @@ class TextAndImageDataset(Dataset):
     def __getitem__(self, idx):
         meta = self.meta[idx]
         data_path = self.data_path
-        img_path = os.path.join(data_path, meta["image_path"])
+        
+        image_rel = meta["image_path"]
+        if meta.get("class_name") in ["Brain", "Liver", "Retina"]:
+            image_rel = "test/" + image_rel
+            
+        img_path = os.path.join(data_path, image_rel)
         img = Image.open(img_path).convert("RGB")
 
         img = self.transform_x(img)
         if meta["label"]:
-            mask_path = os.path.join(data_path, meta["mask_path"])
+            mask_rel = meta["mask_path"]
+            if meta.get("class_name") in ["Brain", "Liver", "Retina"]:
+                mask_rel = "test/" + mask_rel
+            mask_path = os.path.join(data_path, mask_rel)
             mask = Image.open(mask_path).convert("L")
             mask = self.transform_mask(mask)
             mask = (mask != 0).float()
@@ -138,11 +146,19 @@ class BaseSingleClassDataset(Dataset):
 
     def __getitem__(self, idx):
         meta = self.meta[idx]
-        img_path = os.path.join(self.data_path, meta["image_path"])
+        
+        image_rel = meta["image_path"]
+        if meta.get("class_name") in ["Brain", "Liver", "Retina"]:
+            image_rel = "test/" + image_rel
+            
+        img_path = os.path.join(self.data_path, image_rel)
         img = Image.open(img_path).convert("RGB")
         img = self.transform_x(img)
         if meta["label"]:
-            mask_path = os.path.join(self.data_path, meta["mask_path"])
+            mask_rel = meta["mask_path"]
+            if meta.get("class_name") in ["Brain", "Liver", "Retina"]:
+                mask_rel = "test/" + mask_rel
+            mask_path = os.path.join(self.data_path, mask_rel)
             mask = Image.open(mask_path).convert("L")
             mask = self.transform_mask(mask)
             mask = (mask != 0).float()

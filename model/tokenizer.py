@@ -7,7 +7,8 @@ from typing import Union, List
 import ftfy
 import regex as re
 import torch
-from pkg_resources import packaging
+import packaging
+import packaging.version
 
 
 @lru_cache()
