@@ -318,7 +318,7 @@ class ACDCLIP(nn.Module):
         det_tokens_norm = [
             self.image_adapter["det_layer_norms"][i](t) for i, t in enumerate(det_tokens_proj)
         ]
-        det_tokens = [F.normalize(t, dim=-1).mean(1) for t in det_tokens_norm]  # L2归一化 + 全局平均池化
+        det_tokens = [F.normalize(t.mean(1), dim=-1) for t in det_tokens_norm]  # 全局平均池化 + L2归一化
 
         return seg_tokens, det_tokens
 

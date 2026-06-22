@@ -54,12 +54,13 @@ def get_predictions(
         B = seg_features.shape[1]
         epoch_text_features_rep = epoch_text_features.repeat(1, B, 1, 1)
         
+        logit_scale = 10.0
         # Class predictions for view 1
         cls_preds_total = [
             torch.matmul(
                 det_features[i].unsqueeze(dim=1),
                 epoch_text_features_rep[i],
-            ).squeeze(1) for i in range(det_features.shape[0])
+            ).squeeze(1) * logit_scale for i in range(det_features.shape[0])
         ]
         cls_preds_total = torch.stack(cls_preds_total, dim=0).mean(dim=0) # [bs, 2]
         
@@ -77,7 +78,7 @@ def get_predictions(
             torch.matmul(
                 det_features_h[i].unsqueeze(dim=1),
                 epoch_text_features_rep[i],
-            ).squeeze(1) for i in range(det_features_h.shape[0])
+            ).squeeze(1) * logit_scale for i in range(det_features_h.shape[0])
         ]
         cls_preds_h = torch.stack(cls_preds_h, dim=0).mean(dim=0)
         cls_preds_total = cls_preds_total + cls_preds_h
@@ -96,7 +97,7 @@ def get_predictions(
             torch.matmul(
                 det_features_v[i].unsqueeze(dim=1),
                 epoch_text_features_rep[i],
-            ).squeeze(1) for i in range(det_features_v.shape[0])
+            ).squeeze(1) * logit_scale for i in range(det_features_v.shape[0])
         ]
         cls_preds_v = torch.stack(cls_preds_v, dim=0).mean(dim=0)
         cls_preds_total = cls_preds_total + cls_preds_v
@@ -115,7 +116,7 @@ def get_predictions(
             torch.matmul(
                 det_features_r[i].unsqueeze(dim=1),
                 epoch_text_features_rep[i],
-            ).squeeze(1) for i in range(det_features_r.shape[0])
+            ).squeeze(1) * logit_scale for i in range(det_features_r.shape[0])
         ]
         cls_preds_r = torch.stack(cls_preds_r, dim=0).mean(dim=0)
         cls_preds_total = cls_preds_total + cls_preds_r
