@@ -314,6 +314,7 @@ def main():
             image_state_dict["log_tau"] = torch.tensor(math.log(max(val, 0.01)))
             
         model.image_adapter.load_state_dict(image_state_dict)
+        model.text_adapter.load_state_dict(checkpoint["text_adapter"])
         start_epoch = checkpoint["epoch"]
 
     # load dataset
