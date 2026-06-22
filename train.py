@@ -68,11 +68,12 @@ def train(
                 seg_tokens, det_tokens = model(image)  # [bs, patch_size, 768] * n_groups, [bs, 768] * n_groups
                 seg_features = torch.stack(seg_tokens, dim=0)  # [n_groups, bs, patch_num, 768]
                 det_features = torch.stack(det_tokens, dim=0)  # [n_groups, bs, 768]
+                logit_scale = 10.0
                 cls_pred = [
                     torch.matmul(
                         det_features[i].unsqueeze(dim=1),  # [bs, 1, 768]
                         epoch_text_features[i],  # [bs, 768, 2]
-                    ).squeeze(1)
+                    ).squeeze(1) * logit_scale
                     for i in range(det_features.shape[0])
                 ]  # [bs, 2] * n_groups
                 cls_pred = torch.stack(cls_pred, dim=0).mean(dim=0)  # [bs, 2]
