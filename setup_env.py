@@ -44,12 +44,24 @@ def main():
     
     if success:
         print("\n[SUCCESS] VMamba selective_scan kernels compiled and installed successfully!")
+        print("VMamba will run at native high speed using compiled CUDA kernels.")
     else:
-        print("\n[WARNING] selective_scan compilation failed.")
-        print("This is normal on machines without C++ compilers or CUDA Toolkit.")
-        print("Mamba DFG Blocks will automatically fall back to native PyTorch scanning,")
-        print("which is mathematically identical and runs successfully (tested on CPU/GPU).")
-        print("You can proceed with training and testing.")
+        print("\n=========================================================================")
+        print("  WARNING: SELECTIVE SCAN COMPILATION FAILED (FALLBACK MODE ENABLED)   ")
+        print("=========================================================================")
+        print("The installation of the custom selective_scan CUDA kernels failed.")
+        print("The code will fall back to native PyTorch scanning, but please note:")
+        print("--> HUY NOTE: RUNNING Huấn luyện/Test TRONG CHẾ ĐỘ FALLBACK SẼ CỰC KỲ CHẬM!")
+        print("Do sử dụng vòng lặp Python thuần theo chiều dọc của sequence length L=1369.")
+        print("\nĐể biên dịch thành công chạy tốc độ cao trên máy lab trường:")
+        print("1. Hãy chắc chắn máy lab đã cài đặt CUDA Toolkit (trùng với phiên bản PyTorch).")
+        print("2. Đảm bảo có sẵn trình biên dịch C++:")
+        print("   - Trên Linux (Lab Ubuntu): Chạy 'sudo apt install build-essential'")
+        print("   - Trên Windows: Cài đặt Visual Studio Build Tools và tích chọn C++ workload.")
+        print("3. Đảm bảo các biến môi trường PATH đã trỏ đúng đến 'nvcc' và 'cl' / 'g++'.")
+        print("\nBạn vẫn có thể chạy thử nghiệm nhỏ để test lỗi logic, nhưng hãy sửa lỗi")
+        print("biên dịch trên trước khi chạy huấn luyện chính thức.")
+        print("=========================================================================")
 
     # 4. Run sanity validation test
     print("\nWould you like to run the mathematical sanity check validation now?")
