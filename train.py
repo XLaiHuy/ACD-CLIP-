@@ -266,7 +266,11 @@ def main():
         "train"
     )
     dataloader = torch.utils.data.DataLoader(
-        dataset, batch_size=args.batch_size, shuffle=True
+        dataset, 
+        batch_size=args.batch_size, 
+        shuffle=True,
+        num_workers=4 if os.name != 'nt' else 0,
+        pin_memory=True
     )
     logger.info("training ...")
     model = train(
