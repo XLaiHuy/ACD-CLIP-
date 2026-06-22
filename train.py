@@ -31,6 +31,7 @@ def train(
         save_path: str,
         logger: logging.Logger,
         use_amp: bool = False,
+        accum_iter: int = 1,
 ):
     scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
     for epoch in range(0, total_epoch):
@@ -38,13 +39,14 @@ def train(
         loss_list = []
         seg_loss_list = []
         tqdm_train_loader = tqdm(train_loader)
-        for input_data in tqdm_train_loader:
+        
+        optimizer.zero_grad()
+        for step, input_data in enumerate(tqdm_train_loader):
             image = input_data["image"].to(device)
             mask = input_data["mask"].to(device)
             label = input_data["label"].to(device)
             class_names = input_data["class_name"]
             
-            optimizer.zero_grad()
             with torch.cuda.amp.autocast(enabled=use_amp):
                 # get adapted text embedding
                 epoch_text_feature_dict = {}
@@ -74,27 +76,31 @@ def train(
                 seg_pred = model.vision_text_fusion_gate_seg(seg_features, epoch_text_features)
                 seg_loss = calculate_seg_loss(seg_pred, mask)
                 loss += seg_loss
+                loss = loss / accum_iter
             seg_loss_list.append(seg_loss.item())
             
             # backward with scaler
             scaler.scale(loss).backward()
             
-            # clip gradient
-            scaler.unscale_(optimizer)
-            for m_i_w in model.image_adapter["m_i_w"]:
-                nn.utils.clip_grad_norm_(m_i_w.parameters(), 1.0)
-            for m_t_w in model.text_adapter["m_t_w"]:
-                nn.utils.clip_grad_norm_(m_t_w.parameters(), 1.0)
-                
-            # update parameters
-            scaler.step(optimizer)
-            scaler.update()
+            # update parameters only after accumulating enough gradients
+            if (step + 1) % accum_iter == 0 or (step + 1) == len(train_loader):
+                # clip gradient
+                scaler.unscale_(optimizer)
+                for m_i_w in model.image_adapter["m_i_w"]:
+                    nn.utils.clip_grad_norm_(m_i_w.parameters(), 1.0)
+                for m_t_w in model.text_adapter["m_t_w"]:
+                    nn.utils.clip_grad_norm_(m_t_w.parameters(), 1.0)
+                    
+                # update parameters
+                scaler.step(optimizer)
+                scaler.update()
+                optimizer.zero_grad()
             
-            loss_list.append(loss.item())
+            loss_list.append(loss.item() * accum_iter)
             tqdm_train_loader.set_postfix({
                 "epoch": f"{epoch + 1} / {total_epoch}",
-                "loss": f"{loss.item():.4f}",
-                "det_loss": f"{loss.item() - seg_loss.item():.4f}",
+                "loss": f"{(loss.item() * accum_iter):.4f}",
+                "det_loss": f"{(loss.item() * accum_iter) - seg_loss.item():.4f}",
                 "seg_loss": f"{seg_loss.item():.4f}",
                 "mean_seg_loss": f"{np.mean(seg_loss_list):.4f}",
                 "mean_loss": f"{np.mean(loss_list):.4f}",
@@ -158,6 +164,12 @@ def main():
         "--amp",
         action="store_true",
         help="Enable Automatic Mixed Precision (AMP) training"
+    )
+    parser.add_argument(
+        "--accum_iter",
+        type=int,
+        default=1,
+        help="Number of steps for gradient accumulation (default: 1)"
     )
 
     args = parser.parse_args()
@@ -248,6 +260,7 @@ def main():
         save_path=args.save_path,
         logger=logger,
         use_amp=args.amp,
+        accum_iter=args.accum_iter,
     )
 
 
