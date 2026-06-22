@@ -259,7 +259,7 @@ class ACDCLIP(nn.Module):
         for i in range(24):
             if use_checkpoint and not torch.jit.is_scripting():
                 from torch.utils.checkpoint import checkpoint
-                x, attn = checkpoint(self.image_encoder.transformer.resblocks[i], x, None, None, None)
+                x, attn = checkpoint(self.image_encoder.transformer.resblocks[i], x, None, None, None, use_reentrant=False)
             else:
                 x, attn = self.image_encoder.transformer.resblocks[i](x, attn_mask=None)
             # [1370, bs, 1024]
@@ -328,6 +328,7 @@ class ACDCLIP(nn.Module):
         B, patch_size, _ = vision_tokens.shape[1:]
         H = int(np.sqrt(patch_size))
         group_seg_preds = []
+        use_checkpoint = getattr(self.image_encoder.transformer, "grad_checkpointing", False)
         for i in range(self.n_groups):
             img_feat = vision_tokens[i]  # [bs, patch_num, 768]
             
@@ -337,9 +338,20 @@ class ACDCLIP(nn.Module):
             T_abnorm = text_features[:, :, :, 1].permute(1, 0, 2)  # [bs, n_groups, 768]
             
             # Forward through MambaDFGBlock
-            seg_logits = self.image_adapter["vision_text_gate"][i](
-                img_feat, T_norm, T_abnorm, self.image_adapter.tau
-            )
+            if use_checkpoint and not torch.jit.is_scripting():
+                from torch.utils.checkpoint import checkpoint
+                seg_logits = checkpoint(
+                    self.image_adapter["vision_text_gate"][i],
+                    img_feat,
+                    T_norm,
+                    T_abnorm,
+                    self.image_adapter.tau,
+                    use_reentrant=False
+                )
+            else:
+                seg_logits = self.image_adapter["vision_text_gate"][i](
+                    img_feat, T_norm, T_abnorm, self.image_adapter.tau
+                )
             group_seg_preds.append(seg_logits)
             
         if test_mode:
@@ -392,6 +404,7 @@ class ACDCLIP(nn.Module):
                     None,
                     None,
                     self.clipmodel.attn_mask,
+                    use_reentrant=False
                 )
             else:
                 x, attn = self.clipmodel.transformer.resblocks[i](
