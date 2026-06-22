@@ -255,8 +255,13 @@ class ACDCLIP(nn.Module):
         x = x.permute(1, 0, 2)
 
         group_outs = []
+        use_checkpoint = getattr(self.image_encoder.transformer, "grad_checkpointing", False)
         for i in range(24):
-            x, attn = self.image_encoder.transformer.resblocks[i](x, attn_mask=None)
+            if use_checkpoint and not torch.jit.is_scripting():
+                from torch.utils.checkpoint import checkpoint
+                x, attn = checkpoint(self.image_encoder.transformer.resblocks[i], x, None, None, None)
+            else:
+                x, attn = self.image_encoder.transformer.resblocks[i](x, attn_mask=None)
             # [1370, bs, 1024]
             index = -1
             for j in range(self.n_groups):
@@ -377,10 +382,21 @@ class ACDCLIP(nn.Module):
         x = x.permute(1, 0, 2)  # NLD -> LND
 
         out_features = []
+        use_checkpoint = getattr(self.clipmodel.transformer, "grad_checkpointing", False)
         for i in range(12):
-            x, attn = self.clipmodel.transformer.resblocks[i](
-                x, attn_mask=self.clipmodel.attn_mask
-            )
+            if use_checkpoint and not torch.jit.is_scripting():
+                from torch.utils.checkpoint import checkpoint
+                x, attn = checkpoint(
+                    self.clipmodel.transformer.resblocks[i],
+                    x,
+                    None,
+                    None,
+                    self.clipmodel.attn_mask,
+                )
+            else:
+                x, attn = self.clipmodel.transformer.resblocks[i](
+                    x, attn_mask=self.clipmodel.attn_mask
+                )
             index = -1
             for j in range(self.n_groups):
                 if i + 1 == self.text_levels[j]:

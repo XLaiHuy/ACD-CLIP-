@@ -30,7 +30,9 @@ def train(
         total_epoch: int,
         save_path: str,
         logger: logging.Logger,
+        use_amp: bool = False,
 ):
+    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
     for epoch in range(0, total_epoch):
         logger.info(f"training epoch {epoch + 1} / {total_epoch}")
         loss_list = []
@@ -41,45 +43,53 @@ def train(
             mask = input_data["mask"].to(device)
             label = input_data["label"].to(device)
             class_names = input_data["class_name"]
-            # get adapted text embedding
-            epoch_text_feature_dict = {}
-            for class_name in list(set(class_names)):
-                text_embedding_levels = get_multiple_adapted_single_class_text_embedding(
-                    model, dataset_name, class_name, device
-                )
-                epoch_text_feature_dict[class_name] = text_embedding_levels  # [n_groups, 768, 2]
-            epoch_text_features = torch.stack(
-                [epoch_text_feature_dict[class_name] for class_name in class_names],
-                dim=0,
-            )  # [bs, n_groups, 768, 2]
-            epoch_text_features = epoch_text_features.permute(1, 0, 2, 3)  # [n_groups, bs, 768, 2]
-            seg_tokens, det_tokens = model(image)  # [bs, patch_size, 768] * n_groups, [bs, 768] * n_groups
-            seg_features = torch.stack(seg_tokens, dim=0)  # [n_groups, bs, patch_num, 768]
-            det_features = torch.stack(det_tokens, dim=0)  # [n_groups, bs, 768]
-            cls_pred = [
-                torch.matmul(
-                    det_features[i].unsqueeze(dim=1),  # [bs, 1, 768]
-                    epoch_text_features[i],  # [bs, 768, 2]
-                ).squeeze(1)
-                for i in range(det_features.shape[0])
-            ]  # [bs, 2] * n_groups
-            cls_pred = torch.stack(cls_pred, dim=0).mean(dim=0)  # [bs, 2]
-            loss = F.cross_entropy(cls_pred, label)
-            # [bs, 2, img_size, img_size]
-            seg_pred = model.vision_text_fusion_gate_seg(seg_features, epoch_text_features)
-            seg_loss = calculate_seg_loss(seg_pred, mask)
-            loss += seg_loss
-            seg_loss_list.append(seg_loss.item())
-            # backward
+            
             optimizer.zero_grad()
-            loss.backward()
+            with torch.cuda.amp.autocast(enabled=use_amp):
+                # get adapted text embedding
+                epoch_text_feature_dict = {}
+                for class_name in list(set(class_names)):
+                    text_embedding_levels = get_multiple_adapted_single_class_text_embedding(
+                        model, dataset_name, class_name, device
+                    )
+                    epoch_text_feature_dict[class_name] = text_embedding_levels  # [n_groups, 768, 2]
+                epoch_text_features = torch.stack(
+                    [epoch_text_feature_dict[class_name] for class_name in class_names],
+                    dim=0,
+                )  # [bs, n_groups, 768, 2]
+                epoch_text_features = epoch_text_features.permute(1, 0, 2, 3)  # [n_groups, bs, 768, 2]
+                seg_tokens, det_tokens = model(image)  # [bs, patch_size, 768] * n_groups, [bs, 768] * n_groups
+                seg_features = torch.stack(seg_tokens, dim=0)  # [n_groups, bs, patch_num, 768]
+                det_features = torch.stack(det_tokens, dim=0)  # [n_groups, bs, 768]
+                cls_pred = [
+                    torch.matmul(
+                        det_features[i].unsqueeze(dim=1),  # [bs, 1, 768]
+                        epoch_text_features[i],  # [bs, 768, 2]
+                    ).squeeze(1)
+                    for i in range(det_features.shape[0])
+                ]  # [bs, 2] * n_groups
+                cls_pred = torch.stack(cls_pred, dim=0).mean(dim=0)  # [bs, 2]
+                loss = F.cross_entropy(cls_pred, label)
+                # [bs, 2, img_size, img_size]
+                seg_pred = model.vision_text_fusion_gate_seg(seg_features, epoch_text_features)
+                seg_loss = calculate_seg_loss(seg_pred, mask)
+                loss += seg_loss
+            seg_loss_list.append(seg_loss.item())
+            
+            # backward with scaler
+            scaler.scale(loss).backward()
+            
             # clip gradient
+            scaler.unscale_(optimizer)
             for m_i_w in model.image_adapter["m_i_w"]:
                 nn.utils.clip_grad_norm_(m_i_w.parameters(), 1.0)
             for m_t_w in model.text_adapter["m_t_w"]:
                 nn.utils.clip_grad_norm_(m_t_w.parameters(), 1.0)
+                
             # update parameters
-            optimizer.step()
+            scaler.step(optimizer)
+            scaler.update()
+            
             loss_list.append(loss.item())
             tqdm_train_loader.set_postfix({
                 "epoch": f"{epoch + 1} / {total_epoch}",
@@ -139,6 +149,17 @@ def main():
     parser.add_argument("--text_lr", type=float, default=0.0005, help="learning rate for text adapter")
     parser.add_argument("--lr_gamma", type=float, default=0.9, help="learning rate decay factor")
 
+    parser.add_argument(
+        "--grad_checkpointing",
+        action="store_true",
+        help="Enable gradient checkpointing (activation checkpointing) to save VRAM (mathematically identical results)"
+    )
+    parser.add_argument(
+        "--amp",
+        action="store_true",
+        help="Enable Automatic Mixed Precision (AMP) training"
+    )
+
     args = parser.parse_args()
     # ========================================================
     # check save_path and setting logger
@@ -153,7 +174,7 @@ def main():
         datefmt="%Y-%m-%d %H:%M:%S",
     )
     logger.info("args: %s", vars(args))
-    device = torch.device(f"cuda:{args.cuda_device}" if torch.cuda.is_available() else "cpu")
+    device = torch.device(f"cuda:{args.cuda_device}" if torch.cuda.is_available() and args.cuda_device >= 0 else "cpu")
     clip_model = create_model(
         model_name=args.model_name,
         img_size=args.img_size,
@@ -174,6 +195,21 @@ def main():
         lora_alpha=args.lora_alpha,
     ).to(device)
     model.eval()
+
+    if args.grad_checkpointing:
+        clip_model.set_grad_checkpointing(True)
+
+    # Freeze CLIP backbone and unfreeze adapters
+    model.requires_grad_(False)
+    model.text_adapter.requires_grad_(True)
+    model.image_adapter.requires_grad_(True)
+
+    # Log trainable vs frozen parameter counts
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    frozen_params = sum(p.numel() for p in model.parameters() if not p.requires_grad)
+    logger.info(f"Trainable parameters: {trainable_params:,}")
+    logger.info(f"Frozen parameters: {frozen_params:,}")
+
     # set optimizer
     optimizer = torch.optim.Adam([
         {
@@ -211,6 +247,7 @@ def main():
         total_epoch=args.epoch,
         save_path=args.save_path,
         logger=logger,
+        use_amp=args.amp,
     )
 
 
