@@ -1,4 +1,15 @@
+import os
+
+# Auto-detect BASE_PATH containing the 'data' directory across different environments
 BASE_PATH = "C:/Users/HUY/Documents/ACD-CLIP++"
+candidate_paths = [
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")),
+]
+for p in candidate_paths:
+    if os.path.exists(os.path.join(p, "data")):
+        BASE_PATH = p.replace("\\", "/")
+        break
 DATA_PATH = {
     "Brain": f"{BASE_PATH}/data/MedAD/Brain_AD",
     "Liver": f"{BASE_PATH}/data/MedAD/Liver_AD",
