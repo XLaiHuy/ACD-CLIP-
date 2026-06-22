@@ -36,64 +36,70 @@ medical benchmarks, demonstrating significant improvements in accuracy and robus
 * **Parameter-Efficient Fine-Tuning (PEFT)**: Leverages PEFT to enable architectural modifications while keeping the
   original VLM weights frozen.
 
-## Getting Started
+### Getting Started
 
-### Prerequisites
+### Installation & Environment Setup
 
-* Python 3.10+
-* PyTorch 2.5.1+cu121
-* torchvision 0.20.1+cu121
-* Other dependencies listed in `requirements.txt`
+This repository has been optimized for **single-command setup**. All dependencies, including CUDA-enabled PyTorch, auxiliary libraries, and the **VMamba C++ selective scan kernel compilation**, are bundled directly into `requirements.txt`.
 
-### Installation
-
-1. Clone the repository:
+1. **Clone the repository:**
    ```bash
-   git clone https://github.com/cockmake/ACD-CLIP.git
-   cd ACD-CLIP
+   git clone https://github.com/XLaiHuy/ACD-CLIP-.git
+   cd ACD-CLIP-
    ```
 
-2. Install the required dependencies:
+2. **Download Model Weights:**
+   Create a `model` directory and download the OpenCLIP ViT-L-14-336px weights:
+   - **Linux / Colab:**
+     ```bash
+     mkdir -p model
+     wget https://openaipublic.azureedge.net/clip/models/3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02/ViT-L-14-336px.pt -O ./model/ViT-L-14-336px.pt
+     ```
+   - **Windows:** Download the file manually from the link above and place it in the `./model/` folder.
+
+3. **Install Dependencies & Build Kernels:**
+   Run the following command to install PyTorch CUDA and automatically compile the C++ kernels:
    ```bash
    pip install -r requirements.txt
    ```
+   > [!NOTE]
+   > **For Windows users:** To compile the VMamba C++ extension, ensure you have Microsoft Visual Studio installed with the **"Desktop development with C++"** option enabled before running the pip install command.
 
-3. Download the OpenCLIP ViT-L-14-336px model weights and place them in the `./model/` directory:
-   ```bash
-   wget https://openaipublic.azureedge.net/clip/models/3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02/ViT-L-14-336px.pt -P ./model/
+### Dataset Path Configuration
+
+1. Extract your dataset (e.g., `data.zip`) into a directory (e.g., `/content/data` on Colab, or `D:/data` on local Windows).
+2. Open the file [dataset/info.py](file:///c:/Users/HUY/Documents/ACD-CLIP++/phase1_DFG+Attention/ACD-CLIP/dataset/info.py) and update the `BASE_PATH` variable to point to your extracted directory:
+   ```python
+   BASE_PATH = "D:/data"  # Use forward slashes '/' even on Windows
    ```
+
+---
 
 ## Usage
 
 ### Training
 
-To train the ACD-CLIP model, run the following command:
+To train the ACD-CLIP model, run `train.py`. The recommended optimized commands for different environments are:
 
+#### ⚡ Google Colab (Optimized for Free Tesla T4 GPU)
 ```bash
-python train.py --dataset <dataset_name> --save_path <path_to_save_checkpoints>
+# Mount Drive first to enable persistent checkpoints
+python train.py --amp --n_groups 3 --batch_size 12 --save_path "/content/drive/MyDrive/ACD_CLIP_ckpts"
 ```
 
-You can customize the training process by modifying the arguments in the `train.py` script. The available arguments
-include:
+#### 🖥️ Local PC / Server (e.g., RTX 3080/4090 or A100 GPU)
+```bash
+python train.py --amp --n_groups 3 --batch_size 12 --save_path "./ckpt_VisA_N3"
+```
+*(Disable `--grad_checkpointing` for faster local runs if you have sufficient VRAM).*
 
-* `--model_name`: The CLIP model to use (default: `ViT-L-14-336`)
-* `--img_size`: The input image size (default: `518`)
-* `--dataset`: The dataset to train on (e.g., `VisA`, `MVTec`)
-* `--batch_size`: The batch size for training (default: `6`)
-* `--epoch`: The number of training epochs (default: `20`)
-* `--cuda_device`: The CUDA device ID to use (default: `0`)
-* `--save_path`: The path to save checkpoints (default: `ckpt/test`)
-* `--n_groups`: The number of groups for the adapter (default: `4`)
-* `--image_adapt_weight`: The weight for the image adapter (default: `0.2`)
-* `--conv_lora_rank`: The rank for Conv-LoRA adapters (default: `8`)
-* `--conv_lora_alpha`: The alpha for Conv-LoRA adapters (default: `2.0`)
-* `--conv_kernel_size_list`: The kernel sizes for Conv-LoRA adapters (default: `[3, 5]`)
-* `--text_adapt_weight`: The weight for the text adapter (default: `0.2`)
-* `--lora_rank`: The rank for LoRA adapters (default: `16`)
-* `--lora_alpha`: The alpha for LoRA adapters (default: `2.0`)
-* `--image_lr`: The learning rate for the image adapter (default: `0.001`)
-* `--text_lr`: The learning rate for the text adapter (default: `0.0005`)
-* `--lr_gamma`: The learning rate decay factor (default: `0.9`)
+Available arguments in `train.py` include:
+* `--amp`: Enable Automatic Mixed Precision (AMP) for significantly faster training and lower VRAM usage.
+* `--n_groups`: The number of groups for the adapter (default: `4`, change to `3` for VisA dataset to get higher speed and better performance).
+* `--batch_size`: The batch size for training (default: `6`, change to `12` or higher to maximize GPU utility).
+* `--grad_checkpointing`: Enable gradient checkpointing to save VRAM at the cost of ~25% training speed.
+* `--save_path`: Directory to save `.pth` checkpoints at the end of each epoch.
+* `--resume`: Path to a checkpoint to resume training from.
 
 ### Testing
 
