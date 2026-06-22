@@ -54,7 +54,7 @@ def get_predictions(
         B = seg_features.shape[1]
         epoch_text_features_rep = epoch_text_features.repeat(1, B, 1, 1)
         
-        logit_scale = 10.0
+        logit_scale = model.clipmodel.logit_scale.exp()
         # Class predictions for view 1
         cls_preds_total = [
             torch.matmul(
