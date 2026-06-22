@@ -198,8 +198,15 @@ def main():
     ckp_files = glob(args.save_path + "/adapter_*.pth")
     assert len(ckp_files) > 0, "adapter checkpoint not found"
     for file in ckp_files:
-        checkpoint = torch.load(file)
-        model.image_adapter.load_state_dict(checkpoint["image_adapter"])
+        checkpoint = torch.load(file, map_location=device)
+        image_state_dict = checkpoint["image_adapter"]
+        if "tau" in image_state_dict:
+            tau_val = image_state_dict.pop("tau")
+            import math
+            val = float(tau_val.item() if hasattr(tau_val, "item") else tau_val)
+            image_state_dict["log_tau"] = torch.tensor(math.log(max(val, 0.01)))
+            
+        model.image_adapter.load_state_dict(image_state_dict)
         model.text_adapter.load_state_dict(checkpoint["text_adapter"])
         test_epoch = checkpoint["epoch"]
         logger.info("-----------------------------------------------")

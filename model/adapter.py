@@ -200,8 +200,8 @@ class ACDCLIP(nn.Module):
                 "vision_text_gate": vision_text_gate,
             }
         )
-        # Register learnable temperature tau to image_adapter so it is saved/loaded in state_dict
-        self.image_adapter.register_parameter('tau', nn.Parameter(torch.tensor(0.07)))
+        # Register learnable log_tau to image_adapter so it is saved/loaded in state_dict
+        self.image_adapter.register_parameter('log_tau', nn.Parameter(torch.tensor(np.log(0.07))))
 
         text_adapt_weights = nn.ModuleList(
             [AddWeight(text_adapt_weight, is_text=True) for _ in range(n_groups)]
@@ -337,6 +337,9 @@ class ACDCLIP(nn.Module):
             T_norm = text_features[:, :, :, 0].permute(1, 0, 2)  # [bs, n_groups, 768]
             T_abnorm = text_features[:, :, :, 1].permute(1, 0, 2)  # [bs, n_groups, 768]
             
+            # Compute tau from log_tau and clamp it between 0.01 and 1.0 to prevent division by zero / negative temperature
+            tau = torch.clamp(self.image_adapter.log_tau.exp(), min=0.01, max=1.0)
+            
             # Forward through MambaDFGBlock
             if use_checkpoint and not torch.jit.is_scripting():
                 from torch.utils.checkpoint import checkpoint
@@ -345,12 +348,12 @@ class ACDCLIP(nn.Module):
                     img_feat,
                     T_norm,
                     T_abnorm,
-                    self.image_adapter.tau,
+                    tau,
                     use_reentrant=False
                 )
             else:
                 seg_logits = self.image_adapter["vision_text_gate"][i](
-                    img_feat, T_norm, T_abnorm, self.image_adapter.tau
+                    img_feat, T_norm, T_abnorm, tau
                 )
             group_seg_preds.append(seg_logits)
             

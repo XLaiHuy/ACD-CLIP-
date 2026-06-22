@@ -254,8 +254,15 @@ def main():
     if args.resume:
         logger.info(f"resuming from checkpoint {args.resume} ...")
         checkpoint = torch.load(args.resume, map_location=device)
-        model.text_adapter.load_state_dict(checkpoint["text_adapter"])
-        model.image_adapter.load_state_dict(checkpoint["image_adapter"])
+        # Backward compatibility conversion for tau -> log_tau
+        image_state_dict = checkpoint["image_adapter"]
+        if "tau" in image_state_dict:
+            tau_val = image_state_dict.pop("tau")
+            import math
+            val = float(tau_val.item() if hasattr(tau_val, "item") else tau_val)
+            image_state_dict["log_tau"] = torch.tensor(math.log(max(val, 0.01)))
+            
+        model.image_adapter.load_state_dict(image_state_dict)
         start_epoch = checkpoint["epoch"]
 
     # load dataset
