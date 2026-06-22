@@ -24,11 +24,17 @@ except ImportError:
     sys.modules['triton.compiler.compiler'] = MagicMock()
 
 # Dynamically import SS2D from VMamba repo
-vmamba_path = "C:/Users/HUY/Documents/ACD-CLIP++/VMamba"
-if os.path.exists(vmamba_path):
-    sys.path.append(vmamba_path)
-else:
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../VMamba")))
+possible_paths = [
+    "C:/Users/HUY/Documents/ACD-CLIP++/VMamba",
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../VMamba")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../../VMamba")),
+    "/content/VMamba",
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../VMamba"))
+]
+for p in possible_paths:
+    if os.path.exists(p):
+        sys.path.append(p)
+        break
 
 import vmamba
 # Ensure Triton is disabled if we had to mock it
