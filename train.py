@@ -32,9 +32,14 @@ def train(
         logger: logging.Logger,
         use_amp: bool = False,
         accum_iter: int = 1,
+        start_epoch: int = 0,
 ):
     scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
-    for epoch in range(0, total_epoch):
+    # Align scheduler step with start_epoch if resuming
+    for _ in range(start_epoch):
+        scheduler.step()
+
+    for epoch in range(start_epoch, total_epoch):
         logger.info(f"training epoch {epoch + 1} / {total_epoch}")
         loss_list = []
         seg_loss_list = []
@@ -171,6 +176,12 @@ def main():
         default=1,
         help="Number of steps for gradient accumulation (default: 1)"
     )
+    parser.add_argument(
+        "--resume",
+        type=str,
+        default="",
+        help="Path to checkpoint to resume training from (default: '')"
+    )
 
     args = parser.parse_args()
     # ========================================================
@@ -238,6 +249,15 @@ def main():
         step_size=1,
         gamma=args.lr_gamma,
     )
+    
+    start_epoch = 0
+    if args.resume:
+        logger.info(f"resuming from checkpoint {args.resume} ...")
+        checkpoint = torch.load(args.resume, map_location=device)
+        model.text_adapter.load_state_dict(checkpoint["text_adapter"])
+        model.image_adapter.load_state_dict(checkpoint["image_adapter"])
+        start_epoch = checkpoint["epoch"]
+
     # load dataset
     logger.info("loading dataset ...")
     dataset = get_text_and_image_dataset(
@@ -261,6 +281,7 @@ def main():
         logger=logger,
         use_amp=args.amp,
         accum_iter=args.accum_iter,
+        start_epoch=start_epoch,
     )
 
 
