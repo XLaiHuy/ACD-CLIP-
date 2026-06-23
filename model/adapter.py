@@ -8,11 +8,12 @@ import sys
 import os
 import math
 
+from unittest.mock import MagicMock
+
 # Try to mock triton if not installed, to prevent VMamba's import-time jit decorator errors
 try:
     import triton
 except ImportError:
-    from unittest.mock import MagicMock
     triton_mock = MagicMock()
     triton_mock.jit = lambda f: f
     triton_mock.__path__ = []
