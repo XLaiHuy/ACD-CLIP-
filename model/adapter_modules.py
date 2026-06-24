@@ -287,6 +287,7 @@ class attention2d(nn.Module):
         x = self.fc1(x)
         x = F.silu(x)
         x = self.fc2(x).view(x.size(0), -1)
+        x = torch.clamp(x, min=-10.0, max=10.0)  # Prevent FP16 softmax overflow/underflow
         return F.softmax(x / self.temperature, dim=1)
 
 

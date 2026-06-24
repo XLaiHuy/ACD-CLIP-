@@ -37,14 +37,30 @@ class TextAndImageDataset(Dataset):
             transforms.RandomVerticalFlip(p=0.5),
         ]
 
-        transform_x = [
+        transform_x_industrial = [
             AddGaussianNoise(std=1, p=0.7),
             transforms.RandomApply([transforms.ColorJitter(brightness=0.5)], p=0.7),
             transforms.RandomApply([transforms.ColorJitter(contrast=0.5)], p=0.7),
             transforms.RandomApply([transforms.ColorJitter(saturation=0.5)], p=0.7)
         ]
-        self.transform_x = transforms.Compose(
-            transform_x
+        self.transform_x_industrial = transforms.Compose(
+            transform_x_industrial
+            + [
+                transforms.Resize((img_size, img_size), InterpolationMode.BICUBIC),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=(0.48145466, 0.4578275, 0.40821073),
+                    std=(0.26862954, 0.26130258, 0.27577711),
+                ),
+            ],
+        )
+
+        transform_x_medical = [
+            transforms.RandomApply([transforms.ColorJitter(brightness=0.15)], p=0.5),
+            transforms.RandomApply([transforms.ColorJitter(contrast=0.15)], p=0.5)
+        ]
+        self.transform_x_medical = transforms.Compose(
+            transform_x_medical
             + [
                 transforms.Resize((img_size, img_size), InterpolationMode.BICUBIC),
                 transforms.ToTensor(),
@@ -75,7 +91,12 @@ class TextAndImageDataset(Dataset):
         img_path = os.path.join(data_path, image_rel)
         img = Image.open(img_path).convert("RGB")
 
-        img = self.transform_x(img)
+        class_name = meta["class_name"]
+        domain = DOMAINS.get(class_name, "Industrial")
+        if domain == "Medical":
+            img = self.transform_x_medical(img)
+        else:
+            img = self.transform_x_industrial(img)
         if meta["label"]:
             mask_rel = meta["mask_path"]
             if meta.get("class_name") in ["Brain", "Liver", "Retina"]:

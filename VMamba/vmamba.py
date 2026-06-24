@@ -901,7 +901,7 @@ def selective_scan_fn(
     oflex=True,
     backend=None,
 ):
-    fn = selective_scan_torch if backend == "torch" or (not (WITH_SELECTIVESCAN_MAMBA or WITH_SELECTIVESCAN_OFLEX)) else SelectiveScanCuda.apply
+    fn = selective_scan_torch if backend == "torch" or not u.is_cuda or (not (WITH_SELECTIVESCAN_MAMBA or WITH_SELECTIVESCAN_OFLEX)) else SelectiveScanCuda.apply
     return fn(u, delta, A, B, C, D, delta_bias, delta_softplus, oflex, backend)
 
 

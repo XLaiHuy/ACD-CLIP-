@@ -76,12 +76,10 @@ class FocalLoss(nn.Module):
         if alpha.device != logit.device:
             alpha = alpha.to(logit.device)
 
-        idx = target.cpu().long()
+        idx = target.long()
 
-        one_hot_key = torch.FloatTensor(target.size(0), num_class).zero_()
+        one_hot_key = torch.zeros(target.size(0), num_class, device=logit.device)
         one_hot_key = one_hot_key.scatter_(1, idx, 1)
-        if one_hot_key.device != logit.device:
-            one_hot_key = one_hot_key.to(logit.device)
 
         if self.smooth:
             one_hot_key = torch.clamp(
@@ -146,9 +144,9 @@ def get_multiple_adapted_single_class_text_embedding(
         prompted_sentence = tokenize(prompted_sentence).to(device)
         multi_features = model.encode_text(prompted_sentence)
         for layer_feature in multi_features:
-            layer_feature = layer_feature / layer_feature.norm(dim=-1, keepdim=True)
+            layer_feature = layer_feature / (layer_feature.norm(dim=-1, keepdim=True) + 1e-5)
             layer_feature = layer_feature.mean(dim=0)
-            layer_feature = layer_feature / layer_feature.norm()
+            layer_feature = layer_feature / (layer_feature.norm() + 1e-5)
             multi_layer_features.append(layer_feature)
 
     text_features_levels = []
@@ -190,22 +188,22 @@ def metrics_eval_gpu(
         class_names: str,
         domain: str,
 ):
-    pixel_preds = torch.flatten(pixel_preds, start_dim=1)
+    pixel_preds = torch.flatten(pixel_preds, start_dim=1).float()
     pmax_pred, _ = torch.max(pixel_preds, dim=1)
     if domain == "Medical":
-        image_preds = image_preds * 0.5 + pmax_pred * 0.5
+        image_preds = image_preds.float() * 0.5 + pmax_pred * 0.5
     else:
-        image_preds = image_preds * 0.9 + pmax_pred * 0.1
+        image_preds = image_preds.float() * 0.9 + pmax_pred * 0.1
 
-    pixel_label = pixel_label.flatten()
+    pixel_label = pixel_label.flatten().long()
     pixel_preds = pixel_preds.flatten()
 
     zero_pixel_auc = auroc(pixel_preds, pixel_label, task="binary")
     zero_pixel_ap = average_precision(pixel_preds, pixel_label, task="binary")
 
     if image_label.max() != image_label.min():
-        image_label = image_label.flatten()
-        agg_image_preds = image_preds.flatten()
+        image_label = image_label.flatten().long()
+        agg_image_preds = image_preds.flatten().float()
         agg_image_auc = auroc(agg_image_preds, image_label, task="binary")
         agg_image_ap = average_precision(agg_image_preds, image_label, task="binary")
     else:

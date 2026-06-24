@@ -51,18 +51,18 @@ class MambaDFGBlock(nn.Module):
         super().__init__()
         self.n_groups = n_groups
         self.mamba_ln1 = nn.LayerNorm(c_in)
-        self.mamba_linear1 = nn.Linear(c_in, 2 * c_in)
-        self.mamba_silu = nn.SiLU()
-        self.mamba_ss2d = SS2D(d_model=2*c_in, channel_first=False, forward_type="v0")
-        self.mamba_linear2 = nn.Linear(2 * c_in, c_in)
-        self.mamba_ln2 = nn.LayerNorm(c_in)
+        # SS2D tự xử lý phóng đại kênh (C->4C) và nén kênh (4C->C) bên trong
+        # Không cần thêm Linear(C->2C) / SiLU / Linear(2C->C) bên ngoài (lỗi chiếu lồng nhau)
+        self.mamba_ss2d = SS2D(d_model=c_in, channel_first=False, forward_type="v0")
+        self.mamba_ln2 = nn.LayerNorm(c_in)  # Post-SS2D LN: đồng bộ scale với v_avg trước GAP
         
         # Learnable blending weight gamma (init 0)
         self.gamma = nn.Parameter(torch.zeros(1))
         
         # Cross-Attention projections
         self.query_proj = nn.Linear(c_in, d_k)
-        self.key_proj = nn.Linear(c_in, d_k)
+        self.key_proj_norm = nn.Linear(c_in, d_k)
+        self.key_proj_abnorm = nn.Linear(c_in, d_k)
         
     def forward(self, img_feat, T_norm, T_abnorm, tau):
         # img_feat: [bs, patch_num, c_in]
@@ -77,22 +77,21 @@ class MambaDFGBlock(nn.Module):
         v_avg = img_feat.mean(dim=1) # [bs, c_in]
         
         # v_mamba branch
-        V_i_2D = img_feat.view(bs, H, H, c_in) # [bs, H, H, c_in]
-        x_mamba = self.mamba_ln1(V_i_2D)
-        x_mamba = self.mamba_linear1(x_mamba)
-        x_mamba = self.mamba_silu(x_mamba)
-        x_mamba = self.mamba_ss2d(x_mamba) # [bs, H, H, 2*c_in]
-        x_mamba = self.mamba_linear2(x_mamba)
-        x_mamba = self.mamba_ln2(x_mamba)
-        v_mamba = x_mamba.mean(dim=[1, 2]) # GAP -> [bs, c_in]
+        V_i_2D = img_feat.view(bs, H, H, c_in).permute(0, 3, 1, 2)  # [bs, c_in, H, H]
+        V_i_small = F.adaptive_avg_pool2d(V_i_2D, (9, 9))            # [bs, c_in, 9, 9]
+        V_i_small = V_i_small.permute(0, 2, 3, 1)                    # [bs, 9, 9, c_in]
+        x_mamba = self.mamba_ln1(V_i_small)         # Pre-SS2D LN
+        x_mamba = self.mamba_ss2d(x_mamba)            # [bs, 9, 9, c_in]
+        x_mamba = self.mamba_ln2(x_mamba)             # Post-SS2D LN: đồng bộ scale trước GAP
+        v_mamba = x_mamba.mean(dim=[1, 2])            # GAP -> [bs, c_in]
         
         v_global = v_avg + self.gamma * v_mamba # [bs, c_in]
         
         # 2. Cross-Attention
         Q = self.query_proj(v_global).unsqueeze(1) # [bs, 1, d_k]
         
-        K_norm = self.key_proj(T_norm) # [bs, n_groups, d_k]
-        K_abnorm = self.key_proj(T_abnorm) # [bs, n_groups, d_k]
+        K_norm = self.key_proj_norm(T_norm) # [bs, n_groups, d_k]
+        K_abnorm = self.key_proj_abnorm(T_abnorm) # [bs, n_groups, d_k]
         
         # Attention normal
         scores_norm = torch.bmm(Q, K_norm.transpose(1, 2)) / (K_norm.shape[-1] ** 0.5) # [bs, 1, n_groups]
@@ -105,12 +104,14 @@ class MambaDFGBlock(nn.Module):
         T_abnormal_fused = torch.bmm(attn_abnorm, T_abnorm).squeeze(1) # [bs, c_in]
         
         # 3. Cosine Similarity Map
-        img_feat_norm = F.normalize(img_feat, p=2, dim=-1) # [bs, patch_num, c_in]
-        T_normal_fused_norm = F.normalize(T_normal_fused, p=2, dim=-1).unsqueeze(1) # [bs, 1, c_in]
-        T_abnormal_fused_norm = F.normalize(T_abnormal_fused, p=2, dim=-1).unsqueeze(1) # [bs, 1, c_in]
+        # Chỉ normalize img_feat; giữ nguyên độ dài tự nhiên của T_normal_fused / T_abnormal_fused
+        # để bảo toàn thông tin đồng thuận (consensus) giữa các stage của text encoder:
+        # Khi các stage nhất trí, norm gần 1.0; khi xung đột, norm tự nhiên giảm xuống
+        # -> giảm similarity score -> tự lọc nhiễu không cần thêm cơ chế nào khác
+        img_feat_norm = F.normalize(img_feat, p=2, dim=-1, eps=1e-5) # [bs, patch_num, c_in]
         
-        sim_n = torch.sum(img_feat_norm * T_normal_fused_norm, dim=-1) / tau  # [bs, patch_num]
-        sim_a = torch.sum(img_feat_norm * T_abnormal_fused_norm, dim=-1) / tau  # [bs, patch_num]
+        sim_n = torch.sum(img_feat_norm * T_normal_fused.unsqueeze(1), dim=-1) / tau   # [bs, patch_num]
+        sim_a = torch.sum(img_feat_norm * T_abnormal_fused.unsqueeze(1), dim=-1) / tau # [bs, patch_num]
         
         seg_logits = torch.stack([sim_n, sim_a], dim=1) # [bs, 2, patch_num]
         seg_logits = seg_logits.view(bs, 2, H, H) # [bs, 2, H, H]
@@ -213,7 +214,7 @@ class ACDCLIP(nn.Module):
             }
         )
         # Register learnable log_tau to image_adapter so it is saved/loaded in state_dict
-        self.image_adapter.register_parameter('log_tau', nn.Parameter(torch.tensor(np.log(0.07))))
+        self.image_adapter.register_parameter('log_tau', nn.Parameter(torch.tensor(math.log(0.10))))
 
         text_adapt_weights = nn.ModuleList(
             [AddWeight(text_adapt_weight, is_text=True) for _ in range(n_groups)]
@@ -310,7 +311,7 @@ class ACDCLIP(nn.Module):
         seg_tokens_norm = [
             self.image_adapter["seg_layer_norms"][i](t) for i, t in enumerate(seg_tokens_proj)
         ]  # 层归一化
-        seg_tokens = [F.normalize(t, dim=-1) for t in seg_tokens_norm]  # L2归一化
+        seg_tokens = [F.normalize(t, dim=-1, eps=1e-5) for t in seg_tokens_norm]  # L2归一化
 
         # 2: Detection Tokens
         det_tokens_proj = [
@@ -319,7 +320,7 @@ class ACDCLIP(nn.Module):
         det_tokens_norm = [
             self.image_adapter["det_layer_norms"][i](t) for i, t in enumerate(det_tokens_proj)
         ]
-        det_tokens = [F.normalize(t.mean(1), dim=-1) for t in det_tokens_norm]  # 全局平均池化 + L2归一化
+        det_tokens = [F.normalize(t, dim=-1, eps=1e-5).mean(1) for t in det_tokens_norm]  # Normalize first + global average pool
 
         return seg_tokens, det_tokens
 
@@ -349,8 +350,8 @@ class ACDCLIP(nn.Module):
             T_norm = text_features[:, :, :, 0].permute(1, 0, 2)  # [bs, n_groups, 768]
             T_abnorm = text_features[:, :, :, 1].permute(1, 0, 2)  # [bs, n_groups, 768]
             
-            # Compute tau from log_tau and clamp it between 0.01 and 1.0 to prevent division by zero / negative temperature
-            tau = torch.clamp(self.image_adapter.log_tau.exp(), min=0.01, max=1.0)
+            # Compute tau from log_tau and clamp it between 0.07 and 0.15 to prevent division by zero / negative temperature
+            tau = torch.clamp(self.image_adapter.log_tau.exp(), min=0.07, max=0.15)
             
             # Forward through MambaDFGBlock
             if use_checkpoint and not torch.jit.is_scripting():

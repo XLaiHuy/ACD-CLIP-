@@ -95,9 +95,9 @@ DOMAINS = {
     "Colon_cvc300": "Medical",
 }
 REAL_NAMES = {
-    "Brain": {"Brain": "scan"},
-    "Liver": {"Liver": "scan"},
-    "Retina": {"Retina": "scan"},
+    "Brain": {"Brain": "brain MRI scan"},
+    "Liver": {"Liver": "liver CT scan"},
+    "Retina": {"Retina": "retinal fundus image"},
     "MVTec": {
         "bottle": "dark bottle",
         "cable": "top view of three cables",
@@ -130,13 +130,13 @@ REAL_NAMES = {
         "pcb1": "dual ultrasonic distance sensor pcb module",
     },
     "Colon_clinicDB": {
-        "Colon_clinicDB": "colon endoscopy image",
+        "Colon_clinicDB": "colon polyp endoscopy image",
     },
     "Colon_colonDB": {
-        "Colon_colonDB": "colon endoscopy image",
+        "Colon_colonDB": "colon polyp endoscopy image",
     },
-    "Colon_cvc300": {"CVC-300": "colon endoscopy image"},
-    "Colon_Kvasir": {"Colon_Kvasir": "colon endoscopy image"},
+    "Colon_cvc300": {"CVC-300": "colon polyp endoscopy image"},
+    "Colon_Kvasir": {"Colon_Kvasir": "colon polyp endoscopy image"},
     "MPDD": {
         "connector": "metal clamps with black adjustment knobs",
         "tubes": "scattered metal objects",

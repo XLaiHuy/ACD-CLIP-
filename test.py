@@ -25,6 +25,8 @@ def get_predictions(
         test_loader: DataLoader,
         device,
         dataset: str = "MVTec",
+        amp: bool = False,
+        no_tta: bool = False,
 ):
     masks = []
     labels = []
@@ -33,8 +35,8 @@ def get_predictions(
     file_names = []
     for input_data in tqdm(test_loader):
         image = input_data["image"].to(device)
-        mask = input_data["mask"].to(device).to(torch.int32)
-        label = input_data["label"].to(device).to(torch.int32)
+        mask = input_data["mask"].to(torch.uint8)
+        label = input_data["label"].to(torch.int32)
         file_name = input_data["file_name"]
         # set up class-specific containers
         class_name = input_data["class_name"]
@@ -45,93 +47,100 @@ def get_predictions(
         # get text
         epoch_text_features = class_text_embeddings.unsqueeze(dim=1)  # [n_groups, 1, 768, 2]
         
-        # TTA: 4 augmented views (original, horizontal flip, vertical flip, rotation 180)
-        # View 1: Original
-        seg_tokens, det_tokens = model(image)
-        seg_features = torch.stack(seg_tokens, dim=0)
-        det_features = torch.stack(det_tokens, dim=0)
-        
-        B = seg_features.shape[1]
-        epoch_text_features_rep = epoch_text_features.repeat(1, B, 1, 1)
-        
-        logit_scale = model.clipmodel.logit_scale.exp()
-        # Class predictions for view 1
-        cls_preds_total = [
-            torch.matmul(
-                det_features[i].unsqueeze(dim=1),
-                epoch_text_features_rep[i],
-            ).squeeze(1) * logit_scale for i in range(det_features.shape[0])
-        ]
-        cls_preds_total = torch.stack(cls_preds_total, dim=0).mean(dim=0) # [bs, 2]
-        
-        # Pixel predictions for view 1
-        seg_pred_orig = model.vision_text_fusion_gate_seg(seg_features, epoch_text_features_rep, test_mode=True,
-                                                          domain=DOMAINS[dataset])
-        
-        # View 2: Horizontal Flip
-        image_h = torch.flip(image, dims=[-1])
-        seg_tokens_h, det_tokens_h = model(image_h)
-        seg_features_h = torch.stack(seg_tokens_h, dim=0)
-        det_features_h = torch.stack(det_tokens_h, dim=0)
-        
-        cls_preds_h = [
-            torch.matmul(
-                det_features_h[i].unsqueeze(dim=1),
-                epoch_text_features_rep[i],
-            ).squeeze(1) * logit_scale for i in range(det_features_h.shape[0])
-        ]
-        cls_preds_h = torch.stack(cls_preds_h, dim=0).mean(dim=0)
-        cls_preds_total = cls_preds_total + cls_preds_h
-        
-        seg_pred_h = model.vision_text_fusion_gate_seg(seg_features_h, epoch_text_features_rep, test_mode=True,
-                                                        domain=DOMAINS[dataset])
-        seg_pred_h = torch.flip(seg_pred_h, dims=[-1])
-        
-        # View 3: Vertical Flip
-        image_v = torch.flip(image, dims=[-2])
-        seg_tokens_v, det_tokens_v = model(image_v)
-        seg_features_v = torch.stack(seg_tokens_v, dim=0)
-        det_features_v = torch.stack(det_tokens_v, dim=0)
-        
-        cls_preds_v = [
-            torch.matmul(
-                det_features_v[i].unsqueeze(dim=1),
-                epoch_text_features_rep[i],
-            ).squeeze(1) * logit_scale for i in range(det_features_v.shape[0])
-        ]
-        cls_preds_v = torch.stack(cls_preds_v, dim=0).mean(dim=0)
-        cls_preds_total = cls_preds_total + cls_preds_v
-        
-        seg_pred_v = model.vision_text_fusion_gate_seg(seg_features_v, epoch_text_features_rep, test_mode=True,
-                                                        domain=DOMAINS[dataset])
-        seg_pred_v = torch.flip(seg_pred_v, dims=[-2])
-        
-        # View 4: Rotation 180 (Flip both H and V)
-        image_r = torch.flip(image, dims=[-1, -2])
-        seg_tokens_r, det_tokens_r = model(image_r)
-        seg_features_r = torch.stack(seg_tokens_r, dim=0)
-        det_features_r = torch.stack(det_tokens_r, dim=0)
-        
-        cls_preds_r = [
-            torch.matmul(
-                det_features_r[i].unsqueeze(dim=1),
-                epoch_text_features_rep[i],
-            ).squeeze(1) * logit_scale for i in range(det_features_r.shape[0])
-        ]
-        cls_preds_r = torch.stack(cls_preds_r, dim=0).mean(dim=0)
-        cls_preds_total = cls_preds_total + cls_preds_r
-        
-        seg_pred_r = model.vision_text_fusion_gate_seg(seg_features_r, epoch_text_features_rep, test_mode=True,
-                                                        domain=DOMAINS[dataset])
-        seg_pred_r = torch.flip(seg_pred_r, dims=[-1, -2])
-        
-        # Averages
-        cls_preds = cls_preds_total / 4.0
-        pred = F.softmax(cls_preds, dim=1)[:, 1]
-        preds_image.append(pred)
-        
-        seg_pred = (seg_pred_orig + seg_pred_h + seg_pred_v + seg_pred_r) / 4.0
-        preds.append(seg_pred)
+        with torch.cuda.amp.autocast(enabled=amp):
+            # View 1: Original
+            seg_tokens, det_tokens = model(image)
+            seg_features = torch.stack(seg_tokens, dim=0)
+            det_features = torch.stack(det_tokens, dim=0)
+            
+            B = seg_features.shape[1]
+            epoch_text_features_rep = epoch_text_features.repeat(1, B, 1, 1)
+            
+            # Class predictions for view 1
+            cls_preds_total = [
+                torch.matmul(
+                    det_features[i].unsqueeze(dim=1),
+                    epoch_text_features_rep[i],
+                ).squeeze(1) for i in range(det_features.shape[0])
+            ]
+            cls_preds_total = torch.stack(cls_preds_total, dim=0).mean(dim=0) # [bs, 2]
+            
+            # Pixel predictions for view 1
+            seg_pred_orig = model.vision_text_fusion_gate_seg(seg_features, epoch_text_features_rep, test_mode=True,
+                                                              domain=DOMAINS[dataset])
+            
+            if no_tta:
+                cls_preds = cls_preds_total
+                pred = F.softmax(cls_preds, dim=1)[:, 1]
+                preds_image.append(pred.cpu().float())
+                
+                seg_pred = seg_pred_orig
+                preds.append(seg_pred.cpu().half())
+            else:
+                # View 2: Horizontal Flip
+                image_h = torch.flip(image, dims=[-1])
+                seg_tokens_h, det_tokens_h = model(image_h)
+                seg_features_h = torch.stack(seg_tokens_h, dim=0)
+                det_features_h = torch.stack(det_tokens_h, dim=0)
+                
+                cls_preds_h = [
+                    torch.matmul(
+                        det_features_h[i].unsqueeze(dim=1),
+                        epoch_text_features_rep[i],
+                    ).squeeze(1) for i in range(det_features_h.shape[0])
+                ]
+                cls_preds_h = torch.stack(cls_preds_h, dim=0).mean(dim=0)
+                cls_preds_total = cls_preds_total + cls_preds_h
+                
+                seg_pred_h = model.vision_text_fusion_gate_seg(seg_features_h, epoch_text_features_rep, test_mode=True,
+                                                                domain=DOMAINS[dataset])
+                seg_pred_h = torch.flip(seg_pred_h, dims=[-1])
+                
+                # View 3: Vertical Flip
+                image_v = torch.flip(image, dims=[-2])
+                seg_tokens_v, det_tokens_v = model(image_v)
+                seg_features_v = torch.stack(seg_tokens_v, dim=0)
+                det_features_v = torch.stack(det_tokens_v, dim=0)
+                
+                cls_preds_v = [
+                    torch.matmul(
+                        det_features_v[i].unsqueeze(dim=1),
+                        epoch_text_features_rep[i],
+                    ).squeeze(1) for i in range(det_features_v.shape[0])
+                ]
+                cls_preds_v = torch.stack(cls_preds_v, dim=0).mean(dim=0)
+                cls_preds_total = cls_preds_total + cls_preds_v
+                
+                seg_pred_v = model.vision_text_fusion_gate_seg(seg_features_v, epoch_text_features_rep, test_mode=True,
+                                                                domain=DOMAINS[dataset])
+                seg_pred_v = torch.flip(seg_pred_v, dims=[-2])
+                
+                # View 4: Rotation 180 (Flip both H and V)
+                image_r = torch.flip(image, dims=[-1, -2])
+                seg_tokens_r, det_tokens_r = model(image_r)
+                seg_features_r = torch.stack(seg_tokens_r, dim=0)
+                det_features_r = torch.stack(det_tokens_r, dim=0)
+                
+                cls_preds_r = [
+                    torch.matmul(
+                        det_features_r[i].unsqueeze(dim=1),
+                        epoch_text_features_rep[i],
+                    ).squeeze(1) for i in range(det_features_r.shape[0])
+                ]
+                cls_preds_r = torch.stack(cls_preds_r, dim=0).mean(dim=0)
+                cls_preds_total = cls_preds_total + cls_preds_r
+                
+                seg_pred_r = model.vision_text_fusion_gate_seg(seg_features_r, epoch_text_features_rep, test_mode=True,
+                                                                domain=DOMAINS[dataset])
+                seg_pred_r = torch.flip(seg_pred_r, dims=[-1, -2])
+                
+                # Averages
+                cls_preds = cls_preds_total / 4.0
+                pred = F.softmax(cls_preds, dim=1)[:, 1]
+                preds_image.append(pred.cpu().float())
+                
+                seg_pred = (seg_pred_orig + seg_pred_h + seg_pred_v + seg_pred_r) / 4.0
+                preds.append(seg_pred.cpu().half())
     masks = torch.concatenate(masks, dim=0)  # [bs, 1, 518, 518]
     labels = torch.concatenate(labels, dim=0)  # [bs]
     preds = torch.concatenate(preds, dim=0)  # [bs, 518, 518]
@@ -174,6 +183,16 @@ def main():
         "--use_dynamic_conv",
         action="store_true",
         help="Use Dynamic Depthwise Separable Convolution in visual adapter blocks"
+    )
+    parser.add_argument(
+        "--amp",
+        action="store_true",
+        help="Use Automatic Mixed Precision (Float16) for faster evaluation"
+    )
+    parser.add_argument(
+        "--no_tta",
+        action="store_true",
+        help="Disable Test-Time Augmentation (TTA) to speed up evaluation 4x"
     )
 
     args = parser.parse_args()
@@ -258,11 +277,21 @@ def main():
                     test_loader=image_dataloader,
                     device=device,
                     dataset=args.dataset,
+                    amp=args.amp,
+                    no_tta=args.no_tta,
                 )
+            # If the dataset is large (more than 500 images), subsample pixels to prevent system OOM (Killed)
+            if masks.shape[0] > 500:
+                masks_eval = masks[:, :, ::4, ::4]
+                preds_eval = preds[:, ::4, ::4]
+            else:
+                masks_eval = masks
+                preds_eval = preds
+
             class_result_dict = metrics_eval_gpu(
-                masks,
+                masks_eval,
                 labels,
-                preds,
+                preds_eval,
                 preds_image,
                 class_name,
                 domain=DOMAINS[args.dataset],

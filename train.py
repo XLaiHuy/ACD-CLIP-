@@ -79,12 +79,11 @@ def train(
                 seg_tokens, det_tokens = model(image)  # [bs, patch_size, 768] * n_groups, [bs, 768] * n_groups
                 seg_features = torch.stack(seg_tokens, dim=0)  # [n_groups, bs, patch_num, 768]
                 det_features = torch.stack(det_tokens, dim=0)  # [n_groups, bs, 768]
-                logit_scale = model.clipmodel.logit_scale.exp()
                 cls_pred = [
                     torch.matmul(
                         det_features[i].unsqueeze(dim=1),  # [bs, 1, 768]
                         epoch_text_features[i],  # [bs, 768, 2]
-                    ).squeeze(1) * logit_scale
+                    ).squeeze(1)
                     for i in range(det_features.shape[0])
                 ]  # [bs, 2] * n_groups
                 cls_pred = torch.stack(cls_pred, dim=0).mean(dim=0)  # [bs, 2]
@@ -103,10 +102,13 @@ def train(
             if (step + 1) % accum_iter == 0 or (step + 1) == len(train_loader):
                 # clip gradient
                 scaler.unscale_(optimizer)
-                for m_i_w in model.image_adapter["m_i_w"]:
-                    nn.utils.clip_grad_norm_(m_i_w.parameters(), 1.0)
-                for m_t_w in model.text_adapter["m_t_w"]:
-                    nn.utils.clip_grad_norm_(m_t_w.parameters(), 1.0)
+                # Comprehensive gradient clipping to prevent explosion in recurrent selective scan (SS2D) and LoRAs
+                nn.utils.clip_grad_norm_(model.image_adapter["vision_text_gate"].parameters(), max_norm=0.5)
+                nn.utils.clip_grad_norm_(model.image_adapter["lora_adapters"].parameters(), max_norm=1.0)
+                nn.utils.clip_grad_norm_(model.image_adapter["seg_proj"].parameters(), max_norm=1.0)
+                nn.utils.clip_grad_norm_(model.image_adapter["det_proj"].parameters(), max_norm=1.0)
+                nn.utils.clip_grad_norm_(model.image_adapter["m_i_w"].parameters(), max_norm=1.0)
+                nn.utils.clip_grad_norm_(model.text_adapter.parameters(), max_norm=1.0)
                     
                 # update parameters
                 scaler.step(optimizer)
@@ -168,8 +170,8 @@ def main():
     parser.add_argument("--lora_rank", type=int, default=16, help="rank for LoRA adapters")
     parser.add_argument("--lora_alpha", type=float, default=2.0, help="alpha for LoRA adapters")
 
-    parser.add_argument("--image_lr", type=float, default=0.001, help="learning rate for image adapter")
-    parser.add_argument("--text_lr", type=float, default=0.0005, help="learning rate for text adapter")
+    parser.add_argument("--image_lr", type=float, default=0.0001, help="learning rate for image adapter")
+    parser.add_argument("--text_lr", type=float, default=0.00005, help="learning rate for text adapter")
     parser.add_argument("--lr_gamma", type=float, default=0.9, help="learning rate decay factor")
 
     parser.add_argument(
@@ -295,10 +297,11 @@ def main():
                 "lr": args.image_lr,
             },
         ])
-    lr_scheduler = StepLR(
+    from torch.optim.lr_scheduler import CosineAnnealingLR
+    lr_scheduler = CosineAnnealingLR(
         optimizer,
-        step_size=1,
-        gamma=args.lr_gamma,
+        T_max=args.epoch,
+        eta_min=1e-6,
     )
     
     start_epoch = 0
