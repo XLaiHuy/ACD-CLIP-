@@ -1,0 +1,1577 @@
+2026-06-28 13:18:58 train.py 277: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'dataset': 'VisA', 'batch_size': 6, 'epoch': 20, 'cuda_device': 0, 'save_path': 'phase1_v3c_attn_tau8_ss2d_weightres_betawarm010', 'n_groups': 3, 'image_adapt_weight': 0.2, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'text_adapt_weight': 0.2, 'lora_rank': 16, 'lora_alpha': 2.0, 'image_lr': 0.001, 'text_lr': 0.0005, 'lr_gamma': 0.9, 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'amp': True, 'grad_checkpointing': True, 'num_workers': 6}
+2026-06-28 13:18:58 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-28 13:19:01 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-28 13:19:02 train.py 317: trainable parameters: 14,095,887
+2026-06-28 13:19:02 train.py 318: frozen parameters: 428,756,225
+2026-06-28 13:19:02 train.py 337: loading dataset ...
+2026-06-28 13:19:02 train.py 350: training ...
+2026-06-28 13:19:02 train.py 73: training epoch 1 / 20
+2026-06-28 13:19:02 train.py 74: dfg_beta_state epoch=1 dfg_ss2d_fusion=weight_residual dfg_beta_schedule=warmup010 dfg_beta_target=0.1 dfg_beta_current=0.0
+2026-06-28 13:21:38 train.py 133: non-finite gradient at epoch 1; skipping optimizer step
+2026-06-28 13:22:32 train.py 133: non-finite gradient at epoch 1; skipping optimizer step
+2026-06-28 13:28:49 train.py 155: mean_loss=1.3233920468593374, mean_seg_loss=0.6400597719811006
+2026-06-28 13:28:49 train.py 156: skip_counts epoch=1 non_finite_loss=0 non_finite_grad=2
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage1_raw_gamma=0.0
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage1_gamma=0.0
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage1_ss2d_ratio=0.0
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage1_dfg_beta=0.0
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage1_entropy_normal=0.9437745809555054
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage1_entropy_abnormal=0.8610135316848755
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage1_weights_normal_sum_error=0.0
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage1_weights_abnormal_sum_error=0.0
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage1_weights_normal=[0.15802499651908875, 0.2447374314069748, 0.5972375869750977]
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage1_weights_abnormal=[0.05304688215255737, 0.5094704627990723, 0.43748268485069275]
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage2_raw_gamma=0.0
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage2_gamma=0.0
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage2_ss2d_ratio=0.0
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage2_dfg_beta=0.0
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage2_entropy_normal=0.8956438302993774
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage2_entropy_abnormal=0.8072161674499512
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage2_weights_normal_sum_error=0.0
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage2_weights_abnormal_sum_error=0.0
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage2_weights_normal=[0.13869762420654297, 0.2237585186958313, 0.6375438570976257]
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage2_weights_abnormal=[0.0334349200129509, 0.5499889850616455, 0.4165761470794678]
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage3_raw_gamma=0.0
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage3_gamma=0.0
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage3_ss2d_ratio=0.0
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage3_dfg_beta=0.0
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage3_entropy_normal=0.9541047811508179
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage3_entropy_abnormal=0.9183748960494995
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage3_weights_normal_sum_error=1.1920928955078125e-07
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage3_weights_abnormal_sum_error=0.0
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage3_weights_normal=[0.16598016023635864, 0.24489295482635498, 0.5891268253326416]
+2026-06-28 13:28:49 train.py 171: dfg_diag epoch=1 stage3_weights_abnormal=[0.0811736136674881, 0.4517308473587036, 0.46709561347961426]
+2026-06-28 13:28:49 train.py 73: training epoch 2 / 20
+2026-06-28 13:28:49 train.py 74: dfg_beta_state epoch=2 dfg_ss2d_fusion=weight_residual dfg_beta_schedule=warmup010 dfg_beta_target=0.1 dfg_beta_current=0.0
+2026-06-28 13:35:47 train.py 133: non-finite gradient at epoch 2; skipping optimizer step
+2026-06-28 13:38:29 train.py 155: mean_loss=1.1746225658390257, mean_seg_loss=0.5092676608640071
+2026-06-28 13:38:29 train.py 156: skip_counts epoch=2 non_finite_loss=0 non_finite_grad=1
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage1_raw_gamma=0.0
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage1_gamma=0.0
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage1_ss2d_ratio=0.0
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage1_dfg_beta=0.0
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage1_entropy_normal=0.8209168314933777
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage1_entropy_abnormal=0.8462286591529846
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage1_weights_normal_sum_error=5.960464477539063e-08
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage1_weights_abnormal_sum_error=0.0
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage1_weights_normal=[0.12862499058246613, 0.1756768375635147, 0.6956981420516968]
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage1_weights_abnormal=[0.045425087213516235, 0.48753854632377625, 0.4670363664627075]
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage2_raw_gamma=0.0
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage2_gamma=0.0
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage2_ss2d_ratio=0.0
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage2_dfg_beta=0.0
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage2_entropy_normal=0.7995307445526123
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage2_entropy_abnormal=0.7970754504203796
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage2_weights_normal_sum_error=0.0
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage2_weights_abnormal_sum_error=0.0
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage2_weights_normal=[0.11879170686006546, 0.17231598496437073, 0.7088923454284668]
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage2_weights_abnormal=[0.027962934225797653, 0.5303292274475098, 0.4417078495025635]
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage3_raw_gamma=0.0
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage3_gamma=0.0
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage3_ss2d_ratio=0.0
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage3_dfg_beta=0.0
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage3_entropy_normal=0.8800439834594727
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage3_entropy_abnormal=0.8829695582389832
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage3_weights_normal_sum_error=0.0
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage3_weights_abnormal_sum_error=5.960464477539063e-08
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage3_weights_normal=[0.1426716148853302, 0.20403477549552917, 0.6532936096191406]
+2026-06-28 13:38:29 train.py 171: dfg_diag epoch=2 stage3_weights_abnormal=[0.06293904781341553, 0.4934372305870056, 0.4436236619949341]
+2026-06-28 13:38:29 train.py 73: training epoch 3 / 20
+2026-06-28 13:38:29 train.py 74: dfg_beta_state epoch=3 dfg_ss2d_fusion=weight_residual dfg_beta_schedule=warmup010 dfg_beta_target=0.1 dfg_beta_current=0.0
+2026-06-28 13:41:09 train.py 133: non-finite gradient at epoch 3; skipping optimizer step
+2026-06-28 13:48:11 train.py 155: mean_loss=1.0230575274262164, mean_seg_loss=0.47905441385969894
+2026-06-28 13:48:11 train.py 156: skip_counts epoch=3 non_finite_loss=0 non_finite_grad=1
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage1_raw_gamma=0.0
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage1_gamma=0.0
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage1_ss2d_ratio=0.0
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage1_dfg_beta=0.0
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage1_entropy_normal=0.5988494157791138
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage1_entropy_abnormal=0.7715076208114624
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage1_weights_normal_sum_error=1.1920928955078125e-07
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage1_weights_abnormal_sum_error=0.0
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage1_weights_normal=[0.06185723841190338, 0.12451206147670746, 0.8136307597160339]
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage1_weights_abnormal=[0.02446085214614868, 0.39076361060142517, 0.5847755670547485]
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage2_raw_gamma=0.0
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage2_gamma=0.0
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage2_ss2d_ratio=0.0
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage2_dfg_beta=0.0
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage2_entropy_normal=0.48607391119003296
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage2_entropy_abnormal=0.7422933578491211
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage2_weights_normal_sum_error=1.1920928955078125e-07
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage2_weights_abnormal_sum_error=0.0
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage2_weights_normal=[0.0414244681596756, 0.09695540368556976, 0.8616201877593994]
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage2_weights_abnormal=[0.015583910048007965, 0.39335817098617554, 0.5910578966140747]
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage3_raw_gamma=0.0
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage3_gamma=0.0
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage3_ss2d_ratio=0.0
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage3_dfg_beta=0.0
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage3_entropy_normal=0.766082763671875
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage3_entropy_abnormal=0.8554633855819702
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage3_weights_normal_sum_error=0.0
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage3_weights_abnormal_sum_error=5.960464477539063e-08
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage3_weights_normal=[0.10113929212093353, 0.17180897295475006, 0.7270517349243164]
+2026-06-28 13:48:11 train.py 171: dfg_diag epoch=3 stage3_weights_abnormal=[0.04958926513791084, 0.4639323949813843, 0.486478328704834]
+2026-06-28 13:48:11 train.py 73: training epoch 4 / 20
+2026-06-28 13:48:11 train.py 74: dfg_beta_state epoch=4 dfg_ss2d_fusion=weight_residual dfg_beta_schedule=warmup010 dfg_beta_target=0.1 dfg_beta_current=0.05
+2026-06-28 13:57:53 train.py 155: mean_loss=0.9493630124756504, mean_seg_loss=0.4501402394902838
+2026-06-28 13:57:53 train.py 156: skip_counts epoch=4 non_finite_loss=0 non_finite_grad=0
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage1_raw_gamma=0.0
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage1_gamma=0.0
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage1_ss2d_ratio=0.0
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage1_dfg_beta=0.05000000074505806
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage1_entropy_normal=0.5254231691360474
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage1_entropy_abnormal=0.699208676815033
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage1_weights_normal_sum_error=0.0
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage1_weights_abnormal_sum_error=0.0
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage1_weights_normal=[0.040121227502822876, 0.11767719686031342, 0.8422015905380249]
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage1_weights_abnormal=[0.015848223119974136, 0.3161281943321228, 0.6680235862731934]
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage2_raw_gamma=0.0
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage2_gamma=0.0
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage2_ss2d_ratio=0.0
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage2_dfg_beta=0.05000000074505806
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage2_entropy_normal=0.3895869553089142
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage2_entropy_abnormal=0.6442240476608276
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage2_weights_normal_sum_error=1.1920928955078125e-07
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage2_weights_abnormal_sum_error=0.0
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage2_weights_normal=[0.02414439618587494, 0.07967658340930939, 0.8961790800094604]
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage2_weights_abnormal=[0.009603044018149376, 0.2803264856338501, 0.7100704908370972]
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage3_raw_gamma=0.0
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage3_gamma=0.0
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage3_ss2d_ratio=0.0
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage3_dfg_beta=0.05000000074505806
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage3_entropy_normal=0.7690861821174622
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage3_entropy_abnormal=0.8487521409988403
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage3_weights_normal_sum_error=0.0
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage3_weights_abnormal_sum_error=1.1920928955078125e-07
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage3_weights_normal=[0.10180670768022537, 0.17896312475204468, 0.7192301750183105]
+2026-06-28 13:57:53 train.py 171: dfg_diag epoch=4 stage3_weights_abnormal=[0.05380680039525032, 0.39552047848701477, 0.550672709941864]
+2026-06-28 13:57:53 train.py 73: training epoch 5 / 20
+2026-06-28 13:57:53 train.py 74: dfg_beta_state epoch=5 dfg_ss2d_fusion=weight_residual dfg_beta_schedule=warmup010 dfg_beta_target=0.1 dfg_beta_current=0.05
+2026-06-28 14:07:33 train.py 155: mean_loss=0.9277974547111427, mean_seg_loss=0.4423831631107013
+2026-06-28 14:07:33 train.py 156: skip_counts epoch=5 non_finite_loss=0 non_finite_grad=0
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage1_raw_gamma=0.0
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage1_gamma=0.0
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage1_ss2d_ratio=0.0
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage1_dfg_beta=0.05000000074505806
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage1_entropy_normal=0.5683972239494324
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage1_entropy_abnormal=0.6365262269973755
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage1_weights_normal_sum_error=5.960464477539063e-08
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage1_weights_abnormal_sum_error=0.0
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage1_weights_normal=[0.03181246668100357, 0.15598872303962708, 0.8121987581253052]
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage1_weights_abnormal=[0.008961403742432594, 0.27531835436820984, 0.7157202959060669]
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage2_raw_gamma=0.0
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage2_gamma=0.0
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage2_ss2d_ratio=0.0
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage2_dfg_beta=0.05000000074505806
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage2_entropy_normal=0.45081382989883423
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage2_entropy_abnormal=0.5778605937957764
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage2_weights_normal_sum_error=0.0
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage2_weights_abnormal_sum_error=0.0
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage2_weights_normal=[0.019091244786977768, 0.11592008918523788, 0.8649886846542358]
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage2_weights_abnormal=[0.005433110054582357, 0.2354002296924591, 0.7591667175292969]
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage3_raw_gamma=0.0
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage3_gamma=0.0
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage3_ss2d_ratio=0.0
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage3_dfg_beta=0.05000000074505806
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage3_entropy_normal=0.6225292682647705
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage3_entropy_abnormal=0.71317058801651
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage3_weights_normal_sum_error=1.1920928955078125e-07
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage3_weights_abnormal_sum_error=0.0
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage3_weights_normal=[0.045052096247673035, 0.16471615433692932, 0.7902318239212036]
+2026-06-28 14:07:33 train.py 171: dfg_diag epoch=5 stage3_weights_abnormal=[0.018352091312408447, 0.32303208112716675, 0.6586158275604248]
+2026-06-28 14:07:33 train.py 73: training epoch 6 / 20
+2026-06-28 14:07:33 train.py 74: dfg_beta_state epoch=6 dfg_ss2d_fusion=weight_residual dfg_beta_schedule=warmup010 dfg_beta_target=0.1 dfg_beta_current=0.05
+2026-06-28 14:17:15 train.py 155: mean_loss=0.9018212590686502, mean_seg_loss=0.42588150901642535
+2026-06-28 14:17:15 train.py 156: skip_counts epoch=6 non_finite_loss=0 non_finite_grad=0
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage1_raw_gamma=0.0
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage1_gamma=0.0
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage1_ss2d_ratio=0.0
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage1_dfg_beta=0.05000000074505806
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage1_entropy_normal=0.5312973260879517
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage1_entropy_abnormal=0.668334424495697
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage1_weights_normal_sum_error=0.0
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage1_weights_abnormal_sum_error=0.0
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage1_weights_normal=[0.021521203219890594, 0.1551923155784607, 0.8232865333557129]
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage1_weights_abnormal=[0.009637529030442238, 0.30827492475509644, 0.6820875406265259]
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage2_raw_gamma=0.0
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage2_gamma=0.0
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage2_ss2d_ratio=0.0
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage2_dfg_beta=0.05000000074505806
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage2_entropy_normal=0.41692915558815
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage2_entropy_abnormal=0.5423579216003418
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage2_weights_normal_sum_error=0.0
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage2_weights_abnormal_sum_error=5.960464477539063e-08
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage2_weights_normal=[0.010940395295619965, 0.11604925990104675, 0.8730103373527527]
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage2_weights_abnormal=[0.004063216969370842, 0.21256481111049652, 0.7833719253540039]
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage3_raw_gamma=0.0
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage3_gamma=0.0
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage3_ss2d_ratio=0.0
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage3_dfg_beta=0.05000000074505806
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage3_entropy_normal=0.6496872901916504
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage3_entropy_abnormal=0.7785205841064453
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage3_weights_normal_sum_error=5.960464477539063e-08
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage3_weights_abnormal_sum_error=0.0
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage3_weights_normal=[0.03515417501330376, 0.20412440598011017, 0.7607213854789734]
+2026-06-28 14:17:15 train.py 171: dfg_diag epoch=6 stage3_weights_abnormal=[0.0407181940972805, 0.3166359066963196, 0.6426458358764648]
+2026-06-28 14:17:15 train.py 73: training epoch 7 / 20
+2026-06-28 14:17:15 train.py 74: dfg_beta_state epoch=7 dfg_ss2d_fusion=weight_residual dfg_beta_schedule=warmup010 dfg_beta_target=0.1 dfg_beta_current=0.1
+2026-06-28 14:26:55 train.py 155: mean_loss=0.8636112779461446, mean_seg_loss=0.40257312303764997
+2026-06-28 14:26:55 train.py 156: skip_counts epoch=7 non_finite_loss=0 non_finite_grad=0
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage1_raw_gamma=0.0
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage1_gamma=0.0
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage1_ss2d_ratio=0.0
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage1_dfg_beta=0.10000000149011612
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage1_entropy_normal=0.6674153804779053
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage1_entropy_abnormal=0.6924346685409546
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage1_weights_normal_sum_error=0.0
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage1_weights_abnormal_sum_error=0.0
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage1_weights_normal=[0.03136671707034111, 0.23192426562309265, 0.7367089986801147]
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage1_weights_abnormal=[0.010073975659906864, 0.34021952748298645, 0.6497065424919128]
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage2_raw_gamma=0.0
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage2_gamma=0.0
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage2_ss2d_ratio=0.0
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage2_dfg_beta=0.10000000149011612
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage2_entropy_normal=0.5814739465713501
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage2_entropy_abnormal=0.6227805614471436
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage2_weights_normal_sum_error=0.0
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage2_weights_abnormal_sum_error=0.0
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage2_weights_normal=[0.02043575420975685, 0.19683247804641724, 0.7827317714691162]
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage2_weights_abnormal=[0.004743462428450584, 0.2835192084312439, 0.711737334728241]
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage3_raw_gamma=0.0
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage3_gamma=0.0
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage3_ss2d_ratio=0.0
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage3_dfg_beta=0.10000000149011612
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage3_entropy_normal=0.7206892967224121
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage3_entropy_abnormal=0.8040986061096191
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage3_weights_normal_sum_error=5.960464477539063e-08
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage3_weights_abnormal_sum_error=1.1920928955078125e-07
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage3_weights_normal=[0.039419617503881454, 0.26260003447532654, 0.6979802846908569]
+2026-06-28 14:26:55 train.py 171: dfg_diag epoch=7 stage3_weights_abnormal=[0.04038518667221069, 0.36364325881004333, 0.5959714651107788]
+2026-06-28 14:26:55 train.py 73: training epoch 8 / 20
+2026-06-28 14:26:55 train.py 74: dfg_beta_state epoch=8 dfg_ss2d_fusion=weight_residual dfg_beta_schedule=warmup010 dfg_beta_target=0.1 dfg_beta_current=0.1
+2026-06-28 14:36:41 train.py 155: mean_loss=0.8326922843330785, mean_seg_loss=0.3840790960494006
+2026-06-28 14:36:41 train.py 156: skip_counts epoch=8 non_finite_loss=0 non_finite_grad=0
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage1_raw_gamma=0.0
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage1_gamma=0.0
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage1_ss2d_ratio=0.0
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage1_dfg_beta=0.10000000149011612
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage1_entropy_normal=0.6947668194770813
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage1_entropy_abnormal=0.6237905025482178
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage1_weights_normal_sum_error=5.960464477539063e-08
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage1_weights_abnormal_sum_error=1.1920928955078125e-07
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage1_weights_normal=[0.041154295206069946, 0.22564074397087097, 0.7332049608230591]
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage1_weights_abnormal=[0.010356394574046135, 0.25643521547317505, 0.733208417892456]
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage2_raw_gamma=0.0
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage2_gamma=0.0
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage2_ss2d_ratio=0.0
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage2_dfg_beta=0.10000000149011612
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage2_entropy_normal=0.5556286573410034
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage2_entropy_abnormal=0.5530550479888916
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage2_weights_normal_sum_error=1.1920928955078125e-07
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage2_weights_abnormal_sum_error=1.1920928955078125e-07
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage2_weights_normal=[0.02897120639681816, 0.15435945987701416, 0.8166692852973938]
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage2_weights_abnormal=[0.004547985270619392, 0.21887628734111786, 0.7765756845474243]
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage3_raw_gamma=0.0
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage3_gamma=0.0
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage3_ss2d_ratio=0.0
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage3_dfg_beta=0.10000000149011612
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage3_entropy_normal=0.721062421798706
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage3_entropy_abnormal=0.7708147764205933
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage3_weights_normal_sum_error=0.0
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage3_weights_abnormal_sum_error=0.0
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage3_weights_normal=[0.04296155646443367, 0.24536332488059998, 0.7116751670837402]
+2026-06-28 14:36:41 train.py 171: dfg_diag epoch=8 stage3_weights_abnormal=[0.03706540912389755, 0.3204857110977173, 0.642448902130127]
+2026-06-28 14:36:41 train.py 73: training epoch 9 / 20
+2026-06-28 14:36:41 train.py 74: dfg_beta_state epoch=9 dfg_ss2d_fusion=weight_residual dfg_beta_schedule=warmup010 dfg_beta_target=0.1 dfg_beta_current=0.1
+2026-06-28 14:46:17 train.py 133: non-finite gradient at epoch 9; skipping optimizer step
+2026-06-28 14:46:23 train.py 155: mean_loss=0.824624574681123, mean_seg_loss=0.3785562092784039
+2026-06-28 14:46:23 train.py 156: skip_counts epoch=9 non_finite_loss=0 non_finite_grad=1
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage1_raw_gamma=0.0
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage1_gamma=0.0
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage1_ss2d_ratio=0.0
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage1_dfg_beta=0.10000000149011612
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage1_entropy_normal=0.6241587400436401
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage1_entropy_abnormal=0.6606413722038269
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage1_weights_normal_sum_error=0.0
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage1_weights_abnormal_sum_error=1.1920928955078125e-07
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage1_weights_normal=[0.02196374535560608, 0.21774232387542725, 0.7602939605712891]
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage1_weights_abnormal=[0.007951739244163036, 0.30773627758026123, 0.6843118667602539]
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage2_raw_gamma=0.0
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage2_gamma=0.0
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage2_ss2d_ratio=0.0
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage2_dfg_beta=0.10000000149011612
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage2_entropy_normal=0.5334349274635315
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage2_entropy_abnormal=0.5689769983291626
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage2_weights_normal_sum_error=5.960464477539063e-08
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage2_weights_abnormal_sum_error=0.0
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage2_weights_normal=[0.015193460509181023, 0.17110231518745422, 0.8137041926383972]
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage2_weights_abnormal=[0.0029185384046286345, 0.23895597457885742, 0.7581254243850708]
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage3_raw_gamma=0.0
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage3_gamma=0.0
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage3_ss2d_ratio=0.0
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage3_dfg_beta=0.10000000149011612
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage3_entropy_normal=0.7040878534317017
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage3_entropy_abnormal=0.7783117294311523
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage3_weights_normal_sum_error=1.1920928955078125e-07
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage3_weights_abnormal_sum_error=5.960464477539063e-08
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage3_weights_normal=[0.030169006437063217, 0.26620543003082275, 0.7036256194114685]
+2026-06-28 14:46:23 train.py 171: dfg_diag epoch=9 stage3_weights_abnormal=[0.03476541489362717, 0.344341516494751, 0.6208930015563965]
+2026-06-28 14:46:23 train.py 73: training epoch 10 / 20
+2026-06-28 14:46:23 train.py 74: dfg_beta_state epoch=10 dfg_ss2d_fusion=weight_residual dfg_beta_schedule=warmup010 dfg_beta_target=0.1 dfg_beta_current=0.1
+2026-06-28 14:56:10 train.py 155: mean_loss=0.8066317000712714, mean_seg_loss=0.3693722358432668
+2026-06-28 14:56:10 train.py 156: skip_counts epoch=10 non_finite_loss=0 non_finite_grad=0
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage1_raw_gamma=0.0
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage1_gamma=0.0
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage1_ss2d_ratio=0.0
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage1_dfg_beta=0.10000000149011612
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage1_entropy_normal=0.7371495962142944
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage1_entropy_abnormal=0.6942590475082397
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage1_weights_normal_sum_error=0.0
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage1_weights_abnormal_sum_error=1.1920928955078125e-07
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage1_weights_normal=[0.042394302785396576, 0.26336416602134705, 0.6942415237426758]
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage1_weights_abnormal=[0.017139572650194168, 0.3036928176879883, 0.6791675686836243]
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage2_raw_gamma=0.0
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage2_gamma=0.0
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage2_ss2d_ratio=0.0
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage2_dfg_beta=0.10000000149011612
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage2_entropy_normal=0.5773435831069946
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage2_entropy_abnormal=0.6007193326950073
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage2_weights_normal_sum_error=5.960464477539063e-08
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage2_weights_abnormal_sum_error=0.0
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage2_weights_normal=[0.025074604898691177, 0.17610567808151245, 0.7988197207450867]
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage2_weights_abnormal=[0.0048940288834273815, 0.25837934017181396, 0.7367266416549683]
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage3_raw_gamma=0.0
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage3_gamma=0.0
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage3_ss2d_ratio=0.0
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage3_dfg_beta=0.10000000149011612
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage3_entropy_normal=0.8046526908874512
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage3_entropy_abnormal=0.831089973449707
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage3_weights_normal_sum_error=5.960464477539063e-08
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage3_weights_abnormal_sum_error=5.960464477539063e-08
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage3_weights_normal=[0.05363200977444649, 0.3060643672943115, 0.6403036117553711]
+2026-06-28 14:56:10 train.py 171: dfg_diag epoch=10 stage3_weights_abnormal=[0.05545066297054291, 0.33948564529418945, 0.6050636768341064]
+2026-06-28 14:56:10 train.py 73: training epoch 11 / 20
+2026-06-28 14:56:10 train.py 74: dfg_beta_state epoch=11 dfg_ss2d_fusion=weight_residual dfg_beta_schedule=warmup010 dfg_beta_target=0.1 dfg_beta_current=0.1
+2026-06-28 14:59:46 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 14:59:54 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:00:15 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:00:27 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:00:34 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:00:47 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:00:48 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:00:52 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:00:53 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:00:57 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:01:10 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:01:11 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:01:13 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:01:17 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:01:25 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:01:26 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:01:28 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:01:29 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:01:33 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:01:33 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:01:34 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:01:38 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:01:39 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:01:50 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:01:53 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:01:58 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:01:59 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:04 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:10 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:12 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:14 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:15 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:15 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:18 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:18 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:21 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:21 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:28 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:29 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:30 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:30 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:34 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:37 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:37 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:41 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:42 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:44 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:02:54 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:01 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:02 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:04 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:07 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:07 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:09 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:12 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:12 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:13 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:15 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:18 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:29 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:30 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:31 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:31 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:32 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:33 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:33 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:34 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:35 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:36 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:38 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:40 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:41 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:41 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:42 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:47 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:48 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:49 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:53 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:55 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:56 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:56 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:59 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:03:59 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:04:05 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:04:10 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:04:11 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:04:12 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:04:14 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:04:15 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:04:15 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:04:16 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:04:21 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:04:22 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:04:23 train.py 123: non-finite loss at epoch 11; skipping batch
+2026-06-28 15:04:25 train.py 155: mean_loss=0.7941061708141356, mean_seg_loss=0.3645055355148369
+2026-06-28 15:04:25 train.py 156: skip_counts epoch=11 non_finite_loss=94 non_finite_grad=0
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage1_raw_gamma=0.0
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage1_gamma=0.0
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage1_ss2d_ratio=0.0
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage1_dfg_beta=0.10000000149011612
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage1_entropy_normal=0.7291799783706665
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage1_entropy_abnormal=0.7175617218017578
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage1_weights_normal_sum_error=0.0
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage1_weights_abnormal_sum_error=5.960464477539063e-08
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage1_weights_normal=[0.03240001201629639, 0.29216447472572327, 0.6754355430603027]
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage1_weights_abnormal=[0.022110797464847565, 0.3116198480129242, 0.6662693023681641]
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage2_raw_gamma=0.0
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage2_gamma=0.0
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage2_ss2d_ratio=0.0
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage2_dfg_beta=0.10000000149011612
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage2_entropy_normal=0.7208585143089294
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage2_entropy_abnormal=0.6439458131790161
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage2_weights_normal_sum_error=0.0
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage2_weights_abnormal_sum_error=1.1920928955078125e-07
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage2_weights_normal=[0.05437185615301132, 0.23678019642829895, 0.7088479399681091]
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage2_weights_abnormal=[0.011202407069504261, 0.2761995494365692, 0.7125980854034424]
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage3_raw_gamma=0.0
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage3_gamma=0.0
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage3_ss2d_ratio=0.0
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage3_dfg_beta=0.10000000149011612
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage3_entropy_normal=0.7662875056266785
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage3_entropy_abnormal=0.818596363067627
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage3_weights_normal_sum_error=1.1920928955078125e-07
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage3_weights_abnormal_sum_error=1.1920928955078125e-07
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage3_weights_normal=[0.034985754638910294, 0.32222288846969604, 0.6427913904190063]
+2026-06-28 15:04:25 train.py 171: dfg_diag epoch=11 stage3_weights_abnormal=[0.05222206562757492, 0.33660998940467834, 0.6111679077148438]
+2026-06-28 15:04:25 train.py 73: training epoch 12 / 20
+2026-06-28 15:04:25 train.py 74: dfg_beta_state epoch=12 dfg_ss2d_fusion=weight_residual dfg_beta_schedule=warmup010 dfg_beta_target=0.1 dfg_beta_current=0.1
+2026-06-28 15:04:31 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:04:32 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:04:36 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:04:40 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:04:47 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:04:47 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:04:50 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:04:50 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:04:52 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:04:58 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:06 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:10 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:20 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:21 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:29 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:30 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:31 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:36 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:39 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:39 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:43 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:45 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:49 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:51 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:54 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:54 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:55 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:57 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:58 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:59 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:05:59 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:02 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:07 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:08 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:08 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:09 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:13 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:15 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:22 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:23 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:25 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:26 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:27 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:28 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:30 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:31 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:31 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:32 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:33 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:35 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:35 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:36 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:37 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:41 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:41 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:42 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:44 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:51 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:54 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:54 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:55 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:56 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:56 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:57 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:58 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:59 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:06:59 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:00 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:02 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:03 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:04 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:04 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:05 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:07 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:08 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:09 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:09 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:13 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:15 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:16 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:17 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:17 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:20 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:20 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:23 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:25 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:26 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:26 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:27 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:28 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:30 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:31 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:31 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:32 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:34 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:37 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:37 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:51 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:53 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:57 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:58 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:07:58 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:00 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:01 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:02 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:03 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:05 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:09 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:16 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:16 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:17 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:19 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:20 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:22 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:23 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:24 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:24 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:25 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:27 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:30 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:30 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:31 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:32 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:32 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:33 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:34 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:34 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:35 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:39 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:40 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:45 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:46 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:46 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:47 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:49 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:50 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:51 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:51 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:54 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:56 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:57 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:57 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:58 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:59 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:08:59 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:00 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:01 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:01 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:02 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:04 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:05 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:06 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:06 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:07 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:08 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:09 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:09 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:10 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:11 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:13 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:14 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:14 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:15 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:16 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:16 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:17 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:18 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:18 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:24 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:25 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:25 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:31 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:31 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:34 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:34 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:37 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:37 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:38 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:39 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:39 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:40 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:41 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:41 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:44 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:44 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:45 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:47 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:48 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:49 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:51 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:52 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:52 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:55 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:55 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:56 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:57 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:09:57 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:00 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:02 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:03 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:03 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:06 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:06 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:07 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:08 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:08 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:11 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:11 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:12 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:13 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:13 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:14 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:15 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:15 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:16 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:17 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:17 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:18 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:19 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:19 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:20 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:21 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:21 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:22 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:28 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:28 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:29 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:30 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:30 train.py 123: non-finite loss at epoch 12; skipping batch
+2026-06-28 15:10:31 train.py 155: mean_loss=0.7664386223662983, mean_seg_loss=0.3385143626029744
+2026-06-28 15:10:31 train.py 156: skip_counts epoch=12 non_finite_loss=229 non_finite_grad=0
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage1_raw_gamma=0.0
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage1_gamma=0.0
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage1_ss2d_ratio=0.0
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage1_dfg_beta=0.10000000149011612
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage1_entropy_normal=0.8405687212944031
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage1_entropy_abnormal=0.7341887950897217
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage1_weights_normal_sum_error=1.1920928955078125e-07
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage1_weights_abnormal_sum_error=1.1920928955078125e-07
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage1_weights_normal=[0.06189653277397156, 0.3302285671234131, 0.607874870300293]
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage1_weights_abnormal=[0.021495554596185684, 0.3381991982460022, 0.64030522108078]
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage2_raw_gamma=0.0
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage2_gamma=0.0
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage2_ss2d_ratio=0.0
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage2_dfg_beta=0.10000000149011612
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage2_entropy_normal=0.8229711055755615
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage2_entropy_abnormal=0.6741715669631958
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage2_weights_normal_sum_error=0.0
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage2_weights_abnormal_sum_error=0.0
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage2_weights_normal=[0.07303736358880997, 0.2746778726577759, 0.6522848010063171]
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage2_weights_abnormal=[0.009276011027395725, 0.31855276226997375, 0.6721712350845337]
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage3_raw_gamma=0.0
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage3_gamma=0.0
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage3_ss2d_ratio=0.0
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage3_dfg_beta=0.10000000149011612
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage3_entropy_normal=0.8587145805358887
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage3_entropy_abnormal=0.8456938862800598
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage3_weights_normal_sum_error=1.1920928955078125e-07
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage3_weights_abnormal_sum_error=0.0
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage3_weights_normal=[0.06620721518993378, 0.34515589475631714, 0.5886368751525879]
+2026-06-28 15:10:31 train.py 171: dfg_diag epoch=12 stage3_weights_abnormal=[0.056738466024398804, 0.3613972067832947, 0.5818643569946289]
+2026-06-28 15:10:31 train.py 73: training epoch 13 / 20
+2026-06-28 15:10:31 train.py 74: dfg_beta_state epoch=13 dfg_ss2d_fusion=weight_residual dfg_beta_schedule=warmup010 dfg_beta_target=0.1 dfg_beta_current=0.1
+2026-06-28 15:10:32 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:33 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:34 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:36 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:37 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:38 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:38 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:39 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:40 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:40 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:41 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:42 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:42 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:46 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:47 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:48 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:50 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:51 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:51 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:52 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:53 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:53 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:56 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:56 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:57 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:58 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:10:58 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:01 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:01 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:02 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:03 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:03 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:04 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:06 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:07 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:08 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:08 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:09 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:11 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:12 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:13 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:13 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:14 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:15 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:17 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:18 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:18 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:19 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:20 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:22 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:26 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:26 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:27 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:28 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:29 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:29 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:30 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:31 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:31 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:32 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:34 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:35 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:37 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:38 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:39 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:39 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:40 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:42 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:43 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:44 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:45 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:45 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:46 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:47 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:49 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:50 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:50 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:51 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:52 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:52 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:56 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:57 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:11:59 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:00 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:01 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:01 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:02 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:03 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:03 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:04 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:06 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:09 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:09 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:10 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:11 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:11 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:12 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:13 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:13 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:14 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:15 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:15 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:16 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:17 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:17 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:18 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:19 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:21 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:25 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:25 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:26 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:27 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:29 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:30 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:30 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:31 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:33 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:36 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:36 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:37 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:38 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:38 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:39 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:42 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:42 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:43 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:44 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:46 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:47 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:47 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:48 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:49 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:49 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:50 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:51 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:52 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:52 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:53 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:54 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:54 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:55 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:56 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:56 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:57 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:12:58 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:00 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:01 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:01 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:02 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:03 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:03 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:04 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:05 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:05 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:06 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:07 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:09 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:10 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:11 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:11 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:13 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:14 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:15 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:16 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:18 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:19 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:19 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:20 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:21 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:21 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:22 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:23 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:23 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:24 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:25 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:27 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:28 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:30 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:32 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:33 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:34 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:36 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:36 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:37 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:38 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:39 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:39 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:40 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:41 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:41 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:42 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:43 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:43 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:44 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:45 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:45 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:46 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:47 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:47 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:48 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:49 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:50 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:50 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:51 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:53 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:54 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:55 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:55 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:56 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:57 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:57 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:58 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:13:59 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:00 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:00 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:01 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:02 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:02 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:03 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:04 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:06 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:07 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:07 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:08 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:09 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:09 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:10 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:11 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:11 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:12 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:13 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:13 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:14 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:15 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:16 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:16 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:17 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:18 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:18 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:21 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:21 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:22 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:23 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:23 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:24 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:26 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:27 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:28 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:28 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:29 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:30 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:30 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:31 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:32 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:33 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:33 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:34 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:35 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:35 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:36 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:37 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:37 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:38 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:39 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:41 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:44 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:44 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:45 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:46 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:46 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:47 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:48 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:48 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:49 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:50 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:51 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:51 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:54 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:54 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:55 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:56 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:56 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:57 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:58 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:59 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:14:59 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:00 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:01 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:01 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:02 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:03 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:07 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:07 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:08 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:09 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:10 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:10 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:11 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:12 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:14 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:15 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:19 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:20 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:20 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:21 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:22 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:22 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:25 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:25 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:26 train.py 123: non-finite loss at epoch 13; skipping batch
+2026-06-28 15:15:27 train.py 155: mean_loss=0.7904946091128331, mean_seg_loss=0.3255435489848548
+2026-06-28 15:15:27 train.py 156: skip_counts epoch=13 non_finite_loss=310 non_finite_grad=0
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage1_raw_gamma=0.0
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage1_gamma=0.0
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage1_ss2d_ratio=0.0
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage1_dfg_beta=0.10000000149011612
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage1_entropy_normal=0.6912063360214233
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage1_entropy_abnormal=0.6683088541030884
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage1_weights_normal_sum_error=0.0
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage1_weights_abnormal_sum_error=5.960464477539063e-08
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage1_weights_normal=[0.029488299041986465, 0.25914761424064636, 0.7113640308380127]
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage1_weights_abnormal=[0.014017263427376747, 0.2884058952331543, 0.6975768208503723]
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage2_raw_gamma=0.0
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage2_gamma=0.0
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage2_ss2d_ratio=0.0
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage2_dfg_beta=0.10000000149011612
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage2_entropy_normal=0.5989301204681396
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage2_entropy_abnormal=0.5638554096221924
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage2_weights_normal_sum_error=1.1920928955078125e-07
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage2_weights_abnormal_sum_error=0.0
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage2_weights_normal=[0.026072844862937927, 0.19344715774059296, 0.7804799675941467]
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage2_weights_abnormal=[0.004609100520610809, 0.22868949174880981, 0.7667014002799988]
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage3_raw_gamma=0.0
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage3_gamma=0.0
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage3_ss2d_ratio=0.0
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage3_dfg_beta=0.10000000149011612
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage3_entropy_normal=0.8013931512832642
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage3_entropy_abnormal=0.805140495300293
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage3_weights_normal_sum_error=5.960464477539063e-08
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage3_weights_abnormal_sum_error=1.1920928955078125e-07
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage3_weights_normal=[0.05291546508669853, 0.3080899119377136, 0.638994574546814]
+2026-06-28 15:15:27 train.py 171: dfg_diag epoch=13 stage3_weights_abnormal=[0.048263512551784515, 0.327523797750473, 0.6242127418518066]
+2026-06-28 15:15:27 train.py 73: training epoch 14 / 20
+2026-06-28 15:15:27 train.py 74: dfg_beta_state epoch=14 dfg_ss2d_fusion=weight_residual dfg_beta_schedule=warmup010 dfg_beta_target=0.1 dfg_beta_current=0.1
+2026-06-28 15:15:28 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:29 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:30 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:30 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:31 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:32 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:32 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:33 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:34 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:35 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:35 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:36 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:37 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:37 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:38 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:39 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:39 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:40 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:41 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:42 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:42 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:43 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:44 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:45 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:45 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:46 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:47 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:47 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:48 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:49 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:49 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:50 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:51 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:52 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:52 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:53 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:54 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:54 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:57 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:57 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:15:58 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:04 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:04 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:05 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:07 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:08 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:09 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:10 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:10 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:11 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:12 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:12 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:13 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:14 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:14 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:15 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:16 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:17 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:17 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:18 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:19 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:19 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:20 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:21 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:21 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:22 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:23 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:25 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:26 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:27 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:27 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:30 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:30 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:31 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:32 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:32 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:33 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:34 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:35 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:35 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:38 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:38 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:39 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:40 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:41 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:41 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:42 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:43 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:43 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:44 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:45 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:46 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:46 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:47 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:48 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:48 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:49 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:50 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:51 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:51 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:52 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:53 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:53 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:54 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:55 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:56 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:56 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:57 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:58 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:58 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:16:59 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:00 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:00 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:01 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:02 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:02 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:03 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:04 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:05 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:05 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:06 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:07 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:07 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:08 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:09 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:10 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:10 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:11 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:12 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:12 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:13 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:14 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:14 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:15 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:16 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:17 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:17 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:18 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:19 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:19 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:20 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:21 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:22 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:22 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:25 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:25 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:26 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:27 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:31 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:31 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:32 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:33 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:34 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:34 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:35 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:36 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:36 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:37 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:40 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:40 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:41 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:42 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:42 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:43 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:44 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:45 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:45 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:46 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:47 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:47 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:48 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:49 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:50 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:50 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:51 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:52 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:52 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:53 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:54 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:55 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:55 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:56 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:57 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:57 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:58 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:17:59 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:00 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:00 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:03 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:03 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:04 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:05 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:05 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:06 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:07 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:08 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:08 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:09 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:11 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:12 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:13 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:13 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:14 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:15 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:16 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:16 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:17 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:18 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:18 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:19 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:20 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:21 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:21 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:22 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:23 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:23 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:24 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:25 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:25 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:26 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:27 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:28 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:28 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:29 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:30 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:32 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:33 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:33 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:34 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:35 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:36 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:36 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:37 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:39 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:40 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:41 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:41 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:42 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:43 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:44 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:44 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:45 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:46 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:46 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:47 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:48 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:49 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:49 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:50 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:51 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:51 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:52 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:53 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:53 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:54 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:55 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:56 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:56 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:57 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:58 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:58 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:18:59 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:00 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:01 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:01 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:02 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:03 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:03 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:04 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:05 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:06 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:06 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:07 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:08 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:08 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:09 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:10 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:11 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:11 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:12 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:13 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:14 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:14 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:15 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:16 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:16 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:17 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:18 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:20 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:21 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:22 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:22 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:23 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:24 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:26 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:27 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:27 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:28 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:29 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:30 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:30 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:31 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:32 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:32 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:33 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:34 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:35 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:35 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:36 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:37 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:37 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:40 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:40 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:41 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:42 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:43 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:43 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:44 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:45 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:46 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:46 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:47 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:48 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:48 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:49 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:50 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:52 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:53 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:54 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:56 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:57 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:57 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:58 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:59 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:19:59 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:20:00 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:20:01 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:20:02 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:20:02 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:20:03 train.py 123: non-finite loss at epoch 14; skipping batch
+2026-06-28 15:20:03 train.py 155: mean_loss=0.7060406860851106, mean_seg_loss=0.27159340608687627
+2026-06-28 15:20:03 train.py 156: skip_counts epoch=14 non_finite_loss=340 non_finite_grad=0
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage1_raw_gamma=0.0
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage1_gamma=0.0
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage1_ss2d_ratio=0.0
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage1_dfg_beta=0.10000000149011612
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage1_entropy_normal=0.6410483121871948
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage1_entropy_abnormal=0.666989803314209
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage1_weights_normal_sum_error=5.960464477539063e-08
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage1_weights_abnormal_sum_error=0.0
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage1_weights_normal=[0.018313176929950714, 0.2438194304704666, 0.7378673553466797]
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage1_weights_abnormal=[0.016313888132572174, 0.2764142155647278, 0.7072718739509583]
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage2_raw_gamma=0.0
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage2_gamma=0.0
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage2_ss2d_ratio=0.0
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage2_dfg_beta=0.10000000149011612
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage2_entropy_normal=0.503542423248291
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage2_entropy_abnormal=0.5342174172401428
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage2_weights_normal_sum_error=1.1920928955078125e-07
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage2_weights_abnormal_sum_error=0.0
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage2_weights_normal=[0.011515885591506958, 0.16213533282279968, 0.8263488411903381]
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage2_weights_abnormal=[0.004961533471941948, 0.20292629301548004, 0.7921122312545776]
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage3_raw_gamma=0.0
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage3_gamma=0.0
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage3_ss2d_ratio=nan
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage3_dfg_beta=0.10000000149011612
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage3_entropy_normal=nan
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage3_entropy_abnormal=nan
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage3_weights_normal_sum_error=nan
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage3_weights_abnormal_sum_error=nan
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage3_weights_normal=[nan, nan, nan]
+2026-06-28 15:20:03 train.py 171: dfg_diag epoch=14 stage3_weights_abnormal=[nan, nan, nan]
+2026-06-28 15:20:03 train.py 73: training epoch 15 / 20
+2026-06-28 15:20:03 train.py 74: dfg_beta_state epoch=15 dfg_ss2d_fusion=weight_residual dfg_beta_schedule=warmup010 dfg_beta_target=0.1 dfg_beta_current=0.1
+2026-06-28 15:20:04 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:05 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:05 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:06 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:07 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:07 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:08 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:09 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:10 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:10 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:11 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:12 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:14 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:15 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:15 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:16 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:17 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:18 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:20 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:22 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:23 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:24 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:24 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:25 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:26 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:26 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:27 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:28 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:28 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:29 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:30 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:31 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:31 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:32 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:33 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:33 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:34 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:35 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:36 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:36 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:39 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:39 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:40 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:41 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:41 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:42 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:43 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:43 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:44 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:45 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:46 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:46 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:47 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:48 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:49 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:49 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:50 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:51 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:51 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:52 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:53 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:54 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:54 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:55 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:56 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:56 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:57 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:58 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:59 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:20:59 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:00 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:01 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:01 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:02 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:03 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:05 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:06 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:07 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:07 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:08 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:10 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:11 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:12 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:12 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:13 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:14 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:15 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:15 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:16 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:17 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:17 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:18 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:19 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:20 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:22 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:23 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:23 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:24 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:25 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:26 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:28 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:28 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:31 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:32 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:32 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:33 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:34 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:36 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:37 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:38 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:38 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:39 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:40 train.py 123: non-finite loss at epoch 15; skipping batch
+2026-06-28 15:21:40 train.py 123: non-finite loss at epoch 15; skipping batch

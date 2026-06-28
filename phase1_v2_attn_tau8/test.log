@@ -1,0 +1,480 @@
+2026-06-27 12:37:46 test.py 256: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'dataset': 'Brain', 'batch_size': 8, 'cuda_device': 0, 'save_path': 'phase1_v2_attn_tau8', 'num_workers': 6, 'epochs': [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], 'metric_thresholds': None, 'pixel_stride': 4, 'max_samples': None, 'max_samples_per_label': None}
+2026-06-27 12:37:46 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 12:37:49 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 12:37:50 test.py 312: -----------------------------------------------
+2026-06-27 12:37:50 test.py 313: load model from epoch 10
+2026-06-27 12:37:50 test.py 314: -----------------------------------------------
+2026-06-27 12:46:24 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      94.07    29.37     82.88    95.03 
+ Average      94.07    29.37     82.88    95.03 
+2026-06-27 12:46:24 test.py 312: -----------------------------------------------
+2026-06-27 12:46:24 test.py 313: load model from epoch 11
+2026-06-27 12:46:24 test.py 314: -----------------------------------------------
+2026-06-27 12:54:56 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      93.21    26.89     84.08    95.29 
+ Average      93.21    26.89     84.08    95.29 
+2026-06-27 12:54:56 test.py 312: -----------------------------------------------
+2026-06-27 12:54:56 test.py 313: load model from epoch 12
+2026-06-27 12:54:56 test.py 314: -----------------------------------------------
+2026-06-27 13:03:28 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      93.85    25.52     81.55    94.38 
+ Average      93.85    25.52     81.55    94.38 
+2026-06-27 13:03:28 test.py 312: -----------------------------------------------
+2026-06-27 13:03:28 test.py 313: load model from epoch 13
+2026-06-27 13:03:28 test.py 314: -----------------------------------------------
+2026-06-27 13:12:03 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      93.73    27.11     81.93    94.62 
+ Average      93.73    27.11     81.93    94.62 
+2026-06-27 13:12:03 test.py 312: -----------------------------------------------
+2026-06-27 13:12:03 test.py 313: load model from epoch 14
+2026-06-27 13:12:03 test.py 314: -----------------------------------------------
+2026-06-27 13:20:37 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      92.61    25.94     83.11    94.75 
+ Average      92.61    25.94     83.11    94.75 
+2026-06-27 13:20:37 test.py 312: -----------------------------------------------
+2026-06-27 13:20:37 test.py 313: load model from epoch 15
+2026-06-27 13:20:37 test.py 314: -----------------------------------------------
+2026-06-27 13:29:10 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      92.24    23.15     83.84    95.33 
+ Average      92.24    23.15     83.84    95.33 
+2026-06-27 13:29:10 test.py 312: -----------------------------------------------
+2026-06-27 13:29:10 test.py 313: load model from epoch 16
+2026-06-27 13:29:10 test.py 314: -----------------------------------------------
+2026-06-27 13:37:44 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      93.18    24.41     82.96    95.08 
+ Average      93.18    24.41     82.96    95.08 
+2026-06-27 13:37:44 test.py 312: -----------------------------------------------
+2026-06-27 13:37:44 test.py 313: load model from epoch 17
+2026-06-27 13:37:44 test.py 314: -----------------------------------------------
+2026-06-27 13:46:16 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      93.14    22.7      82.72    94.8  
+ Average      93.14    22.7      82.72    94.8  
+2026-06-27 13:46:16 test.py 312: -----------------------------------------------
+2026-06-27 13:46:16 test.py 313: load model from epoch 18
+2026-06-27 13:46:16 test.py 314: -----------------------------------------------
+2026-06-27 13:54:49 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      92.66    21.97     82.55    94.53 
+ Average      92.66    21.97     82.55    94.53 
+2026-06-27 13:54:49 test.py 312: -----------------------------------------------
+2026-06-27 13:54:49 test.py 313: load model from epoch 19
+2026-06-27 13:54:49 test.py 314: -----------------------------------------------
+2026-06-27 14:03:25 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      93.36    24.28     80.31    94.1  
+ Average      93.36    24.28     80.31    94.1  
+2026-06-27 14:03:25 test.py 312: -----------------------------------------------
+2026-06-27 14:03:25 test.py 313: load model from epoch 20
+2026-06-27 14:03:25 test.py 314: -----------------------------------------------
+2026-06-27 14:12:01 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      92.22    20.26     81.18    94.36 
+ Average      92.22    20.26     81.18    94.36 
+2026-06-27 14:12:08 test.py 256: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'dataset': 'Liver', 'batch_size': 8, 'cuda_device': 0, 'save_path': 'phase1_v2_attn_tau8', 'num_workers': 6, 'epochs': [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], 'metric_thresholds': None, 'pixel_stride': 4, 'max_samples': None, 'max_samples_per_label': None}
+2026-06-27 14:12:08 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 14:12:12 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 14:12:12 test.py 312: -----------------------------------------------
+2026-06-27 14:12:12 test.py 313: load model from epoch 10
+2026-06-27 14:12:12 test.py 314: -----------------------------------------------
+2026-06-27 14:15:37 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      95.42    3.91      58.7     51.56 
+ Average      95.42    3.91      58.7     51.56 
+2026-06-27 14:15:37 test.py 312: -----------------------------------------------
+2026-06-27 14:15:37 test.py 313: load model from epoch 11
+2026-06-27 14:15:37 test.py 314: -----------------------------------------------
+2026-06-27 14:19:03 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      94.32    3.58      57.41    47.85 
+ Average      94.32    3.58      57.41    47.85 
+2026-06-27 14:19:03 test.py 312: -----------------------------------------------
+2026-06-27 14:19:03 test.py 313: load model from epoch 12
+2026-06-27 14:19:03 test.py 314: -----------------------------------------------
+2026-06-27 14:22:29 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      95.38     3.8      53.86    45.34 
+ Average      95.38     3.8      53.86    45.34 
+2026-06-27 14:22:29 test.py 312: -----------------------------------------------
+2026-06-27 14:22:29 test.py 313: load model from epoch 13
+2026-06-27 14:22:29 test.py 314: -----------------------------------------------
+2026-06-27 14:25:56 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      95.59    4.05      57.26    49.06 
+ Average      95.59    4.05      57.26    49.06 
+2026-06-27 14:25:56 test.py 312: -----------------------------------------------
+2026-06-27 14:25:56 test.py 313: load model from epoch 14
+2026-06-27 14:25:56 test.py 314: -----------------------------------------------
+2026-06-27 14:29:23 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      94.91    3.93      56.82    48.31 
+ Average      94.91    3.93      56.82    48.31 
+2026-06-27 14:29:23 test.py 312: -----------------------------------------------
+2026-06-27 14:29:23 test.py 313: load model from epoch 15
+2026-06-27 14:29:23 test.py 314: -----------------------------------------------
+2026-06-27 14:32:49 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      94.9     3.82      56.56    46.06 
+ Average      94.9     3.82      56.56    46.06 
+2026-06-27 14:32:49 test.py 312: -----------------------------------------------
+2026-06-27 14:32:49 test.py 313: load model from epoch 16
+2026-06-27 14:32:49 test.py 314: -----------------------------------------------
+2026-06-27 14:36:15 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      95.53    4.14      55.18    46.18 
+ Average      95.53    4.14      55.18    46.18 
+2026-06-27 14:36:16 test.py 312: -----------------------------------------------
+2026-06-27 14:36:16 test.py 313: load model from epoch 17
+2026-06-27 14:36:16 test.py 314: -----------------------------------------------
+2026-06-27 14:39:42 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      95.83    4.27      57.38    47.73 
+ Average      95.83    4.27      57.38    47.73 
+2026-06-27 14:39:42 test.py 312: -----------------------------------------------
+2026-06-27 14:39:42 test.py 313: load model from epoch 18
+2026-06-27 14:39:42 test.py 314: -----------------------------------------------
+2026-06-27 14:43:08 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      95.61    4.12      55.16    45.14 
+ Average      95.61    4.12      55.16    45.14 
+2026-06-27 14:43:08 test.py 312: -----------------------------------------------
+2026-06-27 14:43:08 test.py 313: load model from epoch 19
+2026-06-27 14:43:08 test.py 314: -----------------------------------------------
+2026-06-27 14:46:34 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      95.8     4.21      52.99    42.82 
+ Average      95.8     4.21      52.99    42.82 
+2026-06-27 14:46:34 test.py 312: -----------------------------------------------
+2026-06-27 14:46:34 test.py 313: load model from epoch 20
+2026-06-27 14:46:34 test.py 314: -----------------------------------------------
+2026-06-27 14:50:02 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      95.58    4.29      56.01    46.56 
+ Average      95.58    4.29      56.01    46.56 
+2026-06-27 14:50:05 test.py 256: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'dataset': 'Retina', 'batch_size': 8, 'cuda_device': 0, 'save_path': 'phase1_v2_attn_tau8', 'num_workers': 6, 'epochs': [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], 'metric_thresholds': None, 'pixel_stride': 4, 'max_samples': None, 'max_samples_per_label': None}
+2026-06-27 14:50:05 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 14:50:09 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 14:50:09 test.py 312: -----------------------------------------------
+2026-06-27 14:50:09 test.py 313: load model from epoch 10
+2026-06-27 14:50:09 test.py 314: -----------------------------------------------
+2026-06-27 14:54:20 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      92.53    40.72     76.37    74.15 
+ Average      92.53    40.72     76.37    74.15 
+2026-06-27 14:54:20 test.py 312: -----------------------------------------------
+2026-06-27 14:54:20 test.py 313: load model from epoch 11
+2026-06-27 14:54:20 test.py 314: -----------------------------------------------
+2026-06-27 14:58:31 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      92.44    38.09     78.16    75.02 
+ Average      92.44    38.09     78.16    75.02 
+2026-06-27 14:58:31 test.py 312: -----------------------------------------------
+2026-06-27 14:58:31 test.py 313: load model from epoch 12
+2026-06-27 14:58:31 test.py 314: -----------------------------------------------
+2026-06-27 15:02:41 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      93.93    44.25     76.39    74.8  
+ Average      93.93    44.25     76.39    74.8  
+2026-06-27 15:02:41 test.py 312: -----------------------------------------------
+2026-06-27 15:02:41 test.py 313: load model from epoch 13
+2026-06-27 15:02:41 test.py 314: -----------------------------------------------
+2026-06-27 15:06:52 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      92.53    41.36     77.5     75.65 
+ Average      92.53    41.36     77.5     75.65 
+2026-06-27 15:06:52 test.py 312: -----------------------------------------------
+2026-06-27 15:06:52 test.py 313: load model from epoch 14
+2026-06-27 15:06:52 test.py 314: -----------------------------------------------
+2026-06-27 15:11:02 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      92.01    37.78     75.82    72.12 
+ Average      92.01    37.78     75.82    72.12 
+2026-06-27 15:11:02 test.py 312: -----------------------------------------------
+2026-06-27 15:11:02 test.py 313: load model from epoch 15
+2026-06-27 15:11:02 test.py 314: -----------------------------------------------
+2026-06-27 15:15:12 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      93.46    40.67     78.41    74.41 
+ Average      93.46    40.67     78.41    74.41 
+2026-06-27 15:15:12 test.py 312: -----------------------------------------------
+2026-06-27 15:15:12 test.py 313: load model from epoch 16
+2026-06-27 15:15:12 test.py 314: -----------------------------------------------
+2026-06-27 15:19:22 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      93.35    40.35     77.54    74.31 
+ Average      93.35    40.35     77.54    74.31 
+2026-06-27 15:19:22 test.py 312: -----------------------------------------------
+2026-06-27 15:19:22 test.py 313: load model from epoch 17
+2026-06-27 15:19:22 test.py 314: -----------------------------------------------
+2026-06-27 15:23:34 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      93.36    39.94     78.19    75.56 
+ Average      93.36    39.94     78.19    75.56 
+2026-06-27 15:23:34 test.py 312: -----------------------------------------------
+2026-06-27 15:23:34 test.py 313: load model from epoch 18
+2026-06-27 15:23:34 test.py 314: -----------------------------------------------
+2026-06-27 15:27:44 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      93.42    40.25     77.67    73.14 
+ Average      93.42    40.25     77.67    73.14 
+2026-06-27 15:27:44 test.py 312: -----------------------------------------------
+2026-06-27 15:27:44 test.py 313: load model from epoch 19
+2026-06-27 15:27:44 test.py 314: -----------------------------------------------
+2026-06-27 15:31:54 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      93.52    40.66     77.9     75.41 
+ Average      93.52    40.66     77.9     75.41 
+2026-06-27 15:31:54 test.py 312: -----------------------------------------------
+2026-06-27 15:31:54 test.py 313: load model from epoch 20
+2026-06-27 15:31:54 test.py 314: -----------------------------------------------
+2026-06-27 15:36:05 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      93.41    40.74     78.28    74.88 
+ Average      93.41    40.74     78.28    74.88 
+2026-06-27 15:36:08 test.py 256: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'dataset': 'Colon_clinicDB', 'batch_size': 8, 'cuda_device': 0, 'save_path': 'phase1_v2_attn_tau8', 'num_workers': 6, 'epochs': [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], 'metric_thresholds': None, 'pixel_stride': 4, 'max_samples': None, 'max_samples_per_label': None}
+2026-06-27 15:36:08 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 15:36:12 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 15:36:12 test.py 312: -----------------------------------------------
+2026-06-27 15:36:12 test.py 313: load model from epoch 10
+2026-06-27 15:36:12 test.py 314: -----------------------------------------------
+2026-06-27 15:37:38 test.py 382: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    87.53    47.8       0.0      0.0  
+       Average    87.53    47.8       0.0      0.0  
+2026-06-27 15:37:38 test.py 312: -----------------------------------------------
+2026-06-27 15:37:38 test.py 313: load model from epoch 11
+2026-06-27 15:37:38 test.py 314: -----------------------------------------------
+2026-06-27 15:39:03 test.py 382: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    86.51    47.45      0.0      0.0  
+       Average    86.51    47.45      0.0      0.0  
+2026-06-27 15:39:03 test.py 312: -----------------------------------------------
+2026-06-27 15:39:03 test.py 313: load model from epoch 12
+2026-06-27 15:39:03 test.py 314: -----------------------------------------------
+2026-06-27 15:40:28 test.py 382: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    86.96    46.34      0.0      0.0  
+       Average    86.96    46.34      0.0      0.0  
+2026-06-27 15:40:28 test.py 312: -----------------------------------------------
+2026-06-27 15:40:28 test.py 313: load model from epoch 13
+2026-06-27 15:40:28 test.py 314: -----------------------------------------------
+2026-06-27 15:41:53 test.py 382: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    86.89    47.82      0.0      0.0  
+       Average    86.89    47.82      0.0      0.0  
+2026-06-27 15:41:53 test.py 312: -----------------------------------------------
+2026-06-27 15:41:53 test.py 313: load model from epoch 14
+2026-06-27 15:41:53 test.py 314: -----------------------------------------------
+2026-06-27 15:43:18 test.py 382: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    85.92    44.44      0.0      0.0  
+       Average    85.92    44.44      0.0      0.0  
+2026-06-27 15:43:18 test.py 312: -----------------------------------------------
+2026-06-27 15:43:18 test.py 313: load model from epoch 15
+2026-06-27 15:43:18 test.py 314: -----------------------------------------------
+2026-06-27 15:44:43 test.py 382: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    85.21    44.52      0.0      0.0  
+       Average    85.21    44.52      0.0      0.0  
+2026-06-27 15:44:43 test.py 312: -----------------------------------------------
+2026-06-27 15:44:43 test.py 313: load model from epoch 16
+2026-06-27 15:44:43 test.py 314: -----------------------------------------------
+2026-06-27 15:46:09 test.py 382: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    86.05    44.66      0.0      0.0  
+       Average    86.05    44.66      0.0      0.0  
+2026-06-27 15:46:09 test.py 312: -----------------------------------------------
+2026-06-27 15:46:09 test.py 313: load model from epoch 17
+2026-06-27 15:46:09 test.py 314: -----------------------------------------------
+2026-06-27 15:47:34 test.py 382: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    86.53    44.21      0.0      0.0  
+       Average    86.53    44.21      0.0      0.0  
+2026-06-27 15:47:34 test.py 312: -----------------------------------------------
+2026-06-27 15:47:34 test.py 313: load model from epoch 18
+2026-06-27 15:47:34 test.py 314: -----------------------------------------------
+2026-06-27 15:48:59 test.py 382: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    86.64    45.76      0.0      0.0  
+       Average    86.64    45.76      0.0      0.0  
+2026-06-27 15:48:59 test.py 312: -----------------------------------------------
+2026-06-27 15:48:59 test.py 313: load model from epoch 19
+2026-06-27 15:48:59 test.py 314: -----------------------------------------------
+2026-06-27 15:50:24 test.py 382: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    86.2     45.49      0.0      0.0  
+       Average    86.2     45.49      0.0      0.0  
+2026-06-27 15:50:24 test.py 312: -----------------------------------------------
+2026-06-27 15:50:24 test.py 313: load model from epoch 20
+2026-06-27 15:50:24 test.py 314: -----------------------------------------------
+2026-06-27 15:51:49 test.py 382: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    85.97    44.22      0.0      0.0  
+       Average    85.97    44.22      0.0      0.0  
+2026-06-27 15:51:52 test.py 256: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'dataset': 'Colon_colonDB', 'batch_size': 8, 'cuda_device': 0, 'save_path': 'phase1_v2_attn_tau8', 'num_workers': 6, 'epochs': [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], 'metric_thresholds': None, 'pixel_stride': 4, 'max_samples': None, 'max_samples_per_label': None}
+2026-06-27 15:51:53 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 15:51:56 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 15:51:56 test.py 312: -----------------------------------------------
+2026-06-27 15:51:56 test.py 313: load model from epoch 10
+2026-06-27 15:51:56 test.py 314: -----------------------------------------------
+2026-06-27 15:52:50 test.py 382: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    81.71    28.72      0.0      0.0  
+      Average    81.71    28.72      0.0      0.0  
+2026-06-27 15:52:50 test.py 312: -----------------------------------------------
+2026-06-27 15:52:50 test.py 313: load model from epoch 11
+2026-06-27 15:52:50 test.py 314: -----------------------------------------------
+2026-06-27 15:53:43 test.py 382: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    80.87    27.8       0.0      0.0  
+      Average    80.87    27.8       0.0      0.0  
+2026-06-27 15:53:43 test.py 312: -----------------------------------------------
+2026-06-27 15:53:43 test.py 313: load model from epoch 12
+2026-06-27 15:53:43 test.py 314: -----------------------------------------------
+2026-06-27 15:54:36 test.py 382: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    82.6     28.9       0.0      0.0  
+      Average    82.6     28.9       0.0      0.0  
+2026-06-27 15:54:36 test.py 312: -----------------------------------------------
+2026-06-27 15:54:36 test.py 313: load model from epoch 13
+2026-06-27 15:54:36 test.py 314: -----------------------------------------------
+2026-06-27 15:55:29 test.py 382: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    81.11    28.56      0.0      0.0  
+      Average    81.11    28.56      0.0      0.0  
+2026-06-27 15:55:29 test.py 312: -----------------------------------------------
+2026-06-27 15:55:29 test.py 313: load model from epoch 14
+2026-06-27 15:55:29 test.py 314: -----------------------------------------------
+2026-06-27 15:56:22 test.py 382: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    79.24    26.29      0.0      0.0  
+      Average    79.24    26.29      0.0      0.0  
+2026-06-27 15:56:22 test.py 312: -----------------------------------------------
+2026-06-27 15:56:22 test.py 313: load model from epoch 15
+2026-06-27 15:56:22 test.py 314: -----------------------------------------------
+2026-06-27 15:57:15 test.py 382: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    80.02    28.07      0.0      0.0  
+      Average    80.02    28.07      0.0      0.0  
+2026-06-27 15:57:15 test.py 312: -----------------------------------------------
+2026-06-27 15:57:15 test.py 313: load model from epoch 16
+2026-06-27 15:57:15 test.py 314: -----------------------------------------------
+2026-06-27 15:58:08 test.py 382: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    80.82    27.89      0.0      0.0  
+      Average    80.82    27.89      0.0      0.0  
+2026-06-27 15:58:08 test.py 312: -----------------------------------------------
+2026-06-27 15:58:08 test.py 313: load model from epoch 17
+2026-06-27 15:58:08 test.py 314: -----------------------------------------------
+2026-06-27 15:59:02 test.py 382: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    80.86    27.76      0.0      0.0  
+      Average    80.86    27.76      0.0      0.0  
+2026-06-27 15:59:02 test.py 312: -----------------------------------------------
+2026-06-27 15:59:02 test.py 313: load model from epoch 18
+2026-06-27 15:59:02 test.py 314: -----------------------------------------------
+2026-06-27 15:59:55 test.py 382: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    80.62    29.35      0.0      0.0  
+      Average    80.62    29.35      0.0      0.0  
+2026-06-27 15:59:55 test.py 312: -----------------------------------------------
+2026-06-27 15:59:55 test.py 313: load model from epoch 19
+2026-06-27 15:59:55 test.py 314: -----------------------------------------------
+2026-06-27 16:00:48 test.py 382: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    81.66    29.23      0.0      0.0  
+      Average    81.66    29.23      0.0      0.0  
+2026-06-27 16:00:48 test.py 312: -----------------------------------------------
+2026-06-27 16:00:48 test.py 313: load model from epoch 20
+2026-06-27 16:00:48 test.py 314: -----------------------------------------------
+2026-06-27 16:01:42 test.py 382: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    81.27    29.92      0.0      0.0  
+      Average    81.27    29.92      0.0      0.0  
+2026-06-27 16:01:45 test.py 256: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'dataset': 'Colon_Kvasir', 'batch_size': 8, 'cuda_device': 0, 'save_path': 'phase1_v2_attn_tau8', 'num_workers': 6, 'epochs': [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], 'metric_thresholds': None, 'pixel_stride': 4, 'max_samples': None, 'max_samples_per_label': None}
+2026-06-27 16:01:45 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 16:01:49 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 16:01:49 test.py 312: -----------------------------------------------
+2026-06-27 16:01:49 test.py 313: load model from epoch 10
+2026-06-27 16:01:49 test.py 314: -----------------------------------------------
+2026-06-27 16:04:09 test.py 382: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    87.08    55.4       0.0      0.0  
+     Average    87.08    55.4       0.0      0.0  
+2026-06-27 16:04:09 test.py 312: -----------------------------------------------
+2026-06-27 16:04:09 test.py 313: load model from epoch 11
+2026-06-27 16:04:09 test.py 314: -----------------------------------------------
+2026-06-27 16:06:29 test.py 382: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    87.88    57.68      0.0      0.0  
+     Average    87.88    57.68      0.0      0.0  
+2026-06-27 16:06:29 test.py 312: -----------------------------------------------
+2026-06-27 16:06:29 test.py 313: load model from epoch 12
+2026-06-27 16:06:29 test.py 314: -----------------------------------------------
+2026-06-27 16:08:49 test.py 382: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    87.59    57.26      0.0      0.0  
+     Average    87.59    57.26      0.0      0.0  
+2026-06-27 16:08:49 test.py 312: -----------------------------------------------
+2026-06-27 16:08:49 test.py 313: load model from epoch 13
+2026-06-27 16:08:49 test.py 314: -----------------------------------------------
+2026-06-27 16:11:08 test.py 382: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    87.96    59.31      0.0      0.0  
+     Average    87.96    59.31      0.0      0.0  
+2026-06-27 16:11:08 test.py 312: -----------------------------------------------
+2026-06-27 16:11:08 test.py 313: load model from epoch 14
+2026-06-27 16:11:08 test.py 314: -----------------------------------------------
+2026-06-27 16:13:27 test.py 382: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    87.14    56.26      0.0      0.0  
+     Average    87.14    56.26      0.0      0.0  
+2026-06-27 16:13:27 test.py 312: -----------------------------------------------
+2026-06-27 16:13:27 test.py 313: load model from epoch 15
+2026-06-27 16:13:27 test.py 314: -----------------------------------------------
+2026-06-27 16:15:47 test.py 382: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    87.33    57.15      0.0      0.0  
+     Average    87.33    57.15      0.0      0.0  
+2026-06-27 16:15:47 test.py 312: -----------------------------------------------
+2026-06-27 16:15:47 test.py 313: load model from epoch 16
+2026-06-27 16:15:47 test.py 314: -----------------------------------------------
+2026-06-27 16:18:06 test.py 382: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    88.05    58.3       0.0      0.0  
+     Average    88.05    58.3       0.0      0.0  
+2026-06-27 16:18:06 test.py 312: -----------------------------------------------
+2026-06-27 16:18:06 test.py 313: load model from epoch 17
+2026-06-27 16:18:06 test.py 314: -----------------------------------------------
+2026-06-27 16:20:26 test.py 382: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    88.33    58.82      0.0      0.0  
+     Average    88.33    58.82      0.0      0.0  
+2026-06-27 16:20:26 test.py 312: -----------------------------------------------
+2026-06-27 16:20:26 test.py 313: load model from epoch 18
+2026-06-27 16:20:26 test.py 314: -----------------------------------------------
+2026-06-27 16:22:46 test.py 382: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    87.97    58.82      0.0      0.0  
+     Average    87.97    58.82      0.0      0.0  
+2026-06-27 16:22:46 test.py 312: -----------------------------------------------
+2026-06-27 16:22:46 test.py 313: load model from epoch 19
+2026-06-27 16:22:46 test.py 314: -----------------------------------------------
+2026-06-27 16:25:05 test.py 382: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    88.55    59.96      0.0      0.0  
+     Average    88.55    59.96      0.0      0.0  
+2026-06-27 16:25:05 test.py 312: -----------------------------------------------
+2026-06-27 16:25:05 test.py 313: load model from epoch 20
+2026-06-27 16:25:05 test.py 314: -----------------------------------------------
+2026-06-27 16:27:25 test.py 382: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    88.14    58.96      0.0      0.0  
+     Average    88.14    58.96      0.0      0.0  

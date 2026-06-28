@@ -20,6 +20,117 @@ from model.adapter import (
 from model.clip import create_model
 
 
+def tensor_debug_stats(tensor):
+    if tensor is None:
+        return None
+    if not torch.is_tensor(tensor):
+        return tensor
+    with torch.no_grad():
+        data = tensor.detach().float()
+        finite = torch.isfinite(data)
+        stats = {
+            "shape": list(data.shape),
+            "dtype": str(tensor.dtype),
+            "finite": bool(finite.all().item()),
+            "nan_count": int(torch.isnan(data).sum().item()),
+            "posinf_count": int(torch.isposinf(data).sum().item()),
+            "neginf_count": int(torch.isneginf(data).sum().item()),
+        }
+        if finite.any():
+            finite_data = data[finite]
+            stats.update({
+                "min": float(finite_data.min().item()),
+                "max": float(finite_data.max().item()),
+                "mean": float(finite_data.mean().item()),
+                "std": float(finite_data.std(unbiased=False).item()),
+                "absmax": float(finite_data.abs().max().item()),
+            })
+        else:
+            stats.update({
+                "min": None,
+                "max": None,
+                "mean": None,
+                "std": None,
+                "absmax": None,
+            })
+        return stats
+
+
+def diagnostics_to_python(diagnostics):
+    converted = {}
+    for key, value in diagnostics.items():
+        if value is None:
+            converted[key] = None
+        elif torch.is_tensor(value):
+            if value.ndim == 0:
+                item = value.item()
+                converted[key] = item
+            else:
+                converted[key] = value.tolist()
+        else:
+            converted[key] = value
+    return converted
+
+
+def save_nonfinite_diagnostics(
+        save_path: str,
+        epoch_one_based: int,
+        batch_idx: int,
+        non_finite_loss_skips: int,
+        model: ACDCLIP,
+        tensors: dict,
+        metadata: dict,
+):
+    diag_dir = os.path.join(save_path, "nonfinite_diagnostics")
+    os.makedirs(diag_dir, exist_ok=True)
+    diag_path = os.path.join(
+        diag_dir,
+        f"epoch_{epoch_one_based:03d}_batch_{batch_idx:05d}_skip_{non_finite_loss_skips:04d}.pth",
+    )
+    payload = {
+        "epoch": epoch_one_based,
+        "batch_idx": batch_idx,
+        "non_finite_loss_skips": non_finite_loss_skips,
+        "metadata": metadata,
+        "tensor_stats": {name: tensor_debug_stats(value) for name, value in tensors.items()},
+        "dfg_diagnostics": diagnostics_to_python(model.get_dfg_diagnostics()),
+    }
+    torch.save(payload, diag_path)
+    return diag_path
+
+
+def has_non_finite_grad(optimizer: torch.optim.Optimizer) -> bool:
+    for group in optimizer.param_groups:
+        for param in group["params"]:
+            if param.grad is not None and not torch.isfinite(param.grad).all():
+                return True
+    return False
+
+
+def first_nonfinite_trainable_parameter(model: torch.nn.Module):
+    for name, param in model.named_parameters():
+        if param.requires_grad and not torch.isfinite(param).all():
+            return name, tensor_debug_stats(param)
+    return None, None
+
+
+def get_dfg_beta_for_epoch(
+        epoch_one_based: int,
+        dfg_beta_schedule: str,
+        dfg_beta_target: float,
+        dfg_beta: float,
+) -> float:
+    if dfg_beta_schedule == "fixed":
+        return float(dfg_beta)
+    if dfg_beta_schedule == "warmup010":
+        if epoch_one_based <= 3:
+            return 0.0
+        if epoch_one_based <= 6:
+            return min(0.05, float(dfg_beta_target))
+        return float(dfg_beta_target)
+    raise ValueError(f"Unknown dfg_beta_schedule: {dfg_beta_schedule}")
+
+
 def train(
         model: ACDCLIP,
         dataset_name: str,
@@ -30,13 +141,38 @@ def train(
         total_epoch: int,
         save_path: str,
         logger: logging.Logger,
+        use_amp: bool = False,
+        dfg_beta_schedule: str = "fixed",
+        dfg_beta_target: float = 0.10,
+        dfg_beta: float = 0.10,
+        non_finite_loss_abort_threshold: int = 20,
 ):
+    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
     for epoch in range(0, total_epoch):
-        logger.info(f"training epoch {epoch + 1} / {total_epoch}")
+        epoch_one_based = epoch + 1
+        beta_current = get_dfg_beta_for_epoch(
+            epoch_one_based,
+            dfg_beta_schedule,
+            dfg_beta_target,
+            dfg_beta,
+        )
+        model.set_dfg_beta(beta_current)
+        logger.info(f"training epoch {epoch_one_based} / {total_epoch}")
+        logger.info(
+            "dfg_beta_state epoch=%d dfg_ss2d_fusion=%s dfg_beta_schedule=%s "
+            "dfg_beta_target=%s dfg_beta_current=%s",
+            epoch_one_based,
+            model.dfg_ss2d_fusion,
+            dfg_beta_schedule,
+            dfg_beta_target,
+            model.dfg_beta,
+        )
         loss_list = []
         seg_loss_list = []
+        non_finite_loss_skips = 0
+        non_finite_grad_skips = 0
         tqdm_train_loader = tqdm(train_loader)
-        for input_data in tqdm_train_loader:
+        for batch_idx, input_data in enumerate(tqdm_train_loader):
             image = input_data["image"].to(device)
             mask = input_data["mask"].to(device)
             label = input_data["label"].to(device)
@@ -53,33 +189,138 @@ def train(
                 dim=0,
             )  # [bs, n_groups, 768, 2]
             epoch_text_features = epoch_text_features.permute(1, 0, 2, 3)  # [n_groups, bs, 768, 2]
-            seg_tokens, det_tokens = model(image)  # [bs, patch_size, 768] * n_groups, [bs, 768] * n_groups
-            seg_features = torch.stack(seg_tokens, dim=0)  # [n_groups, bs, patch_num, 768]
-            det_features = torch.stack(det_tokens, dim=0)  # [n_groups, bs, 768]
-            cls_pred = [
-                torch.matmul(
-                    det_features[i].unsqueeze(dim=1),  # [bs, 1, 768]
-                    epoch_text_features[i],  # [bs, 768, 2]
-                ).squeeze(1)
-                for i in range(det_features.shape[0])
-            ]  # [bs, 2] * n_groups
-            cls_pred = torch.stack(cls_pred, dim=0).mean(dim=0)  # [bs, 2]
-            loss = F.cross_entropy(cls_pred, label)
-            # [bs, 2, img_size, img_size]
-            seg_pred = model.vision_text_fusion_gate_seg(seg_features, epoch_text_features)
-            seg_loss = calculate_seg_loss(seg_pred, mask)
-            loss += seg_loss
+            with torch.cuda.amp.autocast(enabled=use_amp):
+                seg_tokens, det_tokens = model(image)  # [bs, patch_size, 768] * n_groups, [bs, 768] * n_groups
+                seg_features = torch.stack(seg_tokens, dim=0)  # [n_groups, bs, patch_num, 768]
+                det_features = torch.stack(det_tokens, dim=0)  # [n_groups, bs, 768]
+                cls_pred = [
+                    torch.matmul(
+                        det_features[i].unsqueeze(dim=1),  # [bs, 1, 768]
+                        epoch_text_features[i],  # [bs, 768, 2]
+                    ).squeeze(1)
+                    for i in range(det_features.shape[0])
+                ]  # [bs, 2] * n_groups
+                cls_pred = torch.stack(cls_pred, dim=0).mean(dim=0)  # [bs, 2]
+                cls_loss = F.cross_entropy(cls_pred, label)
+                # [bs, 2, img_size, img_size]
+                seg_pred = model.vision_text_fusion_gate_seg(seg_features, epoch_text_features)
+                seg_loss = calculate_seg_loss(seg_pred, mask)
+                loss = cls_loss + seg_loss
+            if not torch.isfinite(loss).all():
+                non_finite_loss_skips += 1
+                diag_path = save_nonfinite_diagnostics(
+                    save_path=save_path,
+                    epoch_one_based=epoch_one_based,
+                    batch_idx=batch_idx,
+                    non_finite_loss_skips=non_finite_loss_skips,
+                    model=model,
+                    tensors={
+                        "image": image,
+                        "mask": mask,
+                        "epoch_text_features": epoch_text_features,
+                        "seg_features": seg_features,
+                        "det_features": det_features,
+                        "cls_pred": cls_pred,
+                        "cls_loss": cls_loss,
+                        "seg_pred": seg_pred,
+                        "seg_loss": seg_loss,
+                        "loss": loss,
+                    },
+                    metadata={
+                        "use_amp": use_amp,
+                        "dfg_ss2d_fusion": model.dfg_ss2d_fusion,
+                        "dfg_beta_schedule": dfg_beta_schedule,
+                        "dfg_beta_target": dfg_beta_target,
+                        "dfg_beta_current": model.dfg_beta,
+                        "dfg_weight_residual_fp32": model.dfg_weight_residual_fp32,
+                        "class_names": list(class_names),
+                        "labels": label.detach().cpu().tolist(),
+                    },
+                )
+                logger.warning(
+                    "non-finite loss at epoch %d batch=%d skip=%d "
+                    "loss_finite=%s cls_loss_finite=%s seg_loss_finite=%s "
+                    "cls_pred_finite=%s seg_pred_finite=%s diag=%s",
+                    epoch_one_based,
+                    batch_idx,
+                    non_finite_loss_skips,
+                    bool(torch.isfinite(loss).all().item()),
+                    bool(torch.isfinite(cls_loss).all().item()),
+                    bool(torch.isfinite(seg_loss).all().item()),
+                    bool(torch.isfinite(cls_pred).all().item()),
+                    bool(torch.isfinite(seg_pred).all().item()),
+                    diag_path,
+                )
+                optimizer.zero_grad(set_to_none=True)
+                if (
+                        non_finite_loss_abort_threshold >= 0
+                        and non_finite_loss_skips > non_finite_loss_abort_threshold
+                ):
+                    raise RuntimeError(
+                        "Aborting training because non_finite_loss="
+                        f"{non_finite_loss_skips} exceeded threshold "
+                        f"{non_finite_loss_abort_threshold} at epoch {epoch_one_based}. "
+                        f"Latest diagnostics: {diag_path}"
+                    )
+                continue
             seg_loss_list.append(seg_loss.item())
             # backward
-            optimizer.zero_grad()
-            loss.backward()
+            optimizer.zero_grad(set_to_none=True)
+            scaler.scale(loss).backward()
+            scaler.unscale_(optimizer)
+            if has_non_finite_grad(optimizer):
+                logger.warning("non-finite gradient at epoch %d; skipping optimizer step", epoch + 1)
+                non_finite_grad_skips += 1
+                scaler.update()
+                optimizer.zero_grad(set_to_none=True)
+                continue
             # clip gradient
-            for m_i_w in model.image_adapter["m_i_w"]:
-                nn.utils.clip_grad_norm_(m_i_w.parameters(), 1.0)
-            for m_t_w in model.text_adapter["m_t_w"]:
-                nn.utils.clip_grad_norm_(m_t_w.parameters(), 1.0)
+            nn.utils.clip_grad_norm_(model.image_adapter.parameters(), 1.0)
+            nn.utils.clip_grad_norm_(model.text_adapter.parameters(), 1.0)
             # update parameters
-            optimizer.step()
+            scaler.step(optimizer)
+            scaler.update()
+            bad_param_name, bad_param_stats = first_nonfinite_trainable_parameter(model)
+            if bad_param_name is not None:
+                diag_path = save_nonfinite_diagnostics(
+                    save_path=save_path,
+                    epoch_one_based=epoch_one_based,
+                    batch_idx=batch_idx,
+                    non_finite_loss_skips=non_finite_loss_skips,
+                    model=model,
+                    tensors={
+                        bad_param_name: dict(model.named_parameters())[bad_param_name],
+                        "loss": loss,
+                        "cls_loss": cls_loss,
+                        "seg_loss": seg_loss,
+                        "cls_pred": cls_pred,
+                        "seg_pred": seg_pred,
+                    },
+                    metadata={
+                        "reason": "non_finite_trainable_parameter_after_optimizer_step",
+                        "bad_param_name": bad_param_name,
+                        "bad_param_stats": bad_param_stats,
+                        "use_amp": use_amp,
+                        "dfg_ss2d_fusion": model.dfg_ss2d_fusion,
+                        "dfg_beta_schedule": dfg_beta_schedule,
+                        "dfg_beta_target": dfg_beta_target,
+                        "dfg_beta_current": model.dfg_beta,
+                        "dfg_weight_residual_fp32": model.dfg_weight_residual_fp32,
+                    },
+                )
+                logger.error(
+                    "non-finite trainable parameter after optimizer step at epoch=%d batch=%d "
+                    "param=%s stats=%s diag=%s",
+                    epoch_one_based,
+                    batch_idx,
+                    bad_param_name,
+                    bad_param_stats,
+                    diag_path,
+                )
+                raise RuntimeError(
+                    "Aborting training because trainable parameter became non-finite after "
+                    f"optimizer step: {bad_param_name}. Diagnostics: {diag_path}"
+                )
             loss_list.append(loss.item())
             tqdm_train_loader.set_postfix({
                 "epoch": f"{epoch + 1} / {total_epoch}",
@@ -92,10 +333,38 @@ def train(
                 "image_lr": optimizer.param_groups[1]["lr"],
             })
         logger.info(f"mean_loss={np.mean(loss_list)}, mean_seg_loss={np.mean(seg_loss_list)}")
+        logger.info(
+            "skip_counts epoch=%d non_finite_loss=%d non_finite_grad=%d",
+            epoch + 1,
+            non_finite_loss_skips,
+            non_finite_grad_skips,
+        )
+        if model.dfg_mode == "attn":
+            diagnostics = model.get_dfg_diagnostics()
+            for key, value in diagnostics.items():
+                if value is None:
+                    continue
+                if torch.is_tensor(value) and value.ndim > 0:
+                    value = value.tolist()
+                elif torch.is_tensor(value):
+                    value = value.item()
+                logger.info("dfg_diag epoch=%d %s=%s", epoch + 1, key, value)
         scheduler.step()
         ckp_path = os.path.join(save_path, f"adapter_{epoch + 1}.pth")
         model_dict = {
             "epoch": epoch + 1,
+            "n_groups": model.n_groups,
+            "dfg_mode": model.dfg_mode,
+            "dfg_attn_dim": model.dfg_attn_dim,
+            "dfg_attn_tau": model.dfg_attn_tau,
+            "use_ss2d_dfg": model.use_ss2d_dfg,
+            "dfg_gamma_max": model.dfg_gamma_max,
+            "dfg_ss2d_fusion": model.dfg_ss2d_fusion,
+            "dfg_beta": model.dfg_beta,
+            "dfg_beta_schedule": dfg_beta_schedule,
+            "dfg_beta_target": dfg_beta_target,
+            "dfg_beta_current": model.dfg_beta,
+            "dfg_weight_residual_fp32": model.dfg_weight_residual_fp32,
             "text_adapter": model.text_adapter.state_dict(),
             "image_adapter": model.image_adapter.state_dict()
         }
@@ -138,6 +407,46 @@ def main():
     parser.add_argument("--image_lr", type=float, default=0.001, help="learning rate for image adapter")
     parser.add_argument("--text_lr", type=float, default=0.0005, help="learning rate for text adapter")
     parser.add_argument("--lr_gamma", type=float, default=0.9, help="learning rate decay factor")
+    parser.add_argument(
+        "--dfg_mode",
+        type=str,
+        choices=["mlp", "attn"],
+        default="mlp",
+        help="DFG fusion mode: original MLP gate or Phase 1A dual-softmax attention",
+    )
+    parser.add_argument("--dfg_attn_dim", type=int, default=256, help="attention dimension for Phase 1A DFG")
+    parser.add_argument("--dfg_attn_tau", type=float, default=4.0, help="fixed attention temperature for Phase 1A DFG")
+    parser.add_argument("--use_ss2d_dfg", action="store_true", help="enable Phase 1B SS2D residual query branch")
+    parser.add_argument("--dfg_gamma_max", type=float, default=0.2, help="max abs SS2D residual scale for Phase 1B")
+    parser.add_argument(
+        "--dfg_ss2d_fusion",
+        type=str,
+        choices=["feature_residual", "weight_residual"],
+        default="feature_residual",
+        help="SS2D DFG fusion mode: feature residual query shift or post-softmax weight residual",
+    )
+    parser.add_argument("--dfg_beta", type=float, default=0.10, help="fixed beta for weight_residual SS2D DFG")
+    parser.add_argument(
+        "--dfg_beta_schedule",
+        type=str,
+        choices=["fixed", "warmup010"],
+        default="fixed",
+        help="beta schedule for weight_residual SS2D DFG",
+    )
+    parser.add_argument("--dfg_beta_target", type=float, default=0.10, help="target beta for beta schedules")
+    parser.add_argument(
+        "--non_finite_loss_abort_threshold",
+        type=int,
+        default=20,
+        help="Abort an epoch when non-finite loss skips exceed this value. Use -1 to disable.",
+    )
+    parser.add_argument("--amp", action="store_true", help="enable Automatic Mixed Precision training")
+    parser.add_argument(
+        "--grad_checkpointing",
+        action="store_true",
+        help="enable activation checkpointing to reduce ViT memory usage",
+    )
+    parser.add_argument("--num_workers", type=int, default=4 if os.name != "nt" else 0)
 
     args = parser.parse_args()
     # ========================================================
@@ -161,6 +470,8 @@ def main():
         pretrained="openai",
         require_pretrained=True,
     )
+    if args.grad_checkpointing:
+        clip_model.set_grad_checkpointing(True)
     clip_model.eval()
     model = ACDCLIP(
         clip_model=clip_model,
@@ -172,8 +483,28 @@ def main():
         text_adapt_weight=args.text_adapt_weight,
         lora_rank=args.lora_rank,
         lora_alpha=args.lora_alpha,
+        dfg_mode=args.dfg_mode,
+        dfg_attn_dim=args.dfg_attn_dim,
+        dfg_attn_tau=args.dfg_attn_tau,
+        use_ss2d_dfg=args.use_ss2d_dfg,
+        dfg_gamma_max=args.dfg_gamma_max,
+        dfg_ss2d_fusion=args.dfg_ss2d_fusion,
+        dfg_beta=args.dfg_beta,
+        dfg_beta_schedule=args.dfg_beta_schedule,
+        dfg_beta_target=args.dfg_beta_target,
+        dfg_beta_current=args.dfg_beta,
     ).to(device)
     model.eval()
+
+    model.requires_grad_(False)
+    model.text_adapter.requires_grad_(True)
+    model.image_adapter.requires_grad_(True)
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    frozen_params = sum(p.numel() for p in model.parameters() if not p.requires_grad)
+    logger.info("trainable parameters: %s", f"{trainable_params:,}")
+    logger.info("frozen parameters: %s", f"{frozen_params:,}")
+    logger.info("dfg_weight_residual_fp32=%s", model.dfg_weight_residual_fp32)
+
     # set optimizer
     optimizer = torch.optim.Adam([
         {
@@ -198,7 +529,11 @@ def main():
         "train"
     )
     dataloader = torch.utils.data.DataLoader(
-        dataset, batch_size=args.batch_size, shuffle=True
+        dataset,
+        batch_size=args.batch_size,
+        shuffle=True,
+        num_workers=args.num_workers,
+        pin_memory=torch.cuda.is_available(),
     )
     logger.info("training ...")
     model = train(
@@ -211,6 +546,11 @@ def main():
         total_epoch=args.epoch,
         save_path=args.save_path,
         logger=logger,
+        use_amp=args.amp,
+        dfg_beta_schedule=args.dfg_beta_schedule,
+        dfg_beta_target=args.dfg_beta_target,
+        dfg_beta=args.dfg_beta,
+        non_finite_loss_abort_threshold=args.non_finite_loss_abort_threshold,
     )
 
 

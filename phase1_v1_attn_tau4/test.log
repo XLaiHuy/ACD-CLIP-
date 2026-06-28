@@ -1,0 +1,288 @@
+2026-06-27 04:25:58 test.py 256: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 4.0, 'dataset': 'Brain', 'batch_size': 8, 'cuda_device': 0, 'save_path': 'test_train_phase1a_attn', 'num_workers': 6, 'epochs': [20], 'metric_thresholds': None, 'pixel_stride': 4, 'max_samples': None, 'max_samples_per_label': None}
+2026-06-27 04:25:58 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 04:26:01 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 04:26:02 test.py 312: -----------------------------------------------
+2026-06-27 04:26:02 test.py 313: load model from epoch 20
+2026-06-27 04:26:02 test.py 314: -----------------------------------------------
+2026-06-27 04:34:42 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      92.3     28.07     79.82    94.37 
+ Average      92.3     28.07     79.82    94.37 
+2026-06-27 04:34:46 test.py 256: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 4.0, 'dataset': 'Liver', 'batch_size': 8, 'cuda_device': 0, 'save_path': 'test_train_phase1a_attn', 'num_workers': 6, 'epochs': [20], 'metric_thresholds': None, 'pixel_stride': 4, 'max_samples': None, 'max_samples_per_label': None}
+2026-06-27 04:34:46 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 04:34:50 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 04:34:50 test.py 312: -----------------------------------------------
+2026-06-27 04:34:50 test.py 313: load model from epoch 20
+2026-06-27 04:34:50 test.py 314: -----------------------------------------------
+2026-06-27 04:38:20 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      96.68    5.89      67.1     54.1  
+ Average      96.68    5.89      67.1     54.1  
+2026-06-27 04:38:23 test.py 256: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 4.0, 'dataset': 'Retina', 'batch_size': 8, 'cuda_device': 0, 'save_path': 'test_train_phase1a_attn', 'num_workers': 6, 'epochs': [20], 'metric_thresholds': None, 'pixel_stride': 4, 'max_samples': None, 'max_samples_per_label': None}
+2026-06-27 04:38:23 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 04:38:27 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 04:38:27 test.py 312: -----------------------------------------------
+2026-06-27 04:38:27 test.py 313: load model from epoch 20
+2026-06-27 04:38:27 test.py 314: -----------------------------------------------
+2026-06-27 04:42:40 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      93.64    44.4      74.14    74.13 
+ Average      93.64    44.4      74.14    74.13 
+2026-06-27 04:42:44 test.py 256: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 4.0, 'dataset': 'Colon_clinicDB', 'batch_size': 8, 'cuda_device': 0, 'save_path': 'test_train_phase1a_attn', 'num_workers': 6, 'epochs': [20], 'metric_thresholds': None, 'pixel_stride': 4, 'max_samples': None, 'max_samples_per_label': None}
+2026-06-27 04:42:44 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 04:42:48 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 04:42:48 test.py 312: -----------------------------------------------
+2026-06-27 04:42:48 test.py 313: load model from epoch 20
+2026-06-27 04:42:48 test.py 314: -----------------------------------------------
+2026-06-27 04:44:15 test.py 382: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    82.63    37.9       0.0      0.0  
+       Average    82.63    37.9       0.0      0.0  
+2026-06-27 04:44:18 test.py 256: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 4.0, 'dataset': 'Colon_colonDB', 'batch_size': 8, 'cuda_device': 0, 'save_path': 'test_train_phase1a_attn', 'num_workers': 6, 'epochs': [20], 'metric_thresholds': None, 'pixel_stride': 4, 'max_samples': None, 'max_samples_per_label': None}
+2026-06-27 04:44:18 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 04:44:22 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 04:44:22 test.py 312: -----------------------------------------------
+2026-06-27 04:44:22 test.py 313: load model from epoch 20
+2026-06-27 04:44:22 test.py 314: -----------------------------------------------
+2026-06-27 04:45:16 test.py 382: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    80.62    26.79      0.0      0.0  
+      Average    80.62    26.79      0.0      0.0  
+2026-06-27 04:45:20 test.py 256: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 4.0, 'dataset': 'Colon_Kvasir', 'batch_size': 8, 'cuda_device': 0, 'save_path': 'test_train_phase1a_attn', 'num_workers': 6, 'epochs': [20], 'metric_thresholds': None, 'pixel_stride': 4, 'max_samples': None, 'max_samples_per_label': None}
+2026-06-27 04:45:20 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 04:45:23 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 04:45:24 test.py 312: -----------------------------------------------
+2026-06-27 04:45:24 test.py 313: load model from epoch 20
+2026-06-27 04:45:24 test.py 314: -----------------------------------------------
+2026-06-27 04:47:45 test.py 382: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    78.91    41.47      0.0      0.0  
+     Average    78.91    41.47      0.0      0.0  
+2026-06-27 04:49:43 test.py 256: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 4.0, 'dataset': 'Brain', 'batch_size': 8, 'cuda_device': 0, 'save_path': 'test_train_phase1a_attn', 'num_workers': 6, 'epochs': [15, 16, 17, 18, 19], 'metric_thresholds': None, 'pixel_stride': 4, 'max_samples': None, 'max_samples_per_label': None}
+2026-06-27 04:49:43 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 04:49:46 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 04:49:47 test.py 312: -----------------------------------------------
+2026-06-27 04:49:47 test.py 313: load model from epoch 15
+2026-06-27 04:49:47 test.py 314: -----------------------------------------------
+2026-06-27 04:58:22 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      92.99    32.53     79.04    94.19 
+ Average      92.99    32.53     79.04    94.19 
+2026-06-27 04:58:22 test.py 312: -----------------------------------------------
+2026-06-27 04:58:22 test.py 313: load model from epoch 16
+2026-06-27 04:58:22 test.py 314: -----------------------------------------------
+2026-06-27 05:06:59 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      92.22    30.05     79.1     94.32 
+ Average      92.22    30.05     79.1     94.32 
+2026-06-27 05:06:59 test.py 312: -----------------------------------------------
+2026-06-27 05:06:59 test.py 313: load model from epoch 17
+2026-06-27 05:06:59 test.py 314: -----------------------------------------------
+2026-06-27 05:15:36 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      91.46    27.86     78.46    93.91 
+ Average      91.46    27.86     78.46    93.91 
+2026-06-27 05:15:36 test.py 312: -----------------------------------------------
+2026-06-27 05:15:36 test.py 313: load model from epoch 18
+2026-06-27 05:15:36 test.py 314: -----------------------------------------------
+2026-06-27 05:24:13 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      91.56    26.96     78.7     93.94 
+ Average      91.56    26.96     78.7     93.94 
+2026-06-27 05:24:13 test.py 312: -----------------------------------------------
+2026-06-27 05:24:13 test.py 313: load model from epoch 19
+2026-06-27 05:24:13 test.py 314: -----------------------------------------------
+2026-06-27 05:32:47 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      91.92    27.75     78.94    94.05 
+ Average      91.92    27.75     78.94    94.05 
+2026-06-27 05:32:54 test.py 256: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 4.0, 'dataset': 'Liver', 'batch_size': 8, 'cuda_device': 0, 'save_path': 'test_train_phase1a_attn', 'num_workers': 6, 'epochs': [15, 16, 17, 18, 19], 'metric_thresholds': None, 'pixel_stride': 4, 'max_samples': None, 'max_samples_per_label': None}
+2026-06-27 05:32:54 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 05:32:58 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 05:32:58 test.py 312: -----------------------------------------------
+2026-06-27 05:32:58 test.py 313: load model from epoch 15
+2026-06-27 05:32:58 test.py 314: -----------------------------------------------
+2026-06-27 05:36:25 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      96.54    6.15      68.44    55.84 
+ Average      96.54    6.15      68.44    55.84 
+2026-06-27 05:36:25 test.py 312: -----------------------------------------------
+2026-06-27 05:36:25 test.py 313: load model from epoch 16
+2026-06-27 05:36:25 test.py 314: -----------------------------------------------
+2026-06-27 05:39:52 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      96.56    6.21      68.25    55.53 
+ Average      96.56    6.21      68.25    55.53 
+2026-06-27 05:39:52 test.py 312: -----------------------------------------------
+2026-06-27 05:39:52 test.py 313: load model from epoch 17
+2026-06-27 05:39:52 test.py 314: -----------------------------------------------
+2026-06-27 05:43:18 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      96.53    6.15      67.57    55.35 
+ Average      96.53    6.15      67.57    55.35 
+2026-06-27 05:43:18 test.py 312: -----------------------------------------------
+2026-06-27 05:43:18 test.py 313: load model from epoch 18
+2026-06-27 05:43:18 test.py 314: -----------------------------------------------
+2026-06-27 05:46:44 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      96.64    6.12      67.87    56.31 
+ Average      96.64    6.12      67.87    56.31 
+2026-06-27 05:46:44 test.py 312: -----------------------------------------------
+2026-06-27 05:46:44 test.py 313: load model from epoch 19
+2026-06-27 05:46:44 test.py 314: -----------------------------------------------
+2026-06-27 05:50:11 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      96.76    6.06      66.82    55.06 
+ Average      96.76    6.06      66.82    55.06 
+2026-06-27 05:50:15 test.py 256: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 4.0, 'dataset': 'Retina', 'batch_size': 8, 'cuda_device': 0, 'save_path': 'test_train_phase1a_attn', 'num_workers': 6, 'epochs': [15, 16, 17, 18, 19], 'metric_thresholds': None, 'pixel_stride': 4, 'max_samples': None, 'max_samples_per_label': None}
+2026-06-27 05:50:15 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 05:50:18 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 05:50:19 test.py 312: -----------------------------------------------
+2026-06-27 05:50:19 test.py 313: load model from epoch 15
+2026-06-27 05:50:19 test.py 314: -----------------------------------------------
+2026-06-27 05:54:29 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      93.22    43.83     71.65    72.18 
+ Average      93.22    43.83     71.65    72.18 
+2026-06-27 05:54:29 test.py 312: -----------------------------------------------
+2026-06-27 05:54:29 test.py 313: load model from epoch 16
+2026-06-27 05:54:29 test.py 314: -----------------------------------------------
+2026-06-27 05:58:39 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      93.53    45.12     71.68    72.45 
+ Average      93.53    45.12     71.68    72.45 
+2026-06-27 05:58:39 test.py 312: -----------------------------------------------
+2026-06-27 05:58:39 test.py 313: load model from epoch 17
+2026-06-27 05:58:39 test.py 314: -----------------------------------------------
+2026-06-27 06:02:49 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      93.55    45.17     74.12    74.54 
+ Average      93.55    45.17     74.12    74.54 
+2026-06-27 06:02:49 test.py 312: -----------------------------------------------
+2026-06-27 06:02:49 test.py 313: load model from epoch 18
+2026-06-27 06:02:49 test.py 314: -----------------------------------------------
+2026-06-27 06:06:59 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      92.63    40.8      72.2     72.64 
+ Average      92.63    40.8      72.2     72.64 
+2026-06-27 06:06:59 test.py 312: -----------------------------------------------
+2026-06-27 06:06:59 test.py 313: load model from epoch 19
+2026-06-27 06:06:59 test.py 314: -----------------------------------------------
+2026-06-27 06:11:10 test.py 382: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      92.5     39.55     72.16    72.08 
+ Average      92.5     39.55     72.16    72.08 
+2026-06-27 06:11:14 test.py 256: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 4.0, 'dataset': 'Colon_clinicDB', 'batch_size': 8, 'cuda_device': 0, 'save_path': 'test_train_phase1a_attn', 'num_workers': 6, 'epochs': [15, 16, 17, 18, 19], 'metric_thresholds': None, 'pixel_stride': 4, 'max_samples': None, 'max_samples_per_label': None}
+2026-06-27 06:11:14 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 06:11:17 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 06:11:18 test.py 312: -----------------------------------------------
+2026-06-27 06:11:18 test.py 313: load model from epoch 15
+2026-06-27 06:11:18 test.py 314: -----------------------------------------------
+2026-06-27 06:12:43 test.py 382: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    83.16    39.4       0.0      0.0  
+       Average    83.16    39.4       0.0      0.0  
+2026-06-27 06:12:43 test.py 312: -----------------------------------------------
+2026-06-27 06:12:43 test.py 313: load model from epoch 16
+2026-06-27 06:12:43 test.py 314: -----------------------------------------------
+2026-06-27 06:14:09 test.py 382: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    82.29    37.79      0.0      0.0  
+       Average    82.29    37.79      0.0      0.0  
+2026-06-27 06:14:09 test.py 312: -----------------------------------------------
+2026-06-27 06:14:09 test.py 313: load model from epoch 17
+2026-06-27 06:14:09 test.py 314: -----------------------------------------------
+2026-06-27 06:15:34 test.py 382: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    82.02    35.66      0.0      0.0  
+       Average    82.02    35.66      0.0      0.0  
+2026-06-27 06:15:34 test.py 312: -----------------------------------------------
+2026-06-27 06:15:34 test.py 313: load model from epoch 18
+2026-06-27 06:15:34 test.py 314: -----------------------------------------------
+2026-06-27 06:17:00 test.py 382: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    82.47    37.88      0.0      0.0  
+       Average    82.47    37.88      0.0      0.0  
+2026-06-27 06:17:00 test.py 312: -----------------------------------------------
+2026-06-27 06:17:00 test.py 313: load model from epoch 19
+2026-06-27 06:17:00 test.py 314: -----------------------------------------------
+2026-06-27 06:18:26 test.py 382: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    81.2     36.3       0.0      0.0  
+       Average    81.2     36.3       0.0      0.0  
+2026-06-27 06:18:29 test.py 256: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 4.0, 'dataset': 'Colon_colonDB', 'batch_size': 8, 'cuda_device': 0, 'save_path': 'test_train_phase1a_attn', 'num_workers': 6, 'epochs': [15, 16, 17, 18, 19], 'metric_thresholds': None, 'pixel_stride': 4, 'max_samples': None, 'max_samples_per_label': None}
+2026-06-27 06:18:29 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 06:18:33 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 06:18:33 test.py 312: -----------------------------------------------
+2026-06-27 06:18:33 test.py 313: load model from epoch 15
+2026-06-27 06:18:33 test.py 314: -----------------------------------------------
+2026-06-27 06:19:27 test.py 382: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    80.51    25.7       0.0      0.0  
+      Average    80.51    25.7       0.0      0.0  
+2026-06-27 06:19:27 test.py 312: -----------------------------------------------
+2026-06-27 06:19:27 test.py 313: load model from epoch 16
+2026-06-27 06:19:27 test.py 314: -----------------------------------------------
+2026-06-27 06:20:20 test.py 382: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    80.13    26.21      0.0      0.0  
+      Average    80.13    26.21      0.0      0.0  
+2026-06-27 06:20:20 test.py 312: -----------------------------------------------
+2026-06-27 06:20:20 test.py 313: load model from epoch 17
+2026-06-27 06:20:20 test.py 314: -----------------------------------------------
+2026-06-27 06:21:14 test.py 382: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    80.03    25.8       0.0      0.0  
+      Average    80.03    25.8       0.0      0.0  
+2026-06-27 06:21:14 test.py 312: -----------------------------------------------
+2026-06-27 06:21:14 test.py 313: load model from epoch 18
+2026-06-27 06:21:14 test.py 314: -----------------------------------------------
+2026-06-27 06:22:07 test.py 382: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    80.23    26.22      0.0      0.0  
+      Average    80.23    26.22      0.0      0.0  
+2026-06-27 06:22:07 test.py 312: -----------------------------------------------
+2026-06-27 06:22:07 test.py 313: load model from epoch 19
+2026-06-27 06:22:07 test.py 314: -----------------------------------------------
+2026-06-27 06:23:00 test.py 382: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    78.37    23.2       0.0      0.0  
+      Average    78.37    23.2       0.0      0.0  
+2026-06-27 06:23:04 test.py 256: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 4.0, 'dataset': 'Colon_Kvasir', 'batch_size': 8, 'cuda_device': 0, 'save_path': 'test_train_phase1a_attn', 'num_workers': 6, 'epochs': [15, 16, 17, 18, 19], 'metric_thresholds': None, 'pixel_stride': 4, 'max_samples': None, 'max_samples_per_label': None}
+2026-06-27 06:23:04 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 06:23:07 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 06:23:07 test.py 312: -----------------------------------------------
+2026-06-27 06:23:07 test.py 313: load model from epoch 15
+2026-06-27 06:23:07 test.py 314: -----------------------------------------------
+2026-06-27 06:25:27 test.py 382: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    78.3     41.23      0.0      0.0  
+     Average    78.3     41.23      0.0      0.0  
+2026-06-27 06:25:27 test.py 312: -----------------------------------------------
+2026-06-27 06:25:27 test.py 313: load model from epoch 16
+2026-06-27 06:25:27 test.py 314: -----------------------------------------------
+2026-06-27 06:27:46 test.py 382: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    78.43    41.16      0.0      0.0  
+     Average    78.43    41.16      0.0      0.0  
+2026-06-27 06:27:46 test.py 312: -----------------------------------------------
+2026-06-27 06:27:46 test.py 313: load model from epoch 17
+2026-06-27 06:27:46 test.py 314: -----------------------------------------------
+2026-06-27 06:30:06 test.py 382: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    77.51    39.53      0.0      0.0  
+     Average    77.51    39.53      0.0      0.0  
+2026-06-27 06:30:06 test.py 312: -----------------------------------------------
+2026-06-27 06:30:06 test.py 313: load model from epoch 18
+2026-06-27 06:30:06 test.py 314: -----------------------------------------------
+2026-06-27 06:32:26 test.py 382: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    78.87    42.06      0.0      0.0  
+     Average    78.87    42.06      0.0      0.0  
+2026-06-27 06:32:26 test.py 312: -----------------------------------------------
+2026-06-27 06:32:26 test.py 313: load model from epoch 19
+2026-06-27 06:32:26 test.py 314: -----------------------------------------------
+2026-06-27 06:34:45 test.py 382: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    78.06    40.8       0.0      0.0  
+     Average    78.06    40.8       0.0      0.0  

@@ -1,8 +1,20 @@
+import os
+
+
 BASE_PATH = "."
+candidate_paths = [
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")),
+]
+for p in candidate_paths:
+    if os.path.exists(os.path.join(p, "data")):
+        BASE_PATH = p.replace("\\", "/")
+        break
+
 DATA_PATH = {
-    "Brain": f"{BASE_PATH}/data/MedAD/Brain_AD",
-    "Liver": f"{BASE_PATH}/data/MedAD/Liver_AD",
-    "Retina": f"{BASE_PATH}/data/MedAD/Retina_RESC_AD",
+    "Brain": f"{BASE_PATH}/data/MedAD/Brain_AD/test",
+    "Liver": f"{BASE_PATH}/data/MedAD/Liver_AD/test",
+    "Retina": f"{BASE_PATH}/data/MedAD/Retina_RESC_AD/test",
     "Colon_clinicDB": f"{BASE_PATH}/data/Colon/CVC-ClinicDB",
     "Colon_colonDB": f"{BASE_PATH}/data/Colon/CVC-ColonDB",
     "Colon_cvc300": f"{BASE_PATH}/data/Colon/CVC-300",
@@ -20,7 +32,7 @@ CLASS_NAMES = {
     "Retina": ["Retina"],
     "Colon_clinicDB": ["Colon_clinicDB"],
     "Colon_colonDB": ["Colon_colonDB"],
-    "Colon_Kvasir": ["Kvasir"],
+    "Colon_Kvasir": ["Colon_Kvasir"],
     "Colon_cvc300": ["CVC-300"],
     "MVTec": [
         "bottle",
@@ -125,7 +137,7 @@ REAL_NAMES = {
         "Colon_colonDB": "colon endoscopy image",
     },
     "Colon_cvc300": {"CVC-300": "colon endoscopy image"},
-    "Colon_Kvasir": {"Kvasir": "colon endoscopy image"},
+    "Colon_Kvasir": {"Colon_Kvasir": "colon endoscopy image"},
     "MPDD": {
         "connector": "metal clamps with black adjustment knobs",
         "tubes": "scattered metal objects",

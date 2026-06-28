@@ -1,0 +1,38 @@
+2026-06-27 17:43:09 train.py 219: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'dataset': 'VisA', 'batch_size': 6, 'epoch': 1, 'cuda_device': 0, 'save_path': 'phase1_v3_smoke', 'n_groups': 3, 'image_adapt_weight': 0.2, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'text_adapt_weight': 0.2, 'lora_rank': 16, 'lora_alpha': 2.0, 'image_lr': 0.001, 'text_lr': 0.0005, 'lr_gamma': 0.9, 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'amp': True, 'grad_checkpointing': True, 'num_workers': 6}
+2026-06-27 17:43:09 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 17:43:12 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 17:43:12 train.py 254: trainable parameters: 14,095,887
+2026-06-27 17:43:12 train.py 255: frozen parameters: 428,756,225
+2026-06-27 17:43:12 train.py 274: loading dataset ...
+2026-06-27 17:43:12 train.py 287: training ...
+2026-06-27 17:43:12 train.py 45: training epoch 1 / 1
+2026-06-27 17:44:34 train.py 219: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'dataset': 'VisA', 'batch_size': 6, 'epoch': 1, 'cuda_device': 0, 'save_path': 'phase1_v3_smoke', 'n_groups': 3, 'image_adapt_weight': 0.2, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'text_adapt_weight': 0.2, 'lora_rank': 16, 'lora_alpha': 2.0, 'image_lr': 0.001, 'text_lr': 0.0005, 'lr_gamma': 0.9, 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'amp': True, 'grad_checkpointing': True, 'num_workers': 0}
+2026-06-27 17:44:35 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 17:44:38 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 17:44:38 train.py 254: trainable parameters: 14,095,887
+2026-06-27 17:44:38 train.py 255: frozen parameters: 428,756,225
+2026-06-27 17:44:38 train.py 274: loading dataset ...
+2026-06-27 17:44:38 train.py 287: training ...
+2026-06-27 17:44:38 train.py 45: training epoch 1 / 1
+2026-06-27 17:49:14 train.py 96: non-finite gradient at epoch 1; skipping optimizer step
+2026-06-27 17:49:34 train.py 96: non-finite gradient at epoch 1; skipping optimizer step
+2026-06-27 17:55:56 train.py 118: mean_loss=1.3327354084814491, mean_seg_loss=0.6496757025987818
+2026-06-27 17:55:56 train.py 119: skip_counts epoch=1 non_finite_loss=0 non_finite_grad=2
+2026-06-27 17:55:56 train.py 134: dfg_diag epoch=1 stage1_gamma=0.011694374494254589
+2026-06-27 17:55:56 train.py 134: dfg_diag epoch=1 stage1_ss2d_ratio=0.35595226287841797
+2026-06-27 17:55:56 train.py 134: dfg_diag epoch=1 stage1_entropy_normal=0.9182019233703613
+2026-06-27 17:55:56 train.py 134: dfg_diag epoch=1 stage1_entropy_abnormal=0.833283543586731
+2026-06-27 17:55:56 train.py 134: dfg_diag epoch=1 stage1_weights_normal=[0.15059711039066315, 0.2283877432346344, 0.621015191078186]
+2026-06-27 17:55:56 train.py 134: dfg_diag epoch=1 stage1_weights_abnormal=[0.04508031904697418, 0.5536414384841919, 0.4012782573699951]
+2026-06-27 17:55:56 train.py 134: dfg_diag epoch=1 stage2_gamma=-0.013271528296172619
+2026-06-27 17:55:56 train.py 134: dfg_diag epoch=1 stage2_ss2d_ratio=0.40986698865890503
+2026-06-27 17:55:56 train.py 134: dfg_diag epoch=1 stage2_entropy_normal=0.8377103805541992
+2026-06-27 17:55:56 train.py 134: dfg_diag epoch=1 stage2_entropy_abnormal=0.7742952108383179
+2026-06-27 17:55:56 train.py 134: dfg_diag epoch=1 stage2_weights_normal=[0.12928006052970886, 0.18685412406921387, 0.6838658452033997]
+2026-06-27 17:55:56 train.py 134: dfg_diag epoch=1 stage2_weights_abnormal=[0.02699434943497181, 0.5943264365196228, 0.37867921590805054]
+2026-06-27 17:55:56 train.py 134: dfg_diag epoch=1 stage3_gamma=0.008349030278623104
+2026-06-27 17:55:56 train.py 134: dfg_diag epoch=1 stage3_ss2d_ratio=0.24673807621002197
+2026-06-27 17:55:56 train.py 134: dfg_diag epoch=1 stage3_entropy_normal=0.9953073263168335
+2026-06-27 17:55:56 train.py 134: dfg_diag epoch=1 stage3_entropy_abnormal=0.9396353960037231
+2026-06-27 17:55:56 train.py 134: dfg_diag epoch=1 stage3_weights_normal=[0.18618138134479523, 0.26657819747924805, 0.5472404360771179]
+2026-06-27 17:55:56 train.py 134: dfg_diag epoch=1 stage3_weights_abnormal=[0.09754307568073273, 0.40131235122680664, 0.5011445879936218]

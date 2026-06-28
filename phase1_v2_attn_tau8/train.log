@@ -1,0 +1,54 @@
+2026-06-27 09:22:46 train.py 195: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'dataset': 'VisA', 'batch_size': 6, 'epoch': 20, 'cuda_device': 0, 'save_path': 'phase1_v2_attn_tau8', 'n_groups': 3, 'image_adapt_weight': 0.2, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'text_adapt_weight': 0.2, 'lora_rank': 16, 'lora_alpha': 2.0, 'image_lr': 0.001, 'text_lr': 0.0005, 'lr_gamma': 0.9, 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'amp': True, 'grad_checkpointing': True, 'num_workers': 6}
+2026-06-27 09:22:46 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 09:22:49 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 09:22:50 train.py 228: trainable parameters: 10,545,408
+2026-06-27 09:22:50 train.py 229: frozen parameters: 428,756,225
+2026-06-27 09:22:50 train.py 248: loading dataset ...
+2026-06-27 09:22:50 train.py 261: training ...
+2026-06-27 09:22:50 train.py 45: training epoch 1 / 20
+2026-06-27 09:26:20 train.py 93: non-finite gradient at epoch 1; skipping optimizer step
+2026-06-27 09:31:01 train.py 93: non-finite gradient at epoch 1; skipping optimizer step
+2026-06-27 09:31:12 train.py 93: non-finite gradient at epoch 1; skipping optimizer step
+2026-06-27 09:32:26 train.py 114: mean_loss=1.3677962217584003, mean_seg_loss=0.6834118143136811
+2026-06-27 09:32:26 train.py 45: training epoch 2 / 20
+2026-06-27 09:42:03 train.py 114: mean_loss=1.154574550585073, mean_seg_loss=0.4872472607053383
+2026-06-27 09:42:03 train.py 45: training epoch 3 / 20
+2026-06-27 09:51:40 train.py 114: mean_loss=1.0202585371247288, mean_seg_loss=0.4772214825133538
+2026-06-27 09:51:40 train.py 45: training epoch 4 / 20
+2026-06-27 10:01:15 train.py 114: mean_loss=0.9680837608275321, mean_seg_loss=0.45732506095764547
+2026-06-27 10:01:15 train.py 45: training epoch 5 / 20
+2026-06-27 10:10:43 train.py 114: mean_loss=0.918177688716191, mean_seg_loss=0.4328665351004977
+2026-06-27 10:10:43 train.py 45: training epoch 6 / 20
+2026-06-27 10:20:11 train.py 114: mean_loss=0.8936194817940615, mean_seg_loss=0.4119958509781354
+2026-06-27 10:20:11 train.py 45: training epoch 7 / 20
+2026-06-27 10:27:16 train.py 93: non-finite gradient at epoch 7; skipping optimizer step
+2026-06-27 10:27:55 train.py 93: non-finite gradient at epoch 7; skipping optimizer step
+2026-06-27 10:29:39 train.py 114: mean_loss=0.8690502208587519, mean_seg_loss=0.39483980784951156
+2026-06-27 10:29:39 train.py 45: training epoch 8 / 20
+2026-06-27 10:39:06 train.py 114: mean_loss=0.8436615849300765, mean_seg_loss=0.38756000824334547
+2026-06-27 10:39:06 train.py 45: training epoch 9 / 20
+2026-06-27 10:48:35 train.py 114: mean_loss=0.8240411400464763, mean_seg_loss=0.3764568124007733
+2026-06-27 10:48:35 train.py 45: training epoch 10 / 20
+2026-06-27 10:58:03 train.py 114: mean_loss=0.7962011872401198, mean_seg_loss=0.36332188022433887
+2026-06-27 10:58:03 train.py 45: training epoch 11 / 20
+2026-06-27 11:07:32 train.py 114: mean_loss=0.7883184373048534, mean_seg_loss=0.3616806096926208
+2026-06-27 11:07:32 train.py 45: training epoch 12 / 20
+2026-06-27 11:17:00 train.py 114: mean_loss=0.7668546206237867, mean_seg_loss=0.3507693376020629
+2026-06-27 11:17:00 train.py 45: training epoch 13 / 20
+2026-06-27 11:26:28 train.py 114: mean_loss=0.7729614561944788, mean_seg_loss=0.35765864033964034
+2026-06-27 11:26:28 train.py 45: training epoch 14 / 20
+2026-06-27 11:36:03 train.py 114: mean_loss=0.7479013911244612, mean_seg_loss=0.3437583706550651
+2026-06-27 11:36:03 train.py 45: training epoch 15 / 20
+2026-06-27 11:45:32 train.py 114: mean_loss=0.7450797077361236, mean_seg_loss=0.34584187504698694
+2026-06-27 11:45:32 train.py 45: training epoch 16 / 20
+2026-06-27 11:55:03 train.py 114: mean_loss=0.7317805575036607, mean_seg_loss=0.3372394443074257
+2026-06-27 11:55:03 train.py 45: training epoch 17 / 20
+2026-06-27 12:04:40 train.py 114: mean_loss=0.7286836150775656, mean_seg_loss=0.33619549098602625
+2026-06-27 12:04:40 train.py 45: training epoch 18 / 20
+2026-06-27 12:13:48 train.py 93: non-finite gradient at epoch 18; skipping optimizer step
+2026-06-27 12:14:17 train.py 114: mean_loss=0.7153991063435873, mean_seg_loss=0.33338049321417335
+2026-06-27 12:14:17 train.py 45: training epoch 19 / 20
+2026-06-27 12:19:54 train.py 93: non-finite gradient at epoch 19; skipping optimizer step
+2026-06-27 12:23:51 train.py 114: mean_loss=0.7229493501285712, mean_seg_loss=0.33349529511380394
+2026-06-27 12:23:51 train.py 45: training epoch 20 / 20
+2026-06-27 12:33:21 train.py 114: mean_loss=0.7071469692807448, mean_seg_loss=0.328600334225434

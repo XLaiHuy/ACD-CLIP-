@@ -1,0 +1,492 @@
+2026-06-27 18:00:02 train.py 219: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'dataset': 'VisA', 'batch_size': 6, 'epoch': 20, 'cuda_device': 0, 'save_path': 'phase1_v3_attn_tau8_ss2d_g02', 'n_groups': 3, 'image_adapt_weight': 0.2, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'text_adapt_weight': 0.2, 'lora_rank': 16, 'lora_alpha': 2.0, 'image_lr': 0.001, 'text_lr': 0.0005, 'lr_gamma': 0.9, 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'amp': True, 'grad_checkpointing': True, 'num_workers': 6}
+2026-06-27 18:00:02 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-06-27 18:00:05 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-06-27 18:00:05 train.py 254: trainable parameters: 14,095,887
+2026-06-27 18:00:05 train.py 255: frozen parameters: 428,756,225
+2026-06-27 18:00:05 train.py 274: loading dataset ...
+2026-06-27 18:00:05 train.py 287: training ...
+2026-06-27 18:00:05 train.py 45: training epoch 1 / 20
+2026-06-27 18:02:53 train.py 96: non-finite gradient at epoch 1; skipping optimizer step
+2026-06-27 18:03:00 train.py 96: non-finite gradient at epoch 1; skipping optimizer step
+2026-06-27 18:09:48 train.py 118: mean_loss=1.3427908445467192, mean_seg_loss=0.6560762865659768
+2026-06-27 18:09:48 train.py 119: skip_counts epoch=1 non_finite_loss=0 non_finite_grad=2
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage1_raw_gamma=0.060191214084625244
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage1_gamma=0.012023726478219032
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage1_ss2d_ratio=0.35678619146347046
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage1_entropy_normal=0.9214432835578918
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage1_entropy_abnormal=0.8426388502120972
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage1_weights_normal=[0.09936724603176117, 0.3416507840156555, 0.5589820146560669]
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage1_weights_abnormal=[0.043825551867485046, 0.4819970726966858, 0.47417736053466797]
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage2_raw_gamma=-0.06822177022695541
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage2_gamma=-0.013623225502669811
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage2_ss2d_ratio=0.4281274378299713
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage2_entropy_normal=0.7828932404518127
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage2_entropy_abnormal=0.7646369934082031
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage2_weights_normal=[0.035776130855083466, 0.3447176218032837, 0.6195062398910522]
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage2_weights_abnormal=[0.01692073792219162, 0.5268763303756714, 0.4562029540538788]
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage3_raw_gamma=0.06210571900010109
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage3_gamma=0.012405198998749256
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage3_ss2d_ratio=0.37780076265335083
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage3_entropy_normal=0.9160979390144348
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage3_entropy_abnormal=0.8127017021179199
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage3_weights_normal=[0.08600863814353943, 0.38768884539604187, 0.5263024568557739]
+2026-06-27 18:09:48 train.py 134: dfg_diag epoch=1 stage3_weights_abnormal=[0.032991841435432434, 0.5186165571212769, 0.4483915865421295]
+2026-06-27 18:09:48 train.py 45: training epoch 2 / 20
+2026-06-27 18:19:28 train.py 118: mean_loss=1.1915328121251347, mean_seg_loss=0.5167151615436387
+2026-06-27 18:19:28 train.py 119: skip_counts epoch=2 non_finite_loss=0 non_finite_grad=0
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage1_raw_gamma=0.06363276392221451
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage1_gamma=0.012709403410553932
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage1_ss2d_ratio=0.38339880108833313
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage1_entropy_normal=0.9077252149581909
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage1_entropy_abnormal=0.8127310276031494
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage1_weights_normal=[0.08778946101665497, 0.3564367890357971, 0.5557737946510315]
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage1_weights_abnormal=[0.032969459891319275, 0.5178699493408203, 0.4491605758666992]
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage2_raw_gamma=-0.06641885638237
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage2_gamma=-0.013264271430671215
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage2_ss2d_ratio=0.4140819311141968
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage2_entropy_normal=0.8183820247650146
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage2_entropy_abnormal=0.7608513832092285
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage2_weights_normal=[0.03934292495250702, 0.40068480372428894, 0.5599722862243652]
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage2_weights_abnormal=[0.018073465675115585, 0.5614924430847168, 0.4204341173171997]
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage3_raw_gamma=0.06720009446144104
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage3_gamma=0.01341982465237379
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage3_ss2d_ratio=0.41447028517723083
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage3_entropy_normal=0.8683596253395081
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage3_entropy_abnormal=0.7902865409851074
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage3_weights_normal=[0.06142876297235489, 0.39320752024650574, 0.54536372423172]
+2026-06-27 18:19:28 train.py 134: dfg_diag epoch=2 stage3_weights_abnormal=[0.02525649219751358, 0.5261930227279663, 0.4485504627227783]
+2026-06-27 18:19:29 train.py 45: training epoch 3 / 20
+2026-06-27 18:29:10 train.py 118: mean_loss=1.1065067505242092, mean_seg_loss=0.4806998254437196
+2026-06-27 18:29:10 train.py 119: skip_counts epoch=3 non_finite_loss=0 non_finite_grad=0
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage1_raw_gamma=0.08006633073091507
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage1_gamma=0.015979137271642685
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage1_ss2d_ratio=0.5067887306213379
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage1_entropy_normal=0.7698994874954224
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage1_entropy_abnormal=0.7473293542861938
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage1_weights_normal=[0.040701013058423996, 0.3054575026035309, 0.653841495513916]
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage1_weights_abnormal=[0.012199768796563148, 0.4549890458583832, 0.532811164855957]
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage2_raw_gamma=-0.08679349720478058
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage2_gamma=-0.017315244302153587
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage2_ss2d_ratio=0.597533106803894
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage2_entropy_normal=0.6594295501708984
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage2_entropy_abnormal=0.7059019804000854
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage2_weights_normal=[0.015533296391367912, 0.2721259891986847, 0.7123407125473022]
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage2_weights_abnormal=[0.006963345687836409, 0.3883725106716156, 0.604664146900177]
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage3_raw_gamma=0.07589145749807358
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage3_gamma=0.015149219892919064
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage3_ss2d_ratio=0.49777838587760925
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage3_entropy_normal=0.855254054069519
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage3_entropy_abnormal=0.7767011523246765
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage3_weights_normal=[0.06225617229938507, 0.3559982180595398, 0.5817456245422363]
+2026-06-27 18:29:10 train.py 134: dfg_diag epoch=3 stage3_weights_abnormal=[0.02063881605863571, 0.5233027935028076, 0.4560583829879761]
+2026-06-27 18:29:10 train.py 45: training epoch 4 / 20
+2026-06-27 18:29:25 train.py 96: non-finite gradient at epoch 4; skipping optimizer step
+2026-06-27 18:38:52 train.py 118: mean_loss=0.9841994422177474, mean_seg_loss=0.4647687336538307
+2026-06-27 18:38:52 train.py 119: skip_counts epoch=4 non_finite_loss=0 non_finite_grad=1
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage1_raw_gamma=0.09780986607074738
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage1_gamma=0.019499829038977623
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage1_ss2d_ratio=0.6522607803344727
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage1_entropy_normal=0.6745401620864868
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage1_entropy_abnormal=0.6257378458976746
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage1_weights_normal=[0.02076258324086666, 0.26722294092178345, 0.7120144367218018]
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage1_weights_abnormal=[0.0038249767385423183, 0.2898063659667969, 0.7063686847686768]
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage2_raw_gamma=-0.09971965104341507
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage2_gamma=-0.0198780857026577
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage2_ss2d_ratio=0.6822920441627502
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage2_entropy_normal=0.5426839590072632
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage2_entropy_abnormal=0.6567092537879944
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage2_weights_normal=[0.005985976196825504, 0.20667773485183716, 0.7873363494873047]
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage2_weights_abnormal=[0.002643527463078499, 0.33767396211624146, 0.6596825122833252]
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage3_raw_gamma=0.08994217216968536
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage3_gamma=0.017940085381269455
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage3_ss2d_ratio=0.5900049209594727
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage3_entropy_normal=0.7418012619018555
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage3_entropy_abnormal=0.7241522073745728
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage3_weights_normal=[0.02884269878268242, 0.3210715651512146, 0.6500857472419739]
+2026-06-27 18:38:52 train.py 134: dfg_diag epoch=4 stage3_weights_abnormal=[0.00859101489186287, 0.41806358098983765, 0.5733454823493958]
+2026-06-27 18:38:52 train.py 45: training epoch 5 / 20
+2026-06-27 18:48:33 train.py 118: mean_loss=0.9401475106910325, mean_seg_loss=0.442246713198288
+2026-06-27 18:48:33 train.py 119: skip_counts epoch=5 non_finite_loss=0 non_finite_grad=0
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage1_raw_gamma=0.10143346339464188
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage1_gamma=0.020217403769493103
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage1_ss2d_ratio=0.6817066073417664
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage1_entropy_normal=0.706671953201294
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage1_entropy_abnormal=0.6622588634490967
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage1_weights_normal=[0.01980849914252758, 0.3071081042289734, 0.6730834245681763]
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage1_weights_abnormal=[0.003643866628408432, 0.338128924369812, 0.6582272052764893]
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage2_raw_gamma=-0.11193027347326279
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage2_gamma=-0.022293034940958023
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage2_ss2d_ratio=0.8034988045692444
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage2_entropy_normal=0.5839678645133972
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage2_entropy_abnormal=0.6235846877098083
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage2_weights_normal=[0.00425653625279665, 0.24581149220466614, 0.7499319314956665]
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage2_weights_abnormal=[0.001523979241028428, 0.3023616671562195, 0.6961143612861633]
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage3_raw_gamma=0.09685593098402023
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage3_gamma=0.019310839474201202
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage3_ss2d_ratio=0.7129116654396057
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage3_entropy_normal=0.8023476600646973
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage3_entropy_abnormal=0.7356524467468262
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage3_weights_normal=[0.040004268288612366, 0.363686203956604, 0.5963094830513]
+2026-06-27 18:48:33 train.py 134: dfg_diag epoch=5 stage3_weights_abnormal=[0.01271907240152359, 0.4047752022743225, 0.5825057029724121]
+2026-06-27 18:48:33 train.py 45: training epoch 6 / 20
+2026-06-27 18:58:12 train.py 118: mean_loss=0.8921721880620866, mean_seg_loss=0.42355603551352783
+2026-06-27 18:58:12 train.py 119: skip_counts epoch=6 non_finite_loss=0 non_finite_grad=0
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage1_raw_gamma=0.10913636535406113
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage1_gamma=0.021741025149822235
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage1_ss2d_ratio=0.7320201396942139
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage1_entropy_normal=0.3137289881706238
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage1_entropy_abnormal=0.6656894683837891
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage1_weights_normal=[0.0061498358845710754, 0.0792359858751297, 0.914614200592041]
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage1_weights_abnormal=[0.003027627943083644, 0.3483697474002838, 0.6486026048660278]
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage2_raw_gamma=-0.11467049270868301
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage2_gamma=-0.02283410355448723
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage2_ss2d_ratio=0.8264098167419434
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage2_entropy_normal=0.5889683961868286
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage2_entropy_abnormal=0.2481173872947693
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage2_weights_normal=[0.0038878596387803555, 0.25353026390075684, 0.742581844329834]
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage2_weights_abnormal=[0.0006794846849516034, 0.0657971054315567, 0.933523416519165]
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage3_raw_gamma=0.11007770895957947
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage3_gamma=0.02192704938352108
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage3_ss2d_ratio=0.7571120858192444
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage3_entropy_normal=0.4079844355583191
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage3_entropy_abnormal=0.642889678478241
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage3_weights_normal=[0.0067948815412819386, 0.12347687035799026, 0.8697282671928406]
+2026-06-27 18:58:12 train.py 134: dfg_diag epoch=6 stage3_weights_abnormal=[0.0018971017561852932, 0.32708418369293213, 0.6710187196731567]
+2026-06-27 18:58:12 train.py 45: training epoch 7 / 20
+2026-06-27 19:07:49 train.py 118: mean_loss=0.8724918099651706, mean_seg_loss=0.4089708253534877
+2026-06-27 19:07:49 train.py 119: skip_counts epoch=7 non_finite_loss=0 non_finite_grad=0
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage1_raw_gamma=0.10804269462823868
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage1_gamma=0.02152485027909279
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage1_ss2d_ratio=0.7287103533744812
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage1_entropy_normal=0.7177549004554749
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage1_entropy_abnormal=0.6818901300430298
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage1_weights_normal=[0.014979491010308266, 0.35705387592315674, 0.627966582775116]
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage1_weights_abnormal=[0.004159825854003429, 0.367043673992157, 0.6287964582443237]
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage2_raw_gamma=-0.12037838995456696
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage2_gamma=-0.023960055783391
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage2_ss2d_ratio=0.8641954660415649
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage2_entropy_normal=0.6397957801818848
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage2_entropy_abnormal=0.6193876266479492
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage2_weights_normal=[0.0030025504529476166, 0.351168692111969, 0.6458287239074707]
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage2_weights_abnormal=[0.0014521576231345534, 0.29933664202690125, 0.6992112398147583]
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage3_raw_gamma=0.12815171480178833
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage3_gamma=0.025490952655673027
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage3_ss2d_ratio=0.8909665942192078
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage3_entropy_normal=0.7199980616569519
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage3_entropy_abnormal=0.6722729206085205
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage3_weights_normal=[0.008784051984548569, 0.417485773563385, 0.5737301111221313]
+2026-06-27 19:07:49 train.py 134: dfg_diag epoch=7 stage3_weights_abnormal=[0.0009180769557133317, 0.38512200117111206, 0.6139599084854126]
+2026-06-27 19:07:49 train.py 45: training epoch 8 / 20
+2026-06-27 19:17:30 train.py 118: mean_loss=0.8563044111649416, mean_seg_loss=0.3968688948931291
+2026-06-27 19:17:30 train.py 119: skip_counts epoch=8 non_finite_loss=0 non_finite_grad=0
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage1_raw_gamma=0.11521308869123459
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage1_gamma=0.02294120006263256
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage1_ss2d_ratio=0.8027069568634033
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage1_entropy_normal=0.7307429313659668
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage1_entropy_abnormal=0.7122916579246521
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage1_weights_normal=[0.01259915716946125, 0.41419750452041626, 0.5732033252716064]
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage1_weights_abnormal=[0.005856521427631378, 0.42239147424697876, 0.5717520117759705]
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage2_raw_gamma=-0.1338086575269699
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage2_gamma=-0.026603147387504578
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage2_ss2d_ratio=0.9946894645690918
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage2_entropy_normal=0.6119000315666199
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage2_entropy_abnormal=0.5776330232620239
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage2_weights_normal=[0.002364808227866888, 0.6547280550003052, 0.3429071605205536]
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage2_weights_abnormal=[0.003059923881664872, 0.2474595606327057, 0.7494806051254272]
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage3_raw_gamma=0.14800618588924408
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage3_gamma=0.0293869711458683
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage3_ss2d_ratio=1.0621213912963867
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage3_entropy_normal=0.7482059001922607
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage3_entropy_abnormal=0.6991926431655884
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage3_weights_normal=[0.014802194200456142, 0.4274652600288391, 0.5577324628829956]
+2026-06-27 19:17:30 train.py 134: dfg_diag epoch=8 stage3_weights_abnormal=[0.0010651543270796537, 0.4724288582801819, 0.5265060067176819]
+2026-06-27 19:17:30 train.py 45: training epoch 9 / 20
+2026-06-27 19:27:11 train.py 118: mean_loss=0.8385195415105846, mean_seg_loss=0.3879850148700611
+2026-06-27 19:27:11 train.py 119: skip_counts epoch=9 non_finite_loss=0 non_finite_grad=0
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage1_raw_gamma=0.11477357149124146
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage1_gamma=0.022854451090097427
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage1_ss2d_ratio=0.7948876023292542
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage1_entropy_normal=0.694765567779541
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage1_entropy_abnormal=0.6703883409500122
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage1_weights_normal=[0.010401984676718712, 0.3544553816318512, 0.6351426243782043]
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage1_weights_abnormal=[0.004734275862574577, 0.34408092498779297, 0.6511847972869873]
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage2_raw_gamma=-0.1395193487405777
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage2_gamma=-0.027724215760827065
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage2_ss2d_ratio=1.0492842197418213
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage2_entropy_normal=0.5884192585945129
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage2_entropy_abnormal=0.5816136598587036
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage2_weights_normal=[0.0010458757169544697, 0.41808149218559265, 0.5808725953102112]
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage2_weights_abnormal=[0.0017371843568980694, 0.2587232291698456, 0.739539623260498]
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage3_raw_gamma=0.15769852697849274
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage3_gamma=0.03128083050251007
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage3_ss2d_ratio=1.1611135005950928
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage3_entropy_normal=0.7339093685150146
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage3_entropy_abnormal=0.6848496198654175
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage3_weights_normal=[0.015777792781591415, 0.3775034546852112, 0.6067186594009399]
+2026-06-27 19:27:11 train.py 134: dfg_diag epoch=9 stage3_weights_abnormal=[0.0032561784610152245, 0.38772904872894287, 0.6090147495269775]
+2026-06-27 19:27:11 train.py 45: training epoch 10 / 20
+2026-06-27 19:27:13 train.py 96: non-finite gradient at epoch 10; skipping optimizer step
+2026-06-27 19:36:54 train.py 118: mean_loss=0.8213168633480866, mean_seg_loss=0.37870590381551317
+2026-06-27 19:36:54 train.py 119: skip_counts epoch=10 non_finite_loss=0 non_finite_grad=1
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage1_raw_gamma=0.11662572622299194
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage1_gamma=0.023219965398311615
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage1_ss2d_ratio=0.7966620326042175
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage1_entropy_normal=0.7377902269363403
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage1_entropy_abnormal=0.6483763456344604
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage1_weights_normal=[0.010319938883185387, 0.4600413739681244, 0.5296387076377869]
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage1_weights_abnormal=[0.0061508906073868275, 0.30311501026153564, 0.6907341480255127]
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage2_raw_gamma=-0.13959693908691406
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage2_gamma=-0.02773943543434143
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage2_ss2d_ratio=1.0414756536483765
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage2_entropy_normal=0.6352620124816895
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage2_entropy_abnormal=0.5815639495849609
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage2_weights_normal=[0.0013773158425465226, 0.3529174327850342, 0.6457053422927856]
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage2_weights_abnormal=[0.0022158080246299505, 0.2541356086730957, 0.7436485290527344]
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage3_raw_gamma=0.16112704575061798
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage3_gamma=0.031949397176504135
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage3_ss2d_ratio=1.1666786670684814
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage3_entropy_normal=0.7126363515853882
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage3_entropy_abnormal=0.6874050498008728
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage3_weights_normal=[0.012868696823716164, 0.5626043081283569, 0.42452698945999146]
+2026-06-27 19:36:54 train.py 134: dfg_diag epoch=10 stage3_weights_abnormal=[0.002785223536193371, 0.3929416537284851, 0.6042731404304504]
+2026-06-27 19:36:54 train.py 45: training epoch 11 / 20
+2026-06-27 19:46:40 train.py 118: mean_loss=0.8058430774555312, mean_seg_loss=0.36864628334764465
+2026-06-27 19:46:40 train.py 119: skip_counts epoch=11 non_finite_loss=0 non_finite_grad=0
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage1_raw_gamma=0.11913032829761505
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage1_gamma=0.023713989183306694
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage1_ss2d_ratio=0.8274725079536438
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage1_entropy_normal=0.7139434814453125
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage1_entropy_abnormal=0.670161247253418
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage1_weights_normal=[0.012473871000111103, 0.36104616522789, 0.626479983329773]
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage1_weights_abnormal=[0.00561715941876173, 0.33545970916748047, 0.6589231491088867]
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage2_raw_gamma=-0.13901910185813904
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage2_gamma=-0.027626080438494682
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage2_ss2d_ratio=1.032947063446045
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage2_entropy_normal=0.5375999212265015
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage2_entropy_abnormal=0.6349363327026367
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage2_weights_normal=[0.0018771833274513483, 0.22127138078212738, 0.7768514156341553]
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage2_weights_abnormal=[0.0022925909142941236, 0.31096789240837097, 0.686739444732666]
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage3_raw_gamma=0.1633482128381729
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage3_gamma=0.032382141798734665
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage3_ss2d_ratio=1.1898157596588135
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage3_entropy_normal=0.7585440874099731
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage3_entropy_abnormal=0.6896666884422302
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage3_weights_normal=[0.01610754057765007, 0.4625287652015686, 0.5213637351989746]
+2026-06-27 19:46:40 train.py 134: dfg_diag epoch=11 stage3_weights_abnormal=[0.003835842711851001, 0.3878481388092041, 0.6083160638809204]
+2026-06-27 19:46:40 train.py 45: training epoch 12 / 20
+2026-06-27 19:52:00 train.py 96: non-finite gradient at epoch 12; skipping optimizer step
+2026-06-27 19:56:22 train.py 118: mean_loss=0.7927960601945718, mean_seg_loss=0.36014062892697196
+2026-06-27 19:56:22 train.py 119: skip_counts epoch=12 non_finite_loss=0 non_finite_grad=1
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage1_raw_gamma=0.12444103509187698
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage1_gamma=0.024760529398918152
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage1_ss2d_ratio=0.8685542941093445
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage1_entropy_normal=0.5793861150741577
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage1_entropy_abnormal=0.6716617941856384
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage1_weights_normal=[0.011768726631999016, 0.2137433886528015, 0.7744878530502319]
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage1_weights_abnormal=[0.005289261229336262, 0.34038984775543213, 0.6543209552764893]
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage2_raw_gamma=-0.14012281596660614
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage2_gamma=-0.027842579409480095
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage2_ss2d_ratio=1.0525310039520264
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage2_entropy_normal=0.4726904630661011
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage2_entropy_abnormal=0.5758947730064392
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage2_weights_normal=[0.0032093189656734467, 0.1674688160419464, 0.8293218612670898]
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage2_weights_abnormal=[0.002388786058872938, 0.24775049090385437, 0.7498606443405151]
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage3_raw_gamma=0.16779448091983795
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage3_gamma=0.0332474559545517
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage3_ss2d_ratio=1.2437227964401245
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage3_entropy_normal=0.7180573344230652
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage3_entropy_abnormal=0.7159405946731567
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage3_weights_normal=[0.02257709577679634, 0.30943357944488525, 0.6679893136024475]
+2026-06-27 19:56:22 train.py 134: dfg_diag epoch=12 stage3_weights_abnormal=[0.0070753274485468864, 0.4138422906398773, 0.5790823698043823]
+2026-06-27 19:56:22 train.py 45: training epoch 13 / 20
+2026-06-27 20:06:03 train.py 118: mean_loss=0.7785133095329158, mean_seg_loss=0.3592439977054863
+2026-06-27 20:06:03 train.py 119: skip_counts epoch=13 non_finite_loss=0 non_finite_grad=0
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage1_raw_gamma=0.12772972881793976
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage1_gamma=0.025407923385500908
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage1_ss2d_ratio=0.9032044410705566
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage1_entropy_normal=0.6602989435195923
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage1_entropy_abnormal=0.6698455810546875
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage1_weights_normal=[0.007916332222521305, 0.30961018800735474, 0.6824735403060913]
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage1_weights_abnormal=[0.00587531179189682, 0.3330494165420532, 0.6610752940177917]
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage2_raw_gamma=-0.14215317368507385
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage2_gamma=-0.028240669518709183
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage2_ss2d_ratio=1.0947345495224
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage2_entropy_normal=0.6212604641914368
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage2_entropy_abnormal=0.5959092378616333
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage2_weights_normal=[0.0028745976742357016, 0.2918899357318878, 0.705235481262207]
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage2_weights_abnormal=[0.0029841898940503597, 0.2634044885635376, 0.7336113452911377]
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage3_raw_gamma=0.16990002989768982
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage3_gamma=0.033656783401966095
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage3_ss2d_ratio=1.2617396116256714
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage3_entropy_normal=0.8039605617523193
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage3_entropy_abnormal=0.7727773189544678
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage3_weights_normal=[0.033762384206056595, 0.403312087059021, 0.5629255175590515]
+2026-06-27 20:06:03 train.py 134: dfg_diag epoch=13 stage3_weights_abnormal=[0.02129562944173813, 0.42724961042404175, 0.5514547824859619]
+2026-06-27 20:06:03 train.py 45: training epoch 14 / 20
+2026-06-27 20:15:40 train.py 118: mean_loss=0.7622381490023182, mean_seg_loss=0.34834692010609564
+2026-06-27 20:15:40 train.py 119: skip_counts epoch=14 non_finite_loss=0 non_finite_grad=0
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage1_raw_gamma=0.12901031970977783
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage1_gamma=0.025659864768385887
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage1_ss2d_ratio=0.9166979193687439
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage1_entropy_normal=0.7169152498245239
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage1_entropy_abnormal=0.6526125073432922
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage1_weights_normal=[0.013157647103071213, 0.36083370447158813, 0.6260086894035339]
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage1_weights_abnormal=[0.006705712527036667, 0.30477550625801086, 0.688518762588501]
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage2_raw_gamma=-0.1437712013721466
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage2_gamma=-0.02855774760246277
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage2_ss2d_ratio=1.074412226676941
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage2_entropy_normal=0.5678473114967346
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage2_entropy_abnormal=0.6239604949951172
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage2_weights_normal=[0.0034878323785960674, 0.23657947778701782, 0.7599326968193054]
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage2_weights_abnormal=[0.0032222617883235216, 0.2915486693382263, 0.7052290439605713]
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage3_raw_gamma=0.17294906079769135
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage3_gamma=0.034249015152454376
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage3_ss2d_ratio=1.236057162284851
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage3_entropy_normal=0.7607064843177795
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage3_entropy_abnormal=0.7317505478858948
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage3_weights_normal=[0.020603671669960022, 0.3962223529815674, 0.5831739902496338]
+2026-06-27 20:15:40 train.py 134: dfg_diag epoch=14 stage3_weights_abnormal=[0.01369684748351574, 0.3842369318008423, 0.6020662784576416]
+2026-06-27 20:15:40 train.py 45: training epoch 15 / 20
+2026-06-27 20:25:20 train.py 118: mean_loss=0.7543682431250067, mean_seg_loss=0.3479301780823443
+2026-06-27 20:25:20 train.py 119: skip_counts epoch=15 non_finite_loss=0 non_finite_grad=0
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage1_raw_gamma=0.12976352870464325
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage1_gamma=0.02580801211297512
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage1_ss2d_ratio=0.9353193640708923
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage1_entropy_normal=0.7588741779327393
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage1_entropy_abnormal=0.727077841758728
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage1_weights_normal=[0.01886323094367981, 0.4056340754032135, 0.5755026936531067]
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage1_weights_abnormal=[0.010793380439281464, 0.4000069200992584, 0.5891997218132019]
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage2_raw_gamma=-0.14715680480003357
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage2_gamma=-0.029220739379525185
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage2_ss2d_ratio=1.1080281734466553
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage2_entropy_normal=0.6877099275588989
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage2_entropy_abnormal=0.6722709536552429
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage2_weights_normal=[0.00723164202645421, 0.35089313983917236, 0.6418752074241638]
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage2_weights_abnormal=[0.004079823382198811, 0.3501133918762207, 0.6458067893981934]
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage3_raw_gamma=0.17556777596473694
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage3_gamma=0.03475717082619667
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage3_ss2d_ratio=1.1880000829696655
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage3_entropy_normal=0.8426551818847656
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage3_entropy_abnormal=0.7681126594543457
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage3_weights_normal=[0.04396067559719086, 0.4650103747844696, 0.49102896451950073]
+2026-06-27 20:25:20 train.py 134: dfg_diag epoch=15 stage3_weights_abnormal=[0.019973739981651306, 0.42324262857437134, 0.5567835569381714]
+2026-06-27 20:25:20 train.py 45: training epoch 16 / 20
+2026-06-27 20:35:01 train.py 118: mean_loss=0.7561560002390367, mean_seg_loss=0.3485276668882023
+2026-06-27 20:35:01 train.py 119: skip_counts epoch=16 non_finite_loss=0 non_finite_grad=0
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage1_raw_gamma=0.13408470153808594
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage1_gamma=0.026657378301024437
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage1_ss2d_ratio=0.9404608607292175
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage1_entropy_normal=0.6492550373077393
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage1_entropy_abnormal=0.7010889053344727
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage1_weights_normal=[0.0017567730974406004, 0.3341373801231384, 0.6641058325767517]
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage1_weights_abnormal=[0.008085947483778, 0.3678636848926544, 0.6240503787994385]
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage2_raw_gamma=-0.1477431058883667
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage2_gamma=-0.029335487633943558
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage2_ss2d_ratio=1.0899641513824463
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage2_entropy_normal=0.5809928178787231
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage2_entropy_abnormal=0.6399904489517212
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage2_weights_normal=[0.0006980568869039416, 0.2622864246368408, 0.7370155453681946]
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage2_weights_abnormal=[0.0028960718773305416, 0.31272172927856445, 0.6843822002410889]
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage3_raw_gamma=0.1783323436975479
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage3_gamma=0.035293128341436386
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage3_ss2d_ratio=1.1966886520385742
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage3_entropy_normal=0.7913891077041626
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage3_entropy_abnormal=0.8161019086837769
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage3_weights_normal=[0.02475951798260212, 0.5050162076950073, 0.4702243208885193]
+2026-06-27 20:35:01 train.py 134: dfg_diag epoch=16 stage3_weights_abnormal=[0.03441105782985687, 0.445079505443573, 0.5205094814300537]
+2026-06-27 20:35:01 train.py 45: training epoch 17 / 20
+2026-06-27 20:44:40 train.py 118: mean_loss=0.729403375423516, mean_seg_loss=0.3360494899142977
+2026-06-27 20:44:40 train.py 119: skip_counts epoch=17 non_finite_loss=0 non_finite_grad=0
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage1_raw_gamma=0.13582052290439606
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage1_gamma=0.02699829638004303
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage1_ss2d_ratio=0.9897053837776184
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage1_entropy_normal=0.7804849147796631
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage1_entropy_abnormal=0.7192189693450928
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage1_weights_normal=[0.024901695549488068, 0.4157944321632385, 0.559303879737854]
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage1_weights_abnormal=[0.010811891406774521, 0.38187089562416077, 0.6073172092437744]
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage2_raw_gamma=-0.1495462954044342
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage2_gamma=-0.0296882726252079
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage2_ss2d_ratio=1.1414196491241455
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage2_entropy_normal=0.6925589442253113
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage2_entropy_abnormal=0.691885232925415
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage2_weights_normal=[0.011097043752670288, 0.34069979190826416, 0.6482031941413879]
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage2_weights_abnormal=[0.0043919505551457405, 0.38888970017433167, 0.6067183017730713]
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage3_raw_gamma=0.18119411170482635
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage3_gamma=0.03584737703204155
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage3_ss2d_ratio=1.324191689491272
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage3_entropy_normal=0.8139282464981079
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage3_entropy_abnormal=0.795569658279419
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage3_weights_normal=[0.03647907078266144, 0.4134483337402344, 0.5500725507736206]
+2026-06-27 20:44:40 train.py 134: dfg_diag epoch=17 stage3_weights_abnormal=[0.027804698795080185, 0.44290637969970703, 0.5292889475822449]
+2026-06-27 20:44:40 train.py 45: training epoch 18 / 20
+2026-06-27 20:54:23 train.py 118: mean_loss=0.7201453676019018, mean_seg_loss=0.3309724715556382
+2026-06-27 20:54:23 train.py 119: skip_counts epoch=18 non_finite_loss=0 non_finite_grad=0
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage1_raw_gamma=0.13808605074882507
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage1_gamma=0.02744300663471222
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage1_ss2d_ratio=0.9767032265663147
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage1_entropy_normal=0.7941992282867432
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage1_entropy_abnormal=0.7597546577453613
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage1_weights_normal=[0.03189215064048767, 0.4024048447608948, 0.5657030344009399]
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage1_weights_abnormal=[0.01822989620268345, 0.4179064929485321, 0.5638636350631714]
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage2_raw_gamma=-0.15228688716888428
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage2_gamma=-0.030224094167351723
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage2_ss2d_ratio=1.122955083847046
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage2_entropy_normal=0.7852347493171692
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage2_entropy_abnormal=0.728726863861084
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage2_weights_normal=[0.03051670826971531, 0.4069547653198242, 0.5625284910202026]
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage2_weights_abnormal=[0.013052519410848618, 0.3858032822608948, 0.6011441946029663]
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage3_raw_gamma=0.18348243832588196
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage3_gamma=0.03629015386104584
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage3_ss2d_ratio=1.271618127822876
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage3_entropy_normal=0.8041440844535828
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage3_entropy_abnormal=0.8185972571372986
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage3_weights_normal=[0.03332875296473503, 0.40816769003868103, 0.5585035681724548]
+2026-06-27 20:54:23 train.py 134: dfg_diag epoch=18 stage3_weights_abnormal=[0.035265807062387466, 0.4475926160812378, 0.517141580581665]
+2026-06-27 20:54:23 train.py 45: training epoch 19 / 20
+2026-06-27 21:04:04 train.py 118: mean_loss=0.7209299905973788, mean_seg_loss=0.33660835075679746
+2026-06-27 21:04:04 train.py 119: skip_counts epoch=19 non_finite_loss=0 non_finite_grad=0
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage1_raw_gamma=0.13974906504154205
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage1_gamma=0.02776927314698696
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage1_ss2d_ratio=1.014735221862793
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage1_entropy_normal=0.7263875007629395
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage1_entropy_abnormal=0.7275340557098389
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage1_weights_normal=[0.02135796658694744, 0.3274242877960205, 0.6512176990509033]
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage1_weights_abnormal=[0.018639719113707542, 0.3430024981498718, 0.6383578181266785]
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage2_raw_gamma=-0.158054381608963
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage2_gamma=-0.03135025501251221
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage2_ss2d_ratio=1.2179200649261475
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage2_entropy_normal=0.6126984357833862
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage2_entropy_abnormal=0.6113355755805969
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage2_weights_normal=[0.011093968525528908, 0.2442970722913742, 0.7446088790893555]
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage2_weights_abnormal=[0.004226012155413628, 0.272731214761734, 0.7230427861213684]
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage3_raw_gamma=0.18659751117229462
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage3_gamma=0.03689231723546982
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage3_ss2d_ratio=1.338518738746643
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage3_entropy_normal=0.8566757440567017
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage3_entropy_abnormal=0.8608901500701904
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage3_weights_normal=[0.05438150465488434, 0.40591686964035034, 0.5397015810012817]
+2026-06-27 21:04:04 train.py 134: dfg_diag epoch=19 stage3_weights_abnormal=[0.05566941946744919, 0.41725289821624756, 0.5270776748657227]
+2026-06-27 21:04:04 train.py 45: training epoch 20 / 20
+2026-06-27 21:13:45 train.py 118: mean_loss=0.7213737363630385, mean_seg_loss=0.33410082397585184
+2026-06-27 21:13:45 train.py 119: skip_counts epoch=20 non_finite_loss=0 non_finite_grad=0
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage1_raw_gamma=0.14017504453659058
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage1_gamma=0.027852822095155716
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage1_ss2d_ratio=0.9945810437202454
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage1_entropy_normal=0.7896267175674438
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage1_entropy_abnormal=0.7550686597824097
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage1_weights_normal=[0.041019536554813385, 0.33740976452827454, 0.6215707063674927]
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage1_weights_abnormal=[0.025832373648881912, 0.35055768489837646, 0.6236099004745483]
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage2_raw_gamma=-0.16252441704273224
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage2_gamma=-0.032221682369709015
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage2_ss2d_ratio=1.2277772426605225
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage2_entropy_normal=0.6541579365730286
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage2_entropy_abnormal=0.6292297840118408
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage2_weights_normal=[0.022158466279506683, 0.2610529661178589, 0.7167885899543762]
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage2_weights_abnormal=[0.007386215031147003, 0.2782248854637146, 0.714388906955719]
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage3_raw_gamma=0.18757250905036926
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage3_gamma=0.03708064556121826
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage3_ss2d_ratio=1.254793643951416
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage3_entropy_normal=0.8716840147972107
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage3_entropy_abnormal=0.8222131729125977
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage3_weights_normal=[0.0639299601316452, 0.38898348808288574, 0.5470865368843079]
+2026-06-27 21:13:45 train.py 134: dfg_diag epoch=20 stage3_weights_abnormal=[0.03980713710188866, 0.4089498519897461, 0.5512429475784302]

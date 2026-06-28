@@ -131,6 +131,61 @@ class ConvLoraAdapter(nn.Module):
         return outputs
 
 
+class FourDirectionSS2D(nn.Module):
+    """Dependency-free 4-direction spatial scan used by Phase 1B DFG.
+
+    This is intentionally lightweight: it lets each patch aggregate context from
+    left/right/top/bottom scans without pulling the VMamba CUDA dependency into
+    the clean Phase 1 ablation repo.
+    """
+
+    def __init__(self, dim=768):
+        super().__init__()
+        self.direction_logits = nn.Parameter(torch.zeros(4))
+        self.out_proj = nn.Linear(dim, dim, bias=False)
+        nn.init.xavier_uniform_(self.out_proj.weight)
+
+    @staticmethod
+    def _forward_average(x, dim):
+        denom = torch.arange(1, x.shape[dim] + 1, device=x.device, dtype=x.dtype)
+        shape = [1] * x.ndim
+        shape[dim] = x.shape[dim]
+        return x.cumsum(dim=dim) / denom.view(*shape)
+
+    def forward(self, x):
+        # x: [B, H, W, C]
+        lr = self._forward_average(x, dim=2)
+        rl = torch.flip(self._forward_average(torch.flip(x, dims=[2]), dim=2), dims=[2])
+        tb = self._forward_average(x, dim=1)
+        bt = torch.flip(self._forward_average(torch.flip(x, dims=[1]), dim=1), dims=[1])
+        weights = F.softmax(self.direction_logits, dim=0).to(dtype=x.dtype)
+        scanned = weights[0] * lr + weights[1] * rl + weights[2] * tb + weights[3] * bt
+        return self.out_proj(scanned)
+
+
+class DFGSS2DResidualBranch(nn.Module):
+    def __init__(self, dim=768):
+        super().__init__()
+        self.pre_norm = nn.LayerNorm(dim)
+        self.in_proj = nn.Linear(dim, dim)
+        self.act = nn.SiLU()
+        self.ss2d = FourDirectionSS2D(dim)
+        self.post_norm = nn.LayerNorm(dim)
+
+    def forward(self, x):
+        # x: [B, L, C], L must be a square grid.
+        bsz, patch_num, channels = x.shape
+        grid = int(math.sqrt(patch_num))
+        if grid * grid != patch_num:
+            raise ValueError(f"SS2D branch expects square patch tokens, got L={patch_num}")
+        x_2d = x.view(bsz, grid, grid, channels)
+        x_2d = self.pre_norm(x_2d)
+        x_2d = self.act(self.in_proj(x_2d))
+        x_2d = self.ss2d(x_2d)
+        x_2d = self.post_norm(x_2d)
+        return x_2d.mean(dim=(1, 2))
+
+
 class ASPPImageFeatureAdapter(nn.Module):
     def __init__(self, c_in, c_hidden=256):
         super(ASPPImageFeatureAdapter, self).__init__()
