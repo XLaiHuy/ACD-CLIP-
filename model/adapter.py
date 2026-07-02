@@ -75,10 +75,10 @@ class ACDCLIP(nn.Module):
             raise ValueError("dfg_ss2d_fusion='weight_residual' requires use_ss2d_dfg=True")
         self.clipmodel = clip_model
         self.image_encoder = clip_model.visual
-        text_step = 12 // n_groups
-        image_step = 24 // n_groups
-        self.image_levels = [t for t in range(image_step, 24 + 1, image_step)]
-        self.text_levels = [t for t in range(text_step, 12 + 1, text_step)]
+        text_step = 12 // n_groups # Clip text encoder có 12 tầng, dòng này tính toán khoảng cách bước nhảy giữa các tầng cần chèn adapter
+        image_step = 24 // n_groups # Clip image encoder có 24 tầng, dòng này tính toán khoảng cách bước nhảy giữa các tầng cần chèn adapter
+        self.image_levels = [t for t in range(image_step, 24 + 1, image_step)] # Tạo danh sách các tầng cần chèn adapter
+        self.text_levels = [t for t in range(text_step, 12 + 1, text_step)] # Tạo danh sách các tầng cần chèn adapter
         self.n_groups = n_groups
         self.image_adapt_weight = image_adapt_weight
         self.text_adapt_weight = text_adapt_weight
@@ -96,7 +96,7 @@ class ACDCLIP(nn.Module):
 
         image_adapt_weights = nn.ModuleList(
             [AddWeight(image_adapt_weight) for _ in range(n_groups)]
-        )
+        ) # Tạo danh sách khác khối trộn thích ứng cho ảnh
         image_lora_adapters = nn.ModuleList(
             [
                 ConvLoraAdapter(1024, 1024, lora_rank, lora_alpha, conv_lora_rank, conv_lora_alpha,
@@ -104,13 +104,13 @@ class ACDCLIP(nn.Module):
                 for _ in
                 range(n_groups)
             ]
-        )
+        ) # Tạo danh sách các khối Lora cho ảnh
         seg_proj = nn.ModuleList(
             [MLPAdapter(1024, 768, 256) for _ in range(n_groups)]
-        )
+        ) # Tạo danh sách các MLP adapter để chiếu từ 1024 về 768 cho phân đoạn
         det_proj = nn.ModuleList(
             MLPAdapter(1024, 768, 256) for _ in range(n_groups)
-        )
+        ) # Tạo danh sách các MLP adapter để chiếu từ 1024 về 768 cho phát hiện
         seg_image_layer_norms = nn.ModuleList(
             [nn.LayerNorm(768) for _ in range(n_groups)]
         )
