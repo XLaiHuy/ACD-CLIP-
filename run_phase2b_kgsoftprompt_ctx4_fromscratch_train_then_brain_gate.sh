@@ -46,7 +46,7 @@ printf ' %q' "${TRAIN_CMD[@]}"
 echo
 "${TRAIN_CMD[@]}"
 
-echo "==== Brain gate test epochs 8-12 ===="
+echo "==== Brain gate test epochs 8-15 ===="
 DATASETS=Brain \
 SAVE_PATH="${SAVE_PATH}" \
 BATCH_SIZE=8 \
@@ -63,7 +63,7 @@ DFG_BETA_SCHEDULE=warmup010 \
 DFG_BETA_TARGET=0.10 \
 METRIC_THRESHOLDS=none \
 PIXEL_STRIDE=4 \
-bash test_6medical_selected_epochs.sh 8 9 10 11 12
+bash test_6medical_selected_epochs.sh 8 9 10 11 12 13 14 15
 
 BEST_BRAIN_AP="$(
   python parse_test_log.py --log "${SAVE_PATH}/test.log" \

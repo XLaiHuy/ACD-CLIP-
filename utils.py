@@ -234,16 +234,47 @@ def get_soft_prompt_single_class_text_embedding(
         hard_anchor.permute(0, 2, 1).reshape(-1, hard_anchor.shape[1]),
         dim=-1,
     )
+    cosine_by_group = cosine.detach().view(soft_text.shape[0], 2)
+    kg_by_group = 1.0 - cosine_by_group
+    delta_by_group = (soft_text.detach() - hard_anchor.detach()).norm(dim=1)
+    soft_state_cos = F.cosine_similarity(
+        soft_text.detach()[..., 0],
+        soft_text.detach()[..., 1],
+        dim=1,
+    )
+    hard_state_cos = F.cosine_similarity(
+        hard_anchor.detach()[..., 0],
+        hard_anchor.detach()[..., 1],
+        dim=1,
+    )
     kg_loss = (1.0 - cosine).mean()
     stats = {
-        "soft_hard_cos_mean": float(cosine.detach().mean().item()),
-        "soft_hard_cos_normal": float(cosine.detach().view(soft_text.shape[0], 2)[:, 0].mean().item()),
-        "soft_hard_cos_abnormal": float(cosine.detach().view(soft_text.shape[0], 2)[:, 1].mean().item()),
+        "soft_hard_cos_mean": float(cosine_by_group.mean().item()),
+        "soft_hard_cos_normal": float(cosine_by_group[:, 0].mean().item()),
+        "soft_hard_cos_abnormal": float(cosine_by_group[:, 1].mean().item()),
+        "kg_loss_normal": float(kg_by_group[:, 0].mean().item()),
+        "kg_loss_abnormal": float(kg_by_group[:, 1].mean().item()),
+        "delta_soft_hard_normal": float(delta_by_group[:, 0].mean().item()),
+        "delta_soft_hard_abnormal": float(delta_by_group[:, 1].mean().item()),
+        "soft_normal_abnormal_cos": float(soft_state_cos.mean().item()),
+        "hard_normal_abnormal_cos": float(hard_state_cos.mean().item()),
+        "soft_normal_norm": float(soft_text.detach()[..., 0].norm(dim=1).mean().item()),
+        "soft_abnormal_norm": float(soft_text.detach()[..., 1].norm(dim=1).mean().item()),
+        "hard_normal_norm": float(hard_anchor.detach()[..., 0].norm(dim=1).mean().item()),
+        "hard_abnormal_norm": float(hard_anchor.detach()[..., 1].norm(dim=1).mean().item()),
         "soft_proto_norm_min": float(soft_text.detach().norm(dim=1).min().item()),
         "soft_proto_norm_max": float(soft_text.detach().norm(dim=1).max().item()),
         "hard_proto_norm_min": float(hard_anchor.detach().norm(dim=1).min().item()),
         "hard_proto_norm_max": float(hard_anchor.detach().norm(dim=1).max().item()),
     }
+    for group_idx in range(soft_text.shape[0]):
+        prefix = f"g{group_idx + 1}"
+        stats[f"{prefix}_soft_hard_cos_normal"] = float(cosine_by_group[group_idx, 0].item())
+        stats[f"{prefix}_soft_hard_cos_abnormal"] = float(cosine_by_group[group_idx, 1].item())
+        stats[f"{prefix}_delta_soft_hard_normal"] = float(delta_by_group[group_idx, 0].item())
+        stats[f"{prefix}_delta_soft_hard_abnormal"] = float(delta_by_group[group_idx, 1].item())
+        stats[f"{prefix}_soft_normal_abnormal_cos"] = float(soft_state_cos[group_idx].item())
+        stats[f"{prefix}_hard_normal_abnormal_cos"] = float(hard_state_cos[group_idx].item())
     return soft_text, kg_loss, stats
 
 

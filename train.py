@@ -142,6 +142,12 @@ def mean_stats(stats_list):
     }
 
 
+def grad_norm_or_none(param: torch.nn.Parameter):
+    if param.grad is None:
+        return None
+    return float(param.grad.detach().float().norm().item())
+
+
 def train(
         model: ACDCLIP,
         dataset_name: str,
@@ -180,9 +186,12 @@ def train(
             model.dfg_beta,
         )
         loss_list = []
+        loss_main_list = []
         seg_loss_list = []
+        cls_loss_list = []
         kg_loss_list = []
         soft_prompt_stats_list = []
+        soft_prompt_grad_stats_list = []
         non_finite_loss_skips = 0
         non_finite_grad_skips = 0
         tqdm_train_loader = tqdm(train_loader)
@@ -307,6 +316,11 @@ def train(
                 scaler.update()
                 optimizer.zero_grad(set_to_none=True)
                 continue
+            if getattr(model, "use_soft_prompt", False):
+                soft_prompt_grad_stats_list.append({
+                    "ctx_grad_norm_normal": grad_norm_or_none(model.soft_prompt.ctx_normal),
+                    "ctx_grad_norm_abnormal": grad_norm_or_none(model.soft_prompt.ctx_abnormal),
+                })
             # clip gradient
             nn.utils.clip_grad_norm_(model.image_adapter.parameters(), 1.0)
             if getattr(model, "use_soft_prompt", False):
@@ -360,10 +374,13 @@ def train(
                     "Aborting training because trainable parameter became non-finite after "
                     f"optimizer step: {bad_param_name}. Diagnostics: {diag_path}"
                 )
+            loss_main_list.append(loss_main.item())
             loss_list.append(loss.item())
+            cls_loss_list.append(cls_loss.item())
             postfix = {
                 "epoch": f"{epoch + 1} / {total_epoch}",
                 "loss": f"{loss.item():.4f}",
+                "main_loss": f"{loss_main.item():.4f}",
                 "det_loss": f"{cls_loss.item():.4f}",
                 "seg_loss": f"{seg_loss.item():.4f}",
                 "mean_seg_loss": f"{np.mean(seg_loss_list):.4f}",
@@ -377,16 +394,23 @@ def train(
                 postfix["text_lr"] = optimizer.param_groups[0]["lr"]
                 postfix["image_lr"] = optimizer.param_groups[1]["lr"]
             tqdm_train_loader.set_postfix(postfix)
-        logger.info(f"mean_loss={np.mean(loss_list)}, mean_seg_loss={np.mean(seg_loss_list)}")
+        logger.info(
+            "mean_loss=%s, mean_loss_main=%s, mean_cls_loss=%s, mean_seg_loss=%s",
+            np.mean(loss_list),
+            np.mean(loss_main_list),
+            np.mean(cls_loss_list),
+            np.mean(seg_loss_list),
+        )
         if getattr(model, "use_soft_prompt", False):
             logger.info(
-                "soft_prompt_epoch epoch=%d mean_kg_loss=%s lambda_kg=%s stats=%s ctx_stats=%s "
+                "soft_prompt_epoch epoch=%d mean_kg_loss=%s lambda_kg=%s stats=%s ctx_stats=%s grad_stats=%s "
                 "text_encoder_frozen=True text_lora_used=False",
                 epoch + 1,
                 float(np.mean(kg_loss_list)) if kg_loss_list else None,
                 lambda_kg,
                 mean_stats(soft_prompt_stats_list),
                 model.soft_prompt.stats(),
+                mean_stats([s for s in soft_prompt_grad_stats_list if None not in s.values()]),
             )
         logger.info(
             "skip_counts epoch=%d non_finite_loss=%d non_finite_grad=%d",
