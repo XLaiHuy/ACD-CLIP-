@@ -12,7 +12,8 @@ from tqdm import tqdm
 
 from dataset import get_text_and_image_dataset
 from utils import (
-    calculate_seg_loss, get_multiple_adapted_single_class_text_embedding
+    calculate_seg_loss, get_multiple_adapted_single_class_text_embedding,
+    get_prompt_weight_display_strings,
 )
 from model.adapter import (
     ACDCLIP
@@ -146,10 +147,18 @@ def train(
         dfg_beta_target: float = 0.10,
         dfg_beta: float = 0.10,
         non_finite_loss_abort_threshold: int = 20,
+        prompt_weight_lambda_kl: float = 1e-4,
+        prompt_weight_freeze_epochs: int = 3,
 ):
     scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+    prompt_display_strings = get_prompt_weight_display_strings()
     for epoch in range(0, total_epoch):
         epoch_one_based = epoch + 1
+        prompt_weight_enabled = bool(getattr(model, "use_prompt_weighting", False))
+        prompt_weight_frozen = prompt_weight_enabled and epoch_one_based <= prompt_weight_freeze_epochs
+        if prompt_weight_enabled:
+            model.prompt_weighting.requires_grad_(not prompt_weight_frozen)
+            model.prompt_weighting.reset_runtime_stats()
         beta_current = get_dfg_beta_for_epoch(
             epoch_one_based,
             dfg_beta_schedule,
@@ -167,6 +176,14 @@ def train(
             dfg_beta_target,
             model.dfg_beta,
         )
+        if prompt_weight_enabled:
+            logger.info(
+                "prompt_weight_state epoch=%d enabled=%s frozen=%s lambda_kl=%s",
+                epoch_one_based,
+                prompt_weight_enabled,
+                prompt_weight_frozen,
+                prompt_weight_lambda_kl,
+            )
         loss_list = []
         seg_loss_list = []
         non_finite_loss_skips = 0
@@ -189,6 +206,11 @@ def train(
                 dim=0,
             )  # [bs, n_groups, 768, 2]
             epoch_text_features = epoch_text_features.permute(1, 0, 2, 3)  # [n_groups, bs, 768, 2]
+            if prompt_weight_enabled:
+                # Shared/class-agnostic prompt weights: add KL exactly once per train step.
+                prompt_kl = model.prompt_weighting.kl_loss()
+            else:
+                prompt_kl = torch.zeros((), device=device)
             with torch.cuda.amp.autocast(enabled=use_amp):
                 seg_tokens, det_tokens = model(image)  # [bs, patch_size, 768] * n_groups, [bs, 768] * n_groups
                 seg_features = torch.stack(seg_tokens, dim=0)  # [n_groups, bs, patch_num, 768]
@@ -205,7 +227,11 @@ def train(
                 # [bs, 2, img_size, img_size]
                 seg_pred = model.vision_text_fusion_gate_seg(seg_features, epoch_text_features)
                 seg_loss = calculate_seg_loss(seg_pred, mask)
-                loss = cls_loss + seg_loss
+                loss_main = cls_loss + seg_loss
+                if prompt_weight_enabled:
+                    loss = loss_main + prompt_weight_lambda_kl * prompt_kl.to(device=loss_main.device)
+                else:
+                    loss = loss_main
             if not torch.isfinite(loss).all():
                 non_finite_loss_skips += 1
                 diag_path = save_nonfinite_diagnostics(
@@ -224,6 +250,7 @@ def train(
                         "cls_loss": cls_loss,
                         "seg_pred": seg_pred,
                         "seg_loss": seg_loss,
+                        "prompt_kl": prompt_kl,
                         "loss": loss,
                     },
                     metadata={
@@ -233,6 +260,9 @@ def train(
                         "dfg_beta_target": dfg_beta_target,
                         "dfg_beta_current": model.dfg_beta,
                         "dfg_weight_residual_fp32": model.dfg_weight_residual_fp32,
+                        "use_prompt_weighting": prompt_weight_enabled,
+                        "prompt_weight_frozen": prompt_weight_frozen,
+                        "prompt_weight_lambda_kl": prompt_weight_lambda_kl,
                         "class_names": list(class_names),
                         "labels": label.detach().cpu().tolist(),
                     },
@@ -277,6 +307,8 @@ def train(
             # clip gradient
             nn.utils.clip_grad_norm_(model.image_adapter.parameters(), 1.0)
             nn.utils.clip_grad_norm_(model.text_adapter.parameters(), 1.0)
+            if prompt_weight_enabled and not prompt_weight_frozen:
+                nn.utils.clip_grad_norm_(model.prompt_weighting.parameters(), 1.0)
             # update parameters
             scaler.step(optimizer)
             scaler.update()
@@ -293,6 +325,7 @@ def train(
                         "loss": loss,
                         "cls_loss": cls_loss,
                         "seg_loss": seg_loss,
+                        "prompt_kl": prompt_kl,
                         "cls_pred": cls_pred,
                         "seg_pred": seg_pred,
                     },
@@ -306,6 +339,8 @@ def train(
                         "dfg_beta_target": dfg_beta_target,
                         "dfg_beta_current": model.dfg_beta,
                         "dfg_weight_residual_fp32": model.dfg_weight_residual_fp32,
+                        "use_prompt_weighting": prompt_weight_enabled,
+                        "prompt_weight_frozen": prompt_weight_frozen,
                     },
                 )
                 logger.error(
@@ -325,12 +360,13 @@ def train(
             tqdm_train_loader.set_postfix({
                 "epoch": f"{epoch + 1} / {total_epoch}",
                 "loss": f"{loss.item():.4f}",
-                "det_loss": f"{loss.item() - seg_loss.item():.4f}",
+                "det_loss": f"{cls_loss.item():.4f}",
                 "seg_loss": f"{seg_loss.item():.4f}",
                 "mean_seg_loss": f"{np.mean(seg_loss_list):.4f}",
                 "mean_loss": f"{np.mean(loss_list):.4f}",
                 "text_lr": optimizer.param_groups[0]["lr"],
                 "image_lr": optimizer.param_groups[1]["lr"],
+                "prompt_lr": optimizer.param_groups[2]["lr"] if prompt_weight_enabled else 0.0,
             })
         logger.info(f"mean_loss={np.mean(loss_list)}, mean_seg_loss={np.mean(seg_loss_list)}")
         logger.info(
@@ -349,7 +385,26 @@ def train(
                 elif torch.is_tensor(value):
                     value = value.item()
                 logger.info("dfg_diag epoch=%d %s=%s", epoch + 1, key, value)
+        if prompt_weight_enabled:
+            prompt_stats = model.prompt_weighting.stats()
+            normal_idx = prompt_stats["max_normal_index"]
+            abnormal_idx = prompt_stats["max_abnormal_index"]
+            prompt_stats["max_normal_prompt"] = prompt_display_strings[0][normal_idx]
+            prompt_stats["max_abnormal_prompt"] = prompt_display_strings[1][abnormal_idx]
+            prompt_stats["prompt_weight_frozen"] = prompt_weight_frozen
+            prompt_stats["prompt_weight_lr"] = optimizer.param_groups[2]["lr"]
+            for key, value in prompt_stats.items():
+                logger.info("prompt_weight epoch=%d %s=%s", epoch + 1, key, value)
         scheduler.step()
+        if prompt_weight_enabled and epoch_one_based <= prompt_weight_freeze_epochs:
+            # Prompt weights are frozen here, so keep their first effective update at the configured base LR.
+            optimizer.param_groups[2]["lr"] = scheduler.base_lrs[2]
+            logger.info(
+                "prompt_weight_lr_hold epoch=%d frozen=%s prompt_lr=%s",
+                epoch_one_based,
+                prompt_weight_frozen,
+                optimizer.param_groups[2]["lr"],
+            )
         ckp_path = os.path.join(save_path, f"adapter_{epoch + 1}.pth")
         model_dict = {
             "epoch": epoch + 1,
@@ -368,6 +423,16 @@ def train(
             "text_adapter": model.text_adapter.state_dict(),
             "image_adapter": model.image_adapter.state_dict()
         }
+        if prompt_weight_enabled:
+            model_dict.update({
+                "use_prompt_weighting": True,
+                "prompt_weighting": model.prompt_weighting.state_dict(),
+                "prompt_weight_temperature": model.prompt_weight_temperature,
+                "prompt_weight_lambda_kl": prompt_weight_lambda_kl,
+                "prompt_weight_freeze_epochs": prompt_weight_freeze_epochs,
+                "prompt_count_normal": model.prompt_weighting.normal_count,
+                "prompt_count_abnormal": model.prompt_weighting.abnormal_count,
+            })
         torch.save(model_dict, ckp_path)
     return model
 
@@ -407,6 +472,11 @@ def main():
     parser.add_argument("--image_lr", type=float, default=0.001, help="learning rate for image adapter")
     parser.add_argument("--text_lr", type=float, default=0.0005, help="learning rate for text adapter")
     parser.add_argument("--lr_gamma", type=float, default=0.9, help="learning rate decay factor")
+    parser.add_argument("--use_prompt_weighting", action="store_true", help="enable Phase2A shared prompt weighting")
+    parser.add_argument("--prompt_weight_temperature", type=float, default=2.0)
+    parser.add_argument("--prompt_weight_lr", type=float, default=5e-5)
+    parser.add_argument("--prompt_weight_lambda_kl", type=float, default=1e-4)
+    parser.add_argument("--prompt_weight_freeze_epochs", type=int, default=3)
     parser.add_argument(
         "--dfg_mode",
         type=str,
@@ -493,12 +563,15 @@ def main():
         dfg_beta_schedule=args.dfg_beta_schedule,
         dfg_beta_target=args.dfg_beta_target,
         dfg_beta_current=args.dfg_beta,
+        use_prompt_weighting=args.use_prompt_weighting,
+        prompt_weight_temperature=args.prompt_weight_temperature,
     ).to(device)
     model.eval()
 
     model.requires_grad_(False)
     model.text_adapter.requires_grad_(True)
     model.image_adapter.requires_grad_(True)
+    model.prompt_weighting.requires_grad_(args.use_prompt_weighting)
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     frozen_params = sum(p.numel() for p in model.parameters() if not p.requires_grad)
     logger.info("trainable parameters: %s", f"{trainable_params:,}")
@@ -506,7 +579,7 @@ def main():
     logger.info("dfg_weight_residual_fp32=%s", model.dfg_weight_residual_fp32)
 
     # set optimizer
-    optimizer = torch.optim.Adam([
+    optimizer_groups = [
         {
             "params": model.text_adapter.parameters(),
             "lr": args.text_lr,
@@ -515,7 +588,13 @@ def main():
             "params": model.image_adapter.parameters(),
             "lr": args.image_lr,
         },
-    ])
+    ]
+    if args.use_prompt_weighting:
+        optimizer_groups.append({
+            "params": model.prompt_weighting.parameters(),
+            "lr": args.prompt_weight_lr,
+        })
+    optimizer = torch.optim.Adam(optimizer_groups)
     lr_scheduler = StepLR(
         optimizer,
         step_size=1,
@@ -551,6 +630,8 @@ def main():
         dfg_beta_target=args.dfg_beta_target,
         dfg_beta=args.dfg_beta,
         non_finite_loss_abort_threshold=args.non_finite_loss_abort_threshold,
+        prompt_weight_lambda_kl=args.prompt_weight_lambda_kl,
+        prompt_weight_freeze_epochs=args.prompt_weight_freeze_epochs,
     )
 
 

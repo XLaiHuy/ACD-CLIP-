@@ -222,6 +222,8 @@ def main():
         help="beta schedule for weight_residual SS2D DFG",
     )
     parser.add_argument("--dfg_beta_target", type=float, default=0.10, help="target beta for beta schedules")
+    parser.add_argument("--use_prompt_weighting", action="store_true", help="enable Phase2A shared prompt weighting")
+    parser.add_argument("--prompt_weight_temperature", type=float, default=2.0)
 
     parser.add_argument("--dataset", type=str, default="MPDD")
     parser.add_argument("--batch_size", type=int, default=84)
@@ -300,6 +302,8 @@ def main():
         dfg_beta_schedule=args.dfg_beta_schedule,
         dfg_beta_target=args.dfg_beta_target,
         dfg_beta_current=args.dfg_beta,
+        use_prompt_weighting=args.use_prompt_weighting,
+        prompt_weight_temperature=args.prompt_weight_temperature,
     ).to(device)
     model.eval()
     ckp_files = sorted(glob(args.save_path + "/adapter_*.pth"), key=get_epoch_from_checkpoint)
@@ -365,6 +369,41 @@ def main():
             model.set_dfg_beta(float(ckpt_beta_current))
         model.image_adapter.load_state_dict(checkpoint["image_adapter"])
         model.text_adapter.load_state_dict(checkpoint["text_adapter"])
+        ckpt_use_prompt_weighting = bool(checkpoint.get("use_prompt_weighting", False))
+        if ckpt_use_prompt_weighting:
+            model.use_prompt_weighting = True
+            ckpt_normal_count = int(checkpoint.get("prompt_count_normal", model.prompt_weighting.normal_count))
+            ckpt_abnormal_count = int(checkpoint.get("prompt_count_abnormal", model.prompt_weighting.abnormal_count))
+            if ckpt_normal_count != model.prompt_weighting.normal_count:
+                raise ValueError(
+                    f"Checkpoint normal prompt count is {ckpt_normal_count}, "
+                    f"but model expects {model.prompt_weighting.normal_count}."
+                )
+            if ckpt_abnormal_count != model.prompt_weighting.abnormal_count:
+                raise ValueError(
+                    f"Checkpoint abnormal prompt count is {ckpt_abnormal_count}, "
+                    f"but model expects {model.prompt_weighting.abnormal_count}."
+                )
+            if "prompt_weighting" not in checkpoint:
+                logger.warning("checkpoint declares prompt weighting but has no prompt_weighting state; using uniform")
+                model.prompt_weighting.raw_w_normal.data.zero_()
+                model.prompt_weighting.raw_w_abnormal.data.zero_()
+            else:
+                model.prompt_weighting.load_state_dict(checkpoint["prompt_weighting"])
+            model.prompt_weight_temperature = float(
+                checkpoint.get("prompt_weight_temperature", model.prompt_weight_temperature)
+            )
+            model.prompt_weighting.temperature = model.prompt_weight_temperature
+        elif args.use_prompt_weighting:
+            model.use_prompt_weighting = True
+            model.prompt_weighting.raw_w_normal.data.zero_()
+            model.prompt_weighting.raw_w_abnormal.data.zero_()
+            logger.warning(
+                "using prompt weighting for checkpoint without prompt weights; "
+                "raw weights stay zero/uniform"
+            )
+        else:
+            model.use_prompt_weighting = False
         test_epoch = checkpoint["epoch"]
         logger.info("-----------------------------------------------")
         logger.info("load model from epoch %d", test_epoch)

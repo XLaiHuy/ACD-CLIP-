@@ -123,6 +123,27 @@ prompt_normal = prompt["prompt_normal"]
 prompt_abnormal = prompt["prompt_abnormal"]
 prompt_state = [prompt_normal, prompt_abnormal]
 prompt_templates = prompt["prompt_templates"]
+EXPECTED_PROMPT_COUNTS = [6, 10]
+
+
+def get_prompt_sentences(real_name, state_idx):
+    prompted_state = [state.format(real_name) for state in prompt_state[state_idx]]
+    prompted_sentence = []
+    for s in prompted_state:
+        for template in prompt_templates:
+            prompted_sentence.append(template.format(s))
+    expected_count = EXPECTED_PROMPT_COUNTS[state_idx]
+    if len(prompted_sentence) != expected_count:
+        raise ValueError(
+            f"Prompt count mismatch for state {state_idx}: "
+            f"got {len(prompted_sentence)}, expected {expected_count}. "
+            "Update prompt weighting metadata if prompts/templates changed."
+        )
+    return prompted_sentence
+
+
+def get_prompt_weight_display_strings():
+    return [get_prompt_sentences("{}", state_idx) for state_idx in range(len(prompt_state))]
 
 
 def get_multiple_adapted_single_class_text_embedding(
@@ -138,16 +159,15 @@ def get_multiple_adapted_single_class_text_embedding(
         real_name = REAL_NAMES[dataset_name][class_name]
     multi_layer_features = []
     for i in range(len(prompt_state)):
-        prompted_state = [state.format(real_name) for state in prompt_state[i]]
-        prompted_sentence = []
-        for s in prompted_state:
-            for template in prompt_templates:
-                prompted_sentence.append(template.format(s))
+        prompted_sentence = get_prompt_sentences(real_name, i)
         prompted_sentence = tokenize(prompted_sentence).to(device)
         multi_features = model.encode_text(prompted_sentence)
         for layer_feature in multi_features:
             layer_feature = layer_feature / layer_feature.norm(dim=-1, keepdim=True)
-            layer_feature = layer_feature.mean(dim=0)
+            if getattr(model, "use_prompt_weighting", False):
+                layer_feature = model.prompt_weighting.aggregate(layer_feature, i)
+            else:
+                layer_feature = layer_feature.mean(dim=0)
             layer_feature = layer_feature / layer_feature.norm()
             multi_layer_features.append(layer_feature)
 

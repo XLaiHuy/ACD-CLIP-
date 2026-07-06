@@ -14,6 +14,8 @@ DFG_SS2D_FUSION="${DFG_SS2D_FUSION:-feature_residual}"
 DFG_BETA="${DFG_BETA:-0.10}"
 DFG_BETA_SCHEDULE="${DFG_BETA_SCHEDULE:-fixed}"
 DFG_BETA_TARGET="${DFG_BETA_TARGET:-0.10}"
+USE_PROMPT_WEIGHTING="${USE_PROMPT_WEIGHTING:-0}"
+PROMPT_WEIGHT_TEMPERATURE="${PROMPT_WEIGHT_TEMPERATURE:-2.0}"
 METRIC_THRESHOLDS="${METRIC_THRESHOLDS:-1000}"
 PIXEL_STRIDE="${PIXEL_STRIDE:-1}"
 MAX_SAMPLES="${MAX_SAMPLES:-none}"
@@ -61,6 +63,12 @@ for DATASET in "${DATASET_LIST[@]}"; do
       --dfg_beta "${DFG_BETA}"
       --dfg_beta_schedule "${DFG_BETA_SCHEDULE}"
       --dfg_beta_target "${DFG_BETA_TARGET}"
+    )
+  fi
+  if [ "${USE_PROMPT_WEIGHTING}" != "0" ]; then
+    CMD+=(
+      --use_prompt_weighting
+      --prompt_weight_temperature "${PROMPT_WEIGHT_TEMPERATURE}"
     )
   fi
   if [ "${MAX_SAMPLES}" != "none" ]; then

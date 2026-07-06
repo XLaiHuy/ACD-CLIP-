@@ -6,6 +6,7 @@ from torch import nn
 from torch.utils.checkpoint import checkpoint
 
 from .adapter_modules import TextLoraAdapter, MLPAdapter, ConvLoraAdapter, DFGSS2DResidualBranch
+from .prompt_weight import PromptWeighting
 
 
 class AddWeight(nn.Module):
@@ -49,6 +50,8 @@ class ACDCLIP(nn.Module):
             dfg_beta_target: float | None = None,
             dfg_beta_current: float | None = None,
             dfg_weight_residual_fp32: bool = True,
+            use_prompt_weighting: bool = False,
+            prompt_weight_temperature: float = 2.0,
             **kwargs,
     ):
         super().__init__()
@@ -92,6 +95,8 @@ class ACDCLIP(nn.Module):
         self.dfg_beta_schedule = dfg_beta_schedule
         self.dfg_beta_target = dfg_beta_target
         self.dfg_weight_residual_fp32 = dfg_weight_residual_fp32
+        self.use_prompt_weighting = use_prompt_weighting
+        self.prompt_weight_temperature = prompt_weight_temperature
         self._last_dfg_stats = {}
 
         image_adapt_weights = nn.ModuleList(
@@ -167,6 +172,11 @@ class ACDCLIP(nn.Module):
                 "layer_norms": text_layer_norms,
                 "lora_adapters": text_lora_adapters,
             }
+        )
+        self.prompt_weighting = PromptWeighting(
+            normal_count=6,
+            abnormal_count=10,
+            temperature=prompt_weight_temperature,
         )
 
     def _init_dfg_attention(self):

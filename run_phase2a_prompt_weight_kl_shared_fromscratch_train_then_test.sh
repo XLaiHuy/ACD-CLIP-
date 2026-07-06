@@ -1,0 +1,1 @@
+scripts/phase2a/run_phase2a_prompt_weight_kl_shared_fromscratch_train_then_test.sh
