@@ -1,0 +1,55 @@
+2026-07-06 14:13:51 test.py 276: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'use_prompt_weighting': True, 'prompt_weight_temperature': 2.0, 'dataset': 'Brain', 'batch_size': 8, 'cuda_device': 0, 'save_path': 'runs/phase2a/phase2a_prompt_weight_kl_shared_fromscratch', 'num_workers': 6, 'epochs': [8, 9, 10, 11, 12, 13, 14, 15], 'metric_thresholds': None, 'pixel_stride': 4, 'max_samples': None, 'max_samples_per_label': None}
+2026-07-06 14:13:51 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-07-06 14:13:54 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-07-06 14:13:55 test.py 408: -----------------------------------------------
+2026-07-06 14:13:55 test.py 409: load model from epoch 8
+2026-07-06 14:13:55 test.py 410: -----------------------------------------------
+2026-07-06 14:22:45 test.py 478: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      93.02    37.06     77.59    93.42 
+ Average      93.02    37.06     77.59    93.42 
+2026-07-06 14:22:45 test.py 408: -----------------------------------------------
+2026-07-06 14:22:45 test.py 409: load model from epoch 9
+2026-07-06 14:22:45 test.py 410: -----------------------------------------------
+2026-07-06 14:31:30 test.py 478: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      94.64    39.14     79.07    93.83 
+ Average      94.64    39.14     79.07    93.83 
+2026-07-06 14:31:31 test.py 408: -----------------------------------------------
+2026-07-06 14:31:31 test.py 409: load model from epoch 10
+2026-07-06 14:31:31 test.py 410: -----------------------------------------------
+2026-07-06 14:40:19 test.py 478: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      94.42    38.07     78.81    94.1  
+ Average      94.42    38.07     78.81    94.1  
+2026-07-06 14:40:19 test.py 408: -----------------------------------------------
+2026-07-06 14:40:19 test.py 409: load model from epoch 11
+2026-07-06 14:40:19 test.py 410: -----------------------------------------------
+2026-07-06 14:49:00 test.py 478: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      94.43    37.79     80.22    94.67 
+ Average      94.43    37.79     80.22    94.67 
+2026-07-06 14:49:00 test.py 408: -----------------------------------------------
+2026-07-06 14:49:00 test.py 409: load model from epoch 12
+2026-07-06 14:49:00 test.py 410: -----------------------------------------------
+2026-07-06 14:57:50 test.py 478: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      93.8     34.51     79.06    94.44 
+ Average      93.8     34.51     79.06    94.44 
+2026-07-06 14:57:50 test.py 408: -----------------------------------------------
+2026-07-06 14:57:50 test.py 409: load model from epoch 13
+2026-07-06 14:57:50 test.py 410: -----------------------------------------------
+2026-07-06 15:06:35 test.py 478: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      94.21    33.35     80.91    94.81 
+ Average      94.21    33.35     80.91    94.81 
+2026-07-06 15:06:35 test.py 408: -----------------------------------------------
+2026-07-06 15:06:35 test.py 409: load model from epoch 14
+2026-07-06 15:06:35 test.py 410: -----------------------------------------------
+2026-07-06 15:15:24 test.py 478: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      93.5     28.9      78.43    94.0  
+ Average      93.5     28.9      78.43    94.0  
+2026-07-06 15:15:24 test.py 408: -----------------------------------------------
+2026-07-06 15:15:24 test.py 409: load model from epoch 15
+2026-07-06 15:15:24 test.py 410: -----------------------------------------------
