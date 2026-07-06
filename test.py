@@ -196,6 +196,8 @@ def main():
     parser.add_argument("--conv_kernel_size_list", type=int, nargs="+", default=[3, 5],
                         help="kernel size for convolutional LoRA adapters")
     parser.add_argument("--use_soft_prompt", action="store_true", help="force Phase2B soft prompt at test time")
+    parser.add_argument("--use_hybrid_soft_prompt", action="store_true", help="force Phase2B hard-soft hybrid prompt")
+    parser.add_argument("--hybrid_alpha", type=float, default=None, help="force hybrid alpha when checkpoint lacks it")
     parser.add_argument("--soft_prompt_ctx_len", type=int, default=4)
     parser.add_argument("--soft_prompt_init", type=str, choices=["phrase", "random"], default="phrase")
     parser.add_argument("--soft_prompt_init_phrase", type=str, default="a photo of a")
@@ -265,6 +267,8 @@ def main():
     )
 
     args = parser.parse_args()
+    if args.use_soft_prompt and args.use_hybrid_soft_prompt:
+        raise ValueError("--use_soft_prompt and --use_hybrid_soft_prompt are mutually exclusive")
     # ========================================================
     os.makedirs(args.save_path, exist_ok=True)
     logging.basicConfig(
@@ -310,6 +314,9 @@ def main():
         soft_prompt_init_phrase=args.soft_prompt_init_phrase,
     ).to(device)
     model.eval()
+    model.prompt_mode = "hybrid" if args.use_hybrid_soft_prompt else ("soft" if args.use_soft_prompt else "hard")
+    model.use_hybrid_soft_prompt = bool(args.use_hybrid_soft_prompt)
+    model.hybrid_alpha_current = 0.0 if args.hybrid_alpha is None else float(args.hybrid_alpha)
     ckp_files = sorted(glob(args.save_path + "/adapter_*.pth"), key=get_epoch_from_checkpoint)
     if args.epochs is not None:
         selected_epochs = set(args.epochs)
@@ -373,8 +380,32 @@ def main():
             model.set_dfg_beta(float(ckpt_beta_current))
         model.image_adapter.load_state_dict(checkpoint["image_adapter"])
         model.text_adapter.load_state_dict(checkpoint["text_adapter"])
+        ckpt_prompt_mode = checkpoint.get("prompt_mode", None)
+        ckpt_use_hybrid_soft_prompt = bool(checkpoint.get("use_hybrid_soft_prompt", False))
         ckpt_use_soft_prompt = bool(checkpoint.get("use_soft_prompt", False))
-        if ckpt_use_soft_prompt:
+        if ckpt_prompt_mode == "hybrid" or ckpt_use_hybrid_soft_prompt:
+            model.prompt_mode = "hybrid"
+            model.use_hybrid_soft_prompt = True
+            model.use_soft_prompt = False
+            ckpt_ctx_len = int(checkpoint.get("soft_prompt_ctx_len", model.soft_prompt_ctx_len))
+            if ckpt_ctx_len != model.soft_prompt_ctx_len:
+                raise ValueError(
+                    f"Checkpoint soft_prompt_ctx_len is {ckpt_ctx_len}, "
+                    f"but model expects {model.soft_prompt_ctx_len}."
+                )
+            if "soft_prompt" not in checkpoint:
+                logger.warning("hybrid checkpoint has no soft_prompt state; using initialized ctx")
+            else:
+                model.soft_prompt.load_state_dict(checkpoint["soft_prompt"])
+            model.hybrid_alpha_current = float(
+                checkpoint.get(
+                    "hybrid_alpha_current",
+                    0.0 if args.hybrid_alpha is None else args.hybrid_alpha,
+                )
+            )
+        elif ckpt_use_soft_prompt:
+            model.prompt_mode = "soft"
+            model.use_hybrid_soft_prompt = False
             model.use_soft_prompt = True
             ckpt_ctx_len = int(checkpoint.get("soft_prompt_ctx_len", model.soft_prompt_ctx_len))
             if ckpt_ctx_len != model.soft_prompt_ctx_len:
@@ -387,15 +418,37 @@ def main():
             else:
                 model.soft_prompt.load_state_dict(checkpoint["soft_prompt"])
         elif args.use_soft_prompt:
+            model.prompt_mode = "soft"
+            model.use_hybrid_soft_prompt = False
             model.use_soft_prompt = True
             logger.warning(
                 "using soft prompt for checkpoint without soft_prompt state; using initialized ctx"
             )
+        elif args.use_hybrid_soft_prompt:
+            model.prompt_mode = "hybrid"
+            model.use_hybrid_soft_prompt = True
+            model.use_soft_prompt = False
+            model.hybrid_alpha_current = 0.0 if args.hybrid_alpha is None else float(args.hybrid_alpha)
+            logger.warning(
+                "using hybrid soft prompt for checkpoint without hybrid metadata; using initialized ctx"
+            )
         else:
+            model.prompt_mode = "hard"
+            model.use_hybrid_soft_prompt = False
             model.use_soft_prompt = False
         test_epoch = checkpoint["epoch"]
         logger.info("-----------------------------------------------")
         logger.info("load model from epoch %d", test_epoch)
+        effective_prompt_mode = getattr(model, "prompt_mode", "hard")
+        logger.info(
+            "effective_prompt_mode=%s effective_alpha=%s hard_branch_lora_used=%s "
+            "soft_branch_lora_used=False use_soft_prompt=%s use_hybrid_soft_prompt=%s",
+            effective_prompt_mode,
+            getattr(model, "hybrid_alpha_current", 0.0),
+            effective_prompt_mode in ["hard", "hybrid"],
+            getattr(model, "use_soft_prompt", False),
+            getattr(model, "use_hybrid_soft_prompt", False),
+        )
         logger.info("-----------------------------------------------")
         image_datasets = get_text_and_image_dataset(
             args.dataset,

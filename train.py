@@ -13,6 +13,7 @@ from tqdm import tqdm
 from dataset import get_text_and_image_dataset
 from utils import (
     calculate_seg_loss,
+    get_hybrid_soft_prompt_single_class_text_embedding,
     get_multiple_adapted_single_class_text_embedding,
     get_soft_prompt_single_class_text_embedding,
 )
@@ -148,6 +149,36 @@ def grad_norm_or_none(param: torch.nn.Parameter):
     return float(param.grad.detach().float().norm().item())
 
 
+def get_hybrid_alpha_for_epoch(epoch_one_based: int, hybrid_alpha_max: float, soft_prompt_freeze_epochs: int):
+    if epoch_one_based <= soft_prompt_freeze_epochs:
+        return 0.0
+    warm_epoch = epoch_one_based - soft_prompt_freeze_epochs
+    if warm_epoch == 1:
+        return 0.25 * hybrid_alpha_max
+    if warm_epoch == 2:
+        return 0.50 * hybrid_alpha_max
+    return hybrid_alpha_max
+
+
+def get_optimizer_lr(optimizer: torch.optim.Optimizer, group_name: str):
+    for group in optimizer.param_groups:
+        if group.get("name") == group_name:
+            return group["lr"]
+    return None
+
+
+def apply_soft_prompt_lr_policy(optimizer: torch.optim.Optimizer, frozen: bool):
+    for group in optimizer.param_groups:
+        if group.get("name") == "soft_prompt" and "constant_lr" in group:
+            group["lr"] = 0.0 if frozen else group["constant_lr"]
+
+
+def clip_module_grad(module: torch.nn.Module, grad_clip_norm: float):
+    if grad_clip_norm is None or grad_clip_norm <= 0:
+        return None
+    return nn.utils.clip_grad_norm_(module.parameters(), grad_clip_norm)
+
+
 def train(
         model: ACDCLIP,
         dataset_name: str,
@@ -164,10 +195,28 @@ def train(
         dfg_beta: float = 0.10,
         non_finite_loss_abort_threshold: int = 20,
         lambda_kg: float = 1e-3,
+        hybrid_alpha_max: float = 0.2,
+        soft_prompt_freeze_epochs: int = 3,
+        grad_clip_norm: float = 1.0,
 ):
     scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
     for epoch in range(0, total_epoch):
         epoch_one_based = epoch + 1
+        use_hybrid_soft_prompt = bool(getattr(model, "use_hybrid_soft_prompt", False))
+        use_soft_prompt = bool(getattr(model, "use_soft_prompt", False))
+        soft_prompt_frozen = False
+        hybrid_alpha_current = 0.0
+        if use_hybrid_soft_prompt:
+            hybrid_alpha_current = get_hybrid_alpha_for_epoch(
+                epoch_one_based,
+                hybrid_alpha_max=hybrid_alpha_max,
+                soft_prompt_freeze_epochs=soft_prompt_freeze_epochs,
+            )
+            soft_prompt_frozen = epoch_one_based <= soft_prompt_freeze_epochs
+            model.hybrid_alpha_current = hybrid_alpha_current
+            model.soft_prompt.requires_grad_(not soft_prompt_frozen)
+            model.text_adapter.requires_grad_(True)
+            apply_soft_prompt_lr_policy(optimizer, soft_prompt_frozen)
         beta_current = get_dfg_beta_for_epoch(
             epoch_one_based,
             dfg_beta_schedule,
@@ -185,6 +234,21 @@ def train(
             dfg_beta_target,
             model.dfg_beta,
         )
+        if use_hybrid_soft_prompt:
+            logger.info(
+                "hybrid_state epoch=%d effective_prompt_mode=%s effective_alpha=%s "
+                "hard_branch_lora_used=True soft_branch_lora_used=False soft_prompt_frozen=%s "
+                "soft_prompt_freeze_epochs=%d grad_clip_norm=%s image_lr=%s text_lr=%s soft_lr=%s",
+                epoch_one_based,
+                getattr(model, "prompt_mode", "hybrid"),
+                hybrid_alpha_current,
+                soft_prompt_frozen,
+                soft_prompt_freeze_epochs,
+                grad_clip_norm,
+                get_optimizer_lr(optimizer, "image_adapter"),
+                get_optimizer_lr(optimizer, "text_adapter"),
+                get_optimizer_lr(optimizer, "soft_prompt"),
+            )
         loss_list = []
         loss_main_list = []
         seg_loss_list = []
@@ -205,7 +269,13 @@ def train(
             kg_losses = []
             batch_soft_stats = []
             for class_name in list(set(class_names)):
-                if getattr(model, "use_soft_prompt", False):
+                if use_hybrid_soft_prompt:
+                    text_embedding_levels, kg_loss_class, soft_stats = get_hybrid_soft_prompt_single_class_text_embedding(
+                        model, dataset_name, class_name, device, return_kg=True
+                    )
+                    kg_losses.append(kg_loss_class)
+                    batch_soft_stats.append(soft_stats)
+                elif use_soft_prompt:
                     text_embedding_levels, kg_loss_class, soft_stats = get_soft_prompt_single_class_text_embedding(
                         model, dataset_name, class_name, device, return_kg=True
                     )
@@ -272,7 +342,11 @@ def train(
                         "dfg_beta_target": dfg_beta_target,
                         "dfg_beta_current": model.dfg_beta,
                         "dfg_weight_residual_fp32": model.dfg_weight_residual_fp32,
+                        "prompt_mode": getattr(model, "prompt_mode", "hard"),
                         "use_soft_prompt": getattr(model, "use_soft_prompt", False),
+                        "use_hybrid_soft_prompt": getattr(model, "use_hybrid_soft_prompt", False),
+                        "hybrid_alpha_current": getattr(model, "hybrid_alpha_current", 0.0),
+                        "soft_prompt_frozen": soft_prompt_frozen,
                         "lambda_kg": lambda_kg,
                         "class_names": list(class_names),
                         "labels": label.detach().cpu().tolist(),
@@ -316,17 +390,21 @@ def train(
                 scaler.update()
                 optimizer.zero_grad(set_to_none=True)
                 continue
-            if getattr(model, "use_soft_prompt", False):
+            if use_soft_prompt or use_hybrid_soft_prompt:
                 soft_prompt_grad_stats_list.append({
                     "ctx_grad_norm_normal": grad_norm_or_none(model.soft_prompt.ctx_normal),
                     "ctx_grad_norm_abnormal": grad_norm_or_none(model.soft_prompt.ctx_abnormal),
                 })
             # clip gradient
-            nn.utils.clip_grad_norm_(model.image_adapter.parameters(), 1.0)
-            if getattr(model, "use_soft_prompt", False):
-                nn.utils.clip_grad_norm_(model.soft_prompt.parameters(), 1.0)
+            clip_module_grad(model.image_adapter, grad_clip_norm)
+            if use_hybrid_soft_prompt:
+                clip_module_grad(model.text_adapter, grad_clip_norm)
+                if not soft_prompt_frozen:
+                    clip_module_grad(model.soft_prompt, grad_clip_norm)
+            elif use_soft_prompt:
+                clip_module_grad(model.soft_prompt, grad_clip_norm)
             else:
-                nn.utils.clip_grad_norm_(model.text_adapter.parameters(), 1.0)
+                clip_module_grad(model.text_adapter, grad_clip_norm)
             # update parameters
             scaler.step(optimizer)
             scaler.update()
@@ -357,7 +435,11 @@ def train(
                         "dfg_beta_target": dfg_beta_target,
                         "dfg_beta_current": model.dfg_beta,
                         "dfg_weight_residual_fp32": model.dfg_weight_residual_fp32,
+                        "prompt_mode": getattr(model, "prompt_mode", "hard"),
                         "use_soft_prompt": getattr(model, "use_soft_prompt", False),
+                        "use_hybrid_soft_prompt": getattr(model, "use_hybrid_soft_prompt", False),
+                        "hybrid_alpha_current": getattr(model, "hybrid_alpha_current", 0.0),
+                        "soft_prompt_frozen": soft_prompt_frozen,
                         "lambda_kg": lambda_kg,
                     },
                 )
@@ -386,13 +468,20 @@ def train(
                 "mean_seg_loss": f"{np.mean(seg_loss_list):.4f}",
                 "mean_loss": f"{np.mean(loss_list):.4f}",
             }
-            if getattr(model, "use_soft_prompt", False):
+            if use_hybrid_soft_prompt:
                 postfix["kg_loss"] = f"{kg_loss.item():.5f}"
-                postfix["image_lr"] = optimizer.param_groups[0]["lr"]
-                postfix["soft_lr"] = optimizer.param_groups[1]["lr"]
+                postfix["alpha"] = f"{hybrid_alpha_current:.3f}"
+                postfix["frozen"] = soft_prompt_frozen
+                postfix["text_lr"] = get_optimizer_lr(optimizer, "text_adapter")
+                postfix["image_lr"] = get_optimizer_lr(optimizer, "image_adapter")
+                postfix["soft_lr"] = get_optimizer_lr(optimizer, "soft_prompt")
+            elif use_soft_prompt:
+                postfix["kg_loss"] = f"{kg_loss.item():.5f}"
+                postfix["image_lr"] = get_optimizer_lr(optimizer, "image_adapter")
+                postfix["soft_lr"] = get_optimizer_lr(optimizer, "soft_prompt")
             else:
-                postfix["text_lr"] = optimizer.param_groups[0]["lr"]
-                postfix["image_lr"] = optimizer.param_groups[1]["lr"]
+                postfix["text_lr"] = get_optimizer_lr(optimizer, "text_adapter")
+                postfix["image_lr"] = get_optimizer_lr(optimizer, "image_adapter")
             tqdm_train_loader.set_postfix(postfix)
         logger.info(
             "mean_loss=%s, mean_loss_main=%s, mean_cls_loss=%s, mean_seg_loss=%s",
@@ -401,16 +490,27 @@ def train(
             np.mean(cls_loss_list),
             np.mean(seg_loss_list),
         )
-        if getattr(model, "use_soft_prompt", False):
+        if use_soft_prompt or use_hybrid_soft_prompt:
             logger.info(
-                "soft_prompt_epoch epoch=%d mean_kg_loss=%s lambda_kg=%s stats=%s ctx_stats=%s grad_stats=%s "
-                "text_encoder_frozen=True text_lora_used=False",
+                "soft_prompt_epoch epoch=%d prompt_mode=%s mean_kg_loss=%s lambda_kg=%s "
+                "hybrid_alpha=%s effective_prompt_mode=%s effective_alpha=%s "
+                "hard_branch_lora_used=%s soft_branch_lora_used=False "
+                "soft_prompt_frozen=%s grad_clip_norm=%s stats=%s ctx_stats=%s grad_stats=%s "
+                "text_encoder_frozen=True text_lora_used=%s",
                 epoch + 1,
+                getattr(model, "prompt_mode", "soft"),
                 float(np.mean(kg_loss_list)) if kg_loss_list else None,
                 lambda_kg,
+                getattr(model, "hybrid_alpha_current", 0.0),
+                getattr(model, "prompt_mode", "soft"),
+                getattr(model, "hybrid_alpha_current", 0.0),
+                use_hybrid_soft_prompt,
+                soft_prompt_frozen,
+                grad_clip_norm,
                 mean_stats(soft_prompt_stats_list),
                 model.soft_prompt.stats(),
                 mean_stats([s for s in soft_prompt_grad_stats_list if None not in s.values()]),
+                use_hybrid_soft_prompt,
             )
         logger.info(
             "skip_counts epoch=%d non_finite_loss=%d non_finite_grad=%d",
@@ -429,6 +529,8 @@ def train(
                     value = value.item()
                 logger.info("dfg_diag epoch=%d %s=%s", epoch + 1, key, value)
         scheduler.step()
+        if use_hybrid_soft_prompt:
+            apply_soft_prompt_lr_policy(optimizer, soft_prompt_frozen)
         ckp_path = os.path.join(save_path, f"adapter_{epoch + 1}.pth")
         model_dict = {
             "epoch": epoch + 1,
@@ -444,15 +546,21 @@ def train(
             "dfg_beta_target": dfg_beta_target,
             "dfg_beta_current": model.dfg_beta,
             "dfg_weight_residual_fp32": model.dfg_weight_residual_fp32,
+            "prompt_mode": getattr(model, "prompt_mode", "hard"),
             "use_soft_prompt": bool(getattr(model, "use_soft_prompt", False)),
+            "use_hybrid_soft_prompt": bool(getattr(model, "use_hybrid_soft_prompt", False)),
             "soft_prompt_ctx_len": getattr(model, "soft_prompt_ctx_len", 4),
             "soft_prompt_init": getattr(model, "soft_prompt_init", "phrase"),
             "soft_prompt_init_phrase": getattr(model, "soft_prompt_init_phrase", "a photo of a"),
+            "hybrid_alpha_current": getattr(model, "hybrid_alpha_current", 0.0),
+            "hybrid_alpha_max": hybrid_alpha_max,
+            "soft_prompt_freeze_epochs": soft_prompt_freeze_epochs,
+            "grad_clip_norm": grad_clip_norm,
             "lambda_kg": lambda_kg,
             "text_adapter": model.text_adapter.state_dict(),
             "image_adapter": model.image_adapter.state_dict()
         }
-        if getattr(model, "use_soft_prompt", False):
+        if use_soft_prompt or use_hybrid_soft_prompt:
             model_dict["soft_prompt"] = model.soft_prompt.state_dict()
         torch.save(model_dict, ckp_path)
     return model
@@ -493,6 +601,9 @@ def main():
     parser.add_argument("--image_lr", type=float, default=0.001, help="learning rate for image adapter")
     parser.add_argument("--text_lr", type=float, default=0.0005, help="learning rate for text adapter")
     parser.add_argument("--use_soft_prompt", action="store_true", help="enable Phase2B KgCoOp-style soft prompt")
+    parser.add_argument("--use_hybrid_soft_prompt", action="store_true", help="enable Phase2B hard-soft hybrid prompt")
+    parser.add_argument("--hybrid_alpha_max", type=float, default=0.2)
+    parser.add_argument("--soft_prompt_freeze_epochs", type=int, default=3)
     parser.add_argument("--soft_prompt_ctx_len", type=int, default=4)
     parser.add_argument("--soft_prompt_lr", type=float, default=1e-4)
     parser.add_argument("--soft_prompt_init", type=str, choices=["phrase", "random"], default="phrase")
@@ -532,6 +643,7 @@ def main():
         default=20,
         help="Abort an epoch when non-finite loss skips exceed this value. Use -1 to disable.",
     )
+    parser.add_argument("--grad_clip_norm", type=float, default=1.0, help="clip trainable adapter gradients; <=0 disables")
     parser.add_argument("--amp", action="store_true", help="enable Automatic Mixed Precision training")
     parser.add_argument(
         "--grad_checkpointing",
@@ -541,6 +653,8 @@ def main():
     parser.add_argument("--num_workers", type=int, default=4 if os.name != "nt" else 0)
 
     args = parser.parse_args()
+    if args.use_soft_prompt and args.use_hybrid_soft_prompt:
+        raise ValueError("--use_soft_prompt and --use_hybrid_soft_prompt are mutually exclusive")
     # ========================================================
     # check save_path and setting logger
     os.makedirs(args.save_path, exist_ok=True)
@@ -591,10 +705,18 @@ def main():
         soft_prompt_init_phrase=args.soft_prompt_init_phrase,
     ).to(device)
     model.eval()
+    model.use_hybrid_soft_prompt = bool(args.use_hybrid_soft_prompt)
+    model.prompt_mode = "hybrid" if args.use_hybrid_soft_prompt else ("soft" if args.use_soft_prompt else "hard")
+    model.hybrid_alpha_current = 0.0
+    model.hybrid_alpha_max = args.hybrid_alpha_max
+    model.soft_prompt_freeze_epochs = args.soft_prompt_freeze_epochs
 
     model.requires_grad_(False)
     model.image_adapter.requires_grad_(True)
-    if args.use_soft_prompt:
+    if args.use_hybrid_soft_prompt:
+        model.text_adapter.requires_grad_(True)
+        model.soft_prompt.requires_grad_(False)
+    elif args.use_soft_prompt:
         model.soft_prompt.requires_grad_(True)
         model.text_adapter.requires_grad_(False)
     else:
@@ -606,13 +728,34 @@ def main():
     logger.info("dfg_weight_residual_fp32=%s", model.dfg_weight_residual_fp32)
 
     # set optimizer
-    if args.use_soft_prompt:
+    if args.use_hybrid_soft_prompt:
         optimizer = torch.optim.Adam([
             {
+                "name": "text_adapter",
+                "params": model.text_adapter.parameters(),
+                "lr": args.text_lr,
+            },
+            {
+                "name": "image_adapter",
                 "params": model.image_adapter.parameters(),
                 "lr": args.image_lr,
             },
             {
+                "name": "soft_prompt",
+                "params": model.soft_prompt.parameters(),
+                "lr": 0.0,
+                "constant_lr": args.soft_prompt_lr,
+            },
+        ])
+    elif args.use_soft_prompt:
+        optimizer = torch.optim.Adam([
+            {
+                "name": "image_adapter",
+                "params": model.image_adapter.parameters(),
+                "lr": args.image_lr,
+            },
+            {
+                "name": "soft_prompt",
                 "params": model.soft_prompt.parameters(),
                 "lr": args.soft_prompt_lr,
             },
@@ -620,10 +763,12 @@ def main():
     else:
         optimizer = torch.optim.Adam([
             {
+                "name": "text_adapter",
                 "params": model.text_adapter.parameters(),
                 "lr": args.text_lr,
             },
             {
+                "name": "image_adapter",
                 "params": model.image_adapter.parameters(),
                 "lr": args.image_lr,
             },
@@ -664,6 +809,9 @@ def main():
         dfg_beta=args.dfg_beta,
         non_finite_loss_abort_threshold=args.non_finite_loss_abort_threshold,
         lambda_kg=args.lambda_kg,
+        hybrid_alpha_max=args.hybrid_alpha_max,
+        soft_prompt_freeze_epochs=args.soft_prompt_freeze_epochs,
+        grad_clip_norm=args.grad_clip_norm,
     )
 
 

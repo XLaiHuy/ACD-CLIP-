@@ -175,25 +175,46 @@ def stack_state_features(multi_layer_features, device):
     return torch.stack(text_features_levels, dim=0)
 
 
+def flatten_group_state_features(text_features):
+    return text_features.permute(0, 2, 1).reshape(-1, text_features.shape[1])
+
+
+def get_hard_phase1_single_class_text_embedding(
+        model,
+        dataset_name,
+        class_name,
+        device,
+        adapt_text=True,
+):
+    real_name = get_real_name(dataset_name, class_name)
+    multi_layer_features = []
+    for i in range(len(prompt_state)):
+        prompted_sentence = get_prompt_sentences(real_name, i)
+        prompted_sentence = tokenize(prompted_sentence).to(device)
+        multi_features = model.encode_text(prompted_sentence, adapt_text=adapt_text)
+        multi_layer_features.extend(aggregate_prompt_features(multi_features))
+    return stack_state_features(multi_layer_features, device)
+
+
 def get_multiple_adapted_single_class_text_embedding(
         model,
         dataset_name, class_name, device
 ):
+    if getattr(model, "use_hybrid_soft_prompt", False):
+        text_features, _, _ = get_hybrid_soft_prompt_single_class_text_embedding(
+            model, dataset_name, class_name, device, return_kg=False
+        )
+        return text_features
+
     if getattr(model, "use_soft_prompt", False):
         text_features, _, _ = get_soft_prompt_single_class_text_embedding(
             model, dataset_name, class_name, device, return_kg=False
         )
         return text_features
 
-    real_name = get_real_name(dataset_name, class_name)
-    multi_layer_features = []
-    for i in range(len(prompt_state)):
-        prompted_sentence = get_prompt_sentences(real_name, i)
-        prompted_sentence = tokenize(prompted_sentence).to(device)
-        multi_features = model.encode_text(prompted_sentence)
-        multi_layer_features.extend(aggregate_prompt_features(multi_features))
-
-    return stack_state_features(multi_layer_features, device)
+    return get_hard_phase1_single_class_text_embedding(
+        model, dataset_name, class_name, device, adapt_text=True
+    )
 
 
 def get_hard_anchor_single_class_text_embedding(model, dataset_name, class_name, device):
@@ -230,8 +251,8 @@ def get_soft_prompt_single_class_text_embedding(
 
     hard_anchor = get_hard_anchor_single_class_text_embedding(model, dataset_name, class_name, device)
     cosine = F.cosine_similarity(
-        soft_text.permute(0, 2, 1).reshape(-1, soft_text.shape[1]),
-        hard_anchor.permute(0, 2, 1).reshape(-1, hard_anchor.shape[1]),
+        flatten_group_state_features(soft_text),
+        flatten_group_state_features(hard_anchor),
         dim=-1,
     )
     cosine_by_group = cosine.detach().view(soft_text.shape[0], 2)
@@ -276,6 +297,92 @@ def get_soft_prompt_single_class_text_embedding(
         stats[f"{prefix}_soft_normal_abnormal_cos"] = float(soft_state_cos[group_idx].item())
         stats[f"{prefix}_hard_normal_abnormal_cos"] = float(hard_state_cos[group_idx].item())
     return soft_text, kg_loss, stats
+
+
+def get_hybrid_soft_prompt_single_class_text_embedding(
+        model,
+        dataset_name,
+        class_name,
+        device,
+        return_kg=True,
+):
+    hard_text = get_hard_phase1_single_class_text_embedding(
+        model, dataset_name, class_name, device, adapt_text=True
+    )
+    real_name = get_real_name(dataset_name, class_name)
+    multi_layer_features = []
+    for state_idx in range(len(prompt_state)):
+        soft_sentence = get_soft_prompt_sentence(real_name, state_idx, model.soft_prompt_ctx_len)
+        tokenized = tokenize([soft_sentence]).to(device)
+        ctx = model.soft_prompt.get_context(state_idx)
+        multi_features = model.encode_soft_prompt_text(tokenized, ctx, adapt_text=False)
+        multi_layer_features.extend(aggregate_prompt_features(multi_features))
+    soft_text = stack_state_features(multi_layer_features, device)
+
+    alpha = float(getattr(model, "hybrid_alpha_current", 0.0))
+    main_text = F.normalize((1.0 - alpha) * hard_text + alpha * soft_text, dim=1)
+    if not return_kg:
+        return main_text, None, None
+
+    hard_anchor = hard_text.detach()
+    soft_flat = flatten_group_state_features(soft_text)
+    hard_flat = flatten_group_state_features(hard_anchor)
+    main_flat = flatten_group_state_features(main_text.detach())
+    cosine = F.cosine_similarity(soft_flat, hard_flat, dim=-1)
+    kg_loss = (1.0 - cosine).mean()
+
+    cosine_by_group = cosine.detach().view(soft_text.shape[0], 2)
+    kg_by_group = 1.0 - cosine_by_group
+    main_hard_cosine = F.cosine_similarity(main_flat, hard_flat, dim=-1).view(soft_text.shape[0], 2)
+    main_soft_cosine = F.cosine_similarity(main_flat, soft_text.detach().permute(0, 2, 1).reshape(-1, soft_text.shape[1]), dim=-1).view(soft_text.shape[0], 2)
+    delta_soft_hard = (soft_text.detach() - hard_anchor).norm(dim=1)
+    delta_main_hard = (main_text.detach() - hard_anchor).norm(dim=1)
+    soft_state_cos = F.cosine_similarity(soft_text.detach()[..., 0], soft_text.detach()[..., 1], dim=1)
+    hard_state_cos = F.cosine_similarity(hard_anchor[..., 0], hard_anchor[..., 1], dim=1)
+    main_state_cos = F.cosine_similarity(main_text.detach()[..., 0], main_text.detach()[..., 1], dim=1)
+    stats = {
+        "hybrid_alpha": alpha,
+        "soft_hard_cos_mean": float(cosine_by_group.mean().item()),
+        "soft_hard_cos_normal": float(cosine_by_group[:, 0].mean().item()),
+        "soft_hard_cos_abnormal": float(cosine_by_group[:, 1].mean().item()),
+        "main_hard_cos_mean": float(main_hard_cosine.mean().item()),
+        "main_hard_cos_normal": float(main_hard_cosine[:, 0].mean().item()),
+        "main_hard_cos_abnormal": float(main_hard_cosine[:, 1].mean().item()),
+        "main_soft_cos_mean": float(main_soft_cosine.mean().item()),
+        "main_soft_cos_normal": float(main_soft_cosine[:, 0].mean().item()),
+        "main_soft_cos_abnormal": float(main_soft_cosine[:, 1].mean().item()),
+        "kg_loss_normal": float(kg_by_group[:, 0].mean().item()),
+        "kg_loss_abnormal": float(kg_by_group[:, 1].mean().item()),
+        "delta_soft_hard_normal": float(delta_soft_hard[:, 0].mean().item()),
+        "delta_soft_hard_abnormal": float(delta_soft_hard[:, 1].mean().item()),
+        "delta_main_hard_normal": float(delta_main_hard[:, 0].mean().item()),
+        "delta_main_hard_abnormal": float(delta_main_hard[:, 1].mean().item()),
+        "soft_normal_abnormal_cos": float(soft_state_cos.mean().item()),
+        "hard_normal_abnormal_cos": float(hard_state_cos.mean().item()),
+        "main_normal_abnormal_cos": float(main_state_cos.mean().item()),
+        "soft_proto_norm_min": float(soft_text.detach().norm(dim=1).min().item()),
+        "soft_proto_norm_max": float(soft_text.detach().norm(dim=1).max().item()),
+        "hard_proto_norm_min": float(hard_anchor.norm(dim=1).min().item()),
+        "hard_proto_norm_max": float(hard_anchor.norm(dim=1).max().item()),
+        "main_proto_norm_min": float(main_text.detach().norm(dim=1).min().item()),
+        "main_proto_norm_max": float(main_text.detach().norm(dim=1).max().item()),
+    }
+    for group_idx in range(soft_text.shape[0]):
+        prefix = f"g{group_idx + 1}"
+        stats[f"{prefix}_soft_hard_cos_normal"] = float(cosine_by_group[group_idx, 0].item())
+        stats[f"{prefix}_soft_hard_cos_abnormal"] = float(cosine_by_group[group_idx, 1].item())
+        stats[f"{prefix}_main_hard_cos_normal"] = float(main_hard_cosine[group_idx, 0].item())
+        stats[f"{prefix}_main_hard_cos_abnormal"] = float(main_hard_cosine[group_idx, 1].item())
+        stats[f"{prefix}_main_soft_cos_normal"] = float(main_soft_cosine[group_idx, 0].item())
+        stats[f"{prefix}_main_soft_cos_abnormal"] = float(main_soft_cosine[group_idx, 1].item())
+        stats[f"{prefix}_delta_soft_hard_normal"] = float(delta_soft_hard[group_idx, 0].item())
+        stats[f"{prefix}_delta_soft_hard_abnormal"] = float(delta_soft_hard[group_idx, 1].item())
+        stats[f"{prefix}_delta_main_hard_normal"] = float(delta_main_hard[group_idx, 0].item())
+        stats[f"{prefix}_delta_main_hard_abnormal"] = float(delta_main_hard[group_idx, 1].item())
+        stats[f"{prefix}_soft_normal_abnormal_cos"] = float(soft_state_cos[group_idx].item())
+        stats[f"{prefix}_hard_normal_abnormal_cos"] = float(hard_state_cos[group_idx].item())
+        stats[f"{prefix}_main_normal_abnormal_cos"] = float(main_state_cos[group_idx].item())
+    return main_text, kg_loss, stats
 
 
 def get_multiple_adapted_text_embedding(
