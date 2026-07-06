@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SAVE_PATH="${SAVE_PATH:-runs/phase2b/phase2b_hybrid_alpha02_lkg1e2_lr5e5_gate12_fromscratch}"
+SAVE_PATH="${SAVE_PATH:-runs/phase2b/phase2b_hybrid_alpha02_lkg1e2_lr5e5_train20_test7to20_fromscratch}"
 BATCH_SIZE="${BATCH_SIZE:-6}"
-EPOCH="${EPOCH:-12}"
+EPOCH="${EPOCH:-20}"
 NUM_WORKERS="${NUM_WORKERS:-6}"
 AMP="${AMP:-1}"
 SOFT_PROMPT_LR="${SOFT_PROMPT_LR:-0.00005}"
@@ -13,6 +13,7 @@ SOFT_PROMPT_FREEZE_EPOCHS="${SOFT_PROMPT_FREEZE_EPOCHS:-3}"
 GRAD_CLIP_NORM="${GRAD_CLIP_NORM:-1.0}"
 NON_FINITE_LOSS_ABORT_THRESHOLD="${NON_FINITE_LOSS_ABORT_THRESHOLD:-5}"
 BRAIN_GATE_AP="${BRAIN_GATE_AP:-44}"
+TEST_EPOCHS=(${TEST_EPOCHS:-7 8 9 10 11 12 13 14 15 16 17 18 19 20})
 
 TRAIN_CMD=(
   conda run --no-capture-output -n torchhuy python train.py
@@ -53,7 +54,7 @@ printf ' %q' "${TRAIN_CMD[@]}"
 echo
 "${TRAIN_CMD[@]}"
 
-echo "==== Brain gate test epochs 8-12 ===="
+echo "==== Brain gate test epochs ${TEST_EPOCHS[*]} ===="
 DATASETS=Brain \
 SAVE_PATH="${SAVE_PATH}" \
 BATCH_SIZE=8 \
@@ -70,7 +71,7 @@ DFG_BETA_SCHEDULE=warmup010 \
 DFG_BETA_TARGET=0.10 \
 METRIC_THRESHOLDS=none \
 PIXEL_STRIDE=4 \
-bash test_6medical_selected_epochs.sh 8 9 10 11 12
+bash test_6medical_selected_epochs.sh "${TEST_EPOCHS[@]}"
 
 BEST_BRAIN_AP="$(
   python parse_test_log.py --log "${SAVE_PATH}/test.log" \
