@@ -195,6 +195,10 @@ def main():
     parser.add_argument("--conv_lora_alpha", type=float, default=2.0, help="alpha for LoRA adapters")
     parser.add_argument("--conv_kernel_size_list", type=int, nargs="+", default=[3, 5],
                         help="kernel size for convolutional LoRA adapters")
+    parser.add_argument("--use_soft_prompt", action="store_true", help="force Phase2B soft prompt at test time")
+    parser.add_argument("--soft_prompt_ctx_len", type=int, default=4)
+    parser.add_argument("--soft_prompt_init", type=str, choices=["phrase", "random"], default="phrase")
+    parser.add_argument("--soft_prompt_init_phrase", type=str, default="a photo of a")
     parser.add_argument(
         "--dfg_mode",
         type=str,
@@ -300,6 +304,10 @@ def main():
         dfg_beta_schedule=args.dfg_beta_schedule,
         dfg_beta_target=args.dfg_beta_target,
         dfg_beta_current=args.dfg_beta,
+        use_soft_prompt=args.use_soft_prompt,
+        soft_prompt_ctx_len=args.soft_prompt_ctx_len,
+        soft_prompt_init=args.soft_prompt_init,
+        soft_prompt_init_phrase=args.soft_prompt_init_phrase,
     ).to(device)
     model.eval()
     ckp_files = sorted(glob(args.save_path + "/adapter_*.pth"), key=get_epoch_from_checkpoint)
@@ -365,6 +373,26 @@ def main():
             model.set_dfg_beta(float(ckpt_beta_current))
         model.image_adapter.load_state_dict(checkpoint["image_adapter"])
         model.text_adapter.load_state_dict(checkpoint["text_adapter"])
+        ckpt_use_soft_prompt = bool(checkpoint.get("use_soft_prompt", False))
+        if ckpt_use_soft_prompt:
+            model.use_soft_prompt = True
+            ckpt_ctx_len = int(checkpoint.get("soft_prompt_ctx_len", model.soft_prompt_ctx_len))
+            if ckpt_ctx_len != model.soft_prompt_ctx_len:
+                raise ValueError(
+                    f"Checkpoint soft_prompt_ctx_len is {ckpt_ctx_len}, "
+                    f"but model expects {model.soft_prompt_ctx_len}."
+                )
+            if "soft_prompt" not in checkpoint:
+                logger.warning("checkpoint declares soft prompt but has no soft_prompt state; using initialized ctx")
+            else:
+                model.soft_prompt.load_state_dict(checkpoint["soft_prompt"])
+        elif args.use_soft_prompt:
+            model.use_soft_prompt = True
+            logger.warning(
+                "using soft prompt for checkpoint without soft_prompt state; using initialized ctx"
+            )
+        else:
+            model.use_soft_prompt = False
         test_epoch = checkpoint["epoch"]
         logger.info("-----------------------------------------------")
         logger.info("load model from epoch %d", test_epoch)

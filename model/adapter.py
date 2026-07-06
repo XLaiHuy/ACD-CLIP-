@@ -6,6 +6,7 @@ from torch import nn
 from torch.utils.checkpoint import checkpoint
 
 from .adapter_modules import TextLoraAdapter, MLPAdapter, ConvLoraAdapter, DFGSS2DResidualBranch
+from .soft_prompt import SoftPromptLearner
 
 
 class AddWeight(nn.Module):
@@ -49,6 +50,10 @@ class ACDCLIP(nn.Module):
             dfg_beta_target: float | None = None,
             dfg_beta_current: float | None = None,
             dfg_weight_residual_fp32: bool = True,
+            use_soft_prompt: bool = False,
+            soft_prompt_ctx_len: int = 4,
+            soft_prompt_init: str = "phrase",
+            soft_prompt_init_phrase: str = "a photo of a",
             **kwargs,
     ):
         super().__init__()
@@ -92,6 +97,10 @@ class ACDCLIP(nn.Module):
         self.dfg_beta_schedule = dfg_beta_schedule
         self.dfg_beta_target = dfg_beta_target
         self.dfg_weight_residual_fp32 = dfg_weight_residual_fp32
+        self.use_soft_prompt = use_soft_prompt
+        self.soft_prompt_ctx_len = soft_prompt_ctx_len
+        self.soft_prompt_init = soft_prompt_init
+        self.soft_prompt_init_phrase = soft_prompt_init_phrase
         self._last_dfg_stats = {}
 
         image_adapt_weights = nn.ModuleList(
@@ -167,6 +176,13 @@ class ACDCLIP(nn.Module):
                 "layer_norms": text_layer_norms,
                 "lora_adapters": text_lora_adapters,
             }
+        )
+        init_phrase = soft_prompt_init_phrase if soft_prompt_init == "phrase" else "random"
+        self.soft_prompt = SoftPromptLearner(
+            ctx_len=soft_prompt_ctx_len,
+            text_dim=768,
+            init_phrase=init_phrase,
+            clip_model=clip_model,
         )
 
     def _init_dfg_attention(self):
@@ -471,14 +487,8 @@ class ACDCLIP(nn.Module):
                 diagnostics[f"{prefix}_{key}"] = value
         return diagnostics
 
-    def encode_text(self, text, adapt_text=True):
-        if not adapt_text:
-            return self.clipmodel.encode_text(text)
+    def _encode_text_from_embeddings(self, text, x, adapt_text=True):
         cast_dtype = self.clipmodel.transformer.get_cast_dtype()
-        x = self.clipmodel.token_embedding(text).to(
-            cast_dtype
-        )  # [batch_size, n_ctx, d_model]
-
         x = x + self.clipmodel.positional_embedding.to(cast_dtype)
         x = x.permute(1, 0, 2)  # NLD -> LND
 
@@ -493,14 +503,15 @@ class ACDCLIP(nn.Module):
                     index = j
                     break
             if index != -1:
-                adapt_out = self.text_adapter["lora_adapters"][index](x)
-                adapt_out = (
-                        adapt_out
-                        * x.norm(dim=-1, keepdim=True)
-                        / adapt_out.norm(dim=-1, keepdim=True).clamp_min(1e-6)
-                )
-                x = self.text_adapter["m_t_w"][index](x, adapt_out)
-                # x = x * (1 - self.text_adapt_weight) + adapt_out * self.text_adapt_weight
+                if adapt_text:
+                    adapt_out = self.text_adapter["lora_adapters"][index](x)
+                    adapt_out = (
+                            adapt_out
+                            * x.norm(dim=-1, keepdim=True)
+                            / adapt_out.norm(dim=-1, keepdim=True).clamp_min(1e-6)
+                    )
+                    x = self.text_adapter["m_t_w"][index](x, adapt_out)
+                    # x = x * (1 - self.text_adapt_weight) + adapt_out * self.text_adapt_weight
                 out_features.append(x)
 
         indices = text.argmax(dim=-1)
@@ -508,3 +519,22 @@ class ACDCLIP(nn.Module):
         out_features = [self.text_adapter["layer_norms"][i](t) for i, t in enumerate(out_features)]
         out_features = [t[torch.arange(t.shape[0]), indices] for t in out_features]
         return out_features
+
+    def encode_text(self, text, adapt_text=True):
+        cast_dtype = self.clipmodel.transformer.get_cast_dtype()
+        x = self.clipmodel.token_embedding(text).to(
+            cast_dtype
+        )  # [batch_size, n_ctx, d_model]
+        return self._encode_text_from_embeddings(text, x, adapt_text=adapt_text)
+
+    def encode_soft_prompt_text(self, text, ctx, adapt_text=False):
+        cast_dtype = self.clipmodel.transformer.get_cast_dtype()
+        x = self.clipmodel.token_embedding(text).to(cast_dtype)
+        ctx = ctx.to(device=x.device, dtype=cast_dtype)
+        if ctx.shape[0] != self.soft_prompt_ctx_len:
+            raise ValueError(f"ctx length {ctx.shape[0]} != expected {self.soft_prompt_ctx_len}")
+        if text.shape[1] < 1 + ctx.shape[0]:
+            raise ValueError("tokenized prompt is shorter than soft context length")
+        x = x.clone()
+        x[:, 1:1 + ctx.shape[0], :] = ctx.unsqueeze(0)
+        return self._encode_text_from_embeddings(text, x, adapt_text=adapt_text)

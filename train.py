@@ -12,7 +12,9 @@ from tqdm import tqdm
 
 from dataset import get_text_and_image_dataset
 from utils import (
-    calculate_seg_loss, get_multiple_adapted_single_class_text_embedding
+    calculate_seg_loss,
+    get_multiple_adapted_single_class_text_embedding,
+    get_soft_prompt_single_class_text_embedding,
 )
 from model.adapter import (
     ACDCLIP
@@ -131,6 +133,15 @@ def get_dfg_beta_for_epoch(
     raise ValueError(f"Unknown dfg_beta_schedule: {dfg_beta_schedule}")
 
 
+def mean_stats(stats_list):
+    if not stats_list:
+        return {}
+    return {
+        key: float(np.mean([stats[key] for stats in stats_list]))
+        for key in stats_list[0].keys()
+    }
+
+
 def train(
         model: ACDCLIP,
         dataset_name: str,
@@ -146,6 +157,7 @@ def train(
         dfg_beta_target: float = 0.10,
         dfg_beta: float = 0.10,
         non_finite_loss_abort_threshold: int = 20,
+        lambda_kg: float = 1e-3,
 ):
     scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
     for epoch in range(0, total_epoch):
@@ -169,6 +181,8 @@ def train(
         )
         loss_list = []
         seg_loss_list = []
+        kg_loss_list = []
+        soft_prompt_stats_list = []
         non_finite_loss_skips = 0
         non_finite_grad_skips = 0
         tqdm_train_loader = tqdm(train_loader)
@@ -179,16 +193,30 @@ def train(
             class_names = input_data["class_name"]
             # get adapted text embedding
             epoch_text_feature_dict = {}
+            kg_losses = []
+            batch_soft_stats = []
             for class_name in list(set(class_names)):
-                text_embedding_levels = get_multiple_adapted_single_class_text_embedding(
-                    model, dataset_name, class_name, device
-                )
+                if getattr(model, "use_soft_prompt", False):
+                    text_embedding_levels, kg_loss_class, soft_stats = get_soft_prompt_single_class_text_embedding(
+                        model, dataset_name, class_name, device, return_kg=True
+                    )
+                    kg_losses.append(kg_loss_class)
+                    batch_soft_stats.append(soft_stats)
+                else:
+                    text_embedding_levels = get_multiple_adapted_single_class_text_embedding(
+                        model, dataset_name, class_name, device
+                    )
                 epoch_text_feature_dict[class_name] = text_embedding_levels  # [n_groups, 768, 2]
             epoch_text_features = torch.stack(
                 [epoch_text_feature_dict[class_name] for class_name in class_names],
                 dim=0,
             )  # [bs, n_groups, 768, 2]
             epoch_text_features = epoch_text_features.permute(1, 0, 2, 3)  # [n_groups, bs, 768, 2]
+            if kg_losses:
+                kg_loss = torch.stack(kg_losses).mean()
+                soft_prompt_stats_list.extend(batch_soft_stats)
+            else:
+                kg_loss = torch.zeros((), device=device)
             with torch.cuda.amp.autocast(enabled=use_amp):
                 seg_tokens, det_tokens = model(image)  # [bs, patch_size, 768] * n_groups, [bs, 768] * n_groups
                 seg_features = torch.stack(seg_tokens, dim=0)  # [n_groups, bs, patch_num, 768]
@@ -205,7 +233,8 @@ def train(
                 # [bs, 2, img_size, img_size]
                 seg_pred = model.vision_text_fusion_gate_seg(seg_features, epoch_text_features)
                 seg_loss = calculate_seg_loss(seg_pred, mask)
-                loss = cls_loss + seg_loss
+                loss_main = cls_loss + seg_loss
+                loss = loss_main + lambda_kg * kg_loss
             if not torch.isfinite(loss).all():
                 non_finite_loss_skips += 1
                 diag_path = save_nonfinite_diagnostics(
@@ -224,6 +253,7 @@ def train(
                         "cls_loss": cls_loss,
                         "seg_pred": seg_pred,
                         "seg_loss": seg_loss,
+                        "kg_loss": kg_loss,
                         "loss": loss,
                     },
                     metadata={
@@ -233,6 +263,8 @@ def train(
                         "dfg_beta_target": dfg_beta_target,
                         "dfg_beta_current": model.dfg_beta,
                         "dfg_weight_residual_fp32": model.dfg_weight_residual_fp32,
+                        "use_soft_prompt": getattr(model, "use_soft_prompt", False),
+                        "lambda_kg": lambda_kg,
                         "class_names": list(class_names),
                         "labels": label.detach().cpu().tolist(),
                     },
@@ -264,6 +296,7 @@ def train(
                     )
                 continue
             seg_loss_list.append(seg_loss.item())
+            kg_loss_list.append(kg_loss.item())
             # backward
             optimizer.zero_grad(set_to_none=True)
             scaler.scale(loss).backward()
@@ -276,7 +309,10 @@ def train(
                 continue
             # clip gradient
             nn.utils.clip_grad_norm_(model.image_adapter.parameters(), 1.0)
-            nn.utils.clip_grad_norm_(model.text_adapter.parameters(), 1.0)
+            if getattr(model, "use_soft_prompt", False):
+                nn.utils.clip_grad_norm_(model.soft_prompt.parameters(), 1.0)
+            else:
+                nn.utils.clip_grad_norm_(model.text_adapter.parameters(), 1.0)
             # update parameters
             scaler.step(optimizer)
             scaler.update()
@@ -293,6 +329,7 @@ def train(
                         "loss": loss,
                         "cls_loss": cls_loss,
                         "seg_loss": seg_loss,
+                        "kg_loss": kg_loss,
                         "cls_pred": cls_pred,
                         "seg_pred": seg_pred,
                     },
@@ -306,6 +343,8 @@ def train(
                         "dfg_beta_target": dfg_beta_target,
                         "dfg_beta_current": model.dfg_beta,
                         "dfg_weight_residual_fp32": model.dfg_weight_residual_fp32,
+                        "use_soft_prompt": getattr(model, "use_soft_prompt", False),
+                        "lambda_kg": lambda_kg,
                     },
                 )
                 logger.error(
@@ -322,17 +361,33 @@ def train(
                     f"optimizer step: {bad_param_name}. Diagnostics: {diag_path}"
                 )
             loss_list.append(loss.item())
-            tqdm_train_loader.set_postfix({
+            postfix = {
                 "epoch": f"{epoch + 1} / {total_epoch}",
                 "loss": f"{loss.item():.4f}",
-                "det_loss": f"{loss.item() - seg_loss.item():.4f}",
+                "det_loss": f"{cls_loss.item():.4f}",
                 "seg_loss": f"{seg_loss.item():.4f}",
                 "mean_seg_loss": f"{np.mean(seg_loss_list):.4f}",
                 "mean_loss": f"{np.mean(loss_list):.4f}",
-                "text_lr": optimizer.param_groups[0]["lr"],
-                "image_lr": optimizer.param_groups[1]["lr"],
-            })
+            }
+            if getattr(model, "use_soft_prompt", False):
+                postfix["kg_loss"] = f"{kg_loss.item():.5f}"
+                postfix["image_lr"] = optimizer.param_groups[0]["lr"]
+                postfix["soft_lr"] = optimizer.param_groups[1]["lr"]
+            else:
+                postfix["text_lr"] = optimizer.param_groups[0]["lr"]
+                postfix["image_lr"] = optimizer.param_groups[1]["lr"]
+            tqdm_train_loader.set_postfix(postfix)
         logger.info(f"mean_loss={np.mean(loss_list)}, mean_seg_loss={np.mean(seg_loss_list)}")
+        if getattr(model, "use_soft_prompt", False):
+            logger.info(
+                "soft_prompt_epoch epoch=%d mean_kg_loss=%s lambda_kg=%s stats=%s ctx_stats=%s "
+                "text_encoder_frozen=True text_lora_used=False",
+                epoch + 1,
+                float(np.mean(kg_loss_list)) if kg_loss_list else None,
+                lambda_kg,
+                mean_stats(soft_prompt_stats_list),
+                model.soft_prompt.stats(),
+            )
         logger.info(
             "skip_counts epoch=%d non_finite_loss=%d non_finite_grad=%d",
             epoch + 1,
@@ -365,9 +420,16 @@ def train(
             "dfg_beta_target": dfg_beta_target,
             "dfg_beta_current": model.dfg_beta,
             "dfg_weight_residual_fp32": model.dfg_weight_residual_fp32,
+            "use_soft_prompt": bool(getattr(model, "use_soft_prompt", False)),
+            "soft_prompt_ctx_len": getattr(model, "soft_prompt_ctx_len", 4),
+            "soft_prompt_init": getattr(model, "soft_prompt_init", "phrase"),
+            "soft_prompt_init_phrase": getattr(model, "soft_prompt_init_phrase", "a photo of a"),
+            "lambda_kg": lambda_kg,
             "text_adapter": model.text_adapter.state_dict(),
             "image_adapter": model.image_adapter.state_dict()
         }
+        if getattr(model, "use_soft_prompt", False):
+            model_dict["soft_prompt"] = model.soft_prompt.state_dict()
         torch.save(model_dict, ckp_path)
     return model
 
@@ -406,6 +468,12 @@ def main():
 
     parser.add_argument("--image_lr", type=float, default=0.001, help="learning rate for image adapter")
     parser.add_argument("--text_lr", type=float, default=0.0005, help="learning rate for text adapter")
+    parser.add_argument("--use_soft_prompt", action="store_true", help="enable Phase2B KgCoOp-style soft prompt")
+    parser.add_argument("--soft_prompt_ctx_len", type=int, default=4)
+    parser.add_argument("--soft_prompt_lr", type=float, default=1e-4)
+    parser.add_argument("--soft_prompt_init", type=str, choices=["phrase", "random"], default="phrase")
+    parser.add_argument("--soft_prompt_init_phrase", type=str, default="a photo of a")
+    parser.add_argument("--lambda_kg", type=float, default=1e-3)
     parser.add_argument("--lr_gamma", type=float, default=0.9, help="learning rate decay factor")
     parser.add_argument(
         "--dfg_mode",
@@ -493,12 +561,20 @@ def main():
         dfg_beta_schedule=args.dfg_beta_schedule,
         dfg_beta_target=args.dfg_beta_target,
         dfg_beta_current=args.dfg_beta,
+        use_soft_prompt=args.use_soft_prompt,
+        soft_prompt_ctx_len=args.soft_prompt_ctx_len,
+        soft_prompt_init=args.soft_prompt_init,
+        soft_prompt_init_phrase=args.soft_prompt_init_phrase,
     ).to(device)
     model.eval()
 
     model.requires_grad_(False)
-    model.text_adapter.requires_grad_(True)
     model.image_adapter.requires_grad_(True)
+    if args.use_soft_prompt:
+        model.soft_prompt.requires_grad_(True)
+        model.text_adapter.requires_grad_(False)
+    else:
+        model.text_adapter.requires_grad_(True)
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     frozen_params = sum(p.numel() for p in model.parameters() if not p.requires_grad)
     logger.info("trainable parameters: %s", f"{trainable_params:,}")
@@ -506,16 +582,28 @@ def main():
     logger.info("dfg_weight_residual_fp32=%s", model.dfg_weight_residual_fp32)
 
     # set optimizer
-    optimizer = torch.optim.Adam([
-        {
-            "params": model.text_adapter.parameters(),
-            "lr": args.text_lr,
-        },
-        {
-            "params": model.image_adapter.parameters(),
-            "lr": args.image_lr,
-        },
-    ])
+    if args.use_soft_prompt:
+        optimizer = torch.optim.Adam([
+            {
+                "params": model.image_adapter.parameters(),
+                "lr": args.image_lr,
+            },
+            {
+                "params": model.soft_prompt.parameters(),
+                "lr": args.soft_prompt_lr,
+            },
+        ])
+    else:
+        optimizer = torch.optim.Adam([
+            {
+                "params": model.text_adapter.parameters(),
+                "lr": args.text_lr,
+            },
+            {
+                "params": model.image_adapter.parameters(),
+                "lr": args.image_lr,
+            },
+        ])
     lr_scheduler = StepLR(
         optimizer,
         step_size=1,
@@ -551,6 +639,7 @@ def main():
         dfg_beta_target=args.dfg_beta_target,
         dfg_beta=args.dfg_beta,
         non_finite_loss_abort_threshold=args.non_finite_loss_abort_threshold,
+        lambda_kg=args.lambda_kg,
     )
 
 

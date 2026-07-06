@@ -3,6 +3,7 @@ import random
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torchmetrics.functional import auroc, average_precision
 from torchvision import transforms
 
@@ -123,39 +124,127 @@ prompt_normal = prompt["prompt_normal"]
 prompt_abnormal = prompt["prompt_abnormal"]
 prompt_state = [prompt_normal, prompt_abnormal]
 prompt_templates = prompt["prompt_templates"]
+EXPECTED_PROMPT_COUNTS = [6, 10]
+
+
+def get_real_name(dataset_name, class_name):
+    if class_name == "object":
+        return class_name
+    assert class_name in CLASS_NAMES[dataset_name], (
+        f"class_name {class_name} not found; available class_names: {CLASS_NAMES[dataset_name]}"
+    )
+    return REAL_NAMES[dataset_name][class_name]
+
+
+def get_prompt_sentences(real_name, state_idx):
+    prompted_state = [state.format(real_name) for state in prompt_state[state_idx]]
+    prompted_sentence = []
+    for s in prompted_state:
+        for template in prompt_templates:
+            prompted_sentence.append(template.format(s))
+    expected_count = EXPECTED_PROMPT_COUNTS[state_idx]
+    if len(prompted_sentence) != expected_count:
+        raise ValueError(
+            f"Prompt count mismatch for state {state_idx}: "
+            f"got {len(prompted_sentence)}, expected {expected_count}."
+        )
+    return prompted_sentence
+
+
+def get_soft_prompt_sentence(real_name, state_idx, ctx_len):
+    ctx_prefix = " ".join(["X"] * ctx_len)
+    state_word = "normal" if state_idx == 0 else "abnormal"
+    return f"{ctx_prefix} {state_word} {real_name}."
+
+
+def aggregate_prompt_features(multi_features):
+    aggregated = []
+    for layer_feature in multi_features:
+        layer_feature = layer_feature / layer_feature.norm(dim=-1, keepdim=True).clamp_min(1e-6)
+        layer_feature = layer_feature.mean(dim=0)
+        layer_feature = layer_feature / layer_feature.norm().clamp_min(1e-6)
+        aggregated.append(layer_feature)
+    return aggregated
+
+
+def stack_state_features(multi_layer_features, device):
+    text_features_levels = []
+    cnt = len(multi_layer_features) // len(prompt_state)
+    for i in range(cnt):
+        text_features_levels.append(torch.stack(multi_layer_features[i::cnt], dim=1).to(device))
+    return torch.stack(text_features_levels, dim=0)
 
 
 def get_multiple_adapted_single_class_text_embedding(
         model,
         dataset_name, class_name, device
 ):
-    if class_name == "object":
-        real_name = class_name
-    else:
-        assert class_name in CLASS_NAMES[dataset_name], (
-            f"class_name {class_name} not found; available class_names: {CLASS_NAMES[dataset_name]}"
+    if getattr(model, "use_soft_prompt", False):
+        text_features, _, _ = get_soft_prompt_single_class_text_embedding(
+            model, dataset_name, class_name, device, return_kg=False
         )
-        real_name = REAL_NAMES[dataset_name][class_name]
+        return text_features
+
+    real_name = get_real_name(dataset_name, class_name)
     multi_layer_features = []
     for i in range(len(prompt_state)):
-        prompted_state = [state.format(real_name) for state in prompt_state[i]]
-        prompted_sentence = []
-        for s in prompted_state:
-            for template in prompt_templates:
-                prompted_sentence.append(template.format(s))
+        prompted_sentence = get_prompt_sentences(real_name, i)
         prompted_sentence = tokenize(prompted_sentence).to(device)
         multi_features = model.encode_text(prompted_sentence)
-        for layer_feature in multi_features:
-            layer_feature = layer_feature / layer_feature.norm(dim=-1, keepdim=True)
-            layer_feature = layer_feature.mean(dim=0)
-            layer_feature = layer_feature / layer_feature.norm()
-            multi_layer_features.append(layer_feature)
+        multi_layer_features.extend(aggregate_prompt_features(multi_features))
 
-    text_features_levels = []
-    cnt = len(multi_layer_features) // len(prompt_state)
-    for i in range(cnt):
-        text_features_levels.append(torch.stack(multi_layer_features[i::cnt], dim=1).to(device))
-    return torch.stack(text_features_levels, dim=0)
+    return stack_state_features(multi_layer_features, device)
+
+
+def get_hard_anchor_single_class_text_embedding(model, dataset_name, class_name, device):
+    real_name = get_real_name(dataset_name, class_name)
+    multi_layer_features = []
+    with torch.no_grad():
+        for i in range(len(prompt_state)):
+            prompted_sentence = get_prompt_sentences(real_name, i)
+            prompted_sentence = tokenize(prompted_sentence).to(device)
+            multi_features = model.encode_text(prompted_sentence, adapt_text=False)
+            multi_layer_features.extend(aggregate_prompt_features(multi_features))
+        anchor = stack_state_features(multi_layer_features, device)
+    return anchor.detach()
+
+
+def get_soft_prompt_single_class_text_embedding(
+        model,
+        dataset_name,
+        class_name,
+        device,
+        return_kg=True,
+):
+    real_name = get_real_name(dataset_name, class_name)
+    multi_layer_features = []
+    for state_idx in range(len(prompt_state)):
+        soft_sentence = get_soft_prompt_sentence(real_name, state_idx, model.soft_prompt_ctx_len)
+        tokenized = tokenize([soft_sentence]).to(device)
+        ctx = model.soft_prompt.get_context(state_idx)
+        multi_features = model.encode_soft_prompt_text(tokenized, ctx, adapt_text=False)
+        multi_layer_features.extend(aggregate_prompt_features(multi_features))
+    soft_text = stack_state_features(multi_layer_features, device)
+    if not return_kg:
+        return soft_text, None, None
+
+    hard_anchor = get_hard_anchor_single_class_text_embedding(model, dataset_name, class_name, device)
+    cosine = F.cosine_similarity(
+        soft_text.permute(0, 2, 1).reshape(-1, soft_text.shape[1]),
+        hard_anchor.permute(0, 2, 1).reshape(-1, hard_anchor.shape[1]),
+        dim=-1,
+    )
+    kg_loss = (1.0 - cosine).mean()
+    stats = {
+        "soft_hard_cos_mean": float(cosine.detach().mean().item()),
+        "soft_hard_cos_normal": float(cosine.detach().view(soft_text.shape[0], 2)[:, 0].mean().item()),
+        "soft_hard_cos_abnormal": float(cosine.detach().view(soft_text.shape[0], 2)[:, 1].mean().item()),
+        "soft_proto_norm_min": float(soft_text.detach().norm(dim=1).min().item()),
+        "soft_proto_norm_max": float(soft_text.detach().norm(dim=1).max().item()),
+        "hard_proto_norm_min": float(hard_anchor.detach().norm(dim=1).min().item()),
+        "hard_proto_norm_max": float(hard_anchor.detach().norm(dim=1).max().item()),
+    }
+    return soft_text, kg_loss, stats
 
 
 def get_multiple_adapted_text_embedding(
