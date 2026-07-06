@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SAVE_PATH="${SAVE_PATH:-runs/phase2b/phase2b_hybrid_alpha02_lkg1e2_lr5e5_train20_test7to20_fromscratch}"
+SAVE_PATH="${SAVE_PATH:-runs/phase2b/phase2b_hybrid_alpha02_lkg1e2_lr5e5_train20_test6medical7to20_fromscratch}"
 BATCH_SIZE="${BATCH_SIZE:-6}"
 EPOCH="${EPOCH:-20}"
 NUM_WORKERS="${NUM_WORKERS:-6}"
@@ -54,8 +54,7 @@ printf ' %q' "${TRAIN_CMD[@]}"
 echo
 "${TRAIN_CMD[@]}"
 
-echo "==== Brain gate test epochs ${TEST_EPOCHS[*]} ===="
-DATASETS=Brain \
+echo "==== 6-medical test epochs ${TEST_EPOCHS[*]} ===="
 SAVE_PATH="${SAVE_PATH}" \
 BATCH_SIZE=8 \
 NUM_WORKERS="${NUM_WORKERS}" \
