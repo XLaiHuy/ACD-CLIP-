@@ -305,6 +305,7 @@ def get_hybrid_soft_prompt_single_class_text_embedding(
         class_name,
         device,
         return_kg=True,
+        return_components=False,
 ):
     hard_text = get_hard_phase1_single_class_text_embedding(
         model, dataset_name, class_name, device, adapt_text=True
@@ -322,6 +323,8 @@ def get_hybrid_soft_prompt_single_class_text_embedding(
     alpha = float(getattr(model, "hybrid_alpha_current", 0.0))
     main_text = F.normalize((1.0 - alpha) * hard_text + alpha * soft_text, dim=1)
     if not return_kg:
+        if return_components:
+            return main_text, None, None, {"hard_text": hard_text, "soft_text": soft_text}
         return main_text, None, None
 
     hard_anchor = hard_text.detach()
@@ -382,6 +385,8 @@ def get_hybrid_soft_prompt_single_class_text_embedding(
         stats[f"{prefix}_soft_normal_abnormal_cos"] = float(soft_state_cos[group_idx].item())
         stats[f"{prefix}_hard_normal_abnormal_cos"] = float(hard_state_cos[group_idx].item())
         stats[f"{prefix}_main_normal_abnormal_cos"] = float(main_state_cos[group_idx].item())
+    if return_components:
+        return main_text, kg_loss, stats, {"hard_text": hard_text, "soft_text": soft_text}
     return main_text, kg_loss, stats
 
 

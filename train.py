@@ -173,6 +173,54 @@ def apply_soft_prompt_lr_policy(optimizer: torch.optim.Optimizer, frozen: bool):
             group["lr"] = 0.0 if frozen else group["constant_lr"]
 
 
+def detached_linear(linear: nn.Linear, x: torch.Tensor) -> torch.Tensor:
+    bias = None if linear.bias is None else linear.bias.detach()
+    return F.linear(x, linear.weight.detach(), bias)
+
+
+def compute_hybrid_k_regularization(
+        model: ACDCLIP,
+        hard_text: torch.Tensor,
+        soft_text: torch.Tensor,
+        alpha: float,
+):
+    """Regularize hybrid text in DFG K-space while keeping W_K fixed for this loss."""
+    if not hasattr(model, "image_adapter") or "vision_text_k" not in model.image_adapter:
+        return torch.zeros((), device=soft_text.device), {}
+
+    hard_anchor = hard_text.detach()
+    main_for_k = F.normalize((1.0 - alpha) * hard_anchor + alpha * soft_text, dim=1)
+    hard_states = hard_anchor.permute(0, 2, 1)  # [n_groups, 2, 768]
+    main_states = main_for_k.permute(0, 2, 1)  # [n_groups, 2, 768]
+
+    stage_losses = []
+    stage_cosines = []
+    stats = {}
+    for stage_idx, key_proj in enumerate(model.image_adapter["vision_text_k"]):
+        k_main = detached_linear(key_proj, main_states)
+        k_hard = detached_linear(key_proj, hard_states).detach()
+        k_main = F.normalize(k_main, dim=-1)
+        k_hard = F.normalize(k_hard, dim=-1)
+        cosine = F.cosine_similarity(k_main, k_hard, dim=-1)  # [n_groups, 2]
+        stage_losses.append((1.0 - cosine).mean())
+        stage_cosines.append(cosine.detach())
+
+        prefix = f"stage{stage_idx + 1}"
+        stats[f"{prefix}_k_cos_mean"] = float(cosine.detach().mean().item())
+        stats[f"{prefix}_k_cos_normal"] = float(cosine.detach()[:, 0].mean().item())
+        stats[f"{prefix}_k_cos_abnormal"] = float(cosine.detach()[:, 1].mean().item())
+        stats[f"{prefix}_k_loss"] = float((1.0 - cosine.detach()).mean().item())
+
+    k_loss = torch.stack(stage_losses).mean()
+    all_cosines = torch.stack(stage_cosines, dim=0)  # [stages, n_groups, 2]
+    stats.update({
+        "k_cos_mean": float(all_cosines.mean().item()),
+        "k_cos_normal": float(all_cosines[..., 0].mean().item()),
+        "k_cos_abnormal": float(all_cosines[..., 1].mean().item()),
+    })
+    return k_loss, stats
+
+
 def clip_module_grad(module: torch.nn.Module, grad_clip_norm: float):
     if grad_clip_norm is None or grad_clip_norm <= 0:
         return None
@@ -195,6 +243,7 @@ def train(
         dfg_beta: float = 0.10,
         non_finite_loss_abort_threshold: int = 20,
         lambda_kg: float = 1e-3,
+        lambda_k: float = 0.0,
         hybrid_alpha_max: float = 0.2,
         soft_prompt_freeze_epochs: int = 3,
         grad_clip_norm: float = 1.0,
@@ -238,12 +287,15 @@ def train(
             logger.info(
                 "hybrid_state epoch=%d effective_prompt_mode=%s effective_alpha=%s "
                 "hard_branch_lora_used=True soft_branch_lora_used=False soft_prompt_frozen=%s "
-                "soft_prompt_freeze_epochs=%d grad_clip_norm=%s image_lr=%s text_lr=%s soft_lr=%s",
+                "soft_prompt_freeze_epochs=%d lambda_kg=%s lambda_k=%s grad_clip_norm=%s "
+                "image_lr=%s text_lr=%s soft_lr=%s",
                 epoch_one_based,
                 getattr(model, "prompt_mode", "hybrid"),
                 hybrid_alpha_current,
                 soft_prompt_frozen,
                 soft_prompt_freeze_epochs,
+                lambda_kg,
+                lambda_k,
                 grad_clip_norm,
                 get_optimizer_lr(optimizer, "image_adapter"),
                 get_optimizer_lr(optimizer, "text_adapter"),
@@ -254,7 +306,9 @@ def train(
         seg_loss_list = []
         cls_loss_list = []
         kg_loss_list = []
+        k_loss_list = []
         soft_prompt_stats_list = []
+        k_reg_stats_list = []
         soft_prompt_grad_stats_list = []
         non_finite_loss_skips = 0
         non_finite_grad_skips = 0
@@ -267,12 +321,32 @@ def train(
             # get adapted text embedding
             epoch_text_feature_dict = {}
             kg_losses = []
+            k_losses = []
             batch_soft_stats = []
+            batch_k_stats = []
             for class_name in list(set(class_names)):
                 if use_hybrid_soft_prompt:
-                    text_embedding_levels, kg_loss_class, soft_stats = get_hybrid_soft_prompt_single_class_text_embedding(
-                        model, dataset_name, class_name, device, return_kg=True
-                    )
+                    if lambda_k > 0:
+                        (
+                            text_embedding_levels,
+                            kg_loss_class,
+                            soft_stats,
+                            components,
+                        ) = get_hybrid_soft_prompt_single_class_text_embedding(
+                            model, dataset_name, class_name, device, return_kg=True, return_components=True
+                        )
+                        k_loss_class, k_stats = compute_hybrid_k_regularization(
+                            model,
+                            components["hard_text"],
+                            components["soft_text"],
+                            hybrid_alpha_current,
+                        )
+                        k_losses.append(k_loss_class)
+                        batch_k_stats.append(k_stats)
+                    else:
+                        text_embedding_levels, kg_loss_class, soft_stats = get_hybrid_soft_prompt_single_class_text_embedding(
+                            model, dataset_name, class_name, device, return_kg=True
+                        )
                     kg_losses.append(kg_loss_class)
                     batch_soft_stats.append(soft_stats)
                 elif use_soft_prompt:
@@ -296,6 +370,11 @@ def train(
                 soft_prompt_stats_list.extend(batch_soft_stats)
             else:
                 kg_loss = torch.zeros((), device=device)
+            if k_losses:
+                k_loss = torch.stack(k_losses).mean()
+                k_reg_stats_list.extend(batch_k_stats)
+            else:
+                k_loss = torch.zeros((), device=device)
             with torch.cuda.amp.autocast(enabled=use_amp):
                 seg_tokens, det_tokens = model(image)  # [bs, patch_size, 768] * n_groups, [bs, 768] * n_groups
                 seg_features = torch.stack(seg_tokens, dim=0)  # [n_groups, bs, patch_num, 768]
@@ -313,7 +392,7 @@ def train(
                 seg_pred = model.vision_text_fusion_gate_seg(seg_features, epoch_text_features)
                 seg_loss = calculate_seg_loss(seg_pred, mask)
                 loss_main = cls_loss + seg_loss
-                loss = loss_main + lambda_kg * kg_loss
+                loss = loss_main + lambda_kg * kg_loss + lambda_k * k_loss
             if not torch.isfinite(loss).all():
                 non_finite_loss_skips += 1
                 diag_path = save_nonfinite_diagnostics(
@@ -333,6 +412,7 @@ def train(
                         "seg_pred": seg_pred,
                         "seg_loss": seg_loss,
                         "kg_loss": kg_loss,
+                        "k_loss": k_loss,
                         "loss": loss,
                     },
                     metadata={
@@ -348,6 +428,7 @@ def train(
                         "hybrid_alpha_current": getattr(model, "hybrid_alpha_current", 0.0),
                         "soft_prompt_frozen": soft_prompt_frozen,
                         "lambda_kg": lambda_kg,
+                        "lambda_k": lambda_k,
                         "class_names": list(class_names),
                         "labels": label.detach().cpu().tolist(),
                     },
@@ -380,6 +461,7 @@ def train(
                 continue
             seg_loss_list.append(seg_loss.item())
             kg_loss_list.append(kg_loss.item())
+            k_loss_list.append(k_loss.item())
             # backward
             optimizer.zero_grad(set_to_none=True)
             scaler.scale(loss).backward()
@@ -422,6 +504,7 @@ def train(
                         "cls_loss": cls_loss,
                         "seg_loss": seg_loss,
                         "kg_loss": kg_loss,
+                        "k_loss": k_loss,
                         "cls_pred": cls_pred,
                         "seg_pred": seg_pred,
                     },
@@ -441,6 +524,7 @@ def train(
                         "hybrid_alpha_current": getattr(model, "hybrid_alpha_current", 0.0),
                         "soft_prompt_frozen": soft_prompt_frozen,
                         "lambda_kg": lambda_kg,
+                        "lambda_k": lambda_k,
                     },
                 )
                 logger.error(
@@ -470,6 +554,9 @@ def train(
             }
             if use_hybrid_soft_prompt:
                 postfix["kg_loss"] = f"{kg_loss.item():.5f}"
+                if lambda_k > 0:
+                    postfix["k_loss"] = f"{k_loss.item():.5f}"
+                    postfix["wk_loss"] = f"{(lambda_k * k_loss).item():.5f}"
                 postfix["alpha"] = f"{hybrid_alpha_current:.3f}"
                 postfix["frozen"] = soft_prompt_frozen
                 postfix["text_lr"] = get_optimizer_lr(optimizer, "text_adapter")
@@ -493,6 +580,7 @@ def train(
         if use_soft_prompt or use_hybrid_soft_prompt:
             logger.info(
                 "soft_prompt_epoch epoch=%d prompt_mode=%s mean_kg_loss=%s lambda_kg=%s "
+                "mean_k_loss=%s weighted_k_loss=%s lambda_k=%s k_stats=%s "
                 "hybrid_alpha=%s effective_prompt_mode=%s effective_alpha=%s "
                 "hard_branch_lora_used=%s soft_branch_lora_used=False "
                 "soft_prompt_frozen=%s grad_clip_norm=%s stats=%s ctx_stats=%s grad_stats=%s "
@@ -501,6 +589,10 @@ def train(
                 getattr(model, "prompt_mode", "soft"),
                 float(np.mean(kg_loss_list)) if kg_loss_list else None,
                 lambda_kg,
+                float(np.mean(k_loss_list)) if k_loss_list else None,
+                float(lambda_k * np.mean(k_loss_list)) if k_loss_list else None,
+                lambda_k,
+                mean_stats(k_reg_stats_list),
                 getattr(model, "hybrid_alpha_current", 0.0),
                 getattr(model, "prompt_mode", "soft"),
                 getattr(model, "hybrid_alpha_current", 0.0),
@@ -557,6 +649,9 @@ def train(
             "soft_prompt_freeze_epochs": soft_prompt_freeze_epochs,
             "grad_clip_norm": grad_clip_norm,
             "lambda_kg": lambda_kg,
+            "lambda_k": lambda_k,
+            "k_reg_detached_wk": bool(lambda_k > 0),
+            "k_reg_per_stage": bool(lambda_k > 0),
             "text_adapter": model.text_adapter.state_dict(),
             "image_adapter": model.image_adapter.state_dict()
         }
@@ -609,6 +704,7 @@ def main():
     parser.add_argument("--soft_prompt_init", type=str, choices=["phrase", "random"], default="phrase")
     parser.add_argument("--soft_prompt_init_phrase", type=str, default="a photo of a")
     parser.add_argument("--lambda_kg", type=float, default=1e-3)
+    parser.add_argument("--lambda_k", type=float, default=0.0, help="hybrid K-space regularization weight")
     parser.add_argument("--lr_gamma", type=float, default=0.9, help="learning rate decay factor")
     parser.add_argument(
         "--dfg_mode",
@@ -809,6 +905,7 @@ def main():
         dfg_beta=args.dfg_beta,
         non_finite_loss_abort_threshold=args.non_finite_loss_abort_threshold,
         lambda_kg=args.lambda_kg,
+        lambda_k=args.lambda_k,
         hybrid_alpha_max=args.hybrid_alpha_max,
         soft_prompt_freeze_epochs=args.soft_prompt_freeze_epochs,
         grad_clip_norm=args.grad_clip_norm,
