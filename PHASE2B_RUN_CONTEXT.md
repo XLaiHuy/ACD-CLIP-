@@ -93,7 +93,7 @@ Interpretation:
 Stable but too conservative overall. K-space stayed close to hard path, but the run did not recover Brain/Retina enough and did not beat Phase1 best.
 ```
 
-## Current next rescue setting
+### Phase2B Hybrid alpha0.2 + K-reg 2e-3
 
 Script:
 
@@ -146,3 +146,55 @@ Expected output directory:
 runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch
 ```
 
+Committed report artifacts:
+
+```text
+train.log
+test.log
+parsed_results.csv
+key_ap_summary.csv
+```
+
+Best by 6-medical pixel AP:
+
+```text
+epoch 10
+mean pixel AUC/AP = 90.98 / 40.35
+mean image AUC/AP = 71.65 / 70.71
+```
+
+Phase1 best reference:
+
+```text
+epoch 9
+mean pixel AUC/AP = 90.76 / 39.82
+mean image AUC/AP = 73.80 / 75.06
+```
+
+Per-dataset epoch 10 pixel-level AUC/AP:
+
+```text
+ColonDB    = 83.88 / 35.70
+ClinicDB   = 89.06 / 57.46
+Kvasir     = 88.40 / 63.45
+BrainMRI   = 95.24 / 38.28
+Liver CT   = 97.07 / 6.81
+Retina OCT = 92.20 / 40.39
+```
+
+Per-dataset epoch 10 image-level AUC/AP:
+
+```text
+BrainMRI   = 79.87 / 93.57
+Liver CT   = 59.24 / 47.86
+Retina OCT = 75.84 / 70.69
+```
+
+Interpretation:
+
+```text
+Best Phase2B candidate for 6-medical pixel-level mean so far.
+It beats Phase1 best in mean pixel AUC/AP by +0.22 / +0.53.
+However, it hurts image-level mean and still underperforms Phase1 best on Brain pixel AP.
+Use this run as the Phase2B pixel-level result, while Phase1 best remains the more balanced pixel+image model.
+```
