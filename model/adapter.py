@@ -479,6 +479,86 @@ class ACDCLIP(nn.Module):
         return torch.stack([text_normal, text_abnormal], dim=-1)  # [bs, 768, 2]
 
     @staticmethod
+    def _linear_projection(linear: nn.Linear, x: torch.Tensor, detach_params: bool = False):
+        if detach_params:
+            bias = None if linear.bias is None else linear.bias.detach()
+            return F.linear(x, linear.weight.detach(), bias)
+        return linear(x)
+
+    def _vision_text_attention_routing_weights(
+            self,
+            img_feat: torch.Tensor,
+            group_text_features: torch.Tensor,
+            group_index: int,
+            detach_qk: bool = False,
+            detach_visual: bool = False,
+    ):
+        """Return final DFG routing weights used by attention fusion.
+
+        This helper mirrors _vision_text_attention_fusion but does not update
+        diagnostics or produce fused text values. In weight_residual mode it
+        returns the final beta-mixed weights, not only the GAP branch weights.
+        """
+        if self.dfg_mode != "attn":
+            raise ValueError("stage routing consistency requires dfg_mode='attn'")
+
+        img_input = img_feat.detach() if detach_visual else img_feat
+        v_gap = img_input.mean(dim=1)  # [bs, 768]
+        v_global = v_gap
+        v_ss2d = None
+        if self.use_ss2d_dfg:
+            if detach_visual:
+                with torch.no_grad():
+                    v_ss2d = self.image_adapter["dfg_ss2d_branches"][group_index](img_input)
+                    raw_gamma = self.image_adapter["dfg_raw_gamma"][group_index].detach()
+                    gamma = self.dfg_gamma_max * torch.tanh(raw_gamma)
+            else:
+                v_ss2d = self.image_adapter["dfg_ss2d_branches"][group_index](img_input)
+                raw_gamma = self.image_adapter["dfg_raw_gamma"][group_index]
+                gamma = self.dfg_gamma_max * torch.tanh(raw_gamma)
+            if self.dfg_ss2d_fusion == "feature_residual":
+                v_global = v_gap + gamma * v_ss2d
+
+        text_normal = group_text_features[..., 0]  # [bs, n_groups, 768]
+        text_abnormal = group_text_features[..., 1]  # [bs, n_groups, 768]
+        key_proj = self.image_adapter["vision_text_k"][group_index]
+        query_proj = self.image_adapter["vision_text_q"][group_index]
+        k_normal = self._linear_projection(key_proj, text_normal, detach_params=detach_qk)
+        k_abnormal = self._linear_projection(key_proj, text_abnormal, detach_params=detach_qk)
+
+        scale = (self.dfg_attn_dim ** 0.5) * self.dfg_attn_tau
+        if self.use_ss2d_dfg and self.dfg_ss2d_fusion == "weight_residual":
+            q_gap = self._linear_projection(query_proj, v_gap, detach_params=detach_qk)
+            q_ss2d = self._linear_projection(query_proj, v_ss2d, detach_params=detach_qk)
+            if self.dfg_weight_residual_fp32:
+                q_gap_for_attn = q_gap.float()
+                q_ss2d_for_attn = q_ss2d.float()
+                k_normal_for_attn = k_normal.float()
+                k_abnormal_for_attn = k_abnormal.float()
+            else:
+                q_gap_for_attn = q_gap
+                q_ss2d_for_attn = q_ss2d
+                k_normal_for_attn = k_normal
+                k_abnormal_for_attn = k_abnormal
+            scores_gap_normal = self._attention_scores(q_gap_for_attn, k_normal_for_attn, scale)
+            scores_gap_abnormal = self._attention_scores(q_gap_for_attn, k_abnormal_for_attn, scale)
+            scores_ss2d_normal = self._attention_scores(q_ss2d_for_attn, k_normal_for_attn, scale)
+            scores_ss2d_abnormal = self._attention_scores(q_ss2d_for_attn, k_abnormal_for_attn, scale)
+            weights_gap_normal = F.softmax(scores_gap_normal, dim=1)
+            weights_gap_abnormal = F.softmax(scores_gap_abnormal, dim=1)
+            weights_ss2d_normal = F.softmax(scores_ss2d_normal, dim=1)
+            weights_ss2d_abnormal = F.softmax(scores_ss2d_abnormal, dim=1)
+            weights_normal = (1 - self.dfg_beta) * weights_gap_normal + self.dfg_beta * weights_ss2d_normal
+            weights_abnormal = (1 - self.dfg_beta) * weights_gap_abnormal + self.dfg_beta * weights_ss2d_abnormal
+        else:
+            q = self._linear_projection(query_proj, v_global, detach_params=detach_qk)
+            scores_normal = self._attention_scores(q, k_normal, scale)
+            scores_abnormal = self._attention_scores(q, k_abnormal, scale)
+            weights_normal = F.softmax(scores_normal, dim=1)
+            weights_abnormal = F.softmax(scores_abnormal, dim=1)
+        return weights_normal, weights_abnormal
+
+    @staticmethod
     def _attention_scores(query: torch.Tensor, key: torch.Tensor, scale: float):
         return torch.einsum("bd,bnd->bn", query, key) / scale
 

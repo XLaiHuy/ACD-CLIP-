@@ -221,6 +221,130 @@ def compute_hybrid_k_regularization(
     return k_loss, stats
 
 
+def js_divergence(p: torch.Tensor, q: torch.Tensor, eps: float = 1e-8):
+    p = p.float().clamp_min(eps)
+    q = q.float().clamp_min(eps)
+    p = p / p.sum(dim=-1, keepdim=True).clamp_min(eps)
+    q = q / q.sum(dim=-1, keepdim=True).clamp_min(eps)
+    m = 0.5 * (p + q)
+    kl_pm = (p * (p.log() - m.log())).sum(dim=-1)
+    kl_qm = (q * (q.log() - m.log())).sum(dim=-1)
+    return (0.5 * kl_pm + 0.5 * kl_qm).clamp_min(0.0)
+
+
+def compute_stage_routing_consistency(
+        model: ACDCLIP,
+        seg_features: torch.Tensor,
+        hard_text_features: torch.Tensor,
+        soft_text_features: torch.Tensor,
+        alpha: float,
+        loss_type: str,
+        margin: float,
+        detach_visual: bool,
+        detach_qk: bool,
+):
+    if loss_type == "none":
+        return torch.zeros((), device=soft_text_features.device), {}
+    if model.dfg_mode != "attn":
+        raise ValueError("stage consistency requires dfg_mode='attn'")
+
+    hard_anchor = hard_text_features.detach()
+    stage_text_features = F.normalize((1.0 - alpha) * hard_anchor + alpha * soft_text_features, dim=2)
+    hard_group_text = hard_anchor.permute(1, 0, 2, 3)  # [bs, n_groups, 768, 2]
+    stage_group_text = stage_text_features.permute(1, 0, 2, 3)
+
+    losses = []
+    js_normal_values = []
+    js_abnormal_values = []
+    active_normal_values = []
+    active_abnormal_values = []
+    stats = {}
+    for stage_idx in range(seg_features.shape[0]):
+        img_feat = seg_features[stage_idx]
+        with torch.no_grad():
+            w_hard_normal, w_hard_abnormal = model._vision_text_attention_routing_weights(
+                img_feat,
+                hard_group_text,
+                stage_idx,
+                detach_qk=False,
+                detach_visual=False,
+            )
+        w_stage_normal, w_stage_abnormal = model._vision_text_attention_routing_weights(
+            img_feat,
+            stage_group_text,
+            stage_idx,
+            detach_qk=detach_qk,
+            detach_visual=detach_visual,
+        )
+        js_normal = js_divergence(w_stage_normal, w_hard_normal.detach())
+        js_abnormal = js_divergence(w_stage_abnormal, w_hard_abnormal.detach())
+        if loss_type == "js":
+            loss_normal = js_normal
+            loss_abnormal = js_abnormal
+            active_normal = torch.ones_like(js_normal)
+            active_abnormal = torch.ones_like(js_abnormal)
+        elif loss_type == "js_margin":
+            loss_normal = torch.relu(js_normal - margin)
+            loss_abnormal = torch.relu(js_abnormal - margin)
+            active_normal = (js_normal > margin).float()
+            active_abnormal = (js_abnormal > margin).float()
+        else:
+            raise ValueError(f"Unknown stage_consistency_loss: {loss_type}")
+
+        losses.extend([loss_normal.mean(), loss_abnormal.mean()])
+        js_normal_values.append(js_normal.detach())
+        js_abnormal_values.append(js_abnormal.detach())
+        active_normal_values.append(active_normal.detach())
+        active_abnormal_values.append(active_abnormal.detach())
+
+        prefix = f"stage{stage_idx + 1}"
+        stats[f"{prefix}_stage_js_normal"] = float(js_normal.detach().mean().item())
+        stats[f"{prefix}_stage_js_abnormal"] = float(js_abnormal.detach().mean().item())
+        stats[f"{prefix}_stage_active_normal"] = float(active_normal.detach().mean().item())
+        stats[f"{prefix}_stage_active_abnormal"] = float(active_abnormal.detach().mean().item())
+        stats[f"{prefix}_w_hard_normal_sum_error"] = float((w_hard_normal.sum(dim=1) - 1).abs().max().item())
+        stats[f"{prefix}_w_hard_abnormal_sum_error"] = float((w_hard_abnormal.sum(dim=1) - 1).abs().max().item())
+        stats[f"{prefix}_w_stage_normal_sum_error"] = float((w_stage_normal.sum(dim=1) - 1).abs().max().detach().item())
+        stats[f"{prefix}_w_stage_abnormal_sum_error"] = float((w_stage_abnormal.sum(dim=1) - 1).abs().max().detach().item())
+        for route_idx in range(w_stage_normal.shape[1]):
+            stats[f"{prefix}_w_hard_normal_g{route_idx + 1}"] = float(
+                w_hard_normal[:, route_idx].detach().mean().item()
+            )
+            stats[f"{prefix}_w_stage_normal_g{route_idx + 1}"] = float(
+                w_stage_normal[:, route_idx].detach().mean().item()
+            )
+            stats[f"{prefix}_w_hard_abnormal_g{route_idx + 1}"] = float(
+                w_hard_abnormal[:, route_idx].detach().mean().item()
+            )
+            stats[f"{prefix}_w_stage_abnormal_g{route_idx + 1}"] = float(
+                w_stage_abnormal[:, route_idx].detach().mean().item()
+            )
+
+    if not losses:
+        return torch.zeros((), device=soft_text_features.device), {}
+
+    stage_loss = torch.stack(losses).mean()
+    normal_js = torch.cat(js_normal_values)
+    abnormal_js = torch.cat(js_abnormal_values)
+    normal_active = torch.cat(active_normal_values)
+    abnormal_active = torch.cat(active_abnormal_values)
+    stats.update({
+        "mean_stage_js": float(torch.cat([normal_js, abnormal_js]).mean().item()),
+        "normal_stage_js": float(normal_js.mean().item()),
+        "abnormal_stage_js": float(abnormal_js.mean().item()),
+        "stage_active_fraction": float(torch.cat([normal_active, abnormal_active]).mean().item()),
+        "normal_stage_active_fraction": float(normal_active.mean().item()),
+        "abnormal_stage_active_fraction": float(abnormal_active.mean().item()),
+        "w_hard_normal_mean": float(1.0 / model.n_groups),
+        "w_stage_normal_mean": float(1.0 / model.n_groups),
+        "w_hard_abnormal_mean": float(1.0 / model.n_groups),
+        "w_stage_abnormal_mean": float(1.0 / model.n_groups),
+        "detach_visual": float(bool(detach_visual)),
+        "detach_qk": float(bool(detach_qk)),
+    })
+    return stage_loss, stats
+
+
 def clip_module_grad(module: torch.nn.Module, grad_clip_norm: float):
     if grad_clip_norm is None or grad_clip_norm <= 0:
         return None
@@ -244,6 +368,12 @@ def train(
         non_finite_loss_abort_threshold: int = 20,
         lambda_kg: float = 1e-3,
         lambda_k: float = 0.0,
+        lambda_stage: float = 0.0,
+        stage_consistency_loss: str = "none",
+        stage_consistency_margin: float = 0.02,
+        stage_consistency_update_soft_only: bool = False,
+        stage_consistency_detach_visual: bool = False,
+        stage_consistency_detach_qk: bool = False,
         hybrid_alpha_max: float = 0.2,
         soft_prompt_freeze_epochs: int = 3,
         grad_clip_norm: float = 1.0,
@@ -287,7 +417,9 @@ def train(
             logger.info(
                 "hybrid_state epoch=%d effective_prompt_mode=%s effective_alpha=%s "
                 "hard_branch_lora_used=True soft_branch_lora_used=False soft_prompt_frozen=%s "
-                "soft_prompt_freeze_epochs=%d lambda_kg=%s lambda_k=%s grad_clip_norm=%s "
+                "soft_prompt_freeze_epochs=%d lambda_kg=%s lambda_k=%s lambda_stage=%s "
+                "stage_consistency_loss=%s stage_consistency_margin=%s "
+                "stage_update_soft_only=%s stage_detach_visual=%s stage_detach_qk=%s grad_clip_norm=%s "
                 "image_lr=%s text_lr=%s soft_lr=%s",
                 epoch_one_based,
                 getattr(model, "prompt_mode", "hybrid"),
@@ -296,6 +428,12 @@ def train(
                 soft_prompt_freeze_epochs,
                 lambda_kg,
                 lambda_k,
+                lambda_stage,
+                stage_consistency_loss,
+                stage_consistency_margin,
+                stage_consistency_update_soft_only,
+                stage_consistency_detach_visual,
+                stage_consistency_detach_qk,
                 grad_clip_norm,
                 get_optimizer_lr(optimizer, "image_adapter"),
                 get_optimizer_lr(optimizer, "text_adapter"),
@@ -307,8 +445,10 @@ def train(
         cls_loss_list = []
         kg_loss_list = []
         k_loss_list = []
+        stage_loss_list = []
         soft_prompt_stats_list = []
         k_reg_stats_list = []
+        stage_stats_list = []
         soft_prompt_grad_stats_list = []
         non_finite_loss_skips = 0
         non_finite_grad_skips = 0
@@ -320,13 +460,16 @@ def train(
             class_names = input_data["class_name"]
             # get adapted text embedding
             epoch_text_feature_dict = {}
+            hard_text_feature_dict = {}
+            soft_text_feature_dict = {}
             kg_losses = []
             k_losses = []
             batch_soft_stats = []
             batch_k_stats = []
             for class_name in list(set(class_names)):
                 if use_hybrid_soft_prompt:
-                    if lambda_k > 0:
+                    stage_enabled = lambda_stage > 0 and stage_consistency_loss != "none"
+                    if lambda_k > 0 or stage_enabled:
                         (
                             text_embedding_levels,
                             kg_loss_class,
@@ -335,14 +478,18 @@ def train(
                         ) = get_hybrid_soft_prompt_single_class_text_embedding(
                             model, dataset_name, class_name, device, return_kg=True, return_components=True
                         )
-                        k_loss_class, k_stats = compute_hybrid_k_regularization(
-                            model,
-                            components["hard_text"],
-                            components["soft_text"],
-                            hybrid_alpha_current,
-                        )
-                        k_losses.append(k_loss_class)
-                        batch_k_stats.append(k_stats)
+                        if lambda_k > 0:
+                            k_loss_class, k_stats = compute_hybrid_k_regularization(
+                                model,
+                                components["hard_text"],
+                                components["soft_text"],
+                                hybrid_alpha_current,
+                            )
+                            k_losses.append(k_loss_class)
+                            batch_k_stats.append(k_stats)
+                        if stage_enabled:
+                            hard_text_feature_dict[class_name] = components["hard_text"]
+                            soft_text_feature_dict[class_name] = components["soft_text"]
                     else:
                         text_embedding_levels, kg_loss_class, soft_stats = get_hybrid_soft_prompt_single_class_text_embedding(
                             model, dataset_name, class_name, device, return_kg=True
@@ -365,6 +512,18 @@ def train(
                 dim=0,
             )  # [bs, n_groups, 768, 2]
             epoch_text_features = epoch_text_features.permute(1, 0, 2, 3)  # [n_groups, bs, 768, 2]
+            if hard_text_feature_dict:
+                hard_text_features = torch.stack(
+                    [hard_text_feature_dict[class_name] for class_name in class_names],
+                    dim=0,
+                ).permute(1, 0, 2, 3)
+                soft_text_features = torch.stack(
+                    [soft_text_feature_dict[class_name] for class_name in class_names],
+                    dim=0,
+                ).permute(1, 0, 2, 3)
+            else:
+                hard_text_features = None
+                soft_text_features = None
             if kg_losses:
                 kg_loss = torch.stack(kg_losses).mean()
                 soft_prompt_stats_list.extend(batch_soft_stats)
@@ -392,7 +551,24 @@ def train(
                 seg_pred = model.vision_text_fusion_gate_seg(seg_features, epoch_text_features)
                 seg_loss = calculate_seg_loss(seg_pred, mask)
                 loss_main = cls_loss + seg_loss
-                loss = loss_main + lambda_kg * kg_loss + lambda_k * k_loss
+                if lambda_stage > 0 and stage_consistency_loss != "none":
+                    if hard_text_features is None or soft_text_features is None:
+                        raise RuntimeError("stage consistency requires hybrid hard/soft text components")
+                    stage_loss, stage_stats = compute_stage_routing_consistency(
+                        model=model,
+                        seg_features=seg_features,
+                        hard_text_features=hard_text_features,
+                        soft_text_features=soft_text_features,
+                        alpha=hybrid_alpha_current,
+                        loss_type=stage_consistency_loss,
+                        margin=stage_consistency_margin,
+                        detach_visual=stage_consistency_detach_visual or stage_consistency_update_soft_only,
+                        detach_qk=stage_consistency_detach_qk or stage_consistency_update_soft_only,
+                    )
+                    stage_stats_list.append(stage_stats)
+                else:
+                    stage_loss = torch.zeros((), device=device)
+                loss = loss_main + lambda_kg * kg_loss + lambda_k * k_loss + lambda_stage * stage_loss
             if not torch.isfinite(loss).all():
                 non_finite_loss_skips += 1
                 diag_path = save_nonfinite_diagnostics(
@@ -413,6 +589,7 @@ def train(
                         "seg_loss": seg_loss,
                         "kg_loss": kg_loss,
                         "k_loss": k_loss,
+                        "stage_loss": stage_loss,
                         "loss": loss,
                     },
                     metadata={
@@ -429,6 +606,9 @@ def train(
                         "soft_prompt_frozen": soft_prompt_frozen,
                         "lambda_kg": lambda_kg,
                         "lambda_k": lambda_k,
+                        "lambda_stage": lambda_stage,
+                        "stage_consistency_loss": stage_consistency_loss,
+                        "stage_consistency_margin": stage_consistency_margin,
                         "class_names": list(class_names),
                         "labels": label.detach().cpu().tolist(),
                     },
@@ -462,6 +642,7 @@ def train(
             seg_loss_list.append(seg_loss.item())
             kg_loss_list.append(kg_loss.item())
             k_loss_list.append(k_loss.item())
+            stage_loss_list.append(stage_loss.item())
             # backward
             optimizer.zero_grad(set_to_none=True)
             scaler.scale(loss).backward()
@@ -505,6 +686,7 @@ def train(
                         "seg_loss": seg_loss,
                         "kg_loss": kg_loss,
                         "k_loss": k_loss,
+                        "stage_loss": stage_loss,
                         "cls_pred": cls_pred,
                         "seg_pred": seg_pred,
                     },
@@ -525,6 +707,9 @@ def train(
                         "soft_prompt_frozen": soft_prompt_frozen,
                         "lambda_kg": lambda_kg,
                         "lambda_k": lambda_k,
+                        "lambda_stage": lambda_stage,
+                        "stage_consistency_loss": stage_consistency_loss,
+                        "stage_consistency_margin": stage_consistency_margin,
                     },
                 )
                 logger.error(
@@ -557,6 +742,9 @@ def train(
                 if lambda_k > 0:
                     postfix["k_loss"] = f"{k_loss.item():.5f}"
                     postfix["wk_loss"] = f"{(lambda_k * k_loss).item():.5f}"
+                if lambda_stage > 0 and stage_consistency_loss != "none":
+                    postfix["stage_loss"] = f"{stage_loss.item():.5f}"
+                    postfix["wstage"] = f"{(lambda_stage * stage_loss).item():.5f}"
                 postfix["alpha"] = f"{hybrid_alpha_current:.3f}"
                 postfix["frozen"] = soft_prompt_frozen
                 postfix["text_lr"] = get_optimizer_lr(optimizer, "text_adapter")
@@ -581,6 +769,8 @@ def train(
             logger.info(
                 "soft_prompt_epoch epoch=%d prompt_mode=%s mean_kg_loss=%s lambda_kg=%s "
                 "mean_k_loss=%s weighted_k_loss=%s lambda_k=%s k_stats=%s "
+                "mean_stage_loss=%s weighted_stage_loss=%s lambda_stage=%s "
+                "stage_consistency_loss=%s stage_consistency_margin=%s stage_stats=%s "
                 "hybrid_alpha=%s effective_prompt_mode=%s effective_alpha=%s "
                 "hard_branch_lora_used=%s soft_branch_lora_used=False "
                 "soft_prompt_frozen=%s grad_clip_norm=%s stats=%s ctx_stats=%s grad_stats=%s "
@@ -593,6 +783,12 @@ def train(
                 float(lambda_k * np.mean(k_loss_list)) if k_loss_list else None,
                 lambda_k,
                 mean_stats(k_reg_stats_list),
+                float(np.mean(stage_loss_list)) if stage_loss_list else None,
+                float(lambda_stage * np.mean(stage_loss_list)) if stage_loss_list else None,
+                lambda_stage,
+                stage_consistency_loss,
+                stage_consistency_margin,
+                mean_stats(stage_stats_list),
                 getattr(model, "hybrid_alpha_current", 0.0),
                 getattr(model, "prompt_mode", "soft"),
                 getattr(model, "hybrid_alpha_current", 0.0),
@@ -650,6 +846,12 @@ def train(
             "grad_clip_norm": grad_clip_norm,
             "lambda_kg": lambda_kg,
             "lambda_k": lambda_k,
+            "lambda_stage": lambda_stage,
+            "stage_consistency_loss": stage_consistency_loss,
+            "stage_consistency_margin": stage_consistency_margin,
+            "stage_consistency_update_soft_only": stage_consistency_update_soft_only,
+            "stage_consistency_detach_visual": stage_consistency_detach_visual,
+            "stage_consistency_detach_qk": stage_consistency_detach_qk,
             "k_reg_detached_wk": bool(lambda_k > 0),
             "k_reg_per_stage": bool(lambda_k > 0),
             "text_adapter": model.text_adapter.state_dict(),
@@ -705,6 +907,35 @@ def main():
     parser.add_argument("--soft_prompt_init_phrase", type=str, default="a photo of a")
     parser.add_argument("--lambda_kg", type=float, default=1e-3)
     parser.add_argument("--lambda_k", type=float, default=0.0, help="hybrid K-space regularization weight")
+    parser.add_argument("--lambda_stage", type=float, default=0.0, help="Phase3B DFG routing consistency weight")
+    parser.add_argument(
+        "--stage_consistency_loss",
+        type=str,
+        choices=["none", "js", "js_margin"],
+        default="none",
+        help="Phase3B stage routing consistency loss",
+    )
+    parser.add_argument(
+        "--stage_consistency_margin",
+        type=float,
+        default=0.02,
+        help="JS margin for Phase3B stage routing trust region",
+    )
+    parser.add_argument(
+        "--stage_consistency_update_soft_only",
+        action="store_true",
+        help="detach hard/visual/qk paths so L_stage mainly regularizes soft prompt",
+    )
+    parser.add_argument(
+        "--stage_consistency_detach_visual",
+        action="store_true",
+        help="detach visual features and SS2D branch from Phase3B stage loss",
+    )
+    parser.add_argument(
+        "--stage_consistency_detach_qk",
+        action="store_true",
+        help="use detached W_Q/W_K parameters for Phase3B stage loss",
+    )
     parser.add_argument("--lr_gamma", type=float, default=0.9, help="learning rate decay factor")
     parser.add_argument(
         "--dfg_mode",
@@ -906,6 +1137,12 @@ def main():
         non_finite_loss_abort_threshold=args.non_finite_loss_abort_threshold,
         lambda_kg=args.lambda_kg,
         lambda_k=args.lambda_k,
+        lambda_stage=args.lambda_stage,
+        stage_consistency_loss=args.stage_consistency_loss,
+        stage_consistency_margin=args.stage_consistency_margin,
+        stage_consistency_update_soft_only=args.stage_consistency_update_soft_only,
+        stage_consistency_detach_visual=args.stage_consistency_detach_visual,
+        stage_consistency_detach_qk=args.stage_consistency_detach_qk,
         hybrid_alpha_max=args.hybrid_alpha_max,
         soft_prompt_freeze_epochs=args.soft_prompt_freeze_epochs,
         grad_clip_norm=args.grad_clip_norm,
