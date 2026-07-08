@@ -54,10 +54,24 @@ class ACDCLIP(nn.Module):
             soft_prompt_ctx_len: int = 4,
             soft_prompt_init: str = "phrase",
             soft_prompt_init_phrase: str = "a photo of a",
+            convlora_variant: str = "standard",
+            dynamic_dw_num_experts: int = 2,
+            dynamic_dw_temperature: float = 10.0,
+            dynamic_dw_gate_hidden_ratio: float = 0.25,
+            dynamic_dw_use_bn: bool = True,
+            dynamic_dw_activation: str = "silu",
+            dynamic_dw_zero_init: bool = False,
             **kwargs,
     ):
         super().__init__()
         assert n_groups in [2, 3, 4, 6], "n_groups must be one of [2, 3, 4, 6]"
+        assert convlora_variant in ["standard", "depthwise_separable", "dynamic_depthwise_expert"], (
+            "convlora_variant must be one of ['standard', 'depthwise_separable', 'dynamic_depthwise_expert']"
+        )
+        assert dynamic_dw_num_experts >= 1, "dynamic_dw_num_experts must be >= 1"
+        assert dynamic_dw_temperature > 0, "dynamic_dw_temperature must be positive"
+        assert dynamic_dw_gate_hidden_ratio > 0, "dynamic_dw_gate_hidden_ratio must be positive"
+        assert dynamic_dw_activation in ["relu", "silu"], "dynamic_dw_activation must be one of ['relu', 'silu']"
         assert dfg_mode in ["mlp", "attn"], "dfg_mode must be one of ['mlp', 'attn']"
         assert dfg_attn_tau > 0, "dfg_attn_tau must be positive"
         assert dfg_gamma_max >= 0, "dfg_gamma_max must be non-negative"
@@ -101,6 +115,13 @@ class ACDCLIP(nn.Module):
         self.soft_prompt_ctx_len = soft_prompt_ctx_len
         self.soft_prompt_init = soft_prompt_init
         self.soft_prompt_init_phrase = soft_prompt_init_phrase
+        self.convlora_variant = convlora_variant
+        self.dynamic_dw_num_experts = int(dynamic_dw_num_experts)
+        self.dynamic_dw_temperature = float(dynamic_dw_temperature)
+        self.dynamic_dw_gate_hidden_ratio = float(dynamic_dw_gate_hidden_ratio)
+        self.dynamic_dw_use_bn = bool(dynamic_dw_use_bn)
+        self.dynamic_dw_activation = dynamic_dw_activation
+        self.dynamic_dw_zero_init = bool(dynamic_dw_zero_init)
         self._last_dfg_stats = {}
 
         image_adapt_weights = nn.ModuleList(
@@ -109,7 +130,13 @@ class ACDCLIP(nn.Module):
         image_lora_adapters = nn.ModuleList(
             [
                 ConvLoraAdapter(1024, 1024, lora_rank, lora_alpha, conv_lora_rank, conv_lora_alpha,
-                                conv_kernel_size_list)
+                                conv_kernel_size_list, convlora_variant=convlora_variant,
+                                dynamic_dw_num_experts=dynamic_dw_num_experts,
+                                dynamic_dw_temperature=dynamic_dw_temperature,
+                                dynamic_dw_gate_hidden_ratio=dynamic_dw_gate_hidden_ratio,
+                                dynamic_dw_use_bn=dynamic_dw_use_bn,
+                                dynamic_dw_activation=dynamic_dw_activation,
+                                dynamic_dw_zero_init=dynamic_dw_zero_init)
                 for _ in
                 range(n_groups)
             ]
@@ -490,6 +517,19 @@ class ACDCLIP(nn.Module):
         diagnostics = {}
         for group_index, stats in self._last_dfg_stats.items():
             prefix = f"stage{group_index + 1}"
+            for key, value in stats.items():
+                diagnostics[f"{prefix}_{key}"] = value
+        return diagnostics
+
+    def get_convlora_diagnostics(self):
+        diagnostics = {}
+        if "lora_adapters" not in self.image_adapter:
+            return diagnostics
+        for group_index, adapter in enumerate(self.image_adapter["lora_adapters"]):
+            stats = getattr(adapter, "_last_stats", {})
+            if not stats:
+                continue
+            prefix = f"image_stage{group_index + 1}"
             for key, value in stats.items():
                 diagnostics[f"{prefix}_{key}"] = value
         return diagnostics

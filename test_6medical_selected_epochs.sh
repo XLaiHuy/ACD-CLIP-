@@ -18,6 +18,13 @@ METRIC_THRESHOLDS="${METRIC_THRESHOLDS:-1000}"
 PIXEL_STRIDE="${PIXEL_STRIDE:-1}"
 MAX_SAMPLES="${MAX_SAMPLES:-none}"
 MAX_SAMPLES_PER_LABEL="${MAX_SAMPLES_PER_LABEL:-none}"
+CONVLORA_VARIANT="${CONVLORA_VARIANT:-standard}"
+DYNAMIC_DW_NUM_EXPERTS="${DYNAMIC_DW_NUM_EXPERTS:-2}"
+DYNAMIC_DW_TEMPERATURE="${DYNAMIC_DW_TEMPERATURE:-10.0}"
+DYNAMIC_DW_GATE_HIDDEN_RATIO="${DYNAMIC_DW_GATE_HIDDEN_RATIO:-0.25}"
+DYNAMIC_DW_USE_BN="${DYNAMIC_DW_USE_BN:-1}"
+DYNAMIC_DW_ACTIVATION="${DYNAMIC_DW_ACTIVATION:-silu}"
+DYNAMIC_DW_ZERO_INIT="${DYNAMIC_DW_ZERO_INIT:-0}"
 
 if [ "$#" -gt 0 ]; then
   EPOCHS=("$@")
@@ -51,8 +58,21 @@ for DATASET in "${DATASET_LIST[@]}"; do
     --num_workers "${NUM_WORKERS}" \
     --save_path "${SAVE_PATH}" \
     --pixel_stride "${PIXEL_STRIDE}" \
+    --convlora_variant "${CONVLORA_VARIANT}" \
+    --dynamic_dw_num_experts "${DYNAMIC_DW_NUM_EXPERTS}" \
+    --dynamic_dw_temperature "${DYNAMIC_DW_TEMPERATURE}" \
+    --dynamic_dw_gate_hidden_ratio "${DYNAMIC_DW_GATE_HIDDEN_RATIO}" \
+    --dynamic_dw_activation "${DYNAMIC_DW_ACTIVATION}" \
     --epochs "${EPOCHS[@]}"
   )
+  if [ "${DYNAMIC_DW_USE_BN}" != "0" ]; then
+    CMD+=(--dynamic_dw_use_bn)
+  else
+    CMD+=(--no-dynamic_dw_use_bn)
+  fi
+  if [ "${DYNAMIC_DW_ZERO_INIT}" != "0" ]; then
+    CMD+=(--dynamic_dw_zero_init)
+  fi
   if [ "${USE_SS2D_DFG}" != "0" ]; then
     CMD+=(
       --use_ss2d_dfg

@@ -195,6 +195,19 @@ def main():
     parser.add_argument("--conv_lora_alpha", type=float, default=2.0, help="alpha for LoRA adapters")
     parser.add_argument("--conv_kernel_size_list", type=int, nargs="+", default=[3, 5],
                         help="kernel size for convolutional LoRA adapters")
+    parser.add_argument(
+        "--convlora_variant",
+        type=str,
+        choices=["standard", "depthwise_separable", "dynamic_depthwise_expert"],
+        default="standard",
+        help="Conv-LoRA internals used by the checkpoint",
+    )
+    parser.add_argument("--dynamic_dw_num_experts", type=int, default=2)
+    parser.add_argument("--dynamic_dw_temperature", type=float, default=10.0)
+    parser.add_argument("--dynamic_dw_gate_hidden_ratio", type=float, default=0.25)
+    parser.add_argument("--dynamic_dw_use_bn", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--dynamic_dw_activation", type=str, choices=["relu", "silu"], default="silu")
+    parser.add_argument("--dynamic_dw_zero_init", action="store_true")
     parser.add_argument("--use_soft_prompt", action="store_true", help="force Phase2B soft prompt at test time")
     parser.add_argument("--use_hybrid_soft_prompt", action="store_true", help="force Phase2B hard-soft hybrid prompt")
     parser.add_argument("--hybrid_alpha", type=float, default=None, help="force hybrid alpha when checkpoint lacks it")
@@ -298,6 +311,13 @@ def main():
         conv_lora_rank=args.conv_lora_rank,
         conv_lora_alpha=args.conv_lora_alpha,
         conv_kernel_size_list=args.conv_kernel_size_list,
+        convlora_variant=args.convlora_variant,
+        dynamic_dw_num_experts=args.dynamic_dw_num_experts,
+        dynamic_dw_temperature=args.dynamic_dw_temperature,
+        dynamic_dw_gate_hidden_ratio=args.dynamic_dw_gate_hidden_ratio,
+        dynamic_dw_use_bn=args.dynamic_dw_use_bn,
+        dynamic_dw_activation=args.dynamic_dw_activation,
+        dynamic_dw_zero_init=args.dynamic_dw_zero_init,
         dfg_mode=args.dfg_mode,
         dfg_attn_dim=args.dfg_attn_dim,
         dfg_attn_tau=args.dfg_attn_tau,
@@ -334,6 +354,33 @@ def main():
                 f"Checkpoint n_groups is {checkpoint['n_groups']!r}, "
                 f"but --n_groups is {args.n_groups!r}."
             )
+        ckpt_convlora_variant = checkpoint.get("convlora_variant", "standard")
+        if ckpt_convlora_variant != args.convlora_variant:
+            raise ValueError(
+                f"Checkpoint convlora_variant is {ckpt_convlora_variant!r}, "
+                f"but --convlora_variant is {args.convlora_variant!r}."
+            )
+        if ckpt_convlora_variant != "standard":
+            metadata_checks = {
+                "dynamic_dw_num_experts": args.dynamic_dw_num_experts,
+                "dynamic_dw_temperature": args.dynamic_dw_temperature,
+                "dynamic_dw_gate_hidden_ratio": args.dynamic_dw_gate_hidden_ratio,
+                "dynamic_dw_use_bn": args.dynamic_dw_use_bn,
+                "dynamic_dw_activation": args.dynamic_dw_activation,
+                "dynamic_dw_zero_init": args.dynamic_dw_zero_init,
+            }
+            for key, expected in metadata_checks.items():
+                actual = checkpoint.get(key, expected)
+                if isinstance(expected, float):
+                    if abs(float(actual) - expected) > 1e-8:
+                        raise ValueError(
+                            f"Checkpoint {key} is {actual!r}, but CLI value is {expected!r}."
+                        )
+                else:
+                    if actual != expected:
+                        raise ValueError(
+                            f"Checkpoint {key} is {actual!r}, but CLI value is {expected!r}."
+                        )
         if args.dfg_mode == "attn":
             if checkpoint.get("dfg_attn_dim", args.dfg_attn_dim) != args.dfg_attn_dim:
                 raise ValueError(
@@ -448,6 +495,18 @@ def main():
             effective_prompt_mode in ["hard", "hybrid"],
             getattr(model, "use_soft_prompt", False),
             getattr(model, "use_hybrid_soft_prompt", False),
+        )
+        logger.info(
+            "effective_convlora_variant=%s dynamic_dw_num_experts=%s dynamic_dw_temperature=%s "
+            "dynamic_dw_gate_hidden_ratio=%s dynamic_dw_use_bn=%s dynamic_dw_activation=%s "
+            "dynamic_dw_zero_init=%s",
+            model.convlora_variant,
+            model.dynamic_dw_num_experts,
+            model.dynamic_dw_temperature,
+            model.dynamic_dw_gate_hidden_ratio,
+            model.dynamic_dw_use_bn,
+            model.dynamic_dw_activation,
+            model.dynamic_dw_zero_init,
         )
         logger.info("-----------------------------------------------")
         image_datasets = get_text_and_image_dataset(

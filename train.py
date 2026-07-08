@@ -238,6 +238,7 @@ def train(
         save_path: str,
         logger: logging.Logger,
         use_amp: bool = False,
+        amp_dtype: str = "fp16",
         dfg_beta_schedule: str = "fixed",
         dfg_beta_target: float = 0.10,
         dfg_beta: float = 0.10,
@@ -248,7 +249,13 @@ def train(
         soft_prompt_freeze_epochs: int = 3,
         grad_clip_norm: float = 1.0,
 ):
-    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+    if amp_dtype == "bf16":
+        amp_dtype = "bfloat16"
+    if amp_dtype not in ["fp16", "bfloat16"]:
+        raise ValueError(f"amp_dtype must be one of ['fp16', 'bfloat16', 'bf16'], got {amp_dtype!r}")
+    autocast_dtype = torch.float16 if amp_dtype == "fp16" else torch.bfloat16
+    scaler = torch.cuda.amp.GradScaler(enabled=use_amp and amp_dtype == "fp16")
+    logger.info("amp_state use_amp=%s amp_dtype=%s grad_scaler_enabled=%s", use_amp, amp_dtype, scaler.is_enabled())
     for epoch in range(0, total_epoch):
         epoch_one_based = epoch + 1
         use_hybrid_soft_prompt = bool(getattr(model, "use_hybrid_soft_prompt", False))
@@ -375,7 +382,7 @@ def train(
                 k_reg_stats_list.extend(batch_k_stats)
             else:
                 k_loss = torch.zeros((), device=device)
-            with torch.cuda.amp.autocast(enabled=use_amp):
+            with torch.cuda.amp.autocast(enabled=use_amp, dtype=autocast_dtype):
                 seg_tokens, det_tokens = model(image)  # [bs, patch_size, 768] * n_groups, [bs, 768] * n_groups
                 seg_features = torch.stack(seg_tokens, dim=0)  # [n_groups, bs, patch_num, 768]
                 det_features = torch.stack(det_tokens, dim=0)  # [n_groups, bs, 768]
@@ -431,6 +438,8 @@ def train(
                         "lambda_k": lambda_k,
                         "class_names": list(class_names),
                         "labels": label.detach().cpu().tolist(),
+                        "amp_dtype": amp_dtype,
+                        "grad_scaler_enabled": scaler.is_enabled(),
                     },
                 )
                 logger.warning(
@@ -525,6 +534,8 @@ def train(
                         "soft_prompt_frozen": soft_prompt_frozen,
                         "lambda_kg": lambda_kg,
                         "lambda_k": lambda_k,
+                        "amp_dtype": amp_dtype,
+                        "grad_scaler_enabled": scaler.is_enabled(),
                     },
                 )
                 logger.error(
@@ -610,6 +621,22 @@ def train(
             non_finite_loss_skips,
             non_finite_grad_skips,
         )
+        if getattr(model, "convlora_variant", "standard") != "standard":
+            logger.info(
+                "convlora_epoch epoch=%d convlora_variant=%s dynamic_dw_num_experts=%s "
+                "dynamic_dw_temperature=%s dynamic_dw_gate_hidden_ratio=%s dynamic_dw_use_bn=%s "
+                "dynamic_dw_activation=%s dynamic_dw_zero_init=%s",
+                epoch + 1,
+                model.convlora_variant,
+                model.dynamic_dw_num_experts,
+                model.dynamic_dw_temperature,
+                model.dynamic_dw_gate_hidden_ratio,
+                model.dynamic_dw_use_bn,
+                model.dynamic_dw_activation,
+                model.dynamic_dw_zero_init,
+            )
+            for key, value in model.get_convlora_diagnostics().items():
+                logger.info("convlora_diag epoch=%d %s=%s", epoch + 1, key, value)
         if model.dfg_mode == "attn":
             diagnostics = model.get_dfg_diagnostics()
             for key, value in diagnostics.items():
@@ -648,10 +675,19 @@ def train(
             "hybrid_alpha_max": hybrid_alpha_max,
             "soft_prompt_freeze_epochs": soft_prompt_freeze_epochs,
             "grad_clip_norm": grad_clip_norm,
+            "amp_dtype": amp_dtype,
+            "grad_scaler_enabled": scaler.is_enabled(),
             "lambda_kg": lambda_kg,
             "lambda_k": lambda_k,
             "k_reg_detached_wk": bool(lambda_k > 0),
             "k_reg_per_stage": bool(lambda_k > 0),
+            "convlora_variant": model.convlora_variant,
+            "dynamic_dw_num_experts": model.dynamic_dw_num_experts,
+            "dynamic_dw_temperature": model.dynamic_dw_temperature,
+            "dynamic_dw_gate_hidden_ratio": model.dynamic_dw_gate_hidden_ratio,
+            "dynamic_dw_use_bn": model.dynamic_dw_use_bn,
+            "dynamic_dw_activation": model.dynamic_dw_activation,
+            "dynamic_dw_zero_init": model.dynamic_dw_zero_init,
             "text_adapter": model.text_adapter.state_dict(),
             "image_adapter": model.image_adapter.state_dict()
         }
@@ -688,6 +724,19 @@ def main():
         "--conv_kernel_size_list", type=int, nargs="+", default=[3, 5],
         help="kernel size for convolutional LoRA adapters"
     )
+    parser.add_argument(
+        "--convlora_variant",
+        type=str,
+        choices=["standard", "depthwise_separable", "dynamic_depthwise_expert"],
+        default="standard",
+        help="Conv-LoRA internals: original kxk conv, depthwise separable, or dynamic depthwise expert",
+    )
+    parser.add_argument("--dynamic_dw_num_experts", type=int, default=2)
+    parser.add_argument("--dynamic_dw_temperature", type=float, default=10.0)
+    parser.add_argument("--dynamic_dw_gate_hidden_ratio", type=float, default=0.25)
+    parser.add_argument("--dynamic_dw_use_bn", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--dynamic_dw_activation", type=str, choices=["relu", "silu"], default="silu")
+    parser.add_argument("--dynamic_dw_zero_init", action="store_true")
 
     parser.add_argument("--text_adapt_weight", type=float, default=0.2)
     parser.add_argument("--lora_rank", type=int, default=16, help="rank for LoRA adapters")
@@ -742,6 +791,13 @@ def main():
     parser.add_argument("--grad_clip_norm", type=float, default=1.0, help="clip trainable adapter gradients; <=0 disables")
     parser.add_argument("--amp", action="store_true", help="enable Automatic Mixed Precision training")
     parser.add_argument(
+        "--amp_dtype",
+        type=str,
+        choices=["fp16", "bfloat16", "bf16"],
+        default="fp16",
+        help="AMP dtype. Use bfloat16/bf16 to avoid fp16 overflow while keeping AMP speed.",
+    )
+    parser.add_argument(
         "--grad_checkpointing",
         action="store_true",
         help="enable activation checkpointing to reduce ViT memory usage",
@@ -782,6 +838,13 @@ def main():
         conv_lora_rank=args.conv_lora_rank,
         conv_lora_alpha=args.conv_lora_alpha,
         conv_kernel_size_list=args.conv_kernel_size_list,
+        convlora_variant=args.convlora_variant,
+        dynamic_dw_num_experts=args.dynamic_dw_num_experts,
+        dynamic_dw_temperature=args.dynamic_dw_temperature,
+        dynamic_dw_gate_hidden_ratio=args.dynamic_dw_gate_hidden_ratio,
+        dynamic_dw_use_bn=args.dynamic_dw_use_bn,
+        dynamic_dw_activation=args.dynamic_dw_activation,
+        dynamic_dw_zero_init=args.dynamic_dw_zero_init,
         text_adapt_weight=args.text_adapt_weight,
         lora_rank=args.lora_rank,
         lora_alpha=args.lora_alpha,
@@ -822,6 +885,19 @@ def main():
     logger.info("trainable parameters: %s", f"{trainable_params:,}")
     logger.info("frozen parameters: %s", f"{frozen_params:,}")
     logger.info("dfg_weight_residual_fp32=%s", model.dfg_weight_residual_fp32)
+    logger.info("amp_requested=%s amp_dtype=%s", args.amp, args.amp_dtype)
+    logger.info(
+        "convlora_variant=%s dynamic_dw_num_experts=%s dynamic_dw_temperature=%s "
+        "dynamic_dw_gate_hidden_ratio=%s dynamic_dw_use_bn=%s dynamic_dw_activation=%s "
+        "dynamic_dw_zero_init=%s",
+        model.convlora_variant,
+        model.dynamic_dw_num_experts,
+        model.dynamic_dw_temperature,
+        model.dynamic_dw_gate_hidden_ratio,
+        model.dynamic_dw_use_bn,
+        model.dynamic_dw_activation,
+        model.dynamic_dw_zero_init,
+    )
 
     # set optimizer
     if args.use_hybrid_soft_prompt:
@@ -900,6 +976,7 @@ def main():
         save_path=args.save_path,
         logger=logger,
         use_amp=args.amp,
+        amp_dtype=args.amp_dtype,
         dfg_beta_schedule=args.dfg_beta_schedule,
         dfg_beta_target=args.dfg_beta_target,
         dfg_beta=args.dfg_beta,
