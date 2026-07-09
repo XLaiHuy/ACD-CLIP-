@@ -173,6 +173,23 @@ def apply_soft_prompt_lr_policy(optimizer: torch.optim.Optimizer, frozen: bool):
             group["lr"] = 0.0 if frozen else group["constant_lr"]
 
 
+def resolve_amp_dtype(amp_dtype: str):
+    amp_dtype = amp_dtype.lower()
+    if amp_dtype in {"fp16", "float16"}:
+        return torch.float16
+    if amp_dtype in {"bf16", "bfloat16"}:
+        return torch.bfloat16
+    raise ValueError(f"Unknown amp_dtype: {amp_dtype}")
+
+
+def get_stage_lambda_for_epoch(lambda_stage: float, epoch_one_based: int, warmup_epochs: int):
+    if lambda_stage <= 0:
+        return 0.0
+    if warmup_epochs > 0 and epoch_one_based <= warmup_epochs:
+        return 0.0
+    return lambda_stage
+
+
 def detached_linear(linear: nn.Linear, x: torch.Tensor) -> torch.Tensor:
     bias = None if linear.bias is None else linear.bias.detach()
     return F.linear(x, linear.weight.detach(), bias)
@@ -362,6 +379,7 @@ def train(
         save_path: str,
         logger: logging.Logger,
         use_amp: bool = False,
+        amp_dtype: str = "fp16",
         dfg_beta_schedule: str = "fixed",
         dfg_beta_target: float = 0.10,
         dfg_beta: float = 0.10,
@@ -369,6 +387,7 @@ def train(
         lambda_kg: float = 1e-3,
         lambda_k: float = 0.0,
         lambda_stage: float = 0.0,
+        stage_consistency_warmup_epochs: int = 0,
         stage_consistency_loss: str = "none",
         stage_consistency_margin: float = 0.02,
         stage_consistency_update_soft_only: bool = False,
@@ -378,9 +397,19 @@ def train(
         soft_prompt_freeze_epochs: int = 3,
         grad_clip_norm: float = 1.0,
 ):
-    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+    amp_torch_dtype = resolve_amp_dtype(amp_dtype)
+    if use_amp and amp_torch_dtype == torch.bfloat16 and torch.cuda.is_available():
+        if not torch.cuda.is_bf16_supported():
+            raise RuntimeError("amp_dtype=bf16 was requested, but torch.cuda.is_bf16_supported() is False")
+    scaler_enabled = bool(use_amp and amp_torch_dtype == torch.float16)
+    scaler = torch.amp.GradScaler("cuda", enabled=scaler_enabled)
     for epoch in range(0, total_epoch):
         epoch_one_based = epoch + 1
+        lambda_stage_effective = get_stage_lambda_for_epoch(
+            lambda_stage,
+            epoch_one_based,
+            stage_consistency_warmup_epochs,
+        )
         use_hybrid_soft_prompt = bool(getattr(model, "use_hybrid_soft_prompt", False))
         use_soft_prompt = bool(getattr(model, "use_soft_prompt", False))
         soft_prompt_frozen = False
@@ -418,9 +447,10 @@ def train(
                 "hybrid_state epoch=%d effective_prompt_mode=%s effective_alpha=%s "
                 "hard_branch_lora_used=True soft_branch_lora_used=False soft_prompt_frozen=%s "
                 "soft_prompt_freeze_epochs=%d lambda_kg=%s lambda_k=%s lambda_stage=%s "
+                "lambda_stage_effective=%s stage_consistency_warmup_epochs=%s "
                 "stage_consistency_loss=%s stage_consistency_margin=%s "
                 "stage_update_soft_only=%s stage_detach_visual=%s stage_detach_qk=%s grad_clip_norm=%s "
-                "image_lr=%s text_lr=%s soft_lr=%s",
+                "use_amp=%s amp_dtype=%s scaler_enabled=%s image_lr=%s text_lr=%s soft_lr=%s",
                 epoch_one_based,
                 getattr(model, "prompt_mode", "hybrid"),
                 hybrid_alpha_current,
@@ -429,12 +459,17 @@ def train(
                 lambda_kg,
                 lambda_k,
                 lambda_stage,
+                lambda_stage_effective,
+                stage_consistency_warmup_epochs,
                 stage_consistency_loss,
                 stage_consistency_margin,
                 stage_consistency_update_soft_only,
                 stage_consistency_detach_visual,
                 stage_consistency_detach_qk,
                 grad_clip_norm,
+                use_amp,
+                amp_dtype,
+                scaler_enabled,
                 get_optimizer_lr(optimizer, "image_adapter"),
                 get_optimizer_lr(optimizer, "text_adapter"),
                 get_optimizer_lr(optimizer, "soft_prompt"),
@@ -468,7 +503,7 @@ def train(
             batch_k_stats = []
             for class_name in list(set(class_names)):
                 if use_hybrid_soft_prompt:
-                    stage_enabled = lambda_stage > 0 and stage_consistency_loss != "none"
+                    stage_enabled = lambda_stage_effective > 0 and stage_consistency_loss != "none"
                     if lambda_k > 0 or stage_enabled:
                         (
                             text_embedding_levels,
@@ -534,7 +569,7 @@ def train(
                 k_reg_stats_list.extend(batch_k_stats)
             else:
                 k_loss = torch.zeros((), device=device)
-            with torch.cuda.amp.autocast(enabled=use_amp):
+            with torch.amp.autocast("cuda", enabled=use_amp, dtype=amp_torch_dtype):
                 seg_tokens, det_tokens = model(image)  # [bs, patch_size, 768] * n_groups, [bs, 768] * n_groups
                 seg_features = torch.stack(seg_tokens, dim=0)  # [n_groups, bs, patch_num, 768]
                 det_features = torch.stack(det_tokens, dim=0)  # [n_groups, bs, 768]
@@ -551,7 +586,7 @@ def train(
                 seg_pred = model.vision_text_fusion_gate_seg(seg_features, epoch_text_features)
                 seg_loss = calculate_seg_loss(seg_pred, mask)
                 loss_main = cls_loss + seg_loss
-                if lambda_stage > 0 and stage_consistency_loss != "none":
+                if lambda_stage_effective > 0 and stage_consistency_loss != "none":
                     if hard_text_features is None or soft_text_features is None:
                         raise RuntimeError("stage consistency requires hybrid hard/soft text components")
                     stage_loss, stage_stats = compute_stage_routing_consistency(
@@ -568,7 +603,7 @@ def train(
                     stage_stats_list.append(stage_stats)
                 else:
                     stage_loss = torch.zeros((), device=device)
-                loss = loss_main + lambda_kg * kg_loss + lambda_k * k_loss + lambda_stage * stage_loss
+                loss = loss_main + lambda_kg * kg_loss + lambda_k * k_loss + lambda_stage_effective * stage_loss
             if not torch.isfinite(loss).all():
                 non_finite_loss_skips += 1
                 diag_path = save_nonfinite_diagnostics(
@@ -594,6 +629,8 @@ def train(
                     },
                     metadata={
                         "use_amp": use_amp,
+                        "amp_dtype": amp_dtype,
+                        "scaler_enabled": scaler_enabled,
                         "dfg_ss2d_fusion": model.dfg_ss2d_fusion,
                         "dfg_beta_schedule": dfg_beta_schedule,
                         "dfg_beta_target": dfg_beta_target,
@@ -607,6 +644,8 @@ def train(
                         "lambda_kg": lambda_kg,
                         "lambda_k": lambda_k,
                         "lambda_stage": lambda_stage,
+                        "lambda_stage_effective": lambda_stage_effective,
+                        "stage_consistency_warmup_epochs": stage_consistency_warmup_epochs,
                         "stage_consistency_loss": stage_consistency_loss,
                         "stage_consistency_margin": stage_consistency_margin,
                         "class_names": list(class_names),
@@ -695,6 +734,8 @@ def train(
                         "bad_param_name": bad_param_name,
                         "bad_param_stats": bad_param_stats,
                         "use_amp": use_amp,
+                        "amp_dtype": amp_dtype,
+                        "scaler_enabled": scaler_enabled,
                         "dfg_ss2d_fusion": model.dfg_ss2d_fusion,
                         "dfg_beta_schedule": dfg_beta_schedule,
                         "dfg_beta_target": dfg_beta_target,
@@ -708,6 +749,8 @@ def train(
                         "lambda_kg": lambda_kg,
                         "lambda_k": lambda_k,
                         "lambda_stage": lambda_stage,
+                        "lambda_stage_effective": lambda_stage_effective,
+                        "stage_consistency_warmup_epochs": stage_consistency_warmup_epochs,
                         "stage_consistency_loss": stage_consistency_loss,
                         "stage_consistency_margin": stage_consistency_margin,
                     },
@@ -744,7 +787,8 @@ def train(
                     postfix["wk_loss"] = f"{(lambda_k * k_loss).item():.5f}"
                 if lambda_stage > 0 and stage_consistency_loss != "none":
                     postfix["stage_loss"] = f"{stage_loss.item():.5f}"
-                    postfix["wstage"] = f"{(lambda_stage * stage_loss).item():.5f}"
+                    postfix["wstage"] = f"{(lambda_stage_effective * stage_loss).item():.5f}"
+                    postfix["stage_lam"] = f"{lambda_stage_effective:.4g}"
                 postfix["alpha"] = f"{hybrid_alpha_current:.3f}"
                 postfix["frozen"] = soft_prompt_frozen
                 postfix["text_lr"] = get_optimizer_lr(optimizer, "text_adapter")
@@ -770,10 +814,12 @@ def train(
                 "soft_prompt_epoch epoch=%d prompt_mode=%s mean_kg_loss=%s lambda_kg=%s "
                 "mean_k_loss=%s weighted_k_loss=%s lambda_k=%s k_stats=%s "
                 "mean_stage_loss=%s weighted_stage_loss=%s lambda_stage=%s "
+                "lambda_stage_effective=%s stage_consistency_warmup_epochs=%s "
                 "stage_consistency_loss=%s stage_consistency_margin=%s stage_stats=%s "
                 "hybrid_alpha=%s effective_prompt_mode=%s effective_alpha=%s "
                 "hard_branch_lora_used=%s soft_branch_lora_used=False "
-                "soft_prompt_frozen=%s grad_clip_norm=%s stats=%s ctx_stats=%s grad_stats=%s "
+                "soft_prompt_frozen=%s grad_clip_norm=%s use_amp=%s amp_dtype=%s scaler_enabled=%s "
+                "stats=%s ctx_stats=%s grad_stats=%s "
                 "text_encoder_frozen=True text_lora_used=%s",
                 epoch + 1,
                 getattr(model, "prompt_mode", "soft"),
@@ -784,8 +830,10 @@ def train(
                 lambda_k,
                 mean_stats(k_reg_stats_list),
                 float(np.mean(stage_loss_list)) if stage_loss_list else None,
-                float(lambda_stage * np.mean(stage_loss_list)) if stage_loss_list else None,
+                float(lambda_stage_effective * np.mean(stage_loss_list)) if stage_loss_list else None,
                 lambda_stage,
+                lambda_stage_effective,
+                stage_consistency_warmup_epochs,
                 stage_consistency_loss,
                 stage_consistency_margin,
                 mean_stats(stage_stats_list),
@@ -795,6 +843,9 @@ def train(
                 use_hybrid_soft_prompt,
                 soft_prompt_frozen,
                 grad_clip_norm,
+                use_amp,
+                amp_dtype,
+                scaler_enabled,
                 mean_stats(soft_prompt_stats_list),
                 model.soft_prompt.stats(),
                 mean_stats([s for s in soft_prompt_grad_stats_list if None not in s.values()]),
@@ -844,9 +895,14 @@ def train(
             "hybrid_alpha_max": hybrid_alpha_max,
             "soft_prompt_freeze_epochs": soft_prompt_freeze_epochs,
             "grad_clip_norm": grad_clip_norm,
+            "use_amp": use_amp,
+            "amp_dtype": amp_dtype,
+            "scaler_enabled": scaler_enabled,
             "lambda_kg": lambda_kg,
             "lambda_k": lambda_k,
             "lambda_stage": lambda_stage,
+            "lambda_stage_effective": lambda_stage_effective,
+            "stage_consistency_warmup_epochs": stage_consistency_warmup_epochs,
             "stage_consistency_loss": stage_consistency_loss,
             "stage_consistency_margin": stage_consistency_margin,
             "stage_consistency_update_soft_only": stage_consistency_update_soft_only,
@@ -936,6 +992,12 @@ def main():
         action="store_true",
         help="use detached W_Q/W_K parameters for Phase3B stage loss",
     )
+    parser.add_argument(
+        "--stage_consistency_warmup_epochs",
+        type=int,
+        default=0,
+        help="keep effective lambda_stage at 0 through this many initial epochs",
+    )
     parser.add_argument("--lr_gamma", type=float, default=0.9, help="learning rate decay factor")
     parser.add_argument(
         "--dfg_mode",
@@ -972,6 +1034,13 @@ def main():
     )
     parser.add_argument("--grad_clip_norm", type=float, default=1.0, help="clip trainable adapter gradients; <=0 disables")
     parser.add_argument("--amp", action="store_true", help="enable Automatic Mixed Precision training")
+    parser.add_argument(
+        "--amp_dtype",
+        type=str,
+        choices=["fp16", "float16", "bf16", "bfloat16"],
+        default="fp16",
+        help="autocast dtype when --amp is enabled",
+    )
     parser.add_argument(
         "--grad_checkpointing",
         action="store_true",
@@ -1131,6 +1200,7 @@ def main():
         save_path=args.save_path,
         logger=logger,
         use_amp=args.amp,
+        amp_dtype=args.amp_dtype,
         dfg_beta_schedule=args.dfg_beta_schedule,
         dfg_beta_target=args.dfg_beta_target,
         dfg_beta=args.dfg_beta,
@@ -1138,6 +1208,7 @@ def main():
         lambda_kg=args.lambda_kg,
         lambda_k=args.lambda_k,
         lambda_stage=args.lambda_stage,
+        stage_consistency_warmup_epochs=args.stage_consistency_warmup_epochs,
         stage_consistency_loss=args.stage_consistency_loss,
         stage_consistency_margin=args.stage_consistency_margin,
         stage_consistency_update_soft_only=args.stage_consistency_update_soft_only,

@@ -6,12 +6,14 @@ BATCH_SIZE="${BATCH_SIZE:-6}"
 EPOCH="${EPOCH:-15}"
 NUM_WORKERS="${NUM_WORKERS:-6}"
 AMP="${AMP:-1}"
+AMP_DTYPE="${AMP_DTYPE:-fp16}"
 SOFT_PROMPT_LR="${SOFT_PROMPT_LR:-0.00005}"
 LAMBDA_KG="${LAMBDA_KG:-0.01}"
 LAMBDA_K="${LAMBDA_K:-0.002}"
 LAMBDA_STAGE="${LAMBDA_STAGE:-0.0005}"
 STAGE_CONSISTENCY_LOSS="${STAGE_CONSISTENCY_LOSS:-js_margin}"
 STAGE_CONSISTENCY_MARGIN="${STAGE_CONSISTENCY_MARGIN:-0.02}"
+STAGE_CONSISTENCY_WARMUP_EPOCHS="${STAGE_CONSISTENCY_WARMUP_EPOCHS:-0}"
 HYBRID_ALPHA_MAX="${HYBRID_ALPHA_MAX:-0.2}"
 SOFT_PROMPT_FREEZE_EPOCHS="${SOFT_PROMPT_FREEZE_EPOCHS:-3}"
 GRAD_CLIP_NORM="${GRAD_CLIP_NORM:-1.0}"
@@ -42,6 +44,7 @@ TRAIN_CMD=(
   --lambda_stage "${LAMBDA_STAGE}"
   --stage_consistency_loss "${STAGE_CONSISTENCY_LOSS}"
   --stage_consistency_margin "${STAGE_CONSISTENCY_MARGIN}"
+  --stage_consistency_warmup_epochs "${STAGE_CONSISTENCY_WARMUP_EPOCHS}"
   --stage_consistency_update_soft_only
   --stage_consistency_detach_visual
   --stage_consistency_detach_qk
@@ -55,12 +58,12 @@ TRAIN_CMD=(
 )
 
 if [ "${AMP}" != "0" ]; then
-  TRAIN_CMD+=(--amp)
+  TRAIN_CMD+=(--amp --amp_dtype "${AMP_DTYPE}")
 fi
 
 echo "==== Train Phase3B stage consistency ===="
 echo "==== SAVE_PATH=${SAVE_PATH} ===="
-echo "==== lambda_stage=${LAMBDA_STAGE} loss=${STAGE_CONSISTENCY_LOSS} margin=${STAGE_CONSISTENCY_MARGIN} ===="
+echo "==== lambda_stage=${LAMBDA_STAGE} loss=${STAGE_CONSISTENCY_LOSS} margin=${STAGE_CONSISTENCY_MARGIN} warmup=${STAGE_CONSISTENCY_WARMUP_EPOCHS} amp_dtype=${AMP_DTYPE} ===="
 printf ' %q' "${TRAIN_CMD[@]}"
 echo
 "${TRAIN_CMD[@]}"

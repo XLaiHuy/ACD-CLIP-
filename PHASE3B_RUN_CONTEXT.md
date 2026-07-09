@@ -49,7 +49,11 @@ New train flags:
 --stage_consistency_update_soft_only
 --stage_consistency_detach_visual
 --stage_consistency_detach_qk
+--stage_consistency_warmup_epochs
+--amp_dtype {fp16,float16,bf16,bfloat16}
 ```
+
+`amp_dtype=bf16` uses bfloat16 autocast and disables GradScaler. This is a numerical-stability control for high QK/SS2D scale, not a new modeling contribution by itself.
 
 Smoke coverage:
 
@@ -145,9 +149,101 @@ This run is useful as a negative ablation:
 the implementation is stable, but the chosen margin is too high for the observed stage-routing JS scale.
 ```
 
-## Current run intentionally excluded from this commit
+## Completed Phase3B warmup/bf16 run kept for reporting
 
-Do not use or commit logs/checkpoints from:
+Run directory:
+
+```text
+runs/phase3b/phase3b_stagecons_alpha02_kreg2e3_lstage2e3_js_warm5_bf16_train15
+```
+
+Committed report artifacts:
+
+```text
+train.log
+test.log
+parsed_results.csv
+key_ap_summary.csv
+```
+
+Settings:
+
+```text
+hybrid_alpha_max = 0.2
+lambda_kg = 1e-2
+lambda_k = 2e-3
+lambda_stage = 2e-3
+lambda_stage_effective = 0 through epochs 1-5
+lambda_stage_effective = 2e-3 from epoch 6 onward
+stage_consistency_loss = js
+stage_consistency_margin = 0.0
+stage_consistency_update_soft_only = True
+stage_consistency_detach_visual = True
+stage_consistency_detach_qk = True
+amp_dtype = bf16
+scaler_enabled = False
+soft_prompt_lr = 5e-5
+train_epoch = 15
+test_epochs = 7 8 9 10 11 12 13 14 15
+test datasets = Brain Liver Retina Colon_clinicDB Colon_colonDB Colon_Kvasir
+pixel_stride = 4
+metric_thresholds = none
+```
+
+Best by 6-medical pixel AP:
+
+```text
+epoch 7
+mean pixel AUC/AP = 90.45 / 36.22
+mean image AUC/AP = 73.60 / 74.14
+```
+
+Best by 3-medical image AP:
+
+```text
+epoch 9
+mean pixel AUC/AP = 90.58 / 35.59
+mean image AUC/AP = 73.00 / 74.83
+```
+
+Per-dataset epoch 7 pixel-level AUC/AP:
+
+```text
+ColonDB    = 85.08 / 34.09
+ClinicDB   = 88.77 / 50.01
+Kvasir     = 84.53 / 51.95
+BrainMRI   = 94.67 / 32.08
+Liver CT   = 96.32 / 6.09
+Retina OCT = 93.34 / 43.12
+```
+
+Per-dataset epoch 7 image-level AUC/AP:
+
+```text
+BrainMRI   = 81.72 / 94.80
+Liver CT   = 58.97 / 51.13
+Retina OCT = 80.12 / 76.50
+```
+
+Interpretation:
+
+```text
+bf16 plus stage warmup fixed the non-finite failure:
+non_finite_loss = 0
+non_finite_grad = 0
+
+However, it did not improve medical transfer. The best pixel mean AP is 36.22,
+below Phase1 final 39.82 and Phase2B best 40.35.
+
+It helps Retina and Liver relative to Phase1 in some epochs, but Brain and colon/Kvasir transfer drop strongly.
+Q/SS2D scale still drifts upward by the end of training, with q_ss2d_norm reaching about 1200.
+This suggests bf16 is a stability patch, while the stage routing loss still needs explicit score-scale control
+or a different formulation before it can be a strong candidate.
+```
+
+## Failed stress run not committed
+
+Do not commit logs/checkpoints from:
 
 ```text
 runs/phase3b/phase3b_stagecons_alpha02_kreg2e3_lstage1e2_js_train15
@@ -156,6 +252,12 @@ runs/phase3b/phase3b_stagecons_alpha02_kreg2e3_lstage1e2_js_train15
 Reason:
 
 ```text
-This is the newer/current JS no-margin run requested after the previous Phase3B attempt.
-Its train/test logs should not be committed until the run is complete and reviewed.
+This was the aggressive fp16 JS no-margin run:
+lambda_stage = 1e-2
+stage_consistency_loss = js
+margin = 0
+no stage warmup
+amp_dtype = fp16
+
+It aborted at epoch 7 with repeated non-finite loss, so it has no full 6-medical test result.
 ```

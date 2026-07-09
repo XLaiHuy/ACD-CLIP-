@@ -22,7 +22,8 @@ Metric format = AUC / AP
 | P1 final | Phase1 best anchor | V3c weight_residual, beta warmup 0.10, tau=8, n_groups=3, fp32 attention stability fix |
 | P2B alpha0.1 K5e-3 | Hybrid hard-soft | alpha=0.1, lambda_kg=1e-2, lambda_k=5e-3 |
 | P2B alpha0.2 K2e-3 | Hybrid hard-soft best pixel | alpha=0.2, lambda_kg=1e-2, lambda_k=2e-3 |
-| P3B stagecons | Stage routing consistency | P2B alpha0.2 K2e-3 plus lambda_stage=5e-4, js_margin=0.02 |
+| P3B stagecons margin | Stage routing consistency | P2B alpha0.2 K2e-3 plus lambda_stage=5e-4, js_margin=0.02 |
+| P3B stagecons warm bf16 | Stage routing consistency | P2B alpha0.2 K2e-3 plus lambda_stage=2e-3, JS no-margin, stage warmup 5 epochs, bf16 |
 
 ## Mean Results
 
@@ -36,7 +37,8 @@ Metric format = AUC / AP
 | P1 final best | 9 | 90.76 / 39.82 | 73.80 / 75.06 | Best balanced local anchor |
 | P2B alpha0.1 K5e-3 | 7 | 90.52 / 37.81 | 72.70 / 73.03 | Stable but too conservative |
 | P2B alpha0.2 K2e-3 | 10 | 90.98 / 40.35 | 71.65 / 70.71 | Best pixel-level mean so far |
-| P3B stagecons | 7 | 90.27 / 37.93 | 73.26 / 72.23 | Negative ablation; stage loss inactive |
+| P3B stagecons margin | 7 | 90.27 / 37.93 | 73.26 / 72.23 | Negative ablation; stage loss inactive |
+| P3B stagecons warm bf16 | 7 | 90.45 / 36.22 | 73.60 / 74.14 | Stable, but stage loss hurts Brain/colon transfer |
 
 ## Pixel-Level Per-Dataset Results
 
@@ -49,7 +51,8 @@ Metric format = AUC / AP
 | P1 final best | 9 | 84.29 / 31.03 | 89.66 / 52.87 | 88.28 / 60.50 | 95.96 / 46.05 | 96.97 / 6.28 | 89.39 / 42.20 | 90.76 / 39.82 |
 | P2B alpha0.1 K5e-3 | 7 | 83.74 / 34.52 | 90.76 / 58.53 | 87.11 / 57.93 | 95.55 / 40.26 | 95.41 / 4.19 | 90.54 / 31.45 | 90.52 / 37.81 |
 | P2B alpha0.2 K2e-3 | 10 | 83.88 / 35.70 | 89.06 / 57.46 | 88.40 / 63.45 | 95.24 / 38.28 | 97.07 / 6.81 | 92.20 / 40.39 | 90.98 / 40.35 |
-| P3B stagecons | 7 | 84.02 / 32.44 | 87.95 / 50.06 | 86.77 / 54.69 | 94.95 / 45.63 | 96.07 / 5.24 | 91.88 / 39.51 | 90.27 / 37.93 |
+| P3B stagecons margin | 7 | 84.02 / 32.44 | 87.95 / 50.06 | 86.77 / 54.69 | 94.95 / 45.63 | 96.07 / 5.24 | 91.88 / 39.51 | 90.27 / 37.93 |
+| P3B stagecons warm bf16 | 7 | 85.08 / 34.09 | 88.77 / 50.01 | 84.53 / 51.95 | 94.67 / 32.08 | 96.32 / 6.09 | 93.34 / 43.12 | 90.45 / 36.22 |
 
 ## Image-Level Per-Dataset Results
 
@@ -63,7 +66,8 @@ Metric format = AUC / AP
 | P1 final best | 9 | 82.53 / 95.40 | 56.74 / 48.96 | 82.12 / 80.82 | 73.80 / 75.06 |
 | P2B alpha0.1 K5e-3 | 7 | 84.17 / 95.91 | 58.47 / 52.89 | 75.47 / 70.28 | 72.70 / 73.03 |
 | P2B alpha0.2 K2e-3 | 10 | 79.87 / 93.57 | 59.24 / 47.86 | 75.84 / 70.69 | 71.65 / 70.71 |
-| P3B stagecons | 7 | 81.53 / 94.74 | 64.48 / 52.11 | 73.78 / 69.83 | 73.26 / 72.23 |
+| P3B stagecons margin | 7 | 81.53 / 94.74 | 64.48 / 52.11 | 73.78 / 69.83 | 73.26 / 72.23 |
+| P3B stagecons warm bf16 | 7 | 81.72 / 94.80 | 58.97 / 51.13 | 80.12 / 76.50 | 73.60 / 74.14 |
 
 ## Takeaways
 
@@ -72,5 +76,6 @@ Metric format = AUC / AP
 2. Phase2B alpha0.2 K2e-3 is the best pixel-level mean so far: 90.98 / 40.35.
 3. Phase2B gains come mostly from Colon/Kvasir/ClinicDB, while Brain image and Retina image suffer.
 4. Phase3B js_margin=0.02 is a negative ablation because the stage loss was inactive.
-5. Future Phase3B should use no-margin JS or a much smaller margin matched to observed JS scale.
+5. Phase3B JS no-margin with warmup and bf16 is stable, but still underperforms Phase1/Phase2B on mean pixel AP.
+6. The remaining Phase3B issue is not numerical overflow alone; q_ss2d_norm still drifts high, so future work needs score-scale control or a different routing loss.
 ```
