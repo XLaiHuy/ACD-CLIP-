@@ -18,6 +18,8 @@ def parse_args():
     parser.add_argument("--phase2b_raw", required=True, help="Path to Phase2B raw predictions CSV")
     parser.add_argument("--phase1_summary", default=None, help="Path to Phase1 summary CSV (fixed_config_epoch_sweep.csv)")
     parser.add_argument("--phase2b_summary", default=None, help="Path to Phase2B summary CSV (fixed_config_epoch_sweep.csv)")
+    parser.add_argument("--phase1_detail", default=None, help="Path to Phase1 dataset details CSV (image_metrics_by_dataset.csv)")
+    parser.add_argument("--phase2b_detail", default=None, help="Path to Phase2B dataset details CSV (image_metrics_by_dataset.csv)")
     parser.add_argument("--output_dir", required=True, help="Directory to save the ensemble results")
     parser.add_argument("--betas", type=float, nargs="+", default=[0.0, 0.25, 0.5, 0.75, 1.0])
     parser.add_argument("--image_datasets", nargs="+", default=IMAGE_DATASETS)
@@ -56,6 +58,21 @@ def read_summary_metrics(summary_path):
             float(row["pixel_auc_6"]),
             float(row["pixel_ap_6"]),
         )
+
+
+def read_dataset_metrics(detail_path):
+    metrics = {}
+    with open(detail_path, newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        for row in reader:
+            dataset = row["dataset"]
+            # Only read the dataset row if it contains non-empty AUC/AP
+            if row["image_auc"] != "" and row["image_ap"] != "":
+                metrics[dataset] = {
+                    "image_auc": float(row["image_auc"]),
+                    "image_ap": float(row["image_ap"]),
+                }
+    return metrics
 
 
 def metric_or_none(scores, labels):
@@ -171,26 +188,52 @@ def main():
     print(f"\nEnsemble results saved to {output_dir}")
     
     # Run Sanity Checks / assertions against original summaries if provided
+    # Endpoint checks (beta=1.0 matches Phase1 rescore macro mean)
     if args.phase1_summary:
-        p1_auc, p1_ap, _, _ = read_summary_metrics(args.phase1_summary)
+        p1_auc, p1_ap, p1_p_auc, p1_p_ap = read_summary_metrics(args.phase1_summary)
         beta1_row = next(r for r in aggregate_rows if r["beta"] == "1.00")
         assert abs(float(beta1_row["image_auc_3"]) - p1_auc) < 1e-2, f"Ensemble beta=1.0 AUC ({beta1_row['image_auc_3']}) != Phase1 rescore AUC ({p1_auc})"
         assert abs(float(beta1_row["image_ap_3"]) - p1_ap) < 1e-2, f"Ensemble beta=1.0 AP ({beta1_row['image_ap_3']}) != Phase1 rescore AP ({p1_ap})"
-        print(f"Sanity check passed: beta=1.0 matches Phase1 rescore AUC/AP ({p1_auc:.2f}/{p1_ap:.2f})")
+        print(f"Sanity check passed: beta=1.0 macro mean matches Phase1 rescore AUC/AP ({p1_auc:.2f}/{p1_ap:.2f})")
+        
+        # Verify Phase 1 reproduces historical pixel metrics (90.76 / 39.82)
+        assert abs(p1_p_ap - 39.82) <= 0.05, f"Phase1 Pixel AP ({p1_p_ap}) deviates from baseline 39.82"
+        assert abs(p1_p_auc - 90.76) <= 0.05, f"Phase1 Pixel AUC ({p1_p_auc}) deviates from baseline 90.76"
+        print(f"Sanity check passed: Phase1 pixel AUC/AP matches reference ({p1_p_auc:.2f}/{p1_p_ap:.2f})")
 
+    # Endpoint checks (beta=0.0 matches Phase2B rescore macro mean)
     if args.phase2b_summary:
         p2b_auc, p2b_ap, p2b_p_auc, p2b_p_ap = read_summary_metrics(args.phase2b_summary)
         beta0_row = next(r for r in aggregate_rows if r["beta"] == "0.00")
         assert abs(float(beta0_row["image_auc_3"]) - p2b_auc) < 1e-2, f"Ensemble beta=0.0 AUC ({beta0_row['image_auc_3']}) != Phase2B rescore AUC ({p2b_auc})"
         assert abs(float(beta0_row["image_ap_3"]) - p2b_ap) < 1e-2, f"Ensemble beta=0.0 AP ({beta0_row['image_ap_3']}) != Phase2B rescore AP ({p2b_ap})"
-        print(f"Sanity check passed: beta=0.0 matches Phase2B rescore AUC/AP ({p2b_auc:.2f}/{p2b_ap:.2f})")
+        print(f"Sanity check passed: beta=0.0 macro mean matches Phase2B rescore AUC/AP ({p2b_auc:.2f}/{p2b_ap:.2f})")
         
-        # Verify Phase 2B reproduces historical metrics (90.98 / 40.35 / 73.77 / 74.24) within 0.05% tolerance
+        # Verify Phase 2B reproduces historical metrics (90.98 / 40.35 / 73.77 / 74.24) within absolute 0.05 points tolerance
         assert abs(p2b_p_ap - 40.35) <= 0.05, f"Phase2B Pixel AP ({p2b_p_ap}) deviates from baseline 40.35"
         assert abs(p2b_p_auc - 90.98) <= 0.05, f"Phase2B Pixel AUC ({p2b_p_auc}) deviates from baseline 90.98"
         assert abs(p2b_ap - 74.24) <= 0.05, f"Phase2B Image AP ({p2b_ap}) deviates from baseline 74.24"
         assert abs(p2b_auc - 73.77) <= 0.05, f"Phase2B Image AUC ({p2b_auc}) deviates from baseline 73.77"
-        print("Sanity check passed: Phase2B metrics successfully reproduced reference checkpoints.")
+        print(f"Sanity check passed: Phase2B pixel and image metrics successfully reproduced reference checkpoints.")
+
+    # Strict per-dataset endpoint verification
+    if args.phase1_detail:
+        p1_details = read_dataset_metrics(args.phase1_detail)
+        for dataset_name in args.image_datasets:
+            detail_row = next(r for r in detail_rows if r["beta"] == "1.00" and r["dataset"] == dataset_name)
+            expected = p1_details[dataset_name]
+            assert abs(float(detail_row["image_auc"]) - expected["image_auc"]) < 1e-2, f"P1 {dataset_name} AUC mismatch: {detail_row['image_auc']} vs {expected['image_auc']}"
+            assert abs(float(detail_row["image_ap"]) - expected["image_ap"]) < 1e-2, f"P1 {dataset_name} AP mismatch: {detail_row['image_ap']} vs {expected['image_ap']}"
+        print("Sanity check passed: beta=1.0 ensembled scores match Phase1 per-dataset rescore metrics exactly.")
+
+    if args.phase2b_detail:
+        p2b_details = read_dataset_metrics(args.phase2b_detail)
+        for dataset_name in args.image_datasets:
+            detail_row = next(r for r in detail_rows if r["beta"] == "0.00" and r["dataset"] == dataset_name)
+            expected = p2b_details[dataset_name]
+            assert abs(float(detail_row["image_auc"]) - expected["image_auc"]) < 1e-2, f"P2B {dataset_name} AUC mismatch: {detail_row['image_auc']} vs {expected['image_auc']}"
+            assert abs(float(detail_row["image_ap"]) - expected["image_ap"]) < 1e-2, f"P2B {dataset_name} AP mismatch: {detail_row['image_ap']} vs {expected['image_ap']}"
+        print("Sanity check passed: beta=0.0 ensembled scores match Phase2B per-dataset rescore metrics exactly.")
 
     print("\nProbability ensemble summary:")
     for row in aggregate_rows:

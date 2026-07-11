@@ -73,6 +73,10 @@ if [ ! -s "${OUTPUT_DIR_P1}/fixed_config_epoch_sweep.csv" ]; then
   echo "Error: Phase 1 rescore summary file is missing or empty."
   exit 1
 fi
+if [ ! -s "${OUTPUT_DIR_P1}/image_metrics_by_dataset.csv" ]; then
+  echo "Error: Phase 1 rescore detailed metrics file is missing or empty."
+  exit 1
+fi
 echo "Phase 1 rescore outputs verified."
 
 
@@ -106,6 +110,10 @@ if [ ! -s "${OUTPUT_DIR_P2B}/fixed_config_epoch_sweep.csv" ]; then
   echo "Error: Phase 2B rescore summary file is missing or empty."
   exit 1
 fi
+if [ ! -s "${OUTPUT_DIR_P2B}/image_metrics_by_dataset.csv" ]; then
+  echo "Error: Phase 2B rescore detailed metrics file is missing or empty."
+  exit 1
+fi
 echo "Phase 2B rescore outputs verified."
 
 
@@ -115,6 +123,8 @@ conda run --no-capture-output -n ${CONDA_ENV_NAME} python phase1_phase2b_probabi
   --phase2b_raw "${OUTPUT_DIR_P2B}/image_score_raw_predictions.csv" \
   --phase1_summary "${OUTPUT_DIR_P1}/fixed_config_epoch_sweep.csv" \
   --phase2b_summary "${OUTPUT_DIR_P2B}/fixed_config_epoch_sweep.csv" \
+  --phase1_detail "${OUTPUT_DIR_P1}/image_metrics_by_dataset.csv" \
+  --phase2b_detail "${OUTPUT_DIR_P2B}/image_metrics_by_dataset.csv" \
   --output_dir "${ENSEMBLE_OUT}" \
   --betas 0.0 0.25 0.5 0.75 1.0
 
