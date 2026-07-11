@@ -198,3 +198,51 @@ It beats Phase1 best in mean pixel AUC/AP by +0.22 / +0.53.
 However, it hurts image-level mean and still underperforms Phase1 best on Brain pixel AP.
 Use this run as the Phase2B pixel-level result, while Phase1 best remains the more balanced pixel+image model.
 ```
+
+### Phase2B e10 image-score diagnosis
+
+After the anchor diagnosis, the best fixed inference rule is:
+
+```text
+checkpoint = adapter_10.pth
+prompt config = current_shared
+image score = cls_only
+pixel map = unchanged hybrid alpha0.2 segmentation branch
+```
+
+Stage 1 e10 ablation:
+
+```text
+current_shared + cls_only:
+mean pixel AUC/AP = 90.98 / 40.35
+mean image AUC/AP = 73.77 / 74.24
+
+current 0.5 cls + 0.5 max:
+mean pixel AUC/AP = 90.98 / 40.35
+mean image AUC/AP = 71.63 / 70.72
+```
+
+Prompt split did not materially change e10 image AP:
+
+```text
+current_shared + cls_only     image AP = 74.24
+split_hard_cls + cls_only     image AP = 74.24
+split_lowalpha_cls + cls_only image AP = 74.24
+```
+
+Fixed `cls_only` epoch sweep:
+
+```text
+e10 = pixel 90.98 / 40.35, image 73.77 / 74.24
+e11 = pixel 90.47 / 39.06, image 73.87 / 74.46
+e14 = pixel 89.29 / 36.13, image 76.19 / 76.86
+```
+
+Conclusion:
+
+```text
+The image-level drop is primarily caused by pixel-score aggregation, not prompt
+drift. The best overall Phase2B result is e10 with cls_only image scoring.
+It beats Phase1 final anchor on pixel AP by +0.53 while trailing image AP by
+0.82.
+```
