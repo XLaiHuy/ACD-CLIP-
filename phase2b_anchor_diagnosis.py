@@ -33,6 +33,7 @@ PIXEL_DATASETS = [
 IMAGE_DATASETS = ["Brain", "Liver", "Retina"]
 
 PROMPT_CONFIGS = {
+    "phase1_hard": {"cls_mode": "hard", "cls_alpha": 0.0, "seg_alpha": 0.0},
     "current_shared": {"cls_mode": "hybrid", "cls_alpha": 0.20, "seg_alpha": 0.20},
     "split_hard_cls": {"cls_mode": "hard", "cls_alpha": 0.0, "seg_alpha": 0.20},
     "split_lowalpha_cls": {"cls_mode": "hybrid", "cls_alpha": 0.05, "seg_alpha": 0.20},
@@ -193,16 +194,42 @@ def load_checkpoint(model, checkpoint_path, args, device):
     model.image_adapter.load_state_dict(checkpoint["image_adapter"])
     model.text_adapter.load_state_dict(checkpoint["text_adapter"])
 
-    if "soft_prompt" not in checkpoint:
-        raise ValueError(f"{checkpoint_path} has no soft_prompt state; Phase2B diagnosis requires it.")
-    ckpt_ctx_len = int(checkpoint.get("soft_prompt_ctx_len", model.soft_prompt_ctx_len))
-    if ckpt_ctx_len != model.soft_prompt_ctx_len:
-        raise ValueError(f"Checkpoint soft_prompt_ctx_len={ckpt_ctx_len}, expected {model.soft_prompt_ctx_len}.")
-    model.soft_prompt.load_state_dict(checkpoint["soft_prompt"])
-    model.prompt_mode = "hybrid"
-    model.use_soft_prompt = False
-    model.use_hybrid_soft_prompt = True
-    model.hybrid_alpha_current = float(checkpoint.get("hybrid_alpha_current", 0.2))
+    ckpt_prompt_mode = checkpoint.get("prompt_mode", None)
+    ckpt_use_hybrid_soft_prompt = bool(checkpoint.get("use_hybrid_soft_prompt", False))
+    ckpt_use_soft_prompt = bool(checkpoint.get("use_soft_prompt", False))
+    is_phase1_hard = (args.fixed_prompt_config == "phase1_hard") or ("phase1_hard" in args.prompt_configs if hasattr(args, "prompt_configs") else False)
+
+    if is_phase1_hard:
+        model.prompt_mode = "hard"
+        model.use_soft_prompt = False
+        model.use_hybrid_soft_prompt = False
+        model.hybrid_alpha_current = 0.0
+    elif ckpt_prompt_mode == "hybrid" or ckpt_use_hybrid_soft_prompt:
+        if "soft_prompt" not in checkpoint:
+            raise ValueError(f"{checkpoint_path} declares hybrid prompt but has no soft_prompt state.")
+        ckpt_ctx_len = int(checkpoint.get("soft_prompt_ctx_len", model.soft_prompt_ctx_len))
+        if ckpt_ctx_len != model.soft_prompt_ctx_len:
+            raise ValueError(f"Checkpoint soft_prompt_ctx_len={ckpt_ctx_len}, expected {model.soft_prompt_ctx_len}.")
+        model.soft_prompt.load_state_dict(checkpoint["soft_prompt"])
+        model.prompt_mode = "hybrid"
+        model.use_soft_prompt = False
+        model.use_hybrid_soft_prompt = True
+        model.hybrid_alpha_current = float(checkpoint.get("hybrid_alpha_current", 0.2))
+    elif ckpt_use_soft_prompt:
+        if "soft_prompt" not in checkpoint:
+            raise ValueError(f"{checkpoint_path} declares soft prompt but has no soft_prompt state.")
+        ckpt_ctx_len = int(checkpoint.get("soft_prompt_ctx_len", model.soft_prompt_ctx_len))
+        if ckpt_ctx_len != model.soft_prompt_ctx_len:
+            raise ValueError(f"Checkpoint soft_prompt_ctx_len={ckpt_ctx_len}, expected {model.soft_prompt_ctx_len}.")
+        model.soft_prompt.load_state_dict(checkpoint["soft_prompt"])
+        model.prompt_mode = "soft"
+        model.use_soft_prompt = True
+        model.use_hybrid_soft_prompt = False
+    else:
+        model.prompt_mode = "hard"
+        model.use_soft_prompt = False
+        model.use_hybrid_soft_prompt = False
+        model.hybrid_alpha_current = 0.0
     return int(checkpoint["epoch"])
 
 
@@ -232,7 +259,12 @@ def build_text_cache(model, dataset_name, class_names, device, prompt_config):
             model, dataset_name, class_name, device, cfg["cls_mode"], cfg["cls_alpha"]
         )
         seg_text = get_class_text_embedding(
-            model, dataset_name, class_name, device, "hybrid", cfg["seg_alpha"]
+            model,
+            dataset_name,
+            class_name,
+            device,
+            "hard" if cfg["seg_alpha"] == 0.0 else "hybrid",
+            cfg["seg_alpha"],
         )
         cache[class_name] = {"cls": cls_text, "seg": seg_text}
     return cache
