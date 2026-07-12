@@ -1,0 +1,17 @@
+{
+  "constraint": "image_ap >= 88.850626",
+  "image_anchor": 89.8506261408329,
+  "selected_checkpoint": "checkpoints/adapter_13.pth",
+  "selected_epoch": 13,
+  "selected_metrics": {
+    "image_ap": 96.79793516794841,
+    "image_auc": 96.38194640477498,
+    "pixel_ap": 51.76595586041609,
+    "pixel_auc": 97.16956317424774
+  },
+  "tie_break": [
+    "pixel_ap_desc",
+    "image_ap_desc",
+    "epoch_asc"
+  ]
+}
