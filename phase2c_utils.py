@@ -62,9 +62,9 @@ def alpha_for_epoch(epoch, alpha_max, freeze_epochs=3):
 
 
 def phase2c_config(condition, save_path, alpha_max):
-    expected_alpha = {"A_prime": 0.20, "B": 0.15, "C": 0.20}
+    expected_alpha = {"A_prime": 0.20, "B": 0.15, "C": 0.20, "P": 0.20}
     if condition not in expected_alpha:
-        raise ValueError("condition must be A_prime, B, or C")
+        raise ValueError("condition must be A_prime, B, C, or P")
     expected = expected_alpha[condition]
     if not math.isclose(alpha_max, expected, rel_tol=0, abs_tol=1e-12):
         raise ValueError(f"{condition} requires hybrid_alpha_max={expected}")
@@ -109,6 +109,12 @@ def phase2c_config(condition, save_path, alpha_max):
         "amp": True,
         "grad_checkpointing": True,
         "score_rule": "cls_only",
+        "parent_condition": "A_prime" if condition == "P" else None,
+        "pcgrad_enabled": condition == "P",
+        "pcgrad_groups": ["shared_image_lora", "m_i_w", "hard_text_adapter", "soft_prompt"] if condition == "P" else [],
+        "pcgrad_variant": "deterministic_symmetric_two_task" if condition == "P" else None,
+        "pcgrad_epsilon": 1e-12 if condition == "P" else None,
+        "precision": "bf16" if condition == "P" else None,
     }
     return config
 

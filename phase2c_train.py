@@ -6,6 +6,7 @@ import json
 import logging
 import math
 import shutil
+import subprocess
 from collections import defaultdict
 from pathlib import Path
 
@@ -22,6 +23,8 @@ from dataset import get_text_and_image_dataset
 from dataset.info import DOMAINS
 from model.adapter import ACDCLIP
 from model.clip import create_model
+from phase2c_pcgrad import apply_pcgrad
+from phase2c_pcgrad_diagnostics import PCGRAD_DIAGNOSTIC_FIELDS, run_pcgrad_diagnostics
 from phase2c_utils import (
     EpochDeterministicSampler,
     alpha_for_epoch,
@@ -53,7 +56,7 @@ DIAGNOSTIC_FIELDS = [
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Phase2C deterministic VisA curriculum training")
-    parser.add_argument("--condition", required=True, choices=["A_prime", "B", "C"])
+    parser.add_argument("--condition", required=True, choices=["A_prime", "B", "C", "P"])
     parser.add_argument(
         "--diagnostic-batch-size", type=int, default=1,
         help="batch size for post-epoch gradient diagnostics; kept separate to limit VRAM",
@@ -290,6 +293,10 @@ def train_phase2c(args):
     config["amp"] = not args.no_amp
     config["bf16"] = args.bf16
     config["diagnostic_batch_size"] = args.diagnostic_batch_size
+    if config["pcgrad_enabled"]:
+        if not args.bf16:
+            raise ValueError("Condition P requires --bf16")
+        config["training_commit_sha"] = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
     if args.no_amp and args.bf16:
         raise ValueError("--bf16 cannot be combined with --no-amp")
     if args.dry_run:
@@ -356,8 +363,11 @@ def train_phase2c(args):
             if not torch.isfinite(loss):
                 raise RuntimeError(f"Non-finite Phase2C loss at epoch {epoch}")
             optimizer.zero_grad(set_to_none=True)
-            scaler.scale(loss).backward()
-            scaler.unscale_(optimizer)
+            if config["pcgrad_enabled"]:
+                apply_pcgrad(loss, cls_loss, seg_loss, model, config["pcgrad_epsilon"])
+            else:
+                scaler.scale(loss).backward()
+                scaler.unscale_(optimizer)
             if has_non_finite_grad(optimizer):
                 raise RuntimeError(f"Non-finite Phase2C gradient at epoch {epoch}")
             clip_module_grad(model.image_adapter, config["grad_clip_norm"])
@@ -390,6 +400,11 @@ def train_phase2c(args):
             epoch,
         )
         append_csv(output / "gradient_diagnostics.csv", diagnostics, DIAGNOSTIC_FIELDS)
+        if config["pcgrad_enabled"]:
+            pcgrad_rows = run_pcgrad_diagnostics(
+                model, optimizer, scheduler, fixed_batches, diagnostic_loss_builder, epoch, config["pcgrad_epsilon"]
+            )
+            append_csv(output / "pcgrad_diagnostics.csv", pcgrad_rows, PCGRAD_DIAGNOSTIC_FIELDS)
         validation = validate_visa(
             model, val_dataset, device, epoch, config["batch_size"],
             config["num_workers"], args.metric_thresholds,
