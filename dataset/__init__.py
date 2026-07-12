@@ -1,3 +1,5 @@
+import csv
+import hashlib
 import json
 import math
 import os
@@ -12,19 +14,52 @@ from utils import AddGaussianNoise
 from .info import CLASS_NAMES, DATA_PATH, DOMAINS
 
 
+def deterministic_sample_id(meta):
+    """Return a stable ID without depending on JSONL order or absolute paths."""
+    image_path = str(meta["image_path"]).replace("\\", "/").lstrip("./")
+    return hashlib.sha256(image_path.encode("utf-8")).hexdigest()[:20]
+
+
+def _manifest_sample_ids(manifest_path):
+    if manifest_path is None:
+        return None
+    with open(manifest_path, newline="", encoding="utf-8") as handle:
+        rows = list(csv.DictReader(handle))
+    if not rows or "sample_id" not in rows[0]:
+        raise ValueError(f"Manifest {manifest_path} must contain a sample_id column")
+    sample_ids = [row["sample_id"] for row in rows]
+    if len(sample_ids) != len(set(sample_ids)):
+        raise ValueError(f"Manifest {manifest_path} contains duplicate sample IDs")
+    return set(sample_ids)
+
+
 class TextAndImageDataset(Dataset):
     def __init__(
             self,
             data_path: str,
             meta_path: str,
             img_size: int,
+            manifest_path: str | None = None,
+            augment: bool = True,
     ):
         self.data_path = data_path
         self.img_size = img_size
+        self.augment = augment
+        allowed_ids = _manifest_sample_ids(manifest_path)
         self.meta = []
         with open(meta_path, "r") as f:
             for line in f:
-                self.meta.append(json.loads(line))
+                record = json.loads(line)
+                record["sample_id"] = deterministic_sample_id(record)
+                if allowed_ids is None or record["sample_id"] in allowed_ids:
+                    self.meta.append(record)
+        if allowed_ids is not None:
+            found = {record["sample_id"] for record in self.meta}
+            missing = sorted(allowed_ids - found)
+            if missing:
+                raise ValueError(
+                    f"Manifest {manifest_path} contains {len(missing)} IDs absent from {meta_path}: {missing[:3]}"
+                )
 
         self.transforms_list = [
             transforms.RandomApply(
@@ -37,12 +72,14 @@ class TextAndImageDataset(Dataset):
             transforms.RandomVerticalFlip(p=0.5),
         ]
 
-        transform_x = [
-            AddGaussianNoise(std=1, p=0.7),
-            transforms.RandomApply([transforms.ColorJitter(brightness=0.5)], p=0.7),
-            transforms.RandomApply([transforms.ColorJitter(contrast=0.5)], p=0.7),
-            transforms.RandomApply([transforms.ColorJitter(saturation=0.5)], p=0.7)
-        ]
+        transform_x = []
+        if augment:
+            transform_x = [
+                AddGaussianNoise(std=1, p=0.7),
+                transforms.RandomApply([transforms.ColorJitter(brightness=0.5)], p=0.7),
+                transforms.RandomApply([transforms.ColorJitter(contrast=0.5)], p=0.7),
+                transforms.RandomApply([transforms.ColorJitter(saturation=0.5)], p=0.7)
+            ]
         self.transform_x = transforms.Compose(
             transform_x
             + [
@@ -79,12 +116,13 @@ class TextAndImageDataset(Dataset):
         else:
             mask = torch.zeros([1, self.img_size, self.img_size])
 
-        random_transform = transforms.Compose(self.transforms_list)
-        transform_tensor = torch.cat([img, mask], dim=0)
-        assert transform_tensor.shape[0] == 4
-        transform_tensor = random_transform(transform_tensor)
-        img = transform_tensor[0:3, :, :]
-        mask = transform_tensor[3:4, :, :]
+        if self.augment:
+            random_transform = transforms.Compose(self.transforms_list)
+            transform_tensor = torch.cat([img, mask], dim=0)
+            assert transform_tensor.shape[0] == 4
+            transform_tensor = random_transform(transform_tensor)
+            img = transform_tensor[0:3, :, :]
+            mask = transform_tensor[3:4, :, :]
 
         inputs = {
             "image": img,
@@ -92,6 +130,7 @@ class TextAndImageDataset(Dataset):
             "label": torch.tensor(meta["label"]).to(torch.int64),
             "file_name": meta["image_path"],
             "class_name": meta["class_name"],
+            "sample_id": meta["sample_id"],
         }
         return inputs
 
@@ -112,6 +151,7 @@ class BaseSingleClassDataset(Dataset):
         with open(meta_path, "r") as f:
             for line in f:
                 m = json.loads(line.strip())
+                m["sample_id"] = deterministic_sample_id(m)
                 if m["class_name"] == class_name:
                     self.meta.append(m)
 
@@ -154,6 +194,7 @@ class BaseSingleClassDataset(Dataset):
             "label": meta["label"],
             "file_name": meta["image_path"],
             "class_name": meta["class_name"],
+            "sample_id": meta["sample_id"],
         }
         return inputs
 
@@ -161,7 +202,8 @@ class BaseSingleClassDataset(Dataset):
 def get_text_and_image_dataset(
         dataset_name: str,
         img_size: int,
-        stage: str = "train"
+        stage: str = "train",
+        manifest_path: str | None = None,
 ):
     if "Med" not in dataset_name:
         assert dataset_name in DATA_PATH, (
@@ -172,8 +214,16 @@ def get_text_and_image_dataset(
             "./dataset/hub", dataset_name + ".jsonl"
         )
         data_path = DATA_PATH[dataset_name.split("-")[0]]
-        dataset = TextAndImageDataset(data_path, meta_path, img_size)
+        dataset = TextAndImageDataset(
+            data_path, meta_path, img_size, manifest_path=manifest_path, augment=True
+        )
         return dataset
+    elif stage == "val":
+        meta_path = os.path.join("./dataset/hub", dataset_name + ".jsonl")
+        data_path = DATA_PATH[dataset_name.split("-")[0]]
+        return TextAndImageDataset(
+            data_path, meta_path, img_size, manifest_path=manifest_path, augment=False
+        )
     elif stage == "test":
         meta_path = os.path.join(
             "./dataset/hub", dataset_name + ".jsonl"
@@ -190,4 +240,4 @@ def get_text_and_image_dataset(
             datasets[class_name] = image_dataset
         return datasets
     else:
-        raise ValueError(f"stage {stage} not found; available stages: train, test")
+        raise ValueError(f"stage {stage} not found; available stages: train, val, test")
