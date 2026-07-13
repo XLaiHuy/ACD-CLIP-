@@ -161,6 +161,7 @@ _NORMALIZED_IGNORED = {
     "pcgrad_variant",
     "pcgrad_epsilon",
     "precision",
+    "pcgrad_scale_factor",
 }
 
 

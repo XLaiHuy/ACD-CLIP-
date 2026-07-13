@@ -33,16 +33,17 @@ def scoped_parameter_groups(model):
     }
 
 
-def _zero_or_fp32(gradient, parameter):
-    """Return FP32 zeros when gradient is None, otherwise detach and cast to FP32."""
-    return (
-        torch.zeros_like(parameter, dtype=torch.float32)
-        if gradient is None
-        else gradient.detach().to(dtype=torch.float32)
-    )
+def _zero_or_fp32(gradient, parameter, scale_factor=1.0):
+    """Return FP32 zeros when gradient is None, otherwise detach, cast to FP32, and unscale."""
+    if gradient is None:
+        return torch.zeros_like(parameter, dtype=torch.float32)
+    unscaled = gradient.detach().to(dtype=torch.float32)
+    if scale_factor != 1.0:
+        unscaled = unscaled / scale_factor
+    return unscaled
 
 
-def project_group(named_parameters, cls_gradients, seg_gradients, other_gradients, eps=EPSILON):
+def project_group(named_parameters, cls_gradients, seg_gradients, other_gradients, eps=EPSILON, scale_factor=1.0):
     """Project original task gradients symmetrically; retain unprojected other gradients.
 
     When dot(g_cls, g_seg) >= 0 there is no conflict and the result is
@@ -57,9 +58,9 @@ def project_group(named_parameters, cls_gradients, seg_gradients, other_gradient
             "number_of_parameters": 0,
             "number_of_valid_gradient_tensors": 0,
         }
-    cls = [_zero_or_fp32(gradient, parameter) for gradient, parameter in zip(cls_gradients, parameters)]
-    seg = [_zero_or_fp32(gradient, parameter) for gradient, parameter in zip(seg_gradients, parameters)]
-    other = [_zero_or_fp32(gradient, parameter) for gradient, parameter in zip(other_gradients, parameters)]
+    cls = [_zero_or_fp32(gradient, parameter, scale_factor) for gradient, parameter in zip(cls_gradients, parameters)]
+    seg = [_zero_or_fp32(gradient, parameter, scale_factor) for gradient, parameter in zip(seg_gradients, parameters)]
+    other = [_zero_or_fp32(gradient, parameter, scale_factor) for gradient, parameter in zip(other_gradients, parameters)]
     flatten = lambda values: torch.cat([value.reshape(-1) for value in values])
     cls_flat, seg_flat = flatten(cls), flatten(seg)
     dot = torch.dot(cls_flat, seg_flat)
@@ -90,7 +91,15 @@ def project_group(named_parameters, cls_gradients, seg_gradients, other_gradient
     }
 
 
-def apply_pcgrad(total_loss, cls_loss_weighted, seg_loss_weighted, model, groups_to_project, eps=EPSILON):
+def apply_pcgrad(
+    total_loss,
+    cls_loss_weighted,
+    seg_loss_weighted,
+    model,
+    groups_to_project,
+    eps=EPSILON,
+    scale_factor=1.0,
+):
     """Populate .grad using PCGrad for selected groups; other parameters use standard gradients.
 
     Parameters
@@ -113,6 +122,8 @@ def apply_pcgrad(total_loss, cls_loss_weighted, seg_loss_weighted, model, groups
         No trainable parameter may appear in more than one entry.
     eps : float
         Small value for numerical stability in projection math.
+    scale_factor : float
+        Manual loss scaling factor to prevent FP16 underflow.
 
     The caller must call optimizer.zero_grad(set_to_none=True) before this
     function and must NOT call total_loss.backward() afterwards.
@@ -179,35 +190,38 @@ def apply_pcgrad(total_loss, cls_loss_weighted, seg_loss_weighted, model, groups
 
     # ── Gradient computation ───────────────────────────────────────────────────
     # Total gradients for all parameters (used for unscoped parameters).
+    # If scale_factor is not 1.0, we scale the loss before backward.
     total_grads = torch.autograd.grad(
-        total_loss, all_parameters, allow_unused=True, retain_graph=True
+        total_loss * scale_factor, all_parameters, allow_unused=True, retain_graph=True
     )
     # Separate task gradients for scoped parameters only.
     cls_grads = torch.autograd.grad(
-        cls_loss_weighted, scoped, allow_unused=True, retain_graph=True
+        cls_loss_weighted * scale_factor, scoped, allow_unused=True, retain_graph=True
     )
     seg_grads = torch.autograd.grad(
-        seg_loss_weighted, scoped, allow_unused=True, retain_graph=True
+        seg_loss_weighted * scale_factor, scoped, allow_unused=True, retain_graph=True
     )
     # Other-loss gradient (regularization terms) for scoped parameters.
     # If other_loss does not require grad (e.g. regularization is absent or
     # detached in unit tests), use None for all scoped positions.
     other_loss = total_loss - cls_loss_weighted - seg_loss_weighted
     if other_loss.requires_grad:
-        other_grads = torch.autograd.grad(other_loss, scoped, allow_unused=True)
+        other_grads = torch.autograd.grad(other_loss * scale_factor, scoped, allow_unused=True)
     else:
         other_grads = tuple(None for _ in scoped)
 
     # ── Assign standard gradients to unscoped parameters ──────────────────────
     for parameter, gradient in zip(all_parameters, total_grads):
         if id(parameter) not in scoped_ids:
-            parameter.grad = (
-                None
-                if gradient is None
-                else gradient.detach().clone().to(
+            if gradient is None:
+                parameter.grad = None
+            else:
+                unscaled_grad = gradient.detach().to(dtype=torch.float32)
+                if scale_factor != 1.0:
+                    unscaled_grad = unscaled_grad / scale_factor
+                parameter.grad = unscaled_grad.clone().to(
                     device=parameter.device, dtype=parameter.dtype
                 )
-            )
 
     # ── Apply PCGrad projection to each requested group ────────────────────────
     offset = 0
@@ -225,6 +239,7 @@ def apply_pcgrad(total_loss, cls_loss_weighted, seg_loss_weighted, model, groups
             seg_grads[offset: offset + count],
             other_grads[offset: offset + count],
             eps,
+            scale_factor=scale_factor,
         )
         for (_, parameter), gradient in zip(named, final):
             parameter.grad = (

@@ -307,6 +307,18 @@ def train_phase2c(args):
     config["amp"] = not args.no_amp
     config["bf16"] = args.bf16
     config["diagnostic_batch_size"] = args.diagnostic_batch_size
+    # Determine the manual loss scaling factor for PCGrad to prevent FP16 underflow.
+    # - BF16 uses 1.0 (no scaling needed)
+    # - FP16 AMP uses 65536.0 (prevents underflow)
+    # - FP32 uses 1.0 (no scaling needed)
+    if config["bf16"]:
+        scale_factor = 1.0
+    elif config["amp"]:
+        scale_factor = 65536.0
+    else:
+        scale_factor = 1.0
+    config["pcgrad_scale_factor"] = scale_factor
+
     # Record smoke-test limits in config so any output is clearly marked.
     max_train_batches = getattr(args, "max_train_batches", None)
     max_val_batches = getattr(args, "max_val_batches", None)
@@ -315,10 +327,6 @@ def train_phase2c(args):
         config["max_train_batches"] = max_train_batches
         config["max_val_batches"] = max_val_batches
     if config["pcgrad_enabled"]:
-        if not args.bf16:
-            raise ValueError(
-                f"Condition {args.condition} uses PCGrad and requires --bf16"
-            )
         config["training_commit_sha"] = subprocess.check_output(
             ["git", "rev-parse", "HEAD"], text=True
         ).strip()
@@ -342,6 +350,16 @@ def train_phase2c(args):
     )
     logger = logging.getLogger("phase2c")
     logger.info("config=%s", config)
+    if config["pcgrad_enabled"]:
+        if config["bf16"]:
+            logger.info("PCGrad precision mode: native BF16")
+        elif config["amp"]:
+            logger.info(
+                "PCGrad precision mode: FP16 with manual scaling (scale_factor=%s)",
+                config["pcgrad_scale_factor"],
+            )
+        else:
+            logger.info("PCGrad precision mode: FP32")
 
     seed_everything(config["seed"])
     device = torch.device(
@@ -410,6 +428,7 @@ def train_phase2c(args):
                     model,
                     config["pcgrad_groups"],
                     config["pcgrad_epsilon"],
+                    scale_factor=config.get("pcgrad_scale_factor", 1.0),
                 )
             else:
                 scaler.scale(loss).backward()

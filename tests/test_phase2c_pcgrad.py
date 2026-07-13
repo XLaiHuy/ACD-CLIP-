@@ -433,5 +433,49 @@ class TestAllGroupsConsistency(unittest.TestCase):
         self.assertEqual(set(ALL_GROUPS), set(scoped_parameter_groups(model).keys()))
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Manual loss scaling gradient equivalence
+# ─────────────────────────────────────────────────────────────────────────────
+class TestManualLossScaling(unittest.TestCase):
+
+    def test_manual_loss_scaling_is_equivalent(self):
+        """Scaling the loss and then unscaling gradients should yield identical values."""
+        model1 = _make_model(seed=42)
+        model2 = _make_model(seed=42)  # identical weights
+
+        x1 = torch.randn(2, 4)
+        x2 = x1.clone()
+
+        # Run 1: scale_factor = 1.0 (no scaling)
+        model1.zero_grad(set_to_none=True)
+        cls1, seg1, reg1, total1 = _forward_two_losses(model1, x1)
+        apply_pcgrad(total1, cls1, seg1, model1, ["shared_image_lora"], scale_factor=1.0)
+        grads1 = {
+            name: p.grad.clone()
+            for name, p in model1.named_parameters()
+            if p.requires_grad and p.grad is not None
+        }
+
+        # Run 2: scale_factor = 65536.0 (scaled)
+        model2.zero_grad(set_to_none=True)
+        cls2, seg2, reg2, total2 = _forward_two_losses(model2, x2)
+        apply_pcgrad(total2, cls2, seg2, model2, ["shared_image_lora"], scale_factor=65536.0)
+        grads2 = {
+            name: p.grad.clone()
+            for name, p in model2.named_parameters()
+            if p.requires_grad and p.grad is not None
+        }
+
+        self.assertEqual(set(grads1.keys()), set(grads2.keys()))
+        for name in grads1:
+            torch.testing.assert_close(
+                grads1[name],
+                grads2[name],
+                rtol=1e-5,
+                atol=1e-7,
+                msg=f"Gradient mismatch for {name} with manual scaling",
+            )
+
+
 if __name__ == "__main__":
     unittest.main()
