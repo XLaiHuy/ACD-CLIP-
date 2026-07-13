@@ -317,7 +317,7 @@ def train_phase2c(args):
     if config["bf16"]:
         scale_factor = 1.0
     elif config["amp"]:
-        scale_factor = 65536.0
+        scale_factor = 8192.0
     else:
         scale_factor = 1.0
     config["pcgrad_scale_factor"] = scale_factor
@@ -437,7 +437,18 @@ def train_phase2c(args):
                 scaler.scale(loss).backward()
                 scaler.unscale_(optimizer)
             if has_non_finite_grad(optimizer):
-                raise RuntimeError(f"Non-finite Phase2C gradient at epoch {epoch}")
+                if config["pcgrad_enabled"] and config["amp"] and not config["bf16"]:
+                    old_scale = config["pcgrad_scale_factor"]
+                    new_scale = max(1.0, old_scale * 0.5)
+                    config["pcgrad_scale_factor"] = new_scale
+                    optimizer.zero_grad(set_to_none=True)
+                    logger.warning(
+                        "Epoch %d, batch %d: Non-finite gradient detected. Skipping optimizer step and reducing pcgrad_scale_factor from %s to %s.",
+                        epoch, batch_idx, old_scale, new_scale
+                    )
+                    continue
+                else:
+                    raise RuntimeError(f"Non-finite Phase2C gradient at epoch {epoch}")
             clip_module_grad(model.image_adapter, config["grad_clip_norm"])
             clip_module_grad(model.text_adapter, config["grad_clip_norm"])
             if not frozen:
