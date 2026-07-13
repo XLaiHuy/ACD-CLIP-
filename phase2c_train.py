@@ -43,8 +43,10 @@ from train import (
     apply_soft_prompt_lr_policy,
     clip_module_grad,
     compute_hybrid_k_regularization,
+    first_nonfinite_trainable_parameter,
     get_dfg_beta_for_epoch,
     has_non_finite_grad,
+    save_nonfinite_diagnostics,
 )
 from utils import calculate_seg_loss, get_hybrid_soft_prompt_single_class_text_embedding
 
@@ -402,6 +404,8 @@ def train_phase2c(args):
         )
         model.set_dfg_beta(beta)
         losses = []
+        non_finite_loss_skips = 0
+        non_finite_grad_skips = 0
         for batch_idx, batch in enumerate(tqdm(loader, desc=f"Phase2C {config['condition']} epoch {epoch}")):
             if max_train_batches is not None and batch_idx >= max_train_batches:
                 break
@@ -419,7 +423,52 @@ def train_phase2c(args):
                     + config["lambda_k"] * k_loss
                 )
             if not torch.isfinite(loss):
-                raise RuntimeError(f"Non-finite Phase2C loss at epoch {epoch}")
+                # A non-finite forward pass has not modified parameters yet.
+                # Preserve diagnostics and skip this deterministic batch, as the
+                # main training entrypoint does, instead of discarding an entire
+                # long run on the first transient FP16 overflow.
+                non_finite_loss_skips += 1
+                diag_path = save_nonfinite_diagnostics(
+                    save_path=str(output),
+                    epoch_one_based=epoch,
+                    batch_idx=batch_idx,
+                    non_finite_loss_skips=non_finite_loss_skips,
+                    model=model,
+                    tensors={
+                        "loss": loss,
+                        "cls_loss": cls_loss,
+                        "seg_loss": seg_loss,
+                        "kg_loss": kg_loss,
+                        "k_loss": k_loss,
+                    },
+                    metadata={
+                        "condition": config["condition"],
+                        "alpha": alpha,
+                        "beta": beta,
+                        "pcgrad_scale_factor": config["pcgrad_scale_factor"],
+                        "class_names": list(batch["class_name"]),
+                        "labels": batch["label"].detach().cpu().tolist(),
+                    },
+                )
+                logger.warning(
+                    "Non-finite loss at epoch %d batch %d (skip %d): "
+                    "loss=%s cls=%s seg=%s kg=%s k=%s; diagnostics=%s",
+                    epoch, batch_idx, non_finite_loss_skips,
+                    bool(torch.isfinite(loss).item()),
+                    bool(torch.isfinite(cls_loss).item()),
+                    bool(torch.isfinite(seg_loss).item()),
+                    bool(torch.isfinite(kg_loss).item()),
+                    bool(torch.isfinite(k_loss).item()),
+                    diag_path,
+                )
+                optimizer.zero_grad(set_to_none=True)
+                if non_finite_loss_skips > config["non_finite_loss_abort_threshold"]:
+                    raise RuntimeError(
+                        "Aborting Phase2C because non-finite-loss skips exceeded "
+                        f"{config['non_finite_loss_abort_threshold']} at epoch {epoch}. "
+                        f"Latest diagnostics: {diag_path}"
+                    )
+                continue
             optimizer.zero_grad(set_to_none=True)
             if config["pcgrad_enabled"]:
                 # apply_pcgrad populates .grad for all trainable parameters.
@@ -446,6 +495,7 @@ def train_phase2c(args):
                         "Epoch %d, batch %d: Non-finite gradient detected. Skipping optimizer step and reducing pcgrad_scale_factor from %s to %s.",
                         epoch, batch_idx, old_scale, new_scale
                     )
+                    non_finite_grad_skips += 1
                     continue
                 else:
                     raise RuntimeError(f"Non-finite Phase2C gradient at epoch {epoch}")
@@ -458,6 +508,12 @@ def train_phase2c(args):
             else:
                 scaler.step(optimizer)
                 scaler.update()
+            bad_param_name, _ = first_nonfinite_trainable_parameter(model)
+            if bad_param_name is not None:
+                raise RuntimeError(
+                    f"Non-finite trainable parameter '{bad_param_name}' after optimizer step "
+                    f"at epoch {epoch}, batch {batch_idx}."
+                )
             losses.append(float(loss.item()))
         scheduler.step()
         apply_soft_prompt_lr_policy(optimizer, frozen)
@@ -504,8 +560,10 @@ def train_phase2c(args):
             ]
             write_selection(selection_rows, output / "selection.json")
         logger.info(
-            "epoch=%d alpha=%s beta=%s mean_loss=%s validation_macro=%s",
+            "epoch=%d alpha=%s beta=%s mean_loss=%s validation_macro=%s "
+            "non_finite_loss_skips=%d non_finite_grad_skips=%d",
             epoch, alpha, beta, float(np.mean(losses)), validation[-1],
+            non_finite_loss_skips, non_finite_grad_skips,
         )
 
 
