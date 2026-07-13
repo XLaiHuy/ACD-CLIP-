@@ -199,16 +199,29 @@ def apply_pcgrad(
         cls_loss_weighted * scale_factor, scoped, allow_unused=True, retain_graph=True
     )
     seg_grads = torch.autograd.grad(
-        seg_loss_weighted * scale_factor, scoped, allow_unused=True, retain_graph=True
+        seg_loss_weighted * scale_factor, scoped, allow_unused=True, retain_graph=False
     )
-    # Other-loss gradient (regularization terms) for scoped parameters.
-    # If other_loss does not require grad (e.g. regularization is absent or
-    # detached in unit tests), use None for all scoped positions.
-    other_loss = total_loss - cls_loss_weighted - seg_loss_weighted
-    if other_loss.requires_grad:
-        other_grads = torch.autograd.grad(other_loss * scale_factor, scoped, allow_unused=True)
-    else:
-        other_grads = tuple(None for _ in scoped)
+    # Calculate other-loss gradients (regularization terms) via linear subtraction.
+    # Since loss = cls_loss_weighted + seg_loss_weighted + other_loss,
+    # we have other_grad = total_grad - cls_grad - seg_grad.
+    total_grad_map = {id(p): g for p, g in zip(all_parameters, total_grads)}
+    other_grads_list = []
+    for i, p in enumerate(scoped):
+        t_val = total_grad_map[id(p)]
+        if t_val is None:
+            other_grads_list.append(None)
+        else:
+            c_val = cls_grads[i]
+            s_val = seg_grads[i]
+            if c_val is None and s_val is None:
+                other_grads_list.append(t_val)
+            elif c_val is None:
+                other_grads_list.append(t_val - s_val)
+            elif s_val is None:
+                other_grads_list.append(t_val - c_val)
+            else:
+                other_grads_list.append(t_val - c_val - s_val)
+    other_grads = tuple(other_grads_list)
 
     # ── Assign standard gradients to unscoped parameters ──────────────────────
     for parameter, gradient in zip(all_parameters, total_grads):

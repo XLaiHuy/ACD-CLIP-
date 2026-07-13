@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 """Dedicated Phase2C A-prime/B training entrypoint. Importing this module never launches training."""
+import os
+os.environ["PYTORCH_ALLOC_CONF"] = "expandable_segments:True"
+
 import argparse
 import csv
 import json
