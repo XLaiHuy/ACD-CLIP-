@@ -439,8 +439,11 @@ def train_phase2c(args):
             clip_module_grad(model.text_adapter, config["grad_clip_norm"])
             if not frozen:
                 clip_module_grad(model.soft_prompt, config["grad_clip_norm"])
-            scaler.step(optimizer)
-            scaler.update()
+            if config["pcgrad_enabled"]:
+                optimizer.step()
+            else:
+                scaler.step(optimizer)
+                scaler.update()
             losses.append(float(loss.item()))
         scheduler.step()
         apply_soft_prompt_lr_policy(optimizer, frozen)
