@@ -56,7 +56,11 @@ DIAGNOSTIC_FIELDS = [
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Phase2C deterministic VisA curriculum training")
-    parser.add_argument("--condition", required=True, choices=["A_prime", "B", "C", "P"])
+    parser.add_argument(
+        "--condition", required=True,
+        choices=["A_prime", "B", "C", "P", "P_LoRA_only"],
+        help="Training condition name",
+    )
     parser.add_argument(
         "--diagnostic-batch-size", type=int, default=1,
         help="batch size for post-epoch gradient diagnostics; kept separate to limit VRAM",
@@ -76,6 +80,16 @@ def parse_args():
         help="use CUDA autocast with bfloat16 (without gradient scaling)",
     )
     parser.add_argument("--dry-run", action="store_true", help="validate and print resolved config only")
+    # Engineering-only smoke-test controls.  Default None means full execution.
+    # A smoke run is NOT a scientific result and must use a distinct save-path.
+    parser.add_argument(
+        "--max-train-batches", type=int, default=None,
+        help="[SMOKE/DEBUG] stop training loop after this many batches per epoch",
+    )
+    parser.add_argument(
+        "--max-val-batches", type=int, default=None,
+        help="[SMOKE/DEBUG] stop validation loop after this many batches per class",
+    )
     return parser.parse_args()
 
 
@@ -293,10 +307,21 @@ def train_phase2c(args):
     config["amp"] = not args.no_amp
     config["bf16"] = args.bf16
     config["diagnostic_batch_size"] = args.diagnostic_batch_size
+    # Record smoke-test limits in config so any output is clearly marked.
+    max_train_batches = getattr(args, "max_train_batches", None)
+    max_val_batches = getattr(args, "max_val_batches", None)
+    if max_train_batches is not None or max_val_batches is not None:
+        config["smoke_test"] = True
+        config["max_train_batches"] = max_train_batches
+        config["max_val_batches"] = max_val_batches
     if config["pcgrad_enabled"]:
         if not args.bf16:
-            raise ValueError("Condition P requires --bf16")
-        config["training_commit_sha"] = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+            raise ValueError(
+                f"Condition {args.condition} uses PCGrad and requires --bf16"
+            )
+        config["training_commit_sha"] = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], text=True
+        ).strip()
     if args.no_amp and args.bf16:
         raise ValueError("--bf16 cannot be combined with --no-amp")
     if args.dry_run:
@@ -356,15 +381,36 @@ def train_phase2c(args):
         )
         model.set_dfg_beta(beta)
         losses = []
-        for batch in tqdm(loader, desc=f"Phase2C {config['condition']} epoch {epoch}"):
+        for batch_idx, batch in enumerate(tqdm(loader, desc=f"Phase2C {config['condition']} epoch {epoch}")):
+            if max_train_batches is not None and batch_idx >= max_train_batches:
+                break
             with torch.autocast(device_type=device.type, dtype=autocast_dtype, enabled=config["amp"]):
                 cls_loss, seg_loss, kg_loss, k_loss = forward_losses(model, batch, device)
-                loss = cls_loss + seg_loss + config["lambda_kg"] * kg_loss + config["lambda_k"] * k_loss
+                # Explicit weighted losses (coefficients are currently 1.0;
+                # the named variables survive coefficient changes without
+                # silently breaking PCGrad's other_loss computation).
+                cls_loss_weighted = cls_loss
+                seg_loss_weighted = seg_loss
+                loss = (
+                    cls_loss_weighted
+                    + seg_loss_weighted
+                    + config["lambda_kg"] * kg_loss
+                    + config["lambda_k"] * k_loss
+                )
             if not torch.isfinite(loss):
                 raise RuntimeError(f"Non-finite Phase2C loss at epoch {epoch}")
             optimizer.zero_grad(set_to_none=True)
             if config["pcgrad_enabled"]:
-                apply_pcgrad(loss, cls_loss, seg_loss, model, config["pcgrad_epsilon"])
+                # apply_pcgrad populates .grad for all trainable parameters.
+                # Do NOT call loss.backward() after this point.
+                apply_pcgrad(
+                    loss,
+                    cls_loss_weighted,
+                    seg_loss_weighted,
+                    model,
+                    config["pcgrad_groups"],
+                    config["pcgrad_epsilon"],
+                )
             else:
                 scaler.scale(loss).backward()
                 scaler.unscale_(optimizer)
@@ -401,8 +447,12 @@ def train_phase2c(args):
         )
         append_csv(output / "gradient_diagnostics.csv", diagnostics, DIAGNOSTIC_FIELDS)
         if config["pcgrad_enabled"]:
+            # pcgrad_diagnostics.csv covers only groups that receive PCGrad.
             pcgrad_rows = run_pcgrad_diagnostics(
-                model, optimizer, scheduler, fixed_batches, diagnostic_loss_builder, epoch, config["pcgrad_epsilon"]
+                model, optimizer, scheduler, fixed_batches,
+                diagnostic_loss_builder, epoch,
+                config["pcgrad_groups"],
+                config["pcgrad_epsilon"],
             )
             append_csv(output / "pcgrad_diagnostics.csv", pcgrad_rows, PCGRAD_DIAGNOSTIC_FIELDS)
         validation = validate_visa(
