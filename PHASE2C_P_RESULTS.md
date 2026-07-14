@@ -57,11 +57,15 @@ negative:
 | `soft_prompt` | 15 / 45 (33.3%) |
 
 At epochs 10--13, the selection region, negative pre-projection cosine was
-most frequent for `shared_image_lora` (9 / 12, 75.0%).  The current evidence
-therefore supports a narrower follow-up, `P-LoRA-only`, before considering
-replication: keep every protocol field fixed and apply PCGrad only to
-`shared_image_lora`.  Do not run multi-seed robustness or the medical final
-test for P as currently configured.
+most frequent for `shared_image_lora` (9 / 12, 75.0%).  This motivated the
+narrower follow-up `P_LoRA_only`.
+
+The completed PL run improved Pixel AUC versus A-prime but remained below
+A-prime in Pixel AP.  PL also recovered Image AP and Image AUC substantially
+relative to full P, but not enough to satisfy the preregistered Pixel-AP-first
+rule.  Final decision: close the PCGrad branch.  Do not run multi-seed
+robustness, the medical final test, or additional PCGrad variants for P/PL as
+currently configured.
 
 ## Reproducibility and stored artifacts
 

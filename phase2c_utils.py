@@ -61,15 +61,42 @@ def alpha_for_epoch(epoch, alpha_max, freeze_epochs=3):
     return alpha_max * (0.25 if warm == 1 else 0.50 if warm == 2 else 1.0)
 
 
+# PCGrad conditions that are children of A_prime.
+_PCGRAD_CONDITIONS = {"P", "P_LoRA_only"}
+
+
 def phase2c_config(condition, save_path, alpha_max):
-    expected_alpha = {"A_prime": 0.20, "B": 0.15, "C": 0.20, "P": 0.20}
+    """Return the full reproducible configuration dict for the given Phase2C condition.
+
+    Conditions
+    ----------
+    A_prime : baseline, hybrid_alpha_max=0.20, no PCGrad
+    B       : hybrid_alpha_max=0.15, no PCGrad
+    C       : delayed activation, hybrid_alpha_max=0.20, no PCGrad
+    P       : A_prime + PCGrad on all four shared groups
+    P_LoRA_only : A_prime + PCGrad on shared_image_lora only
+    """
+    expected_alpha = {"A_prime": 0.20, "B": 0.15, "C": 0.20, "P": 0.20, "P_LoRA_only": 0.20}
     if condition not in expected_alpha:
-        raise ValueError("condition must be A_prime, B, C, or P")
+        raise ValueError(f"condition must be one of {sorted(expected_alpha)}")
     expected = expected_alpha[condition]
     if not math.isclose(alpha_max, expected, rel_tol=0, abs_tol=1e-12):
         raise ValueError(f"{condition} requires hybrid_alpha_max={expected}")
     activation_delay_epochs = 2 if condition == "C" else 0
     soft_prompt_freeze_epochs = 3 + activation_delay_epochs
+    pcgrad_enabled = condition in _PCGRAD_CONDITIONS
+    if condition == "P":
+        pcgrad_groups = ["shared_image_lora", "m_i_w", "hard_text_adapter", "soft_prompt"]
+        pcgrad_variant = "deterministic_symmetric_two_task"
+        parent_condition = "A_prime"
+    elif condition == "P_LoRA_only":
+        pcgrad_groups = ["shared_image_lora"]
+        pcgrad_variant = "symmetric_module_scoped_lora_only"
+        parent_condition = "A_prime"
+    else:
+        pcgrad_groups = []
+        pcgrad_variant = None
+        parent_condition = None
     config = {
         "condition": condition,
         "save_path": str(save_path),
@@ -109,19 +136,41 @@ def phase2c_config(condition, save_path, alpha_max):
         "amp": True,
         "grad_checkpointing": True,
         "score_rule": "cls_only",
-        "parent_condition": "A_prime" if condition == "P" else None,
-        "pcgrad_enabled": condition == "P",
-        "pcgrad_groups": ["shared_image_lora", "m_i_w", "hard_text_adapter", "soft_prompt"] if condition == "P" else [],
-        "pcgrad_variant": "deterministic_symmetric_two_task" if condition == "P" else None,
-        "pcgrad_epsilon": 1e-12 if condition == "P" else None,
-        "precision": "bf16" if condition == "P" else None,
+        "parent_condition": parent_condition,
+        "pcgrad_enabled": pcgrad_enabled,
+        "pcgrad_groups": pcgrad_groups,
+        "pcgrad_variant": pcgrad_variant,
+        "pcgrad_epsilon": 1e-12 if pcgrad_enabled else None,
+        "precision": "bf16" if pcgrad_enabled else None,
     }
     return config
 
 
+# Fields excluded from normalized cross-condition comparison.
+# condition, save_path, hybrid_alpha_max, and alpha_schedule vary by design.
+# PCGrad metadata and parent linkage are condition-specific and must not
+# cause false inequality in scientific-field comparisons.
+_NORMALIZED_IGNORED = {
+    "condition",
+    "save_path",
+    "hybrid_alpha_max",
+    "alpha_schedule",
+    "parent_condition",
+    "pcgrad_enabled",
+    "pcgrad_groups",
+    "pcgrad_variant",
+    "pcgrad_epsilon",
+    "precision",
+    "pcgrad_scale_factor",
+}
+
+
 def normalized_config(config):
-    ignored = {"condition", "save_path", "hybrid_alpha_max", "alpha_schedule"}
-    return {key: value for key, value in config.items() if key not in ignored}
+    """Return config with condition-specific and PCGrad metadata fields removed.
+
+    Use this function to compare scientific fields across conditions.
+    """
+    return {key: value for key, value in config.items() if key not in _NORMALIZED_IGNORED}
 
 
 def image_anchor(rows):

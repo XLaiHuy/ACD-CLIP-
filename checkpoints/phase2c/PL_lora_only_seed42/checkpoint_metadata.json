@@ -1,0 +1,28 @@
+{
+  "condition": "P_LoRA_only",
+  "parent": "A_prime",
+  "seed": 42,
+  "batch_size": 8,
+  "num_workers": 10,
+  "precision": "bf16",
+  "dataset": "VisA fixed split",
+  "selected_epoch": 15,
+  "pixel_auc": 96.684,
+  "pixel_ap": 52.7478,
+  "image_auc": 97.3542,
+  "image_ap": 97.9956,
+  "pcgrad_groups": [
+    "shared_image_lora"
+  ],
+  "role": "exploratory_pixel_auc_candidate",
+  "primary_winner": false,
+  "primary_winner_condition": "A_prime",
+  "comparison_limitation": "batch size differs from A-prime",
+  "source_branch": "phase2c-pl-kaggle",
+  "source_commit_sha": "9173e67a7a095800a417859565ef3e479b799c0a",
+  "source_run_directory": "runs/phase2c_4090/PL_lora_only_seed42_bs8",
+  "source_checkpoint": "runs/phase2c_4090/PL_lora_only_seed42_bs8/checkpoints/adapter_15.pth",
+  "checkpoint_filename": "PL_seed42_bs8_e15_pixelAUC96.6840_pixelAP52.7478_imageAP97.9956.pth",
+  "checkpoint_file_size_bytes": 56451442,
+  "sha256": "1da52b88cd8009ad377e6c82377c7957cc1ac6df687596a800299bf54eab04f4"
+}
