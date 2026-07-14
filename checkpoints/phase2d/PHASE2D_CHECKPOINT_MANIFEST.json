@@ -1,0 +1,55 @@
+{
+  "branch": "phase2d-medical-ready",
+  "source_branch": "phase2d-lb-0p1",
+  "source_commit": "b17a057d811253987b8605bf764fcffb3e8254a8",
+  "dataset": "VisA",
+  "seed": 42,
+  "checkpoints": [
+    {
+      "state": "LB_0p1",
+      "epoch": 15,
+      "source_path": "/workspace/ACD-CLIP-phase2d/runs/phase2d_lb_0p1_seed42/checkpoints/adapter_15.pth",
+      "repository_path": "checkpoints/phase2d/LB_0p1_seed42/LB_0p1_seed42_e15_pixelAUC97.4206_pixelAP53.4980_imageAP98.2721.pth",
+      "sha256": "cf59bcbed5e00d60bfcbc9955ffb16928ccd887d97b03d53774eed237bce922d",
+      "size_bytes": 56451506,
+      "metrics": {"pixel_auc": 97.4206, "pixel_ap": 53.4980, "image_auc": 97.7083, "image_ap": 98.2721},
+      "config": "runs/phase2d_lb_0p1_seed42/config.json",
+      "selection": "runs/phase2d_lb_0p1_seed42/selection.json"
+    },
+    {
+      "state": "AB25",
+      "epoch": 13,
+      "lambda_b": 0.25,
+      "source_path": "/workspace/ACD-CLIP-phase2d/runs/phase2d_ab_interpolation_seed42/checkpoints/AB25_lambdaB0p25.pth",
+      "repository_path": "checkpoints/phase2d/AB_interpolation_seed42/AB25_lambdaB0p25.pth",
+      "sha256": "e9f6d3339b8d6766b2227ed718fa05c8a0effcc407343dffbe8a5557ea7cbff7",
+      "size_bytes": 56451586,
+      "metrics": {"pixel_auc": 95.5693, "pixel_ap": 55.4652, "image_auc": 97.9653, "image_ap": 98.4647}
+    },
+    {
+      "state": "AB50",
+      "epoch": 13,
+      "lambda_b": 0.50,
+      "source_path": "/workspace/ACD-CLIP-phase2d/runs/phase2d_ab_interpolation_seed42/checkpoints/AB50_lambdaB0p50.pth",
+      "repository_path": "checkpoints/phase2d/AB_interpolation_seed42/AB50_lambdaB0p50.pth",
+      "sha256": "610b8e9a89d339dfc7893a006cf9a848d99e218a4abfef3da8b6576a2442d824",
+      "size_bytes": 56451586,
+      "metrics": {"pixel_auc": 96.0225, "pixel_ap": 55.4166, "image_auc": 97.8611, "image_ap": 98.3772}
+    },
+    {
+      "state": "AB75",
+      "epoch": 13,
+      "lambda_b": 0.75,
+      "source_path": "/workspace/ACD-CLIP-phase2d/runs/phase2d_ab_interpolation_seed42/checkpoints/AB75_lambdaB0p75.pth",
+      "repository_path": "checkpoints/phase2d/AB_interpolation_seed42/AB75_lambdaB0p75.pth",
+      "sha256": "606f312654c70317db10bb2d5d137643d53ffa409cbed065e0eb87b7427d37ce",
+      "size_bytes": 56451586,
+      "metrics": {"pixel_auc": 96.1600, "pixel_ap": 55.2958, "image_auc": 97.9792, "image_ap": 98.5016}
+    }
+  ],
+  "interpolation_parents": {
+    "a_prime_sha256": "036143f9ff940716684174e569ca07a8a060a9b81de94c14e8ba49d748783752",
+    "b_sha256": "b556a2083555b1b9a2d29050b515808d191f224832613a203a90b74f5847cc2d"
+  },
+  "publication_commit": null
+}

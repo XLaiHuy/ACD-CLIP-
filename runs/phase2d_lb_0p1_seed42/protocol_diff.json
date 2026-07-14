@@ -1,0 +1,316 @@
+{
+  "fields": {
+    "activation_delay_epochs": {
+      "historical": 0,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 0
+    },
+    "alpha_schedule": {
+      "historical": [
+        0.0,
+        0.0,
+        0.0,
+        0.05,
+        0.1,
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.2
+      ],
+      "identical": true,
+      "intended_difference": false,
+      "proposed": [
+        0.0,
+        0.0,
+        0.0,
+        0.05,
+        0.1,
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.2,
+        0.2
+      ]
+    },
+    "amp": {
+      "historical": true,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": true
+    },
+    "batch_size": {
+      "historical": 6,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 6
+    },
+    "bf16": {
+      "historical": true,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": true
+    },
+    "cls_loss_weight": {
+      "historical": 1.0,
+      "identical": false,
+      "intended_difference": true,
+      "proposed": 0.1
+    },
+    "condition": {
+      "historical": "A_prime",
+      "identical": true,
+      "intended_difference": false,
+      "proposed": "A_prime"
+    },
+    "dataset": {
+      "historical": "VisA",
+      "identical": true,
+      "intended_difference": false,
+      "proposed": "VisA"
+    },
+    "dfg_attn_dim": {
+      "historical": 256,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 256
+    },
+    "dfg_attn_tau": {
+      "historical": 8.0,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 8.0
+    },
+    "dfg_beta": {
+      "historical": 0.1,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 0.1
+    },
+    "dfg_beta_schedule": {
+      "historical": "warmup010",
+      "identical": true,
+      "intended_difference": false,
+      "proposed": "warmup010"
+    },
+    "dfg_beta_target": {
+      "historical": 0.1,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 0.1
+    },
+    "dfg_gamma_max": {
+      "historical": 0.2,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 0.2
+    },
+    "dfg_mode": {
+      "historical": "attn",
+      "identical": true,
+      "intended_difference": false,
+      "proposed": "attn"
+    },
+    "dfg_ss2d_fusion": {
+      "historical": "weight_residual",
+      "identical": true,
+      "intended_difference": false,
+      "proposed": "weight_residual"
+    },
+    "diagnostic_batch_size": {
+      "historical": 1,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 1
+    },
+    "epochs": {
+      "historical": 15,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 15
+    },
+    "grad_checkpointing": {
+      "historical": true,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": true
+    },
+    "grad_clip_norm": {
+      "historical": 1.0,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 1.0
+    },
+    "hybrid_alpha_max": {
+      "historical": 0.2,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 0.2
+    },
+    "image_lr": {
+      "historical": 0.001,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 0.001
+    },
+    "img_size": {
+      "historical": 518,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 518
+    },
+    "lambda_k": {
+      "historical": 0.002,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 0.002
+    },
+    "lambda_kg": {
+      "historical": 0.01,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 0.01
+    },
+    "lr_gamma": {
+      "historical": 0.9,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 0.9
+    },
+    "n_groups": {
+      "historical": 3,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 3
+    },
+    "non_finite_loss_abort_threshold": {
+      "historical": 20,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 20
+    },
+    "num_workers": {
+      "historical": 6,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 6
+    },
+    "parent_condition": {
+      "historical": null,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": null
+    },
+    "pcgrad_enabled": {
+      "historical": false,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": false
+    },
+    "pcgrad_epsilon": {
+      "historical": null,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": null
+    },
+    "pcgrad_groups": {
+      "historical": [],
+      "identical": true,
+      "intended_difference": false,
+      "proposed": []
+    },
+    "pcgrad_scale_factor": {
+      "historical": 1.0,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 1.0
+    },
+    "pcgrad_variant": {
+      "historical": null,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": null
+    },
+    "precision": {
+      "historical": null,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": null
+    },
+    "score_rule": {
+      "historical": "cls_only",
+      "identical": true,
+      "intended_difference": false,
+      "proposed": "cls_only"
+    },
+    "seed": {
+      "historical": 42,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 42
+    },
+    "seg_loss_weight": {
+      "historical": 1.0,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 1.0
+    },
+    "soft_prompt_ctx_len": {
+      "historical": 4,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 4
+    },
+    "soft_prompt_freeze_epochs": {
+      "historical": 3,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 3
+    },
+    "soft_prompt_lr": {
+      "historical": 5e-05,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 5e-05
+    },
+    "text_adapt_weight": {
+      "historical": 0.2,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 0.2
+    },
+    "text_lr": {
+      "historical": 0.0005,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": 0.0005
+    },
+    "use_hybrid_soft_prompt": {
+      "historical": true,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": true
+    },
+    "use_ss2d_dfg": {
+      "historical": true,
+      "identical": true,
+      "intended_difference": false,
+      "proposed": true
+    }
+  },
+  "historical": 1.0,
+  "intended_change": "cls_loss_weight",
+  "medical_evaluation": false,
+  "proposed": 0.1
+}

@@ -1,0 +1,12 @@
+index, name, memory.total [MiB], memory.free [MiB], driver_version
+0, NVIDIA GeForce RTX 4090, 24564 MiB, 23953 MiB, 595.71.05
+torch 2.5.1+cu124
+cuda 12.4
+cuda_available True
+bf16 True
+7e688682fa2f053e555d84e170be98ad1e0573e9a63c90f27b1790bdfcccee61  splits/visa_train_seed42.csv
+975dc97afbad51208475bc6d776e88b33e61156d2e9cb14149c997d9554a4216  splits/visa_val_seed42.csv
+14a28e0f2506bb9b5ab9bfe0058615a0d4702870556273b123e9a6220d8850ec  splits/visa_split_seed42_metadata.json
+3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02  model/ViT-L-14-336px.pt
+b17a057d811253987b8605bf764fcffb3e8254a8
+bash run_phase2d_LB_0p1_seed42.sh
