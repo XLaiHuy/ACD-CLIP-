@@ -46,6 +46,18 @@ Interpretation:
   Pixel-AP-first rule.
 - A-prime remains the primary winner.
 
+### Guardrail definitions
+
+There are two distinct constraints. Run-internal checkpoint eligibility is
+derived from the early-epoch image-AP anchor inside this PL run; that is the
+registered rule used by `selection.json`. The cross-condition PL success
+guardrail is A-prime Image AP minus 1.0, equal to 97.4225.
+
+`selection.json` remains unchanged as a historical run artifact. Epoch 15 was
+selected by the registered internal rule and also satisfies the cross-condition
+Image AP guardrail of 97.4225. PL still fails because Pixel AP does not beat
+A-prime and does not satisfy the secondary Pixel AP threshold.
+
 ## A-prime, full P, and PL
 
 | Condition | Epoch | Pixel AUC | Pixel AP | Image AUC | Image AP |

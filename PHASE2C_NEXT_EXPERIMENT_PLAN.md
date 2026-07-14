@@ -1,6 +1,23 @@
 # Phase2C: Diagnosis-Gated Curriculum Ablation Plan
 
-## Status after BF16 A-prime/B and PCGrad P/PL
+## Status after BF16 A-prime/B, curriculum C, and PCGrad P/PL
+
+### Completed C: delayed alpha/beta activation
+
+C used A-prime as its parent and delayed alpha/beta activation. Its selected
+epoch was 14, with the following differences from A-prime:
+
+| Metric | C minus A-prime |
+|---|---:|
+| Pixel AUC | +1.3090 |
+| Pixel AP | -0.7988 |
+| Image AUC | -0.7083 |
+| Image AP | -0.7746 |
+
+C did not replace A-prime. The intervention reduced conflict in one activation
+region, but material conflict and gradient-norm imbalance remained. The
+diagnostic decision gate redirected the investigation toward targeted
+interventions rather than automatically launching D.
 
 Both runs use the same Phase2C architecture.  They differ only in the
 maximum hybrid-soft-prompt alpha.
@@ -14,18 +31,27 @@ Do **not** describe A-prime as the best architecture.  A-prime and B are the
 same architecture; A-prime is the current best training configuration and
 checkpoint under the registered selection rule.
 
-PCGrad follow-ups P and PL are now closed:
+P and P_LoRA_only are completed, and the PCGrad branch is now closed:
 
 | Candidate | Selected epoch | PCGrad scope | Pixel AUC | Pixel AP | Image AUC | Image AP | Role |
 |---|---:|---|---:|---:|---:|---:|---|
 | Full P | 13 | `shared_image_lora`, `m_i_w`, `hard_text_adapter`, `soft_prompt` | 97.1696 | 51.7660 | 96.3819 | 96.7979 | Pixel AUC exploratory result; failed guardrails |
 | PL | 15 | `shared_image_lora` only | 96.6840 | 52.7478 | 97.3542 | 97.9956 | Exploratory Pixel-AUC-oriented checkpoint; failed Pixel AP rule |
 
-PL narrowed the PCGrad scope and recovered image metrics compared with full P,
-but it remained below A-prime in Pixel AP. The PL run used batch size 8 versus
-A-prime batch size 6, so treat it as directional evidence only. No batch-size-6
-rerun is planned. The recommended next research direction is gradient/loss
-balancing rather than another PCGrad variant.
+Full P and PL increased Pixel AUC but reduced Pixel AP. PL recovered image
+metrics compared with full P, but still failed the preregistered Pixel-AP-first
+rule. The PL run used batch size 8 versus A-prime batch size 6, so treat it as
+directional evidence only. A-prime remains the primary winner. No additional
+PCGrad variant should be launched without a new preregistered hypothesis.
+
+### D/E status: deferred after diagnostic gate
+
+D and E remain valid causal curriculum/restart experiments. They are deferred
+after the diagnostic decision gate because they do not directly target the
+observed gradient conflict and gradient-norm imbalance. They may be revisited
+if the research objective becomes a complete study of delayed curriculum and
+optimizer restart. They are not the current highest-priority path for improving
+Pixel AP with limited compute.
 
 ## Preserve the completed evidence
 
@@ -53,23 +79,23 @@ Analyze A-prime versus B with the same fixed VisA split.
 3. Record whether the observed metric trade-off is broad across categories or
    concentrated in a small number of categories.
 
-### Decision gate
+### Decision gate (completed)
 
 The diagnostic is an input to the experimental branch, not reporting-only
 logging.
 
-| Diagnostic finding | Next action |
+| Diagnostic finding | Action taken |
 |---|---|
-| No material shared-path conflict or norm imbalance | Continue with curriculum ablations C, D, E. |
-| Material shared-path gradient conflict | Run C as the curriculum control if useful; prioritize an added F/shared-freeze intervention. |
-| Material gradient-norm imbalance | Prioritize a loss-balancing intervention (for example, GradNorm) rather than automatically completing C--E. |
+| No material shared-path conflict or norm imbalance | Not applicable; material imbalance was observed. |
+| Material shared-path gradient conflict | C completed as the curriculum control; D/E deferred. |
+| Material gradient-norm imbalance | Prioritize targeted loss balancing rather than automatically completing D/E. |
 
 Predefine quantitative thresholds for “material” before applying the gate;
 otherwise report the decision as exploratory rather than confirmatory. The
 first A-prime/B screening report is exploratory because its thresholds were
 configured after those runs completed.
 
-## Clean curriculum ablations
+## Clean curriculum ablations (D/E deferred after diagnostic gate)
 
 All candidates must use the same dataset manifests, fixed split, epoch count,
 BF16 mode, batch size, workers, diagnostic batches, score rule, checkpoint
@@ -132,13 +158,33 @@ After selecting one candidate configuration, use two separate checks.
 3. Lock the winner configuration and checkpoint-selection policy.
 4. Run the medical final test once, without using it for tuning.
 
+## Active next-step plan
+
+The lowest-cost next step is A-prime/B checkpoint interpolation. Evaluate only
+the following mixtures; do not train in this integration task:
+
+- AB25: 75% A-prime + 25% B
+- AB50: 50% A-prime + 50% B
+- AB75: 25% A-prime + 75% B
+
+If interpolation does not beat A-prime, preregister one static loss-balancing
+condition, LB_0p1:
+
+- A-prime with `cls_loss_weight = 0.1`
+- `seg_loss_weight = 1.0`
+- existing regularizers unchanged
+- PCGrad disabled
+
+The primary success rule remains Image AP >= 97.4225 and Pixel AP > 55.5341.
+The secondary view is Pixel AUC > 94.8038, Pixel AP >= 55.0341, and Image AP
+>= 97.4225. D/E are explicitly **Deferred after diagnostic gate**.
+
 ## Execution order
 
 ```text
 Preserve A-prime/B artifacts
-        -> gradient + per-category diagnosis
-        -> decision gate
-        -> C, then D/E paired alpha comparison (or targeted F/GradNorm branch)
+        -> A-prime/B checkpoint interpolation (AB25, AB50, AB75)
+        -> if needed, preregister LB_0p1
         -> primary rule + Pixel-AUC view + Pareto review
         -> choose one configuration
         -> fixed-split training-seed robustness
