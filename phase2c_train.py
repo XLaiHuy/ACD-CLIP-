@@ -188,9 +188,21 @@ def forward_losses(model, batch, device, include_regularizers=True):
     image = batch["image"].to(device)
     mask = batch["mask"].to(device)
     label = batch["label"].to(device)
-    text_features, kg_loss, k_loss = text_features_for_batch(
-        model, list(batch["class_name"]), device, include_regularizers=include_regularizers
-    )
+
+    # The text tower is tiny compared with the image ViT (short token
+    # sequences, at most one encoding per unique class in a batch).  Keep the
+    # hybrid prompt interpolation and both text regularizers in FP32: these
+    # start contributing from epoch 4 and are the other plausible FP16
+    # overflow source once alpha reaches 0.20 at epoch 6.
+    with torch.autocast(device_type=device.type, enabled=False):
+        text_features, kg_loss, k_loss = text_features_for_batch(
+            model, list(batch["class_name"]), device,
+            include_regularizers=include_regularizers,
+        )
+
+    # The image ViT remains in AMP.  Moving it to FP32 would exceed the T4
+    # memory budget; its output is promoted before every numerically sensitive
+    # reduction below.
     seg_tokens, det_tokens = model(image)
     seg_features = torch.stack(seg_tokens, dim=0)
     det_features = torch.stack(det_tokens, dim=0)
