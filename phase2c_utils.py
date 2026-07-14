@@ -16,6 +16,12 @@ from torch.utils.data import Sampler
 
 NA = "NA"
 
+def validate_loss_weight(name, value):
+    value = float(value)
+    if not math.isfinite(value) or value < 0.0:
+        raise ValueError(f"{name} must be finite and non-negative")
+    return value
+
 
 def seed_everything(seed=42):
     random.seed(seed)
@@ -130,6 +136,8 @@ def phase2c_config(condition, save_path, alpha_max):
         "lr_gamma": 0.9,
         "grad_clip_norm": 1.0,
         "non_finite_loss_abort_threshold": 20,
+        "cls_loss_weight": 1.0,
+        "seg_loss_weight": 1.0,
         "batch_size": 6,
         "num_workers": 6,
         "img_size": 518,

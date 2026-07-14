@@ -37,6 +37,7 @@ from phase2c_utils import (
     run_gradient_diagnostics,
     seed_everything,
     seed_worker,
+    validate_loss_weight,
     write_selection,
 )
 from train import (
@@ -78,6 +79,8 @@ def parse_args():
     parser.add_argument("--cuda-device", type=int, default=0)
     parser.add_argument("--batch-size", type=int, default=6)
     parser.add_argument("--num-workers", type=int, default=6)
+    parser.add_argument("--cls-loss-weight", type=float, default=1.0)
+    parser.add_argument("--seg-loss-weight", type=float, default=1.0)
     parser.add_argument("--metric-thresholds", type=int, default=None)
     parser.add_argument("--no-amp", action="store_true")
     parser.add_argument(
@@ -322,6 +325,8 @@ def checkpoint_payload(model, config, epoch):
         "hybrid_alpha_max": config["hybrid_alpha_max"],
         "soft_prompt_freeze_epochs": config["soft_prompt_freeze_epochs"],
         "grad_clip_norm": config["grad_clip_norm"],
+        "cls_loss_weight": config["cls_loss_weight"],
+        "seg_loss_weight": config["seg_loss_weight"],
         "lambda_kg": config["lambda_kg"],
         "lambda_k": config["lambda_k"],
         "text_adapter": model.text_adapter.state_dict(),
@@ -337,6 +342,8 @@ def train_phase2c(args):
     config["amp"] = not args.no_amp
     config["bf16"] = args.bf16
     config["diagnostic_batch_size"] = args.diagnostic_batch_size
+    config["cls_loss_weight"] = validate_loss_weight("cls_loss_weight", args.cls_loss_weight)
+    config["seg_loss_weight"] = validate_loss_weight("seg_loss_weight", args.seg_loss_weight)
     # Determine the manual loss scaling factor for PCGrad to prevent FP16 underflow.
     # - BF16 uses 1.0 (no scaling needed)
     # - FP16 AMP uses 65536.0 (prevents underflow)
@@ -429,6 +436,7 @@ def train_phase2c(args):
         )
         model.set_dfg_beta(beta)
         losses = []
+        loss_component_sums = {"raw_cls_loss": 0.0, "weighted_cls_loss": 0.0, "raw_seg_loss": 0.0, "weighted_seg_loss": 0.0, "kg_loss": 0.0, "weighted_kg_loss": 0.0, "k_loss": 0.0, "weighted_k_loss": 0.0}
         non_finite_loss_skips = 0
         non_finite_grad_skips = 0
         for batch_idx, batch in enumerate(tqdm(loader, desc=f"Phase2C {config['condition']} epoch {epoch}")):
@@ -439,13 +447,15 @@ def train_phase2c(args):
                 # Explicit weighted losses (coefficients are currently 1.0;
                 # the named variables survive coefficient changes without
                 # silently breaking PCGrad's other_loss computation).
-                cls_loss_weighted = cls_loss
-                seg_loss_weighted = seg_loss
+                cls_loss_weighted = config["cls_loss_weight"] * cls_loss
+                seg_loss_weighted = config["seg_loss_weight"] * seg_loss
+                kg_loss_weighted = config["lambda_kg"] * kg_loss
+                k_loss_weighted = config["lambda_k"] * k_loss
                 loss = (
                     cls_loss_weighted
                     + seg_loss_weighted
-                    + config["lambda_kg"] * kg_loss
-                    + config["lambda_k"] * k_loss
+                    + kg_loss_weighted
+                    + k_loss_weighted
                 )
             if not torch.isfinite(loss):
                 # A non-finite forward pass has not modified parameters yet.
@@ -540,8 +550,20 @@ def train_phase2c(args):
                     f"at epoch {epoch}, batch {batch_idx}."
                 )
             losses.append(float(loss.item()))
+            for key, value in {
+                "raw_cls_loss": cls_loss, "weighted_cls_loss": cls_loss_weighted,
+                "raw_seg_loss": seg_loss, "weighted_seg_loss": seg_loss_weighted,
+                "kg_loss": kg_loss, "weighted_kg_loss": kg_loss_weighted,
+                "k_loss": k_loss, "weighted_k_loss": k_loss_weighted,
+            }.items():
+                loss_component_sums[key] += float(value.item())
         scheduler.step()
         apply_soft_prompt_lr_policy(optimizer, frozen)
+        batch_count = max(1, len(losses))
+        loss_row = {"epoch": epoch, **{key: value / batch_count for key, value in loss_component_sums.items()}, "total_loss": float(np.mean(losses)) if losses else float("nan")}
+        for group in optimizer.param_groups:
+            loss_row["lr_{}".format(group["name"])] = group["lr"]
+        append_csv(output / "loss_metrics.csv", [loss_row], list(loss_row.keys()))
         checkpoint = checkpoints / f"adapter_{epoch}.pth"
         torch.save(checkpoint_payload(model, config, epoch), checkpoint)
 
