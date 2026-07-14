@@ -1,0 +1,27 @@
+{
+  "batch_size": 6,
+  "dataset": "VisA",
+  "experiment": "Phase2D_AB_interpolation",
+  "locked_candidates": {
+    "AB25": 0.25,
+    "AB50": 0.5,
+    "AB75": 0.75
+  },
+  "num_workers": 6,
+  "parents": {
+    "A_prime": {
+      "path": "checkpoints/phase2c/A_prime_seed42/A_prime_seed42_e13_pixelAUC94.8038_pixelAP55.5341_imageAP98.4225.pth",
+      "sha256": "036143f9ff940716684174e569ca07a8a060a9b81de94c14e8ba49d748783752"
+    },
+    "B": {
+      "path": "checkpoints/phase2c/B_seed42/B_seed42_e13_pixelAUC96.2236_pixelAP55.1342_imageAP98.4287.pth",
+      "sha256": "b556a2083555b1b9a2d29050b515808d191f224832613a203a90b74f5847cc2d"
+    }
+  },
+  "score_rule": "cls_only",
+  "seed": 42,
+  "split_metadata": "splits/visa_split_seed42_metadata.json",
+  "train_manifest": "splits/visa_train_seed42.csv",
+  "training_performed": false,
+  "val_manifest": "splits/visa_val_seed42.csv"
+}
