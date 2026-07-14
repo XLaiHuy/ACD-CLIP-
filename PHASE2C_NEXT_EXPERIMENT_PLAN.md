@@ -158,17 +158,26 @@ After selecting one candidate configuration, use two separate checks.
 3. Lock the winner configuration and checkpoint-selection policy.
 4. Run the medical final test once, without using it for tuning.
 
+## Completed A-prime/B checkpoint interpolation
+
+The locked checkpoint-interpolation experiment is complete. Parent
+reproduction passed, and the three registered candidates were evaluated:
+
+| Candidate | Pixel AUC | Pixel AP | Image AUC | Image AP |
+|---|---:|---:|---:|---:|
+| AB25 | 95.5693 | 55.4652 | 97.9653 | 98.4647 |
+| AB50 | 96.0225 | 55.4166 | 97.8611 | 98.3772 |
+| AB75 | 96.1600 | 55.2958 | 97.9792 | 98.5016 |
+
+No interpolation candidate exceeded A-prime Pixel AP 55.5341. All three
+candidates met the secondary Pareto rule. A-prime remains the primary winner,
+and checkpoint interpolation is closed. No interpolated checkpoint was
+promoted to canonical Git LFS storage.
+
 ## Active next-step plan
 
-The lowest-cost next step is A-prime/B checkpoint interpolation. Evaluate only
-the following mixtures; do not train in this integration task:
-
-- AB25: 75% A-prime + 25% B
-- AB50: 50% A-prime + 50% B
-- AB75: 25% A-prime + 75% B
-
-If interpolation does not beat A-prime, preregister one static loss-balancing
-condition, LB_0p1:
+The only active next experiment is one static loss-balancing condition,
+LB_0p1:
 
 - A-prime with `cls_loss_weight = 0.1`
 - `seg_loss_weight = 1.0`
@@ -177,14 +186,15 @@ condition, LB_0p1:
 
 The primary success rule remains Image AP >= 97.4225 and Pixel AP > 55.5341.
 The secondary view is Pixel AUC > 94.8038, Pixel AP >= 55.0341, and Image AP
->= 97.4225. D/E are explicitly **Deferred after diagnostic gate**.
+>= 97.4225. D/E remain explicitly **Deferred after diagnostic gate**.
+Medical evaluation remains held out.
 
 ## Execution order
 
 ```text
 Preserve A-prime/B artifacts
-        -> A-prime/B checkpoint interpolation (AB25, AB50, AB75)
-        -> if needed, preregister LB_0p1
+        -> closed A-prime/B checkpoint interpolation
+        -> LB_0p1 static loss balancing
         -> primary rule + Pixel-AUC view + Pareto review
         -> choose one configuration
         -> fixed-split training-seed robustness
