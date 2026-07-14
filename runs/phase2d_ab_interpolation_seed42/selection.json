@@ -1,0 +1,87 @@
+{
+  "candidates": [
+    {
+      "candidate": "AB25",
+      "checkpoint_path": "runs/phase2d_ab_interpolation_seed42/checkpoints/AB25_lambdaB0p25.pth",
+      "delta_vs_a_prime": {
+        "image_ap": 0.04222938855488678,
+        "image_auc": 0.062483691883088,
+        "pixel_ap": -0.06893540564775691,
+        "pixel_auc": 0.7655493286768689
+      },
+      "delta_vs_b": {
+        "image_ap": 0.036029388554879915,
+        "image_auc": 0.09028369188308716,
+        "pixel_ap": 0.33096459435224546,
+        "pixel_auc": -0.6542506713231404
+      },
+      "lambda_b": 0.25,
+      "metrics": {
+        "image_ap": 98.46472938855489,
+        "image_auc": 97.96528369188309,
+        "pixel_ap": 55.465164594352245,
+        "pixel_auc": 95.56934932867686
+      },
+      "primary_eligible": false,
+      "secondary_pareto": true
+    },
+    {
+      "candidate": "AB50",
+      "checkpoint_path": "runs/phase2d_ab_interpolation_seed42/checkpoints/AB50_lambdaB0p50.pth",
+      "delta_vs_a_prime": {
+        "image_ap": -0.04534274895985391,
+        "image_auc": -0.04168337214787243,
+        "pixel_ap": -0.11749226742585961,
+        "pixel_auc": 1.2187284099578903
+      },
+      "delta_vs_b": {
+        "image_ap": -0.051542748959860774,
+        "image_auc": -0.013883372147873274,
+        "pixel_ap": 0.28240773257414276,
+        "pixel_auc": -0.20107159004211894
+      },
+      "lambda_b": 0.5,
+      "metrics": {
+        "image_ap": 98.37715725104015,
+        "image_auc": 97.86111662785213,
+        "pixel_ap": 55.41660773257414,
+        "pixel_auc": 96.02252840995789
+      },
+      "primary_eligible": false,
+      "secondary_pareto": true
+    },
+    {
+      "candidate": "AB75",
+      "checkpoint_path": "runs/phase2d_ab_interpolation_seed42/checkpoints/AB75_lambdaB0p75.pth",
+      "delta_vs_a_prime": {
+        "image_ap": 0.0791132394472811,
+        "image_auc": 0.07637107741038562,
+        "pixel_ap": -0.2382503464182264,
+        "pixel_auc": 1.3561921186765034
+      },
+      "delta_vs_b": {
+        "image_ap": 0.07291323944727424,
+        "image_auc": 0.10417107741038478,
+        "pixel_ap": 0.16164965358177596,
+        "pixel_auc": -0.06360788132350592
+      },
+      "lambda_b": 0.75,
+      "metrics": {
+        "image_ap": 98.50161323944728,
+        "image_auc": 97.97917107741038,
+        "pixel_ap": 55.295849653581776,
+        "pixel_auc": 96.1599921186765
+      },
+      "primary_eligible": false,
+      "secondary_pareto": true
+    }
+  ],
+  "decision": "keep_A_prime_primary_winner",
+  "primary_success": false,
+  "primary_winner": null,
+  "secondary_pareto_candidates": [
+    "AB25",
+    "AB50",
+    "AB75"
+  ]
+}

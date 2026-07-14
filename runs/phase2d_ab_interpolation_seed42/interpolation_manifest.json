@@ -1,0 +1,42 @@
+{
+  "candidates": [
+    {
+      "lambda_b": 0.25,
+      "name": "AB25",
+      "path": "runs/phase2d_ab_interpolation_seed42/checkpoints/AB25_lambdaB0p25.pth",
+      "sha256": "e9f6d3339b8d6766b2227ed718fa05c8a0effcc407343dffbe8a5557ea7cbff7"
+    },
+    {
+      "lambda_b": 0.5,
+      "name": "AB50",
+      "path": "runs/phase2d_ab_interpolation_seed42/checkpoints/AB50_lambdaB0p50.pth",
+      "sha256": "610b8e9a89d339dfc7893a006cf9a848d99e218a4abfef3da8b6576a2442d824"
+    },
+    {
+      "lambda_b": 0.75,
+      "name": "AB75",
+      "path": "runs/phase2d_ab_interpolation_seed42/checkpoints/AB75_lambdaB0p75.pth",
+      "sha256": "606f312654c70317db10bb2d5d137643d53ffa409cbed065e0eb87b7427d37ce"
+    }
+  ],
+  "floating_dtypes": [
+    "torch.float32"
+  ],
+  "floating_tensor_count": 116,
+  "non_floating_tensor_count": 0,
+  "parents": {
+    "A_prime": {
+      "path": "checkpoints/phase2c/A_prime_seed42/A_prime_seed42_e13_pixelAUC94.8038_pixelAP55.5341_imageAP98.4225.pth",
+      "sha256": "036143f9ff940716684174e569ca07a8a060a9b81de94c14e8ba49d748783752"
+    },
+    "B": {
+      "path": "checkpoints/phase2c/B_seed42/B_seed42_e13_pixelAUC96.2236_pixelAP55.1342_imageAP98.4287.pth",
+      "sha256": "b556a2083555b1b9a2d29050b515808d191f224832613a203a90b74f5847cc2d"
+    }
+  },
+  "state_dict_keys": [
+    "text_adapter",
+    "image_adapter",
+    "soft_prompt"
+  ]
+}
