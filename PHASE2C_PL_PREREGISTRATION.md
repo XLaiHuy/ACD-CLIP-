@@ -182,3 +182,26 @@ runs/phase2c_bf16/PL_lora_only_seed42/
 - Training entrypoint: `phase2c_train.py --condition P_LoRA_only`
 - PCGrad implementation: `phase2c_pcgrad.py`
 - Protocol: `phase2c_utils.py`, `phase2c_pcgrad_diagnostics.py`
+
+## Completed outcome
+
+The completed RTX 4090 PL run is recorded in `PHASE2C_PL_RESULTS.md`.
+
+Observed selected checkpoint:
+
+| Condition | Epoch | Pixel AUC | Pixel AP | Image AUC | Image AP |
+|---|---:|---:|---:|---:|---:|
+| A-prime | 13 | 94.8038 | 55.5341 | 97.9028 | 98.4225 |
+| PL | 15 | 96.6840 | 52.7478 | 97.3542 | 97.9956 |
+| PL minus A-prime | - | +1.8802 | -2.7863 | -0.5486 | -0.4269 |
+
+PL passed the Image AP guardrail but failed the primary Pixel AP criterion and
+failed the secondary Pareto criterion. A-prime remains the primary winner.
+
+The completed run used batch size 8 and `num_workers` 10, while the original
+preregistration specified batch size 6 and `num_workers` 6 for a controlled
+A-prime comparison. Therefore the PL result is retained as an exploratory
+directional comparison only. No batch-size-6 rerun is authorized or planned.
+
+Final decision: close the PCGrad branch. Do not create another PCGrad variant
+without a new preregistered hypothesis.

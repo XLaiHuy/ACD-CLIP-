@@ -1,6 +1,6 @@
 # Phase2C: Diagnosis-Gated Curriculum Ablation Plan
 
-## Status after BF16 A-prime/B
+## Status after BF16 A-prime/B and PCGrad P/PL
 
 Both runs use the same Phase2C architecture.  They differ only in the
 maximum hybrid-soft-prompt alpha.
@@ -13,6 +13,19 @@ maximum hybrid-soft-prompt alpha.
 Do **not** describe A-prime as the best architecture.  A-prime and B are the
 same architecture; A-prime is the current best training configuration and
 checkpoint under the registered selection rule.
+
+PCGrad follow-ups P and PL are now closed:
+
+| Candidate | Selected epoch | PCGrad scope | Pixel AUC | Pixel AP | Image AUC | Image AP | Role |
+|---|---:|---|---:|---:|---:|---:|---|
+| Full P | 13 | `shared_image_lora`, `m_i_w`, `hard_text_adapter`, `soft_prompt` | 97.1696 | 51.7660 | 96.3819 | 96.7979 | Pixel AUC exploratory result; failed guardrails |
+| PL | 15 | `shared_image_lora` only | 96.6840 | 52.7478 | 97.3542 | 97.9956 | Exploratory Pixel-AUC-oriented checkpoint; failed Pixel AP rule |
+
+PL narrowed the PCGrad scope and recovered image metrics compared with full P,
+but it remained below A-prime in Pixel AP. The PL run used batch size 8 versus
+A-prime batch size 6, so treat it as directional evidence only. No batch-size-6
+rerun is planned. The recommended next research direction is gradient/loss
+balancing rather than another PCGrad variant.
 
 ## Preserve the completed evidence
 
