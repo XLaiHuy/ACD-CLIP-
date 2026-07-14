@@ -1,0 +1,22 @@
+{
+  "condition": "B",
+  "seed": 42,
+  "selected_epoch": 13,
+  "hybrid_alpha_max": 0.15,
+  "pixel_auc": 96.22361461321513,
+  "pixel_ap": 55.1341762766242,
+  "image_auc": 97.87500351667404,
+  "image_ap": 98.42872818311055,
+  "role": "pareto_competitor",
+  "source_run_directory": "runs/phase2c_bf16/B_alpha015_seed42",
+  "source_selection_file": "runs/phase2c_bf16/B_alpha015_seed42/selection.json",
+  "source_checkpoint": "runs/phase2c_bf16/B_alpha015_seed42/checkpoints/adapter_13.pth",
+  "checkpoint_filename": "B_seed42_e13_pixelAUC96.2236_pixelAP55.1342_imageAP98.4287.pth",
+  "checkpoint_file_size_bytes": 56451845,
+  "sha256": "b556a2083555b1b9a2d29050b515808d191f224832613a203a90b74f5847cc2d",
+  "intended_use": "A-prime/B checkpoint interpolation",
+  "interpolation_parent": true,
+  "source_training_git_head": "bdd3f2054439a09ff5605cba9492b8280c7126dd",
+  "source_code_fingerprint_file": "runs/phase2c_bf16/B_alpha015_seed42/code_fingerprint.sha256",
+  "source_artifacts_lock_file": "runs/phase2c_bf16/B_alpha015_seed42/ARTIFACTS_LOCKED.sha256"
+}

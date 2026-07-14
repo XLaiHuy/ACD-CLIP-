@@ -1,0 +1,46 @@
+{
+  "a_prime_canonical_checkpoint": "checkpoints/phase2c/A_prime_seed42/A_prime_seed42_e13_pixelAUC94.8038_pixelAP55.5341_imageAP98.4225.pth",
+  "b_canonical_checkpoint": "checkpoints/phase2c/B_seed42/B_seed42_e13_pixelAUC96.2236_pixelAP55.1342_imageAP98.4287.pth",
+  "a_prime_sha256": "036143f9ff940716684174e569ca07a8a060a9b81de94c14e8ba49d748783752",
+  "b_sha256": "b556a2083555b1b9a2d29050b515808d191f224832613a203a90b74f5847cc2d",
+  "a_prime_selected_metrics": {
+    "pixel_auc": 94.80377087990443,
+    "pixel_ap": 55.534144987662636,
+    "image_auc": 97.90278126796086,
+    "image_ap": 98.4224999944369
+  },
+  "b_selected_metrics": {
+    "pixel_auc": 96.22361461321513,
+    "pixel_ap": 55.1341762766242,
+    "image_auc": 97.87500351667404,
+    "image_ap": 98.42872818311055
+  },
+  "checkpoint_schema": {
+    "top_level_type": "dict",
+    "state_dict_keys_used": [
+      "text_adapter",
+      "image_adapter",
+      "soft_prompt"
+    ],
+    "state_dict_tensor_count": 116,
+    "floating_tensor_count": 116,
+    "non_floating_tensor_count": 0
+  },
+  "compatibility": {
+    "all_keys_match": true,
+    "all_shapes_match": true,
+    "non_floating_mismatch_names": [],
+    "floating_dtype_mismatches": []
+  },
+  "interpolation_status": "No interpolation has been performed yet.",
+  "planned_lambdas": [
+    0.25,
+    0.5,
+    0.75
+  ],
+  "planned_candidates": {
+    "AB25": "75% A-prime + 25% B",
+    "AB50": "50% A-prime + 50% B",
+    "AB75": "25% A-prime + 75% B"
+  }
+}
