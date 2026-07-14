@@ -194,13 +194,26 @@ def forward_losses(model, batch, device, include_regularizers=True):
     seg_tokens, det_tokens = model(image)
     seg_features = torch.stack(seg_tokens, dim=0)
     det_features = torch.stack(det_tokens, dim=0)
-    cls_pred = torch.stack([
-        torch.matmul(det_features[index].unsqueeze(1), text_features[index]).squeeze(1)
-        for index in range(det_features.shape[0])
-    ], dim=0).mean(dim=0)
-    cls_loss = F.cross_entropy(cls_pred, label)
-    seg_pred = model.vision_text_fusion_gate_seg(seg_features, text_features)
-    seg_loss = calculate_seg_loss(seg_pred, mask)
+
+    # Keep the large CLIP forward in AMP, but compute the much smaller
+    # vision--text logits and losses in FP32.  By epoch 6 the hybrid prompt
+    # reaches alpha=0.20; writing these reductions/softmax logits in FP16 can
+    # overflow on T4 even while every trainable parameter is still finite.
+    # Disabling autocast here avoids BF16's severe T4 slowdown without making
+    # the ViT encoder run in FP32.
+    with torch.autocast(device_type=device.type, enabled=False):
+        text_features_fp32 = text_features.float()
+        cls_pred = torch.stack([
+            torch.matmul(
+                det_features[index].float().unsqueeze(1), text_features_fp32[index]
+            ).squeeze(1)
+            for index in range(det_features.shape[0])
+        ], dim=0).mean(dim=0)
+        cls_loss = F.cross_entropy(cls_pred, label)
+        seg_pred = model.vision_text_fusion_gate_seg(
+            seg_features.float(), text_features_fp32
+        )
+        seg_loss = calculate_seg_loss(seg_pred, mask)
     return cls_loss, seg_loss, kg_loss, k_loss
 
 
