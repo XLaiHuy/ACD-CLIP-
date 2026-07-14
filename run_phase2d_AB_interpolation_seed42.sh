@@ -22,6 +22,8 @@ if [[ "${DRY_RUN:-0}" == "1" ]]; then
 fi
 
 mkdir -p "$RUN_DIR"
+"$PYTHON_BIN" phase2d_results.py --run-dir "$RUN_DIR" --write-config --batch-size "$BATCH_SIZE" --num-workers "$NUM_WORKERS" --a-path "$A_PATH" --a-sha "$A_SHA" --b-path "$B_PATH" --b-sha "$B_SHA"
+printf "Phase2D AB interpolation: zero-training run started\n" > "$RUN_DIR/run.log"
 "$PYTHON_BIN" phase2d_interpolation.py --a-checkpoint "$A_PATH" --b-checkpoint "$B_PATH" --a-sha256 "$A_SHA" --b-sha256 "$B_SHA" --output-dir "$CHECKPOINT_DIR"
 "$PYTHON_BIN" phase2d_evaluate.py --checkpoint "A_prime=$A_PATH" --checkpoint "B=$B_PATH" --batch-size "$BATCH_SIZE" --num-workers "$NUM_WORKERS" --cuda-device "$CUDA_DEVICE" --output-csv "$RUN_DIR/parent_reproduction.csv" --output-json "$RUN_DIR/parent_reproduction.json"
 "$PYTHON_BIN" - "$RUN_DIR/parent_reproduction.csv" <<'PY'
@@ -41,6 +43,8 @@ for row in rows:
         if abs(float(row[metric]) - target) > 0.05:
             raise SystemExit(f"parent reproduction failed: {row['checkpoint_name']} {metric}={row[metric]} target={target}")
 PY
+"$PYTHON_BIN" phase2d_results.py --run-dir "$RUN_DIR" --parent-gate
+printf "Parent reproduction gate passed\n" >> "$RUN_DIR/run.log"
 "$PYTHON_BIN" phase2d_evaluate.py --checkpoint "AB25=$CHECKPOINT_DIR/AB25_lambdaB0p25.pth" --checkpoint "AB50=$CHECKPOINT_DIR/AB50_lambdaB0p50.pth" --checkpoint "AB75=$CHECKPOINT_DIR/AB75_lambdaB0p75.pth" --batch-size "$BATCH_SIZE" --num-workers "$NUM_WORKERS" --cuda-device "$CUDA_DEVICE" --output-csv "$RUN_DIR/candidate_metrics.csv" --output-json "$RUN_DIR/candidate_metrics.json"
 "$PYTHON_BIN" - "$RUN_DIR" <<'PY'
 import csv
@@ -57,3 +61,5 @@ with (run_dir / "visa_val_metrics.csv").open("w", newline="", encoding="utf-8") 
     writer.writeheader()
     writer.writerows(rows)
 PY
+"$PYTHON_BIN" phase2d_results.py --run-dir "$RUN_DIR" --select --results-markdown PHASE2D_AB_RESULTS.md
+printf "Candidate evaluation and preregistered selection completed\n" >> "$RUN_DIR/run.log"
