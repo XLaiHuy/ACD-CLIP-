@@ -1,0 +1,222 @@
+{
+  "grouping_method_counts": {
+    "perceptual_hash": 2162
+  },
+  "grouping_priority": [
+    "metadata",
+    "path_series",
+    "perceptual_hash",
+    "unique_path_fallback"
+  ],
+  "manifests": {
+    "train": "splits/visa_train_seed42.csv",
+    "validation": "splits/visa_val_seed42.csv"
+  },
+  "perceptual_hash": {
+    "algorithm": "dhash256",
+    "hamming_distance": 4
+  },
+  "seed": 42,
+  "source": {
+    "by_category": {
+      "candle": {
+        "anomaly": 100,
+        "normal": 100,
+        "total": 200
+      },
+      "capsules": {
+        "anomaly": 100,
+        "normal": 60,
+        "total": 160
+      },
+      "cashew": {
+        "anomaly": 100,
+        "normal": 50,
+        "total": 150
+      },
+      "chewinggum": {
+        "anomaly": 100,
+        "normal": 50,
+        "total": 150
+      },
+      "fryum": {
+        "anomaly": 100,
+        "normal": 50,
+        "total": 150
+      },
+      "macaroni1": {
+        "anomaly": 100,
+        "normal": 100,
+        "total": 200
+      },
+      "macaroni2": {
+        "anomaly": 100,
+        "normal": 100,
+        "total": 200
+      },
+      "pcb1": {
+        "anomaly": 100,
+        "normal": 100,
+        "total": 200
+      },
+      "pcb2": {
+        "anomaly": 100,
+        "normal": 100,
+        "total": 200
+      },
+      "pcb3": {
+        "anomaly": 100,
+        "normal": 101,
+        "total": 201
+      },
+      "pcb4": {
+        "anomaly": 100,
+        "normal": 101,
+        "total": 201
+      },
+      "pipe_fryum": {
+        "anomaly": 100,
+        "normal": 50,
+        "total": 150
+      }
+    },
+    "groups": 2160,
+    "total": 2162
+  },
+  "source_path": "dataset/hub/VisA.jsonl",
+  "source_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+  "train": {
+    "by_category": {
+      "candle": {
+        "anomaly": 80,
+        "normal": 80,
+        "total": 160
+      },
+      "capsules": {
+        "anomaly": 80,
+        "normal": 48,
+        "total": 128
+      },
+      "cashew": {
+        "anomaly": 80,
+        "normal": 40,
+        "total": 120
+      },
+      "chewinggum": {
+        "anomaly": 80,
+        "normal": 40,
+        "total": 120
+      },
+      "fryum": {
+        "anomaly": 80,
+        "normal": 40,
+        "total": 120
+      },
+      "macaroni1": {
+        "anomaly": 80,
+        "normal": 80,
+        "total": 160
+      },
+      "macaroni2": {
+        "anomaly": 80,
+        "normal": 80,
+        "total": 160
+      },
+      "pcb1": {
+        "anomaly": 80,
+        "normal": 80,
+        "total": 160
+      },
+      "pcb2": {
+        "anomaly": 80,
+        "normal": 80,
+        "total": 160
+      },
+      "pcb3": {
+        "anomaly": 80,
+        "normal": 81,
+        "total": 161
+      },
+      "pcb4": {
+        "anomaly": 80,
+        "normal": 81,
+        "total": 161
+      },
+      "pipe_fryum": {
+        "anomaly": 80,
+        "normal": 40,
+        "total": 120
+      }
+    },
+    "groups": 1728,
+    "total": 1730
+  },
+  "train_ratio": 0.8,
+  "validation": {
+    "by_category": {
+      "candle": {
+        "anomaly": 20,
+        "normal": 20,
+        "total": 40
+      },
+      "capsules": {
+        "anomaly": 20,
+        "normal": 12,
+        "total": 32
+      },
+      "cashew": {
+        "anomaly": 20,
+        "normal": 10,
+        "total": 30
+      },
+      "chewinggum": {
+        "anomaly": 20,
+        "normal": 10,
+        "total": 30
+      },
+      "fryum": {
+        "anomaly": 20,
+        "normal": 10,
+        "total": 30
+      },
+      "macaroni1": {
+        "anomaly": 20,
+        "normal": 20,
+        "total": 40
+      },
+      "macaroni2": {
+        "anomaly": 20,
+        "normal": 20,
+        "total": 40
+      },
+      "pcb1": {
+        "anomaly": 20,
+        "normal": 20,
+        "total": 40
+      },
+      "pcb2": {
+        "anomaly": 20,
+        "normal": 20,
+        "total": 40
+      },
+      "pcb3": {
+        "anomaly": 20,
+        "normal": 20,
+        "total": 40
+      },
+      "pcb4": {
+        "anomaly": 20,
+        "normal": 20,
+        "total": 40
+      },
+      "pipe_fryum": {
+        "anomaly": 20,
+        "normal": 10,
+        "total": 30
+      }
+    },
+    "groups": 432,
+    "total": 432
+  },
+  "version": 1
+}

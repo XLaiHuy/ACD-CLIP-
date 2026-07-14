@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 """Dedicated Phase2C A-prime/B training entrypoint. Importing this module never launches training."""
+import os
+os.environ["PYTORCH_ALLOC_CONF"] = "expandable_segments:True"
+
 import argparse
 import csv
 import json
@@ -40,8 +43,10 @@ from train import (
     apply_soft_prompt_lr_policy,
     clip_module_grad,
     compute_hybrid_k_regularization,
+    first_nonfinite_trainable_parameter,
     get_dfg_beta_for_epoch,
     has_non_finite_grad,
+    save_nonfinite_diagnostics,
 )
 from utils import calculate_seg_loss, get_hybrid_soft_prompt_single_class_text_embedding
 
@@ -56,7 +61,11 @@ DIAGNOSTIC_FIELDS = [
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Phase2C deterministic VisA curriculum training")
-    parser.add_argument("--condition", required=True, choices=["A_prime", "B", "C", "P"])
+    parser.add_argument(
+        "--condition", required=True,
+        choices=["A_prime", "B", "C", "P", "P_LoRA_only"],
+        help="Training condition name",
+    )
     parser.add_argument(
         "--diagnostic-batch-size", type=int, default=1,
         help="batch size for post-epoch gradient diagnostics; kept separate to limit VRAM",
@@ -76,6 +85,16 @@ def parse_args():
         help="use CUDA autocast with bfloat16 (without gradient scaling)",
     )
     parser.add_argument("--dry-run", action="store_true", help="validate and print resolved config only")
+    # Engineering-only smoke-test controls.  Default None means full execution.
+    # A smoke run is NOT a scientific result and must use a distinct save-path.
+    parser.add_argument(
+        "--max-train-batches", type=int, default=None,
+        help="[SMOKE/DEBUG] stop training loop after this many batches per epoch",
+    )
+    parser.add_argument(
+        "--max-val-batches", type=int, default=None,
+        help="[SMOKE/DEBUG] stop validation loop after this many batches per class",
+    )
     return parser.parse_args()
 
 
@@ -169,19 +188,44 @@ def forward_losses(model, batch, device, include_regularizers=True):
     image = batch["image"].to(device)
     mask = batch["mask"].to(device)
     label = batch["label"].to(device)
-    text_features, kg_loss, k_loss = text_features_for_batch(
-        model, list(batch["class_name"]), device, include_regularizers=include_regularizers
-    )
+
+    # The text tower is tiny compared with the image ViT (short token
+    # sequences, at most one encoding per unique class in a batch).  Keep the
+    # hybrid prompt interpolation and both text regularizers in FP32: these
+    # start contributing from epoch 4 and are the other plausible FP16
+    # overflow source once alpha reaches 0.20 at epoch 6.
+    with torch.autocast(device_type=device.type, enabled=False):
+        text_features, kg_loss, k_loss = text_features_for_batch(
+            model, list(batch["class_name"]), device,
+            include_regularizers=include_regularizers,
+        )
+
+    # The image ViT remains in AMP.  Moving it to FP32 would exceed the T4
+    # memory budget; its output is promoted before every numerically sensitive
+    # reduction below.
     seg_tokens, det_tokens = model(image)
     seg_features = torch.stack(seg_tokens, dim=0)
     det_features = torch.stack(det_tokens, dim=0)
-    cls_pred = torch.stack([
-        torch.matmul(det_features[index].unsqueeze(1), text_features[index]).squeeze(1)
-        for index in range(det_features.shape[0])
-    ], dim=0).mean(dim=0)
-    cls_loss = F.cross_entropy(cls_pred, label)
-    seg_pred = model.vision_text_fusion_gate_seg(seg_features, text_features)
-    seg_loss = calculate_seg_loss(seg_pred, mask)
+
+    # Keep the large CLIP forward in AMP, but compute the much smaller
+    # vision--text logits and losses in FP32.  By epoch 6 the hybrid prompt
+    # reaches alpha=0.20; writing these reductions/softmax logits in FP16 can
+    # overflow on T4 even while every trainable parameter is still finite.
+    # Disabling autocast here avoids BF16's severe T4 slowdown without making
+    # the ViT encoder run in FP32.
+    with torch.autocast(device_type=device.type, enabled=False):
+        text_features_fp32 = text_features.float()
+        cls_pred = torch.stack([
+            torch.matmul(
+                det_features[index].float().unsqueeze(1), text_features_fp32[index]
+            ).squeeze(1)
+            for index in range(det_features.shape[0])
+        ], dim=0).mean(dim=0)
+        cls_loss = F.cross_entropy(cls_pred, label)
+        seg_pred = model.vision_text_fusion_gate_seg(
+            seg_features.float(), text_features_fp32
+        )
+        seg_loss = calculate_seg_loss(seg_pred, mask)
     return cls_loss, seg_loss, kg_loss, k_loss
 
 
@@ -293,10 +337,29 @@ def train_phase2c(args):
     config["amp"] = not args.no_amp
     config["bf16"] = args.bf16
     config["diagnostic_batch_size"] = args.diagnostic_batch_size
+    # Determine the manual loss scaling factor for PCGrad to prevent FP16 underflow.
+    # - BF16 uses 1.0 (no scaling needed)
+    # - FP16 AMP uses 65536.0 (prevents underflow)
+    # - FP32 uses 1.0 (no scaling needed)
+    if config["bf16"]:
+        scale_factor = 1.0
+    elif config["amp"]:
+        scale_factor = 8192.0
+    else:
+        scale_factor = 1.0
+    config["pcgrad_scale_factor"] = scale_factor
+
+    # Record smoke-test limits in config so any output is clearly marked.
+    max_train_batches = getattr(args, "max_train_batches", None)
+    max_val_batches = getattr(args, "max_val_batches", None)
+    if max_train_batches is not None or max_val_batches is not None:
+        config["smoke_test"] = True
+        config["max_train_batches"] = max_train_batches
+        config["max_val_batches"] = max_val_batches
     if config["pcgrad_enabled"]:
-        if not args.bf16:
-            raise ValueError("Condition P requires --bf16")
-        config["training_commit_sha"] = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+        config["training_commit_sha"] = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], text=True
+        ).strip()
     if args.no_amp and args.bf16:
         raise ValueError("--bf16 cannot be combined with --no-amp")
     if args.dry_run:
@@ -317,6 +380,16 @@ def train_phase2c(args):
     )
     logger = logging.getLogger("phase2c")
     logger.info("config=%s", config)
+    if config["pcgrad_enabled"]:
+        if config["bf16"]:
+            logger.info("PCGrad precision mode: native BF16")
+        elif config["amp"]:
+            logger.info(
+                "PCGrad precision mode: FP16 with manual scaling (scale_factor=%s)",
+                config["pcgrad_scale_factor"],
+            )
+        else:
+            logger.info("PCGrad precision mode: FP32")
 
     seed_everything(config["seed"])
     device = torch.device(
@@ -356,26 +429,116 @@ def train_phase2c(args):
         )
         model.set_dfg_beta(beta)
         losses = []
-        for batch in tqdm(loader, desc=f"Phase2C {config['condition']} epoch {epoch}"):
+        non_finite_loss_skips = 0
+        non_finite_grad_skips = 0
+        for batch_idx, batch in enumerate(tqdm(loader, desc=f"Phase2C {config['condition']} epoch {epoch}")):
+            if max_train_batches is not None and batch_idx >= max_train_batches:
+                break
             with torch.autocast(device_type=device.type, dtype=autocast_dtype, enabled=config["amp"]):
                 cls_loss, seg_loss, kg_loss, k_loss = forward_losses(model, batch, device)
-                loss = cls_loss + seg_loss + config["lambda_kg"] * kg_loss + config["lambda_k"] * k_loss
+                # Explicit weighted losses (coefficients are currently 1.0;
+                # the named variables survive coefficient changes without
+                # silently breaking PCGrad's other_loss computation).
+                cls_loss_weighted = cls_loss
+                seg_loss_weighted = seg_loss
+                loss = (
+                    cls_loss_weighted
+                    + seg_loss_weighted
+                    + config["lambda_kg"] * kg_loss
+                    + config["lambda_k"] * k_loss
+                )
             if not torch.isfinite(loss):
-                raise RuntimeError(f"Non-finite Phase2C loss at epoch {epoch}")
+                # A non-finite forward pass has not modified parameters yet.
+                # Preserve diagnostics and skip this deterministic batch, as the
+                # main training entrypoint does, instead of discarding an entire
+                # long run on the first transient FP16 overflow.
+                non_finite_loss_skips += 1
+                diag_path = save_nonfinite_diagnostics(
+                    save_path=str(output),
+                    epoch_one_based=epoch,
+                    batch_idx=batch_idx,
+                    non_finite_loss_skips=non_finite_loss_skips,
+                    model=model,
+                    tensors={
+                        "loss": loss,
+                        "cls_loss": cls_loss,
+                        "seg_loss": seg_loss,
+                        "kg_loss": kg_loss,
+                        "k_loss": k_loss,
+                    },
+                    metadata={
+                        "condition": config["condition"],
+                        "alpha": alpha,
+                        "beta": beta,
+                        "pcgrad_scale_factor": config["pcgrad_scale_factor"],
+                        "class_names": list(batch["class_name"]),
+                        "labels": batch["label"].detach().cpu().tolist(),
+                    },
+                )
+                logger.warning(
+                    "Non-finite loss at epoch %d batch %d (skip %d): "
+                    "loss=%s cls=%s seg=%s kg=%s k=%s; diagnostics=%s",
+                    epoch, batch_idx, non_finite_loss_skips,
+                    bool(torch.isfinite(loss).item()),
+                    bool(torch.isfinite(cls_loss).item()),
+                    bool(torch.isfinite(seg_loss).item()),
+                    bool(torch.isfinite(kg_loss).item()),
+                    bool(torch.isfinite(k_loss).item()),
+                    diag_path,
+                )
+                optimizer.zero_grad(set_to_none=True)
+                if non_finite_loss_skips > config["non_finite_loss_abort_threshold"]:
+                    raise RuntimeError(
+                        "Aborting Phase2C because non-finite-loss skips exceeded "
+                        f"{config['non_finite_loss_abort_threshold']} at epoch {epoch}. "
+                        f"Latest diagnostics: {diag_path}"
+                    )
+                continue
             optimizer.zero_grad(set_to_none=True)
             if config["pcgrad_enabled"]:
-                apply_pcgrad(loss, cls_loss, seg_loss, model, config["pcgrad_epsilon"])
+                # apply_pcgrad populates .grad for all trainable parameters.
+                # Do NOT call loss.backward() after this point.
+                apply_pcgrad(
+                    loss,
+                    cls_loss_weighted,
+                    seg_loss_weighted,
+                    model,
+                    config["pcgrad_groups"],
+                    config["pcgrad_epsilon"],
+                    scale_factor=config.get("pcgrad_scale_factor", 1.0),
+                )
             else:
                 scaler.scale(loss).backward()
                 scaler.unscale_(optimizer)
             if has_non_finite_grad(optimizer):
-                raise RuntimeError(f"Non-finite Phase2C gradient at epoch {epoch}")
+                if config["pcgrad_enabled"] and config["amp"] and not config["bf16"]:
+                    old_scale = config["pcgrad_scale_factor"]
+                    new_scale = max(1.0, old_scale * 0.5)
+                    config["pcgrad_scale_factor"] = new_scale
+                    optimizer.zero_grad(set_to_none=True)
+                    logger.warning(
+                        "Epoch %d, batch %d: Non-finite gradient detected. Skipping optimizer step and reducing pcgrad_scale_factor from %s to %s.",
+                        epoch, batch_idx, old_scale, new_scale
+                    )
+                    non_finite_grad_skips += 1
+                    continue
+                else:
+                    raise RuntimeError(f"Non-finite Phase2C gradient at epoch {epoch}")
             clip_module_grad(model.image_adapter, config["grad_clip_norm"])
             clip_module_grad(model.text_adapter, config["grad_clip_norm"])
             if not frozen:
                 clip_module_grad(model.soft_prompt, config["grad_clip_norm"])
-            scaler.step(optimizer)
-            scaler.update()
+            if config["pcgrad_enabled"]:
+                optimizer.step()
+            else:
+                scaler.step(optimizer)
+                scaler.update()
+            bad_param_name, _ = first_nonfinite_trainable_parameter(model)
+            if bad_param_name is not None:
+                raise RuntimeError(
+                    f"Non-finite trainable parameter '{bad_param_name}' after optimizer step "
+                    f"at epoch {epoch}, batch {batch_idx}."
+                )
             losses.append(float(loss.item()))
         scheduler.step()
         apply_soft_prompt_lr_policy(optimizer, frozen)
@@ -401,8 +564,12 @@ def train_phase2c(args):
         )
         append_csv(output / "gradient_diagnostics.csv", diagnostics, DIAGNOSTIC_FIELDS)
         if config["pcgrad_enabled"]:
+            # pcgrad_diagnostics.csv covers only groups that receive PCGrad.
             pcgrad_rows = run_pcgrad_diagnostics(
-                model, optimizer, scheduler, fixed_batches, diagnostic_loss_builder, epoch, config["pcgrad_epsilon"]
+                model, optimizer, scheduler, fixed_batches,
+                diagnostic_loss_builder, epoch,
+                config["pcgrad_groups"],
+                config["pcgrad_epsilon"],
             )
             append_csv(output / "pcgrad_diagnostics.csv", pcgrad_rows, PCGRAD_DIAGNOSTIC_FIELDS)
         validation = validate_visa(
@@ -418,8 +585,10 @@ def train_phase2c(args):
             ]
             write_selection(selection_rows, output / "selection.json")
         logger.info(
-            "epoch=%d alpha=%s beta=%s mean_loss=%s validation_macro=%s",
+            "epoch=%d alpha=%s beta=%s mean_loss=%s validation_macro=%s "
+            "non_finite_loss_skips=%d non_finite_grad_skips=%d",
             epoch, alpha, beta, float(np.mean(losses)), validation[-1],
+            non_finite_loss_skips, non_finite_grad_skips,
         )
 
 
