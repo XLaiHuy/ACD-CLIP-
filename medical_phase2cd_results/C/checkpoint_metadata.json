@@ -1,0 +1,30 @@
+{
+  "condition": "C",
+  "dfg_attn_dim": 256,
+  "dfg_attn_tau": 8.0,
+  "dfg_beta": 0.1,
+  "dfg_beta_schedule": "warmup010",
+  "dfg_beta_target": 0.1,
+  "dfg_gamma_max": 0.2,
+  "dfg_mode": "attn",
+  "dfg_ss2d_fusion": "weight_residual",
+  "epoch": 14,
+  "grad_clip_norm": 1.0,
+  "hybrid_alpha_current": 0.2,
+  "hybrid_alpha_max": 0.2,
+  "lambda_k": 0.002,
+  "lambda_kg": 0.01,
+  "n_groups": 3,
+  "prompt_mode": "hybrid",
+  "seed": 42,
+  "soft_prompt_ctx_len": 4,
+  "soft_prompt_freeze_epochs": 5,
+  "state_dict_keys": [
+    "image_adapter",
+    "text_adapter",
+    "soft_prompt"
+  ],
+  "use_hybrid_soft_prompt": true,
+  "use_soft_prompt": false,
+  "use_ss2d_dfg": true
+}

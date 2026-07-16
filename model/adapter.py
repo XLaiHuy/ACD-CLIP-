@@ -74,8 +74,8 @@ class ACDCLIP(nn.Module):
             dfg_beta_current = dfg_beta
         assert 0 <= dfg_beta_target <= 1, "dfg_beta_target must be in [0, 1]"
         assert 0 <= dfg_beta_current <= 1, "dfg_beta_current must be in [0, 1]"
-        if use_ss2d_dfg and dfg_mode != "attn":
-            raise ValueError("use_ss2d_dfg is only supported when dfg_mode='attn'")
+        if dfg_mode == "mlp" and dfg_ss2d_fusion != "feature_residual":
+            raise ValueError("dfg_mode='mlp' only supports dfg_ss2d_fusion='feature_residual'")
         if not use_ss2d_dfg and dfg_ss2d_fusion != "feature_residual":
             raise ValueError("dfg_ss2d_fusion='weight_residual' requires use_ss2d_dfg=True")
         self.clipmodel = clip_model
@@ -151,13 +151,13 @@ class ACDCLIP(nn.Module):
             image_adapter_dict["vision_text_k"] = nn.ModuleList(
                 [nn.Linear(768, dfg_attn_dim, bias=False) for _ in range(n_groups)]
             )
-            if use_ss2d_dfg:
-                image_adapter_dict["dfg_ss2d_branches"] = nn.ModuleList(
-                    [DFGSS2DResidualBranch(768) for _ in range(n_groups)]
-                )
-                image_adapter_dict["dfg_raw_gamma"] = nn.ParameterList(
-                    [nn.Parameter(torch.zeros(())) for _ in range(n_groups)]
-                )
+        if use_ss2d_dfg:
+            image_adapter_dict["dfg_ss2d_branches"] = nn.ModuleList(
+                [DFGSS2DResidualBranch(768) for _ in range(n_groups)]
+            )
+            image_adapter_dict["dfg_raw_gamma"] = nn.ParameterList(
+                [nn.Parameter(torch.zeros(())) for _ in range(n_groups)]
+            )
         self.image_adapter = nn.ModuleDict(image_adapter_dict)
         if dfg_mode == "attn":
             self._init_dfg_attention()
@@ -319,9 +319,14 @@ class ACDCLIP(nn.Module):
             # [n_groups, bs, 768, 2] -> [bs, n_groups, 768, 2]
             group_text_features = text_features.permute(1, 0, 2, 3)
             if self.dfg_mode == "mlp":
-                gate_weights = self.image_adapter["vision_text_gate"][i](
-                    vision_tokens[i].mean(dim=1, keepdim=True)
-                ).squeeze(1)  # [bs, 2 * n_groups]
+                gate_input = vision_tokens[i].mean(dim=1, keepdim=True)
+                if self.use_ss2d_dfg:
+                    v_ss2d = self.image_adapter["dfg_ss2d_branches"][i](vision_tokens[i])
+                    gamma = self.dfg_gamma_max * torch.tanh(
+                        self.image_adapter["dfg_raw_gamma"][i]
+                    )
+                    gate_input = gate_input + (gamma * v_ss2d).unsqueeze(1)
+                gate_weights = self.image_adapter["vision_text_gate"][i](gate_input).squeeze(1)  # [bs, 2 * n_groups]
                 gate_weights = gate_weights.view(B, self.n_groups, 2)  # [bs, n_groups, 2]
                 gate_weights = F.softmax(gate_weights, dim=1)
                 group_text_features = group_text_features * gate_weights.unsqueeze(2)  # [bs, n_groups, 768, 2]

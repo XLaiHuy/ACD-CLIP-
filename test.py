@@ -334,6 +334,24 @@ def main():
                 f"Checkpoint n_groups is {checkpoint['n_groups']!r}, "
                 f"but --n_groups is {args.n_groups!r}."
             )
+        if args.dfg_mode == "mlp":
+            if bool(checkpoint.get("use_ss2d_dfg", False)) != args.use_ss2d_dfg:
+                raise ValueError(
+                    f"Checkpoint use_ss2d_dfg is {checkpoint.get('use_ss2d_dfg', False)!r}, "
+                    f"but --use_ss2d_dfg is {args.use_ss2d_dfg!r}."
+                )
+            ckpt_gamma_max = checkpoint.get("dfg_gamma_max", args.dfg_gamma_max)
+            if args.use_ss2d_dfg and abs(float(ckpt_gamma_max) - args.dfg_gamma_max) > 1e-8:
+                raise ValueError(
+                    f"Checkpoint dfg_gamma_max is {ckpt_gamma_max!r}, "
+                    f"but --dfg_gamma_max is {args.dfg_gamma_max!r}."
+                )
+            ckpt_fusion = checkpoint.get("dfg_ss2d_fusion", "feature_residual")
+            if ckpt_fusion != args.dfg_ss2d_fusion:
+                raise ValueError(
+                    f"Checkpoint dfg_ss2d_fusion is {ckpt_fusion!r}, "
+                    f"but --dfg_ss2d_fusion is {args.dfg_ss2d_fusion!r}."
+                )
         if args.dfg_mode == "attn":
             if checkpoint.get("dfg_attn_dim", args.dfg_attn_dim) != args.dfg_attn_dim:
                 raise ValueError(

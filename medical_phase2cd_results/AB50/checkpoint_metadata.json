@@ -1,0 +1,53 @@
+{
+  "condition": "A_prime",
+  "dfg_attn_dim": 256,
+  "dfg_attn_tau": 8.0,
+  "dfg_beta": 0.1,
+  "dfg_beta_schedule": "warmup010",
+  "dfg_beta_target": 0.1,
+  "dfg_gamma_max": 0.2,
+  "dfg_mode": "attn",
+  "dfg_ss2d_fusion": "weight_residual",
+  "epoch": 13,
+  "grad_clip_norm": 1.0,
+  "hybrid_alpha_current": 0.2,
+  "hybrid_alpha_max": 0.2,
+  "lambda_k": 0.002,
+  "lambda_kg": 0.01,
+  "n_groups": 3,
+  "phase2d_interpolation": {
+    "candidate_name": "AB50",
+    "creation_commit": "621cf732efe3bff950bf18cbe1cbbeee32e80105",
+    "creation_timestamp": "2026-07-14T11:58:12.727826+00:00",
+    "experiment": "Phase2D_AB_interpolation",
+    "floating_dtypes": [
+      "torch.float32"
+    ],
+    "floating_tensor_count": 116,
+    "lambda_b": 0.5,
+    "non_floating_tensor_count": 0,
+    "optimizer_state_interpolated": false,
+    "parent_a_path": "checkpoints/phase2c/A_prime_seed42/A_prime_seed42_e13_pixelAUC94.8038_pixelAP55.5341_imageAP98.4225.pth",
+    "parent_a_sha256": "036143f9ff940716684174e569ca07a8a060a9b81de94c14e8ba49d748783752",
+    "parent_b_path": "checkpoints/phase2c/B_seed42/B_seed42_e13_pixelAUC96.2236_pixelAP55.1342_imageAP98.4287.pth",
+    "parent_b_sha256": "b556a2083555b1b9a2d29050b515808d191f224832613a203a90b74f5847cc2d",
+    "state_dict_keys": [
+      "text_adapter",
+      "image_adapter",
+      "soft_prompt"
+    ],
+    "training_performed": false
+  },
+  "prompt_mode": "hybrid",
+  "seed": 42,
+  "soft_prompt_ctx_len": 4,
+  "soft_prompt_freeze_epochs": 3,
+  "state_dict_keys": [
+    "image_adapter",
+    "text_adapter",
+    "soft_prompt"
+  ],
+  "use_hybrid_soft_prompt": true,
+  "use_soft_prompt": false,
+  "use_ss2d_dfg": true
+}
