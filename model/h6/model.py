@@ -65,6 +65,7 @@ class H6Progress1(nn.Module):
             n_groups=n_groups,
             num_factors=num_factors,
             text_dim=text_dim,
+            bank_dim=bank_dim,
             hidden_dim=router_dim,
             temperature=router_temperature,
             soft_routing_epochs=router_soft_epochs,
@@ -84,6 +85,9 @@ class H6Progress1(nn.Module):
             "router_dim": self.router_dim,
             "router_temperature": self.router_temperature,
             "router_soft_epochs": self.router_soft_epochs,
+            "dense_routing_epochs": self.router_soft_epochs,
+            "sparse_start_epoch": self.router_soft_epochs + 1,
+            "router_scoring": "concept_key_dot",
             "vae_hidden_dim": self.vae_hidden_dim,
             "vae_latent_dim": self.vae_latent_dim,
             "text_dim": self.text_dim,
@@ -94,6 +98,8 @@ class H6Progress1(nn.Module):
             "text_fusion_norm": "pre_fusion_l2",
             "frozen_anchor_mode": "functional_layer_norm_no_adapter",
             "diversity_target": "dynamic_residual",
+            "center_loss": "factor_aware_dense_detached",
+            "kl_schedule": "zero_then_linear",
             "vae_prompt_path": "decoder_mu",
         }
 
@@ -200,8 +206,13 @@ class H6Progress1(nn.Module):
         anchor = hard_frozen.unsqueeze(2).expand_as(dynamic)
         kg_loss = (1.0 - F.cosine_similarity(dynamic.float(), anchor, dim=3)).mean()
         residual_diversity = dynamic_residual_diversity_loss(dynamic, hard_frozen)
-        routing = self.router(visual_output["seg_tokens"], epoch_one_based=self.epoch_one_based)
-        local_text = self.router.local_text(routing["probabilities"], factor_bank)
+        routing = self.router(
+            visual_output["seg_tokens"],
+            epoch_one_based=self.epoch_one_based,
+            concept_keys=core["concept_keys"],
+        )
+        prediction_probabilities = routing["prediction_probabilities"]
+        local_text = self.router.local_text(prediction_probabilities, factor_bank)
         patches = torch.stack(visual_output["seg_tokens"], dim=0).float()
         patches = F.normalize(patches, dim=-1)
         h6_logits = self.h6_logit(patches, local_text)
@@ -214,11 +225,16 @@ class H6Progress1(nn.Module):
             "factor_bank": factor_bank,
             "kg_loss": kg_loss,
             "residual_diversity": residual_diversity,
-            "text_global": self.router.aggregate_global(routing["probabilities"], factor_bank),
+            "text_global": self.router.aggregate_global(prediction_probabilities, factor_bank),
             "local_text": local_text,
             "h6_logits": h6_logits,
             "rho": self.rho_values(),
-            "router_diagnostics": self.router.diagnostics(routing["probabilities"]),
+            "router_diagnostics": self.router.diagnostics(
+                prediction_probabilities,
+                dense_probabilities=routing["dense_probabilities"],
+                sparse_probabilities=routing["sparse_probabilities"],
+                topk_indices=routing["topk_indices"],
+            ),
         }
 
     def h6_logit(self, normalized_patches: torch.Tensor, local_text: torch.Tensor) -> torch.Tensor:

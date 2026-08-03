@@ -25,7 +25,7 @@ from model.adapter import (
 )
 from model.checkpoint_utils import build_phase4_checkpoint
 from model.clip import create_model
-from model.h6.losses import center_loss, routing_balance_loss
+from model.h6.losses import center_loss, factor_aware_center_loss, routing_balance_loss
 
 
 def tensor_debug_stats(tensor):
@@ -674,10 +674,16 @@ def set_phase4_seed(seed: int) -> None:
         torch.cuda.manual_seed_all(seed)
 
 
-def get_h6_vae_beta(epoch_one_based: int, beta_max: float) -> float:
-    if epoch_one_based <= 1:
+def get_h6_vae_beta(epoch_one_based: int, beta_max: float, zero_epochs: int = 0) -> float:
+    zero_epochs = max(0, int(zero_epochs))
+    if zero_epochs == 0:
+        if epoch_one_based <= 1:
+            return 0.0
+        return min(float(beta_max), float(epoch_one_based - 1) * float(beta_max) / 4.0)
+    if epoch_one_based <= zero_epochs:
         return 0.0
-    return min(float(beta_max), float(epoch_one_based - 1) * float(beta_max) / 4.0)
+    warmup_epoch = int(epoch_one_based) - zero_epochs
+    return min(float(beta_max), float(warmup_epoch) * float(beta_max) / 4.0)
 
 
 def _phase4_autocast(device: torch.device, precision: str):
@@ -758,6 +764,13 @@ def _phase2b_config_from_args(args) -> dict:
         "grad_checkpointing": args.grad_checkpointing,
         "hybrid_alpha_max": args.hybrid_alpha_max,
         "soft_prompt_freeze_epochs": args.soft_prompt_freeze_epochs,
+        "h6_router_soft_epochs": args.h6_router_soft_epochs,
+        "h6_dense_routing_epochs": args.h6_router_soft_epochs,
+        "h6_sparse_start_epoch": args.h6_router_soft_epochs + 1,
+        "h6_center_factor_aware": args.h6_center_factor_aware,
+        "h6_center_detach_assignment": args.h6_center_detach_assignment,
+        "h6_center_margin": args.h6_center_margin,
+        "h6_kl_zero_epochs": args.h6_kl_zero_epochs,
     }
 
 
@@ -777,7 +790,11 @@ def train_h6_progress1(
     scaler = torch.cuda.amp.GradScaler(enabled=(device.type == "cuda" and args.precision == "fp16"))
     loss_weights = {
         "center": args.lambda_h6_center,
+        "center_factor_aware": bool(args.h6_center_factor_aware),
+        "center_detach_assignment": bool(args.h6_center_detach_assignment),
+        "center_margin": args.h6_center_margin,
         "vae_rec": args.lambda_h6_vae_rec,
+        "vae_kl_zero_epochs": args.h6_kl_zero_epochs,
         "orth": args.lambda_h6_orth,
         "balance": args.lambda_h6_balance,
         "kg": args.lambda_kg,
@@ -799,7 +816,7 @@ def train_h6_progress1(
         model.soft_prompt.requires_grad_(not soft_prompt_frozen)
         _set_soft_prompt_lr(optimizer, soft_prompt_frozen)
         model.set_dfg_beta(get_dfg_beta_for_epoch(epoch, args.dfg_beta_schedule, args.dfg_beta_target, args.dfg_beta))
-        beta_vae_kl = get_h6_vae_beta(epoch, args.beta_h6_vae_kl)
+        beta_vae_kl = get_h6_vae_beta(epoch, args.beta_h6_vae_kl, args.h6_kl_zero_epochs)
         metrics = {key: [] for key in ("total", "task", "cls", "seg", "center", "vae_rec", "vae_kl", "kg", "orth", "balance")}
         optimizer.zero_grad(set_to_none=True)
         progress = tqdm(train_loader, desc=f"[PHASE4-P1][TRAIN][epoch {epoch:02d}/{args.epoch:02d}]")
@@ -829,15 +846,27 @@ def train_h6_progress1(
                 )
                 seg_loss = calculate_seg_loss(seg_pred.float(), mask.float())
                 task_loss = cls_loss + seg_loss
-                h6_center = center_loss(
-                    h6_batch["projected_levels"],
-                    h6_batch["prototype_normal"],
-                    h6_batch["prototype_abnormal"],
-                    mask,
-                    label,
-                )
+                if args.h6_center_factor_aware:
+                    h6_center = factor_aware_center_loss(
+                        h6_batch["projected_levels"],
+                        h6_batch["prototype_normal"],
+                        h6_batch["prototype_abnormal"],
+                        h6_batch["dense_probabilities"],
+                        mask,
+                        label,
+                        detach_assignment=args.h6_center_detach_assignment,
+                        margin=args.h6_center_margin,
+                    )
+                else:
+                    h6_center = center_loss(
+                        h6_batch["projected_levels"],
+                        h6_batch["prototype_normal"],
+                        h6_batch["prototype_abnormal"],
+                        mask,
+                        label,
+                    )
                 h6_orth = h6_batch["residual_diversity"]
-                h6_balance = routing_balance_loss(h6_batch["probabilities"])
+                h6_balance = routing_balance_loss(h6_batch["dense_probabilities"])
                 total_loss = (
                     task_loss
                     + args.lambda_h6_center * h6_center
@@ -898,13 +927,15 @@ def train_h6_progress1(
         logger.info(
             "phase4_p1 epoch=%d total=%s task=%s cls=%s seg=%s center=%s vae_rec=%s vae_kl=%s "
             "kg=%s orth=%s balance=%s beta_vae_kl=%s alpha=%s gamma_state=%s gamma_class=%s rho=%s "
-            "lr=%s usage=%s entropy=%s top1=%s dead=%s max_usage=%s dynamic_hard_cos=%s "
+            "lr=%s usage=%s entropy=%s dense_usage=%s sparse_usage=%s topk_freq=%s top1=%s dead=%s max_usage=%s dynamic_hard_cos=%s "
             "mu_mean=%s mu_std=%s logvar_min=%s logvar_max=%s center_distance=%s",
             epoch, *(float(np.mean(metrics[key])) for key in ("total", "task", "cls", "seg", "center", "vae_rec", "vae_kl", "kg", "orth", "balance")),
             beta_vae_kl, hybrid_alpha,
             float(h6_batch["gamma_state"].detach().item()), float(h6_batch["gamma_class"].detach().item()),
             h6_batch["rho"].detach().float().cpu().tolist(), optimizer.param_groups[0]["lr"],
             diagnostics["factor_usage"].cpu().tolist(), diagnostics["normalized_entropy"].cpu().tolist(),
+            diagnostics["dense_factor_usage"].cpu().tolist(), diagnostics["sparse_factor_usage"].cpu().tolist(),
+            diagnostics["selected_topk_frequency"].cpu().tolist(),
             diagnostics["top1_share"].cpu().tolist(), diagnostics["dead_factors"].cpu().tolist(),
             diagnostics["max_factor_usage"].cpu().tolist(), float(dynamic_hard_cosine.detach().item()),
             float(h6_batch["mu"].detach().float().mean().item()), float(h6_batch["mu"].detach().float().std(unbiased=False).item()),
@@ -979,12 +1010,18 @@ def main():
     parser.add_argument("--h6_router_dim", type=int, default=128)
     parser.add_argument("--h6_router_temperature", type=float, default=1.0)
     parser.add_argument("--h6_router_soft_epochs", type=int, default=2)
+    parser.add_argument("--h6_dense_routing_epochs", type=int, default=None)
+    parser.add_argument("--h6_sparse_start_epoch", type=int, default=None)
     parser.add_argument("--h6_vae_hidden_dim", type=int, default=512)
     parser.add_argument("--h6_vae_latent_dim", type=int, default=256)
     parser.add_argument("--h6_expert_bottleneck", type=int, default=64, help="reserved for Progress 2; unused in Progress 1")
     parser.add_argument("--lambda_h6_center", type=float, default=0.10)
+    parser.add_argument("--h6_center_factor_aware", action="store_true")
+    parser.add_argument("--h6_center_detach_assignment", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--h6_center_margin", type=float, default=0.0)
     parser.add_argument("--lambda_h6_vae_rec", type=float, default=0.05)
     parser.add_argument("--beta_h6_vae_kl", type=float, default=1e-4)
+    parser.add_argument("--h6_kl_zero_epochs", type=int, default=0)
     parser.add_argument("--lambda_h6_orth", type=float, default=1e-3)
     parser.add_argument("--lambda_h6_balance", type=float, default=1e-2)
     parser.add_argument("--lambda_h6_visual_residual", type=float, default=0.01, help="reserved for Progress 2")
@@ -1035,6 +1072,21 @@ def main():
     parser.add_argument("--pin_memory", action="store_true", default=False)
 
     args = parser.parse_args()
+    if args.h6_dense_routing_epochs is not None:
+        args.h6_router_soft_epochs = int(args.h6_dense_routing_epochs)
+    if args.h6_sparse_start_epoch is not None:
+        expected_sparse_start = int(args.h6_router_soft_epochs) + 1
+        if int(args.h6_sparse_start_epoch) != expected_sparse_start:
+            raise ValueError(
+                "--h6_sparse_start_epoch must equal --h6_dense_routing_epochs + 1 "
+                f"(or --h6_router_soft_epochs + 1); got {args.h6_sparse_start_epoch} vs {expected_sparse_start}"
+            )
+    if args.h6_router_soft_epochs < 0:
+        raise ValueError("--h6_router_soft_epochs/--h6_dense_routing_epochs must be >= 0")
+    if args.h6_kl_zero_epochs < 0:
+        raise ValueError("--h6_kl_zero_epochs must be >= 0")
+    if args.h6_center_margin < 0:
+        raise ValueError("--h6_center_margin must be >= 0")
     if args.use_soft_prompt and args.use_hybrid_soft_prompt:
         raise ValueError("--use_soft_prompt and --use_hybrid_soft_prompt are mutually exclusive")
     if args.grad_accum_steps < 1:

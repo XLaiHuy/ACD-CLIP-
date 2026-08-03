@@ -52,7 +52,35 @@ def test_router_probabilities_and_topk_after_warmup():
     dense = router(tokens, epoch_one_based=1)
     assert dense["probabilities"].shape == (3, 2, 16, 4)
     assert torch.allclose(dense["probabilities"].sum(dim=-1), torch.ones(3, 2, 16), atol=1e-6)
+    assert torch.allclose(dense["probabilities"], dense["dense_probabilities"], atol=1e-7)
+    assert torch.allclose(dense["prediction_probabilities"], dense["dense_probabilities"], atol=1e-7)
+    assert (dense["sparse_probabilities"] > 0).sum(dim=-1).eq(2).all()
+    assert dense["sparse_active"].item() is False
     sparse = router(tokens, epoch_one_based=3)
     assert torch.allclose(sparse["probabilities"].sum(dim=-1), torch.ones(3, 2, 16), atol=1e-6)
     assert (sparse["probabilities"] > 0).sum(dim=-1).eq(2).all()
+    assert torch.allclose(sparse["probabilities"], sparse["sparse_probabilities"], atol=1e-7)
+    assert torch.allclose(sparse["prediction_probabilities"], sparse["sparse_probabilities"], atol=1e-7)
+    assert sparse["sparse_active"].item() is True
     assert torch.isfinite(sparse["logits"]).all()
+    diagnostics = router.diagnostics(
+        sparse["prediction_probabilities"],
+        dense_probabilities=sparse["dense_probabilities"],
+        sparse_probabilities=sparse["sparse_probabilities"],
+        topk_indices=sparse["topk_indices"],
+    )
+    assert diagnostics["dense_factor_usage"].shape == (3, 4)
+    assert diagnostics["sparse_factor_usage"].shape == (3, 4)
+    assert diagnostics["selected_topk_frequency"].shape == (3, 4)
+
+
+def test_router_concept_key_scoring_changes_logits():
+    torch.manual_seed(0)
+    router = PatchRouter(n_groups=1, num_factors=4, text_dim=8, bank_dim=4, hidden_dim=6, top_k=2)
+    tokens = torch.randn(1, 2, 3, 8)
+    concept_keys = torch.eye(4)
+    reversed_keys = torch.flip(concept_keys, dims=[0])
+    first = router(tokens, epoch_one_based=1, concept_keys=concept_keys)
+    second = router(tokens, epoch_one_based=1, concept_keys=reversed_keys)
+    assert first["logits"].shape == (1, 2, 3, 4)
+    assert not torch.allclose(first["logits"], second["logits"])

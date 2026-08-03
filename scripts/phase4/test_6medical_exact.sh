@@ -10,6 +10,7 @@ MEDICAL_MANIFEST_ROOT="${MEDICAL_MANIFEST_ROOT:-${SAVE_PATH}/protocol/medical_ma
 METRIC_THRESHOLDS="${METRIC_THRESHOLDS:-}"
 EXTERNAL_EXACT_PIXEL_METRICS="${EXTERNAL_EXACT_PIXEL_METRICS:-1}"
 EXTERNAL_METRIC_CHUNK_PIXELS="${EXTERNAL_METRIC_CHUNK_PIXELS:-5000000}"
+H6_DENSE_ROUTING_EPOCHS="${H6_DENSE_ROUTING_EPOCHS:-6}"
 EPOCHS=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -47,7 +48,7 @@ python tools/prepare_phase4_medical_splits.py \
 
 for index in "${!DATASETS[@]}"; do
   DATASET="${DATASETS[$index]}"
-  echo "[PHASE4-P1][${MEDICAL_SPLIT^^}][$((index + 1))/6] dataset=${DATASET} epochs=${EPOCHS[*]} exact_mode=true"
+  echo "[PHASE4-P1][${MEDICAL_SPLIT^^}][$((index + 1))/6] dataset=${DATASET} epochs=${EPOCHS[*]} exact_mode=true external_exact=${EXTERNAL_EXACT_PIXEL_METRICS} dense_routing_epochs=${H6_DENSE_ROUTING_EPOCHS}"
   conda run --no-capture-output -n torchhuy python test.py \
     --dataset "${DATASET}" \
     --img_size 518 \
@@ -81,7 +82,8 @@ for index in "${!DATASETS[@]}"; do
     --h6_bank_dim 256 \
     --h6_router_dim 128 \
     --h6_router_temperature 1.0 \
-    --h6_router_soft_epochs 2 \
+    --h6_dense_routing_epochs "${H6_DENSE_ROUTING_EPOCHS}" \
+    --h6_sparse_start_epoch "$((H6_DENSE_ROUTING_EPOCHS + 1))" \
     --h6_vae_hidden_dim 512 \
     --h6_vae_latent_dim 256
 done

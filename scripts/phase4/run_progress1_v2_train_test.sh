@@ -10,6 +10,7 @@ NUM_WORKERS="${NUM_WORKERS:-6}"
 PRECISION="${PRECISION:-bf16}"
 SEED="${SEED:-0}"
 EPOCHS="${EPOCHS:-20}"
+H6_DENSE_ROUTING_EPOCHS="${H6_DENSE_ROUTING_EPOCHS:-6}"
 VALIDATION_EPOCHS_TEXT="${VALIDATION_EPOCHS:-8 9 10 11 12 13 14 15}"
 read -r -a VALIDATION_EPOCHS <<< "${VALIDATION_EPOCHS_TEXT}"
 MEDICAL_MANIFEST_ROOT="${MEDICAL_MANIFEST_ROOT:-${SAVE_PATH}/protocol/medical_manifests}"
@@ -24,7 +25,7 @@ if grep -Eq -- '--(phase2b_checkpoint|load_adapter|resume|init_from_progress|fre
 fi
 mkdir -p "${SAVE_PATH}"
 
-echo "[PHASE4-P1-V2] save_path=${SAVE_PATH} cuda=${CUDA_DEVICE} batch=${BATCH_SIZE} grad_accum=${GRAD_ACCUM} test_batch=${TEST_BATCH_SIZE} workers=${NUM_WORKERS} precision=${PRECISION} seed=${SEED} epochs=${EPOCHS}"
+echo "[PHASE4-P1-V2] save_path=${SAVE_PATH} cuda=${CUDA_DEVICE} batch=${BATCH_SIZE} grad_accum=${GRAD_ACCUM} test_batch=${TEST_BATCH_SIZE} workers=${NUM_WORKERS} precision=${PRECISION} seed=${SEED} epochs=${EPOCHS} dense_routing_epochs=${H6_DENSE_ROUTING_EPOCHS}"
 echo "[PHASE4-P1-V2] protocol=VisA-train -> medical-val sweep -> one medical-test epoch; val_epochs=${VALIDATION_EPOCHS[*]}"
 
 python tools/prepare_phase4_medical_splits.py \
@@ -32,10 +33,11 @@ python tools/prepare_phase4_medical_splits.py \
 
 SAVE_PATH="${SAVE_PATH}" CUDA_DEVICE="${CUDA_DEVICE}" BATCH_SIZE="${BATCH_SIZE}" \
 GRAD_ACCUM="${GRAD_ACCUM}" NUM_WORKERS="${NUM_WORKERS}" PRECISION="${PRECISION}" \
-SEED="${SEED}" EPOCHS="${EPOCHS}" bash scripts/phase4/train_progress1_v2.sh
+SEED="${SEED}" EPOCHS="${EPOCHS}" H6_DENSE_ROUTING_EPOCHS="${H6_DENSE_ROUTING_EPOCHS}" bash scripts/phase4/train_progress1_v2.sh
 
 SAVE_PATH="${SAVE_PATH}" CUDA_DEVICE="${CUDA_DEVICE}" TEST_BATCH_SIZE="${TEST_BATCH_SIZE}" \
 NUM_WORKERS="${NUM_WORKERS}" MEDICAL_MANIFEST_ROOT="${MEDICAL_MANIFEST_ROOT}" \
+H6_DENSE_ROUTING_EPOCHS="${H6_DENSE_ROUTING_EPOCHS}" \
 bash scripts/phase4/test_6medical_exact.sh --split val "${VALIDATION_EPOCHS[@]}"
 
 conda run --no-capture-output -n torchhuy python tools/summarize_phase4_results.py \
@@ -46,6 +48,7 @@ echo "[PHASE4-P1-V2] selected_epoch=${BEST_EPOCH} from medical validation only"
 
 SAVE_PATH="${SAVE_PATH}" CUDA_DEVICE="${CUDA_DEVICE}" TEST_BATCH_SIZE="${TEST_BATCH_SIZE}" \
 NUM_WORKERS="${NUM_WORKERS}" MEDICAL_MANIFEST_ROOT="${MEDICAL_MANIFEST_ROOT}" \
+H6_DENSE_ROUTING_EPOCHS="${H6_DENSE_ROUTING_EPOCHS}" \
 bash scripts/phase4/test_6medical_exact.sh --split test "${BEST_EPOCH}"
 
 conda run --no-capture-output -n torchhuy python tools/summarize_phase4_results.py \

@@ -65,7 +65,7 @@ def test_progress1_synthetic_backward_and_isolation():
     loss.backward()
     assert legacy_adapter.weight.grad is not None
     assert h6.semantic_core.level_projectors[0][0].weight.grad is not None
-    assert h6.router.trunk[0].weight.grad is not None
+    assert h6.router.query_projector[0].weight.grad is not None
     assert frozen_clip_parameter.grad is None
     assert not hasattr(h6, "visual_experts")
     assert not hasattr(h6, "consistency")
@@ -103,3 +103,6 @@ def test_synthetic_old_and_phase4_checkpoint_compatibility():
     assert loaded["h6_enabled"] is True
     assert loaded["h6_config"]["variant"] == "p1_v2_specialization_fix"
     assert loaded["h6_config"]["diversity_target"] == "dynamic_residual"
+    assert loaded["h6_config"]["router_scoring"] == "concept_key_dot"
+    assert loaded["h6_config"]["center_loss"] == "factor_aware_dense_detached"
+    assert loaded["h6_config"]["kl_schedule"] == "zero_then_linear"

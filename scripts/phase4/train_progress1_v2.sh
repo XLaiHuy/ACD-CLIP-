@@ -19,9 +19,10 @@ echo "[PHASE4-P1-V2] commit=${COMMIT_SHA}"
 echo "[PHASE4-P1-V2] progress=P1-v2 save_path=${SAVE_PATH} cuda_device=${CUDA_DEVICE} seed=${SEED}"
 echo "[PHASE4-P1-V2] precision=${PRECISION} epochs=${EPOCHS} batch=${BATCH_SIZE} grad_accum=${GRAD_ACCUM} effective_batch=$((BATCH_SIZE * GRAD_ACCUM))"
 echo "[PHASE4-P1-V2] num_workers=${NUM_WORKERS} pin_memory=false"
-echo "[PHASE4-P1-V2] routing=dense_epochs_${H6_DENSE_ROUTING_EPOCHS}_then_topk2 M=4 K=2"
+echo "[PHASE4-P1-V2] routing=concept_key_dot dense_epochs_${H6_DENSE_ROUTING_EPOCHS}_then_topk2 M=4 K=2 sparse_start=$((H6_DENSE_ROUTING_EPOCHS + 1))"
 echo "[PHASE4-P1-V2] text_norm=pre_fusion_l2 frozen_anchor=functional_layer_norm_no_adapter diversity=dynamic_residual"
-echo "[PHASE4-P1-V2] vae_prompt=decoder_mu sampled_z=reconstruction_only eta_class=none"
+echo "[PHASE4-P1-V2] center=factor_aware_dense_detached margin=0.0 balance=dense"
+echo "[PHASE4-P1-V2] vae_prompt=decoder_mu sampled_z=reconstruction_only kl_zero_epochs=4 eta_class=none"
 echo "[PHASE4-P1-V2] train_from=OpenAI_CLIP_only no_phase2b_checkpoint=true"
 
 conda run --no-capture-output -n torchhuy python train.py \
@@ -67,12 +68,17 @@ conda run --no-capture-output -n torchhuy python train.py \
   --h6_bank_dim 256 \
   --h6_router_dim 128 \
   --h6_router_temperature 1.0 \
-  --h6_router_soft_epochs "${H6_DENSE_ROUTING_EPOCHS}" \
+  --h6_dense_routing_epochs "${H6_DENSE_ROUTING_EPOCHS}" \
+  --h6_sparse_start_epoch "$((H6_DENSE_ROUTING_EPOCHS + 1))" \
   --h6_vae_hidden_dim 512 \
   --h6_vae_latent_dim 256 \
   --lambda_h6_center 0.10 \
+  --h6_center_factor_aware \
+  --h6_center_detach_assignment \
+  --h6_center_margin 0.0 \
   --lambda_h6_vae_rec 0.05 \
   --beta_h6_vae_kl 0.0001 \
+  --h6_kl_zero_epochs 4 \
   --lambda_h6_orth 0.001 \
   --lambda_h6_balance 0.01 \
   --save_path "${SAVE_PATH}"

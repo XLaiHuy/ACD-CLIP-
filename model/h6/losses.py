@@ -58,6 +58,89 @@ def center_loss(
     return torch.stack(terms).mean()
 
 
+def _factor_weighted_distance(distance: torch.Tensor, assignment: torch.Tensor, selector: torch.Tensor) -> torch.Tensor | None:
+    if not selector.any():
+        return None
+    return (distance[selector] * assignment[selector]).sum(dim=-1).mean()
+
+
+def factor_aware_center_loss(
+    projected_levels: torch.Tensor,
+    prototype_normal: torch.Tensor,
+    prototype_abnormal: torch.Tensor,
+    dense_probabilities: torch.Tensor,
+    masks: torch.Tensor,
+    labels: torch.Tensor,
+    detach_assignment: bool = True,
+    margin: float = 0.0,
+) -> torch.Tensor:
+    """CoPS center loss that preserves the router's factor assignment.
+
+    The legacy center loss minimized distance to the nearest prototype across
+    all factors.  That can erase factor specialization because every patch can
+    always choose whichever factor is easiest.  This version weights each
+    factor-specific prototype distance by the dense router probabilities.  The
+    dense assignment is detached by default so the center term shapes prototypes
+    without directly pulling the router toward a degenerate assignment.
+    """
+    if projected_levels.ndim != 4:
+        raise ValueError("projected_levels must be [G,B,P,D]")
+    if dense_probabilities.ndim != 4:
+        raise ValueError("dense_probabilities must be [G,B,P,M]")
+    groups, batch, patches, dim = projected_levels.shape
+    if prototype_normal.shape != (batch, dense_probabilities.shape[-1], dim):
+        raise ValueError("prototype_normal must be [B,M,D] and match projected feature dim")
+    if prototype_abnormal.shape != prototype_normal.shape:
+        raise ValueError("prototype_abnormal must match prototype_normal")
+    if dense_probabilities.shape[:3] != (groups, batch, patches):
+        raise ValueError("dense_probabilities must match projected_levels [G,B,P,M]")
+    if masks.shape[0] != batch or labels.shape[0] != batch:
+        raise ValueError("mask/label batch does not match projected visual features")
+
+    assignment = dense_probabilities.float()
+    if detach_assignment:
+        assignment = assignment.detach()
+    anomaly = _patch_labels(masks, patches)
+    labels = labels.reshape(batch).bool()
+    terms = []
+    margin_terms = []
+    for group in range(groups):
+        tokens = projected_levels[group].float()
+        distance_normal = (tokens.unsqueeze(2) - prototype_normal.float().unsqueeze(1)).pow(2).mean(dim=-1)
+        distance_abnormal = (tokens.unsqueeze(2) - prototype_abnormal.float().unsqueeze(1)).pow(2).mean(dim=-1)
+        assignment_g = assignment[group]
+
+        normal_image = (~labels)[:, None].expand(batch, patches)
+        term = _factor_weighted_distance(distance_normal, assignment_g, normal_image)
+        if term is not None:
+            terms.append(term)
+
+        anomalous_image = labels[:, None].expand(batch, patches)
+        normal_patch = anomalous_image & ~anomaly
+        abnormal_patch = anomalous_image & anomaly
+        term = _factor_weighted_distance(distance_normal, assignment_g, normal_patch)
+        if term is not None:
+            terms.append(term)
+        term = _factor_weighted_distance(distance_abnormal, assignment_g, abnormal_patch)
+        if term is not None:
+            terms.append(term)
+
+        if margin > 0.0:
+            margin_normal = F.relu(distance_normal - distance_abnormal + float(margin))
+            margin_abnormal = F.relu(distance_abnormal - distance_normal + float(margin))
+            term = _factor_weighted_distance(margin_normal, assignment_g, normal_image | normal_patch)
+            if term is not None:
+                margin_terms.append(term)
+            term = _factor_weighted_distance(margin_abnormal, assignment_g, abnormal_patch)
+            if term is not None:
+                margin_terms.append(term)
+
+    if not terms and not margin_terms:
+        return projected_levels.float().sum() * 0.0
+    all_terms = terms + margin_terms
+    return torch.stack(all_terms).mean()
+
+
 def factor_orthogonal_loss(factor_bank: torch.Tensor) -> torch.Tensor:
     """Weakly diversify normal-to-abnormal directions in FP32."""
     if factor_bank.ndim != 5:

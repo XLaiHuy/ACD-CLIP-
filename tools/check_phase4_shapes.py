@@ -20,14 +20,18 @@ def main():
         "seg_tokens": [torch.nn.functional.normalize(torch.randn(2, 16, 768), dim=-1) for _ in range(3)],
         "cls24": torch.randn(2, 768),
     }
-    core = h6.forward_core(visual, torch.randn(4, 768), torch.randn(4, 768))
-    routing = h6.router(visual["seg_tokens"], epoch_one_based=3)
+    with torch.no_grad():
+        core = h6.forward_core(visual, torch.randn(4, 768), torch.randn(4, 768))
+        routing = h6.router(visual["seg_tokens"], epoch_one_based=3, concept_keys=core["concept_keys"])
+        probability_sum_error = (routing["probabilities"].sum(dim=-1) - 1).abs().max()
     report = {
         "projected_levels": list(core["projected_levels"].shape),
         "dynamic_contexts": list(core["dynamic_contexts"].shape),
         "router_logits": list(routing["logits"].shape),
+        "dense_probabilities": list(routing["dense_probabilities"].shape),
+        "sparse_probabilities": list(routing["sparse_probabilities"].shape),
         "topk_indices": list(routing["topk_indices"].shape),
-        "probability_sum_error": float((routing["probabilities"].sum(dim=-1) - 1).abs().max()),
+        "probability_sum_error": float(probability_sum_error),
         "finite": bool(torch.isfinite(core["dynamic_contexts"]).all() and torch.isfinite(routing["logits"]).all()),
     }
     print(json.dumps(report, indent=2, sort_keys=True))

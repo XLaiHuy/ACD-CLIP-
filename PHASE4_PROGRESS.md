@@ -24,6 +24,10 @@
   - deterministic VAE prompt semantic via `decoder(mu)`;
   - no `eta_class` gate in first v2;
   - residual diversity loss on dynamic residual directions;
+  - concept-key router scoring with dense/sparse probability views;
+  - factor-aware center loss weighted by detached dense routing probabilities;
+  - dense routing balance plus sparse Top-K prediction from epoch 7;
+  - VAE KL zero for four epochs, then linear warm-up;
   - v2 scripts with dense routing for six epochs, sparse Top-K from epoch 7.
 - Audit doc: `PHASE4_P1_V2_AUDIT.md`
 - Plan doc: `PHASE4_P1_V2_PLAN.md`
@@ -65,7 +69,7 @@ scope lock.
 - `model/h6/{__init__,semantic_bank,router,losses,model}.py`
 - `model/checkpoint_utils.py`
 - `tests/test_h6_common.py`, `tests/test_h6_progress1.py`
-- `tools/{check_phase4_shapes,inspect_phase4_checkpoint,prepare_phase4_medical_splits,summarize_phase4_results}.py`
+- `tools/{check_phase4_shapes,inspect_phase4_checkpoint,prepare_phase4_medical_splits,summarize_phase4_results,compare_phase2b_p1v1_p1v2}.py`
 - `scripts/phase4/{train_progress1,test_6medical_exact,run_progress1_train_test}.sh`
 - `PHASE4_H6_PLAN.md`, `EXPERIMENT_LOG_PHASE4.md`
 
@@ -80,13 +84,13 @@ scope lock.
 SAVE_PATH=runs/phase4/progress1_cops_dynamic_prompt_seed0 \
 CUDA_DEVICE=0 BATCH_SIZE=1 GRAD_ACCUM=6 TEST_BATCH_SIZE=1 NUM_WORKERS=6 \
 PRECISION=bf16 SEED=0 EPOCHS=20 \
-bash scripts/phase4/run_progress1_train_test.sh
+bash scripts/phase4/run_progress1_v2_train_test.sh
 ```
 
-- Final train command: `bash scripts/phase4/train_progress1.sh`
+- Final train command: `bash scripts/phase4/train_progress1_v2.sh`
 - Medical validation sweep: `bash scripts/phase4/test_6medical_exact.sh --split val 8 9 10 11 12 13 14 15`
 - Medical final test: `bash scripts/phase4/test_6medical_exact.sh --split test <validation-selected-epoch>`
-- Final chained command: `bash scripts/phase4/run_progress1_train_test.sh` (runs the full no-leakage protocol)
+- Final chained command: `bash scripts/phase4/run_progress1_v2_train_test.sh` (runs the full no-leakage protocol)
 - Unresolved blockers: none before code-level checks.
 - Final implementation commit SHA: `e011d09fdf2deaaf8cc15cccffca605b7b4e0161`.
 - Push status: blocked — `git push -u origin phase4-progress1-cops-dynamic-prompt` reached GitHub but no HTTPS credentials are available in this environment. No force-push or credential workaround was attempted.

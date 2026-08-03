@@ -98,8 +98,34 @@ Fix:
 - Added `dynamic_residual_diversity_loss(dynamic_text, hard_frozen)`.
 - Training now uses `h6_batch["residual_diversity"]` for the `lambda_h6_orth` slot.
 
+### 5. Concept-Key Router and Dense/Sparse Views
+
+Status: SUPPORTED.
+
+Fix:
+
+- Router logits are now cosine dot products between projected patch queries and
+  CoPS concept keys.
+- The router always returns both dense and sparse probability views.
+- Prediction uses dense probabilities through epoch 6 in the v2 script, then
+  sparse Top-K probabilities from epoch 7.
+- Diagnostics report prediction, dense, sparse, and selected Top-K factor usage.
+
+### 6. Factor-Aware Center Loss and KL Schedule
+
+Status: SUPPORTED.
+
+Fix:
+
+- P1-v2 training uses factor-aware center loss weighted by detached dense
+  routing probabilities.
+- Routing balance also uses dense probabilities.
+- VAE KL is zero for the first four epochs in the v2 script, then linearly
+  warms to `1e-4`.
+
 ## Remaining Uncertainty
 
 - Router collapse, factor assignment quality, and VAE posterior-collapse risk require v2 training logs to confirm or reject.
 - KL near zero alone is not treated as confirmed posterior collapse.
-- Full factor-aware center loss and concept-key router redesign are not claimed as complete in this critical-fix commit.
+- Full metric impact is not claimed until real v2 training and no-leakage
+  validation-selected medical testing are complete.

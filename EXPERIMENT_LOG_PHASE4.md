@@ -6,7 +6,7 @@ This is a results template. No train or test has been executed by this branch.
 |---|---|---|---|---|---|---|
 | P1 | `runs/phase4/progress1_cops_dynamic_prompt_seed0` | 1-20 | not run | not run | not run | VisA only; Colon is deterministic 30/70 val/test |
 | P1-v1 | `runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1` | 1-20 | completed outside Codex | completed outside Codex | completed outside Codex | Existing result files audited; used only as evidence, not rerun |
-| P1-v2 | `runs/phase4/progress1_v2_specialization_seed0` | 1-20 | not run | not run | not run | Critical fixes: frozen anchor path, pre-fusion norm, decoder(mu) prompt, residual diversity |
+| P1-v2 | `runs/phase4/progress1_v2_specialization_seed0` | 1-20 | not run | not run | not run | Full v2: frozen anchor path, pre-fusion norm, decoder(mu) prompt, residual diversity, concept-key router, factor-aware center, KL zero-then-linear |
 
 ## Medical validation selection record
 
@@ -20,6 +20,7 @@ table only, then record the single test result separately from
 ## Diagnostics to review
 
 - Factor usage, normalized routing entropy, top-1 share, dead factors.
+- Dense/sparse router usage and selected Top-K frequency.
 - Normal/abnormal prototype distance, factor direction cosine, dynamic-hard cosine.
 - VAE reconstruction/KL and mu/logvar range.
 - Gate values: gamma state, gamma class, and per-level rho.

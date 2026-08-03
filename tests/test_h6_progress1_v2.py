@@ -3,9 +3,11 @@ import torch.nn.functional as F
 from torch import nn
 
 from model.adapter import ACDCLIP
-from model.h6.losses import dynamic_residual_diversity_loss
+from model.h6.losses import dynamic_residual_diversity_loss, factor_aware_center_loss
 from model.h6.model import H6Progress1
+from model.h6.router import PatchRouter
 from model.h6.semantic_bank import ClassVAE
+from train import get_h6_vae_beta
 
 
 class _IdentityBlock(nn.Module):
@@ -73,6 +75,31 @@ def test_pre_fusion_text_norms_and_alpha_endpoints():
     assert torch.allclose(fused_dynamic.norm(dim=3), torch.ones_like(fused_dynamic.norm(dim=3)), atol=1e-6)
 
 
+def test_router_dense_prediction_then_sparse_prediction_with_concept_keys():
+    torch.manual_seed(4)
+    router = PatchRouter(n_groups=2, num_factors=4, text_dim=8, bank_dim=4, hidden_dim=6, top_k=2, soft_routing_epochs=6)
+    tokens = torch.randn(2, 1, 5, 8)
+    concept_keys = torch.eye(4)
+
+    dense_epoch = router(tokens, epoch_one_based=6, concept_keys=concept_keys)
+    sparse_epoch = router(tokens, epoch_one_based=7, concept_keys=concept_keys)
+
+    assert torch.allclose(dense_epoch["prediction_probabilities"], dense_epoch["dense_probabilities"], atol=1e-7)
+    assert torch.allclose(sparse_epoch["prediction_probabilities"], sparse_epoch["sparse_probabilities"], atol=1e-7)
+    assert (sparse_epoch["prediction_probabilities"] > 0).sum(dim=-1).eq(2).all()
+    diagnostics = router.diagnostics(
+        sparse_epoch["prediction_probabilities"],
+        dense_probabilities=sparse_epoch["dense_probabilities"],
+        sparse_probabilities=sparse_epoch["sparse_probabilities"],
+        topk_indices=sparse_epoch["topk_indices"],
+    )
+    assert torch.allclose(
+        diagnostics["selected_topk_frequency"].sum(dim=-1),
+        torch.ones(2),
+        atol=1e-6,
+    )
+
+
 def test_h6_build_batch_returns_unit_dynamic_text_before_fusion():
     torch.manual_seed(4)
     model = ACDCLIP(_FakeClip(), n_groups=3, dfg_mode="mlp", h6_progress=1)
@@ -85,6 +112,61 @@ def test_h6_build_batch_returns_unit_dynamic_text_before_fusion():
     assert torch.allclose(batch["hard_frozen"].norm(dim=2), torch.ones(3, 1, 2), atol=1e-5)
     assert torch.allclose(batch["dynamic_text"].norm(dim=3), torch.ones(3, 1, 4, 2), atol=1e-5)
     assert torch.isfinite(batch["residual_diversity"]).all()
+
+
+def test_factor_aware_center_loss_uses_dense_factor_assignment_and_detaches_router():
+    projected = torch.zeros(1, 1, 4, 2, requires_grad=True)
+    prototype_normal = torch.tensor([[[0.0, 0.0], [10.0, 10.0]]])
+    prototype_abnormal = torch.tensor([[[10.0, 10.0], [0.0, 0.0]]])
+    masks = torch.zeros(1, 1, 2, 2)
+    labels = torch.tensor([0])
+
+    good_assignment = torch.tensor([[[[1.0, 0.0], [1.0, 0.0], [1.0, 0.0], [1.0, 0.0]]]], requires_grad=True)
+    bad_assignment = torch.tensor([[[[0.0, 1.0], [0.0, 1.0], [0.0, 1.0], [0.0, 1.0]]]], requires_grad=True)
+    good = factor_aware_center_loss(
+        projected,
+        prototype_normal,
+        prototype_abnormal,
+        good_assignment,
+        masks,
+        labels,
+        detach_assignment=True,
+    )
+    bad = factor_aware_center_loss(
+        projected,
+        prototype_normal,
+        prototype_abnormal,
+        bad_assignment,
+        masks,
+        labels,
+        detach_assignment=True,
+    )
+    assert good < bad
+
+    good.backward(retain_graph=True)
+    assert projected.grad is not None
+    assert good_assignment.grad is None
+
+    trainable_assignment = torch.full((1, 1, 4, 2), 0.5, requires_grad=True)
+    loss = factor_aware_center_loss(
+        projected.detach(),
+        prototype_normal,
+        prototype_abnormal,
+        trainable_assignment,
+        masks,
+        labels,
+        detach_assignment=False,
+    )
+    loss.backward()
+    assert trainable_assignment.grad is not None
+
+
+def test_h6_vae_beta_zero_then_linear_schedule():
+    beta = 1e-4
+    expected = [0.0, 0.0, 0.0, 0.0, 2.5e-5, 5.0e-5, 7.5e-5, 1.0e-4, 1.0e-4]
+    actual = [get_h6_vae_beta(epoch, beta, zero_epochs=4) for epoch in range(1, 10)]
+    for left, right in zip(actual, expected):
+        assert abs(left - right) < 1e-12
 
 
 def test_frozen_anchor_bypasses_trainable_text_adapter_layernorms_and_steps():

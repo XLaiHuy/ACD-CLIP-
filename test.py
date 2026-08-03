@@ -394,6 +394,8 @@ def main():
     parser.add_argument("--h6_router_dim", type=int, default=128)
     parser.add_argument("--h6_router_temperature", type=float, default=1.0)
     parser.add_argument("--h6_router_soft_epochs", type=int, default=2)
+    parser.add_argument("--h6_dense_routing_epochs", type=int, default=None)
+    parser.add_argument("--h6_sparse_start_epoch", type=int, default=None)
     parser.add_argument("--h6_vae_hidden_dim", type=int, default=512)
     parser.add_argument("--h6_vae_latent_dim", type=int, default=256)
     parser.add_argument(
@@ -484,6 +486,15 @@ def main():
     )
 
     args = parser.parse_args()
+    if args.h6_dense_routing_epochs is not None:
+        args.h6_router_soft_epochs = int(args.h6_dense_routing_epochs)
+    if args.h6_sparse_start_epoch is not None:
+        expected_sparse_start = int(args.h6_router_soft_epochs) + 1
+        if int(args.h6_sparse_start_epoch) != expected_sparse_start:
+            raise ValueError(
+                "--h6_sparse_start_epoch must equal --h6_dense_routing_epochs + 1 "
+                f"(or --h6_router_soft_epochs + 1); got {args.h6_sparse_start_epoch} vs {expected_sparse_start}"
+            )
     if args.use_soft_prompt and args.use_hybrid_soft_prompt:
         raise ValueError("--use_soft_prompt and --use_hybrid_soft_prompt are mutually exclusive")
     preflight_files = sorted(glob(args.save_path + "/adapter_*.pth"), key=get_epoch_from_checkpoint)
