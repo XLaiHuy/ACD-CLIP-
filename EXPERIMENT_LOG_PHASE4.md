@@ -5,6 +5,8 @@ This is a results template. No train or test has been executed by this branch.
 | Progress | Run path | Epoch range | Training status | Medical validation sweep | One-time medical test | Notes |
 |---|---|---|---|---|---|---|
 | P1 | `runs/phase4/progress1_cops_dynamic_prompt_seed0` | 1-20 | not run | not run | not run | VisA only; Colon is deterministic 30/70 val/test |
+| P1-v1 | `runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1` | 1-20 | completed outside Codex | completed outside Codex | completed outside Codex | Existing result files audited; used only as evidence, not rerun |
+| P1-v2 | `runs/phase4/progress1_v2_specialization_seed0` | 1-20 | not run | not run | not run | Critical fixes: frozen anchor path, pre-fusion norm, decoder(mu) prompt, residual diversity |
 
 ## Medical validation selection record
 

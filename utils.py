@@ -218,16 +218,26 @@ def get_multiple_adapted_single_class_text_embedding(
 
 
 def get_hard_anchor_single_class_text_embedding(model, dataset_name, class_name, device):
+    cache = getattr(model, "_frozen_anchor_cache", None)
+    cache_key = (dataset_name, class_name, str(device))
+    if isinstance(cache, dict) and cache_key in cache:
+        return cache[cache_key]
     real_name = get_real_name(dataset_name, class_name)
     multi_layer_features = []
     with torch.no_grad():
         for i in range(len(prompt_state)):
             prompted_sentence = get_prompt_sentences(real_name, i)
             prompted_sentence = tokenize(prompted_sentence).to(device)
-            multi_features = model.encode_text(prompted_sentence, adapt_text=False)
+            if hasattr(model, "encode_frozen_anchor_text"):
+                multi_features = model.encode_frozen_anchor_text(prompted_sentence)
+            else:
+                multi_features = model.encode_text(prompted_sentence, adapt_text=False)
             multi_layer_features.extend(aggregate_prompt_features(multi_features))
         anchor = stack_state_features(multi_layer_features, device)
-    return anchor.detach()
+    anchor = torch.nn.functional.normalize(anchor.float(), dim=1).detach()
+    if isinstance(cache, dict):
+        cache[cache_key] = anchor
+    return anchor
 
 
 def get_soft_prompt_single_class_text_embedding(

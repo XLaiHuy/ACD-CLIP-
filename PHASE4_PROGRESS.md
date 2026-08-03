@@ -7,6 +7,27 @@
 - Implementation commit: `e011d09fdf2deaaf8cc15cccffca605b7b4e0161`
 - Train/test executed: **NO**
 
+## Progress 1 v2 specialization-fix branch
+
+- Branch: `phase4-progress1-v2-specialization-fix`
+- Scope: Progress 1 v2 critical stability fixes; not Progress 2.
+- Train/test executed by Codex: **NO**
+- Existing P1-v1 run audited: `runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1`
+- P1-v1 artifacts found: `adapter_1.pth` through `adapter_20.pth`, `train.log`,
+  `medical_validation_selection.json`, and `medical_test_results_by_dataset.csv`.
+- Critical source finding: old hard anchor used `adapt_text=False` but still
+  passed through trainable text adapter LayerNorms.
+- V2 fixes:
+  - pre-fusion L2 normalization for `hard_adapted`, `hard_frozen`, and `dynamic_text`;
+  - explicit frozen-anchor text path with no text LoRA, no AddWeight, and no
+    trainable text adapter LayerNorm;
+  - deterministic VAE prompt semantic via `decoder(mu)`;
+  - no `eta_class` gate in first v2;
+  - residual diversity loss on dynamic residual directions;
+  - v2 scripts with dense routing for six epochs, sparse Top-K from epoch 7.
+- Audit doc: `PHASE4_P1_V2_AUDIT.md`
+- Plan doc: `PHASE4_P1_V2_PLAN.md`
+
 ## Verified Phase2B source configuration
 
 The source scripts and `PHASE2B_RUN_CONTEXT.md` establish: three groups at

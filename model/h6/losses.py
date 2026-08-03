@@ -69,6 +69,24 @@ def factor_orthogonal_loss(factor_bank: torch.Tensor) -> torch.Tensor:
     return (gram - identity).pow(2).mean()
 
 
+def dynamic_residual_diversity_loss(dynamic_text: torch.Tensor, hard_frozen: torch.Tensor) -> torch.Tensor:
+    """Diversify dynamic text residual directions around the frozen hard anchor."""
+    if dynamic_text.ndim != 5:
+        raise ValueError("dynamic_text must be [G,B,M,768,2]")
+    if hard_frozen.ndim == 4:
+        hard_frozen = hard_frozen.unsqueeze(2)
+    if hard_frozen.ndim != 5:
+        raise ValueError("hard_frozen must be [G,B,768,2] or [G,B,M,768,2]")
+    dynamic_text = F.normalize(dynamic_text.float(), dim=3)
+    hard_frozen = F.normalize(hard_frozen.float(), dim=3).expand_as(dynamic_text)
+    residual = dynamic_text - hard_frozen
+    directions = residual[..., 1] - residual[..., 0]
+    directions = F.normalize(directions.float(), dim=-1)
+    gram = torch.einsum("gbmd,gbnd->gbmn", directions, directions)
+    identity = torch.eye(gram.shape[-1], device=gram.device, dtype=gram.dtype)
+    return (gram - identity).pow(2).mean()
+
+
 def routing_balance_loss(probabilities: torch.Tensor) -> torch.Tensor:
     if probabilities.ndim != 4:
         raise ValueError("routing probabilities must be [G,B,P,M]")

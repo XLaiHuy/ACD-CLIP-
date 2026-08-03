@@ -86,6 +86,10 @@ def test_synthetic_old_and_phase4_checkpoint_compatibility():
     restored = _TinyPhase4Model()
     assert load_adapter_checkpoint(restored, payload) is True
     assert restored.h6.epoch_one_based == 3
+    for key, value in source.h6.state_dict().items():
+        assert torch.allclose(restored.h6.state_dict()[key], value)
+    assert restored.h6.config_dict()["vae_prompt_path"] == "decoder_mu"
+    assert restored.h6.config_dict()["frozen_anchor_mode"] == "functional_layer_norm_no_adapter"
     old_payload = {
         "image_adapter": source.image_adapter.state_dict(),
         "text_adapter": source.text_adapter.state_dict(),
@@ -94,5 +98,8 @@ def test_synthetic_old_and_phase4_checkpoint_compatibility():
     with tempfile.NamedTemporaryFile(suffix=".pth") as handle:
         torch.save(payload, handle.name)
         loaded = torch.load(handle.name, map_location="cpu")
+    assert loaded["checkpoint_version"] == 2
     assert loaded["phase4_progress"] == 1
     assert loaded["h6_enabled"] is True
+    assert loaded["h6_config"]["variant"] == "p1_v2_specialization_fix"
+    assert loaded["h6_config"]["diversity_target"] == "dynamic_residual"

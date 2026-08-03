@@ -7,7 +7,7 @@ from typing import Any, Dict, Mapping
 import torch
 
 
-PHASE4_CHECKPOINT_VERSION = 1
+PHASE4_CHECKPOINT_VERSION = 2
 
 
 def is_phase4_checkpoint(checkpoint: Mapping[str, Any]) -> bool:

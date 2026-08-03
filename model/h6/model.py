@@ -8,6 +8,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
+from .losses import dynamic_residual_diversity_loss
 from .router import PatchRouter
 from .semantic_bank import BoundedPositiveGate, CoPSSemanticCore
 
@@ -72,8 +73,9 @@ class H6Progress1(nn.Module):
         self.rho = BoundedPositiveGate(initial=0.05, maximum=0.50, count=n_groups)
         self.epoch_one_based = 1
 
-    def config_dict(self) -> Dict[str, int | float]:
+    def config_dict(self) -> Dict[str, int | float | str]:
         return {
+            "variant": "p1_v2_specialization_fix",
             "progress": self.progress,
             "n_groups": self.n_groups,
             "num_factors": self.num_factors,
@@ -89,6 +91,10 @@ class H6Progress1(nn.Module):
             "h6_logit_temperature": self.h6_logit_temperature,
             "rho_init": 0.05,
             "rho_max": 0.50,
+            "text_fusion_norm": "pre_fusion_l2",
+            "frozen_anchor_mode": "functional_layer_norm_no_adapter",
+            "diversity_target": "dynamic_residual",
+            "vae_prompt_path": "decoder_mu",
         }
 
     def set_epoch(self, epoch_one_based: int) -> None:
@@ -151,7 +157,19 @@ class H6Progress1(nn.Module):
         dynamic = torch.stack(text_levels, dim=0).view(
             self.n_groups, batch, factors, states, self.text_dim
         )
-        return dynamic.permute(0, 1, 2, 4, 3).contiguous().float()
+        dynamic = dynamic.permute(0, 1, 2, 4, 3).contiguous().float()
+        return F.normalize(dynamic, dim=3)
+
+    @staticmethod
+    def _fuse_factor_bank(hard_adapted: torch.Tensor, dynamic_text: torch.Tensor, hybrid_alpha: float) -> torch.Tensor:
+        if hard_adapted.ndim != 4:
+            raise ValueError("hard_adapted must be [G,B,768,2]")
+        if dynamic_text.ndim != 5:
+            raise ValueError("dynamic_text must be [G,B,M,768,2]")
+        hard_adapted = F.normalize(hard_adapted.float(), dim=2)
+        dynamic_text = F.normalize(dynamic_text.float(), dim=3)
+        mixed = (1.0 - float(hybrid_alpha)) * hard_adapted.unsqueeze(2) + float(hybrid_alpha) * dynamic_text
+        return F.normalize(mixed, dim=3)
 
     def build_batch(
         self,
@@ -175,13 +193,13 @@ class H6Progress1(nn.Module):
         hard_adapted, hard_frozen = self._batch_hard_embeddings(
             base_model, dataset_name, class_names, visual_output["cls24"].device
         )
-        factor_bank = F.normalize(
-            (1.0 - float(hybrid_alpha)) * hard_adapted.unsqueeze(2)
-            + float(hybrid_alpha) * dynamic,
-            dim=3,
-        )
+        hard_adapted = F.normalize(hard_adapted.float(), dim=2)
+        hard_frozen = F.normalize(hard_frozen.float(), dim=2)
+        dynamic = F.normalize(dynamic.float(), dim=3)
+        factor_bank = self._fuse_factor_bank(hard_adapted, dynamic, hybrid_alpha)
         anchor = hard_frozen.unsqueeze(2).expand_as(dynamic)
         kg_loss = (1.0 - F.cosine_similarity(dynamic.float(), anchor, dim=3)).mean()
+        residual_diversity = dynamic_residual_diversity_loss(dynamic, hard_frozen)
         routing = self.router(visual_output["seg_tokens"], epoch_one_based=self.epoch_one_based)
         local_text = self.router.local_text(routing["probabilities"], factor_bank)
         patches = torch.stack(visual_output["seg_tokens"], dim=0).float()
@@ -195,6 +213,7 @@ class H6Progress1(nn.Module):
             "dynamic_text": dynamic,
             "factor_bank": factor_bank,
             "kg_loss": kg_loss,
+            "residual_diversity": residual_diversity,
             "text_global": self.router.aggregate_global(routing["probabilities"], factor_bank),
             "local_text": local_text,
             "h6_logits": h6_logits,

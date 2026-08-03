@@ -111,6 +111,7 @@ class ACDCLIP(nn.Module):
         self.soft_prompt_ctx_len = soft_prompt_ctx_len
         self.soft_prompt_init = soft_prompt_init
         self.soft_prompt_init_phrase = soft_prompt_init_phrase
+        self._frozen_anchor_cache = {}
         self._last_dfg_stats = {}
 
         image_adapt_weights = nn.ModuleList(
@@ -555,7 +556,14 @@ class ACDCLIP(nn.Module):
                 diagnostics[f"{prefix}_{key}"] = value
         return diagnostics
 
-    def _encode_text_from_embeddings(self, text, x, adapt_text=True):
+    def _encode_text_from_embeddings(
+            self,
+            text,
+            x,
+            adapt_text=True,
+            adapter_layer_norm=True,
+            functional_layer_norm=False,
+    ):
         cast_dtype = self.clipmodel.transformer.get_cast_dtype()
         x = x + self.clipmodel.positional_embedding.to(cast_dtype)
         x = x.permute(1, 0, 2)  # NLD -> LND
@@ -584,8 +592,11 @@ class ACDCLIP(nn.Module):
 
         indices = text.argmax(dim=-1)
         out_features = [t.permute(1, 0, 2) for t in out_features]
-        out_features = [self.text_adapter["layer_norms"][i](t) for i, t in enumerate(out_features)]
-        out_features = [t[torch.arange(t.shape[0]), indices] for t in out_features]
+        if adapter_layer_norm:
+            out_features = [self.text_adapter["layer_norms"][i](t) for i, t in enumerate(out_features)]
+        elif functional_layer_norm:
+            out_features = [F.layer_norm(t.float(), (t.shape[-1],)).to(dtype=t.dtype) for t in out_features]
+        out_features = [t[torch.arange(t.shape[0], device=t.device), indices] for t in out_features]
         return out_features
 
     def encode_text(self, text, adapt_text=True):
@@ -594,6 +605,20 @@ class ACDCLIP(nn.Module):
             cast_dtype
         )  # [batch_size, n_ctx, d_model]
         return self._encode_text_from_embeddings(text, x, adapt_text=adapt_text)
+
+    def encode_frozen_anchor_text(self, text):
+        """Encode hard anchors without any trainable text adapter dependency."""
+        cast_dtype = self.clipmodel.transformer.get_cast_dtype()
+        with torch.no_grad():
+            x = self.clipmodel.token_embedding(text).to(cast_dtype)
+            levels = self._encode_text_from_embeddings(
+                text,
+                x,
+                adapt_text=False,
+                adapter_layer_norm=False,
+                functional_layer_norm=True,
+            )
+        return [F.normalize(level.detach().float(), dim=-1) for level in levels]
 
     def encode_soft_prompt_text(self, text, ctx, adapt_text=False):
         cast_dtype = self.clipmodel.transformer.get_cast_dtype()

@@ -58,11 +58,14 @@ class ClassVAE(nn.Module):
             z = mu + torch.exp(0.5 * logvar) * torch.randn_like(mu)
         else:
             z = mu
-        class_semantic = self.decoder(z).float()
-        reconstruction = F.mse_loss(class_semantic, target, reduction="mean")
+        reconstruction_sample = self.decoder(z).float()
+        decoded_mu = self.decoder(mu).float()
+        reconstruction = F.mse_loss(reconstruction_sample, target, reduction="mean")
         kl = -0.5 * (1.0 + logvar - mu.pow(2) - logvar.exp()).sum(dim=-1).mean()
         return {
-            "class_semantic": class_semantic,
+            "class_semantic": decoded_mu,
+            "decoded_mu": decoded_mu,
+            "reconstruction_sample": reconstruction_sample,
             "reconstruction": reconstruction,
             "kl": kl,
             "mu": mu,

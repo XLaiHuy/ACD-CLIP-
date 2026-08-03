@@ -25,7 +25,7 @@ from model.adapter import (
 )
 from model.checkpoint_utils import build_phase4_checkpoint
 from model.clip import create_model
-from model.h6.losses import center_loss, factor_orthogonal_loss, routing_balance_loss
+from model.h6.losses import center_loss, routing_balance_loss
 
 
 def tensor_debug_stats(tensor):
@@ -836,7 +836,7 @@ def train_h6_progress1(
                     mask,
                     label,
                 )
-                h6_orth = factor_orthogonal_loss(h6_batch["factor_bank"])
+                h6_orth = h6_batch["residual_diversity"]
                 h6_balance = routing_balance_loss(h6_batch["probabilities"])
                 total_loss = (
                     task_loss
