@@ -8,7 +8,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 from torchvision.transforms import InterpolationMode
 
-from utils import AddGaussianNoise
+from .transforms import AddGaussianNoise
 from .info import CLASS_NAMES, DATA_PATH, DOMAINS
 
 

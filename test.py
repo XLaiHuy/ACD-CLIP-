@@ -19,6 +19,7 @@ from utils import (
 from model.adapter import (
     ACDCLIP
 )
+from model.checkpoint_utils import h6_config_from_checkpoint, load_adapter_checkpoint
 from model.clip import create_model
 
 
@@ -63,14 +64,23 @@ def get_predictions(
         masks.append(mask.cpu())
         labels.append(label.cpu())
         file_names.extend(file_name)
-        # get text
-        epoch_text_features = class_text_embeddings.unsqueeze(dim=1)  # [n_groups, 1, 768, 2]
-        # forward image
-        seg_tokens, det_tokens = model(image)  # [bs, patch_size, 768] * n_groups, [bs, 768] * n_groups
-        seg_features = torch.stack(seg_tokens, dim=0)  # [n_groups, bs, patch_num, 768]
-        det_features = torch.stack(det_tokens, dim=0)  # [n_groups, bs, 768]
-        B = seg_features.shape[1]
-        epoch_text_features = epoch_text_features.repeat(1, B, 1, 1)  # [n_groups, bs, 768, 2]
+        if model.h6_enabled:
+            visual_output = model(image, return_phase4_features=True)
+            h6_batch = model.h6.build_batch(
+                model, dataset, list(class_name), visual_output, model.hybrid_alpha_current
+            )
+            seg_features = torch.stack(visual_output["seg_tokens"], dim=0)
+            det_features = torch.stack(visual_output["det_tokens"], dim=0)
+            epoch_text_features = h6_batch["text_global"].to(dtype=det_features.dtype)
+            h6_patch_logits = h6_batch["h6_logits"]
+        else:
+            epoch_text_features = class_text_embeddings.unsqueeze(dim=1)  # [n_groups, 1, 768, 2]
+            seg_tokens, det_tokens = model(image)
+            seg_features = torch.stack(seg_tokens, dim=0)
+            det_features = torch.stack(det_tokens, dim=0)
+            B = seg_features.shape[1]
+            epoch_text_features = epoch_text_features.repeat(1, B, 1, 1)
+            h6_patch_logits = None
         cls_preds = [
             torch.matmul(
                 det_features[i].unsqueeze(dim=1),  # [bs, 1, 768]
@@ -81,8 +91,9 @@ def get_predictions(
         pred = F.softmax(cls_preds, dim=1)[:, 1]
         preds_image.append(pred.cpu())
         # [bs, img_size, img_size]
-        seg_pred = model.vision_text_fusion_gate_seg(seg_features, epoch_text_features, test_mode=True,
-                                                     domain=DOMAINS[dataset])
+        seg_pred = model.vision_text_fusion_gate_seg(
+            seg_features, epoch_text_features, test_mode=True, domain=DOMAINS[dataset], h6_patch_logits=h6_patch_logits
+        )
         preds.append(seg_pred.cpu())
         if device.type == "cuda":
             torch.cuda.empty_cache()
@@ -115,12 +126,23 @@ def get_streaming_metrics(
         batch_class_name = input_data["class_name"]
         assert len(set(batch_class_name)) == 1, "mixed class not supported"
 
-        epoch_text_features = class_text_embeddings.unsqueeze(dim=1)
-        seg_tokens, det_tokens = model(image)
-        seg_features = torch.stack(seg_tokens, dim=0)
-        det_features = torch.stack(det_tokens, dim=0)
-        B = seg_features.shape[1]
-        epoch_text_features = epoch_text_features.repeat(1, B, 1, 1)
+        if model.h6_enabled:
+            visual_output = model(image, return_phase4_features=True)
+            h6_batch = model.h6.build_batch(
+                model, dataset, list(batch_class_name), visual_output, model.hybrid_alpha_current
+            )
+            seg_features = torch.stack(visual_output["seg_tokens"], dim=0)
+            det_features = torch.stack(visual_output["det_tokens"], dim=0)
+            epoch_text_features = h6_batch["text_global"].to(dtype=det_features.dtype)
+            h6_patch_logits = h6_batch["h6_logits"]
+        else:
+            epoch_text_features = class_text_embeddings.unsqueeze(dim=1)
+            seg_tokens, det_tokens = model(image)
+            seg_features = torch.stack(seg_tokens, dim=0)
+            det_features = torch.stack(det_tokens, dim=0)
+            B = seg_features.shape[1]
+            epoch_text_features = epoch_text_features.repeat(1, B, 1, 1)
+            h6_patch_logits = None
         cls_preds = [
             torch.matmul(
                 det_features[i].unsqueeze(dim=1),
@@ -134,6 +156,7 @@ def get_streaming_metrics(
             epoch_text_features,
             test_mode=True,
             domain=DOMAINS[dataset],
+            h6_patch_logits=h6_patch_logits,
         )
 
         flat_seg = torch.flatten(seg_pred, start_dim=1)
@@ -201,6 +224,15 @@ def main():
     parser.add_argument("--soft_prompt_ctx_len", type=int, default=4)
     parser.add_argument("--soft_prompt_init", type=str, choices=["phrase", "random"], default="phrase")
     parser.add_argument("--soft_prompt_init_phrase", type=str, default="a photo of a")
+    parser.add_argument("--h6_progress", type=int, choices=[0, 1], default=None)
+    parser.add_argument("--h6_num_factors", type=int, default=4)
+    parser.add_argument("--h6_top_k", type=int, default=2)
+    parser.add_argument("--h6_bank_dim", type=int, default=256)
+    parser.add_argument("--h6_router_dim", type=int, default=128)
+    parser.add_argument("--h6_router_temperature", type=float, default=1.0)
+    parser.add_argument("--h6_router_soft_epochs", type=int, default=2)
+    parser.add_argument("--h6_vae_hidden_dim", type=int, default=512)
+    parser.add_argument("--h6_vae_latent_dim", type=int, default=256)
     parser.add_argument(
         "--dfg_mode",
         type=str,
@@ -269,6 +301,30 @@ def main():
     args = parser.parse_args()
     if args.use_soft_prompt and args.use_hybrid_soft_prompt:
         raise ValueError("--use_soft_prompt and --use_hybrid_soft_prompt are mutually exclusive")
+    preflight_files = sorted(glob(args.save_path + "/adapter_*.pth"), key=get_epoch_from_checkpoint)
+    if args.epochs is not None:
+        selected_epochs = set(args.epochs)
+        preflight_files = [file for file in preflight_files if get_epoch_from_checkpoint(file) in selected_epochs]
+    assert len(preflight_files) > 0, "adapter checkpoint not found"
+    preflight_checkpoint = torch.load(preflight_files[0], map_location="cpu")
+    preflight_h6 = h6_config_from_checkpoint(preflight_checkpoint)
+    if preflight_h6 is not None:
+        if args.h6_progress is None:
+            args.h6_progress = int(preflight_h6["progress"])
+            args.h6_num_factors = int(preflight_h6["num_factors"])
+            args.h6_top_k = int(preflight_h6["top_k"])
+            args.h6_bank_dim = int(preflight_h6["bank_dim"])
+            args.h6_router_dim = int(preflight_h6["router_dim"])
+            args.h6_router_temperature = float(preflight_h6["router_temperature"])
+            args.h6_router_soft_epochs = int(preflight_h6["router_soft_epochs"])
+            args.h6_vae_hidden_dim = int(preflight_h6["vae_hidden_dim"])
+            args.h6_vae_latent_dim = int(preflight_h6["vae_latent_dim"])
+        elif args.h6_progress != int(preflight_h6["progress"]):
+            raise ValueError(
+                f"checkpoint phase4_progress is {preflight_h6['progress']}, but --h6_progress is {args.h6_progress}"
+            )
+    elif args.h6_progress is None:
+        args.h6_progress = 0
     # ========================================================
     os.makedirs(args.save_path, exist_ok=True)
     logging.basicConfig(
@@ -312,16 +368,21 @@ def main():
         soft_prompt_ctx_len=args.soft_prompt_ctx_len,
         soft_prompt_init=args.soft_prompt_init,
         soft_prompt_init_phrase=args.soft_prompt_init_phrase,
+        h6_progress=args.h6_progress,
+        h6_num_factors=args.h6_num_factors,
+        h6_top_k=args.h6_top_k,
+        h6_bank_dim=args.h6_bank_dim,
+        h6_router_dim=args.h6_router_dim,
+        h6_router_temperature=args.h6_router_temperature,
+        h6_router_soft_epochs=args.h6_router_soft_epochs,
+        h6_vae_hidden_dim=args.h6_vae_hidden_dim,
+        h6_vae_latent_dim=args.h6_vae_latent_dim,
     ).to(device)
     model.eval()
-    model.prompt_mode = "hybrid" if args.use_hybrid_soft_prompt else ("soft" if args.use_soft_prompt else "hard")
-    model.use_hybrid_soft_prompt = bool(args.use_hybrid_soft_prompt)
+    model.prompt_mode = "h6_dynamic" if args.h6_progress == 1 else ("hybrid" if args.use_hybrid_soft_prompt else ("soft" if args.use_soft_prompt else "hard"))
+    model.use_hybrid_soft_prompt = bool(args.use_hybrid_soft_prompt or args.h6_progress == 1)
     model.hybrid_alpha_current = 0.0 if args.hybrid_alpha is None else float(args.hybrid_alpha)
-    ckp_files = sorted(glob(args.save_path + "/adapter_*.pth"), key=get_epoch_from_checkpoint)
-    if args.epochs is not None:
-        selected_epochs = set(args.epochs)
-        ckp_files = [file for file in ckp_files if get_epoch_from_checkpoint(file) in selected_epochs]
-    assert len(ckp_files) > 0, "adapter checkpoint not found"
+    ckp_files = preflight_files
     for file in ckp_files:
         checkpoint = torch.load(file, map_location=device)
         if checkpoint.get("dfg_mode", args.dfg_mode) != args.dfg_mode:
@@ -378,8 +439,7 @@ def main():
             model.dfg_beta_target = float(ckpt_beta_target)
             model.dfg_weight_residual_fp32 = bool(ckpt_weight_residual_fp32)
             model.set_dfg_beta(float(ckpt_beta_current))
-        model.image_adapter.load_state_dict(checkpoint["image_adapter"])
-        model.text_adapter.load_state_dict(checkpoint["text_adapter"])
+        restored_h6 = load_adapter_checkpoint(model, checkpoint)
         ckpt_prompt_mode = checkpoint.get("prompt_mode", None)
         ckpt_use_hybrid_soft_prompt = bool(checkpoint.get("use_hybrid_soft_prompt", False))
         ckpt_use_soft_prompt = bool(checkpoint.get("use_soft_prompt", False))
@@ -436,6 +496,12 @@ def main():
             model.prompt_mode = "hard"
             model.use_hybrid_soft_prompt = False
             model.use_soft_prompt = False
+        if restored_h6:
+            model.prompt_mode = "h6_dynamic"
+            model.use_hybrid_soft_prompt = True
+            model.use_soft_prompt = False
+            model.hybrid_alpha_current = float(checkpoint.get("hybrid_alpha_current", 0.20))
+            model.h6.set_epoch(int(checkpoint.get("router_warmup_epoch", checkpoint["epoch"])))
         test_epoch = checkpoint["epoch"]
         logger.info("-----------------------------------------------")
         logger.info("load model from epoch %d", test_epoch)
@@ -517,6 +583,10 @@ def main():
         mean_vals = df[df.columns[1:]].mean()
         df.loc[len(df), df.columns[1:]] = mean_vals
         df.loc[len(df) - 1, "class name"] = "Average"
+        df.to_csv(
+            os.path.join(args.save_path, f"exact_results_{args.dataset}_epoch_{test_epoch}.csv"),
+            index=False,
+        )
         logger.info("final results:\n%s", df.to_string(index=False, justify="center"))
         if use_cuda:
             torch.cuda.empty_cache()

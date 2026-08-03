@@ -6,6 +6,7 @@ from torch import nn
 from torch.utils.checkpoint import checkpoint
 
 from .adapter_modules import TextLoraAdapter, MLPAdapter, ConvLoraAdapter, DFGSS2DResidualBranch
+from .h6.model import H6Progress1
 from .soft_prompt import SoftPromptLearner
 
 
@@ -54,6 +55,15 @@ class ACDCLIP(nn.Module):
             soft_prompt_ctx_len: int = 4,
             soft_prompt_init: str = "phrase",
             soft_prompt_init_phrase: str = "a photo of a",
+            h6_progress: int = 0,
+            h6_num_factors: int = 4,
+            h6_top_k: int = 2,
+            h6_bank_dim: int = 256,
+            h6_router_dim: int = 128,
+            h6_router_temperature: float = 1.0,
+            h6_router_soft_epochs: int = 2,
+            h6_vae_hidden_dim: int = 512,
+            h6_vae_latent_dim: int = 256,
             **kwargs,
     ):
         super().__init__()
@@ -184,6 +194,25 @@ class ACDCLIP(nn.Module):
             init_phrase=init_phrase,
             clip_model=clip_model,
         )
+        if h6_progress not in (0, 1):
+            raise ValueError("this branch implements only H6 Progress 1; use h6_progress=0 or 1")
+        self.h6_enabled = bool(h6_progress == 1)
+        self.h6_progress = int(h6_progress)
+        self.h6 = None
+        if self.h6_enabled:
+            self.h6 = H6Progress1(
+                n_groups=n_groups,
+                num_factors=h6_num_factors,
+                top_k=h6_top_k,
+                bank_dim=h6_bank_dim,
+                router_dim=h6_router_dim,
+                router_temperature=h6_router_temperature,
+                router_soft_epochs=h6_router_soft_epochs,
+                vae_hidden_dim=h6_vae_hidden_dim,
+                vae_latent_dim=h6_vae_latent_dim,
+                text_dim=768,
+                ctx_len=soft_prompt_ctx_len,
+            )
 
     def _init_dfg_attention(self):
         if self.dfg_attn_dim == 768:
@@ -218,7 +247,7 @@ class ACDCLIP(nn.Module):
         else:
             raise ValueError("modality must be visual")
 
-    def forward(self, x):
+    def forward(self, x, return_phase4_features: bool = False):
         x = self.image_encoder.conv1(x)
         x = x.reshape(x.shape[0], x.shape[1], -1)
         x = x.permute(0, 2, 1)
@@ -241,12 +270,19 @@ class ACDCLIP(nn.Module):
         x = x.permute(1, 0, 2)
 
         group_outs = []
+        cls24 = None
         for i in range(24):
             resblock = self.image_encoder.transformer.resblocks[i]
             if self.image_encoder.transformer.grad_checkpointing and not torch.jit.is_scripting():
                 x, attn = checkpoint(resblock, x, None, None, None, use_reentrant=False)
             else:
                 x, attn = resblock(x, attn_mask=None)
+            if i == 23:
+                # Reuse the final block CLS, never invoke the visual tower a second time.
+                cls24 = self.image_encoder.ln_post(x[0])
+                if self.image_encoder.proj is not None:
+                    cls24 = cls24 @ self.image_encoder.proj
+                cls24 = F.normalize(cls24.float(), dim=-1)
             # [1370, bs, 1024]
             index = -1
             for j in range(self.n_groups):
@@ -294,6 +330,15 @@ class ACDCLIP(nn.Module):
         ]
         det_tokens = [F.normalize(t, dim=-1).mean(1) for t in det_tokens_norm]  # L2归一化 + 全局平均池化
 
+        if return_phase4_features:
+            if cls24 is None:
+                raise RuntimeError("failed to capture the final visual CLS token")
+            return {
+                "seg_tokens": seg_tokens,
+                "seg_tokens_pre_l2": seg_tokens_norm,
+                "det_tokens": det_tokens,
+                "cls24": cls24,
+            }
         return seg_tokens, det_tokens
 
     def vision_text_fusion_gate_seg(
@@ -303,6 +348,7 @@ class ACDCLIP(nn.Module):
             img_size: int = 518,
             test_mode: bool = False,
             domain: str = "Industrial",
+            h6_patch_logits: torch.Tensor | None = None,
     ):
         """
         Fuse vision and text features using a gating mechanism.
@@ -333,6 +379,21 @@ class ACDCLIP(nn.Module):
                     i,
                 )
             fused_feature = torch.matmul(img_feat, group_text_features)  # [bs, patch_num, 2]
+            if h6_patch_logits is not None:
+                if not self.h6_enabled or self.h6 is None:
+                    raise ValueError("H6 residual logits require an H6-enabled ACDCLIP model")
+                local_logits = h6_patch_logits[i]
+                if tuple(local_logits.shape) != (B, patch_size):
+                    raise ValueError(
+                        f"H6 patch logits at level {i} must be [B, P]={B, patch_size}, got {tuple(local_logits.shape)}"
+                    )
+                correction = self.h6.rho_values()[i].to(local_logits.dtype) * local_logits
+                # Adding to the abnormal logit is exactly an additive correction to
+                # the Phase2B normal-vs-abnormal patch logit, while retaining all
+                # existing DFG, smoothing, interpolation, and softmax behavior.
+                fused_feature = torch.stack(
+                    [fused_feature[..., 0], fused_feature[..., 1].float() + correction.float()], dim=-1
+                )
             seg_logits = fused_feature.permute(0, 2, 1).view(B, 2, H, H)  # [bs, 2, H, H]
             group_seg_preds.append(seg_logits)  # [bs, 2, H, H]
         if test_mode:
@@ -545,3 +606,26 @@ class ACDCLIP(nn.Module):
         x = x.clone()
         x[:, 1:1 + ctx.shape[0], :] = ctx.unsqueeze(0)
         return self._encode_text_from_embeddings(text, x, adapt_text=adapt_text)
+
+    def encode_dynamic_prompt_text(self, token_ids, dynamic_context, adapt_text=False):
+        """Encode per-sample dynamic contexts in one vectorized text forward.
+
+        ``dynamic_context`` is [N, ctx_len, 768], so a Progress 1 batch only
+        encodes B * 2 * M prompts and never loops over patches.
+        """
+        cast_dtype = self.clipmodel.transformer.get_cast_dtype()
+        x = self.clipmodel.token_embedding(token_ids).to(cast_dtype)
+        dynamic_context = dynamic_context.to(device=x.device, dtype=cast_dtype)
+        if dynamic_context.ndim != 3:
+            raise ValueError("dynamic_context must be [N, ctx_len, 768]")
+        if dynamic_context.shape[0] != x.shape[0]:
+            raise ValueError("token_ids and dynamic_context must have the same batch length")
+        if dynamic_context.shape[1] != self.soft_prompt_ctx_len:
+            raise ValueError(
+                f"dynamic ctx length {dynamic_context.shape[1]} != expected {self.soft_prompt_ctx_len}"
+            )
+        if dynamic_context.shape[2] != x.shape[2] or token_ids.shape[1] < 1 + dynamic_context.shape[1]:
+            raise ValueError("dynamic context shape is incompatible with CLIP token embeddings")
+        x = x.clone()
+        x[:, 1:1 + dynamic_context.shape[1], :] = dynamic_context
+        return self._encode_text_from_embeddings(token_ids, x, adapt_text=adapt_text)

@@ -1,6 +1,9 @@
 import argparse
+import contextlib
 import logging
 import os
+import random
+import time
 
 import numpy as np
 import torch
@@ -20,7 +23,9 @@ from utils import (
 from model.adapter import (
     ACDCLIP
 )
+from model.checkpoint_utils import build_phase4_checkpoint
 from model.clip import create_model
+from model.h6.losses import center_loss, factor_orthogonal_loss, routing_balance_loss
 
 
 def tensor_debug_stats(tensor):
@@ -661,6 +666,260 @@ def train(
     return model
 
 
+def set_phase4_seed(seed: int) -> None:
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
+def get_h6_vae_beta(epoch_one_based: int, beta_max: float) -> float:
+    if epoch_one_based <= 1:
+        return 0.0
+    return min(float(beta_max), float(epoch_one_based - 1) * float(beta_max) / 4.0)
+
+
+def _phase4_autocast(device: torch.device, precision: str):
+    if device.type != "cuda" or precision == "fp32":
+        return contextlib.nullcontext()
+    dtype = torch.bfloat16 if precision == "bf16" else torch.float16
+    return torch.autocast(device_type="cuda", dtype=dtype)
+
+
+def _set_soft_prompt_lr(optimizer: torch.optim.Optimizer, frozen: bool) -> None:
+    for group in optimizer.param_groups:
+        if group.get("name") == "soft_prompt":
+            group["lr"] = 0.0 if frozen else group["constant_lr"]
+
+
+def _h6_optimizer_groups(model: ACDCLIP, args) -> list[dict]:
+    groups = [
+        {"name": "text_adapter", "params": list(model.text_adapter.parameters()), "lr": args.text_lr},
+        {"name": "image_adapter", "params": list(model.image_adapter.parameters()), "lr": args.image_lr},
+        {
+            "name": "soft_prompt",
+            "params": list(model.soft_prompt.parameters()),
+            "lr": 0.0,
+            "constant_lr": args.soft_prompt_lr,
+            "weight_decay": 0.0,
+        },
+    ]
+    partition_by_id = {}
+    for partition_name, params in model.h6.parameter_partitions().items():
+        for parameter in params:
+            partition_by_id[id(parameter)] = partition_name
+    named_h6 = dict(model.h6.named_parameters())
+    grouped = {}
+    for name, parameter in named_h6.items():
+        partition = partition_by_id.get(id(parameter))
+        if partition is None:
+            raise RuntimeError(f"unpartitioned H6 parameter: {name}")
+        lr = 5e-5 if partition == "h6_dynamic_prompt" else 1e-4
+        zero_decay = (
+            parameter.ndim < 2
+            or "norm" in name.lower()
+            or "embedding" in name.lower()
+            or "concept_slots" in name
+            or "raw" in name
+        )
+        key = (partition, lr, 0.0 if zero_decay else 0.01)
+        grouped.setdefault(key, []).append(parameter)
+    for (partition, lr, weight_decay), params in grouped.items():
+        groups.append({"name": partition, "params": params, "lr": lr, "weight_decay": weight_decay})
+    return groups
+
+
+def _phase2b_config_from_args(args) -> dict:
+    return {
+        "n_groups": args.n_groups,
+        "image_levels": [8, 16, 24] if args.n_groups == 3 else None,
+        "text_levels": [4, 8, 12] if args.n_groups == 3 else None,
+        "lora_rank": args.lora_rank,
+        "lora_alpha": args.lora_alpha,
+        "conv_lora_rank": args.conv_lora_rank,
+        "conv_lora_alpha": args.conv_lora_alpha,
+        "conv_kernel_size_list": list(args.conv_kernel_size_list),
+        "image_adapt_weight": args.image_adapt_weight,
+        "text_adapt_weight": args.text_adapt_weight,
+        "dfg_mode": args.dfg_mode,
+        "dfg_attn_dim": args.dfg_attn_dim,
+        "dfg_attn_tau": args.dfg_attn_tau,
+        "use_ss2d_dfg": args.use_ss2d_dfg,
+        "dfg_ss2d_fusion": args.dfg_ss2d_fusion,
+        "dfg_beta": args.dfg_beta,
+        "dfg_beta_schedule": args.dfg_beta_schedule,
+        "dfg_beta_target": args.dfg_beta_target,
+        "image_lr": args.image_lr,
+        "text_lr": args.text_lr,
+        "soft_prompt_lr": args.soft_prompt_lr,
+        "lr_gamma": args.lr_gamma,
+        "grad_clip_norm": args.grad_clip_norm,
+        "grad_checkpointing": args.grad_checkpointing,
+        "hybrid_alpha_max": args.hybrid_alpha_max,
+        "soft_prompt_freeze_epochs": args.soft_prompt_freeze_epochs,
+    }
+
+
+def train_h6_progress1(
+        model: ACDCLIP,
+        dataset_name: str,
+        train_loader: DataLoader,
+        optimizer: torch.optim.Optimizer,
+        scheduler: torch.optim.lr_scheduler,
+        device: torch.device,
+        args,
+        logger: logging.Logger,
+):
+    """Train only the requested Progress 1 path; no checkpoint is loaded here."""
+    if not model.h6_enabled or model.h6_progress != 1:
+        raise ValueError("train_h6_progress1 requires an H6 Progress 1 model")
+    scaler = torch.cuda.amp.GradScaler(enabled=(device.type == "cuda" and args.precision == "fp16"))
+    loss_weights = {
+        "center": args.lambda_h6_center,
+        "vae_rec": args.lambda_h6_vae_rec,
+        "orth": args.lambda_h6_orth,
+        "balance": args.lambda_h6_balance,
+        "kg": args.lambda_kg,
+        "k": args.lambda_k,
+    }
+    for epoch_zero_based in range(args.epoch):
+        epoch = epoch_zero_based + 1
+        started = time.monotonic()
+        model.train()
+        model.h6.set_epoch(epoch)
+        hybrid_alpha = get_hybrid_alpha_for_epoch(epoch, args.hybrid_alpha_max, args.soft_prompt_freeze_epochs)
+        model.hybrid_alpha_current = hybrid_alpha
+        soft_prompt_frozen = epoch <= args.soft_prompt_freeze_epochs
+        model.soft_prompt.requires_grad_(not soft_prompt_frozen)
+        _set_soft_prompt_lr(optimizer, soft_prompt_frozen)
+        model.set_dfg_beta(get_dfg_beta_for_epoch(epoch, args.dfg_beta_schedule, args.dfg_beta_target, args.dfg_beta))
+        beta_vae_kl = get_h6_vae_beta(epoch, args.beta_h6_vae_kl)
+        metrics = {key: [] for key in ("total", "task", "cls", "seg", "center", "vae_rec", "vae_kl", "kg", "orth", "balance")}
+        optimizer.zero_grad(set_to_none=True)
+        progress = tqdm(train_loader, desc=f"[PHASE4-P1][TRAIN][epoch {epoch:02d}/{args.epoch:02d}]")
+        for batch_idx, input_data in enumerate(progress, start=1):
+            image = input_data["image"].to(device, non_blocking=args.pin_memory)
+            mask = input_data["mask"].to(device, non_blocking=args.pin_memory)
+            label = input_data["label"].to(device, non_blocking=args.pin_memory)
+            class_names = list(input_data["class_name"])
+            with _phase4_autocast(device, args.precision):
+                visual_output = model(image, return_phase4_features=True)
+                h6_batch = model.h6.build_batch(
+                    model, dataset_name, class_names, visual_output, hybrid_alpha=hybrid_alpha
+                )
+                seg_features = torch.stack(visual_output["seg_tokens"], dim=0)
+                det_features = torch.stack(visual_output["det_tokens"], dim=0)
+                text_global = h6_batch["text_global"].to(dtype=det_features.dtype)
+                cls_pred = torch.stack([
+                    torch.matmul(det_features[level].unsqueeze(1), text_global[level]).squeeze(1)
+                    for level in range(model.n_groups)
+                ], dim=0).mean(dim=0)
+                cls_loss = F.cross_entropy(cls_pred.float(), label)
+                seg_pred = model.vision_text_fusion_gate_seg(
+                    seg_features,
+                    text_global,
+                    img_size=args.img_size,
+                    h6_patch_logits=h6_batch["h6_logits"],
+                )
+                seg_loss = calculate_seg_loss(seg_pred.float(), mask.float())
+                task_loss = cls_loss + seg_loss
+                h6_center = center_loss(
+                    h6_batch["projected_levels"],
+                    h6_batch["prototype_normal"],
+                    h6_batch["prototype_abnormal"],
+                    mask,
+                    label,
+                )
+                h6_orth = factor_orthogonal_loss(h6_batch["factor_bank"])
+                h6_balance = routing_balance_loss(h6_batch["probabilities"])
+                total_loss = (
+                    task_loss
+                    + args.lambda_h6_center * h6_center
+                    + args.lambda_h6_vae_rec * h6_batch["reconstruction"]
+                    + beta_vae_kl * h6_batch["kl"]
+                    + args.lambda_kg * h6_batch["kg_loss"]
+                    + args.lambda_h6_orth * h6_orth
+                    + args.lambda_h6_balance * h6_balance
+                )
+            if not torch.isfinite(total_loss).all():
+                raise RuntimeError(f"non-finite H6 loss at epoch={epoch}, batch={batch_idx}")
+            scaler.scale(total_loss / args.grad_accum_steps).backward()
+            do_step = batch_idx % args.grad_accum_steps == 0 or batch_idx == len(train_loader)
+            if do_step:
+                scaler.unscale_(optimizer)
+                if has_non_finite_grad(optimizer):
+                    optimizer.zero_grad(set_to_none=True)
+                    raise RuntimeError(f"non-finite H6 gradient at epoch={epoch}, batch={batch_idx}")
+                nn.utils.clip_grad_norm_((p for p in model.parameters() if p.requires_grad), args.grad_clip_norm)
+                scaler.step(optimizer)
+                scaler.update()
+                optimizer.zero_grad(set_to_none=True)
+            for key, value in {
+                "total": total_loss, "task": task_loss, "cls": cls_loss, "seg": seg_loss,
+                "center": h6_center, "vae_rec": h6_batch["reconstruction"], "vae_kl": h6_batch["kl"],
+                "kg": h6_batch["kg_loss"], "orth": h6_orth, "balance": h6_balance,
+            }.items():
+                metrics[key].append(float(value.detach().float().item()))
+            if device.type == "cuda":
+                allocated = torch.cuda.memory_allocated(device) / 2**30
+                reserved = torch.cuda.memory_reserved(device) / 2**30
+                peak = torch.cuda.max_memory_allocated(device) / 2**30
+            else:
+                allocated = reserved = peak = 0.0
+            elapsed = time.monotonic() - started
+            remaining = max(len(train_loader) - batch_idx, 0)
+            eta = elapsed / batch_idx * remaining if batch_idx else 0.0
+            progress.set_postfix({
+                "loss": f"{metrics['total'][-1]:.4f}", "task": f"{metrics['task'][-1]:.4f}",
+                "center": f"{metrics['center'][-1]:.4f}", "vae": f"{metrics['vae_rec'][-1]:.4f}",
+                "kl": f"{metrics['vae_kl'][-1]:.5f}", "kg": f"{metrics['kg'][-1]:.5f}",
+                "orth": f"{metrics['orth'][-1]:.4f}", "balance": f"{metrics['balance'][-1]:.4f}",
+                "lr": f"{optimizer.param_groups[0]['lr']:.2e}", "alpha": f"{hybrid_alpha:.2f}",
+                "gamma_s": f"{h6_batch['gamma_state'].detach().item():.3f}",
+                "gamma_c": f"{h6_batch['gamma_class'].detach().item():.3f}",
+                "rho": "/".join(f"{x:.2f}" for x in h6_batch["rho"].detach().cpu()),
+                "vram": f"{allocated:.2f}/{reserved:.2f}/{peak:.2f}G", "eta": f"{eta / 60:.1f}m",
+            })
+        scheduler.step()
+        _set_soft_prompt_lr(optimizer, soft_prompt_frozen)
+        diagnostics = h6_batch["router_diagnostics"]
+        dynamic_hard_cosine = F.cosine_similarity(
+            h6_batch["dynamic_text"].float(),
+            h6_batch["hard_frozen"].unsqueeze(2).expand_as(h6_batch["dynamic_text"]).float(),
+            dim=3,
+        ).mean()
+        center_distance = (h6_batch["prototype_normal"].float() - h6_batch["prototype_abnormal"].float()).norm(dim=-1).mean()
+        logger.info(
+            "phase4_p1 epoch=%d total=%s task=%s cls=%s seg=%s center=%s vae_rec=%s vae_kl=%s "
+            "kg=%s orth=%s balance=%s beta_vae_kl=%s alpha=%s gamma_state=%s gamma_class=%s rho=%s "
+            "lr=%s usage=%s entropy=%s top1=%s dead=%s max_usage=%s dynamic_hard_cos=%s "
+            "mu_mean=%s mu_std=%s logvar_min=%s logvar_max=%s center_distance=%s",
+            epoch, *(float(np.mean(metrics[key])) for key in ("total", "task", "cls", "seg", "center", "vae_rec", "vae_kl", "kg", "orth", "balance")),
+            beta_vae_kl, hybrid_alpha,
+            float(h6_batch["gamma_state"].detach().item()), float(h6_batch["gamma_class"].detach().item()),
+            h6_batch["rho"].detach().float().cpu().tolist(), optimizer.param_groups[0]["lr"],
+            diagnostics["factor_usage"].cpu().tolist(), diagnostics["normalized_entropy"].cpu().tolist(),
+            diagnostics["top1_share"].cpu().tolist(), diagnostics["dead_factors"].cpu().tolist(),
+            diagnostics["max_factor_usage"].cpu().tolist(), float(dynamic_hard_cosine.detach().item()),
+            float(h6_batch["mu"].detach().float().mean().item()), float(h6_batch["mu"].detach().float().std(unbiased=False).item()),
+            float(h6_batch["logvar"].detach().float().min().item()), float(h6_batch["logvar"].detach().float().max().item()),
+            float(center_distance.detach().item()),
+        )
+        payload = build_phase4_checkpoint(
+            model,
+            epoch=epoch,
+            seed=args.seed,
+            precision=args.precision,
+            phase2b_config=_phase2b_config_from_args(args),
+            loss_weights={**loss_weights, "vae_kl_current": beta_vae_kl},
+            optimizer=optimizer,
+            scheduler=scheduler,
+        )
+        torch.save(payload, os.path.join(args.save_path, f"adapter_{epoch}.pth"))
+    return model
+
+
 def main():
     parser = argparse.ArgumentParser(description="End To End Training.")
     # model
@@ -674,6 +933,9 @@ def main():
     parser.add_argument("--dataset", type=str, default="VisA")
     parser.add_argument("--batch_size", type=int, default=6)
     parser.add_argument("--epoch", type=int, default=20, help="epochs for training")
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--precision", choices=["bf16", "fp16", "fp32"], default="bf16")
+    parser.add_argument("--grad_accum_steps", type=int, default=1)
 
     parser.add_argument("--cuda_device", type=int, default=0, help="cuda device id")
 
@@ -705,6 +967,24 @@ def main():
     parser.add_argument("--soft_prompt_init_phrase", type=str, default="a photo of a")
     parser.add_argument("--lambda_kg", type=float, default=1e-3)
     parser.add_argument("--lambda_k", type=float, default=0.0, help="hybrid K-space regularization weight")
+    parser.add_argument("--h6_progress", type=int, choices=[0, 1], default=0)
+    parser.add_argument("--h6_num_factors", type=int, default=4)
+    parser.add_argument("--h6_top_k", type=int, default=2)
+    parser.add_argument("--h6_bank_dim", type=int, default=256)
+    parser.add_argument("--h6_router_dim", type=int, default=128)
+    parser.add_argument("--h6_router_temperature", type=float, default=1.0)
+    parser.add_argument("--h6_router_soft_epochs", type=int, default=2)
+    parser.add_argument("--h6_vae_hidden_dim", type=int, default=512)
+    parser.add_argument("--h6_vae_latent_dim", type=int, default=256)
+    parser.add_argument("--h6_expert_bottleneck", type=int, default=64, help="reserved for Progress 2; unused in Progress 1")
+    parser.add_argument("--lambda_h6_center", type=float, default=0.10)
+    parser.add_argument("--lambda_h6_vae_rec", type=float, default=0.05)
+    parser.add_argument("--beta_h6_vae_kl", type=float, default=1e-4)
+    parser.add_argument("--lambda_h6_orth", type=float, default=1e-3)
+    parser.add_argument("--lambda_h6_balance", type=float, default=1e-2)
+    parser.add_argument("--lambda_h6_visual_residual", type=float, default=0.01, help="reserved for Progress 2")
+    parser.add_argument("--lambda_h6_consistency", type=float, default=0.01, help="reserved for Progress 3")
+    parser.add_argument("--h6_two_view", action="store_true", help="reserved for Progress 3")
     parser.add_argument("--lr_gamma", type=float, default=0.9, help="learning rate decay factor")
     parser.add_argument(
         "--dfg_mode",
@@ -747,10 +1027,21 @@ def main():
         help="enable activation checkpointing to reduce ViT memory usage",
     )
     parser.add_argument("--num_workers", type=int, default=4 if os.name != "nt" else 0)
+    parser.add_argument("--pin_memory", action="store_true", default=False)
 
     args = parser.parse_args()
     if args.use_soft_prompt and args.use_hybrid_soft_prompt:
         raise ValueError("--use_soft_prompt and --use_hybrid_soft_prompt are mutually exclusive")
+    if args.grad_accum_steps < 1:
+        raise ValueError("--grad_accum_steps must be >= 1")
+    if args.h6_progress == 1:
+        if args.h6_num_factors != 4 or args.h6_top_k != 2:
+            raise ValueError("Phase4 Progress 1 is locked to --h6_num_factors 4 and --h6_top_k 2")
+        if args.h6_two_view:
+            raise ValueError("--h6_two_view belongs to Progress 3 and is not implemented in Progress 1")
+        if torch.cuda.is_available() and args.precision == "bf16" and not torch.cuda.is_bf16_supported():
+            raise RuntimeError("GPU does not support BF16. Use --precision fp16 or --precision fp32.")
+        set_phase4_seed(args.seed)
     # ========================================================
     # check save_path and setting logger
     os.makedirs(args.save_path, exist_ok=True)
@@ -799,6 +1090,15 @@ def main():
         soft_prompt_ctx_len=args.soft_prompt_ctx_len,
         soft_prompt_init=args.soft_prompt_init,
         soft_prompt_init_phrase=args.soft_prompt_init_phrase,
+        h6_progress=args.h6_progress,
+        h6_num_factors=args.h6_num_factors,
+        h6_top_k=args.h6_top_k,
+        h6_bank_dim=args.h6_bank_dim,
+        h6_router_dim=args.h6_router_dim,
+        h6_router_temperature=args.h6_router_temperature,
+        h6_router_soft_epochs=args.h6_router_soft_epochs,
+        h6_vae_hidden_dim=args.h6_vae_hidden_dim,
+        h6_vae_latent_dim=args.h6_vae_latent_dim,
     ).to(device)
     model.eval()
     model.use_hybrid_soft_prompt = bool(args.use_hybrid_soft_prompt)
@@ -806,6 +1106,32 @@ def main():
     model.hybrid_alpha_current = 0.0
     model.hybrid_alpha_max = args.hybrid_alpha_max
     model.soft_prompt_freeze_epochs = args.soft_prompt_freeze_epochs
+
+    if args.h6_progress == 1:
+        model.prompt_mode = "h6_dynamic"
+        model.use_soft_prompt = False
+        model.use_hybrid_soft_prompt = True
+        model.requires_grad_(False)
+        model.image_adapter.requires_grad_(True)
+        model.text_adapter.requires_grad_(True)
+        model.soft_prompt.requires_grad_(False)
+        model.h6.requires_grad_(True)
+        trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+        frozen_params = sum(p.numel() for p in model.parameters() if not p.requires_grad)
+        logger.info("phase4_progress=1 trainable parameters=%s frozen parameters=%s", f"{trainable_params:,}", f"{frozen_params:,}")
+        optimizer = torch.optim.Adam(_h6_optimizer_groups(model, args))
+        lr_scheduler = StepLR(optimizer, step_size=1, gamma=args.lr_gamma)
+        dataset = get_text_and_image_dataset(args.dataset, args.img_size, "train")
+        dataloader = torch.utils.data.DataLoader(
+            dataset,
+            batch_size=args.batch_size,
+            shuffle=True,
+            num_workers=args.num_workers,
+            pin_memory=args.pin_memory,
+        )
+        logger.info("phase4_progress=1 training from OpenAI CLIP only; no Phase2B checkpoint will be loaded")
+        train_h6_progress1(model, args.dataset, dataloader, optimizer, lr_scheduler, device, args, logger)
+        return
 
     model.requires_grad_(False)
     model.image_adapter.requires_grad_(True)
