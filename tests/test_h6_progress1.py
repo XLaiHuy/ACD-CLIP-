@@ -9,14 +9,14 @@ from model.h6.model import H6Progress1
 
 
 class _TinyPhase4Model(nn.Module):
-    def __init__(self):
+    def __init__(self, h6_router_soft_epochs=2):
         super().__init__()
         self.image_adapter = nn.Linear(3, 3)
         self.text_adapter = nn.Linear(3, 3)
         self.soft_prompt = nn.Module()
         self.soft_prompt.ctx = nn.Parameter(torch.randn(4, 768))
         self.h6_enabled = True
-        self.h6 = H6Progress1(n_groups=3)
+        self.h6 = H6Progress1(n_groups=3, router_soft_epochs=h6_router_soft_epochs)
         self.n_groups = 3
         self.dfg_mode = "attn"
         self.dfg_attn_dim = 256
@@ -74,16 +74,27 @@ def test_progress1_synthetic_backward_and_isolation():
 
 
 def test_synthetic_old_and_phase4_checkpoint_compatibility():
-    source = _TinyPhase4Model()
+    source = _TinyPhase4Model(h6_router_soft_epochs=6)
     payload = build_phase4_checkpoint(
         source,
         epoch=3,
         seed=0,
         precision="fp32",
-        phase2b_config={"n_groups": 3},
-        loss_weights={"center": 0.1},
+        phase2b_config={
+            "n_groups": 3,
+            "h6_dense_routing_epochs": 6,
+            "h6_sparse_start_epoch": 7,
+            "h6_center_factor_aware": True,
+            "h6_center_detach_assignment": True,
+        },
+        loss_weights={
+            "center": 0.1,
+            "center_factor_aware": True,
+            "center_detach_assignment": True,
+            "vae_kl_zero_epochs": 4,
+        },
     )
-    restored = _TinyPhase4Model()
+    restored = _TinyPhase4Model(h6_router_soft_epochs=6)
     assert load_adapter_checkpoint(restored, payload) is True
     assert restored.h6.epoch_one_based == 3
     for key, value in source.h6.state_dict().items():
@@ -102,7 +113,17 @@ def test_synthetic_old_and_phase4_checkpoint_compatibility():
     assert loaded["phase4_progress"] == 1
     assert loaded["h6_enabled"] is True
     assert loaded["h6_config"]["variant"] == "p1_v2_specialization_fix"
+    assert loaded["h6_config"]["dense_routing_epochs"] == 6
+    assert loaded["h6_config"]["sparse_start_epoch"] == 7
+    assert loaded["h6_config"]["router_mode"] == "concept_key_dot"
+    assert loaded["h6_config"]["dynamic_text_normalized"] is True
+    assert loaded["h6_config"]["anchor_encoder_mode"] == "frozen"
     assert loaded["h6_config"]["diversity_target"] == "dynamic_residual"
     assert loaded["h6_config"]["router_scoring"] == "concept_key_dot"
+    assert loaded["h6_config"]["center_factor_aware"] is True
+    assert loaded["h6_config"]["center_assignment_detached"] is True
     assert loaded["h6_config"]["center_loss"] == "factor_aware_dense_detached"
     assert loaded["h6_config"]["kl_schedule"] == "zero_then_linear"
+    assert loaded["h6_config"]["vae_prompt_use_mu"] is True
+    assert loaded["loss_weights"]["center_factor_aware"] is True
+    assert loaded["loss_weights"]["center_detach_assignment"] is True

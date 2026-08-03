@@ -123,6 +123,18 @@ Fix:
 - VAE KL is zero for the first four epochs in the v2 script, then linearly
   warms to `1e-4`.
 
+Checkpoint contract:
+
+- `dense_routing_epochs=6` and `sparse_start_epoch=7` are saved in `h6_config`
+  when the v2 script is used.
+- `router_mode=concept_key_dot`
+- `center_factor_aware=true`
+- `center_assignment_detached=true`
+- `diversity_target=dynamic_residual`
+- `vae_prompt_use_mu=true`
+- `dynamic_text_normalized=true`
+- `anchor_encoder_mode=frozen`
+
 ## Remaining Uncertainty
 
 - Router collapse, factor assignment quality, and VAE posterior-collapse risk require v2 training logs to confirm or reject.
