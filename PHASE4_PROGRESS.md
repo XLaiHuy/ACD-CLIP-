@@ -4,7 +4,7 @@
 - Base branch: `phase2b_kgsoftprompt_ctx4_fromscratch`
 - Target branch: `phase4-progress1-cops-dynamic-prompt`
 - Base commit: `869fdac6f8d93bb56a5e4cab0002fbff3e01573a` (verified after remote fetch)
-- Current commit: uncommitted implementation workspace
+- Implementation commit: `e011d09fdf2deaaf8cc15cccffca605b7b4e0161`
 - Train/test executed: **NO**
 
 ## Verified Phase2B source configuration
@@ -31,7 +31,7 @@ scope lock.
 - [x] Add Progress 1 train/test/chained scripts and result tools.
 - [x] Add dataset-free unit tests.
 - [x] Run code-level checks: compileall, synthetic shapes/finite check, 5 pytest tests, synthetic adapter contract, CLI help, shell syntax, and `git diff --check`.
-- [ ] Commit implementation files.
+- [x] Commit implementation files: `e011d09fdf2deaaf8cc15cccffca605b7b4e0161`.
 - [ ] Push `origin/phase4-progress1-cops-dynamic-prompt`.
 
 ## Files created
@@ -61,5 +61,5 @@ bash scripts/phase4/run_progress1_train_test.sh
 - Final exact test command: `bash scripts/phase4/test_6medical_exact.sh 8 9 10 11 12 13 14 15`
 - Final chained command: `bash scripts/phase4/run_progress1_train_test.sh`
 - Unresolved blockers: none before code-level checks.
-- Final commit SHA: pending.
+- Final implementation commit SHA: `e011d09fdf2deaaf8cc15cccffca605b7b4e0161`.
 - Push status: pending.
