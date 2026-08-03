@@ -1,9 +1,12 @@
 import argparse
+import heapq
 import logging
 import os
+import tempfile
 from glob import glob
 from pathlib import Path
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 from pandas import DataFrame, Series
@@ -198,6 +201,166 @@ def get_streaming_metrics(
     }
 
 
+def _write_sorted_metric_chunk(score_parts, label_parts, temp_dir: str, chunk_index: int):
+    scores = np.concatenate(score_parts).astype(np.float32, copy=False)
+    labels = np.concatenate(label_parts).astype(np.uint8, copy=False)
+    order = np.argsort(-scores, kind="mergesort")
+    score_path = os.path.join(temp_dir, f"scores_{chunk_index:05d}.npy")
+    label_path = os.path.join(temp_dir, f"labels_{chunk_index:05d}.npy")
+    np.save(score_path, scores[order])
+    np.save(label_path, labels[order])
+    return score_path, label_path
+
+
+def _exact_auc_ap_from_sorted_chunks(chunks, total_pos: int, total_neg: int):
+    if total_pos == 0 or total_neg == 0:
+        return 0.0, 0.0
+    arrays = [
+        (np.load(score_path, mmap_mode="r"), np.load(label_path, mmap_mode="r"))
+        for score_path, label_path in chunks
+    ]
+    heap = []
+    for chunk_id, (scores, labels) in enumerate(arrays):
+        if len(scores) > 0:
+            heapq.heappush(heap, (-float(scores[0]), chunk_id, 0))
+
+    pos_seen = 0
+    neg_seen = 0
+    auc_pair_sum = 0.0
+    ap = 0.0
+    while heap:
+        score = heap[0][0]
+        group_pos = 0
+        group_neg = 0
+        while heap and heap[0][0] == score:
+            _, chunk_id, index = heapq.heappop(heap)
+            labels = arrays[chunk_id][1]
+            if int(labels[index]) == 1:
+                group_pos += 1
+            else:
+                group_neg += 1
+            next_index = index + 1
+            scores = arrays[chunk_id][0]
+            if next_index < len(scores):
+                heapq.heappush(heap, (-float(scores[next_index]), chunk_id, next_index))
+
+        auc_pair_sum += group_neg * (pos_seen + 0.5 * group_pos)
+        pos_seen += group_pos
+        neg_seen += group_neg
+        if group_pos > 0:
+            precision = pos_seen / max(pos_seen + neg_seen, 1)
+            ap += precision * (group_pos / total_pos)
+
+    return (auc_pair_sum / (total_pos * total_neg)) * 100.0, ap * 100.0
+
+
+def get_external_exact_metrics(
+        model: ACDCLIP,
+        class_text_embeddings: torch.Tensor,
+        test_loader: DataLoader,
+        device,
+        class_name: str,
+        dataset: str = "MVTec",
+        pixel_stride: int = 1,
+        chunk_pixels: int = 5_000_000,
+):
+    image_labels = []
+    image_preds = []
+    score_parts = []
+    label_parts = []
+    buffered = 0
+    total_pos = 0
+    total_neg = 0
+    chunks = []
+    with tempfile.TemporaryDirectory(prefix="acdclip_exact_pixels_") as temp_dir:
+        for input_data in tqdm(test_loader):
+            image = input_data["image"].to(device)
+            mask = input_data["mask"].to(device).to(torch.int32)
+            label = input_data["label"].to(device).to(torch.int32)
+            batch_class_name = input_data["class_name"]
+            assert len(set(batch_class_name)) == 1, "mixed class not supported"
+
+            if model.h6_enabled:
+                visual_output = model(image, return_phase4_features=True)
+                h6_batch = model.h6.build_batch(
+                    model, dataset, list(batch_class_name), visual_output, model.hybrid_alpha_current
+                )
+                seg_features = torch.stack(visual_output["seg_tokens"], dim=0)
+                det_features = torch.stack(visual_output["det_tokens"], dim=0)
+                epoch_text_features = h6_batch["text_global"].to(dtype=det_features.dtype)
+                h6_patch_logits = h6_batch["h6_logits"]
+            else:
+                epoch_text_features = class_text_embeddings.unsqueeze(dim=1)
+                seg_tokens, det_tokens = model(image)
+                seg_features = torch.stack(seg_tokens, dim=0)
+                det_features = torch.stack(det_tokens, dim=0)
+                batch_size = seg_features.shape[1]
+                epoch_text_features = epoch_text_features.repeat(1, batch_size, 1, 1)
+                h6_patch_logits = None
+
+            cls_preds = [
+                torch.matmul(det_features[i].unsqueeze(dim=1), epoch_text_features[i]).squeeze(1)
+                for i in range(det_features.shape[0])
+            ]
+            cls_preds = torch.stack(cls_preds, dim=0).mean(dim=0)
+            pred_image = F.softmax(cls_preds, dim=1)[:, 1]
+            seg_pred = model.vision_text_fusion_gate_seg(
+                seg_features,
+                epoch_text_features,
+                test_mode=True,
+                domain=DOMAINS[dataset],
+                h6_patch_logits=h6_patch_logits,
+            )
+            flat_seg = torch.flatten(seg_pred, start_dim=1)
+            pmax_pred, _ = torch.max(flat_seg, dim=1)
+            if DOMAINS[dataset] == "Medical":
+                pred_image = pred_image * 0.5 + pmax_pred * 0.5
+            else:
+                pred_image = pred_image * 0.9 + pmax_pred * 0.1
+
+            if pixel_stride > 1:
+                seg_pred = seg_pred[:, ::pixel_stride, ::pixel_stride]
+                mask = mask[:, :, ::pixel_stride, ::pixel_stride]
+            scores = seg_pred.detach().float().flatten().cpu().numpy()
+            labels = mask.detach().flatten().cpu().numpy().astype(np.uint8, copy=False)
+            total_pos += int(labels.sum())
+            total_neg += int(labels.size - labels.sum())
+            score_parts.append(scores)
+            label_parts.append(labels)
+            buffered += labels.size
+            if buffered >= chunk_pixels:
+                chunks.append(_write_sorted_metric_chunk(score_parts, label_parts, temp_dir, len(chunks)))
+                score_parts = []
+                label_parts = []
+                buffered = 0
+
+            image_labels.append(label.detach().cpu())
+            image_preds.append(pred_image.detach().cpu())
+            if device.type == "cuda":
+                torch.cuda.empty_cache()
+
+        if score_parts:
+            chunks.append(_write_sorted_metric_chunk(score_parts, label_parts, temp_dir, len(chunks)))
+
+        pixel_auc, pixel_ap = _exact_auc_ap_from_sorted_chunks(chunks, total_pos, total_neg)
+        image_label = torch.concatenate(image_labels, dim=0).flatten()
+        image_pred = torch.concatenate(image_preds, dim=0).flatten()
+        if image_label.max() != image_label.min():
+            image_auc = auroc(image_pred, image_label, task="binary")
+            image_ap = average_precision(image_pred, image_label, task="binary")
+        else:
+            image_auc = torch.tensor(0.0)
+            image_ap = torch.tensor(0.0)
+
+    return {
+        "class name": class_name,
+        "pixel AUC": round(float(pixel_auc), 4),
+        "pixel AP": round(float(pixel_ap), 4),
+        "image AUC": round(image_auc.item(), 4) * 100,
+        "image AP": round(image_ap.item(), 4) * 100,
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description="Testing")
     # model
@@ -295,6 +458,17 @@ def main():
         type=int,
         default=1,
         help="Evaluate every Nth pixel for memory-safe exact/subsampled metrics, e.g. --pixel_stride 4.",
+    )
+    parser.add_argument(
+        "--external_exact_pixel_metrics",
+        action="store_true",
+        help="Compute exact pixel AUROC/AP with disk-backed sorted chunks instead of holding all pixels in RAM.",
+    )
+    parser.add_argument(
+        "--external_metric_chunk_pixels",
+        type=int,
+        default=5_000_000,
+        help="Pixels per disk-backed exact metric sort chunk.",
     )
     parser.add_argument(
         "--max_samples",
@@ -563,7 +737,29 @@ def main():
             )
             with torch.no_grad():
                 class_text_embeddings = text_embeddings[class_name]
-                if args.metric_thresholds is None:
+                if args.metric_thresholds is not None:
+                    class_result_dict = get_streaming_metrics(
+                        model=model,
+                        class_text_embeddings=class_text_embeddings,
+                        test_loader=image_dataloader,
+                        device=device,
+                        class_name=class_name,
+                        dataset=args.dataset,
+                        thresholds=args.metric_thresholds,
+                        pixel_stride=args.pixel_stride,
+                    )
+                elif args.external_exact_pixel_metrics:
+                    class_result_dict = get_external_exact_metrics(
+                        model=model,
+                        class_text_embeddings=class_text_embeddings,
+                        test_loader=image_dataloader,
+                        device=device,
+                        class_name=class_name,
+                        dataset=args.dataset,
+                        pixel_stride=args.pixel_stride,
+                        chunk_pixels=args.external_metric_chunk_pixels,
+                    )
+                else:
                     masks, labels, preds, preds_image, file_names = get_predictions(
                         model=model,
                         class_text_embeddings=class_text_embeddings,
@@ -578,17 +774,6 @@ def main():
                         preds_image,
                         class_name,
                         domain=DOMAINS[args.dataset],
-                    )
-                else:
-                    class_result_dict = get_streaming_metrics(
-                        model=model,
-                        class_text_embeddings=class_text_embeddings,
-                        test_loader=image_dataloader,
-                        device=device,
-                        class_name=class_name,
-                        dataset=args.dataset,
-                        thresholds=args.metric_thresholds,
-                        pixel_stride=args.pixel_stride,
                     )
             df.loc[len(df)] = Series(class_result_dict)
             if use_cuda:

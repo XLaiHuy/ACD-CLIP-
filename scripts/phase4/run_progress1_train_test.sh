@@ -41,7 +41,7 @@ bash scripts/phase4/test_6medical_exact.sh --split val "${VALIDATION_EPOCHS[@]}"
 conda run --no-capture-output -n torchhuy python tools/summarize_phase4_results.py \
   --save_path "${SAVE_PATH}" --split val --epochs "${VALIDATION_EPOCHS[@]}"
 
-BEST_EPOCH="$(conda run --no-capture-output -n torchhuy python -c \"import json; print(int(json.load(open('${SAVE_PATH}/medical_validation_selection.json'))['best_epoch']['epoch']))\")"
+BEST_EPOCH="$(SAVE_PATH="${SAVE_PATH}" conda run --no-capture-output -n torchhuy python -c 'import json, os; path = os.path.join(os.environ["SAVE_PATH"], "medical_validation_selection.json"); print(int(json.load(open(path))["best_epoch"]["epoch"]))')"
 echo "[PHASE4-P1] selected_epoch=${BEST_EPOCH} from medical validation only"
 
 SAVE_PATH="${SAVE_PATH}" CUDA_DEVICE="${CUDA_DEVICE}" TEST_BATCH_SIZE="${TEST_BATCH_SIZE}" \

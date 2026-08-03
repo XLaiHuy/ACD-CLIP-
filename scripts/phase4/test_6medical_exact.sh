@@ -7,6 +7,9 @@ TEST_BATCH_SIZE="${TEST_BATCH_SIZE:-1}"
 NUM_WORKERS="${NUM_WORKERS:-6}"
 MEDICAL_SPLIT="test"
 MEDICAL_MANIFEST_ROOT="${MEDICAL_MANIFEST_ROOT:-${SAVE_PATH}/protocol/medical_manifests}"
+METRIC_THRESHOLDS="${METRIC_THRESHOLDS:-}"
+EXTERNAL_EXACT_PIXEL_METRICS="${EXTERNAL_EXACT_PIXEL_METRICS:-1}"
+EXTERNAL_METRIC_CHUNK_PIXELS="${EXTERNAL_METRIC_CHUNK_PIXELS:-5000000}"
 EPOCHS=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -32,6 +35,12 @@ if [ "${#EPOCHS[@]}" -eq 0 ]; then
   EPOCHS=(8 9 10 11 12 13 14 15)
 fi
 DATASETS=(Brain Liver Retina Colon_clinicDB Colon_colonDB Colon_Kvasir)
+EXTRA_TEST_ARGS=()
+if [ -n "${METRIC_THRESHOLDS}" ]; then
+  EXTRA_TEST_ARGS+=(--metric_thresholds "${METRIC_THRESHOLDS}")
+elif [ "${EXTERNAL_EXACT_PIXEL_METRICS}" = "1" ]; then
+  EXTRA_TEST_ARGS+=(--external_exact_pixel_metrics --external_metric_chunk_pixels "${EXTERNAL_METRIC_CHUNK_PIXELS}")
+fi
 
 python tools/prepare_phase4_medical_splits.py \
   --output-root "${MEDICAL_MANIFEST_ROOT}" --val-ratio 0.30 --seed 0
@@ -48,6 +57,7 @@ for index in "${!DATASETS[@]}"; do
     --num_workers "${NUM_WORKERS}" \
     --medical_split "${MEDICAL_SPLIT}" \
     --medical_manifest_root "${MEDICAL_MANIFEST_ROOT}" \
+    "${EXTRA_TEST_ARGS[@]}" \
     --pixel_stride 1 \
     --epochs "${EPOCHS[@]}" \
     --n_groups 3 \
