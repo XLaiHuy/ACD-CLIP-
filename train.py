@@ -787,6 +787,11 @@ def train_h6_progress1(
         epoch = epoch_zero_based + 1
         started = time.monotonic()
         model.train()
+        # Conv-LoRA applies 2-D kernels to every visual patch.  The OpenCLIP
+        # tower is frozen, so keep it in eval mode: its default PatchDropout
+        # otherwise removes a random subset of patches during model.train(),
+        # destroying the square patch grid required by the convolutional LoRA.
+        model.clipmodel.eval()
         model.h6.set_epoch(epoch)
         hybrid_alpha = get_hybrid_alpha_for_epoch(epoch, args.hybrid_alpha_max, args.soft_prompt_freeze_epochs)
         model.hybrid_alpha_current = hybrid_alpha

@@ -38,7 +38,9 @@ visual routing, or cross-view consistency.
 
 - Train from OpenAI CLIP only; Phase2B and any other adapters are not loaded.
 - OpenAI CLIP base parameters remain frozen, but the visual forward remains in
-  autograd so Phase2B Conv-LoRA/adapters receive gradients.
+  autograd so Phase2B Conv-LoRA/adapters receive gradients. The frozen tower
+  remains in eval mode during training, disabling PatchDropout so Conv-LoRA
+  always receives the complete square patch grid.
 - BF16 is the default outer autocast. State/VAE/router reductions and the H6
   cosine/logit path use FP32. BF16 is rejected on unsupported CUDA hardware.
 - Batch size `1`, accumulation `6`, 20 epochs, image size `518`, workers `6`,

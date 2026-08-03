@@ -32,6 +32,8 @@ scope lock.
 - [x] Lock the no-leakage medical protocol: VisA-only training, medical-val epoch
   selection, then one medical-test evaluation; Colon uses deterministic 30/70
   image/mask-paired manifests.
+- [x] Keep the frozen OpenAI visual tower in eval mode during H6 optimization so
+  its PatchDropout cannot remove spatial tokens required by Conv-LoRA.
 - [x] Add dataset-free unit tests.
 - [x] Run code-level checks: compileall, synthetic shapes/finite check, 5 pytest tests, synthetic adapter contract, CLI help, shell syntax, and `git diff --check`.
 - [x] Commit implementation files: `e011d09fdf2deaaf8cc15cccffca605b7b4e0161`.
