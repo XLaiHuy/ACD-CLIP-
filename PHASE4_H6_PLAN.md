@@ -43,6 +43,11 @@ visual routing, or cross-view consistency.
   cosine/logit path use FP32. BF16 is rejected on unsupported CUDA hardware.
 - Batch size `1`, accumulation `6`, 20 epochs, image size `518`, workers `6`,
   pin memory disabled by default. No silent image-size or metric changes.
+- Training uses VisA only.  Epochs `8..15` are swept on medical validation:
+  official `valid`/`val` splits for Brain/Liver/Retina and a deterministic
+  seed-0, label-stratified 30/70 validation/test split for each Colon dataset.
+  The selected epoch is then evaluated once on medical test.  Image/mask pairs
+  are indivisible manifest rows; no medical test metric can select an epoch.
 
 ## Deferred interfaces
 

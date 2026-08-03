@@ -2,13 +2,15 @@
 
 This is a results template. No train or test has been executed by this branch.
 
-| Progress | Run path | Epoch range | Training status | Exact medical test status | Notes |
-|---|---|---|---|---|---|
-| P1 | `runs/phase4/progress1_cops_dynamic_prompt_seed0` | 1-20 | not run | not run | Fill after manual execution |
+| Progress | Run path | Epoch range | Training status | Medical validation sweep | One-time medical test | Notes |
+|---|---|---|---|---|---|---|
+| P1 | `runs/phase4/progress1_cops_dynamic_prompt_seed0` | 1-20 | not run | not run | not run | VisA only; Colon is deterministic 30/70 val/test |
 
-## Per-epoch selection record
+## Medical validation selection record
 
-Populate from `results_by_epoch.csv` after the exact six-dataset evaluation.
+Populate from `medical_val_results_by_epoch.csv`.  Select one epoch from this
+table only, then record the single test result separately from
+`medical_test_results_by_epoch.csv`.
 
 | Epoch | Image AUROC | Image AP | Pixel AUROC | Pixel AP | Combined score | Selected? |
 |---:|---:|---:|---:|---:|---:|---|

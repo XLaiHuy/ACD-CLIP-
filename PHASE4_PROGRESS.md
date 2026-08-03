@@ -29,6 +29,9 @@ scope lock.
 - [x] Define the Phase2B/H6 integration contract.
 - [x] Implement semantic core, dynamic prompt bank, router, losses, residual fusion, and checkpoint schema.
 - [x] Add Progress 1 train/test/chained scripts and result tools.
+- [x] Lock the no-leakage medical protocol: VisA-only training, medical-val epoch
+  selection, then one medical-test evaluation; Colon uses deterministic 30/70
+  image/mask-paired manifests.
 - [x] Add dataset-free unit tests.
 - [x] Run code-level checks: compileall, synthetic shapes/finite check, 5 pytest tests, synthetic adapter contract, CLI help, shell syntax, and `git diff --check`.
 - [x] Commit implementation files: `e011d09fdf2deaaf8cc15cccffca605b7b4e0161`.
@@ -39,7 +42,7 @@ scope lock.
 - `model/h6/{__init__,semantic_bank,router,losses,model}.py`
 - `model/checkpoint_utils.py`
 - `tests/test_h6_common.py`, `tests/test_h6_progress1.py`
-- `tools/{check_phase4_shapes,inspect_phase4_checkpoint,summarize_phase4_results}.py`
+- `tools/{check_phase4_shapes,inspect_phase4_checkpoint,prepare_phase4_medical_splits,summarize_phase4_results}.py`
 - `scripts/phase4/{train_progress1,test_6medical_exact,run_progress1_train_test}.sh`
 - `PHASE4_H6_PLAN.md`, `EXPERIMENT_LOG_PHASE4.md`
 
@@ -58,8 +61,9 @@ bash scripts/phase4/run_progress1_train_test.sh
 ```
 
 - Final train command: `bash scripts/phase4/train_progress1.sh`
-- Final exact test command: `bash scripts/phase4/test_6medical_exact.sh 8 9 10 11 12 13 14 15`
-- Final chained command: `bash scripts/phase4/run_progress1_train_test.sh`
+- Medical validation sweep: `bash scripts/phase4/test_6medical_exact.sh --split val 8 9 10 11 12 13 14 15`
+- Medical final test: `bash scripts/phase4/test_6medical_exact.sh --split test <validation-selected-epoch>`
+- Final chained command: `bash scripts/phase4/run_progress1_train_test.sh` (runs the full no-leakage protocol)
 - Unresolved blockers: none before code-level checks.
 - Final implementation commit SHA: `e011d09fdf2deaaf8cc15cccffca605b7b4e0161`.
 - Push status: blocked — `git push -u origin phase4-progress1-cops-dynamic-prompt` reached GitHub but no HTTPS credentials are available in this environment. No force-push or credential workaround was attempted.

@@ -26,6 +26,28 @@ DATA_PATH = {
     "RSDD": f"{BASE_PATH}/data/RSDD"
 }
 
+# Medical validation is never used for training.  Brain/Liver/Retina have
+# provider validation directories; the three Colon datasets receive a
+# deterministic manifest split prepared per run by
+# tools/prepare_phase4_medical_splits.py.
+MEDICAL_EVAL_PATHS = {
+    "Brain": {
+        "val": f"{BASE_PATH}/data/MedAD/Brain_AD/valid",
+        "test": DATA_PATH["Brain"],
+    },
+    "Liver": {
+        "val": f"{BASE_PATH}/data/MedAD/Liver_AD/valid",
+        "test": DATA_PATH["Liver"],
+    },
+    "Retina": {
+        "val": f"{BASE_PATH}/data/MedAD/Retina_RESC_AD/val",
+        "test": DATA_PATH["Retina"],
+    },
+    "Colon_clinicDB": {"val": DATA_PATH["Colon_clinicDB"], "test": DATA_PATH["Colon_clinicDB"]},
+    "Colon_colonDB": {"val": DATA_PATH["Colon_colonDB"], "test": DATA_PATH["Colon_colonDB"]},
+    "Colon_Kvasir": {"val": DATA_PATH["Colon_Kvasir"], "test": DATA_PATH["Colon_Kvasir"]},
+}
+
 CLASS_NAMES = {
     "Brain": ["Brain"],
     "Liver": ["Liver"],

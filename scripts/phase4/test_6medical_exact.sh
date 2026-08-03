@@ -5,16 +5,40 @@ set -euo pipefail
 CUDA_DEVICE="${CUDA_DEVICE:-0}"
 TEST_BATCH_SIZE="${TEST_BATCH_SIZE:-1}"
 NUM_WORKERS="${NUM_WORKERS:-6}"
-if [ "$#" -gt 0 ]; then
-  EPOCHS=("$@")
-else
+MEDICAL_SPLIT="test"
+MEDICAL_MANIFEST_ROOT="${MEDICAL_MANIFEST_ROOT:-${SAVE_PATH}/protocol/medical_manifests}"
+EPOCHS=()
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --split)
+      MEDICAL_SPLIT="$2"
+      shift 2
+      ;;
+    --manifest-root)
+      MEDICAL_MANIFEST_ROOT="$2"
+      shift 2
+      ;;
+    *)
+      EPOCHS+=("$1")
+      shift
+      ;;
+  esac
+done
+if [ "${MEDICAL_SPLIT}" != "val" ] && [ "${MEDICAL_SPLIT}" != "test" ]; then
+  echo "--split must be val or test, got ${MEDICAL_SPLIT}" >&2
+  exit 2
+fi
+if [ "${#EPOCHS[@]}" -eq 0 ]; then
   EPOCHS=(8 9 10 11 12 13 14 15)
 fi
 DATASETS=(Brain Liver Retina Colon_clinicDB Colon_colonDB Colon_Kvasir)
 
+python tools/prepare_phase4_medical_splits.py \
+  --output-root "${MEDICAL_MANIFEST_ROOT}" --val-ratio 0.30 --seed 0
+
 for index in "${!DATASETS[@]}"; do
   DATASET="${DATASETS[$index]}"
-  echo "[PHASE4-P1][TEST][$((index + 1))/6] dataset=${DATASET} epochs=${EPOCHS[*]} exact_mode=true"
+  echo "[PHASE4-P1][${MEDICAL_SPLIT^^}][$((index + 1))/6] dataset=${DATASET} epochs=${EPOCHS[*]} exact_mode=true"
   conda run --no-capture-output -n torchhuy python test.py \
     --dataset "${DATASET}" \
     --img_size 518 \
@@ -22,6 +46,8 @@ for index in "${!DATASETS[@]}"; do
     --save_path "${SAVE_PATH}" \
     --batch_size "${TEST_BATCH_SIZE}" \
     --num_workers "${NUM_WORKERS}" \
+    --medical_split "${MEDICAL_SPLIT}" \
+    --medical_manifest_root "${MEDICAL_MANIFEST_ROOT}" \
     --pixel_stride 1 \
     --epochs "${EPOCHS[@]}" \
     --n_groups 3 \
