@@ -353,6 +353,21 @@ class H6Progress1(nn.Module):
                 "level_input_difference": routing["level_input_difference"].detach(),
                 "level_query_difference": routing["level_query_difference"].detach(),
                 "level_logit_difference": routing["level_logit_difference"].detach(),
+                "router_patch_count": routing["router_patch_count"].detach(),
+                "router_softmax_dim": routing["router_softmax_dim"].detach(),
+                "router_topk_dim": routing["router_topk_dim"].detach(),
+                "query_pairwise_cos_mean_across_patches": routing[
+                    "query_pairwise_cos_mean_across_patches"
+                ].detach(),
+                "query_pairwise_cos_max_across_patches": routing[
+                    "query_pairwise_cos_max_across_patches"
+                ].detach(),
+                "query_variance_across_patches": routing["query_variance_across_patches"].detach(),
+                "query_effective_rank": routing["query_effective_rank"].detach(),
+                "query_singular_value_ratio": routing["query_singular_value_ratio"].detach(),
+                "per_factor_logit_std_across_patches": routing[
+                    "per_factor_logit_std_across_patches"
+                ].detach(),
                 **self.semantic_core.initialization_diagnostics(),
                 **factor_stage_diagnostics(core["concept_slots"], "stage_concept_slots", factor_dim=0),
                 **factor_stage_diagnostics(core["concept_keys"], "stage_concept_keys", factor_dim=0),
