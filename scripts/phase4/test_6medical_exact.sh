@@ -33,7 +33,7 @@ if [ "${MEDICAL_SPLIT}" != "val" ] && [ "${MEDICAL_SPLIT}" != "test" ]; then
   exit 2
 fi
 if [ "${#EPOCHS[@]}" -eq 0 ]; then
-  EPOCHS=(8 9 10 11 12 13 14 15)
+  EPOCHS=(8 9 10 11 12 13 14 15 16 17 18 19 20)
 fi
 DATASETS=(Brain Liver Retina Colon_clinicDB Colon_colonDB Colon_Kvasir)
 EXTRA_TEST_ARGS=()

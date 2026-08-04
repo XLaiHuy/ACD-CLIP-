@@ -1,9 +1,13 @@
 import argparse
 import contextlib
+import json
 import logging
 import os
 import random
+import subprocess
+import sys
 import time
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -25,6 +29,7 @@ from model.adapter import (
 )
 from model.checkpoint_utils import build_phase4_checkpoint
 from model.clip import create_model
+from model.h6.gated_early_stop import GateDecision, H6StructuralGateState, StructuralGateConfig
 from model.h6.losses import (
     center_loss,
     concept_key_diversity_loss,
@@ -86,6 +91,80 @@ def diagnostics_to_python(diagnostics):
         else:
             converted[key] = value
     return converted
+
+
+def write_json_atomic(path: str | Path, payload: dict) -> None:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+    os.replace(tmp, path)
+
+
+def current_git_head() -> str | None:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except Exception:
+        return None
+    return result.stdout.strip()
+
+
+def gated_abort_artifacts(
+    *,
+    save_path: str,
+    epoch: int,
+    decision,
+    gate_state: H6StructuralGateState,
+    gate_config: StructuralGateConfig,
+    metrics: dict,
+    diagnostics: dict,
+    teacher_state: dict,
+    sparse_ratio: float,
+    routing_mode: str,
+    alpha: float,
+    trust_region_weight: float,
+    latest_checkpoint_path: str | None,
+    args,
+    payload: dict | None = None,
+) -> tuple[str, str, str]:
+    report = {
+        "epoch": int(epoch),
+        "abort_reason": decision.abort_reason,
+        "gate_counters": dict(gate_state.counters),
+        "thresholds": gate_config.to_dict(),
+        "metrics": diagnostics_to_python(metrics),
+        "diagnostics": diagnostics_to_python(diagnostics),
+        "per_level_decisions": decision.per_level,
+        "routing_mode": routing_mode,
+        "sparse_ratio": float(sparse_ratio),
+        "teacher_state": diagnostics_to_python(teacher_state),
+        "alpha": float(alpha),
+        "trust_region_weight": float(trust_region_weight),
+        "latest_checkpoint_path": latest_checkpoint_path,
+        "command_configuration": vars(args),
+        "git_head": current_git_head(),
+        **H6StructuralGateState.decision_to_dict(decision),
+    }
+    pth_path = os.path.join(save_path, f"gated_abort_epoch_{epoch}.pth")
+    json_path = os.path.join(save_path, f"gated_abort_epoch_{epoch}.json")
+    marker_path = os.path.join(save_path, "GATED_TRAIN_ABORTED")
+    torch.save(
+        {
+            "epoch": int(epoch),
+            "reason": decision.abort_reason,
+            "gate_report": report,
+            "checkpoint": payload,
+        },
+        pth_path,
+    )
+    write_json_atomic(json_path, report)
+    Path(marker_path).write_text(f"{decision.abort_reason}\n")
+    return pth_path, json_path, marker_path
 
 
 def factor_gradient_diagnostics(gradient: torch.Tensor | None) -> dict[str, torch.Tensor | None]:
@@ -860,6 +939,24 @@ def _phase2b_config_from_args(args) -> dict:
         "h6_late_factor_identity_enabled": args.h6_late_factor_identity_enabled,
         "h6_factor_id_scale": args.h6_factor_id_scale,
         "h6_factor_id_max_ratio": args.h6_factor_id_max_ratio,
+        "h6_router_query_mode": args.h6_router_query_mode,
+        "h6_router_query_global_weight": args.h6_router_query_global_weight,
+        "h6_router_local_bypass_scale": args.h6_router_local_bypass_scale,
+        "h6_router_local_bypass_max_ratio": args.h6_router_local_bypass_max_ratio,
+        "h6_router_local_projection_seed_offset": args.h6_router_local_projection_seed_offset,
+        "h6_router_key_anchor_enabled": args.h6_router_key_anchor_enabled,
+        "h6_router_key_anchor_seed_offset": args.h6_router_key_anchor_seed_offset,
+        "h6_router_key_adaptation_initial_ratio": args.h6_router_key_adaptation_initial_ratio,
+        "h6_router_key_adaptation_max_ratio": args.h6_router_key_adaptation_max_ratio,
+        "h6_factor_context_anchor_enabled": args.h6_factor_context_anchor_enabled,
+        "h6_factor_context_anchor_seed_offset": args.h6_factor_context_anchor_seed_offset,
+        "h6_factor_context_adaptation_initial_ratio": args.h6_factor_context_adaptation_initial_ratio,
+        "h6_factor_context_adaptation_max_ratio": args.h6_factor_context_adaptation_max_ratio,
+        "h6_factor_identity_tangent_projection_enabled": args.h6_factor_identity_tangent_projection_enabled,
+        "lambda_h6_dynamic_mean_anchor": args.lambda_h6_dynamic_mean_anchor,
+        "h6_dynamic_mean_anchor_min_cosine": args.h6_dynamic_mean_anchor_min_cosine,
+        "h6_dynamic_mean_anchor_start_epoch": args.h6_dynamic_mean_anchor_start_epoch,
+        "h6_dynamic_mean_anchor_warmup_epochs": args.h6_dynamic_mean_anchor_warmup_epochs,
         "h6_load_bias_enabled": args.h6_load_bias_enabled,
         "h6_load_bias_momentum": args.h6_load_bias_momentum,
         "h6_load_bias_step": args.h6_load_bias_step,
@@ -875,6 +972,24 @@ def _phase2b_config_from_args(args) -> dict:
         "h6_router_failure_patience": args.h6_router_failure_patience,
         "h6_router_max_sparse_dead_factors": args.h6_router_max_sparse_dead_factors,
         "h6_router_min_unique_topk_pairs": args.h6_router_min_unique_topk_pairs,
+        "h6_structural_gate_enabled": args.h6_structural_gate_enabled,
+        "h6_structural_gate_patience": args.h6_structural_gate_patience,
+        "h6_structural_gate_dense_start_epoch": args.h6_structural_gate_dense_start_epoch,
+        "h6_structural_gate_require_all_levels": args.h6_structural_gate_require_all_levels,
+        "h6_structural_gate_reset_state": args.h6_structural_gate_reset_state,
+        "h6_gate_query_rank_max": args.h6_gate_query_rank_max,
+        "h6_gate_query_top1_energy_min": args.h6_gate_query_top1_energy_min,
+        "h6_gate_query_cosine_min": args.h6_gate_query_cosine_min,
+        "h6_gate_logit_std_max": args.h6_gate_logit_std_max,
+        "h6_gate_key_cosine_max": args.h6_gate_key_cosine_max,
+        "h6_gate_key_l2_min": args.h6_gate_key_l2_min,
+        "h6_gate_dynamic_cosine_min": args.h6_gate_dynamic_cosine_min,
+        "h6_gate_dynamic_orth_center": args.h6_gate_dynamic_orth_center,
+        "h6_gate_dynamic_orth_tolerance": args.h6_gate_dynamic_orth_tolerance,
+        "h6_gate_hard_anchor_cosine_min": args.h6_gate_hard_anchor_cosine_min,
+        "h6_gate_sparse_min_ratio": args.h6_gate_sparse_min_ratio,
+        "h6_gate_max_sparse_dead_factors": args.h6_gate_max_sparse_dead_factors,
+        "h6_gate_min_unique_topk_pairs": args.h6_gate_min_unique_topk_pairs,
     }
 
 
@@ -918,8 +1033,18 @@ def train_h6_progress1(
         "concept_key_diversity_warmup_epochs": args.h6_concept_key_diversity_warmup_epochs,
         "kg": args.lambda_kg,
         "k": args.lambda_k,
+        "dynamic_mean_anchor": args.lambda_h6_dynamic_mean_anchor,
+        "dynamic_mean_anchor_min_cosine": args.h6_dynamic_mean_anchor_min_cosine,
+        "dynamic_mean_anchor_start_epoch": args.h6_dynamic_mean_anchor_start_epoch,
+        "dynamic_mean_anchor_warmup_epochs": args.h6_dynamic_mean_anchor_warmup_epochs,
     }
+    structural_gate_config = StructuralGateConfig.from_args(args)
+    structural_gate = H6StructuralGateState(structural_gate_config)
+    if args.h6_structural_gate_reset_state:
+        structural_gate.reset()
     router_failure_streak = 0
+    task_loss_history: list[float] = []
+    saved_checkpoints: list[str] = []
     for epoch_zero_based in range(args.epoch):
         epoch = epoch_zero_based + 1
         started = time.monotonic()
@@ -947,7 +1072,8 @@ def train_h6_progress1(
             "total", "task", "cls", "seg", "center", "router_teacher", "router_teacher_weighted",
             "router_teacher_scheduled_weight", "router_teacher_effective_weight",
             "vae_rec", "vae_kl_raw", "vae_kl_effective", "kg", "orth", "balance",
-            "concept_key_diversity_raw", "concept_key_diversity_weighted"
+            "concept_key_diversity_raw", "concept_key_diversity_weighted",
+            "dynamic_mean_anchor_raw", "dynamic_mean_anchor_weighted", "dynamic_mean_anchor_weight",
         )}
         factor_grad_diag = {
             "factor_grad_norms": None,
@@ -1071,6 +1197,12 @@ def train_h6_progress1(
                     h6_batch["concept_keys"],
                     margin=args.h6_concept_key_cosine_margin,
                 )
+                dynamic_mean_anchor_weight = linear_ramp_weight(
+                    epoch,
+                    args.h6_dynamic_mean_anchor_start_epoch,
+                    args.h6_dynamic_mean_anchor_warmup_epochs,
+                    args.lambda_h6_dynamic_mean_anchor,
+                )
                 total_loss = (
                     task_loss
                     + args.lambda_h6_center * h6_center
@@ -1081,8 +1213,33 @@ def train_h6_progress1(
                     + args.lambda_h6_orth * h6_orth
                     + args.lambda_h6_balance * h6_balance
                     + concept_key_diversity_weight * h6_concept_key_diversity
+                    + dynamic_mean_anchor_weight * h6_batch["dynamic_mean_anchor_loss_raw"]
                 )
             if not torch.isfinite(total_loss).all():
+                if structural_gate_config.enabled:
+                    decision = GateDecision(
+                        hard_failure=True,
+                        abort_reason="h6_nonfinite_total_loss",
+                        fatal_metrics=["total_loss"],
+                    )
+                    gated_abort_artifacts(
+                        save_path=args.save_path,
+                        epoch=epoch,
+                        decision=decision,
+                        gate_state=structural_gate,
+                        gate_config=structural_gate_config,
+                        metrics={"total": total_loss.detach(), "task": task_loss.detach()},
+                        diagnostics=h6_batch.get("router_diagnostics", {}),
+                        teacher_state=teacher_diag,
+                        sparse_ratio=float(h6_batch["sparse_ratio"].detach().item()),
+                        routing_mode="batch_fatal",
+                        alpha=hybrid_alpha,
+                        trust_region_weight=dynamic_mean_anchor_weight,
+                        latest_checkpoint_path=None,
+                        args=args,
+                        payload=None,
+                    )
+                    sys.exit(42)
                 raise RuntimeError(f"non-finite H6 loss at epoch={epoch}, batch={batch_idx}")
             scaler.scale(total_loss / args.grad_accum_steps).backward()
             if args.h6_factor_grad_diagnostics and batch_idx == 1:
@@ -1120,6 +1277,9 @@ def train_h6_progress1(
                 "kg": h6_batch["kg_loss"], "orth": h6_orth, "balance": h6_balance,
                 "concept_key_diversity_raw": h6_concept_key_diversity,
                 "concept_key_diversity_weighted": concept_key_diversity_weight * h6_concept_key_diversity,
+                "dynamic_mean_anchor_raw": h6_batch["dynamic_mean_anchor_loss_raw"],
+                "dynamic_mean_anchor_weighted": dynamic_mean_anchor_weight * h6_batch["dynamic_mean_anchor_loss_raw"],
+                "dynamic_mean_anchor_weight": torch.as_tensor(dynamic_mean_anchor_weight, device=device),
             }.items():
                 metrics[key].append(float(value.detach().float().item()))
             if device.type == "cuda":
@@ -1167,10 +1327,46 @@ def train_h6_progress1(
         def _diag_float(key: str) -> float:
             return float(diagnostics[key].detach().float().cpu().item())
 
+        epoch_metric_means = {key: float(np.mean(values)) for key, values in metrics.items() if values}
+        epoch_metric_means["task_rolling_median"] = (
+            float(np.median(task_loss_history[-5:])) if task_loss_history else epoch_metric_means.get("task", 0.0)
+        )
+        gate_decision = structural_gate.evaluate(
+            epoch=epoch,
+            diagnostics=diagnostics,
+            epoch_metrics=epoch_metric_means,
+            teacher_diag=teacher_diag,
+            sparse_ratio=sparse_ratio,
+            hybrid_alpha=hybrid_alpha,
+            hybrid_alpha_max=args.hybrid_alpha_max,
+            router_teacher_weight=router_teacher_weight,
+            router_teacher_target=args.lambda_h6_router_teacher,
+            dynamic_mean_anchor_weight=dynamic_mean_anchor_weight,
+            dynamic_mean_anchor_target=args.lambda_h6_dynamic_mean_anchor,
+            query_mode=args.h6_router_query_mode,
+            tangent_enabled=bool(args.h6_factor_identity_tangent_projection_enabled),
+        )
+        task_loss_history.append(epoch_metric_means.get("task", 0.0))
+
         logger.info(
-            "phase4_p1_v5_fix epoch=%d total=%s task=%s cls=%s seg=%s center=%s router_teacher=%s "
+            "phase4_p1_v6 epoch=%d total=%s task=%s cls=%s seg=%s center=%s router_teacher=%s "
             "router_teacher_weighted=%s vae_rec=%s vae_kl_raw=%s vae_kl_effective=%s beta_vae_kl=%s "
             "kg=%s orth=%s balance=%s alpha=%s sparse_ratio=%s routing_mode=%s gamma_state=%s gamma_class=%s rho=%s lr=%s "
+            "gate_enabled=%s gate_state=%s gate_soft_warnings=%s gate_query_collapse_count=%s "
+            "gate_key_failure_count=%s gate_factor_collapse_count=%s gate_semantic_drift_count=%s "
+            "gate_sparse_collapse_count=%s gate_hard_failure=%s gate_abort_reason=%s "
+            "gate_query_failed_levels=%s gate_sparse_failed_levels=%s "
+            "router_query_mode=%s query_global_weight=%s local_bypass_ratio_mean=%s local_bypass_ratio_max=%s "
+            "raw_query_cos_mean=%s local_query_cos_mean=%s final_query_cos_mean=%s "
+            "final_query_effective_rank=%s final_query_top1_energy_ratio=%s "
+            "raw_concept_key_cos_mean=%s raw_concept_key_cos_max=%s final_router_key_cos_mean=%s "
+            "final_router_key_cos_max=%s final_router_key_l2_min=%s router_key_adaptation_ratio_mean=%s "
+            "router_key_adaptation_ratio_max=%s factor_context_anchor_cos_mean=%s factor_context_anchor_cos_max=%s "
+            "factor_identity_tangent_base_abs_cos_mean=%s factor_identity_tangent_base_abs_cos_max=%s "
+            "factor_identity_tangent_pair_cos_mean=%s factor_identity_tangent_pair_cos_max=%s "
+            "factor_identity_tangent_l2_min=%s context_angle_change_degrees_mean=%s context_angle_change_degrees_max=%s "
+            "dynamic_mean_hard_cos=%s dynamic_mean_anchor_loss_raw=%s dynamic_mean_anchor_loss_weighted=%s "
+            "dynamic_mean_anchor_weight=%s "
             "dense_usage=%s sparse_usage=%s topk_freq=%s dense_entropy=%s sparse_entropy=%s dense_dead=%s sparse_dead=%s "
             "unique_topk_pairs=%s max_dense_usage=%s max_sparse_usage=%s router_logit_std=%s router_prob_std=%s "
             "query_variance=%s concept_key_cos_mean=%s concept_key_cos_max=%s mu_mean=%s mu_std=%s decoded_mu_std=%s "
@@ -1221,6 +1417,47 @@ def train_h6_progress1(
             hybrid_alpha, sparse_ratio, routing_mode,
             float(h6_batch["gamma_state"].detach().item()), float(h6_batch["gamma_class"].detach().item()),
             h6_batch["rho"].detach().float().cpu().tolist(), optimizer.param_groups[0]["lr"],
+            structural_gate_config.enabled,
+            gate_decision.state_label,
+            gate_decision.soft_warnings,
+            structural_gate.counters["query_collapse"],
+            structural_gate.counters["key_anchor_failure"],
+            structural_gate.counters["factor_collapse"],
+            structural_gate.counters["semantic_drift"],
+            structural_gate.counters["sparse_collapse"],
+            gate_decision.hard_failure,
+            gate_decision.abort_reason,
+            gate_decision.per_level.get("query_failed_levels", []),
+            gate_decision.per_level.get("sparse_failed_levels", []),
+            args.h6_router_query_mode,
+            args.h6_router_query_global_weight,
+            _diag_float("local_bypass_to_learned_ratio_mean"),
+            _diag_float("local_bypass_to_learned_ratio_max"),
+            diagnostics["raw_query_pairwise_cos_mean"].cpu().tolist(),
+            diagnostics["local_query_pairwise_cos_mean"].cpu().tolist(),
+            diagnostics["final_query_pairwise_cos_mean"].cpu().tolist(),
+            diagnostics["final_query_effective_rank"].cpu().tolist(),
+            diagnostics["final_query_top1_energy_ratio"].cpu().tolist(),
+            _diag_float("raw_concept_key_cos_mean"),
+            _diag_float("raw_concept_key_cos_max"),
+            _diag_float("final_router_key_cos_mean"),
+            _diag_float("final_router_key_cos_max"),
+            _diag_float("final_router_key_l2_min"),
+            _diag_float("router_key_adaptation_ratio_mean"),
+            _diag_float("router_key_adaptation_ratio_max"),
+            _diag_float("factor_context_anchor_cos_mean"),
+            _diag_float("factor_context_anchor_cos_max"),
+            _diag_float("factor_identity_tangent_base_abs_cos_mean"),
+            _diag_float("factor_identity_tangent_base_abs_cos_max"),
+            _diag_float("factor_identity_tangent_pair_cos_mean"),
+            _diag_float("factor_identity_tangent_pair_cos_max"),
+            _diag_float("factor_identity_tangent_l2_min"),
+            _diag_float("context_angle_change_degrees_mean"),
+            _diag_float("context_angle_change_degrees_max"),
+            diagnostics["dynamic_mean_hard_cos"].cpu().tolist(),
+            _diag_float("dynamic_mean_anchor_loss_raw"),
+            float(np.mean(metrics["dynamic_mean_anchor_weighted"])),
+            float(np.mean(metrics["dynamic_mean_anchor_weight"])),
             diagnostics["dense_factor_usage"].cpu().tolist(), diagnostics["sparse_factor_usage"].cpu().tolist(),
             diagnostics["selected_topk_frequency"].cpu().tolist(),
             diagnostics["dense_normalized_entropy"].cpu().tolist(), diagnostics["sparse_normalized_entropy"].cpu().tolist(),
@@ -1340,10 +1577,39 @@ def train_h6_progress1(
             precision=args.precision,
             phase2b_config=_phase2b_config_from_args(args),
             loss_weights={**loss_weights, "vae_kl_current": beta_vae_kl},
+            structural_gate_config=structural_gate_config.to_dict(),
+            structural_gate_state=structural_gate.state_dict(),
             optimizer=optimizer,
             scheduler=scheduler,
         )
-        torch.save(payload, os.path.join(args.save_path, f"adapter_{epoch}.pth"))
+        latest_checkpoint_path = os.path.join(args.save_path, f"adapter_{epoch}.pth")
+        torch.save(payload, latest_checkpoint_path)
+        saved_checkpoints.append(latest_checkpoint_path)
+        if gate_decision.hard_failure:
+            gated_abort_artifacts(
+                save_path=args.save_path,
+                epoch=epoch,
+                decision=gate_decision,
+                gate_state=structural_gate,
+                gate_config=structural_gate_config,
+                metrics=epoch_metric_means,
+                diagnostics=diagnostics,
+                teacher_state=teacher_diag,
+                sparse_ratio=sparse_ratio,
+                routing_mode=routing_mode,
+                alpha=hybrid_alpha,
+                trust_region_weight=dynamic_mean_anchor_weight,
+                latest_checkpoint_path=latest_checkpoint_path,
+                args=args,
+                payload=payload,
+            )
+            logger.error(
+                "h6_structural_gate_abort epoch=%d reason=%s diagnostic=%s",
+                epoch,
+                gate_decision.abort_reason,
+                os.path.join(args.save_path, f"gated_abort_epoch_{epoch}.json"),
+            )
+            sys.exit(42)
         sparse_dead = diagnostics["sparse_factor_usage"].lt(0.01).sum(dim=-1)
         unique_pairs = diagnostics["unique_topk_pairs"]
         sparse_failure = router_specialization_failed(
@@ -1353,6 +1619,8 @@ def train_h6_progress1(
             args.h6_router_max_sparse_dead_factors,
             args.h6_router_min_unique_topk_pairs,
         )
+        if structural_gate_config.enabled:
+            sparse_failure = False
         router_failure_streak = router_failure_streak + 1 if sparse_failure else 0
         if router_failure_streak >= int(args.h6_router_failure_patience):
             diagnostic_path = os.path.join(args.save_path, f"h6_router_specialization_failed_epoch_{epoch}.pth")
@@ -1369,6 +1637,23 @@ def train_h6_progress1(
                 epoch, sparse_dead.cpu().tolist(), unique_pairs.cpu().tolist(), diagnostic_path,
             )
             raise RuntimeError(f"h6_router_specialization_failed diagnostic={diagnostic_path}")
+    if structural_gate_config.enabled:
+        final_checkpoint = saved_checkpoints[-1] if saved_checkpoints else None
+        write_json_atomic(
+            os.path.join(args.save_path, "GATED_TRAIN_COMPLETED.json"),
+            {
+                "final_epoch": int(args.epoch),
+                "final_checkpoint": final_checkpoint,
+                "gate_counters": dict(structural_gate.counters),
+                "hard_gate_fired": False,
+                "checkpoint_list": list(saved_checkpoints),
+                "configuration_fingerprint": {
+                    "git_head": current_git_head(),
+                    "gate": structural_gate_config.to_dict(),
+                    "args": vars(args),
+                },
+            },
+        )
     return model
 
 
@@ -1448,6 +1733,24 @@ def main():
     parser.add_argument("--h6_router_failure_patience", type=int, default=2)
     parser.add_argument("--h6_router_max_sparse_dead_factors", type=int, default=1)
     parser.add_argument("--h6_router_min_unique_topk_pairs", type=int, default=2)
+    parser.add_argument("--h6_structural_gate_enabled", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_structural_gate_patience", type=int, default=2)
+    parser.add_argument("--h6_structural_gate_dense_start_epoch", type=int, default=8)
+    parser.add_argument("--h6_structural_gate_require_all_levels", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--h6_structural_gate_reset_state", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_gate_query_rank_max", type=float, default=1.10)
+    parser.add_argument("--h6_gate_query_top1_energy_min", type=float, default=0.995)
+    parser.add_argument("--h6_gate_query_cosine_min", type=float, default=0.9999)
+    parser.add_argument("--h6_gate_logit_std_max", type=float, default=1e-6)
+    parser.add_argument("--h6_gate_key_cosine_max", type=float, default=0.95)
+    parser.add_argument("--h6_gate_key_l2_min", type=float, default=0.05)
+    parser.add_argument("--h6_gate_dynamic_cosine_min", type=float, default=0.999)
+    parser.add_argument("--h6_gate_dynamic_orth_center", type=float, default=0.75)
+    parser.add_argument("--h6_gate_dynamic_orth_tolerance", type=float, default=0.005)
+    parser.add_argument("--h6_gate_hard_anchor_cosine_min", type=float, default=0.30)
+    parser.add_argument("--h6_gate_sparse_min_ratio", type=float, default=0.50)
+    parser.add_argument("--h6_gate_max_sparse_dead_factors", type=int, default=1)
+    parser.add_argument("--h6_gate_min_unique_topk_pairs", type=int, default=2)
     parser.add_argument("--h6_vae_hidden_dim", type=int, default=512)
     parser.add_argument("--h6_vae_latent_dim", type=int, default=256)
     parser.add_argument("--h6_vae_class_ratio", type=float, default=0.25)
@@ -1458,6 +1761,28 @@ def main():
     parser.add_argument("--h6_late_factor_identity_enabled", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--h6_factor_id_scale", type=float, default=0.02)
     parser.add_argument("--h6_factor_id_max_ratio", type=float, default=0.05)
+    parser.add_argument(
+        "--h6_router_query_mode",
+        choices=["raw", "local_residual", "local_global_bypass"],
+        default="local_global_bypass",
+    )
+    parser.add_argument("--h6_router_query_global_weight", type=float, default=0.10)
+    parser.add_argument("--h6_router_local_bypass_scale", type=float, default=0.10)
+    parser.add_argument("--h6_router_local_bypass_max_ratio", type=float, default=0.20)
+    parser.add_argument("--h6_router_local_projection_seed_offset", type=int, default=7200)
+    parser.add_argument("--h6_router_key_anchor_enabled", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--h6_router_key_anchor_seed_offset", type=int, default=7300)
+    parser.add_argument("--h6_router_key_adaptation_initial_ratio", type=float, default=0.10)
+    parser.add_argument("--h6_router_key_adaptation_max_ratio", type=float, default=0.25)
+    parser.add_argument("--h6_factor_context_anchor_enabled", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--h6_factor_context_anchor_seed_offset", type=int, default=7400)
+    parser.add_argument("--h6_factor_context_adaptation_initial_ratio", type=float, default=0.10)
+    parser.add_argument("--h6_factor_context_adaptation_max_ratio", type=float, default=0.25)
+    parser.add_argument("--h6_factor_identity_tangent_projection_enabled", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--lambda_h6_dynamic_mean_anchor", type=float, default=0.001)
+    parser.add_argument("--h6_dynamic_mean_anchor_min_cosine", type=float, default=0.70)
+    parser.add_argument("--h6_dynamic_mean_anchor_start_epoch", type=int, default=4)
+    parser.add_argument("--h6_dynamic_mean_anchor_warmup_epochs", type=int, default=3)
     parser.add_argument("--h6_expert_bottleneck", type=int, default=64, help="reserved for Progress 2; unused in Progress 1")
     parser.add_argument("--lambda_h6_center", type=float, default=0.10)
     parser.add_argument("--h6_center_factor_aware", action="store_true")
@@ -1545,12 +1870,52 @@ def main():
         raise ValueError("--h6_load_bias_momentum must be in [0, 1)")
     if args.h6_load_bias_step < 0 or args.h6_load_bias_max < 0:
         raise ValueError("--h6_load_bias_step/max must be >= 0")
+    if args.h6_structural_gate_patience < 1:
+        raise ValueError("--h6_structural_gate_patience must be >= 1")
+    if args.h6_structural_gate_dense_start_epoch < 1:
+        raise ValueError("--h6_structural_gate_dense_start_epoch must be >= 1")
+    if args.h6_gate_query_rank_max < 1.0:
+        raise ValueError("--h6_gate_query_rank_max must be >= 1")
+    if not 0 <= args.h6_gate_query_top1_energy_min <= 1:
+        raise ValueError("--h6_gate_query_top1_energy_min must be in [0, 1]")
+    if not -1 <= args.h6_gate_query_cosine_min <= 1:
+        raise ValueError("--h6_gate_query_cosine_min must be in [-1, 1]")
+    if args.h6_gate_logit_std_max < 0:
+        raise ValueError("--h6_gate_logit_std_max must be >= 0")
+    if not -1 <= args.h6_gate_key_cosine_max <= 1:
+        raise ValueError("--h6_gate_key_cosine_max must be in [-1, 1]")
+    if args.h6_gate_key_l2_min < 0:
+        raise ValueError("--h6_gate_key_l2_min must be >= 0")
+    if not -1 <= args.h6_gate_dynamic_cosine_min <= 1:
+        raise ValueError("--h6_gate_dynamic_cosine_min must be in [-1, 1]")
+    if args.h6_gate_dynamic_orth_tolerance < 0:
+        raise ValueError("--h6_gate_dynamic_orth_tolerance must be >= 0")
+    if not -1 <= args.h6_gate_hard_anchor_cosine_min <= 1:
+        raise ValueError("--h6_gate_hard_anchor_cosine_min must be in [-1, 1]")
+    if not 0 <= args.h6_gate_sparse_min_ratio <= 1:
+        raise ValueError("--h6_gate_sparse_min_ratio must be in [0, 1]")
     if not 0 <= args.h6_vae_class_ratio <= 1:
         raise ValueError("--h6_vae_class_ratio must be in [0, 1]")
     if args.h6_slot_init_scale < 0:
         raise ValueError("--h6_slot_init_scale must be >= 0")
     if args.h6_factor_id_scale < 0 or args.h6_factor_id_max_ratio < 0:
         raise ValueError("--h6_factor_id_scale/max_ratio must be >= 0")
+    if args.h6_router_query_global_weight < 0:
+        raise ValueError("--h6_router_query_global_weight must be >= 0")
+    if args.h6_router_local_bypass_scale < 0 or args.h6_router_local_bypass_max_ratio < 0:
+        raise ValueError("--h6_router_local_bypass_scale/max_ratio must be >= 0")
+    if args.h6_router_key_adaptation_initial_ratio < 0 or args.h6_router_key_adaptation_max_ratio < 0:
+        raise ValueError("--h6_router_key_adaptation_initial_ratio/max_ratio must be >= 0")
+    if args.h6_factor_context_adaptation_initial_ratio < 0 or args.h6_factor_context_adaptation_max_ratio < 0:
+        raise ValueError("--h6_factor_context_adaptation_initial_ratio/max_ratio must be >= 0")
+    if args.lambda_h6_dynamic_mean_anchor < 0:
+        raise ValueError("--lambda_h6_dynamic_mean_anchor must be >= 0")
+    if not -1 <= args.h6_dynamic_mean_anchor_min_cosine <= 1:
+        raise ValueError("--h6_dynamic_mean_anchor_min_cosine must be in [-1, 1]")
+    if args.h6_dynamic_mean_anchor_start_epoch < 1:
+        raise ValueError("--h6_dynamic_mean_anchor_start_epoch must be >= 1")
+    if args.h6_dynamic_mean_anchor_warmup_epochs < 1:
+        raise ValueError("--h6_dynamic_mean_anchor_warmup_epochs must be >= 1")
     if not -1 <= args.h6_concept_key_cosine_margin <= 1:
         raise ValueError("--h6_concept_key_cosine_margin must be in [-1, 1]")
     if args.h6_concept_key_diversity_warmup_epochs < 1:
@@ -1645,6 +2010,24 @@ def main():
         h6_late_factor_identity_enabled=args.h6_late_factor_identity_enabled,
         h6_factor_id_scale=args.h6_factor_id_scale,
         h6_factor_id_max_ratio=args.h6_factor_id_max_ratio,
+        h6_router_query_mode=args.h6_router_query_mode,
+        h6_router_query_global_weight=args.h6_router_query_global_weight,
+        h6_router_local_bypass_scale=args.h6_router_local_bypass_scale,
+        h6_router_local_bypass_max_ratio=args.h6_router_local_bypass_max_ratio,
+        h6_router_local_projection_seed_offset=args.h6_router_local_projection_seed_offset,
+        h6_router_key_anchor_enabled=args.h6_router_key_anchor_enabled,
+        h6_router_key_anchor_seed_offset=args.h6_router_key_anchor_seed_offset,
+        h6_router_key_adaptation_initial_ratio=args.h6_router_key_adaptation_initial_ratio,
+        h6_router_key_adaptation_max_ratio=args.h6_router_key_adaptation_max_ratio,
+        h6_factor_context_anchor_enabled=args.h6_factor_context_anchor_enabled,
+        h6_factor_context_anchor_seed_offset=args.h6_factor_context_anchor_seed_offset,
+        h6_factor_context_adaptation_initial_ratio=args.h6_factor_context_adaptation_initial_ratio,
+        h6_factor_context_adaptation_max_ratio=args.h6_factor_context_adaptation_max_ratio,
+        h6_factor_identity_tangent_projection_enabled=args.h6_factor_identity_tangent_projection_enabled,
+        lambda_h6_dynamic_mean_anchor=args.lambda_h6_dynamic_mean_anchor,
+        h6_dynamic_mean_anchor_min_cosine=args.h6_dynamic_mean_anchor_min_cosine,
+        h6_dynamic_mean_anchor_start_epoch=args.h6_dynamic_mean_anchor_start_epoch,
+        h6_dynamic_mean_anchor_warmup_epochs=args.h6_dynamic_mean_anchor_warmup_epochs,
         h6_router_teacher_mode=args.h6_router_teacher_mode,
     ).to(device)
     model.eval()

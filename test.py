@@ -412,6 +412,28 @@ def main():
     parser.add_argument("--h6_factor_id_scale", type=float, default=0.02)
     parser.add_argument("--h6_factor_id_max_ratio", type=float, default=0.05)
     parser.add_argument(
+        "--h6_router_query_mode",
+        choices=["raw", "local_residual", "local_global_bypass"],
+        default="local_global_bypass",
+    )
+    parser.add_argument("--h6_router_query_global_weight", type=float, default=0.10)
+    parser.add_argument("--h6_router_local_bypass_scale", type=float, default=0.10)
+    parser.add_argument("--h6_router_local_bypass_max_ratio", type=float, default=0.20)
+    parser.add_argument("--h6_router_local_projection_seed_offset", type=int, default=7200)
+    parser.add_argument("--h6_router_key_anchor_enabled", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--h6_router_key_anchor_seed_offset", type=int, default=7300)
+    parser.add_argument("--h6_router_key_adaptation_initial_ratio", type=float, default=0.10)
+    parser.add_argument("--h6_router_key_adaptation_max_ratio", type=float, default=0.25)
+    parser.add_argument("--h6_factor_context_anchor_enabled", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--h6_factor_context_anchor_seed_offset", type=int, default=7400)
+    parser.add_argument("--h6_factor_context_adaptation_initial_ratio", type=float, default=0.10)
+    parser.add_argument("--h6_factor_context_adaptation_max_ratio", type=float, default=0.25)
+    parser.add_argument("--h6_factor_identity_tangent_projection_enabled", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--lambda_h6_dynamic_mean_anchor", type=float, default=0.001)
+    parser.add_argument("--h6_dynamic_mean_anchor_min_cosine", type=float, default=0.70)
+    parser.add_argument("--h6_dynamic_mean_anchor_start_epoch", type=int, default=4)
+    parser.add_argument("--h6_dynamic_mean_anchor_warmup_epochs", type=int, default=3)
+    parser.add_argument(
         "--h6_router_teacher_mode",
         choices=["raw_cosine", "state_centered_cosine", "negative_squared_distance"],
         default="raw_cosine",
@@ -523,34 +545,57 @@ def main():
     preflight_checkpoint = torch.load(preflight_files[0], map_location="cpu")
     preflight_h6 = h6_config_from_checkpoint(preflight_checkpoint)
     if preflight_h6 is not None:
-        if args.h6_progress is None:
-            args.h6_progress = int(preflight_h6["progress"])
-            args.h6_num_factors = int(preflight_h6["num_factors"])
-            args.h6_top_k = int(preflight_h6["top_k"])
-            args.h6_bank_dim = int(preflight_h6["bank_dim"])
-            args.h6_router_dim = int(preflight_h6["router_dim"])
-            args.h6_router_temperature = float(preflight_h6["router_temperature"])
-            args.h6_router_soft_epochs = int(preflight_h6["router_soft_epochs"])
-            args.h6_sparse_transition_epochs = int(preflight_h6.get("sparse_transition_epochs", 1))
-            args.h6_load_bias_enabled = bool(preflight_h6.get("load_bias_enabled", False))
-            args.h6_load_bias_momentum = float(preflight_h6.get("load_bias_momentum", 0.9))
-            args.h6_load_bias_step = float(preflight_h6.get("load_bias_step", 0.001))
-            args.h6_load_bias_max = float(preflight_h6.get("load_bias_max", 0.03))
-            args.h6_vae_hidden_dim = int(preflight_h6["vae_hidden_dim"])
-            args.h6_vae_latent_dim = int(preflight_h6["vae_latent_dim"])
-            args.h6_vae_class_ratio = float(preflight_h6.get("vae_class_ratio", 0.25))
-            args.h6_slot_init_enabled = bool(preflight_h6.get("slot_init_enabled", False))
-            args.h6_slot_init_scale = float(preflight_h6.get("slot_init_scale", 0.02))
-            args.h6_slot_init_seed_offset = int(preflight_h6.get("slot_init_seed_offset", 6100))
-            args.h6_factor_grad_diagnostics = bool(preflight_h6.get("factor_grad_diagnostics_enabled", False))
-            args.h6_late_factor_identity_enabled = bool(preflight_h6.get("late_factor_identity_enabled", False))
-            args.h6_factor_id_scale = float(preflight_h6.get("factor_id_scale", 0.02))
-            args.h6_factor_id_max_ratio = float(preflight_h6.get("factor_id_max_ratio", 0.05))
-            args.h6_router_teacher_mode = str(preflight_h6.get("router_teacher_mode", "raw_cosine"))
-        elif args.h6_progress != int(preflight_h6["progress"]):
+        if args.h6_progress is not None and args.h6_progress != int(preflight_h6["progress"]):
             raise ValueError(
                 f"checkpoint phase4_progress is {preflight_h6['progress']}, but --h6_progress is {args.h6_progress}"
             )
+        args.h6_progress = int(preflight_h6["progress"])
+        args.h6_num_factors = int(preflight_h6["num_factors"])
+        args.h6_top_k = int(preflight_h6["top_k"])
+        args.h6_bank_dim = int(preflight_h6["bank_dim"])
+        args.h6_router_dim = int(preflight_h6["router_dim"])
+        args.h6_router_temperature = float(preflight_h6["router_temperature"])
+        args.h6_router_soft_epochs = int(preflight_h6["router_soft_epochs"])
+        args.h6_sparse_transition_epochs = int(preflight_h6.get("sparse_transition_epochs", 1))
+        args.h6_load_bias_enabled = bool(preflight_h6.get("load_bias_enabled", False))
+        args.h6_load_bias_momentum = float(preflight_h6.get("load_bias_momentum", 0.9))
+        args.h6_load_bias_step = float(preflight_h6.get("load_bias_step", 0.001))
+        args.h6_load_bias_max = float(preflight_h6.get("load_bias_max", 0.03))
+        args.h6_vae_hidden_dim = int(preflight_h6["vae_hidden_dim"])
+        args.h6_vae_latent_dim = int(preflight_h6["vae_latent_dim"])
+        args.h6_vae_class_ratio = float(preflight_h6.get("vae_class_ratio", 0.25))
+        args.h6_slot_init_enabled = bool(preflight_h6.get("slot_init_enabled", False))
+        args.h6_slot_init_scale = float(preflight_h6.get("slot_init_scale", 0.02))
+        args.h6_slot_init_seed_offset = int(preflight_h6.get("slot_init_seed_offset", 6100))
+        args.h6_factor_grad_diagnostics = bool(preflight_h6.get("factor_grad_diagnostics_enabled", False))
+        args.h6_late_factor_identity_enabled = bool(preflight_h6.get("late_factor_identity_enabled", False))
+        args.h6_factor_id_scale = float(preflight_h6.get("factor_id_scale", 0.02))
+        args.h6_factor_id_max_ratio = float(preflight_h6.get("factor_id_max_ratio", 0.05))
+        args.h6_router_query_mode = str(preflight_h6.get("router_query_mode", "local_global_bypass"))
+        args.h6_router_query_global_weight = float(preflight_h6.get("router_query_global_weight", 0.10))
+        args.h6_router_local_bypass_scale = float(preflight_h6.get("router_local_bypass_scale", 0.10))
+        args.h6_router_local_bypass_max_ratio = float(preflight_h6.get("router_local_bypass_max_ratio", 0.20))
+        args.h6_router_local_projection_seed_offset = int(preflight_h6.get("router_local_projection_seed_offset", 7200))
+        args.h6_router_key_anchor_enabled = bool(preflight_h6.get("router_key_anchor_enabled", True))
+        args.h6_router_key_anchor_seed_offset = int(preflight_h6.get("router_key_anchor_seed_offset", 7300))
+        args.h6_router_key_adaptation_initial_ratio = float(preflight_h6.get("router_key_adaptation_initial_ratio", 0.10))
+        args.h6_router_key_adaptation_max_ratio = float(preflight_h6.get("router_key_adaptation_max_ratio", 0.25))
+        args.h6_factor_context_anchor_enabled = bool(preflight_h6.get("factor_context_anchor_enabled", True))
+        args.h6_factor_context_anchor_seed_offset = int(preflight_h6.get("factor_context_anchor_seed_offset", 7400))
+        args.h6_factor_context_adaptation_initial_ratio = float(
+            preflight_h6.get("factor_context_adaptation_initial_ratio", 0.10)
+        )
+        args.h6_factor_context_adaptation_max_ratio = float(
+            preflight_h6.get("factor_context_adaptation_max_ratio", 0.25)
+        )
+        args.h6_factor_identity_tangent_projection_enabled = bool(
+            preflight_h6.get("factor_identity_tangent_projection_enabled", True)
+        )
+        args.lambda_h6_dynamic_mean_anchor = float(preflight_h6.get("lambda_dynamic_mean_anchor", 0.001))
+        args.h6_dynamic_mean_anchor_min_cosine = float(preflight_h6.get("dynamic_mean_anchor_min_cosine", 0.70))
+        args.h6_dynamic_mean_anchor_start_epoch = int(preflight_h6.get("dynamic_mean_anchor_start_epoch", 4))
+        args.h6_dynamic_mean_anchor_warmup_epochs = int(preflight_h6.get("dynamic_mean_anchor_warmup_epochs", 3))
+        args.h6_router_teacher_mode = str(preflight_h6.get("router_teacher_mode", "raw_cosine"))
     elif args.h6_progress is None:
         args.h6_progress = 0
     # ========================================================
@@ -618,6 +663,24 @@ def main():
         h6_late_factor_identity_enabled=args.h6_late_factor_identity_enabled,
         h6_factor_id_scale=args.h6_factor_id_scale,
         h6_factor_id_max_ratio=args.h6_factor_id_max_ratio,
+        h6_router_query_mode=args.h6_router_query_mode,
+        h6_router_query_global_weight=args.h6_router_query_global_weight,
+        h6_router_local_bypass_scale=args.h6_router_local_bypass_scale,
+        h6_router_local_bypass_max_ratio=args.h6_router_local_bypass_max_ratio,
+        h6_router_local_projection_seed_offset=args.h6_router_local_projection_seed_offset,
+        h6_router_key_anchor_enabled=args.h6_router_key_anchor_enabled,
+        h6_router_key_anchor_seed_offset=args.h6_router_key_anchor_seed_offset,
+        h6_router_key_adaptation_initial_ratio=args.h6_router_key_adaptation_initial_ratio,
+        h6_router_key_adaptation_max_ratio=args.h6_router_key_adaptation_max_ratio,
+        h6_factor_context_anchor_enabled=args.h6_factor_context_anchor_enabled,
+        h6_factor_context_anchor_seed_offset=args.h6_factor_context_anchor_seed_offset,
+        h6_factor_context_adaptation_initial_ratio=args.h6_factor_context_adaptation_initial_ratio,
+        h6_factor_context_adaptation_max_ratio=args.h6_factor_context_adaptation_max_ratio,
+        h6_factor_identity_tangent_projection_enabled=args.h6_factor_identity_tangent_projection_enabled,
+        lambda_h6_dynamic_mean_anchor=args.lambda_h6_dynamic_mean_anchor,
+        h6_dynamic_mean_anchor_min_cosine=args.h6_dynamic_mean_anchor_min_cosine,
+        h6_dynamic_mean_anchor_start_epoch=args.h6_dynamic_mean_anchor_start_epoch,
+        h6_dynamic_mean_anchor_warmup_epochs=args.h6_dynamic_mean_anchor_warmup_epochs,
         h6_router_teacher_mode=args.h6_router_teacher_mode,
     ).to(device)
     model.eval()

@@ -7,7 +7,7 @@ from typing import Any, Dict, Mapping
 import torch
 
 
-PHASE4_CHECKPOINT_VERSION = 5
+PHASE4_CHECKPOINT_VERSION = 6
 
 
 def is_phase4_checkpoint(checkpoint: Mapping[str, Any]) -> bool:
@@ -31,6 +31,16 @@ def validate_h6_configuration(model, checkpoint: Mapping[str, Any]) -> None:
         raise ValueError("checkpoint contains H6 weights but the CLI constructed an H6-disabled model")
     expected = model.h6.config_dict()
     expected_version = expected.get("progress_version")
+    if expected_version == "P1-v6":
+        if int(checkpoint.get("checkpoint_version", 0)) != PHASE4_CHECKPOINT_VERSION:
+            raise ValueError(
+                "P1-v6 model requires checkpoint_version=6. P1-v5 checkpoints are not "
+                "silently migrated because v6 adds deterministic router/query/factor anchor buffers."
+            )
+        if config.get("progress_version") != "P1-v6":
+            raise ValueError(
+                f"P1-v6 model requires progress_version='P1-v6'; got {config.get('progress_version')!r}"
+            )
     if expected_version in {"P1-v3", "P1-v4", "P1-v5", "P1-v5-fix"} and config.get("progress_version") != expected_version:
         raise ValueError(
             f"{expected_version} model requires a {expected_version} checkpoint with explicit "
@@ -74,6 +84,8 @@ def build_phase4_checkpoint(
     precision: str,
     phase2b_config: Mapping[str, Any],
     loss_weights: Mapping[str, float],
+    structural_gate_config: Mapping[str, Any] | None = None,
+    structural_gate_state: Mapping[str, Any] | None = None,
     optimizer: torch.optim.Optimizer | None = None,
     scheduler: Any | None = None,
 ) -> Dict[str, Any]:
@@ -81,6 +93,11 @@ def build_phase4_checkpoint(
         raise ValueError("build_phase4_checkpoint requires an H6-enabled model")
     h6 = model.h6
     h6_config = dict(h6.config_dict())
+
+    def _config_value(source_key: str, config_key: str):
+        value = phase2b_config.get(source_key)
+        return h6_config.get(config_key) if value is None else value
+
     h6_config.update({
         "router_teacher_enabled": float(loss_weights.get("router_teacher", 0.0)) > 0.0,
         "router_teacher_temperature": loss_weights.get("router_teacher_temperature"),
@@ -117,9 +134,56 @@ def build_phase4_checkpoint(
         "factor_id_max_ratio": phase2b_config.get(
             "h6_factor_id_max_ratio", h6_config.get("factor_id_max_ratio")
         ),
-        "factor_id_direction_method": "qr_relative_offset_shared_buffer",
+        "factor_id_direction_method": h6_config.get("factor_id_direction_method"),
         "factor_id_projection_mode": "shared_linear_bankdim_to_textdim",
         "factor_id_shared_across_states": True,
+        "router_query_mode": _config_value("h6_router_query_mode", "router_query_mode"),
+        "router_query_global_weight": _config_value("h6_router_query_global_weight", "router_query_global_weight"),
+        "router_local_bypass_scale": _config_value("h6_router_local_bypass_scale", "router_local_bypass_scale"),
+        "router_local_bypass_max_ratio": _config_value(
+            "h6_router_local_bypass_max_ratio", "router_local_bypass_max_ratio"
+        ),
+        "router_local_projection_method": "qr_semi_orthogonal_buffer",
+        "router_local_projection_seed_offset": _config_value(
+            "h6_router_local_projection_seed_offset", "router_local_projection_seed_offset"
+        ),
+        "router_key_anchor_enabled": _config_value("h6_router_key_anchor_enabled", "router_key_anchor_enabled"),
+        "router_key_anchor_method": "qr_orthonormal_rows_buffer",
+        "router_key_anchor_seed_offset": _config_value(
+            "h6_router_key_anchor_seed_offset", "router_key_anchor_seed_offset"
+        ),
+        "router_key_adaptation_initial_ratio": _config_value(
+            "h6_router_key_adaptation_initial_ratio", "router_key_adaptation_initial_ratio"
+        ),
+        "router_key_adaptation_max_ratio": _config_value(
+            "h6_router_key_adaptation_max_ratio", "router_key_adaptation_max_ratio"
+        ),
+        "factor_context_anchor_enabled": _config_value(
+            "h6_factor_context_anchor_enabled", "factor_context_anchor_enabled"
+        ),
+        "factor_context_anchor_method": "qr_orthonormal_rows_buffer",
+        "factor_context_anchor_seed_offset": _config_value(
+            "h6_factor_context_anchor_seed_offset", "factor_context_anchor_seed_offset"
+        ),
+        "factor_context_adaptation_initial_ratio": _config_value(
+            "h6_factor_context_adaptation_initial_ratio", "factor_context_adaptation_initial_ratio"
+        ),
+        "factor_context_adaptation_max_ratio": _config_value(
+            "h6_factor_context_adaptation_max_ratio", "factor_context_adaptation_max_ratio"
+        ),
+        "factor_identity_tangent_projection_enabled": _config_value(
+            "h6_factor_identity_tangent_projection_enabled", "factor_identity_tangent_projection_enabled"
+        ),
+        "lambda_dynamic_mean_anchor": _config_value("lambda_h6_dynamic_mean_anchor", "lambda_dynamic_mean_anchor"),
+        "dynamic_mean_anchor_min_cosine": _config_value(
+            "h6_dynamic_mean_anchor_min_cosine", "dynamic_mean_anchor_min_cosine"
+        ),
+        "dynamic_mean_anchor_start_epoch": _config_value(
+            "h6_dynamic_mean_anchor_start_epoch", "dynamic_mean_anchor_start_epoch"
+        ),
+        "dynamic_mean_anchor_warmup_epochs": _config_value(
+            "h6_dynamic_mean_anchor_warmup_epochs", "dynamic_mean_anchor_warmup_epochs"
+        ),
         "router_teacher_center_detached": True,
         "router_teacher_probability_detached": True,
         "teacher_confidence_gate_enabled": loss_weights.get("teacher_confidence_gate"),
@@ -173,4 +237,8 @@ def build_phase4_checkpoint(
         payload["optimizer_state"] = optimizer.state_dict()
     if scheduler is not None:
         payload["scheduler_state"] = scheduler.state_dict()
+    if structural_gate_config is not None:
+        payload["structural_gate_config"] = dict(structural_gate_config)
+    if structural_gate_state is not None:
+        payload["structural_gate_state"] = dict(structural_gate_state)
     return payload

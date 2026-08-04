@@ -190,6 +190,11 @@ class CoPSSemanticCore(nn.Module):
         late_factor_identity_enabled: bool = False,
         factor_id_scale: float = 0.02,
         factor_id_max_ratio: float = 0.05,
+        factor_context_anchor_enabled: bool = True,
+        factor_context_anchor_seed_offset: int = 7400,
+        factor_context_adaptation_initial_ratio: float = 0.10,
+        factor_context_adaptation_max_ratio: float = 0.25,
+        factor_identity_tangent_projection_enabled: bool = True,
     ):
         super().__init__()
         if bank_dim % 4 != 0:
@@ -206,11 +211,24 @@ class CoPSSemanticCore(nn.Module):
         self.late_factor_identity_enabled = bool(late_factor_identity_enabled)
         self.factor_id_scale = float(factor_id_scale)
         self.factor_id_max_ratio = float(factor_id_max_ratio)
+        self.factor_context_anchor_enabled = bool(factor_context_anchor_enabled)
+        self.factor_context_anchor_seed_offset = int(factor_context_anchor_seed_offset)
+        self.factor_context_adaptation_initial_ratio = float(factor_context_adaptation_initial_ratio)
+        self.factor_context_adaptation_max_ratio = float(factor_context_adaptation_max_ratio)
+        self.factor_identity_tangent_projection_enabled = bool(factor_identity_tangent_projection_enabled)
         self.slot_init_applied_components: list[str] = []
         self._slot_initial_diagnostics: Dict[str, torch.Tensor] = {}
         self.register_buffer(
             "factor_id_directions",
             deterministic_slot_directions(num_factors, bank_dim, self.slot_init_seed_offset),
+        )
+        self.register_buffer(
+            "factor_context_anchors",
+            deterministic_slot_directions(num_factors, text_dim, self.factor_context_anchor_seed_offset),
+        )
+        self.register_buffer(
+            "factor_context_fallback_anchors",
+            deterministic_slot_directions(num_factors, text_dim, self.factor_context_anchor_seed_offset + 1),
         )
 
         self.level_projectors = nn.ModuleList(
@@ -256,7 +274,11 @@ class CoPSSemanticCore(nn.Module):
             self.slot_init_applied_components.append("semantic_core.concept_slots")
             self._slot_initial_diagnostics = diagnostics
 
-    def apply_late_factor_identity(self, state_delta_raw: torch.Tensor) -> tuple[torch.Tensor, Dict[str, torch.Tensor]]:
+    def apply_late_factor_identity(
+        self,
+        state_delta_raw: torch.Tensor,
+        base_context: torch.Tensor | None = None,
+    ) -> tuple[torch.Tensor, Dict[str, torch.Tensor]]:
         """Add small factor-ID residual after state_to_context and before text encoding.
 
         state_delta_raw is [B,M,2,ctx_len,D].  The same factor identity m is
@@ -270,21 +292,92 @@ class CoPSSemanticCore(nn.Module):
                 "factor_id_residual_norm_max": zero.detach(),
                 "factor_id_residual_to_context_ratio_mean": zero.detach(),
                 "factor_id_residual_to_context_ratio_max": zero.detach(),
+                "factor_context_anchor_cos_mean": zero.detach(),
+                "factor_context_anchor_cos_max": zero.detach(),
+                "factor_identity_tangent_base_abs_cos_mean": zero.detach(),
+                "factor_identity_tangent_base_abs_cos_max": zero.detach(),
+                "factor_identity_tangent_pair_cos_mean": zero.detach(),
+                "factor_identity_tangent_pair_cos_max": zero.detach(),
+                "factor_identity_tangent_l2_min": zero.detach(),
+                "context_angle_change_degrees_mean": zero.detach(),
+                "context_angle_change_degrees_max": zero.detach(),
             }
-        directions = self.factor_id_directions.to(device=state_delta_raw.device, dtype=state_delta_raw.dtype)
-        factor_identity = F.normalize(self.factor_id_projection(directions).float(), dim=-1)
-        factor_identity = factor_identity.view(1, self.num_factors, 1, 1, self.text_dim)
-        base_norm = state_delta_raw.detach().float().norm(dim=-1, keepdim=True).clamp_min(1e-6)
+        if base_context is None:
+            base_context = state_delta_raw.detach()
+        if tuple(base_context.shape[-3:]) != (2, self.ctx_len, self.text_dim):
+            raise ValueError("base_context must broadcast to [B,M,2,ctx_len,D]")
+        learned_identity = self.factor_id_projection(self.concept_slots).float()
+        learned_direction = F.normalize(learned_identity, dim=-1)
+        if self.factor_context_anchor_enabled:
+            context_anchor = self.factor_context_anchors.to(
+                device=state_delta_raw.device,
+                dtype=state_delta_raw.dtype,
+            ).float()
+            anchor_norm = context_anchor.detach().norm(dim=-1, keepdim=True).clamp_min(1e-6)
+            learned_residual = (
+                float(self.factor_context_adaptation_initial_ratio) * anchor_norm * learned_direction
+            )
+            max_adaptation = float(self.factor_context_adaptation_max_ratio) * anchor_norm
+            learned_residual_norm = learned_residual.norm(dim=-1, keepdim=True).clamp_min(1e-6)
+            learned_residual = learned_residual * torch.clamp(max_adaptation / learned_residual_norm, max=1.0)
+            identity_seed = F.normalize(context_anchor + learned_residual, dim=-1)
+        else:
+            identity_seed = learned_direction
+            context_anchor = identity_seed.detach()
+
+        base_hat = F.normalize(base_context.float(), dim=-1)
+        identity_seed = identity_seed.view(1, self.num_factors, 1, 1, self.text_dim)
+        if self.factor_identity_tangent_projection_enabled:
+            identity_tangent = identity_seed - (
+                identity_seed * base_hat
+            ).sum(dim=-1, keepdim=True) * base_hat
+            tangent_norm = identity_tangent.detach().float().norm(dim=-1, keepdim=True)
+            fallback_seed = self.factor_context_fallback_anchors.to(
+                device=state_delta_raw.device,
+                dtype=state_delta_raw.dtype,
+            ).float().view(1, self.num_factors, 1, 1, self.text_dim)
+            fallback_tangent = fallback_seed - (
+                fallback_seed * base_hat
+            ).sum(dim=-1, keepdim=True) * base_hat
+            identity_tangent = torch.where(tangent_norm < 1e-8, fallback_tangent, identity_tangent)
+            factor_identity = F.normalize(identity_tangent.float(), dim=-1)
+        else:
+            factor_identity = identity_seed.expand_as(state_delta_raw)
+
+        base_norm = base_context.detach().float().norm(dim=-1, keepdim=True).clamp_min(1e-6)
         residual = float(self.factor_id_scale) * base_norm * factor_identity
         max_norm = float(self.factor_id_max_ratio) * base_norm
         residual_norm = residual.float().norm(dim=-1, keepdim=True).clamp_min(1e-6)
         residual = residual * torch.clamp(max_norm / residual_norm, max=1.0)
         ratio = residual.float().norm(dim=-1, keepdim=True) / base_norm
+        updated = state_delta_raw + residual.to(state_delta_raw.dtype)
+        base_for_angle = state_delta_raw.detach().float()
+        angle_cos = F.cosine_similarity(base_for_angle, updated.float(), dim=-1).clamp(-1.0, 1.0)
+        angle_degrees = torch.rad2deg(torch.acos(angle_cos))
+        factor_flat = factor_identity.detach().float().permute(0, 2, 3, 1, 4).reshape(-1, self.num_factors, self.text_dim)
+        factor_norm = F.normalize(factor_flat, dim=-1)
+        pair_cos = torch.einsum("nmd,nkd->nmk", factor_norm, factor_norm)
+        pair_mask = ~torch.eye(self.num_factors, device=state_delta_raw.device, dtype=torch.bool)
+        pair_values = pair_cos[:, pair_mask]
+        pair_l2 = torch.cdist(factor_flat, factor_flat)[:, pair_mask]
+        anchor_normed = F.normalize(context_anchor.float(), dim=-1)
+        anchor_cos = anchor_normed @ anchor_normed.T
+        anchor_offdiag = anchor_cos[~torch.eye(self.num_factors, device=state_delta_raw.device, dtype=torch.bool)]
+        base_abs_cos = (factor_identity.detach().float() * base_hat.detach().float()).sum(dim=-1).abs()
         return state_delta_raw + residual.to(state_delta_raw.dtype), {
             "factor_id_residual_norm_mean": residual.float().norm(dim=-1).mean().detach(),
             "factor_id_residual_norm_max": residual.float().norm(dim=-1).max().detach(),
             "factor_id_residual_to_context_ratio_mean": ratio.mean().detach(),
             "factor_id_residual_to_context_ratio_max": ratio.max().detach(),
+            "factor_context_anchor_cos_mean": anchor_offdiag.mean().detach(),
+            "factor_context_anchor_cos_max": anchor_offdiag.abs().max().detach(),
+            "factor_identity_tangent_base_abs_cos_mean": base_abs_cos.mean().detach(),
+            "factor_identity_tangent_base_abs_cos_max": base_abs_cos.max().detach(),
+            "factor_identity_tangent_pair_cos_mean": pair_values.mean().detach(),
+            "factor_identity_tangent_pair_cos_max": pair_values.abs().max().detach(),
+            "factor_identity_tangent_l2_min": pair_l2.min().detach(),
+            "context_angle_change_degrees_mean": angle_degrees.mean().detach(),
+            "context_angle_change_degrees_max": angle_degrees.max().detach(),
         }
 
     def concept_keys(self) -> torch.Tensor:
@@ -365,18 +458,20 @@ class CoPSSemanticCore(nn.Module):
         state_abnormal = self.state_to_context_abnormal(prototype_abnormal).view(
             batch, self.num_factors, self.ctx_len, self.text_dim
         )
-        state_delta_raw = torch.stack([state_normal, state_abnormal], dim=2)
-        state_delta_with_identity, factor_id_diagnostics = self.apply_late_factor_identity(state_delta_raw)
-        state_delta = F.normalize(state_delta_with_identity.float(), dim=-1)
-        class_delta_raw = self.class_to_context(vae["class_semantic"]).view(batch, self.ctx_len, self.text_dim)
-        class_delta = F.normalize(class_delta_raw.float(), dim=-1).unsqueeze(1).unsqueeze(1)
-
         base_context = torch.stack([ctx_normal.float(), ctx_abnormal.float()], dim=0)
         if tuple(base_context.shape) != (2, self.ctx_len, self.text_dim):
             raise ValueError(
                 f"base contexts must be [2, {self.ctx_len}, {self.text_dim}], got {tuple(base_context.shape)}"
             )
         base_context = base_context.unsqueeze(0).unsqueeze(0)
+        state_delta_raw = torch.stack([state_normal, state_abnormal], dim=2)
+        state_delta_with_identity, factor_id_diagnostics = self.apply_late_factor_identity(
+            state_delta_raw,
+            base_context=base_context,
+        )
+        state_delta = F.normalize(state_delta_with_identity.float(), dim=-1)
+        class_delta_raw = self.class_to_context(vae["class_semantic"]).view(batch, self.ctx_len, self.text_dim)
+        class_delta = F.normalize(class_delta_raw.float(), dim=-1).unsqueeze(1).unsqueeze(1)
         dynamic_contexts = (
             base_context
             + self.gamma_state().view(1, 1, 1, 1, 1) * state_delta

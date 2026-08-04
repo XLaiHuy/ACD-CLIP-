@@ -83,7 +83,10 @@ def test_progress1_synthetic_backward_and_isolation():
     loss.backward()
     assert legacy_adapter.weight.grad is not None
     assert h6.semantic_core.level_projectors[0][0].weight.grad is not None
-    assert h6.router.query_projector[0].weight.grad is not None
+    if h6.router.router_query_mode == "raw":
+        assert h6.router.query_projector[0].weight.grad is not None
+    else:
+        assert h6.router.local_query_projector[0].weight.grad is not None
     assert frozen_clip_parameter.grad is None
     assert not hasattr(h6, "visual_experts")
     assert not hasattr(h6, "consistency")
@@ -164,11 +167,11 @@ def test_synthetic_old_and_phase4_checkpoint_compatibility():
     with tempfile.NamedTemporaryFile(suffix=".pth") as handle:
         torch.save(payload, handle.name)
         loaded = torch.load(handle.name, map_location="cpu")
-    assert loaded["checkpoint_version"] == 5
+    assert loaded["checkpoint_version"] == 6
     assert loaded["phase4_progress"] == 1
     assert loaded["h6_enabled"] is True
-    assert loaded["h6_config"]["variant"] == "p1_v5_late_identity_centered_teacher"
-    assert loaded["h6_config"]["progress_version"] == "P1-v5-fix"
+    assert loaded["h6_config"]["variant"] == "p1_v6_structural_specialization"
+    assert loaded["h6_config"]["progress_version"] == "P1-v6"
     assert loaded["h6_config"]["dense_routing_epochs"] == 8
     assert loaded["h6_config"]["sparse_start_epoch"] == 9
     assert loaded["h6_config"]["sparse_full_epoch"] == 12
@@ -194,7 +197,11 @@ def test_synthetic_old_and_phase4_checkpoint_compatibility():
     assert loaded["h6_config"]["late_factor_identity_enabled"] is True
     assert loaded["h6_config"]["factor_id_scale"] == 0.02
     assert loaded["h6_config"]["factor_id_max_ratio"] == 0.05
-    assert loaded["h6_config"]["factor_id_direction_method"] == "qr_relative_offset_shared_buffer"
+    assert loaded["h6_config"]["factor_id_direction_method"] == "tangent_context_anchor_shared_buffer"
+    assert loaded["h6_config"]["router_query_mode"] == "local_global_bypass"
+    assert loaded["h6_config"]["router_key_anchor_enabled"] is True
+    assert loaded["h6_config"]["factor_context_anchor_enabled"] is True
+    assert loaded["h6_config"]["factor_identity_tangent_projection_enabled"] is True
     assert loaded["h6_config"]["factor_id_projection_mode"] == "shared_linear_bankdim_to_textdim"
     assert loaded["h6_config"]["factor_id_shared_across_states"] is True
     assert loaded["h6_config"]["router_teacher_mode"] == "state_centered_cosine"

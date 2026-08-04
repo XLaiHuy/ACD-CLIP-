@@ -49,6 +49,24 @@ class H6Progress1(nn.Module):
         late_factor_identity_enabled: bool = False,
         factor_id_scale: float = 0.02,
         factor_id_max_ratio: float = 0.05,
+        router_query_mode: str = "local_global_bypass",
+        router_query_global_weight: float = 0.10,
+        router_local_bypass_scale: float = 0.10,
+        router_local_bypass_max_ratio: float = 0.20,
+        router_local_projection_seed_offset: int = 7200,
+        router_key_anchor_enabled: bool = True,
+        router_key_anchor_seed_offset: int = 7300,
+        router_key_adaptation_initial_ratio: float = 0.10,
+        router_key_adaptation_max_ratio: float = 0.25,
+        factor_context_anchor_enabled: bool = True,
+        factor_context_anchor_seed_offset: int = 7400,
+        factor_context_adaptation_initial_ratio: float = 0.10,
+        factor_context_adaptation_max_ratio: float = 0.25,
+        factor_identity_tangent_projection_enabled: bool = True,
+        lambda_dynamic_mean_anchor: float = 0.001,
+        dynamic_mean_anchor_min_cosine: float = 0.70,
+        dynamic_mean_anchor_start_epoch: int = 4,
+        dynamic_mean_anchor_warmup_epochs: int = 3,
         router_teacher_mode: str = "raw_cosine",
         text_dim: int = 768,
         ctx_len: int = 4,
@@ -78,6 +96,24 @@ class H6Progress1(nn.Module):
         self.late_factor_identity_enabled = bool(late_factor_identity_enabled)
         self.factor_id_scale = float(factor_id_scale)
         self.factor_id_max_ratio = float(factor_id_max_ratio)
+        self.router_query_mode = str(router_query_mode)
+        self.router_query_global_weight = float(router_query_global_weight)
+        self.router_local_bypass_scale = float(router_local_bypass_scale)
+        self.router_local_bypass_max_ratio = float(router_local_bypass_max_ratio)
+        self.router_local_projection_seed_offset = int(router_local_projection_seed_offset)
+        self.router_key_anchor_enabled = bool(router_key_anchor_enabled)
+        self.router_key_anchor_seed_offset = int(router_key_anchor_seed_offset)
+        self.router_key_adaptation_initial_ratio = float(router_key_adaptation_initial_ratio)
+        self.router_key_adaptation_max_ratio = float(router_key_adaptation_max_ratio)
+        self.factor_context_anchor_enabled = bool(factor_context_anchor_enabled)
+        self.factor_context_anchor_seed_offset = int(factor_context_anchor_seed_offset)
+        self.factor_context_adaptation_initial_ratio = float(factor_context_adaptation_initial_ratio)
+        self.factor_context_adaptation_max_ratio = float(factor_context_adaptation_max_ratio)
+        self.factor_identity_tangent_projection_enabled = bool(factor_identity_tangent_projection_enabled)
+        self.lambda_dynamic_mean_anchor = float(lambda_dynamic_mean_anchor)
+        self.dynamic_mean_anchor_min_cosine = float(dynamic_mean_anchor_min_cosine)
+        self.dynamic_mean_anchor_start_epoch = int(dynamic_mean_anchor_start_epoch)
+        self.dynamic_mean_anchor_warmup_epochs = int(dynamic_mean_anchor_warmup_epochs)
         self.router_teacher_mode = str(router_teacher_mode)
         self.text_dim = int(text_dim)
         self.ctx_len = int(ctx_len)
@@ -98,6 +134,11 @@ class H6Progress1(nn.Module):
             late_factor_identity_enabled=late_factor_identity_enabled,
             factor_id_scale=factor_id_scale,
             factor_id_max_ratio=factor_id_max_ratio,
+            factor_context_anchor_enabled=factor_context_anchor_enabled,
+            factor_context_anchor_seed_offset=factor_context_anchor_seed_offset,
+            factor_context_adaptation_initial_ratio=factor_context_adaptation_initial_ratio,
+            factor_context_adaptation_max_ratio=factor_context_adaptation_max_ratio,
+            factor_identity_tangent_projection_enabled=factor_identity_tangent_projection_enabled,
         )
         self.router = PatchRouter(
             n_groups=n_groups,
@@ -116,14 +157,23 @@ class H6Progress1(nn.Module):
             slot_init_enabled=slot_init_enabled,
             slot_init_scale=slot_init_scale,
             slot_init_seed_offset=slot_init_seed_offset,
+            router_query_mode=router_query_mode,
+            router_query_global_weight=router_query_global_weight,
+            router_local_bypass_scale=router_local_bypass_scale,
+            router_local_bypass_max_ratio=router_local_bypass_max_ratio,
+            router_local_projection_seed_offset=router_local_projection_seed_offset,
+            router_key_anchor_enabled=router_key_anchor_enabled,
+            router_key_anchor_seed_offset=router_key_anchor_seed_offset,
+            router_key_adaptation_initial_ratio=router_key_adaptation_initial_ratio,
+            router_key_adaptation_max_ratio=router_key_adaptation_max_ratio,
         )
         self.rho = BoundedPositiveGate(initial=0.05, maximum=0.50, count=n_groups)
         self.epoch_one_based = 1
 
     def config_dict(self) -> Dict[str, int | float | str]:
         return {
-            "variant": "p1_v5_late_identity_centered_teacher",
-            "progress_version": "P1-v5-fix",
+            "variant": "p1_v6_structural_specialization",
+            "progress_version": "P1-v6",
             "progress": self.progress,
             "n_groups": self.n_groups,
             "num_factors": self.num_factors,
@@ -185,7 +235,28 @@ class H6Progress1(nn.Module):
             "late_factor_identity_enabled": self.late_factor_identity_enabled,
             "factor_id_scale": self.factor_id_scale,
             "factor_id_max_ratio": self.factor_id_max_ratio,
-            "factor_id_direction_method": "qr_relative_offset_shared_buffer",
+            "router_query_mode": self.router_query_mode,
+            "router_query_global_weight": self.router_query_global_weight,
+            "router_local_bypass_scale": self.router_local_bypass_scale,
+            "router_local_bypass_max_ratio": self.router_local_bypass_max_ratio,
+            "router_local_projection_method": "qr_semi_orthogonal_buffer",
+            "router_local_projection_seed_offset": self.router_local_projection_seed_offset,
+            "router_key_anchor_enabled": self.router_key_anchor_enabled,
+            "router_key_anchor_method": "qr_orthonormal_rows_buffer",
+            "router_key_anchor_seed_offset": self.router_key_anchor_seed_offset,
+            "router_key_adaptation_initial_ratio": self.router_key_adaptation_initial_ratio,
+            "router_key_adaptation_max_ratio": self.router_key_adaptation_max_ratio,
+            "factor_context_anchor_enabled": self.factor_context_anchor_enabled,
+            "factor_context_anchor_method": "qr_orthonormal_rows_buffer",
+            "factor_context_anchor_seed_offset": self.factor_context_anchor_seed_offset,
+            "factor_context_adaptation_initial_ratio": self.factor_context_adaptation_initial_ratio,
+            "factor_context_adaptation_max_ratio": self.factor_context_adaptation_max_ratio,
+            "factor_identity_tangent_projection_enabled": self.factor_identity_tangent_projection_enabled,
+            "lambda_dynamic_mean_anchor": self.lambda_dynamic_mean_anchor,
+            "dynamic_mean_anchor_min_cosine": self.dynamic_mean_anchor_min_cosine,
+            "dynamic_mean_anchor_start_epoch": self.dynamic_mean_anchor_start_epoch,
+            "dynamic_mean_anchor_warmup_epochs": self.dynamic_mean_anchor_warmup_epochs,
+            "factor_id_direction_method": "tangent_context_anchor_shared_buffer",
             "factor_id_projection_mode": "shared_linear_bankdim_to_textdim",
             "factor_id_shared_across_states": True,
             "router_teacher_mode": self.router_teacher_mode,
@@ -278,6 +349,19 @@ class H6Progress1(nn.Module):
         mixed = (1.0 - float(hybrid_alpha)) * hard_adapted.unsqueeze(2) + float(hybrid_alpha) * dynamic_text
         return F.normalize(mixed, dim=3)
 
+    def dynamic_mean_anchor_loss(
+        self,
+        dynamic_text: torch.Tensor,
+        hard_frozen: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        if dynamic_text.ndim != 5:
+            raise ValueError("dynamic_text must be [G,B,M,D,2]")
+        mean_dynamic = F.normalize(dynamic_text.float().mean(dim=2), dim=2)
+        hard_anchor = hard_frozen.detach().float()
+        dynamic_mean_hard_cos = F.cosine_similarity(mean_dynamic, hard_anchor, dim=2)
+        loss = F.relu(float(self.dynamic_mean_anchor_min_cosine) - dynamic_mean_hard_cos).pow(2).mean()
+        return loss, dynamic_mean_hard_cos.detach()
+
     def build_batch(
         self,
         base_model,
@@ -305,6 +389,7 @@ class H6Progress1(nn.Module):
         hard_adapted = F.normalize(hard_adapted.float(), dim=2)
         hard_frozen = F.normalize(hard_frozen.float(), dim=2)
         dynamic = F.normalize(dynamic.float(), dim=3)
+        dynamic_mean_anchor_loss_raw, dynamic_mean_hard_cos = self.dynamic_mean_anchor_loss(dynamic, hard_frozen)
         factor_bank = self._fuse_factor_bank(hard_adapted, dynamic, hybrid_alpha)
         anchor = hard_frozen.unsqueeze(2).expand_as(dynamic)
         kg_loss = (1.0 - F.cosine_similarity(dynamic.float(), anchor, dim=3)).mean()
@@ -330,6 +415,8 @@ class H6Progress1(nn.Module):
             "factor_bank": factor_bank,
             "kg_loss": kg_loss,
             "residual_diversity": residual_diversity,
+            "dynamic_mean_anchor_loss_raw": dynamic_mean_anchor_loss_raw,
+            "dynamic_mean_hard_cos": dynamic_mean_hard_cos,
             "text_global": self.router.aggregate_global(prediction_probabilities, factor_bank),
             "local_text": local_text,
             "h6_logits": h6_logits,
@@ -341,7 +428,15 @@ class H6Progress1(nn.Module):
                 sparse_probabilities=routing["sparse_probabilities"],
                 topk_indices=routing["topk_indices"],
                 ),
-                **self.router.concept_key_diagnostics(core["concept_keys"]),
+                **self.router.concept_key_diagnostics(routing["concept_keys"]),
+                "raw_concept_key_cos_mean": routing["raw_concept_key_cos_mean"].detach(),
+                "raw_concept_key_cos_max": routing["raw_concept_key_cos_max"].detach(),
+                "raw_concept_key_l2_min": routing["raw_concept_key_l2_min"].detach(),
+                "final_router_key_cos_mean": routing["final_router_key_cos_mean"].detach(),
+                "final_router_key_cos_max": routing["final_router_key_cos_max"].detach(),
+                "final_router_key_l2_min": routing["final_router_key_l2_min"].detach(),
+                "router_key_adaptation_ratio_mean": routing["router_key_adaptation_ratio_mean"].detach(),
+                "router_key_adaptation_ratio_max": routing["router_key_adaptation_ratio_max"].detach(),
                 "router_logit_std": routing["logits"].float().std(dim=(1, 2, 3), unbiased=False).detach(),
                 "router_prob_std": routing["dense_probabilities"].float().std(dim=(1, 2, 3), unbiased=False).detach(),
                 "query_variance": routing["queries"].float().var(dim=(1, 2, 3), unbiased=False).detach(),
@@ -368,6 +463,17 @@ class H6Progress1(nn.Module):
                 "per_factor_logit_std_across_patches": routing[
                     "per_factor_logit_std_across_patches"
                 ].detach(),
+                "raw_query_pairwise_cos_mean": routing["raw_query_pairwise_cos_mean"].detach(),
+                "local_query_pairwise_cos_mean": routing["local_query_pairwise_cos_mean"].detach(),
+                "final_query_pairwise_cos_mean": routing["final_query_pairwise_cos_mean"].detach(),
+                "raw_query_variance_across_patches": routing["raw_query_variance_across_patches"].detach(),
+                "local_query_variance_across_patches": routing["local_query_variance_across_patches"].detach(),
+                "final_query_variance_across_patches": routing["final_query_variance_across_patches"].detach(),
+                "final_query_effective_rank": routing["final_query_effective_rank"].detach(),
+                "final_query_top1_energy_ratio": routing["final_query_top1_energy_ratio"].detach(),
+                "local_bypass_norm_mean": routing["local_bypass_norm_mean"].detach(),
+                "local_bypass_to_learned_ratio_mean": routing["local_bypass_to_learned_ratio_mean"].detach(),
+                "local_bypass_to_learned_ratio_max": routing["local_bypass_to_learned_ratio_max"].detach(),
                 **self.semantic_core.initialization_diagnostics(),
                 **factor_stage_diagnostics(core["concept_slots"], "stage_concept_slots", factor_dim=0),
                 **factor_stage_diagnostics(core["concept_keys"], "stage_concept_keys", factor_dim=0),
@@ -389,6 +495,21 @@ class H6Progress1(nn.Module):
                 "factor_id_residual_norm_max": core["factor_id_residual_norm_max"].detach(),
                 "factor_id_residual_to_context_ratio_mean": core["factor_id_residual_to_context_ratio_mean"].detach(),
                 "factor_id_residual_to_context_ratio_max": core["factor_id_residual_to_context_ratio_max"].detach(),
+                "factor_context_anchor_cos_mean": core["factor_context_anchor_cos_mean"].detach(),
+                "factor_context_anchor_cos_max": core["factor_context_anchor_cos_max"].detach(),
+                "factor_identity_tangent_base_abs_cos_mean": core[
+                    "factor_identity_tangent_base_abs_cos_mean"
+                ].detach(),
+                "factor_identity_tangent_base_abs_cos_max": core[
+                    "factor_identity_tangent_base_abs_cos_max"
+                ].detach(),
+                "factor_identity_tangent_pair_cos_mean": core["factor_identity_tangent_pair_cos_mean"].detach(),
+                "factor_identity_tangent_pair_cos_max": core["factor_identity_tangent_pair_cos_max"].detach(),
+                "factor_identity_tangent_l2_min": core["factor_identity_tangent_l2_min"].detach(),
+                "context_angle_change_degrees_mean": core["context_angle_change_degrees_mean"].detach(),
+                "context_angle_change_degrees_max": core["context_angle_change_degrees_max"].detach(),
+                "dynamic_mean_hard_cos": dynamic_mean_hard_cos.detach(),
+                "dynamic_mean_anchor_loss_raw": dynamic_mean_anchor_loss_raw.detach(),
             },
         }
 
