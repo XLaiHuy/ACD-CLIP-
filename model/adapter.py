@@ -74,6 +74,10 @@ class ACDCLIP(nn.Module):
             h6_slot_init_scale: float = 0.02,
             h6_slot_init_seed_offset: int = 6100,
             h6_factor_grad_diagnostics: bool = False,
+            h6_late_factor_identity_enabled: bool = False,
+            h6_factor_id_scale: float = 0.02,
+            h6_factor_id_max_ratio: float = 0.05,
+            h6_router_teacher_mode: str = "raw_cosine",
             **kwargs,
     ):
         super().__init__()
@@ -231,6 +235,10 @@ class ACDCLIP(nn.Module):
                 slot_init_scale=h6_slot_init_scale,
                 slot_init_seed_offset=h6_slot_init_seed_offset,
                 factor_grad_diagnostics=h6_factor_grad_diagnostics,
+                late_factor_identity_enabled=h6_late_factor_identity_enabled,
+                factor_id_scale=h6_factor_id_scale,
+                factor_id_max_ratio=h6_factor_id_max_ratio,
+                router_teacher_mode=h6_router_teacher_mode,
                 text_dim=768,
                 ctx_len=soft_prompt_ctx_len,
             )

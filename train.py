@@ -857,6 +857,9 @@ def _phase2b_config_from_args(args) -> dict:
         "h6_slot_init_scale": args.h6_slot_init_scale,
         "h6_slot_init_seed_offset": args.h6_slot_init_seed_offset,
         "h6_factor_grad_diagnostics": args.h6_factor_grad_diagnostics,
+        "h6_late_factor_identity_enabled": args.h6_late_factor_identity_enabled,
+        "h6_factor_id_scale": args.h6_factor_id_scale,
+        "h6_factor_id_max_ratio": args.h6_factor_id_max_ratio,
         "h6_load_bias_enabled": args.h6_load_bias_enabled,
         "h6_load_bias_momentum": args.h6_load_bias_momentum,
         "h6_load_bias_step": args.h6_load_bias_step,
@@ -865,6 +868,7 @@ def _phase2b_config_from_args(args) -> dict:
         "h6_router_teacher_temperature": args.h6_router_teacher_temperature,
         "h6_router_teacher_start_epoch": args.h6_router_teacher_start_epoch,
         "h6_router_teacher_warmup_epochs": args.h6_router_teacher_warmup_epochs,
+        "h6_router_teacher_mode": args.h6_router_teacher_mode,
         "h6_teacher_confidence_gate": args.h6_teacher_confidence_gate,
         "h6_teacher_entropy_threshold": args.h6_teacher_entropy_threshold,
         "h6_teacher_prob_std_threshold": args.h6_teacher_prob_std_threshold,
@@ -900,6 +904,7 @@ def train_h6_progress1(
         "teacher_confidence_gate": bool(args.h6_teacher_confidence_gate),
         "teacher_entropy_threshold": args.h6_teacher_entropy_threshold,
         "teacher_prob_std_threshold": args.h6_teacher_prob_std_threshold,
+        "router_teacher_mode": args.h6_router_teacher_mode,
         "vae_rec": args.lambda_h6_vae_rec,
         "vae_kl_zero_epochs": args.h6_kl_zero_epochs,
         "vae_kl_warmup_epochs": args.h6_kl_warmup_epochs,
@@ -950,6 +955,7 @@ def train_h6_progress1(
             "factor_grad_cos_max": None,
             "factor_grad_l2_min": None,
             "dynamic_residual_grad_norms": None,
+            "factor_id_projection_grad_norm": None,
         }
         optimizer.zero_grad(set_to_none=True)
         progress = tqdm(train_loader, desc=f"[PHASE4-P1][TRAIN][epoch {epoch:02d}/{args.epoch:02d}]")
@@ -1011,6 +1017,10 @@ def train_h6_progress1(
                         mask,
                         label,
                         temperature=args.h6_router_teacher_temperature,
+                        mode=args.h6_router_teacher_mode,
+                        confidence_gate_enabled=args.h6_teacher_confidence_gate,
+                        entropy_threshold=args.h6_teacher_entropy_threshold,
+                        probability_std_threshold=args.h6_teacher_prob_std_threshold,
                     )
                     teacher_diag.update(
                         teacher_candidate_diagnostics(
@@ -1036,8 +1046,13 @@ def train_h6_progress1(
                     else torch.tensor(0.0, device=device)
                 )
                 teacher_informative = bool(
-                    (teacher_entropy_mean < float(args.h6_teacher_entropy_threshold)).detach().cpu().item()
-                    and (teacher_prob_std_mean > float(args.h6_teacher_prob_std_threshold)).detach().cpu().item()
+                    teacher_diag.get("teacher_informative_patch_count", torch.zeros((), device=device))
+                    .detach()
+                    .float()
+                    .sum()
+                    .cpu()
+                    .item()
+                    > 0
                 )
                 effective_router_teacher_weight = (
                     router_teacher_weight
@@ -1079,6 +1094,9 @@ def train_h6_progress1(
                     factor_grad_diag["dynamic_residual_grad_norms"] = (
                         dynamic_grad.detach().float().norm(dim=3).mean(dim=(0, 1, 3)).detach()
                     )
+                factor_id_grad = model.h6.semantic_core.factor_id_projection.weight.grad
+                if factor_id_grad is not None:
+                    factor_grad_diag["factor_id_projection_grad_norm"] = factor_id_grad.detach().float().norm()
             do_step = batch_idx % args.grad_accum_steps == 0 or batch_idx == len(train_loader)
             if do_step:
                 scaler.unscale_(optimizer)
@@ -1150,7 +1168,7 @@ def train_h6_progress1(
             return float(diagnostics[key].detach().float().cpu().item())
 
         logger.info(
-            "phase4_p1_v5 epoch=%d total=%s task=%s cls=%s seg=%s center=%s router_teacher=%s "
+            "phase4_p1_v5_fix epoch=%d total=%s task=%s cls=%s seg=%s center=%s router_teacher=%s "
             "router_teacher_weighted=%s vae_rec=%s vae_kl_raw=%s vae_kl_effective=%s beta_vae_kl=%s "
             "kg=%s orth=%s balance=%s alpha=%s sparse_ratio=%s routing_mode=%s gamma_state=%s gamma_class=%s rho=%s lr=%s "
             "dense_usage=%s sparse_usage=%s topk_freq=%s dense_entropy=%s sparse_entropy=%s dense_dead=%s sparse_dead=%s "
@@ -1183,10 +1201,17 @@ def train_h6_progress1(
             "stage_concept_keys_cos_mean=%s stage_concept_keys_cos_max=%s stage_concept_keys_l2_min=%s "
             "stage_prototype_normal_cos_mean=%s stage_prototype_normal_cos_max=%s stage_prototype_normal_l2_min=%s "
             "stage_state_to_context_raw_cos_mean=%s stage_state_to_context_raw_cos_max=%s stage_state_to_context_raw_l2_min=%s "
+            "stage_state_to_context_with_identity_cos_mean=%s stage_state_to_context_with_identity_cos_max=%s stage_state_to_context_with_identity_l2_min=%s "
             "stage_state_to_context_norm_cos_mean=%s stage_state_to_context_norm_cos_max=%s stage_state_to_context_norm_l2_min=%s "
             "stage_context_before_encoder_cos_mean=%s stage_context_before_encoder_cos_max=%s stage_context_before_encoder_l2_min=%s "
             "stage_dynamic_text_raw_cos_mean=%s stage_dynamic_text_raw_cos_max=%s stage_dynamic_text_raw_l2_min=%s "
-            "stage_dynamic_text_norm_cos_mean=%s stage_dynamic_text_norm_cos_max=%s stage_dynamic_text_norm_l2_min=%s",
+            "stage_dynamic_text_norm_cos_mean=%s stage_dynamic_text_norm_cos_max=%s stage_dynamic_text_norm_l2_min=%s "
+            "late_factor_identity_enabled=%s factor_id_scale=%s factor_id_max_ratio=%s "
+            "factor_id_residual_norm_mean=%s factor_id_residual_norm_max=%s "
+            "factor_id_residual_to_context_ratio_mean=%s factor_id_residual_to_context_ratio_max=%s "
+            "factor_id_projection_grad_norm=%s teacher_mode=%s teacher_confidence_gate_enabled=%s "
+            "teacher_informative_patch_fraction=%s teacher_informative_patch_count=%s teacher_valid_patch_count=%s "
+            "teacher_active_levels=%s teacher_gate_reason=%s",
             epoch, *(float(np.mean(metrics[key])) for key in (
                 "total", "task", "cls", "seg", "center", "router_teacher", "router_teacher_weighted",
                 "vae_rec", "vae_kl_raw", "vae_kl_effective"
@@ -1287,10 +1312,26 @@ def train_h6_progress1(
             _diag_float("stage_concept_keys_cos_mean"), _diag_float("stage_concept_keys_cos_max"), _diag_float("stage_concept_keys_l2_min"),
             _diag_float("stage_prototype_normal_cos_mean"), _diag_float("stage_prototype_normal_cos_max"), _diag_float("stage_prototype_normal_l2_min"),
             _diag_float("stage_state_to_context_raw_cos_mean"), _diag_float("stage_state_to_context_raw_cos_max"), _diag_float("stage_state_to_context_raw_l2_min"),
+            _diag_float("stage_state_to_context_with_identity_cos_mean"), _diag_float("stage_state_to_context_with_identity_cos_max"), _diag_float("stage_state_to_context_with_identity_l2_min"),
             _diag_float("stage_state_to_context_norm_cos_mean"), _diag_float("stage_state_to_context_norm_cos_max"), _diag_float("stage_state_to_context_norm_l2_min"),
             _diag_float("stage_context_before_encoder_cos_mean"), _diag_float("stage_context_before_encoder_cos_max"), _diag_float("stage_context_before_encoder_l2_min"),
             _diag_float("stage_dynamic_text_raw_cos_mean"), _diag_float("stage_dynamic_text_raw_cos_max"), _diag_float("stage_dynamic_text_raw_l2_min"),
             _diag_float("stage_dynamic_text_norm_cos_mean"), _diag_float("stage_dynamic_text_norm_cos_max"), _diag_float("stage_dynamic_text_norm_l2_min"),
+            bool(diagnostics["late_factor_identity_enabled"].detach().cpu().item()),
+            float(diagnostics["factor_id_scale"].detach().float().cpu().item()),
+            float(diagnostics["factor_id_max_ratio"].detach().float().cpu().item()),
+            _diag_float("factor_id_residual_norm_mean"),
+            _diag_float("factor_id_residual_norm_max"),
+            _diag_float("factor_id_residual_to_context_ratio_mean"),
+            _diag_float("factor_id_residual_to_context_ratio_max"),
+            None if factor_grad_diag["factor_id_projection_grad_norm"] is None else float(factor_grad_diag["factor_id_projection_grad_norm"].cpu().item()),
+            args.h6_router_teacher_mode,
+            bool(args.h6_teacher_confidence_gate),
+            _teacher_value("teacher_informative_patch_fraction"),
+            _teacher_value("teacher_informative_patch_count"),
+            _teacher_value("teacher_valid_patch_count"),
+            _teacher_value("teacher_active_levels"),
+            _teacher_value("teacher_gate_reason"),
         )
         payload = build_phase4_checkpoint(
             model,
@@ -1392,6 +1433,11 @@ def main():
     parser.add_argument("--h6_router_teacher_temperature", type=float, default=0.15)
     parser.add_argument("--h6_router_teacher_start_epoch", type=int, default=3)
     parser.add_argument("--h6_router_teacher_warmup_epochs", type=int, default=3)
+    parser.add_argument(
+        "--h6_router_teacher_mode",
+        choices=["raw_cosine", "state_centered_cosine", "negative_squared_distance"],
+        default="raw_cosine",
+    )
     parser.add_argument("--h6_teacher_confidence_gate", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--h6_teacher_entropy_threshold", type=float, default=0.98)
     parser.add_argument("--h6_teacher_prob_std_threshold", type=float, default=1e-3)
@@ -1409,6 +1455,9 @@ def main():
     parser.add_argument("--h6_slot_init_scale", type=float, default=0.02)
     parser.add_argument("--h6_slot_init_seed_offset", type=int, default=6100)
     parser.add_argument("--h6_factor_grad_diagnostics", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_late_factor_identity_enabled", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_factor_id_scale", type=float, default=0.02)
+    parser.add_argument("--h6_factor_id_max_ratio", type=float, default=0.05)
     parser.add_argument("--h6_expert_bottleneck", type=int, default=64, help="reserved for Progress 2; unused in Progress 1")
     parser.add_argument("--lambda_h6_center", type=float, default=0.10)
     parser.add_argument("--h6_center_factor_aware", action="store_true")
@@ -1500,6 +1549,8 @@ def main():
         raise ValueError("--h6_vae_class_ratio must be in [0, 1]")
     if args.h6_slot_init_scale < 0:
         raise ValueError("--h6_slot_init_scale must be >= 0")
+    if args.h6_factor_id_scale < 0 or args.h6_factor_id_max_ratio < 0:
+        raise ValueError("--h6_factor_id_scale/max_ratio must be >= 0")
     if not -1 <= args.h6_concept_key_cosine_margin <= 1:
         raise ValueError("--h6_concept_key_cosine_margin must be in [-1, 1]")
     if args.h6_concept_key_diversity_warmup_epochs < 1:
@@ -1591,6 +1642,10 @@ def main():
         h6_slot_init_scale=args.h6_slot_init_scale,
         h6_slot_init_seed_offset=args.h6_slot_init_seed_offset,
         h6_factor_grad_diagnostics=args.h6_factor_grad_diagnostics,
+        h6_late_factor_identity_enabled=args.h6_late_factor_identity_enabled,
+        h6_factor_id_scale=args.h6_factor_id_scale,
+        h6_factor_id_max_ratio=args.h6_factor_id_max_ratio,
+        h6_router_teacher_mode=args.h6_router_teacher_mode,
     ).to(device)
     model.eval()
     model.use_hybrid_soft_prompt = bool(args.use_hybrid_soft_prompt)

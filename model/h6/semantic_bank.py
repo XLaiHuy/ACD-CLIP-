@@ -80,6 +80,21 @@ def apply_relative_slot_offsets_(
         }
 
 
+def deterministic_xavier_uniform_(parameter: torch.Tensor, seed: int) -> None:
+    """Xavier-uniform init using a local CPU generator, not global RNG."""
+    if parameter.ndim < 2:
+        raise ValueError("xavier init expects at least 2-D tensor")
+    fan_in = parameter.shape[1]
+    fan_out = parameter.shape[0]
+    bound = math.sqrt(6.0 / float(fan_in + fan_out))
+    generator = torch.Generator(device="cpu")
+    generator.manual_seed(int(seed))
+    values = torch.rand(parameter.shape, generator=generator, dtype=torch.float32)
+    values = values.mul(2.0).sub(1.0).mul(bound)
+    with torch.no_grad():
+        parameter.copy_(values.to(device=parameter.device, dtype=parameter.dtype))
+
+
 class BoundedPositiveGate(nn.Module):
     """A strictly positive scalar with a known, inspectable upper bound."""
 
@@ -172,6 +187,9 @@ class CoPSSemanticCore(nn.Module):
         slot_init_scale: float = 0.02,
         slot_init_seed_offset: int = 6100,
         slot_init_method: str = "qr_relative_offset",
+        late_factor_identity_enabled: bool = False,
+        factor_id_scale: float = 0.02,
+        factor_id_max_ratio: float = 0.05,
     ):
         super().__init__()
         if bank_dim % 4 != 0:
@@ -185,8 +203,15 @@ class CoPSSemanticCore(nn.Module):
         self.slot_init_scale = float(slot_init_scale)
         self.slot_init_seed_offset = int(slot_init_seed_offset)
         self.slot_init_method = str(slot_init_method)
+        self.late_factor_identity_enabled = bool(late_factor_identity_enabled)
+        self.factor_id_scale = float(factor_id_scale)
+        self.factor_id_max_ratio = float(factor_id_max_ratio)
         self.slot_init_applied_components: list[str] = []
         self._slot_initial_diagnostics: Dict[str, torch.Tensor] = {}
+        self.register_buffer(
+            "factor_id_directions",
+            deterministic_slot_directions(num_factors, bank_dim, self.slot_init_seed_offset),
+        )
 
         self.level_projectors = nn.ModuleList(
             [nn.Sequential(nn.Linear(text_dim, bank_dim), nn.LayerNorm(bank_dim)) for _ in range(n_groups)]
@@ -207,6 +232,7 @@ class CoPSSemanticCore(nn.Module):
         )
         self.state_to_context_normal = nn.Linear(bank_dim, ctx_len * text_dim)
         self.state_to_context_abnormal = nn.Linear(bank_dim, ctx_len * text_dim)
+        self.factor_id_projection = nn.Linear(bank_dim, text_dim, bias=False)
         self.class_vae = ClassVAE(text_dim, vae_hidden_dim, vae_latent_dim, class_ratio=vae_class_ratio)
         self.class_to_context = nn.Linear(text_dim, ctx_len * text_dim)
         self.gamma_state = BoundedPositiveGate(initial=0.05, maximum=0.20)
@@ -218,6 +244,7 @@ class CoPSSemanticCore(nn.Module):
         nn.init.normal_(self.concept_slots, std=0.02)
         for module in (self.normal_query, self.abnormal_query, self.router_key):
             nn.init.xavier_uniform_(module.weight)
+        deterministic_xavier_uniform_(self.factor_id_projection.weight, self.slot_init_seed_offset + 31)
         self.slot_init_applied_components = []
         self._slot_initial_diagnostics = {}
         if self.slot_init_enabled:
@@ -228,6 +255,37 @@ class CoPSSemanticCore(nn.Module):
             )
             self.slot_init_applied_components.append("semantic_core.concept_slots")
             self._slot_initial_diagnostics = diagnostics
+
+    def apply_late_factor_identity(self, state_delta_raw: torch.Tensor) -> tuple[torch.Tensor, Dict[str, torch.Tensor]]:
+        """Add small factor-ID residual after state_to_context and before text encoding.
+
+        state_delta_raw is [B,M,2,ctx_len,D].  The same factor identity m is
+        broadcast across normal/abnormal state and context-token positions.
+        Residual scale is relative to a detached per-token base norm.
+        """
+        zero = state_delta_raw.float().sum() * 0.0
+        if not self.late_factor_identity_enabled:
+            return state_delta_raw, {
+                "factor_id_residual_norm_mean": zero.detach(),
+                "factor_id_residual_norm_max": zero.detach(),
+                "factor_id_residual_to_context_ratio_mean": zero.detach(),
+                "factor_id_residual_to_context_ratio_max": zero.detach(),
+            }
+        directions = self.factor_id_directions.to(device=state_delta_raw.device, dtype=state_delta_raw.dtype)
+        factor_identity = F.normalize(self.factor_id_projection(directions).float(), dim=-1)
+        factor_identity = factor_identity.view(1, self.num_factors, 1, 1, self.text_dim)
+        base_norm = state_delta_raw.detach().float().norm(dim=-1, keepdim=True).clamp_min(1e-6)
+        residual = float(self.factor_id_scale) * base_norm * factor_identity
+        max_norm = float(self.factor_id_max_ratio) * base_norm
+        residual_norm = residual.float().norm(dim=-1, keepdim=True).clamp_min(1e-6)
+        residual = residual * torch.clamp(max_norm / residual_norm, max=1.0)
+        ratio = residual.float().norm(dim=-1, keepdim=True) / base_norm
+        return state_delta_raw + residual.to(state_delta_raw.dtype), {
+            "factor_id_residual_norm_mean": residual.float().norm(dim=-1).mean().detach(),
+            "factor_id_residual_norm_max": residual.float().norm(dim=-1).max().detach(),
+            "factor_id_residual_to_context_ratio_mean": ratio.mean().detach(),
+            "factor_id_residual_to_context_ratio_max": ratio.max().detach(),
+        }
 
     def concept_keys(self) -> torch.Tensor:
         """Shared factor keys reserved for a later joint visual/text router."""
@@ -308,7 +366,8 @@ class CoPSSemanticCore(nn.Module):
             batch, self.num_factors, self.ctx_len, self.text_dim
         )
         state_delta_raw = torch.stack([state_normal, state_abnormal], dim=2)
-        state_delta = F.normalize(state_delta_raw.float(), dim=-1)
+        state_delta_with_identity, factor_id_diagnostics = self.apply_late_factor_identity(state_delta_raw)
+        state_delta = F.normalize(state_delta_with_identity.float(), dim=-1)
         class_delta_raw = self.class_to_context(vae["class_semantic"]).view(batch, self.ctx_len, self.text_dim)
         class_delta = F.normalize(class_delta_raw.float(), dim=-1).unsqueeze(1).unsqueeze(1)
 
@@ -334,7 +393,14 @@ class CoPSSemanticCore(nn.Module):
             "normal_queries": normal_queries,
             "abnormal_queries": abnormal_queries,
             "state_delta_raw": state_delta_raw,
+            "state_delta_with_identity": state_delta_with_identity,
             "state_delta": state_delta,
+            "late_factor_identity_enabled": torch.tensor(
+                self.late_factor_identity_enabled, device=state_delta.device
+            ),
+            "factor_id_scale": torch.tensor(self.factor_id_scale, device=state_delta.device),
+            "factor_id_max_ratio": torch.tensor(self.factor_id_max_ratio, device=state_delta.device),
+            **factor_id_diagnostics,
             "class_delta_raw": class_delta_raw,
             "class_delta": class_delta,
             "gamma_state": self.gamma_state(),

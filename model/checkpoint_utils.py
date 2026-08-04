@@ -7,7 +7,7 @@ from typing import Any, Dict, Mapping
 import torch
 
 
-PHASE4_CHECKPOINT_VERSION = 4
+PHASE4_CHECKPOINT_VERSION = 5
 
 
 def is_phase4_checkpoint(checkpoint: Mapping[str, Any]) -> bool:
@@ -31,7 +31,7 @@ def validate_h6_configuration(model, checkpoint: Mapping[str, Any]) -> None:
         raise ValueError("checkpoint contains H6 weights but the CLI constructed an H6-disabled model")
     expected = model.h6.config_dict()
     expected_version = expected.get("progress_version")
-    if expected_version in {"P1-v3", "P1-v4", "P1-v5"} and config.get("progress_version") != expected_version:
+    if expected_version in {"P1-v3", "P1-v4", "P1-v5", "P1-v5-fix"} and config.get("progress_version") != expected_version:
         raise ValueError(
             f"{expected_version} model requires a {expected_version} checkpoint with explicit "
             f"progress_version metadata; got {config.get('progress_version')!r}"
@@ -92,6 +92,7 @@ def build_phase4_checkpoint(
         ),
         "teacher_entropy_threshold": loss_weights.get("teacher_entropy_threshold"),
         "teacher_prob_std_threshold": loss_weights.get("teacher_prob_std_threshold"),
+        "router_teacher_mode": loss_weights.get("router_teacher_mode", h6_config.get("router_teacher_mode")),
         "router_teacher_state_aware": True,
         "router_teacher_detached": True,
         "balance_uses_dense": True,
@@ -109,6 +110,21 @@ def build_phase4_checkpoint(
         "concept_key_diversity_start_epoch": phase2b_config.get("h6_concept_key_diversity_start_epoch"),
         "concept_key_diversity_warmup_epochs": phase2b_config.get("h6_concept_key_diversity_warmup_epochs"),
         "factor_grad_diagnostics_enabled": phase2b_config.get("h6_factor_grad_diagnostics", False),
+        "late_factor_identity_enabled": phase2b_config.get(
+            "h6_late_factor_identity_enabled", h6_config.get("late_factor_identity_enabled")
+        ),
+        "factor_id_scale": phase2b_config.get("h6_factor_id_scale", h6_config.get("factor_id_scale")),
+        "factor_id_max_ratio": phase2b_config.get(
+            "h6_factor_id_max_ratio", h6_config.get("factor_id_max_ratio")
+        ),
+        "factor_id_direction_method": "qr_relative_offset_shared_buffer",
+        "factor_id_projection_mode": "shared_linear_bankdim_to_textdim",
+        "factor_id_shared_across_states": True,
+        "router_teacher_center_detached": True,
+        "router_teacher_probability_detached": True,
+        "teacher_confidence_gate_enabled": loss_weights.get("teacher_confidence_gate"),
+        "teacher_probability_std_threshold": loss_weights.get("teacher_prob_std_threshold"),
+        "teacher_gate_scope": "patch",
     })
     payload: Dict[str, Any] = {
         "checkpoint_version": PHASE4_CHECKPOINT_VERSION,

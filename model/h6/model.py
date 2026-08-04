@@ -46,6 +46,10 @@ class H6Progress1(nn.Module):
         slot_init_seed_offset: int = 6100,
         slot_init_method: str = "qr_relative_offset",
         factor_grad_diagnostics: bool = False,
+        late_factor_identity_enabled: bool = False,
+        factor_id_scale: float = 0.02,
+        factor_id_max_ratio: float = 0.05,
+        router_teacher_mode: str = "raw_cosine",
         text_dim: int = 768,
         ctx_len: int = 4,
         h6_logit_temperature: float = 10.0,
@@ -71,6 +75,10 @@ class H6Progress1(nn.Module):
         self.slot_init_seed_offset = int(slot_init_seed_offset)
         self.slot_init_method = str(slot_init_method)
         self.factor_grad_diagnostics = bool(factor_grad_diagnostics)
+        self.late_factor_identity_enabled = bool(late_factor_identity_enabled)
+        self.factor_id_scale = float(factor_id_scale)
+        self.factor_id_max_ratio = float(factor_id_max_ratio)
+        self.router_teacher_mode = str(router_teacher_mode)
         self.text_dim = int(text_dim)
         self.ctx_len = int(ctx_len)
         self.h6_logit_temperature = float(h6_logit_temperature)
@@ -87,6 +95,9 @@ class H6Progress1(nn.Module):
             slot_init_scale=slot_init_scale,
             slot_init_seed_offset=slot_init_seed_offset,
             slot_init_method=slot_init_method,
+            late_factor_identity_enabled=late_factor_identity_enabled,
+            factor_id_scale=factor_id_scale,
+            factor_id_max_ratio=factor_id_max_ratio,
         )
         self.router = PatchRouter(
             n_groups=n_groups,
@@ -111,8 +122,8 @@ class H6Progress1(nn.Module):
 
     def config_dict(self) -> Dict[str, int | float | str]:
         return {
-            "variant": "p1_v5_targeted_diagnostic",
-            "progress_version": "P1-v5",
+            "variant": "p1_v5_late_identity_centered_teacher",
+            "progress_version": "P1-v5-fix",
             "progress": self.progress,
             "n_groups": self.n_groups,
             "num_factors": self.num_factors,
@@ -171,6 +182,16 @@ class H6Progress1(nn.Module):
             "factor_identity_stage_tracing": True,
             "router_granularity_diagnostics": True,
             "query_patchwise_diagnostics": True,
+            "late_factor_identity_enabled": self.late_factor_identity_enabled,
+            "factor_id_scale": self.factor_id_scale,
+            "factor_id_max_ratio": self.factor_id_max_ratio,
+            "factor_id_direction_method": "qr_relative_offset_shared_buffer",
+            "factor_id_projection_mode": "shared_linear_bankdim_to_textdim",
+            "factor_id_shared_across_states": True,
+            "router_teacher_mode": self.router_teacher_mode,
+            "router_teacher_center_detached": True,
+            "router_teacher_probability_detached": True,
+            "teacher_gate_scope": "patch",
         }
 
     def set_epoch(self, epoch_one_based: int) -> None:
@@ -340,11 +361,19 @@ class H6Progress1(nn.Module):
                 **factor_stage_diagnostics(core["prototype_normal"], "stage_prototype_normal", factor_dim=1),
                 **factor_stage_diagnostics(core["prototype_abnormal"], "stage_prototype_abnormal", factor_dim=1),
                 **factor_stage_diagnostics(core["state_delta_raw"], "stage_state_to_context_raw", factor_dim=1),
+                **factor_stage_diagnostics(core["state_delta_with_identity"], "stage_state_to_context_with_identity", factor_dim=1),
                 **factor_stage_diagnostics(core["state_delta"], "stage_state_to_context_norm", factor_dim=1),
                 **factor_stage_diagnostics(core["dynamic_contexts"], "stage_context_before_encoder", factor_dim=1),
                 **factor_stage_diagnostics(dynamic_raw, "stage_dynamic_text_raw", factor_dim=2),
                 **factor_stage_diagnostics(dynamic, "stage_dynamic_text_norm", factor_dim=2),
                 **dynamic_residual_diagnostics(dynamic, hard_frozen),
+                "late_factor_identity_enabled": core["late_factor_identity_enabled"].detach(),
+                "factor_id_scale": core["factor_id_scale"].detach(),
+                "factor_id_max_ratio": core["factor_id_max_ratio"].detach(),
+                "factor_id_residual_norm_mean": core["factor_id_residual_norm_mean"].detach(),
+                "factor_id_residual_norm_max": core["factor_id_residual_norm_max"].detach(),
+                "factor_id_residual_to_context_ratio_mean": core["factor_id_residual_to_context_ratio_mean"].detach(),
+                "factor_id_residual_to_context_ratio_max": core["factor_id_residual_to_context_ratio_max"].detach(),
             },
         }
 
@@ -374,4 +403,5 @@ class H6Progress1(nn.Module):
             "h6_gates": list(self.semantic_core.gamma_state.parameters())
             + list(self.semantic_core.gamma_class.parameters())
             + list(self.rho.parameters()),
+            "h6_late_factor_identity": self.semantic_core.factor_id_projection.parameters(),
         }

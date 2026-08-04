@@ -149,6 +149,10 @@ def router_teacher_loss(
     masks: torch.Tensor,
     labels: torch.Tensor,
     temperature: float = 0.15,
+    mode: str = "raw_cosine",
+    confidence_gate_enabled: bool = False,
+    entropy_threshold: float = 0.98,
+    probability_std_threshold: float = 1e-3,
 ) -> tuple[torch.Tensor, Dict[str, torch.Tensor]]:
     """State-aware detached prototype teacher for dense router probabilities.
 
@@ -158,6 +162,8 @@ def router_teacher_loss(
     """
     if temperature <= 0:
         raise ValueError("router teacher temperature must be positive")
+    if mode not in {"raw_cosine", "state_centered_cosine", "negative_squared_distance"}:
+        raise ValueError(f"unsupported router teacher mode: {mode}")
     if projected_levels.ndim != 4 or dense_probabilities.ndim != 4:
         raise ValueError("projected_levels and dense_probabilities must be [G,B,P,*]")
     groups, batch, patches, dim = projected_levels.shape
@@ -187,13 +193,36 @@ def router_teacher_loss(
     raw_logit_ranges = []
     normal_patch_counts = []
     abnormal_patch_counts = []
+    informative_counts = []
+    valid_counts = []
+    active_levels = []
     for group in range(groups):
-        tokens = F.normalize(projected_levels[group].float(), dim=-1)
-        normal_proto = F.normalize(prototype_normal.float(), dim=-1)
-        abnormal_proto = F.normalize(prototype_abnormal.float(), dim=-1)
-        similarity_normal = torch.einsum("bpd,bmd->bpm", tokens, normal_proto)
-        similarity_abnormal = torch.einsum("bpd,bmd->bpm", tokens, abnormal_proto)
-        similarity = torch.where(abnormal_patch[..., None], similarity_abnormal, similarity_normal)
+        tokens = projected_levels[group].float()
+        normal_proto = prototype_normal.float()
+        abnormal_proto = prototype_abnormal.float()
+        chosen_proto = torch.where(abnormal_patch[..., None, None], abnormal_proto[:, None], normal_proto[:, None])
+        selected_center = torch.where(
+            abnormal_patch[..., None],
+            abnormal_proto.mean(dim=1).detach()[:, None, :],
+            normal_proto.mean(dim=1).detach()[:, None, :],
+        )
+        raw_similarity = torch.einsum(
+            "bpd,bpmd->bpm",
+            F.normalize(tokens, dim=-1),
+            F.normalize(chosen_proto, dim=-1),
+        )
+        centered_similarity = torch.einsum(
+            "bpd,bpmd->bpm",
+            F.normalize(tokens - selected_center, dim=-1),
+            F.normalize(chosen_proto - selected_center.unsqueeze(2), dim=-1),
+        )
+        distance_similarity = -(tokens.unsqueeze(2) - chosen_proto).pow(2).mean(dim=-1)
+        if mode == "raw_cosine":
+            similarity = raw_similarity
+        elif mode == "state_centered_cosine":
+            similarity = centered_similarity
+        else:
+            similarity = distance_similarity
         raw_similarity_means.append(similarity.detach().mean(dim=(0, 1)))
         raw_similarity_factor_stds.append(similarity.detach().std(dim=-1, unbiased=False).mean())
         raw_similarity_patch_stds.append(similarity.detach().std(dim=(0, 1), unbiased=False).mean())
@@ -204,10 +233,27 @@ def router_teacher_loss(
         abnormal_patch_counts.append(abnormal_patch.sum())
         teacher = F.softmax(similarity.detach() / float(temperature), dim=-1)
         student_log = dense_probabilities[group].float().clamp_min(1e-8).log()
-        terms.append(-(teacher * student_log).sum(dim=-1).mean())
-        entropy = (-(teacher * teacher.clamp_min(1e-8).log()).sum(dim=-1)).mean()
+        per_patch_loss = -(teacher * student_log).sum(dim=-1)
+        per_patch_entropy = -(teacher * teacher.clamp_min(1e-8).log()).sum(dim=-1)
+        normalized_patch_entropy = per_patch_entropy / math.log(float(dense_probabilities.shape[-1]))
+        per_patch_std = teacher.float().std(dim=-1, unbiased=False)
+        valid_patch = torch.ones_like(per_patch_loss, dtype=torch.bool)
+        informative_patch = (
+            valid_patch
+            & (normalized_patch_entropy < float(entropy_threshold))
+            & (per_patch_std > float(probability_std_threshold))
+        )
+        selected_patch = informative_patch if confidence_gate_enabled else valid_patch
+        informative_counts.append(informative_patch.sum())
+        valid_counts.append(valid_patch.sum())
+        active_levels.append(torch.as_tensor(bool(selected_patch.any().item()), device=teacher.device))
+        if selected_patch.any():
+            terms.append(per_patch_loss[selected_patch].mean())
+        else:
+            terms.append(dense_probabilities[group].float().sum() * 0.0)
+        entropy = per_patch_entropy.mean()
         entropies.append(entropy)
-        normalized_entropies.append(entropy / math.log(float(dense_probabilities.shape[-1])))
+        normalized_entropies.append(normalized_patch_entropy.mean())
         max_probabilities.append(teacher.max(dim=-1).values.mean())
         patch_stds.append(teacher.float().std(dim=(0, 1), unbiased=False).mean())
         usage = teacher.float().mean(dim=(0, 1))
@@ -236,12 +282,22 @@ def router_teacher_loss(
         "teacher_raw_logit_range": torch.stack(raw_logit_ranges).detach(),
         "normal_patch_count": torch.stack(normal_patch_counts).detach(),
         "abnormal_patch_count": torch.stack(abnormal_patch_counts).detach(),
+        "teacher_informative_patch_count": torch.stack(informative_counts).detach(),
+        "teacher_valid_patch_count": torch.stack(valid_counts).detach(),
+        "teacher_informative_patch_fraction": (
+            torch.stack(informative_counts).float() / torch.stack(valid_counts).float().clamp_min(1.0)
+        ).detach(),
+        "teacher_active_levels": torch.stack(active_levels).bool().detach(),
+        "teacher_gate_reason": torch.as_tensor(
+            0 if (not confidence_gate_enabled or torch.stack(informative_counts).sum().item() > 0) else 1,
+            device=projected_levels.device,
+        ),
         "router_teacher_finite": torch.isfinite(loss).detach(),
     }
     return loss, diagnostics
 
 
-def _teacher_distribution_diagnostics(probabilities: torch.Tensor) -> Dict[str, torch.Tensor]:
+def _teacher_distribution_diagnostics(probabilities: torch.Tensor, logits: torch.Tensor) -> Dict[str, torch.Tensor]:
     factors = probabilities.shape[-1]
     entropy = -(probabilities * probabilities.clamp_min(1e-8).log()).sum(dim=-1)
     normalized_entropy = entropy.mean(dim=(1, 2)) / math.log(float(factors))
@@ -259,6 +315,9 @@ def _teacher_distribution_diagnostics(probabilities: torch.Tensor) -> Dict[str, 
         "probability_std_across_patches": patch_std.detach(),
         "usage": usage.detach(),
         "unique_topk_pairs": torch.stack(unique).long().detach(),
+        "logit_range": (logits.float().amax(dim=(1, 2, 3)) - logits.float().amin(dim=(1, 2, 3))).detach(),
+        "logit_std_across_factors": logits.float().std(dim=-1, unbiased=False).mean(dim=(1, 2)).detach(),
+        "logit_std_across_patches": logits.float().std(dim=(1, 2), unbiased=False).mean(dim=-1).detach(),
     }
 
 
@@ -280,6 +339,9 @@ def teacher_candidate_diagnostics(
     raw_probs = []
     centered_probs = []
     distance_probs = []
+    raw_logits = []
+    centered_logits = []
+    distance_logits = []
     for group in range(groups):
         tokens = projected_levels[group].float()
         normal_proto = prototype_normal.float()
@@ -291,7 +353,11 @@ def teacher_candidate_diagnostics(
             F.normalize(tokens, dim=-1),
             F.normalize(chosen_proto, dim=-1),
         )
-        center = tokens.mean(dim=1, keepdim=True).detach()
+        center = torch.where(
+            abnormal_patch[..., None],
+            abnormal_proto.mean(dim=1).detach()[:, None, :],
+            normal_proto.mean(dim=1).detach()[:, None, :],
+        )
         token_residual = F.normalize(tokens - center, dim=-1)
         proto_residual = F.normalize(chosen_proto - center.unsqueeze(2), dim=-1)
         centered_sim = torch.einsum("bpd,bpmd->bpm", token_residual, proto_residual)
@@ -300,14 +366,17 @@ def teacher_candidate_diagnostics(
         raw_probs.append(F.softmax(raw_sim.detach() / float(temperature), dim=-1))
         centered_probs.append(F.softmax(centered_sim.detach() / float(temperature), dim=-1))
         distance_probs.append(F.softmax(distance_sim.detach() / float(temperature), dim=-1))
+        raw_logits.append(raw_sim.detach())
+        centered_logits.append(centered_sim.detach())
+        distance_logits.append(distance_sim.detach())
 
     output = {}
-    for name, probs in (
-        ("teacher_raw_candidate", torch.stack(raw_probs, dim=0)),
-        ("teacher_centered_candidate", torch.stack(centered_probs, dim=0)),
-        ("teacher_distance_candidate", torch.stack(distance_probs, dim=0)),
+    for name, probs, logits in (
+        ("teacher_raw_candidate", torch.stack(raw_probs, dim=0), torch.stack(raw_logits, dim=0)),
+        ("teacher_centered_candidate", torch.stack(centered_probs, dim=0), torch.stack(centered_logits, dim=0)),
+        ("teacher_distance_candidate", torch.stack(distance_probs, dim=0), torch.stack(distance_logits, dim=0)),
     ):
-        diag = _teacher_distribution_diagnostics(probs)
+        diag = _teacher_distribution_diagnostics(probs, logits)
         for key, value in diag.items():
             output[f"{name}_{key}"] = value
     return output

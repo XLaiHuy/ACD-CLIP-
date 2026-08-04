@@ -408,6 +408,14 @@ def main():
     parser.add_argument("--h6_slot_init_scale", type=float, default=0.02)
     parser.add_argument("--h6_slot_init_seed_offset", type=int, default=6100)
     parser.add_argument("--h6_factor_grad_diagnostics", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_late_factor_identity_enabled", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_factor_id_scale", type=float, default=0.02)
+    parser.add_argument("--h6_factor_id_max_ratio", type=float, default=0.05)
+    parser.add_argument(
+        "--h6_router_teacher_mode",
+        choices=["raw_cosine", "state_centered_cosine", "negative_squared_distance"],
+        default="raw_cosine",
+    )
     parser.add_argument(
         "--dfg_mode",
         type=str,
@@ -535,6 +543,10 @@ def main():
             args.h6_slot_init_scale = float(preflight_h6.get("slot_init_scale", 0.02))
             args.h6_slot_init_seed_offset = int(preflight_h6.get("slot_init_seed_offset", 6100))
             args.h6_factor_grad_diagnostics = bool(preflight_h6.get("factor_grad_diagnostics_enabled", False))
+            args.h6_late_factor_identity_enabled = bool(preflight_h6.get("late_factor_identity_enabled", False))
+            args.h6_factor_id_scale = float(preflight_h6.get("factor_id_scale", 0.02))
+            args.h6_factor_id_max_ratio = float(preflight_h6.get("factor_id_max_ratio", 0.05))
+            args.h6_router_teacher_mode = str(preflight_h6.get("router_teacher_mode", "raw_cosine"))
         elif args.h6_progress != int(preflight_h6["progress"]):
             raise ValueError(
                 f"checkpoint phase4_progress is {preflight_h6['progress']}, but --h6_progress is {args.h6_progress}"
@@ -603,6 +615,10 @@ def main():
         h6_slot_init_scale=args.h6_slot_init_scale,
         h6_slot_init_seed_offset=args.h6_slot_init_seed_offset,
         h6_factor_grad_diagnostics=args.h6_factor_grad_diagnostics,
+        h6_late_factor_identity_enabled=args.h6_late_factor_identity_enabled,
+        h6_factor_id_scale=args.h6_factor_id_scale,
+        h6_factor_id_max_ratio=args.h6_factor_id_max_ratio,
+        h6_router_teacher_mode=args.h6_router_teacher_mode,
     ).to(device)
     model.eval()
     model.prompt_mode = "h6_dynamic" if args.h6_progress == 1 else ("hybrid" if args.use_hybrid_soft_prompt else ("soft" if args.use_soft_prompt else "hard"))

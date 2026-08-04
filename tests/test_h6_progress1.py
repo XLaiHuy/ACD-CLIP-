@@ -9,7 +9,15 @@ from model.h6.model import H6Progress1
 
 
 class _TinyPhase4Model(nn.Module):
-    def __init__(self, h6_router_soft_epochs=2, h6_sparse_transition_epochs=1):
+    def __init__(
+        self,
+        h6_router_soft_epochs=2,
+        h6_sparse_transition_epochs=1,
+        h6_late_factor_identity_enabled=False,
+        h6_factor_id_scale=0.02,
+        h6_factor_id_max_ratio=0.05,
+        h6_router_teacher_mode="raw_cosine",
+    ):
         super().__init__()
         self.image_adapter = nn.Linear(3, 3)
         self.text_adapter = nn.Linear(3, 3)
@@ -22,6 +30,10 @@ class _TinyPhase4Model(nn.Module):
             sparse_transition_epochs=h6_sparse_transition_epochs,
             load_bias_enabled=True,
             vae_class_ratio=0.25,
+            late_factor_identity_enabled=h6_late_factor_identity_enabled,
+            factor_id_scale=h6_factor_id_scale,
+            factor_id_max_ratio=h6_factor_id_max_ratio,
+            router_teacher_mode=h6_router_teacher_mode,
         )
         self.n_groups = 3
         self.dfg_mode = "attn"
@@ -80,7 +92,14 @@ def test_progress1_synthetic_backward_and_isolation():
 
 
 def test_synthetic_old_and_phase4_checkpoint_compatibility():
-    source = _TinyPhase4Model(h6_router_soft_epochs=8, h6_sparse_transition_epochs=4)
+    source = _TinyPhase4Model(
+        h6_router_soft_epochs=8,
+        h6_sparse_transition_epochs=4,
+        h6_late_factor_identity_enabled=True,
+        h6_factor_id_scale=0.02,
+        h6_factor_id_max_ratio=0.05,
+        h6_router_teacher_mode="state_centered_cosine",
+    )
     payload = build_phase4_checkpoint(
         source,
         epoch=3,
@@ -102,6 +121,10 @@ def test_synthetic_old_and_phase4_checkpoint_compatibility():
             "h6_vae_class_ratio": 0.25,
             "beta_h6_vae_kl": 1e-5,
             "lambda_h6_concept_key_diversity": 0.0,
+            "h6_late_factor_identity_enabled": True,
+            "h6_factor_id_scale": 0.02,
+            "h6_factor_id_max_ratio": 0.05,
+            "h6_router_teacher_mode": "state_centered_cosine",
         },
         loss_weights={
             "center": 0.1,
@@ -111,11 +134,22 @@ def test_synthetic_old_and_phase4_checkpoint_compatibility():
             "router_teacher_temperature": 0.15,
             "router_teacher_start_epoch": 3,
             "router_teacher_warmup_epochs": 3,
+            "router_teacher_mode": "state_centered_cosine",
+            "teacher_confidence_gate": True,
+            "teacher_entropy_threshold": 0.98,
+            "teacher_prob_std_threshold": 0.001,
             "balance": 0.001,
             "vae_kl_zero_epochs": 8,
         },
     )
-    restored = _TinyPhase4Model(h6_router_soft_epochs=8, h6_sparse_transition_epochs=4)
+    restored = _TinyPhase4Model(
+        h6_router_soft_epochs=8,
+        h6_sparse_transition_epochs=4,
+        h6_late_factor_identity_enabled=True,
+        h6_factor_id_scale=0.02,
+        h6_factor_id_max_ratio=0.05,
+        h6_router_teacher_mode="state_centered_cosine",
+    )
     assert load_adapter_checkpoint(restored, payload) is True
     assert restored.h6.epoch_one_based == 3
     for key, value in source.h6.state_dict().items():
@@ -130,11 +164,11 @@ def test_synthetic_old_and_phase4_checkpoint_compatibility():
     with tempfile.NamedTemporaryFile(suffix=".pth") as handle:
         torch.save(payload, handle.name)
         loaded = torch.load(handle.name, map_location="cpu")
-    assert loaded["checkpoint_version"] == 4
+    assert loaded["checkpoint_version"] == 5
     assert loaded["phase4_progress"] == 1
     assert loaded["h6_enabled"] is True
-    assert loaded["h6_config"]["variant"] == "p1_v5_targeted_diagnostic"
-    assert loaded["h6_config"]["progress_version"] == "P1-v5"
+    assert loaded["h6_config"]["variant"] == "p1_v5_late_identity_centered_teacher"
+    assert loaded["h6_config"]["progress_version"] == "P1-v5-fix"
     assert loaded["h6_config"]["dense_routing_epochs"] == 8
     assert loaded["h6_config"]["sparse_start_epoch"] == 9
     assert loaded["h6_config"]["sparse_full_epoch"] == 12
@@ -157,5 +191,18 @@ def test_synthetic_old_and_phase4_checkpoint_compatibility():
     assert loaded["h6_config"]["kl_free_bits"] == 0.02
     assert loaded["h6_config"]["three_level_router_mode"] == "shared_router_level_specific_inputs"
     assert loaded["h6_config"]["teacher_diagnostics_version"] == 1
+    assert loaded["h6_config"]["late_factor_identity_enabled"] is True
+    assert loaded["h6_config"]["factor_id_scale"] == 0.02
+    assert loaded["h6_config"]["factor_id_max_ratio"] == 0.05
+    assert loaded["h6_config"]["factor_id_direction_method"] == "qr_relative_offset_shared_buffer"
+    assert loaded["h6_config"]["factor_id_projection_mode"] == "shared_linear_bankdim_to_textdim"
+    assert loaded["h6_config"]["factor_id_shared_across_states"] is True
+    assert loaded["h6_config"]["router_teacher_mode"] == "state_centered_cosine"
+    assert loaded["h6_config"]["router_teacher_center_detached"] is True
+    assert loaded["h6_config"]["router_teacher_probability_detached"] is True
+    assert loaded["h6_config"]["teacher_confidence_gate_enabled"] is True
+    assert loaded["h6_config"]["teacher_entropy_threshold"] == 0.98
+    assert loaded["h6_config"]["teacher_probability_std_threshold"] == 0.001
+    assert loaded["h6_config"]["teacher_gate_scope"] == "patch"
     assert loaded["loss_weights"]["center_factor_aware"] is True
     assert loaded["loss_weights"]["center_detach_assignment"] is True
