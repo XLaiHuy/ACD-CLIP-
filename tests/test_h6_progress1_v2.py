@@ -224,6 +224,7 @@ def test_vae_prompt_semantic_uses_decoder_mu_deterministically():
     second = vae(cls)
 
     assert torch.allclose(first["class_semantic"], second["class_semantic"], atol=1e-6)
-    assert torch.allclose(first["decoded_mu"], first["class_semantic"], atol=1e-6)
+    assert torch.allclose(first["class_semantic"].norm(dim=-1), torch.ones(3), atol=1e-6)
+    assert torch.allclose(first["decoded_mu"], second["decoded_mu"], atol=1e-6)
     assert not torch.allclose(first["reconstruction_sample"], second["reconstruction_sample"])
     assert torch.isfinite(first["kl"])

@@ -396,8 +396,18 @@ def main():
     parser.add_argument("--h6_router_soft_epochs", type=int, default=2)
     parser.add_argument("--h6_dense_routing_epochs", type=int, default=None)
     parser.add_argument("--h6_sparse_start_epoch", type=int, default=None)
+    parser.add_argument("--h6_sparse_transition_epochs", type=int, default=1)
+    parser.add_argument("--h6_load_bias_enabled", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_load_bias_momentum", type=float, default=0.9)
+    parser.add_argument("--h6_load_bias_step", type=float, default=0.001)
+    parser.add_argument("--h6_load_bias_max", type=float, default=0.03)
     parser.add_argument("--h6_vae_hidden_dim", type=int, default=512)
     parser.add_argument("--h6_vae_latent_dim", type=int, default=256)
+    parser.add_argument("--h6_vae_class_ratio", type=float, default=0.25)
+    parser.add_argument("--h6_slot_init_enabled", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_slot_init_scale", type=float, default=0.02)
+    parser.add_argument("--h6_slot_init_seed_offset", type=int, default=6100)
+    parser.add_argument("--h6_factor_grad_diagnostics", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument(
         "--dfg_mode",
         type=str,
@@ -513,8 +523,18 @@ def main():
             args.h6_router_dim = int(preflight_h6["router_dim"])
             args.h6_router_temperature = float(preflight_h6["router_temperature"])
             args.h6_router_soft_epochs = int(preflight_h6["router_soft_epochs"])
+            args.h6_sparse_transition_epochs = int(preflight_h6.get("sparse_transition_epochs", 1))
+            args.h6_load_bias_enabled = bool(preflight_h6.get("load_bias_enabled", False))
+            args.h6_load_bias_momentum = float(preflight_h6.get("load_bias_momentum", 0.9))
+            args.h6_load_bias_step = float(preflight_h6.get("load_bias_step", 0.001))
+            args.h6_load_bias_max = float(preflight_h6.get("load_bias_max", 0.03))
             args.h6_vae_hidden_dim = int(preflight_h6["vae_hidden_dim"])
             args.h6_vae_latent_dim = int(preflight_h6["vae_latent_dim"])
+            args.h6_vae_class_ratio = float(preflight_h6.get("vae_class_ratio", 0.25))
+            args.h6_slot_init_enabled = bool(preflight_h6.get("slot_init_enabled", False))
+            args.h6_slot_init_scale = float(preflight_h6.get("slot_init_scale", 0.02))
+            args.h6_slot_init_seed_offset = int(preflight_h6.get("slot_init_seed_offset", 6100))
+            args.h6_factor_grad_diagnostics = bool(preflight_h6.get("factor_grad_diagnostics_enabled", False))
         elif args.h6_progress != int(preflight_h6["progress"]):
             raise ValueError(
                 f"checkpoint phase4_progress is {preflight_h6['progress']}, but --h6_progress is {args.h6_progress}"
@@ -571,8 +591,18 @@ def main():
         h6_router_dim=args.h6_router_dim,
         h6_router_temperature=args.h6_router_temperature,
         h6_router_soft_epochs=args.h6_router_soft_epochs,
+        h6_sparse_transition_epochs=args.h6_sparse_transition_epochs,
+        h6_load_bias_enabled=args.h6_load_bias_enabled,
+        h6_load_bias_momentum=args.h6_load_bias_momentum,
+        h6_load_bias_step=args.h6_load_bias_step,
+        h6_load_bias_max=args.h6_load_bias_max,
         h6_vae_hidden_dim=args.h6_vae_hidden_dim,
         h6_vae_latent_dim=args.h6_vae_latent_dim,
+        h6_vae_class_ratio=args.h6_vae_class_ratio,
+        h6_slot_init_enabled=args.h6_slot_init_enabled,
+        h6_slot_init_scale=args.h6_slot_init_scale,
+        h6_slot_init_seed_offset=args.h6_slot_init_seed_offset,
+        h6_factor_grad_diagnostics=args.h6_factor_grad_diagnostics,
     ).to(device)
     model.eval()
     model.prompt_mode = "h6_dynamic" if args.h6_progress == 1 else ("hybrid" if args.use_hybrid_soft_prompt else ("soft" if args.use_soft_prompt else "hard"))

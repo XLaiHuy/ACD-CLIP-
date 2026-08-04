@@ -7,7 +7,7 @@ from typing import Any, Dict, Mapping
 import torch
 
 
-PHASE4_CHECKPOINT_VERSION = 2
+PHASE4_CHECKPOINT_VERSION = 4
 
 
 def is_phase4_checkpoint(checkpoint: Mapping[str, Any]) -> bool:
@@ -30,6 +30,12 @@ def validate_h6_configuration(model, checkpoint: Mapping[str, Any]) -> None:
     if not getattr(model, "h6_enabled", False) or getattr(model, "h6", None) is None:
         raise ValueError("checkpoint contains H6 weights but the CLI constructed an H6-disabled model")
     expected = model.h6.config_dict()
+    expected_version = expected.get("progress_version")
+    if expected_version in {"P1-v3", "P1-v4", "P1-v5"} and config.get("progress_version") != expected_version:
+        raise ValueError(
+            f"{expected_version} model requires a {expected_version} checkpoint with explicit "
+            f"progress_version metadata; got {config.get('progress_version')!r}"
+        )
     mismatches = {
         key: (config.get(key), expected.get(key))
         for key in expected
@@ -74,13 +80,43 @@ def build_phase4_checkpoint(
     if not getattr(model, "h6_enabled", False) or getattr(model, "h6", None) is None:
         raise ValueError("build_phase4_checkpoint requires an H6-enabled model")
     h6 = model.h6
+    h6_config = dict(h6.config_dict())
+    h6_config.update({
+        "router_teacher_enabled": float(loss_weights.get("router_teacher", 0.0)) > 0.0,
+        "router_teacher_temperature": loss_weights.get("router_teacher_temperature"),
+        "router_teacher_start_epoch": loss_weights.get("router_teacher_start_epoch"),
+        "router_teacher_warmup_epochs": loss_weights.get("router_teacher_warmup_epochs"),
+        "router_teacher_weight": loss_weights.get("router_teacher"),
+        "teacher_confidence_gate": loss_weights.get(
+            "teacher_confidence_gate", h6_config.get("teacher_confidence_gate")
+        ),
+        "teacher_entropy_threshold": loss_weights.get("teacher_entropy_threshold"),
+        "teacher_prob_std_threshold": loss_weights.get("teacher_prob_std_threshold"),
+        "router_teacher_state_aware": True,
+        "router_teacher_detached": True,
+        "balance_uses_dense": True,
+        "balance_weight": loss_weights.get("balance"),
+        "router_failure_patience": phase2b_config.get("h6_router_failure_patience"),
+        "router_max_sparse_dead_factors": phase2b_config.get("h6_router_max_sparse_dead_factors"),
+        "router_min_unique_topk_pairs": phase2b_config.get("h6_router_min_unique_topk_pairs"),
+        "kl_zero_epochs": phase2b_config.get("h6_kl_zero_epochs"),
+        "kl_warmup_epochs": phase2b_config.get("h6_kl_warmup_epochs"),
+        "beta_kl_max": phase2b_config.get("beta_h6_vae_kl", loss_weights.get("vae_kl_current")),
+        "kl_free_bits": phase2b_config.get("h6_kl_free_bits"),
+        "kl_reduction_mode": "sum_latent_mean_batch",
+        "concept_key_diversity_weight": phase2b_config.get("lambda_h6_concept_key_diversity", 0.0),
+        "concept_key_cosine_margin": phase2b_config.get("h6_concept_key_cosine_margin"),
+        "concept_key_diversity_start_epoch": phase2b_config.get("h6_concept_key_diversity_start_epoch"),
+        "concept_key_diversity_warmup_epochs": phase2b_config.get("h6_concept_key_diversity_warmup_epochs"),
+        "factor_grad_diagnostics_enabled": phase2b_config.get("h6_factor_grad_diagnostics", False),
+    })
     payload: Dict[str, Any] = {
         "checkpoint_version": PHASE4_CHECKPOINT_VERSION,
         "epoch": int(epoch),
         "seed": int(seed),
         "phase4_progress": 1,
         "h6_enabled": True,
-        "h6_config": h6.config_dict(),
+        "h6_config": h6_config,
         "h6_state_dict": h6.state_dict(),
         "image_adapter": model.image_adapter.state_dict(),
         "text_adapter": model.text_adapter.state_dict(),

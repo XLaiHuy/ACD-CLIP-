@@ -8,6 +8,8 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
+from .semantic_bank import apply_relative_slot_offsets_
+
 
 class PatchRouter(nn.Module):
     def __init__(
@@ -19,7 +21,15 @@ class PatchRouter(nn.Module):
         hidden_dim: int = 128,
         temperature: float = 1.0,
         soft_routing_epochs: int = 2,
+        sparse_transition_epochs: int = 1,
         top_k: int = 2,
+        load_bias_enabled: bool = False,
+        load_bias_momentum: float = 0.9,
+        load_bias_step: float = 0.001,
+        load_bias_max: float = 0.03,
+        slot_init_enabled: bool = False,
+        slot_init_scale: float = 0.02,
+        slot_init_seed_offset: int = 6100,
     ):
         super().__init__()
         if not 0 < top_k <= num_factors:
@@ -32,14 +42,32 @@ class PatchRouter(nn.Module):
         self.bank_dim = int(bank_dim)
         self.temperature = float(temperature)
         self.soft_routing_epochs = int(soft_routing_epochs)
+        self.sparse_transition_epochs = max(1, int(sparse_transition_epochs))
         self.top_k = int(top_k)
+        self.load_bias_enabled = bool(load_bias_enabled)
+        self.load_bias_momentum = float(load_bias_momentum)
+        self.load_bias_step = float(load_bias_step)
+        self.load_bias_max = float(load_bias_max)
+        self.slot_init_enabled = bool(slot_init_enabled)
+        self.slot_init_scale = float(slot_init_scale)
+        self.slot_init_seed_offset = int(slot_init_seed_offset)
         self.level_embedding = nn.Parameter(torch.empty(n_groups, text_dim))
         self.query_projector = nn.Sequential(
             nn.Linear(3 * text_dim, hidden_dim), nn.GELU(), nn.Linear(hidden_dim, bank_dim)
         )
         self.fallback_concept_keys = nn.Parameter(torch.empty(num_factors, bank_dim))
+        self.register_buffer("ema_topk_usage", torch.full((n_groups, num_factors), 1.0 / num_factors))
+        self.register_buffer("load_bias", torch.zeros(n_groups, num_factors))
         nn.init.normal_(self.level_embedding, std=0.02)
         nn.init.normal_(self.fallback_concept_keys, std=0.02)
+        self.slot_init_applied_components: list[str] = []
+        if self.slot_init_enabled:
+            apply_relative_slot_offsets_(
+                self.fallback_concept_keys,
+                scale=self.slot_init_scale,
+                seed=self.slot_init_seed_offset + 17,
+            )
+            self.slot_init_applied_components.append("router.fallback_concept_keys")
 
     @staticmethod
     def _stack(level_tokens: Sequence[torch.Tensor] | torch.Tensor) -> torch.Tensor:
@@ -50,16 +78,33 @@ class PatchRouter(nn.Module):
         level_tokens: Sequence[torch.Tensor] | torch.Tensor,
         epoch_one_based: int,
         concept_keys: torch.Tensor | None = None,
+        update_load_bias: bool = False,
     ) -> Dict[str, torch.Tensor]:
+        input_alias = False
+        if not torch.is_tensor(level_tokens):
+            token_list = list(level_tokens)
+            input_alias = len({id(t) for t in token_list}) != len(token_list)
+            level_tokens = token_list
         stacked = self._stack(level_tokens)
         with torch.autocast(device_type=stacked.device.type, enabled=False):
-            return self._forward_fp32(stacked, epoch_one_based, concept_keys)
+            output = self._forward_fp32(stacked, epoch_one_based, concept_keys, update_load_bias)
+        output["level_input_alias"] = torch.tensor(input_alias, device=stacked.device)
+        return output
+
+    def sparse_ratio(self, epoch_one_based: int) -> float:
+        """Deterministic dense-to-sparse interpolation; cannot stay dense forever."""
+        epoch = int(epoch_one_based)
+        if epoch <= self.soft_routing_epochs:
+            return 0.0
+        step = epoch - self.soft_routing_epochs
+        return min(1.0, float(step) / float(self.sparse_transition_epochs))
 
     def _forward_fp32(
         self,
         tokens: torch.Tensor,
         epoch_one_based: int,
         concept_keys: torch.Tensor | None = None,
+        update_load_bias: bool = False,
     ) -> Dict[str, torch.Tensor]:
         if tokens.ndim != 4 or tokens.shape[0] != self.n_groups or tokens.shape[-1] != self.text_dim:
             raise ValueError("router input must be [n_groups, B, P, 768]")
@@ -76,22 +121,110 @@ class PatchRouter(nn.Module):
         keys = F.normalize(concept_keys.float(), dim=-1)
         logits = torch.einsum("gbpd,md->gbpm", query, keys) / self.temperature
         dense_probabilities = F.softmax(logits, dim=-1)
-        _, topk_indices = torch.topk(logits, k=self.top_k, dim=-1)
+        ratio = self.sparse_ratio(epoch_one_based)
+        bias_active = self.load_bias_enabled and ratio > 0.0
+        selection_logits = logits
+        if bias_active:
+            selection_logits = selection_logits + self.load_bias[:, None, None, :].detach()
+        _, topk_indices = torch.topk(selection_logits, k=self.top_k, dim=-1)
         masked_logits = torch.full_like(logits, float("-inf"))
         masked_logits.scatter_(-1, topk_indices, logits.gather(-1, topk_indices))
         sparse_probabilities = F.softmax(masked_logits, dim=-1)
-        sparse_active = bool(epoch_one_based > self.soft_routing_epochs)
-        prediction_probabilities = sparse_probabilities if sparse_active else dense_probabilities
+        st_sparse_probabilities = dense_probabilities + (sparse_probabilities - dense_probabilities).detach()
+        prediction_probabilities = (1.0 - ratio) * dense_probabilities + ratio * st_sparse_probabilities
+        sparse_active = bool(ratio >= 1.0)
+        topk_frequency = self.topk_frequency(topk_indices, self.num_factors).detach()
+        if self.training and update_load_bias and bias_active:
+            self.update_load_bias(topk_frequency)
+        level_query_difference = self._level_pairwise_l2_min(query)
+        level_logit_difference = self._level_pairwise_l2_min(logits)
+        level_input_difference = self._level_pairwise_l2_min(tokens)
+        query_patch = self.query_patch_diagnostics(query, logits)
         return {
             "logits": logits,
+            "selection_logits": selection_logits,
+            "queries": query,
+            "concept_keys": keys,
             "dense_probabilities": dense_probabilities,
             "sparse_probabilities": sparse_probabilities,
+            "st_sparse_probabilities": st_sparse_probabilities,
             "prediction_probabilities": prediction_probabilities,
             "probabilities": prediction_probabilities,
             "topk_indices": topk_indices,
+            "topk_frequency": topk_frequency,
+            "sparse_ratio": torch.tensor(ratio, device=logits.device, dtype=logits.dtype),
             "sparse_active": torch.tensor(sparse_active, device=logits.device),
             "sparse": torch.tensor(sparse_active, device=logits.device),
+            "load_bias": self.load_bias.detach().clone(),
+            "ema_topk_usage": self.ema_topk_usage.detach().clone(),
+            "level_input_difference": level_input_difference.detach(),
+            "level_query_difference": level_query_difference.detach(),
+            "level_logit_difference": level_logit_difference.detach(),
+            "router_patch_count": torch.tensor(patches, device=logits.device, dtype=torch.long),
+            "router_softmax_dim": torch.tensor(logits.ndim - 1, device=logits.device, dtype=torch.long),
+            "router_topk_dim": torch.tensor(logits.ndim - 1, device=logits.device, dtype=torch.long),
+            **query_patch,
         }
+
+    @staticmethod
+    def _level_pairwise_l2_min(values: torch.Tensor) -> torch.Tensor:
+        if values.shape[0] < 2:
+            return torch.tensor(float("inf"), device=values.device, dtype=values.dtype)
+        flattened = values.float().reshape(values.shape[0], -1)
+        distances = torch.cdist(flattened, flattened)
+        mask = ~torch.eye(values.shape[0], device=values.device, dtype=torch.bool)
+        return distances[mask].min()
+
+    @staticmethod
+    def query_patch_diagnostics(query: torch.Tensor, logits: torch.Tensor) -> Dict[str, torch.Tensor]:
+        groups, batch, patches, rank_dim = query.shape
+        cos_means = []
+        cos_maxs = []
+        effective_ranks = []
+        sv_ratios = []
+        for group in range(groups):
+            q = query[group].float()
+            q_norm = F.normalize(q, dim=-1)
+            gram = torch.einsum("bpd,bqd->bpq", q_norm, q_norm)
+            if patches > 1:
+                mask = ~torch.eye(patches, device=query.device, dtype=torch.bool)
+                offdiag = gram[:, mask]
+                cos_means.append(offdiag.mean())
+                cos_maxs.append(offdiag.abs().max())
+            else:
+                zero = q.sum() * 0.0
+                cos_means.append(zero)
+                cos_maxs.append(zero)
+            flat = q.reshape(batch * patches, rank_dim)
+            flat = flat - flat.mean(dim=0, keepdim=True)
+            singular = torch.linalg.svdvals(flat)
+            energy = singular.clamp_min(0)
+            prob = energy / energy.sum().clamp_min(1e-8)
+            entropy = -(prob * prob.clamp_min(1e-8).log()).sum()
+            effective_ranks.append(torch.exp(entropy))
+            sv_ratios.append(singular[0] / singular.sum().clamp_min(1e-8))
+        return {
+            "query_pairwise_cos_mean_across_patches": torch.stack(cos_means).detach(),
+            "query_pairwise_cos_max_across_patches": torch.stack(cos_maxs).detach(),
+            "query_variance_across_patches": query.float().var(dim=2, unbiased=False).mean(dim=(1, 2)).detach(),
+            "query_effective_rank": torch.stack(effective_ranks).detach(),
+            "query_singular_value_ratio": torch.stack(sv_ratios).detach(),
+            "per_factor_logit_std_across_patches": logits.float().std(dim=2, unbiased=False).mean(dim=1).detach(),
+        }
+
+    @staticmethod
+    def topk_frequency(topk_indices: torch.Tensor, num_factors: int) -> torch.Tensor:
+        selected = F.one_hot(topk_indices.long(), num_classes=num_factors).float()
+        return selected.mean(dim=(1, 2, 3))
+
+    @torch.no_grad()
+    def update_load_bias(self, topk_frequency: torch.Tensor) -> None:
+        target = torch.full_like(topk_frequency, 1.0 / float(self.num_factors))
+        self.ema_topk_usage.mul_(self.load_bias_momentum).add_(
+            topk_frequency.to(self.ema_topk_usage.device) * (1.0 - self.load_bias_momentum)
+        )
+        self.load_bias.add_(self.load_bias_step * (target - self.ema_topk_usage))
+        self.load_bias.clamp_(min=-self.load_bias_max, max=self.load_bias_max)
 
     @staticmethod
     def aggregate_global(probabilities: torch.Tensor, factor_bank: torch.Tensor) -> torch.Tensor:
@@ -105,6 +238,31 @@ class PatchRouter(nn.Module):
         """Return patch-local normal/abnormal text [G,B,P,768,2]."""
         text = torch.einsum("gbpm,gbmds->gbpds", probabilities.float(), factor_bank.float())
         return F.normalize(text, dim=3)
+
+    @staticmethod
+    def unique_topk_pair_counts(topk_indices: torch.Tensor) -> torch.Tensor:
+        groups = topk_indices.shape[0]
+        counts = []
+        pairs = torch.sort(topk_indices.detach().long(), dim=-1).values
+        for group in range(groups):
+            flattened = pairs[group].reshape(-1, pairs.shape[-1])
+            counts.append(torch.unique(flattened, dim=0).shape[0])
+        return torch.tensor(counts, device=topk_indices.device, dtype=torch.long)
+
+    @staticmethod
+    def concept_key_diagnostics(concept_keys: torch.Tensor) -> Dict[str, torch.Tensor]:
+        keys = F.normalize(concept_keys.float(), dim=-1)
+        cosine = keys @ keys.T
+        offdiag = cosine[~torch.eye(cosine.shape[0], device=cosine.device, dtype=torch.bool)]
+        distances = torch.cdist(concept_keys.float(), concept_keys.float())
+        offdiag_l2 = distances[~torch.eye(distances.shape[0], device=distances.device, dtype=torch.bool)]
+        return {
+            "concept_key_cosine": cosine.detach(),
+            "concept_key_cos_mean": offdiag.mean().detach(),
+            "concept_key_cos_max": offdiag.abs().max().detach(),
+            "concept_key_l2_min": offdiag_l2.min().detach(),
+            "concept_key_norm": concept_keys.float().norm(dim=-1).detach(),
+        }
 
     @staticmethod
     def _probability_diagnostics(probabilities: torch.Tensor) -> Dict[str, torch.Tensor]:
@@ -147,6 +305,8 @@ class PatchRouter(nn.Module):
             output["sparse_factor_usage"] = sparse["usage"]
             output["sparse_normalized_entropy"] = sparse["entropy"]
         if topk_indices is not None:
-            selected = F.one_hot(topk_indices.long(), num_classes=prediction_probabilities.shape[-1]).float()
-            output["selected_topk_frequency"] = selected.mean(dim=(1, 2, 3)).detach()
+            output["selected_topk_frequency"] = PatchRouter.topk_frequency(
+                topk_indices, prediction_probabilities.shape[-1]
+            ).detach()
+            output["unique_topk_pairs"] = PatchRouter.unique_topk_pair_counts(topk_indices).detach()
         return output

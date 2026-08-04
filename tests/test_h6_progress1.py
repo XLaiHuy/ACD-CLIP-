@@ -9,14 +9,20 @@ from model.h6.model import H6Progress1
 
 
 class _TinyPhase4Model(nn.Module):
-    def __init__(self, h6_router_soft_epochs=2):
+    def __init__(self, h6_router_soft_epochs=2, h6_sparse_transition_epochs=1):
         super().__init__()
         self.image_adapter = nn.Linear(3, 3)
         self.text_adapter = nn.Linear(3, 3)
         self.soft_prompt = nn.Module()
         self.soft_prompt.ctx = nn.Parameter(torch.randn(4, 768))
         self.h6_enabled = True
-        self.h6 = H6Progress1(n_groups=3, router_soft_epochs=h6_router_soft_epochs)
+        self.h6 = H6Progress1(
+            n_groups=3,
+            router_soft_epochs=h6_router_soft_epochs,
+            sparse_transition_epochs=h6_sparse_transition_epochs,
+            load_bias_enabled=True,
+            vae_class_ratio=0.25,
+        )
         self.n_groups = 3
         self.dfg_mode = "attn"
         self.dfg_attn_dim = 256
@@ -74,7 +80,7 @@ def test_progress1_synthetic_backward_and_isolation():
 
 
 def test_synthetic_old_and_phase4_checkpoint_compatibility():
-    source = _TinyPhase4Model(h6_router_soft_epochs=6)
+    source = _TinyPhase4Model(h6_router_soft_epochs=8, h6_sparse_transition_epochs=4)
     payload = build_phase4_checkpoint(
         source,
         epoch=3,
@@ -82,19 +88,34 @@ def test_synthetic_old_and_phase4_checkpoint_compatibility():
         precision="fp32",
         phase2b_config={
             "n_groups": 3,
-            "h6_dense_routing_epochs": 6,
-            "h6_sparse_start_epoch": 7,
+            "h6_dense_routing_epochs": 8,
+            "h6_sparse_start_epoch": 9,
+            "h6_sparse_transition_epochs": 4,
+            "h6_router_failure_patience": 2,
+            "h6_router_max_sparse_dead_factors": 1,
+            "h6_router_min_unique_topk_pairs": 2,
             "h6_center_factor_aware": True,
             "h6_center_detach_assignment": True,
+            "h6_kl_zero_epochs": 8,
+            "h6_kl_warmup_epochs": 4,
+            "h6_kl_free_bits": 0.02,
+            "h6_vae_class_ratio": 0.25,
+            "beta_h6_vae_kl": 1e-5,
+            "lambda_h6_concept_key_diversity": 0.0,
         },
         loss_weights={
             "center": 0.1,
             "center_factor_aware": True,
             "center_detach_assignment": True,
-            "vae_kl_zero_epochs": 4,
+            "router_teacher": 0.01,
+            "router_teacher_temperature": 0.15,
+            "router_teacher_start_epoch": 3,
+            "router_teacher_warmup_epochs": 3,
+            "balance": 0.001,
+            "vae_kl_zero_epochs": 8,
         },
     )
-    restored = _TinyPhase4Model(h6_router_soft_epochs=6)
+    restored = _TinyPhase4Model(h6_router_soft_epochs=8, h6_sparse_transition_epochs=4)
     assert load_adapter_checkpoint(restored, payload) is True
     assert restored.h6.epoch_one_based == 3
     for key, value in source.h6.state_dict().items():
@@ -109,13 +130,20 @@ def test_synthetic_old_and_phase4_checkpoint_compatibility():
     with tempfile.NamedTemporaryFile(suffix=".pth") as handle:
         torch.save(payload, handle.name)
         loaded = torch.load(handle.name, map_location="cpu")
-    assert loaded["checkpoint_version"] == 2
+    assert loaded["checkpoint_version"] == 4
     assert loaded["phase4_progress"] == 1
     assert loaded["h6_enabled"] is True
-    assert loaded["h6_config"]["variant"] == "p1_v2_specialization_fix"
-    assert loaded["h6_config"]["dense_routing_epochs"] == 6
-    assert loaded["h6_config"]["sparse_start_epoch"] == 7
+    assert loaded["h6_config"]["variant"] == "p1_v5_targeted_diagnostic"
+    assert loaded["h6_config"]["progress_version"] == "P1-v5"
+    assert loaded["h6_config"]["dense_routing_epochs"] == 8
+    assert loaded["h6_config"]["sparse_start_epoch"] == 9
+    assert loaded["h6_config"]["sparse_full_epoch"] == 12
+    assert loaded["h6_config"]["sparse_mode"] == "straight_through_topk"
     assert loaded["h6_config"]["router_mode"] == "concept_key_dot"
+    assert loaded["h6_config"]["router_teacher_enabled"] is True
+    assert loaded["h6_config"]["router_teacher_detached"] is True
+    assert loaded["h6_config"]["load_bias_enabled"] is True
+    assert loaded["h6_config"]["load_bias_selection_only"] is True
     assert loaded["h6_config"]["dynamic_text_normalized"] is True
     assert loaded["h6_config"]["anchor_encoder_mode"] == "frozen"
     assert loaded["h6_config"]["diversity_target"] == "dynamic_residual"
@@ -125,5 +153,9 @@ def test_synthetic_old_and_phase4_checkpoint_compatibility():
     assert loaded["h6_config"]["center_loss"] == "factor_aware_dense_detached"
     assert loaded["h6_config"]["kl_schedule"] == "zero_then_linear"
     assert loaded["h6_config"]["vae_prompt_use_mu"] is True
+    assert loaded["h6_config"]["vae_class_skip_enabled"] is True
+    assert loaded["h6_config"]["kl_free_bits"] == 0.02
+    assert loaded["h6_config"]["three_level_router_mode"] == "shared_router_level_specific_inputs"
+    assert loaded["h6_config"]["teacher_diagnostics_version"] == 1
     assert loaded["loss_weights"]["center_factor_aware"] is True
     assert loaded["loss_weights"]["center_detach_assignment"] is True

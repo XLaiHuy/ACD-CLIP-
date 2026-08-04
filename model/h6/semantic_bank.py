@@ -15,6 +15,71 @@ def _logit(probability: float) -> float:
     return math.log(probability / (1.0 - probability))
 
 
+def deterministic_slot_directions(
+    num_slots: int,
+    dim: int,
+    seed: int,
+    *,
+    device: torch.device | None = None,
+    dtype: torch.dtype = torch.float32,
+) -> torch.Tensor:
+    """Generate fixed slot directions without consuming global RNG state."""
+    if num_slots < 1 or dim < 1:
+        raise ValueError("num_slots and dim must be positive")
+    generator = torch.Generator(device="cpu")
+    generator.manual_seed(int(seed))
+    matrix = torch.randn(dim, num_slots, generator=generator, dtype=torch.float32)
+    q, _ = torch.linalg.qr(matrix, mode="reduced")
+    directions = q.T.contiguous()
+    return F.normalize(directions.to(device=device, dtype=dtype), dim=-1)
+
+
+def apply_relative_slot_offsets_(
+    parameter: torch.Tensor,
+    *,
+    scale: float,
+    seed: int,
+    fallback_std: float = 0.02,
+) -> Dict[str, torch.Tensor]:
+    """Make slot rows slightly distinct while preserving a shared base.
+
+    ``scale`` is interpreted as perturbation_norm / base_norm.  If the shared
+    base is near zero, use a documented fallback norm equivalent to a normal
+    vector with ``fallback_std`` per dimension.
+    """
+    if parameter.ndim != 2:
+        raise ValueError("slot parameter must be [num_slots, dim]")
+    with torch.no_grad():
+        base = parameter.detach().mean(dim=0, keepdim=True)
+        base_norm = base.float().norm().clamp_min(0.0)
+        if float(base_norm.item()) < 1e-8:
+            base_norm = torch.tensor(
+                math.sqrt(parameter.shape[1]) * float(fallback_std),
+                device=parameter.device,
+                dtype=torch.float32,
+            )
+        directions = deterministic_slot_directions(
+            parameter.shape[0],
+            parameter.shape[1],
+            seed,
+            device=parameter.device,
+            dtype=parameter.dtype,
+        )
+        offsets = directions * (base_norm.to(parameter.dtype) * float(scale))
+        parameter.copy_(base.to(parameter.dtype).expand_as(parameter) + offsets)
+        values = parameter.detach().float()
+        cosine = F.normalize(values, dim=-1) @ F.normalize(values, dim=-1).T
+        offdiag_mask = ~torch.eye(values.shape[0], device=values.device, dtype=torch.bool)
+        l2 = torch.cdist(values, values)
+        offdiag_l2 = l2[offdiag_mask]
+        return {
+            "slot_initial_cos_mean": cosine[offdiag_mask].mean().detach(),
+            "slot_initial_cos_max": cosine[offdiag_mask].abs().max().detach(),
+            "slot_initial_l2_min": offdiag_l2.min().detach(),
+            "slot_initial_relative_scale": (offsets.float().norm(dim=-1).mean() / base_norm).detach(),
+        }
+
+
 class BoundedPositiveGate(nn.Module):
     """A strictly positive scalar with a known, inspectable upper bound."""
 
@@ -40,8 +105,11 @@ class BoundedPositiveGate(nn.Module):
 class ClassVAE(nn.Module):
     """The detached global CLS auxiliary VAE specified for H6 Progress 1."""
 
-    def __init__(self, input_dim: int = 768, hidden_dim: int = 512, latent_dim: int = 256):
+    def __init__(self, input_dim: int = 768, hidden_dim: int = 512, latent_dim: int = 256, class_ratio: float = 0.25):
         super().__init__()
+        if not 0.0 <= float(class_ratio) <= 1.0:
+            raise ValueError("class_ratio must be in [0, 1]")
+        self.class_ratio = float(class_ratio)
         self.encoder = nn.Sequential(nn.Linear(input_dim, hidden_dim), nn.GELU())
         self.mu = nn.Linear(hidden_dim, latent_dim)
         self.logvar = nn.Linear(hidden_dim, latent_dim)
@@ -60,11 +128,20 @@ class ClassVAE(nn.Module):
             z = mu
         reconstruction_sample = self.decoder(z).float()
         decoded_mu = self.decoder(mu).float()
+        decoded_semantic = F.normalize(decoded_mu, dim=-1)
+        cls_semantic = F.normalize(target, dim=-1)
+        class_semantic = F.normalize(
+            (1.0 - self.class_ratio) * cls_semantic + self.class_ratio * decoded_semantic,
+            dim=-1,
+        )
         reconstruction = F.mse_loss(reconstruction_sample, target, reduction="mean")
+        # Scalar KL units: sum over latent dimensions, then mean over batch.
         kl = -0.5 * (1.0 + logvar - mu.pow(2) - logvar.exp()).sum(dim=-1).mean()
         return {
-            "class_semantic": decoded_mu,
+            "class_semantic": class_semantic,
             "decoded_mu": decoded_mu,
+            "decoded_semantic": decoded_semantic,
+            "cls_semantic": cls_semantic.detach(),
             "reconstruction_sample": reconstruction_sample,
             "reconstruction": reconstruction,
             "kl": kl,
@@ -90,6 +167,11 @@ class CoPSSemanticCore(nn.Module):
         ctx_len: int = 4,
         vae_hidden_dim: int = 512,
         vae_latent_dim: int = 256,
+        vae_class_ratio: float = 0.25,
+        slot_init_enabled: bool = False,
+        slot_init_scale: float = 0.02,
+        slot_init_seed_offset: int = 6100,
+        slot_init_method: str = "qr_relative_offset",
     ):
         super().__init__()
         if bank_dim % 4 != 0:
@@ -99,6 +181,12 @@ class CoPSSemanticCore(nn.Module):
         self.bank_dim = int(bank_dim)
         self.text_dim = int(text_dim)
         self.ctx_len = int(ctx_len)
+        self.slot_init_enabled = bool(slot_init_enabled)
+        self.slot_init_scale = float(slot_init_scale)
+        self.slot_init_seed_offset = int(slot_init_seed_offset)
+        self.slot_init_method = str(slot_init_method)
+        self.slot_init_applied_components: list[str] = []
+        self._slot_initial_diagnostics: Dict[str, torch.Tensor] = {}
 
         self.level_projectors = nn.ModuleList(
             [nn.Sequential(nn.Linear(text_dim, bank_dim), nn.LayerNorm(bank_dim)) for _ in range(n_groups)]
@@ -119,7 +207,7 @@ class CoPSSemanticCore(nn.Module):
         )
         self.state_to_context_normal = nn.Linear(bank_dim, ctx_len * text_dim)
         self.state_to_context_abnormal = nn.Linear(bank_dim, ctx_len * text_dim)
-        self.class_vae = ClassVAE(text_dim, vae_hidden_dim, vae_latent_dim)
+        self.class_vae = ClassVAE(text_dim, vae_hidden_dim, vae_latent_dim, class_ratio=vae_class_ratio)
         self.class_to_context = nn.Linear(text_dim, ctx_len * text_dim)
         self.gamma_state = BoundedPositiveGate(initial=0.05, maximum=0.20)
         self.gamma_class = BoundedPositiveGate(initial=0.02, maximum=0.10)
@@ -130,10 +218,41 @@ class CoPSSemanticCore(nn.Module):
         nn.init.normal_(self.concept_slots, std=0.02)
         for module in (self.normal_query, self.abnormal_query, self.router_key):
             nn.init.xavier_uniform_(module.weight)
+        self.slot_init_applied_components = []
+        self._slot_initial_diagnostics = {}
+        if self.slot_init_enabled:
+            diagnostics = apply_relative_slot_offsets_(
+                self.concept_slots,
+                scale=self.slot_init_scale,
+                seed=self.slot_init_seed_offset,
+            )
+            self.slot_init_applied_components.append("semantic_core.concept_slots")
+            self._slot_initial_diagnostics = diagnostics
 
     def concept_keys(self) -> torch.Tensor:
         """Shared factor keys reserved for a later joint visual/text router."""
         return self.router_key(self.concept_slots)
+
+    def initialization_diagnostics(self) -> Dict[str, torch.Tensor]:
+        values = self.concept_slots.detach().float()
+        normalized = F.normalize(values, dim=-1)
+        cosine = normalized @ normalized.T
+        offdiag_mask = ~torch.eye(values.shape[0], device=values.device, dtype=torch.bool)
+        l2 = torch.cdist(values, values)[offdiag_mask]
+        storage_offsets = torch.tensor(
+            [values[i].storage_offset() for i in range(values.shape[0])],
+            device=values.device,
+            dtype=torch.long,
+        )
+        out = {
+            "slot_initial_cos_mean": cosine[offdiag_mask].mean().detach(),
+            "slot_initial_cos_max": cosine[offdiag_mask].abs().max().detach(),
+            "slot_initial_l2_min": l2.min().detach(),
+            "slot_residual_norm": values.norm(dim=-1).detach(),
+            "slot_storage_offsets": storage_offsets.detach(),
+        }
+        out.update({k: v.detach() for k, v in self._slot_initial_diagnostics.items()})
+        return out
 
     def _project_levels(self, seg_tokens_pre_l2: Sequence[torch.Tensor]) -> torch.Tensor:
         if len(seg_tokens_pre_l2) != self.n_groups:
@@ -188,10 +307,10 @@ class CoPSSemanticCore(nn.Module):
         state_abnormal = self.state_to_context_abnormal(prototype_abnormal).view(
             batch, self.num_factors, self.ctx_len, self.text_dim
         )
-        state_delta = torch.stack([state_normal, state_abnormal], dim=2)
-        state_delta = F.normalize(state_delta.float(), dim=-1)
-        class_delta = self.class_to_context(vae["class_semantic"]).view(batch, self.ctx_len, self.text_dim)
-        class_delta = F.normalize(class_delta.float(), dim=-1).unsqueeze(1).unsqueeze(1)
+        state_delta_raw = torch.stack([state_normal, state_abnormal], dim=2)
+        state_delta = F.normalize(state_delta_raw.float(), dim=-1)
+        class_delta_raw = self.class_to_context(vae["class_semantic"]).view(batch, self.ctx_len, self.text_dim)
+        class_delta = F.normalize(class_delta_raw.float(), dim=-1).unsqueeze(1).unsqueeze(1)
 
         base_context = torch.stack([ctx_normal.float(), ctx_abnormal.float()], dim=0)
         if tuple(base_context.shape) != (2, self.ctx_len, self.text_dim):
@@ -211,6 +330,13 @@ class CoPSSemanticCore(nn.Module):
             "prototype_abnormal": prototype_abnormal,
             "dynamic_contexts": dynamic_contexts,
             "concept_keys": self.concept_keys(),
+            "concept_slots": self.concept_slots,
+            "normal_queries": normal_queries,
+            "abnormal_queries": abnormal_queries,
+            "state_delta_raw": state_delta_raw,
+            "state_delta": state_delta,
+            "class_delta_raw": class_delta_raw,
+            "class_delta": class_delta,
             "gamma_state": self.gamma_state(),
             "gamma_class": self.gamma_class(),
             **vae,

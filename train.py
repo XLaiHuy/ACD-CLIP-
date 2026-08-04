@@ -25,7 +25,15 @@ from model.adapter import (
 )
 from model.checkpoint_utils import build_phase4_checkpoint
 from model.clip import create_model
-from model.h6.losses import center_loss, factor_aware_center_loss, routing_balance_loss
+from model.h6.losses import (
+    center_loss,
+    concept_key_diversity_loss,
+    factor_aware_center_loss,
+    prototype_diagnostics,
+    teacher_candidate_diagnostics,
+    router_teacher_loss,
+    routing_balance_loss,
+)
 
 
 def tensor_debug_stats(tensor):
@@ -78,6 +86,41 @@ def diagnostics_to_python(diagnostics):
         else:
             converted[key] = value
     return converted
+
+
+def factor_gradient_diagnostics(gradient: torch.Tensor | None) -> dict[str, torch.Tensor | None]:
+    if gradient is None:
+        return {
+            "factor_grad_norms": None,
+            "factor_grad_cos_mean": None,
+            "factor_grad_cos_max": None,
+            "factor_grad_l2_min": None,
+        }
+    grad = gradient.detach().float()
+    if grad.ndim == 3:
+        # Prototype-like gradients are [B,M,D]; average batch, keep factor M.
+        grad = grad.mean(dim=0)
+    if grad.ndim > 2:
+        grad = grad.reshape(grad.shape[0], -1)
+    norms = grad.norm(dim=-1)
+    if grad.shape[0] <= 1:
+        zero = grad.sum() * 0.0
+        return {
+            "factor_grad_norms": norms.detach(),
+            "factor_grad_cos_mean": zero.detach(),
+            "factor_grad_cos_max": zero.detach(),
+            "factor_grad_l2_min": zero.detach(),
+        }
+    normalized = F.normalize(grad, dim=-1)
+    cosine = normalized @ normalized.T
+    mask = ~torch.eye(grad.shape[0], device=grad.device, dtype=torch.bool)
+    l2 = torch.cdist(grad, grad)[mask]
+    return {
+        "factor_grad_norms": norms.detach(),
+        "factor_grad_cos_mean": cosine[mask].mean().detach(),
+        "factor_grad_cos_max": cosine[mask].abs().max().detach(),
+        "factor_grad_l2_min": l2.min().detach(),
+    }
 
 
 def save_nonfinite_diagnostics(
@@ -674,16 +717,45 @@ def set_phase4_seed(seed: int) -> None:
         torch.cuda.manual_seed_all(seed)
 
 
-def get_h6_vae_beta(epoch_one_based: int, beta_max: float, zero_epochs: int = 0) -> float:
+def get_h6_vae_beta(
+        epoch_one_based: int,
+        beta_max: float,
+        zero_epochs: int = 0,
+        warmup_epochs: int = 4,
+) -> float:
     zero_epochs = max(0, int(zero_epochs))
+    warmup_epochs = max(1, int(warmup_epochs))
     if zero_epochs == 0:
         if epoch_one_based <= 1:
             return 0.0
-        return min(float(beta_max), float(epoch_one_based - 1) * float(beta_max) / 4.0)
+        return min(float(beta_max), float(epoch_one_based - 1) * float(beta_max) / float(warmup_epochs))
     if epoch_one_based <= zero_epochs:
         return 0.0
     warmup_epoch = int(epoch_one_based) - zero_epochs
-    return min(float(beta_max), float(warmup_epoch) * float(beta_max) / 4.0)
+    return min(float(beta_max), float(warmup_epoch) * float(beta_max) / float(warmup_epochs))
+
+
+def linear_ramp_weight(epoch_one_based: int, start_epoch: int, warmup_epochs: int, maximum: float) -> float:
+    if maximum <= 0.0 or epoch_one_based < start_epoch:
+        return 0.0
+    warmup_epochs = max(1, int(warmup_epochs))
+    step = int(epoch_one_based) - int(start_epoch) + 1
+    return min(float(maximum), float(maximum) * float(step) / float(warmup_epochs))
+
+
+def router_specialization_failed(
+        sparse_ratio: float,
+        sparse_dead_factors: torch.Tensor,
+        unique_topk_pairs: torch.Tensor,
+        max_sparse_dead_factors: int,
+        min_unique_topk_pairs: int,
+) -> bool:
+    if float(sparse_ratio) < 0.50:
+        return False
+    return bool(
+        (sparse_dead_factors >= int(max_sparse_dead_factors) + 1).any()
+        or (unique_topk_pairs <= int(min_unique_topk_pairs) - 1).any()
+    )
 
 
 def _phase4_autocast(device: torch.device, precision: str):
@@ -767,10 +839,38 @@ def _phase2b_config_from_args(args) -> dict:
         "h6_router_soft_epochs": args.h6_router_soft_epochs,
         "h6_dense_routing_epochs": args.h6_router_soft_epochs,
         "h6_sparse_start_epoch": args.h6_router_soft_epochs + 1,
+        "h6_sparse_transition_epochs": args.h6_sparse_transition_epochs,
+        "h6_sparse_full_epoch": args.h6_router_soft_epochs + args.h6_sparse_transition_epochs,
         "h6_center_factor_aware": args.h6_center_factor_aware,
         "h6_center_detach_assignment": args.h6_center_detach_assignment,
         "h6_center_margin": args.h6_center_margin,
         "h6_kl_zero_epochs": args.h6_kl_zero_epochs,
+        "h6_kl_warmup_epochs": args.h6_kl_warmup_epochs,
+        "h6_kl_free_bits": args.h6_kl_free_bits,
+        "beta_h6_vae_kl": args.beta_h6_vae_kl,
+        "h6_vae_class_ratio": args.h6_vae_class_ratio,
+        "lambda_h6_concept_key_diversity": args.lambda_h6_concept_key_diversity,
+        "h6_concept_key_cosine_margin": args.h6_concept_key_cosine_margin,
+        "h6_concept_key_diversity_start_epoch": args.h6_concept_key_diversity_start_epoch,
+        "h6_concept_key_diversity_warmup_epochs": args.h6_concept_key_diversity_warmup_epochs,
+        "h6_slot_init_enabled": args.h6_slot_init_enabled,
+        "h6_slot_init_scale": args.h6_slot_init_scale,
+        "h6_slot_init_seed_offset": args.h6_slot_init_seed_offset,
+        "h6_factor_grad_diagnostics": args.h6_factor_grad_diagnostics,
+        "h6_load_bias_enabled": args.h6_load_bias_enabled,
+        "h6_load_bias_momentum": args.h6_load_bias_momentum,
+        "h6_load_bias_step": args.h6_load_bias_step,
+        "h6_load_bias_max": args.h6_load_bias_max,
+        "lambda_h6_router_teacher": args.lambda_h6_router_teacher,
+        "h6_router_teacher_temperature": args.h6_router_teacher_temperature,
+        "h6_router_teacher_start_epoch": args.h6_router_teacher_start_epoch,
+        "h6_router_teacher_warmup_epochs": args.h6_router_teacher_warmup_epochs,
+        "h6_teacher_confidence_gate": args.h6_teacher_confidence_gate,
+        "h6_teacher_entropy_threshold": args.h6_teacher_entropy_threshold,
+        "h6_teacher_prob_std_threshold": args.h6_teacher_prob_std_threshold,
+        "h6_router_failure_patience": args.h6_router_failure_patience,
+        "h6_router_max_sparse_dead_factors": args.h6_router_max_sparse_dead_factors,
+        "h6_router_min_unique_topk_pairs": args.h6_router_min_unique_topk_pairs,
     }
 
 
@@ -793,13 +893,28 @@ def train_h6_progress1(
         "center_factor_aware": bool(args.h6_center_factor_aware),
         "center_detach_assignment": bool(args.h6_center_detach_assignment),
         "center_margin": args.h6_center_margin,
+        "router_teacher": args.lambda_h6_router_teacher,
+        "router_teacher_temperature": args.h6_router_teacher_temperature,
+        "router_teacher_start_epoch": args.h6_router_teacher_start_epoch,
+        "router_teacher_warmup_epochs": args.h6_router_teacher_warmup_epochs,
+        "teacher_confidence_gate": bool(args.h6_teacher_confidence_gate),
+        "teacher_entropy_threshold": args.h6_teacher_entropy_threshold,
+        "teacher_prob_std_threshold": args.h6_teacher_prob_std_threshold,
         "vae_rec": args.lambda_h6_vae_rec,
         "vae_kl_zero_epochs": args.h6_kl_zero_epochs,
+        "vae_kl_warmup_epochs": args.h6_kl_warmup_epochs,
+        "vae_kl_free_bits": args.h6_kl_free_bits,
+        "vae_class_ratio": args.h6_vae_class_ratio,
         "orth": args.lambda_h6_orth,
         "balance": args.lambda_h6_balance,
+        "concept_key_diversity": args.lambda_h6_concept_key_diversity,
+        "concept_key_cosine_margin": args.h6_concept_key_cosine_margin,
+        "concept_key_diversity_start_epoch": args.h6_concept_key_diversity_start_epoch,
+        "concept_key_diversity_warmup_epochs": args.h6_concept_key_diversity_warmup_epochs,
         "kg": args.lambda_kg,
         "k": args.lambda_k,
     }
+    router_failure_streak = 0
     for epoch_zero_based in range(args.epoch):
         epoch = epoch_zero_based + 1
         started = time.monotonic()
@@ -816,8 +931,26 @@ def train_h6_progress1(
         model.soft_prompt.requires_grad_(not soft_prompt_frozen)
         _set_soft_prompt_lr(optimizer, soft_prompt_frozen)
         model.set_dfg_beta(get_dfg_beta_for_epoch(epoch, args.dfg_beta_schedule, args.dfg_beta_target, args.dfg_beta))
-        beta_vae_kl = get_h6_vae_beta(epoch, args.beta_h6_vae_kl, args.h6_kl_zero_epochs)
-        metrics = {key: [] for key in ("total", "task", "cls", "seg", "center", "vae_rec", "vae_kl", "kg", "orth", "balance")}
+        beta_vae_kl = get_h6_vae_beta(epoch, args.beta_h6_vae_kl, args.h6_kl_zero_epochs, args.h6_kl_warmup_epochs)
+        router_teacher_weight = linear_ramp_weight(
+            epoch,
+            args.h6_router_teacher_start_epoch,
+            args.h6_router_teacher_warmup_epochs,
+            args.lambda_h6_router_teacher,
+        )
+        metrics = {key: [] for key in (
+            "total", "task", "cls", "seg", "center", "router_teacher", "router_teacher_weighted",
+            "router_teacher_scheduled_weight", "router_teacher_effective_weight",
+            "vae_rec", "vae_kl_raw", "vae_kl_effective", "kg", "orth", "balance",
+            "concept_key_diversity_raw", "concept_key_diversity_weighted"
+        )}
+        factor_grad_diag = {
+            "factor_grad_norms": None,
+            "factor_grad_cos_mean": None,
+            "factor_grad_cos_max": None,
+            "factor_grad_l2_min": None,
+            "dynamic_residual_grad_norms": None,
+        }
         optimizer.zero_grad(set_to_none=True)
         progress = tqdm(train_loader, desc=f"[PHASE4-P1][TRAIN][epoch {epoch:02d}/{args.epoch:02d}]")
         for batch_idx, input_data in enumerate(progress, start=1):
@@ -830,6 +963,8 @@ def train_h6_progress1(
                 h6_batch = model.h6.build_batch(
                     model, dataset_name, class_names, visual_output, hybrid_alpha=hybrid_alpha
                 )
+                if args.h6_factor_grad_diagnostics and batch_idx == 1:
+                    h6_batch["dynamic_text"].retain_grad()
                 seg_features = torch.stack(visual_output["seg_tokens"], dim=0)
                 det_features = torch.stack(visual_output["det_tokens"], dim=0)
                 text_global = h6_batch["text_global"].to(dtype=det_features.dtype)
@@ -867,18 +1002,83 @@ def train_h6_progress1(
                     )
                 h6_orth = h6_batch["residual_diversity"]
                 h6_balance = routing_balance_loss(h6_batch["dense_probabilities"])
+                if router_teacher_weight > 0.0:
+                    h6_router_teacher, teacher_diag = router_teacher_loss(
+                        h6_batch["projected_levels"],
+                        h6_batch["prototype_normal"],
+                        h6_batch["prototype_abnormal"],
+                        h6_batch["dense_probabilities"],
+                        mask,
+                        label,
+                        temperature=args.h6_router_teacher_temperature,
+                    )
+                    teacher_diag.update(
+                        teacher_candidate_diagnostics(
+                            h6_batch["projected_levels"],
+                            h6_batch["prototype_normal"],
+                            h6_batch["prototype_abnormal"],
+                            mask,
+                            label,
+                            temperature=args.h6_router_teacher_temperature,
+                        )
+                    )
+                else:
+                    h6_router_teacher = h6_batch["dense_probabilities"].float().sum() * 0.0
+                    teacher_diag = {"router_teacher_entropy": h6_router_teacher.detach()}
+                teacher_entropy_mean = (
+                    teacher_diag["teacher_entropy"].float().mean()
+                    if torch.is_tensor(teacher_diag.get("teacher_entropy", None))
+                    else torch.tensor(1.0, device=device)
+                )
+                teacher_prob_std_mean = (
+                    teacher_diag["teacher_probability_std_across_patches"].float().mean()
+                    if torch.is_tensor(teacher_diag.get("teacher_probability_std_across_patches", None))
+                    else torch.tensor(0.0, device=device)
+                )
+                teacher_informative = bool(
+                    (teacher_entropy_mean < float(args.h6_teacher_entropy_threshold)).detach().cpu().item()
+                    and (teacher_prob_std_mean > float(args.h6_teacher_prob_std_threshold)).detach().cpu().item()
+                )
+                effective_router_teacher_weight = (
+                    router_teacher_weight
+                    if (not args.h6_teacher_confidence_gate or teacher_informative)
+                    else 0.0
+                )
+                h6_kl_raw = h6_batch["kl"]
+                h6_kl_effective = torch.clamp(h6_kl_raw, min=float(args.h6_kl_free_bits))
+                concept_key_diversity_weight = linear_ramp_weight(
+                    epoch,
+                    args.h6_concept_key_diversity_start_epoch,
+                    args.h6_concept_key_diversity_warmup_epochs,
+                    args.lambda_h6_concept_key_diversity,
+                )
+                h6_concept_key_diversity = concept_key_diversity_loss(
+                    h6_batch["concept_keys"],
+                    margin=args.h6_concept_key_cosine_margin,
+                )
                 total_loss = (
                     task_loss
                     + args.lambda_h6_center * h6_center
+                    + effective_router_teacher_weight * h6_router_teacher
                     + args.lambda_h6_vae_rec * h6_batch["reconstruction"]
-                    + beta_vae_kl * h6_batch["kl"]
+                    + beta_vae_kl * h6_kl_effective
                     + args.lambda_kg * h6_batch["kg_loss"]
                     + args.lambda_h6_orth * h6_orth
                     + args.lambda_h6_balance * h6_balance
+                    + concept_key_diversity_weight * h6_concept_key_diversity
                 )
             if not torch.isfinite(total_loss).all():
                 raise RuntimeError(f"non-finite H6 loss at epoch={epoch}, batch={batch_idx}")
             scaler.scale(total_loss / args.grad_accum_steps).backward()
+            if args.h6_factor_grad_diagnostics and batch_idx == 1:
+                factor_grad_diag.update(
+                    factor_gradient_diagnostics(model.h6.semantic_core.concept_slots.grad)
+                )
+                dynamic_grad = h6_batch["dynamic_text"].grad
+                if dynamic_grad is not None:
+                    factor_grad_diag["dynamic_residual_grad_norms"] = (
+                        dynamic_grad.detach().float().norm(dim=3).mean(dim=(0, 1, 3)).detach()
+                    )
             do_step = batch_idx % args.grad_accum_steps == 0 or batch_idx == len(train_loader)
             if do_step:
                 scaler.unscale_(optimizer)
@@ -891,8 +1091,17 @@ def train_h6_progress1(
                 optimizer.zero_grad(set_to_none=True)
             for key, value in {
                 "total": total_loss, "task": task_loss, "cls": cls_loss, "seg": seg_loss,
-                "center": h6_center, "vae_rec": h6_batch["reconstruction"], "vae_kl": h6_batch["kl"],
+                "center": h6_center,
+                "router_teacher": h6_router_teacher,
+                "router_teacher_weighted": effective_router_teacher_weight * h6_router_teacher,
+                "router_teacher_scheduled_weight": torch.as_tensor(router_teacher_weight, device=device),
+                "router_teacher_effective_weight": torch.as_tensor(effective_router_teacher_weight, device=device),
+                "vae_rec": h6_batch["reconstruction"],
+                "vae_kl_raw": h6_kl_raw,
+                "vae_kl_effective": h6_kl_effective,
                 "kg": h6_batch["kg_loss"], "orth": h6_orth, "balance": h6_balance,
+                "concept_key_diversity_raw": h6_concept_key_diversity,
+                "concept_key_diversity_weighted": concept_key_diversity_weight * h6_concept_key_diversity,
             }.items():
                 metrics[key].append(float(value.detach().float().item()))
             if device.type == "cuda":
@@ -907,7 +1116,8 @@ def train_h6_progress1(
             progress.set_postfix({
                 "loss": f"{metrics['total'][-1]:.4f}", "task": f"{metrics['task'][-1]:.4f}",
                 "center": f"{metrics['center'][-1]:.4f}", "vae": f"{metrics['vae_rec'][-1]:.4f}",
-                "kl": f"{metrics['vae_kl'][-1]:.5f}", "kg": f"{metrics['kg'][-1]:.5f}",
+                "kl": f"{metrics['vae_kl_raw'][-1]:.5f}", "rt": f"{metrics['router_teacher'][-1]:.4f}",
+                "sr": f"{float(h6_batch['sparse_ratio'].detach().item()):.2f}", "kg": f"{metrics['kg'][-1]:.5f}",
                 "orth": f"{metrics['orth'][-1]:.4f}", "balance": f"{metrics['balance'][-1]:.4f}",
                 "lr": f"{optimizer.param_groups[0]['lr']:.2e}", "alpha": f"{hybrid_alpha:.2f}",
                 "gamma_s": f"{h6_batch['gamma_state'].detach().item():.3f}",
@@ -918,29 +1128,169 @@ def train_h6_progress1(
         scheduler.step()
         _set_soft_prompt_lr(optimizer, soft_prompt_frozen)
         diagnostics = h6_batch["router_diagnostics"]
+        proto_diag = prototype_diagnostics(h6_batch["prototype_normal"], h6_batch["prototype_abnormal"])
         dynamic_hard_cosine = F.cosine_similarity(
             h6_batch["dynamic_text"].float(),
             h6_batch["hard_frozen"].unsqueeze(2).expand_as(h6_batch["dynamic_text"]).float(),
             dim=3,
         ).mean()
         center_distance = (h6_batch["prototype_normal"].float() - h6_batch["prototype_abnormal"].float()).norm(dim=-1).mean()
+        sparse_ratio = float(diagnostics["sparse_ratio"].detach().item())
+        routing_mode = "dense" if sparse_ratio == 0.0 else ("straight_through_sparse" if sparse_ratio == 1.0 else "mixed")
+        mu_std = float(h6_batch["mu"].detach().float().std(unbiased=False).item())
+        if beta_vae_kl > 0.0 and mu_std < 0.003:
+            logger.warning("h6_vae_mu_collapse_warning epoch=%d mu_std=%s beta_vae_kl=%s", epoch, mu_std, beta_vae_kl)
+        def _teacher_value(key: str):
+            value = teacher_diag.get(key, None)
+            if torch.is_tensor(value):
+                return value.detach().cpu().tolist()
+            return None
+
+        def _diag_float(key: str) -> float:
+            return float(diagnostics[key].detach().float().cpu().item())
+
         logger.info(
-            "phase4_p1 epoch=%d total=%s task=%s cls=%s seg=%s center=%s vae_rec=%s vae_kl=%s "
-            "kg=%s orth=%s balance=%s beta_vae_kl=%s alpha=%s gamma_state=%s gamma_class=%s rho=%s "
-            "lr=%s usage=%s entropy=%s dense_usage=%s sparse_usage=%s topk_freq=%s top1=%s dead=%s max_usage=%s dynamic_hard_cos=%s "
-            "mu_mean=%s mu_std=%s logvar_min=%s logvar_max=%s center_distance=%s",
-            epoch, *(float(np.mean(metrics[key])) for key in ("total", "task", "cls", "seg", "center", "vae_rec", "vae_kl", "kg", "orth", "balance")),
-            beta_vae_kl, hybrid_alpha,
+            "phase4_p1_v5 epoch=%d total=%s task=%s cls=%s seg=%s center=%s router_teacher=%s "
+            "router_teacher_weighted=%s vae_rec=%s vae_kl_raw=%s vae_kl_effective=%s beta_vae_kl=%s "
+            "kg=%s orth=%s balance=%s alpha=%s sparse_ratio=%s routing_mode=%s gamma_state=%s gamma_class=%s rho=%s lr=%s "
+            "dense_usage=%s sparse_usage=%s topk_freq=%s dense_entropy=%s sparse_entropy=%s dense_dead=%s sparse_dead=%s "
+            "unique_topk_pairs=%s max_dense_usage=%s max_sparse_usage=%s router_logit_std=%s router_prob_std=%s "
+            "query_variance=%s concept_key_cos_mean=%s concept_key_cos_max=%s mu_mean=%s mu_std=%s decoded_mu_std=%s "
+            "class_semantic_std=%s logvar_min=%s logvar_max=%s center_distance=%s dynamic_hard_cos=%s load_bias=%s ema_topk_usage=%s "
+            "slot_init_scale=%s slot_initial_cos_mean=%s slot_initial_cos_max=%s slot_initial_l2_min=%s "
+            "concept_key_diversity_raw=%s concept_key_diversity_weighted=%s concept_key_l2_min=%s "
+            "dynamic_residual_cos_mean=%s dynamic_residual_cos_max=%s dynamic_residual_l2_min=%s dynamic_residual_grad_norms=%s "
+            "teacher_entropy=%s teacher_max_prob=%s teacher_prob_std=%s teacher_usage=%s teacher_unique_topk_pairs=%s teacher_router_kl=%s "
+            "prototype_cos_mean=%s prototype_cos_max=%s prototype_l2_min=%s prototype_variance=%s "
+            "factor_grad_norms=%s factor_grad_cos_mean=%s factor_grad_cos_max=%s factor_grad_l2_min=%s "
+            "level_input_checks=%s level_query_difference=%s level_logit_difference=%s "
+            "teacher_scheduled_weight=%s teacher_effective_weight=%s teacher_confidence_gate=%s teacher_informative=%s "
+            "teacher_entropy_threshold=%s teacher_prob_std_threshold=%s "
+            "teacher_raw_similarity_mean_per_factor=%s teacher_raw_similarity_std_across_factors=%s "
+            "teacher_raw_similarity_std_across_patches=%s teacher_raw_similarity_min=%s teacher_raw_similarity_max=%s "
+            "teacher_raw_logit_range=%s normal_patch_count=%s abnormal_patch_count=%s "
+            "teacher_raw_candidate_entropy=%s teacher_raw_candidate_max_prob=%s teacher_raw_candidate_prob_std=%s "
+            "teacher_raw_candidate_usage=%s teacher_raw_candidate_unique_topk_pairs=%s "
+            "teacher_centered_candidate_entropy=%s teacher_centered_candidate_max_prob=%s teacher_centered_candidate_prob_std=%s "
+            "teacher_centered_candidate_usage=%s teacher_centered_candidate_unique_topk_pairs=%s "
+            "teacher_distance_candidate_entropy=%s teacher_distance_candidate_max_prob=%s teacher_distance_candidate_prob_std=%s "
+            "teacher_distance_candidate_usage=%s teacher_distance_candidate_unique_topk_pairs=%s "
+            "router_patch_count=%s router_softmax_dim=%s router_topk_dim=%s "
+            "query_pairwise_cos_mean_across_patches=%s query_pairwise_cos_max_across_patches=%s "
+            "query_variance_across_patches=%s query_effective_rank=%s query_singular_value_ratio=%s "
+            "per_factor_logit_std_across_patches=%s "
+            "stage_concept_slots_cos_mean=%s stage_concept_slots_cos_max=%s stage_concept_slots_l2_min=%s "
+            "stage_concept_keys_cos_mean=%s stage_concept_keys_cos_max=%s stage_concept_keys_l2_min=%s "
+            "stage_prototype_normal_cos_mean=%s stage_prototype_normal_cos_max=%s stage_prototype_normal_l2_min=%s "
+            "stage_state_to_context_raw_cos_mean=%s stage_state_to_context_raw_cos_max=%s stage_state_to_context_raw_l2_min=%s "
+            "stage_state_to_context_norm_cos_mean=%s stage_state_to_context_norm_cos_max=%s stage_state_to_context_norm_l2_min=%s "
+            "stage_context_before_encoder_cos_mean=%s stage_context_before_encoder_cos_max=%s stage_context_before_encoder_l2_min=%s "
+            "stage_dynamic_text_raw_cos_mean=%s stage_dynamic_text_raw_cos_max=%s stage_dynamic_text_raw_l2_min=%s "
+            "stage_dynamic_text_norm_cos_mean=%s stage_dynamic_text_norm_cos_max=%s stage_dynamic_text_norm_l2_min=%s",
+            epoch, *(float(np.mean(metrics[key])) for key in (
+                "total", "task", "cls", "seg", "center", "router_teacher", "router_teacher_weighted",
+                "vae_rec", "vae_kl_raw", "vae_kl_effective"
+            )),
+            beta_vae_kl,
+            *(float(np.mean(metrics[key])) for key in ("kg", "orth", "balance")),
+            hybrid_alpha, sparse_ratio, routing_mode,
             float(h6_batch["gamma_state"].detach().item()), float(h6_batch["gamma_class"].detach().item()),
             h6_batch["rho"].detach().float().cpu().tolist(), optimizer.param_groups[0]["lr"],
-            diagnostics["factor_usage"].cpu().tolist(), diagnostics["normalized_entropy"].cpu().tolist(),
             diagnostics["dense_factor_usage"].cpu().tolist(), diagnostics["sparse_factor_usage"].cpu().tolist(),
             diagnostics["selected_topk_frequency"].cpu().tolist(),
-            diagnostics["top1_share"].cpu().tolist(), diagnostics["dead_factors"].cpu().tolist(),
-            diagnostics["max_factor_usage"].cpu().tolist(), float(dynamic_hard_cosine.detach().item()),
-            float(h6_batch["mu"].detach().float().mean().item()), float(h6_batch["mu"].detach().float().std(unbiased=False).item()),
+            diagnostics["dense_normalized_entropy"].cpu().tolist(), diagnostics["sparse_normalized_entropy"].cpu().tolist(),
+            (diagnostics["dense_factor_usage"] < 0.01).sum(dim=-1).cpu().tolist(), diagnostics["sparse_factor_usage"].lt(0.01).sum(dim=-1).cpu().tolist(),
+            diagnostics["unique_topk_pairs"].cpu().tolist(),
+            diagnostics["dense_factor_usage"].max(dim=-1).values.cpu().tolist(), diagnostics["sparse_factor_usage"].max(dim=-1).values.cpu().tolist(),
+            diagnostics["router_logit_std"].cpu().tolist(), diagnostics["router_prob_std"].cpu().tolist(),
+            diagnostics["query_variance"].cpu().tolist(), float(diagnostics["concept_key_cos_mean"].cpu().item()),
+            float(diagnostics["concept_key_cos_max"].cpu().item()),
+            float(h6_batch["mu"].detach().float().mean().item()), mu_std,
+            float(h6_batch["decoded_mu"].detach().float().std(unbiased=False).item()),
+            float(h6_batch["class_semantic"].detach().float().std(unbiased=False).item()),
             float(h6_batch["logvar"].detach().float().min().item()), float(h6_batch["logvar"].detach().float().max().item()),
-            float(center_distance.detach().item()),
+            float(center_distance.detach().item()), float(dynamic_hard_cosine.detach().item()),
+            diagnostics["load_bias"].cpu().tolist(), diagnostics["ema_topk_usage"].cpu().tolist(),
+            args.h6_slot_init_scale,
+            float(diagnostics["slot_initial_cos_mean"].cpu().item()),
+            float(diagnostics["slot_initial_cos_max"].cpu().item()),
+            float(diagnostics["slot_initial_l2_min"].cpu().item()),
+            float(np.mean(metrics["concept_key_diversity_raw"])),
+            float(np.mean(metrics["concept_key_diversity_weighted"])),
+            float(diagnostics["concept_key_l2_min"].cpu().item()),
+            float(diagnostics["dynamic_residual_cos_mean"].cpu().item()),
+            float(diagnostics["dynamic_residual_cos_max"].cpu().item()),
+            float(diagnostics["dynamic_residual_l2_min"].cpu().item()),
+            None if factor_grad_diag["dynamic_residual_grad_norms"] is None else factor_grad_diag["dynamic_residual_grad_norms"].cpu().tolist(),
+            teacher_diag.get("teacher_entropy", torch.empty(0, device=device)).detach().cpu().tolist()
+            if torch.is_tensor(teacher_diag.get("teacher_entropy", None)) else None,
+            teacher_diag.get("teacher_max_probability", torch.empty(0, device=device)).detach().cpu().tolist()
+            if torch.is_tensor(teacher_diag.get("teacher_max_probability", None)) else None,
+            teacher_diag.get("teacher_probability_std_across_patches", torch.empty(0, device=device)).detach().cpu().tolist()
+            if torch.is_tensor(teacher_diag.get("teacher_probability_std_across_patches", None)) else None,
+            teacher_diag.get("teacher_usage", torch.empty(0, device=device)).detach().cpu().tolist()
+            if torch.is_tensor(teacher_diag.get("teacher_usage", None)) else None,
+            teacher_diag.get("teacher_unique_topk_pairs", torch.empty(0, device=device)).detach().cpu().tolist()
+            if torch.is_tensor(teacher_diag.get("teacher_unique_topk_pairs", None)) else None,
+            teacher_diag.get("teacher_router_kl", torch.empty(0, device=device)).detach().cpu().tolist()
+            if torch.is_tensor(teacher_diag.get("teacher_router_kl", None)) else None,
+            float(proto_diag["prototype_cos_mean"].cpu().item()),
+            float(proto_diag["prototype_cos_max"].cpu().item()),
+            float(proto_diag["prototype_l2_min"].cpu().item()),
+            float(proto_diag["prototype_variance"].cpu().item()),
+            None if factor_grad_diag["factor_grad_norms"] is None else factor_grad_diag["factor_grad_norms"].cpu().tolist(),
+            None if factor_grad_diag["factor_grad_cos_mean"] is None else float(factor_grad_diag["factor_grad_cos_mean"].cpu().item()),
+            None if factor_grad_diag["factor_grad_cos_max"] is None else float(factor_grad_diag["factor_grad_cos_max"].cpu().item()),
+            None if factor_grad_diag["factor_grad_l2_min"] is None else float(factor_grad_diag["factor_grad_l2_min"].cpu().item()),
+            {"alias": bool(diagnostics["level_input_alias"].cpu().item()), "input_diff": float(diagnostics["level_input_difference"].cpu().item())},
+            float(diagnostics["level_query_difference"].cpu().item()),
+            float(diagnostics["level_logit_difference"].cpu().item()),
+            float(np.mean(metrics["router_teacher_scheduled_weight"])),
+            float(np.mean(metrics["router_teacher_effective_weight"])),
+            bool(args.h6_teacher_confidence_gate),
+            bool(teacher_informative),
+            args.h6_teacher_entropy_threshold,
+            args.h6_teacher_prob_std_threshold,
+            _teacher_value("teacher_raw_similarity_mean_per_factor"),
+            _teacher_value("teacher_raw_similarity_std_across_factors"),
+            _teacher_value("teacher_raw_similarity_std_across_patches"),
+            _teacher_value("teacher_raw_similarity_min"),
+            _teacher_value("teacher_raw_similarity_max"),
+            _teacher_value("teacher_raw_logit_range"),
+            _teacher_value("normal_patch_count"),
+            _teacher_value("abnormal_patch_count"),
+            _teacher_value("teacher_raw_candidate_entropy"),
+            _teacher_value("teacher_raw_candidate_max_probability"),
+            _teacher_value("teacher_raw_candidate_probability_std_across_patches"),
+            _teacher_value("teacher_raw_candidate_usage"),
+            _teacher_value("teacher_raw_candidate_unique_topk_pairs"),
+            _teacher_value("teacher_centered_candidate_entropy"),
+            _teacher_value("teacher_centered_candidate_max_probability"),
+            _teacher_value("teacher_centered_candidate_probability_std_across_patches"),
+            _teacher_value("teacher_centered_candidate_usage"),
+            _teacher_value("teacher_centered_candidate_unique_topk_pairs"),
+            _teacher_value("teacher_distance_candidate_entropy"),
+            _teacher_value("teacher_distance_candidate_max_probability"),
+            _teacher_value("teacher_distance_candidate_probability_std_across_patches"),
+            _teacher_value("teacher_distance_candidate_usage"),
+            _teacher_value("teacher_distance_candidate_unique_topk_pairs"),
+            int(diagnostics["router_patch_count"].detach().cpu().item()),
+            int(diagnostics["router_softmax_dim"].detach().cpu().item()),
+            int(diagnostics["router_topk_dim"].detach().cpu().item()),
+            diagnostics["query_pairwise_cos_mean_across_patches"].cpu().tolist(),
+            diagnostics["query_pairwise_cos_max_across_patches"].cpu().tolist(),
+            diagnostics["query_variance_across_patches"].cpu().tolist(),
+            diagnostics["query_effective_rank"].cpu().tolist(),
+            diagnostics["query_singular_value_ratio"].cpu().tolist(),
+            diagnostics["per_factor_logit_std_across_patches"].cpu().tolist(),
+            _diag_float("stage_concept_slots_cos_mean"), _diag_float("stage_concept_slots_cos_max"), _diag_float("stage_concept_slots_l2_min"),
+            _diag_float("stage_concept_keys_cos_mean"), _diag_float("stage_concept_keys_cos_max"), _diag_float("stage_concept_keys_l2_min"),
+            _diag_float("stage_prototype_normal_cos_mean"), _diag_float("stage_prototype_normal_cos_max"), _diag_float("stage_prototype_normal_l2_min"),
+            _diag_float("stage_state_to_context_raw_cos_mean"), _diag_float("stage_state_to_context_raw_cos_max"), _diag_float("stage_state_to_context_raw_l2_min"),
+            _diag_float("stage_state_to_context_norm_cos_mean"), _diag_float("stage_state_to_context_norm_cos_max"), _diag_float("stage_state_to_context_norm_l2_min"),
+            _diag_float("stage_context_before_encoder_cos_mean"), _diag_float("stage_context_before_encoder_cos_max"), _diag_float("stage_context_before_encoder_l2_min"),
+            _diag_float("stage_dynamic_text_raw_cos_mean"), _diag_float("stage_dynamic_text_raw_cos_max"), _diag_float("stage_dynamic_text_raw_l2_min"),
+            _diag_float("stage_dynamic_text_norm_cos_mean"), _diag_float("stage_dynamic_text_norm_cos_max"), _diag_float("stage_dynamic_text_norm_l2_min"),
         )
         payload = build_phase4_checkpoint(
             model,
@@ -953,6 +1303,31 @@ def train_h6_progress1(
             scheduler=scheduler,
         )
         torch.save(payload, os.path.join(args.save_path, f"adapter_{epoch}.pth"))
+        sparse_dead = diagnostics["sparse_factor_usage"].lt(0.01).sum(dim=-1)
+        unique_pairs = diagnostics["unique_topk_pairs"]
+        sparse_failure = router_specialization_failed(
+            sparse_ratio,
+            sparse_dead,
+            unique_pairs,
+            args.h6_router_max_sparse_dead_factors,
+            args.h6_router_min_unique_topk_pairs,
+        )
+        router_failure_streak = router_failure_streak + 1 if sparse_failure else 0
+        if router_failure_streak >= int(args.h6_router_failure_patience):
+            diagnostic_path = os.path.join(args.save_path, f"h6_router_specialization_failed_epoch_{epoch}.pth")
+            torch.save({
+                "epoch": epoch,
+                "reason": "h6_router_specialization_failed",
+                "sparse_dead_factors": sparse_dead.detach().cpu(),
+                "unique_topk_pairs": unique_pairs.detach().cpu(),
+                "router_diagnostics": diagnostics_to_python(diagnostics),
+                "checkpoint": payload,
+            }, diagnostic_path)
+            logger.error(
+                "h6_router_specialization_failed epoch=%d sparse_dead=%s unique_topk_pairs=%s diagnostic=%s",
+                epoch, sparse_dead.cpu().tolist(), unique_pairs.cpu().tolist(), diagnostic_path,
+            )
+            raise RuntimeError(f"h6_router_specialization_failed diagnostic={diagnostic_path}")
     return model
 
 
@@ -1012,8 +1387,28 @@ def main():
     parser.add_argument("--h6_router_soft_epochs", type=int, default=2)
     parser.add_argument("--h6_dense_routing_epochs", type=int, default=None)
     parser.add_argument("--h6_sparse_start_epoch", type=int, default=None)
+    parser.add_argument("--h6_sparse_transition_epochs", type=int, default=1)
+    parser.add_argument("--lambda_h6_router_teacher", type=float, default=0.0)
+    parser.add_argument("--h6_router_teacher_temperature", type=float, default=0.15)
+    parser.add_argument("--h6_router_teacher_start_epoch", type=int, default=3)
+    parser.add_argument("--h6_router_teacher_warmup_epochs", type=int, default=3)
+    parser.add_argument("--h6_teacher_confidence_gate", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_teacher_entropy_threshold", type=float, default=0.98)
+    parser.add_argument("--h6_teacher_prob_std_threshold", type=float, default=1e-3)
+    parser.add_argument("--h6_load_bias_enabled", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_load_bias_momentum", type=float, default=0.9)
+    parser.add_argument("--h6_load_bias_step", type=float, default=0.001)
+    parser.add_argument("--h6_load_bias_max", type=float, default=0.03)
+    parser.add_argument("--h6_router_failure_patience", type=int, default=2)
+    parser.add_argument("--h6_router_max_sparse_dead_factors", type=int, default=1)
+    parser.add_argument("--h6_router_min_unique_topk_pairs", type=int, default=2)
     parser.add_argument("--h6_vae_hidden_dim", type=int, default=512)
     parser.add_argument("--h6_vae_latent_dim", type=int, default=256)
+    parser.add_argument("--h6_vae_class_ratio", type=float, default=0.25)
+    parser.add_argument("--h6_slot_init_enabled", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_slot_init_scale", type=float, default=0.02)
+    parser.add_argument("--h6_slot_init_seed_offset", type=int, default=6100)
+    parser.add_argument("--h6_factor_grad_diagnostics", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--h6_expert_bottleneck", type=int, default=64, help="reserved for Progress 2; unused in Progress 1")
     parser.add_argument("--lambda_h6_center", type=float, default=0.10)
     parser.add_argument("--h6_center_factor_aware", action="store_true")
@@ -1022,8 +1417,14 @@ def main():
     parser.add_argument("--lambda_h6_vae_rec", type=float, default=0.05)
     parser.add_argument("--beta_h6_vae_kl", type=float, default=1e-4)
     parser.add_argument("--h6_kl_zero_epochs", type=int, default=0)
+    parser.add_argument("--h6_kl_warmup_epochs", type=int, default=4)
+    parser.add_argument("--h6_kl_free_bits", type=float, default=0.0)
     parser.add_argument("--lambda_h6_orth", type=float, default=1e-3)
     parser.add_argument("--lambda_h6_balance", type=float, default=1e-2)
+    parser.add_argument("--lambda_h6_concept_key_diversity", type=float, default=0.0)
+    parser.add_argument("--h6_concept_key_cosine_margin", type=float, default=0.5)
+    parser.add_argument("--h6_concept_key_diversity_start_epoch", type=int, default=1)
+    parser.add_argument("--h6_concept_key_diversity_warmup_epochs", type=int, default=3)
     parser.add_argument("--lambda_h6_visual_residual", type=float, default=0.01, help="reserved for Progress 2")
     parser.add_argument("--lambda_h6_consistency", type=float, default=0.01, help="reserved for Progress 3")
     parser.add_argument("--h6_two_view", action="store_true", help="reserved for Progress 3")
@@ -1083,8 +1484,32 @@ def main():
             )
     if args.h6_router_soft_epochs < 0:
         raise ValueError("--h6_router_soft_epochs/--h6_dense_routing_epochs must be >= 0")
+    if args.h6_sparse_transition_epochs < 1:
+        raise ValueError("--h6_sparse_transition_epochs must be >= 1")
+    if args.h6_router_teacher_temperature <= 0:
+        raise ValueError("--h6_router_teacher_temperature must be > 0")
+    if not 0 <= args.h6_teacher_entropy_threshold <= 1:
+        raise ValueError("--h6_teacher_entropy_threshold must be in [0, 1]")
+    if args.h6_teacher_prob_std_threshold < 0:
+        raise ValueError("--h6_teacher_prob_std_threshold must be >= 0")
+    if not 0 <= args.h6_load_bias_momentum < 1:
+        raise ValueError("--h6_load_bias_momentum must be in [0, 1)")
+    if args.h6_load_bias_step < 0 or args.h6_load_bias_max < 0:
+        raise ValueError("--h6_load_bias_step/max must be >= 0")
+    if not 0 <= args.h6_vae_class_ratio <= 1:
+        raise ValueError("--h6_vae_class_ratio must be in [0, 1]")
+    if args.h6_slot_init_scale < 0:
+        raise ValueError("--h6_slot_init_scale must be >= 0")
+    if not -1 <= args.h6_concept_key_cosine_margin <= 1:
+        raise ValueError("--h6_concept_key_cosine_margin must be in [-1, 1]")
+    if args.h6_concept_key_diversity_warmup_epochs < 1:
+        raise ValueError("--h6_concept_key_diversity_warmup_epochs must be >= 1")
     if args.h6_kl_zero_epochs < 0:
         raise ValueError("--h6_kl_zero_epochs must be >= 0")
+    if args.h6_kl_warmup_epochs < 1:
+        raise ValueError("--h6_kl_warmup_epochs must be >= 1")
+    if args.h6_kl_free_bits < 0:
+        raise ValueError("--h6_kl_free_bits must be >= 0")
     if args.h6_center_margin < 0:
         raise ValueError("--h6_center_margin must be >= 0")
     if args.use_soft_prompt and args.use_hybrid_soft_prompt:
@@ -1154,8 +1579,18 @@ def main():
         h6_router_dim=args.h6_router_dim,
         h6_router_temperature=args.h6_router_temperature,
         h6_router_soft_epochs=args.h6_router_soft_epochs,
+        h6_sparse_transition_epochs=args.h6_sparse_transition_epochs,
+        h6_load_bias_enabled=args.h6_load_bias_enabled,
+        h6_load_bias_momentum=args.h6_load_bias_momentum,
+        h6_load_bias_step=args.h6_load_bias_step,
+        h6_load_bias_max=args.h6_load_bias_max,
         h6_vae_hidden_dim=args.h6_vae_hidden_dim,
         h6_vae_latent_dim=args.h6_vae_latent_dim,
+        h6_vae_class_ratio=args.h6_vae_class_ratio,
+        h6_slot_init_enabled=args.h6_slot_init_enabled,
+        h6_slot_init_scale=args.h6_slot_init_scale,
+        h6_slot_init_seed_offset=args.h6_slot_init_seed_offset,
+        h6_factor_grad_diagnostics=args.h6_factor_grad_diagnostics,
     ).to(device)
     model.eval()
     model.use_hybrid_soft_prompt = bool(args.use_hybrid_soft_prompt)

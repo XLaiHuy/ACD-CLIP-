@@ -8,7 +8,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from .losses import dynamic_residual_diversity_loss
+from .losses import dynamic_residual_diagnostics, dynamic_residual_diversity_loss, factor_stage_diagnostics
 from .router import PatchRouter
 from .semantic_bank import BoundedPositiveGate, CoPSSemanticCore
 
@@ -33,8 +33,19 @@ class H6Progress1(nn.Module):
         router_dim: int = 128,
         router_temperature: float = 1.0,
         router_soft_epochs: int = 2,
+        sparse_transition_epochs: int = 1,
+        load_bias_enabled: bool = False,
+        load_bias_momentum: float = 0.9,
+        load_bias_step: float = 0.001,
+        load_bias_max: float = 0.03,
         vae_hidden_dim: int = 512,
         vae_latent_dim: int = 256,
+        vae_class_ratio: float = 0.25,
+        slot_init_enabled: bool = False,
+        slot_init_scale: float = 0.02,
+        slot_init_seed_offset: int = 6100,
+        slot_init_method: str = "qr_relative_offset",
+        factor_grad_diagnostics: bool = False,
         text_dim: int = 768,
         ctx_len: int = 4,
         h6_logit_temperature: float = 10.0,
@@ -47,8 +58,19 @@ class H6Progress1(nn.Module):
         self.router_dim = int(router_dim)
         self.router_temperature = float(router_temperature)
         self.router_soft_epochs = int(router_soft_epochs)
+        self.sparse_transition_epochs = max(1, int(sparse_transition_epochs))
+        self.load_bias_enabled = bool(load_bias_enabled)
+        self.load_bias_momentum = float(load_bias_momentum)
+        self.load_bias_step = float(load_bias_step)
+        self.load_bias_max = float(load_bias_max)
         self.vae_hidden_dim = int(vae_hidden_dim)
         self.vae_latent_dim = int(vae_latent_dim)
+        self.vae_class_ratio = float(vae_class_ratio)
+        self.slot_init_enabled = bool(slot_init_enabled)
+        self.slot_init_scale = float(slot_init_scale)
+        self.slot_init_seed_offset = int(slot_init_seed_offset)
+        self.slot_init_method = str(slot_init_method)
+        self.factor_grad_diagnostics = bool(factor_grad_diagnostics)
         self.text_dim = int(text_dim)
         self.ctx_len = int(ctx_len)
         self.h6_logit_temperature = float(h6_logit_temperature)
@@ -60,6 +82,11 @@ class H6Progress1(nn.Module):
             ctx_len=ctx_len,
             vae_hidden_dim=vae_hidden_dim,
             vae_latent_dim=vae_latent_dim,
+            vae_class_ratio=vae_class_ratio,
+            slot_init_enabled=slot_init_enabled,
+            slot_init_scale=slot_init_scale,
+            slot_init_seed_offset=slot_init_seed_offset,
+            slot_init_method=slot_init_method,
         )
         self.router = PatchRouter(
             n_groups=n_groups,
@@ -69,14 +96,23 @@ class H6Progress1(nn.Module):
             hidden_dim=router_dim,
             temperature=router_temperature,
             soft_routing_epochs=router_soft_epochs,
+            sparse_transition_epochs=sparse_transition_epochs,
             top_k=top_k,
+            load_bias_enabled=load_bias_enabled,
+            load_bias_momentum=load_bias_momentum,
+            load_bias_step=load_bias_step,
+            load_bias_max=load_bias_max,
+            slot_init_enabled=slot_init_enabled,
+            slot_init_scale=slot_init_scale,
+            slot_init_seed_offset=slot_init_seed_offset,
         )
         self.rho = BoundedPositiveGate(initial=0.05, maximum=0.50, count=n_groups)
         self.epoch_one_based = 1
 
     def config_dict(self) -> Dict[str, int | float | str]:
         return {
-            "variant": "p1_v2_specialization_fix",
+            "variant": "p1_v5_targeted_diagnostic",
+            "progress_version": "P1-v5",
             "progress": self.progress,
             "n_groups": self.n_groups,
             "num_factors": self.num_factors,
@@ -87,10 +123,21 @@ class H6Progress1(nn.Module):
             "router_soft_epochs": self.router_soft_epochs,
             "dense_routing_epochs": self.router_soft_epochs,
             "sparse_start_epoch": self.router_soft_epochs + 1,
+            "sparse_transition_epochs": self.sparse_transition_epochs,
+            "sparse_full_epoch": self.router_soft_epochs + self.sparse_transition_epochs,
+            "sparse_mode": "straight_through_topk",
+            "prediction_interpolation_enabled": True,
             "router_mode": "concept_key_dot",
             "router_scoring": "concept_key_dot",
+            "load_bias_enabled": self.load_bias_enabled,
+            "load_bias_momentum": self.load_bias_momentum,
+            "load_bias_step": self.load_bias_step,
+            "load_bias_max": self.load_bias_max,
+            "load_bias_selection_only": True,
+            "load_bias_within_topk_weights_use_semantic_logits": True,
             "vae_hidden_dim": self.vae_hidden_dim,
             "vae_latent_dim": self.vae_latent_dim,
+            "vae_class_ratio": self.vae_class_ratio,
             "text_dim": self.text_dim,
             "ctx_len": self.ctx_len,
             "h6_logit_temperature": self.h6_logit_temperature,
@@ -106,7 +153,24 @@ class H6Progress1(nn.Module):
             "center_loss": "factor_aware_dense_detached",
             "kl_schedule": "zero_then_linear",
             "vae_prompt_use_mu": True,
+            "vae_sample_used_for_reconstruction_only": True,
+            "vae_class_skip_enabled": True,
             "vae_prompt_path": "decoder_mu",
+            "slot_init_enabled": self.slot_init_enabled,
+            "slot_init_scale": self.slot_init_scale,
+            "slot_init_seed_offset": self.slot_init_seed_offset,
+            "slot_init_method": self.slot_init_method,
+            "slot_init_applied_components": list(self.semantic_core.slot_init_applied_components)
+            + list(getattr(self.router, "slot_init_applied_components", [])),
+            "factor_grad_diagnostics_enabled": self.factor_grad_diagnostics,
+            "three_level_router_mode": "shared_router_level_specific_inputs",
+            "level_specific_input_verified": True,
+            "teacher_diagnostics_version": 1,
+            "teacher_confidence_gate": True,
+            "teacher_candidate_diagnostics": True,
+            "factor_identity_stage_tracing": True,
+            "router_granularity_diagnostics": True,
+            "query_patchwise_diagnostics": True,
         }
 
     def set_epoch(self, epoch_one_based: int) -> None:
@@ -150,7 +214,14 @@ class H6Progress1(nn.Module):
         hard_frozen = torch.stack(frozen, dim=1).detach().float()  # [G,B,D,2]
         return hard_adapted, hard_frozen
 
-    def _encode_dynamic_bank(self, base_model, dataset_name: str, class_names: Sequence[str], dynamic_contexts: torch.Tensor) -> torch.Tensor:
+    def _encode_dynamic_bank(
+        self,
+        base_model,
+        dataset_name: str,
+        class_names: Sequence[str],
+        dynamic_contexts: torch.Tensor,
+        return_raw: bool = False,
+    ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
         from utils import get_real_name, get_soft_prompt_sentence
         from model.tokenizer import tokenize
 
@@ -169,8 +240,11 @@ class H6Progress1(nn.Module):
         dynamic = torch.stack(text_levels, dim=0).view(
             self.n_groups, batch, factors, states, self.text_dim
         )
-        dynamic = dynamic.permute(0, 1, 2, 4, 3).contiguous().float()
-        return F.normalize(dynamic, dim=3)
+        dynamic_raw = dynamic.permute(0, 1, 2, 4, 3).contiguous().float()
+        dynamic = F.normalize(dynamic_raw, dim=3)
+        if return_raw:
+            return dynamic, dynamic_raw
+        return dynamic
 
     @staticmethod
     def _fuse_factor_bank(hard_adapted: torch.Tensor, dynamic_text: torch.Tensor, hybrid_alpha: float) -> torch.Tensor:
@@ -201,7 +275,9 @@ class H6Progress1(nn.Module):
             base_model.soft_prompt.ctx_abnormal,
             debug=debug,
         )
-        dynamic = self._encode_dynamic_bank(base_model, dataset_name, class_names, core["dynamic_contexts"])
+        dynamic, dynamic_raw = self._encode_dynamic_bank(
+            base_model, dataset_name, class_names, core["dynamic_contexts"], return_raw=True
+        )
         hard_adapted, hard_frozen = self._batch_hard_embeddings(
             base_model, dataset_name, class_names, visual_output["cls24"].device
         )
@@ -216,6 +292,7 @@ class H6Progress1(nn.Module):
             visual_output["seg_tokens"],
             epoch_one_based=self.epoch_one_based,
             concept_keys=core["concept_keys"],
+            update_load_bias=self.training,
         )
         prediction_probabilities = routing["prediction_probabilities"]
         local_text = self.router.local_text(prediction_probabilities, factor_bank)
@@ -228,6 +305,7 @@ class H6Progress1(nn.Module):
             "hard_adapted": hard_adapted,
             "hard_frozen": hard_frozen,
             "dynamic_text": dynamic,
+            "dynamic_text_raw": dynamic_raw,
             "factor_bank": factor_bank,
             "kg_loss": kg_loss,
             "residual_diversity": residual_diversity,
@@ -235,12 +313,39 @@ class H6Progress1(nn.Module):
             "local_text": local_text,
             "h6_logits": h6_logits,
             "rho": self.rho_values(),
-            "router_diagnostics": self.router.diagnostics(
+            "router_diagnostics": {
+                **self.router.diagnostics(
                 prediction_probabilities,
                 dense_probabilities=routing["dense_probabilities"],
                 sparse_probabilities=routing["sparse_probabilities"],
                 topk_indices=routing["topk_indices"],
-            ),
+                ),
+                **self.router.concept_key_diagnostics(core["concept_keys"]),
+                "router_logit_std": routing["logits"].float().std(dim=(1, 2, 3), unbiased=False).detach(),
+                "router_prob_std": routing["dense_probabilities"].float().std(dim=(1, 2, 3), unbiased=False).detach(),
+                "query_variance": routing["queries"].float().var(dim=(1, 2, 3), unbiased=False).detach(),
+                "query_norm": routing["queries"].float().norm(dim=-1).mean(dim=(1, 2)).detach(),
+                "sparse_ratio": routing["sparse_ratio"].detach(),
+                "load_bias": routing["load_bias"].detach(),
+                "ema_topk_usage": routing["ema_topk_usage"].detach(),
+                "level_input_alias": routing["level_input_alias"].detach(),
+                "level_input_difference": routing["level_input_difference"].detach(),
+                "level_query_difference": routing["level_query_difference"].detach(),
+                "level_logit_difference": routing["level_logit_difference"].detach(),
+                **self.semantic_core.initialization_diagnostics(),
+                **factor_stage_diagnostics(core["concept_slots"], "stage_concept_slots", factor_dim=0),
+                **factor_stage_diagnostics(core["concept_keys"], "stage_concept_keys", factor_dim=0),
+                **factor_stage_diagnostics(core["normal_queries"], "stage_normal_queries", factor_dim=1),
+                **factor_stage_diagnostics(core["abnormal_queries"], "stage_abnormal_queries", factor_dim=1),
+                **factor_stage_diagnostics(core["prototype_normal"], "stage_prototype_normal", factor_dim=1),
+                **factor_stage_diagnostics(core["prototype_abnormal"], "stage_prototype_abnormal", factor_dim=1),
+                **factor_stage_diagnostics(core["state_delta_raw"], "stage_state_to_context_raw", factor_dim=1),
+                **factor_stage_diagnostics(core["state_delta"], "stage_state_to_context_norm", factor_dim=1),
+                **factor_stage_diagnostics(core["dynamic_contexts"], "stage_context_before_encoder", factor_dim=1),
+                **factor_stage_diagnostics(dynamic_raw, "stage_dynamic_text_raw", factor_dim=2),
+                **factor_stage_diagnostics(dynamic, "stage_dynamic_text_norm", factor_dim=2),
+                **dynamic_residual_diagnostics(dynamic, hard_frozen),
+            },
         }
 
     def h6_logit(self, normalized_patches: torch.Tensor, local_text: torch.Tensor) -> torch.Tensor:
