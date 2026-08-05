@@ -1,0 +1,80 @@
+{
+  "colon_val_ratio": 0.3,
+  "datasets": {
+    "Brain": {
+      "test_source": "dataset/hub/<dataset>.jsonl + official MedAD test directory",
+      "val_count": 83,
+      "val_label_counts": {
+        "0": 39,
+        "1": 44
+      },
+      "val_source": "official MedAD valid"
+    },
+    "Colon_Kvasir": {
+      "grouping": "image-level; source manifests expose no patient/video ID",
+      "source_count": 1000,
+      "source_manifest": "dataset/hub/Colon_Kvasir.jsonl",
+      "source_sha256": "ac948309511f02e8ec66b9c3b5dbc4a4be5e85d22dbd17742c74212ceee2ee94",
+      "test_count": 700,
+      "test_label_counts": {
+        "1": 700
+      },
+      "val_count": 300,
+      "val_label_counts": {
+        "1": 300
+      },
+      "val_source": "deterministic stratified image-level split"
+    },
+    "Colon_clinicDB": {
+      "grouping": "image-level; source manifests expose no patient/video ID",
+      "source_count": 612,
+      "source_manifest": "dataset/hub/Colon_clinicDB.jsonl",
+      "source_sha256": "1f057657a64221672a5123c3e87b926d226b9eb6a3276768385ca3a7554cdb5c",
+      "test_count": 428,
+      "test_label_counts": {
+        "1": 428
+      },
+      "val_count": 184,
+      "val_label_counts": {
+        "1": 184
+      },
+      "val_source": "deterministic stratified image-level split"
+    },
+    "Colon_colonDB": {
+      "grouping": "image-level; source manifests expose no patient/video ID",
+      "source_count": 380,
+      "source_manifest": "dataset/hub/Colon_colonDB.jsonl",
+      "source_sha256": "e3be9a5e158bef9a2c7f481827339798152c78e92590df9631c4281a6b6c31c3",
+      "test_count": 266,
+      "test_label_counts": {
+        "1": 266
+      },
+      "val_count": 114,
+      "val_label_counts": {
+        "1": 114
+      },
+      "val_source": "deterministic stratified image-level split"
+    },
+    "Liver": {
+      "test_source": "dataset/hub/<dataset>.jsonl + official MedAD test directory",
+      "val_count": 166,
+      "val_label_counts": {
+        "0": 93,
+        "1": 73
+      },
+      "val_source": "official MedAD valid"
+    },
+    "Retina": {
+      "test_source": "dataset/hub/<dataset>.jsonl + official MedAD test directory",
+      "val_count": 115,
+      "val_label_counts": {
+        "0": 45,
+        "1": 70
+      },
+      "val_source": "official MedAD val"
+    }
+  },
+  "medical_training_data": "none; VisA only",
+  "protocol": "phase4_medical_val_test_v1",
+  "seed": 0
+}

@@ -43,6 +43,12 @@ def _eval(gate, epoch=8, diag=None, **kwargs):
         dynamic_mean_anchor_target=kwargs.pop("dynamic_mean_anchor_target", 0.001),
         query_mode=kwargs.pop("query_mode", "local_global_bypass"),
         tangent_enabled=kwargs.pop("tangent_enabled", True),
+        expert_enabled=kwargs.pop("expert_enabled", False),
+        expert_scale=kwargs.pop("expert_scale", 0.0),
+        expert_scale_target=kwargs.pop("expert_scale_target", 0.0),
+        etf_weight=kwargs.pop("etf_weight", 0.0),
+        etf_target=kwargs.pop("etf_target", 0.0),
+        gate_sample_count=kwargs.pop("gate_sample_count", 0),
     )
 
 
@@ -157,3 +163,43 @@ def test_nonfinite_metrics_abort_immediately_and_checkpoint_state_can_reset():
     assert restored.counters["query_collapse"] == 1
     restored.reset()
     assert all(value == 0 for value in restored.counters.values())
+
+
+def test_monitor_mode_records_eligible_expert_collapse_without_abort():
+    config = StructuralGateConfig(enabled=True, mode="monitor", patience=1)
+    gate = H6StructuralGateState(config)
+    diag = _diag(
+        expert_delta_norm_mean=torch.tensor(1.0), expert_delta_valid_fraction=torch.tensor(1.0),
+        final_expert_direction_cos_max=torch.tensor(1.0), expert_patch_logit_std_across_experts=torch.tensor(0.0),
+    )
+    decision = _eval(
+        gate, epoch=12, diag=diag, expert_enabled=True, expert_scale=.1, expert_scale_target=.1,
+        etf_weight=.005, etf_target=.005, gate_sample_count=4,
+    )
+    assert decision.failed["factor_collapse"] and not decision.hard_failure
+
+
+def test_expert_anchor_warning_uses_state_preserving_final_cosine_floor():
+    gate = _gate(mode="monitor", patience=1)
+    healthy = _eval(
+        gate, epoch=12,
+        diag=_diag(
+            final_expert_mean_hard_cos_mean=torch.tensor(.95),
+            final_expert_mean_hard_cos_min=torch.tensor(.95),
+            expert_anchor_floor=torch.tensor(.70),
+        ),
+        expert_enabled=True, expert_scale=.1, expert_scale_target=.1,
+        etf_weight=.005, etf_target=.005, gate_sample_count=4,
+    )
+    assert "expert_mean_below_trust_floor" not in healthy.soft_warnings
+    low = _eval(
+        gate, epoch=12,
+        diag=_diag(
+            final_expert_mean_hard_cos_mean=torch.tensor(.75),
+            final_expert_mean_hard_cos_min=torch.tensor(.60),
+            expert_anchor_floor=torch.tensor(.70),
+        ),
+        expert_enabled=True, expert_scale=.1, expert_scale_target=.1,
+        etf_weight=.005, etf_target=.005, gate_sample_count=4,
+    )
+    assert "expert_mean_below_trust_floor" in low.soft_warnings

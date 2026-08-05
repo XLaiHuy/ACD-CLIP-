@@ -48,6 +48,7 @@ def test_straight_through_transition_schedule_and_gradients():
     router = PatchRouter(
         n_groups=1, num_factors=4, text_dim=8, bank_dim=4, hidden_dim=6,
         top_k=2, soft_routing_epochs=8, sparse_transition_epochs=4,
+        router_query_mode="raw",  # P1-v3 compatibility path; v6/v7 default is local-global-bypass.
     )
     tokens = torch.randn(1, 2, 5, 8)
     keys = torch.eye(4)

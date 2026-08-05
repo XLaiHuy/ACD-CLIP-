@@ -1,0 +1,336 @@
+{
+  "checkpoint_version": 7,
+  "expert_geometry": {
+    "expert_abnormal_patch_count": 13.71276569366455,
+    "expert_advantage_margin_satisfied_fraction": 0.32362571358680725,
+    "expert_advantage_valid_count": 82.27659606933594,
+    "expert_anchor_floor": 0.699999988079071,
+    "expert_delta_norm_mean": 0.00013032765127718449,
+    "expert_delta_norm_mean_min": 0.00011718679161276668,
+    "expert_delta_norm_mean_p05": 0.00012087850336683914,
+    "expert_delta_raw_norm_max": 0.0017301058396697044,
+    "expert_delta_raw_norm_mean": 0.0013100680662319064,
+    "expert_delta_tangent_cos_max": 0.35951322317123413,
+    "expert_delta_tangent_cos_mean": -0.3249278962612152,
+    "expert_delta_tangent_l2_min": 0.0004998816875740886,
+    "expert_delta_tangent_norm_mean": 0.0013032746501266956,
+    "expert_delta_tangent_norm_min": 0.0009123960044234991,
+    "expert_delta_valid_fraction": 1.0,
+    "expert_delta_valid_fraction_min": 1.0,
+    "expert_delta_valid_fraction_p05": 1.0,
+    "expert_direction_cos_max": 0.35951322317123413,
+    "expert_direction_cos_mean": -0.3249278962612152,
+    "expert_mean_hard_cos": [
+      [
+        [
+          0.6492469906806946,
+          0.6427570581436157
+        ]
+      ],
+      [
+        [
+          0.21144424378871918,
+          0.19445587694644928
+        ]
+      ],
+      [
+        [
+          0.1055348813533783,
+          0.12439865618944168
+        ]
+      ]
+    ],
+    "expert_normal_patch_count": 1355.2872314453125,
+    "expert_patch_logit_pairwise_difference_mean": 26.369882583618164,
+    "expert_patch_logit_std_across_experts": 0.29195234179496765,
+    "expert_patch_logit_std_across_experts_min": 0.18045438826084137,
+    "expert_patch_logit_std_across_experts_p05": 0.21877552568912506,
+    "expert_patch_logit_std_across_patches": 2.166841745376587,
+    "expert_residual_clamp_fraction": 0.0,
+    "expert_residual_relative_ratio_max": 0.00011693628766806796,
+    "expert_residual_relative_ratio_mean": 7.514291064580902e-05,
+    "expert_scale_current": 0.10000184923410416,
+    "expert_scale_target": 0.10000184923410416,
+    "expert_valid_patch_count": 1369.0,
+    "final_expert_direction_cos_max": 1.0,
+    "final_expert_direction_cos_max_min": 1.0,
+    "final_expert_direction_cos_max_p05": 1.0,
+    "final_expert_direction_cos_mean": 0.99615877866745,
+    "final_expert_direction_l2_min": 0.00589617807418108,
+    "final_expert_direction_norm_mean": 1.7992682456970215,
+    "final_expert_mean_hard_cos_mean": 0.32130613923072815,
+    "final_expert_mean_hard_cos_mean_min": 0.28990545868873596,
+    "final_expert_mean_hard_cos_mean_p05": 0.2969377338886261,
+    "final_expert_mean_hard_cos_min": 0.08926385641098022,
+    "final_expert_mean_hard_cos_p05": 0.1010538637638092,
+    "final_expert_mean_hard_cos_per_level_abnormal": [
+      0.6427570581436157,
+      0.19445587694644928,
+      0.12439865618944168
+    ],
+    "final_expert_mean_hard_cos_per_level_normal": [
+      0.6492469906806946,
+      0.21144424378871918,
+      0.1055348813533783
+    ],
+    "final_expert_mean_pre_expert_cos_mean": 1.0,
+    "final_expert_mean_pre_expert_cos_min": 1.0,
+    "final_expert_orth_raw": 1.7698583602905273,
+    "final_expert_vs_pre_expert_cos_mean": 1.0,
+    "final_expert_vs_pre_expert_cos_min": 1.0,
+    "final_expert_vs_pre_expert_cos_p05": 1.0,
+    "final_expert_vs_pre_expert_max_abs_diff": 9.676803165348247e-05,
+    "pre_expert_mean_hard_cos_mean": 0.32130569219589233,
+    "pre_expert_mean_hard_cos_min": 0.08926407992839813,
+    "pre_expert_mean_hard_cos_p05": 0.10105382651090622,
+    "pre_expert_mean_hard_cos_per_level_abnormal": [
+      0.6427559852600098,
+      0.19445498287677765,
+      0.12439756840467453
+    ],
+    "pre_expert_mean_hard_cos_per_level_normal": [
+      0.6492471098899841,
+      0.2114444077014923,
+      0.10553561896085739
+    ],
+    "pre_expert_vs_expected_noop_cos_mean": 0.9766640067100525,
+    "pre_expert_vs_expected_noop_cos_min": 0.9706217050552368,
+    "pre_expert_vs_expected_noop_cos_p05": 0.9707138538360596,
+    "pre_expert_vs_expected_noop_max_abs_diff": 0.0942784771323204
+  },
+  "expert_schedule": {
+    "current": 0.1,
+    "target": 0.1
+  },
+  "gate": {
+    "abort_reason": null,
+    "decision": {
+      "gate_abort_reason": null,
+      "gate_failed": {
+        "factor_collapse": false,
+        "key_anchor_failure": false,
+        "query_collapse": false,
+        "semantic_drift": false,
+        "sparse_collapse": false
+      },
+      "gate_fatal_metrics": [],
+      "gate_hard_failure": false,
+      "gate_per_level": {
+        "expert_gate": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          false
+        ],
+        "query_failed_levels": [
+          false,
+          false,
+          false
+        ],
+        "sparse_failed_levels": [
+          false,
+          false,
+          false
+        ]
+      },
+      "gate_soft_warnings": [
+        "unique_topk_pairs_low",
+        "raw_concept_key_geometry_similar",
+        "dynamic_mean_below_trust_floor",
+        "expert_mean_below_trust_floor"
+      ],
+      "gate_state": "warning"
+    },
+    "effective_state": "monitoring",
+    "hard_failure": false,
+    "mode": "monitor",
+    "raw_state": "warning",
+    "sample_count": 2162,
+    "soft_warnings": [
+      "unique_topk_pairs_low",
+      "raw_concept_key_geometry_similar",
+      "dynamic_mean_below_trust_floor",
+      "expert_mean_below_trust_floor"
+    ]
+  },
+  "gradients": {
+    "expert_B_grad_norm": 0.00573123199865222,
+    "expert_B_grad_norm_per_factor": [
+      0.0028009945526719093,
+      0.0029907068237662315,
+      0.0024065631441771984,
+      0.0028883577324450016
+    ],
+    "expert_state_projection_grad_norm": 4.5848511945223436e-05,
+    "router_key_adaptation_grad_norm": 0.0031957959290593863,
+    "router_query_grad_norm": 8.537436769984197e-06
+  },
+  "loss_components": {
+    "advantage": 0.007406490914365078,
+    "advantage_weight": 0.019999999552965164,
+    "balance": 0.06162230215732363,
+    "balance_weight": 0.006000000052154064,
+    "center": 0.0028722259389341244,
+    "cls": 0.42073074902625796,
+    "component_residual": 0.0,
+    "concept_key_diversity_raw": 0.013203565192484107,
+    "concept_key_diversity_weighted": 1.3203564846387283e-06,
+    "dynamic_mean_anchor_raw": 0.044648403884234744,
+    "dynamic_mean_anchor_weight": 0.0010000000474974513,
+    "dynamic_mean_anchor_weighted": 4.464840603035955e-05,
+    "etf": 0.00037508196815724826,
+    "etf_weight": 0.004999999888241291,
+    "expert": 0.27513524051755667,
+    "expert_advantage_margin_satisfied_fraction": 0.32362571823566627,
+    "expert_advantage_raw": 0.007406490914365078,
+    "expert_advantage_weight": 0.019999999552965164,
+    "expert_advantage_weighted": 0.00014812981480756727,
+    "expert_anchor": 0.19860840871392524,
+    "expert_anchor_raw": 0.19860840871392524,
+    "expert_anchor_weight": 0.009999999776482582,
+    "expert_anchor_weighted": 0.001986084039931278,
+    "expert_assigned_abnormal": 0.14481256888018643,
+    "expert_assigned_normal": 0.13032267197267006,
+    "expert_assigned_raw": 0.27513524051755667,
+    "expert_assigned_weight": 0.10000000149011612,
+    "expert_assigned_weighted": 0.027513524528509255,
+    "expert_balance_dense_raw": 0.0016184887092471792,
+    "expert_balance_prediction_raw": 0.06000381338545341,
+    "expert_balance_weight": 0.006000000052154064,
+    "expert_balance_weighted": 0.0003697338162239785,
+    "expert_delta_norm": 0.001303274621803634,
+    "expert_etf_raw": 0.00037508196815724826,
+    "expert_etf_weight": 0.004999999888241291,
+    "expert_etf_weighted": 1.87540979695029e-06,
+    "expert_radius": 0.0,
+    "expert_radius_raw": 0.0,
+    "expert_radius_weight": 0.009999999776482582,
+    "expert_radius_weighted": 0.0,
+    "expert_weight": 0.10000000149011612,
+    "kg": 0.5247237241372921,
+    "legacy_pre_expert_orth_raw": 0.5198000729993799,
+    "legacy_pre_expert_orth_weight": 0.0,
+    "legacy_pre_expert_orth_weighted": 0.0,
+    "loss_component_residual": 0.0,
+    "loss_component_sum": 0.8162250781671302,
+    "nonselected_expert_loss": 0.18099607146141217,
+    "router_teacher": 1.3572771671632171,
+    "router_teacher_effective_weight": 0.004999999888241291,
+    "router_teacher_scheduled_weight": 0.004999999888241291,
+    "router_teacher_weighted": 0.006786385685710321,
+    "seg": 0.3580333640924711,
+    "selected_expert_loss": 0.13417730347868737,
+    "task": 0.7787641130808214,
+    "task_rolling_median": 0.8480719211033161,
+    "total": 0.8162250781671302,
+    "vae_kl_effective": 0.10426303242556371,
+    "vae_kl_raw": 0.10426303242556371,
+    "vae_rec": 0.0005315113909204191
+  },
+  "patch_counts": {
+    "expert_abnormal_patch_count": 13.71276569366455,
+    "expert_normal_patch_count": 1355.2872314453125,
+    "expert_valid_patch_count": 1369.0
+  },
+  "progress_version": "P1-v7-full",
+  "router": {
+    "dead_usage_threshold": 0.01,
+    "dense_dead_count": [
+      0,
+      0,
+      0
+    ],
+    "dense_dead_mask": [
+      [
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        false,
+        false,
+        false,
+        false
+      ]
+    ],
+    "dense_usage": [
+      [
+        0.26810920238494873,
+        0.266015887260437,
+        0.22601012885570526,
+        0.23986481130123138
+      ],
+      [
+        0.2714974284172058,
+        0.2680763602256775,
+        0.2237672656774521,
+        0.2366592139005661
+      ],
+      [
+        0.27234339714050293,
+        0.26806846261024475,
+        0.22342146933078766,
+        0.2361665666103363
+      ]
+    ],
+    "sparse_dead_count": [
+      1,
+      1,
+      1
+    ],
+    "sparse_dead_mask": [
+      [
+        false,
+        false,
+        true,
+        false
+      ],
+      [
+        false,
+        false,
+        true,
+        false
+      ],
+      [
+        false,
+        false,
+        true,
+        false
+      ]
+    ],
+    "sparse_usage": [
+      [
+        0.43887943029403687,
+        0.45038893818855286,
+        7.991263373696711e-06,
+        0.11072385311126709
+      ],
+      [
+        0.48659032583236694,
+        0.47821497917175293,
+        0.0,
+        0.03519481420516968
+      ],
+      [
+        0.4690309166908264,
+        0.486703485250473,
+        0.0,
+        0.044265735894441605
+      ]
+    ],
+    "unique_topk_pairs": [
+      2.560129404067993,
+      1.8473635911941528,
+      2.0097131729125977
+    ]
+  }
+}

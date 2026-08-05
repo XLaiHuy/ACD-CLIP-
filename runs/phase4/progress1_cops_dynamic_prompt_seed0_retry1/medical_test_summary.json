@@ -1,0 +1,27 @@
+{
+  "datasets": [
+    "Brain",
+    "Liver",
+    "Retina",
+    "Colon_clinicDB",
+    "Colon_colonDB",
+    "Colon_Kvasir"
+  ],
+  "epochs": [
+    8
+  ],
+  "macro_by_epoch": [
+    {
+      "combined_score": 33.1257004703125,
+      "epoch": 8,
+      "image_AP": 37.66166666666667,
+      "image_AUROC": 36.72666666666667,
+      "image_score": 37.19416666666667,
+      "pixel_AP": 22.76718333333333,
+      "pixel_AUROC": 81.6776,
+      "pixel_score": 52.22239166666666
+    }
+  ],
+  "selection_rule": "none; test metrics are reported for the validation-selected epoch only",
+  "split": "test"
+}

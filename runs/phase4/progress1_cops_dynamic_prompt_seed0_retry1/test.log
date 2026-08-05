@@ -1,0 +1,486 @@
+2026-08-03 19:36:51 test.py 349: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 2, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Brain', 'medical_split': 'val', 'medical_manifest_root': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1/protocol/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1', 'num_workers': 6, 'epochs': [8, 9, 10, 11, 12, 13, 14, 15], 'metric_thresholds': None, 'pixel_stride': 1, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-03 19:36:51 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-03 19:36:54 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-03 19:36:55 test.py 517: -----------------------------------------------
+2026-08-03 19:36:55 test.py 518: load model from epoch 8
+2026-08-03 19:36:55 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:36:55 test.py 529: -----------------------------------------------
+2026-08-03 19:37:15 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      94.34    33.22     79.55    80.8  
+ Average      94.34    33.22     79.55    80.8  
+2026-08-03 19:37:15 test.py 517: -----------------------------------------------
+2026-08-03 19:37:15 test.py 518: load model from epoch 9
+2026-08-03 19:37:15 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:37:15 test.py 529: -----------------------------------------------
+2026-08-03 19:37:35 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      93.98    32.03     75.93    77.17 
+ Average      93.98    32.03     75.93    77.17 
+2026-08-03 19:37:35 test.py 517: -----------------------------------------------
+2026-08-03 19:37:35 test.py 518: load model from epoch 10
+2026-08-03 19:37:35 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:37:35 test.py 529: -----------------------------------------------
+2026-08-03 19:37:54 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      93.3     28.92     74.48    72.25 
+ Average      93.3     28.92     74.48    72.25 
+2026-08-03 19:37:54 test.py 517: -----------------------------------------------
+2026-08-03 19:37:54 test.py 518: load model from epoch 11
+2026-08-03 19:37:54 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:37:54 test.py 529: -----------------------------------------------
+2026-08-03 19:38:14 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      94.38    36.12     75.06    74.64 
+ Average      94.38    36.12     75.06    74.64 
+2026-08-03 19:38:14 test.py 517: -----------------------------------------------
+2026-08-03 19:38:14 test.py 518: load model from epoch 12
+2026-08-03 19:38:14 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:38:14 test.py 529: -----------------------------------------------
+2026-08-03 19:38:33 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      94.19    33.29     75.0     73.15 
+ Average      94.19    33.29     75.0     73.15 
+2026-08-03 19:38:34 test.py 517: -----------------------------------------------
+2026-08-03 19:38:34 test.py 518: load model from epoch 13
+2026-08-03 19:38:34 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:38:34 test.py 529: -----------------------------------------------
+2026-08-03 19:38:53 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      93.81    29.67     76.11    75.24 
+ Average      93.81    29.67     76.11    75.24 
+2026-08-03 19:38:53 test.py 517: -----------------------------------------------
+2026-08-03 19:38:53 test.py 518: load model from epoch 14
+2026-08-03 19:38:53 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:38:53 test.py 529: -----------------------------------------------
+2026-08-03 19:39:13 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      93.24    27.64     74.36    71.68 
+ Average      93.24    27.64     74.36    71.68 
+2026-08-03 19:39:13 test.py 517: -----------------------------------------------
+2026-08-03 19:39:13 test.py 518: load model from epoch 15
+2026-08-03 19:39:13 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:39:13 test.py 529: -----------------------------------------------
+2026-08-03 19:39:33 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain      93.5     27.84     74.88    72.09 
+ Average      93.5     27.84     74.88    72.09 
+2026-08-03 19:39:36 test.py 349: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 2, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Liver', 'medical_split': 'val', 'medical_manifest_root': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1/protocol/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1', 'num_workers': 6, 'epochs': [8, 9, 10, 11, 12, 13, 14, 15], 'metric_thresholds': None, 'pixel_stride': 1, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-03 19:39:36 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-03 19:39:39 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-03 19:39:40 test.py 517: -----------------------------------------------
+2026-08-03 19:39:40 test.py 518: load model from epoch 8
+2026-08-03 19:39:40 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:39:40 test.py 529: -----------------------------------------------
+2026-08-03 19:40:19 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      97.03    7.54      67.98    61.87 
+ Average      97.03    7.54      67.98    61.87 
+2026-08-03 19:40:19 test.py 517: -----------------------------------------------
+2026-08-03 19:40:19 test.py 518: load model from epoch 9
+2026-08-03 19:40:19 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:40:19 test.py 529: -----------------------------------------------
+2026-08-03 19:40:58 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      96.8     7.17      63.99    57.46 
+ Average      96.8     7.17      63.99    57.46 
+2026-08-03 19:40:58 test.py 517: -----------------------------------------------
+2026-08-03 19:40:58 test.py 518: load model from epoch 10
+2026-08-03 19:40:58 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:40:58 test.py 529: -----------------------------------------------
+2026-08-03 19:41:36 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      96.74    6.96      67.43    59.2  
+ Average      96.74    6.96      67.43    59.2  
+2026-08-03 19:41:36 test.py 517: -----------------------------------------------
+2026-08-03 19:41:36 test.py 518: load model from epoch 11
+2026-08-03 19:41:36 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:41:36 test.py 529: -----------------------------------------------
+2026-08-03 19:42:15 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      97.19    8.09      67.24    60.92 
+ Average      97.19    8.09      67.24    60.92 
+2026-08-03 19:42:15 test.py 517: -----------------------------------------------
+2026-08-03 19:42:15 test.py 518: load model from epoch 12
+2026-08-03 19:42:15 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:42:15 test.py 529: -----------------------------------------------
+2026-08-03 19:42:54 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      97.27    8.26      64.87    59.71 
+ Average      97.27    8.26      64.87    59.71 
+2026-08-03 19:42:54 test.py 517: -----------------------------------------------
+2026-08-03 19:42:54 test.py 518: load model from epoch 13
+2026-08-03 19:42:54 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:42:54 test.py 529: -----------------------------------------------
+2026-08-03 19:43:33 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      97.17    8.26      66.02    58.04 
+ Average      97.17    8.26      66.02    58.04 
+2026-08-03 19:43:33 test.py 517: -----------------------------------------------
+2026-08-03 19:43:33 test.py 518: load model from epoch 14
+2026-08-03 19:43:33 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:43:33 test.py 529: -----------------------------------------------
+2026-08-03 19:44:12 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      97.06    8.18      63.59    58.23 
+ Average      97.06    8.18      63.59    58.23 
+2026-08-03 19:44:12 test.py 517: -----------------------------------------------
+2026-08-03 19:44:12 test.py 518: load model from epoch 15
+2026-08-03 19:44:12 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:44:12 test.py 529: -----------------------------------------------
+2026-08-03 19:44:51 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver      97.11    8.11      66.11    58.63 
+ Average      97.11    8.11      66.11    58.63 
+2026-08-03 19:44:54 test.py 349: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 2, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Retina', 'medical_split': 'val', 'medical_manifest_root': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1/protocol/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1', 'num_workers': 6, 'epochs': [8, 9, 10, 11, 12, 13, 14, 15], 'metric_thresholds': None, 'pixel_stride': 1, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-03 19:44:54 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-03 19:44:57 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-03 19:44:58 test.py 517: -----------------------------------------------
+2026-08-03 19:44:58 test.py 518: load model from epoch 8
+2026-08-03 19:44:58 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:44:58 test.py 529: -----------------------------------------------
+2026-08-03 19:45:25 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      88.6     28.7      73.71    82.89 
+ Average      88.6     28.7      73.71    82.89 
+2026-08-03 19:45:25 test.py 517: -----------------------------------------------
+2026-08-03 19:45:25 test.py 518: load model from epoch 9
+2026-08-03 19:45:25 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:45:25 test.py 529: -----------------------------------------------
+2026-08-03 19:45:52 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      88.61    28.5      74.73    84.11 
+ Average      88.61    28.5      74.73    84.11 
+2026-08-03 19:45:52 test.py 517: -----------------------------------------------
+2026-08-03 19:45:52 test.py 518: load model from epoch 10
+2026-08-03 19:45:52 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:45:52 test.py 529: -----------------------------------------------
+2026-08-03 19:46:19 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      88.1     28.82     76.67    85.56 
+ Average      88.1     28.82     76.67    85.56 
+2026-08-03 19:46:19 test.py 517: -----------------------------------------------
+2026-08-03 19:46:19 test.py 518: load model from epoch 11
+2026-08-03 19:46:19 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:46:19 test.py 529: -----------------------------------------------
+2026-08-03 19:46:46 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      88.18    27.92     76.19    84.32 
+ Average      88.18    27.92     76.19    84.32 
+2026-08-03 19:46:46 test.py 517: -----------------------------------------------
+2026-08-03 19:46:46 test.py 518: load model from epoch 12
+2026-08-03 19:46:46 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:46:46 test.py 529: -----------------------------------------------
+2026-08-03 19:47:13 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      88.46    29.16     74.83    84.0  
+ Average      88.46    29.16     74.83    84.0  
+2026-08-03 19:47:13 test.py 517: -----------------------------------------------
+2026-08-03 19:47:13 test.py 518: load model from epoch 13
+2026-08-03 19:47:13 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:47:13 test.py 529: -----------------------------------------------
+2026-08-03 19:47:40 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      88.86    31.82     77.11    84.51 
+ Average      88.86    31.82     77.11    84.51 
+2026-08-03 19:47:40 test.py 517: -----------------------------------------------
+2026-08-03 19:47:40 test.py 518: load model from epoch 14
+2026-08-03 19:47:40 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:47:40 test.py 529: -----------------------------------------------
+2026-08-03 19:48:07 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      88.71    31.56     77.43    83.9  
+ Average      88.71    31.56     77.43    83.9  
+2026-08-03 19:48:07 test.py 517: -----------------------------------------------
+2026-08-03 19:48:07 test.py 518: load model from epoch 15
+2026-08-03 19:48:07 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:48:07 test.py 529: -----------------------------------------------
+2026-08-03 19:48:34 test.py 603: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      88.81    31.77     77.37    84.2  
+ Average      88.81    31.77     77.37    84.2  
+2026-08-03 19:48:38 test.py 349: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 2, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Colon_clinicDB', 'medical_split': 'val', 'medical_manifest_root': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1/protocol/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1', 'num_workers': 6, 'epochs': [8, 9, 10, 11, 12, 13, 14, 15], 'metric_thresholds': None, 'pixel_stride': 1, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-03 19:48:38 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-03 19:48:41 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-03 19:48:42 test.py 517: -----------------------------------------------
+2026-08-03 19:48:42 test.py 518: load model from epoch 8
+2026-08-03 19:48:42 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:48:42 test.py 529: -----------------------------------------------
+2026-08-03 19:49:25 test.py 603: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    72.69    22.17      0.0      0.0  
+       Average    72.69    22.17      0.0      0.0  
+2026-08-03 19:49:25 test.py 517: -----------------------------------------------
+2026-08-03 19:49:25 test.py 518: load model from epoch 9
+2026-08-03 19:49:25 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:49:25 test.py 529: -----------------------------------------------
+2026-08-03 19:50:09 test.py 603: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    72.7     21.56      0.0      0.0  
+       Average    72.7     21.56      0.0      0.0  
+2026-08-03 19:50:09 test.py 517: -----------------------------------------------
+2026-08-03 19:50:09 test.py 518: load model from epoch 10
+2026-08-03 19:50:09 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:50:09 test.py 529: -----------------------------------------------
+2026-08-03 19:50:52 test.py 603: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    72.46    21.05      0.0      0.0  
+       Average    72.46    21.05      0.0      0.0  
+2026-08-03 19:50:52 test.py 517: -----------------------------------------------
+2026-08-03 19:50:52 test.py 518: load model from epoch 11
+2026-08-03 19:50:52 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:50:52 test.py 529: -----------------------------------------------
+2026-08-03 19:51:36 test.py 603: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    73.79    23.23      0.0      0.0  
+       Average    73.79    23.23      0.0      0.0  
+2026-08-03 19:51:36 test.py 517: -----------------------------------------------
+2026-08-03 19:51:36 test.py 518: load model from epoch 12
+2026-08-03 19:51:36 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:51:36 test.py 529: -----------------------------------------------
+2026-08-03 19:52:19 test.py 603: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    71.83    21.09      0.0      0.0  
+       Average    71.83    21.09      0.0      0.0  
+2026-08-03 19:52:19 test.py 517: -----------------------------------------------
+2026-08-03 19:52:19 test.py 518: load model from epoch 13
+2026-08-03 19:52:19 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:52:19 test.py 529: -----------------------------------------------
+2026-08-03 19:53:03 test.py 603: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    73.1     22.21      0.0      0.0  
+       Average    73.1     22.21      0.0      0.0  
+2026-08-03 19:53:03 test.py 517: -----------------------------------------------
+2026-08-03 19:53:03 test.py 518: load model from epoch 14
+2026-08-03 19:53:03 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:53:03 test.py 529: -----------------------------------------------
+2026-08-03 19:53:47 test.py 603: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    72.22    20.84      0.0      0.0  
+       Average    72.22    20.84      0.0      0.0  
+2026-08-03 19:53:47 test.py 517: -----------------------------------------------
+2026-08-03 19:53:47 test.py 518: load model from epoch 15
+2026-08-03 19:53:47 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:53:47 test.py 529: -----------------------------------------------
+2026-08-03 19:54:30 test.py 603: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB    71.96    21.11      0.0      0.0  
+       Average    71.96    21.11      0.0      0.0  
+2026-08-03 19:54:34 test.py 349: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 2, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Colon_colonDB', 'medical_split': 'val', 'medical_manifest_root': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1/protocol/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1', 'num_workers': 6, 'epochs': [8, 9, 10, 11, 12, 13, 14, 15], 'metric_thresholds': None, 'pixel_stride': 1, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-03 19:54:34 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-03 19:54:37 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-03 19:54:38 test.py 517: -----------------------------------------------
+2026-08-03 19:54:38 test.py 518: load model from epoch 8
+2026-08-03 19:54:38 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:54:38 test.py 529: -----------------------------------------------
+2026-08-03 19:55:05 test.py 603: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    73.06    19.06      0.0      0.0  
+      Average    73.06    19.06      0.0      0.0  
+2026-08-03 19:55:05 test.py 517: -----------------------------------------------
+2026-08-03 19:55:05 test.py 518: load model from epoch 9
+2026-08-03 19:55:05 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:55:05 test.py 529: -----------------------------------------------
+2026-08-03 19:55:32 test.py 603: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    71.37    16.99      0.0      0.0  
+      Average    71.37    16.99      0.0      0.0  
+2026-08-03 19:55:32 test.py 517: -----------------------------------------------
+2026-08-03 19:55:32 test.py 518: load model from epoch 10
+2026-08-03 19:55:32 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:55:32 test.py 529: -----------------------------------------------
+2026-08-03 19:55:59 test.py 603: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    70.55    16.77      0.0      0.0  
+      Average    70.55    16.77      0.0      0.0  
+2026-08-03 19:55:59 test.py 517: -----------------------------------------------
+2026-08-03 19:55:59 test.py 518: load model from epoch 11
+2026-08-03 19:55:59 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:55:59 test.py 529: -----------------------------------------------
+2026-08-03 19:56:26 test.py 603: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    70.58    17.89      0.0      0.0  
+      Average    70.58    17.89      0.0      0.0  
+2026-08-03 19:56:26 test.py 517: -----------------------------------------------
+2026-08-03 19:56:26 test.py 518: load model from epoch 12
+2026-08-03 19:56:26 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:56:26 test.py 529: -----------------------------------------------
+2026-08-03 19:56:53 test.py 603: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    71.31    18.3       0.0      0.0  
+      Average    71.31    18.3       0.0      0.0  
+2026-08-03 19:56:53 test.py 517: -----------------------------------------------
+2026-08-03 19:56:53 test.py 518: load model from epoch 13
+2026-08-03 19:56:53 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:56:53 test.py 529: -----------------------------------------------
+2026-08-03 19:57:20 test.py 603: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    72.61    19.42      0.0      0.0  
+      Average    72.61    19.42      0.0      0.0  
+2026-08-03 19:57:20 test.py 517: -----------------------------------------------
+2026-08-03 19:57:20 test.py 518: load model from epoch 14
+2026-08-03 19:57:20 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:57:20 test.py 529: -----------------------------------------------
+2026-08-03 19:57:47 test.py 603: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    71.57    18.01      0.0      0.0  
+      Average    71.57    18.01      0.0      0.0  
+2026-08-03 19:57:47 test.py 517: -----------------------------------------------
+2026-08-03 19:57:47 test.py 518: load model from epoch 15
+2026-08-03 19:57:47 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:57:47 test.py 529: -----------------------------------------------
+2026-08-03 19:58:15 test.py 603: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB    71.5     18.09      0.0      0.0  
+      Average    71.5     18.09      0.0      0.0  
+2026-08-03 19:58:18 test.py 349: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 2, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Colon_Kvasir', 'medical_split': 'val', 'medical_manifest_root': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1/protocol/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1', 'num_workers': 6, 'epochs': [8, 9, 10, 11, 12, 13, 14, 15], 'metric_thresholds': None, 'pixel_stride': 1, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-03 19:58:18 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-03 19:58:22 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-03 19:58:22 test.py 517: -----------------------------------------------
+2026-08-03 19:58:22 test.py 518: load model from epoch 8
+2026-08-03 19:58:22 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:58:22 test.py 529: -----------------------------------------------
+2026-08-03 19:59:33 test.py 603: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    62.44    19.58      0.0      0.0  
+     Average    62.44    19.58      0.0      0.0  
+2026-08-03 19:59:33 test.py 517: -----------------------------------------------
+2026-08-03 19:59:33 test.py 518: load model from epoch 9
+2026-08-03 19:59:33 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 19:59:33 test.py 529: -----------------------------------------------
+2026-08-03 20:00:44 test.py 603: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    62.23    19.28      0.0      0.0  
+     Average    62.23    19.28      0.0      0.0  
+2026-08-03 20:00:44 test.py 517: -----------------------------------------------
+2026-08-03 20:00:44 test.py 518: load model from epoch 10
+2026-08-03 20:00:44 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 20:00:44 test.py 529: -----------------------------------------------
+2026-08-03 20:01:55 test.py 603: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    62.32    19.33      0.0      0.0  
+     Average    62.32    19.33      0.0      0.0  
+2026-08-03 20:01:55 test.py 517: -----------------------------------------------
+2026-08-03 20:01:55 test.py 518: load model from epoch 11
+2026-08-03 20:01:55 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 20:01:55 test.py 529: -----------------------------------------------
+2026-08-03 20:03:06 test.py 603: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    64.62    20.79      0.0      0.0  
+     Average    64.62    20.79      0.0      0.0  
+2026-08-03 20:03:06 test.py 517: -----------------------------------------------
+2026-08-03 20:03:06 test.py 518: load model from epoch 12
+2026-08-03 20:03:06 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 20:03:06 test.py 529: -----------------------------------------------
+2026-08-03 20:04:17 test.py 603: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    61.45    19.01      0.0      0.0  
+     Average    61.45    19.01      0.0      0.0  
+2026-08-03 20:04:17 test.py 517: -----------------------------------------------
+2026-08-03 20:04:17 test.py 518: load model from epoch 13
+2026-08-03 20:04:17 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 20:04:17 test.py 529: -----------------------------------------------
+2026-08-03 20:05:28 test.py 603: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    63.32    19.95      0.0      0.0  
+     Average    63.32    19.95      0.0      0.0  
+2026-08-03 20:05:28 test.py 517: -----------------------------------------------
+2026-08-03 20:05:28 test.py 518: load model from epoch 14
+2026-08-03 20:05:28 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 20:05:28 test.py 529: -----------------------------------------------
+2026-08-03 20:06:38 test.py 603: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    61.57    18.98      0.0      0.0  
+     Average    61.57    18.98      0.0      0.0  
+2026-08-03 20:06:39 test.py 517: -----------------------------------------------
+2026-08-03 20:06:39 test.py 518: load model from epoch 15
+2026-08-03 20:06:39 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 20:06:39 test.py 529: -----------------------------------------------
+2026-08-03 20:07:50 test.py 603: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir    61.24    18.99      0.0      0.0  
+     Average    61.24    18.99      0.0      0.0  
+2026-08-03 20:18:27 test.py 349: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 2, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Brain', 'medical_split': 'test', 'medical_manifest_root': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1/protocol/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1', 'num_workers': 6, 'epochs': [8], 'metric_thresholds': None, 'pixel_stride': 1, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-03 20:18:28 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-03 20:18:31 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-03 20:18:31 test.py 517: -----------------------------------------------
+2026-08-03 20:18:31 test.py 518: load model from epoch 8
+2026-08-03 20:18:31 test.py 520: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 20:18:31 test.py 529: -----------------------------------------------
+2026-08-03 20:41:56 test.py 523: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 2, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Brain', 'medical_split': 'test', 'medical_manifest_root': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1/protocol/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1', 'num_workers': 0, 'epochs': [8], 'metric_thresholds': None, 'pixel_stride': 1, 'external_exact_pixel_metrics': True, 'external_metric_chunk_pixels': 1000000, 'max_samples': None, 'max_samples_per_label': 1}
+2026-08-03 20:41:56 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-03 20:42:00 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-03 20:42:00 test.py 691: -----------------------------------------------
+2026-08-03 20:42:00 test.py 692: load model from epoch 8
+2026-08-03 20:42:00 test.py 694: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 20:42:00 test.py 703: -----------------------------------------------
+2026-08-03 20:42:01 test.py 788: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain     92.2711  10.7585    100.0    100.0 
+ Average     92.2711  10.7585    100.0    100.0 
+2026-08-03 20:42:51 test.py 523: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 2, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Brain', 'medical_split': 'test', 'medical_manifest_root': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1/protocol/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1', 'num_workers': 2, 'epochs': [8], 'metric_thresholds': None, 'pixel_stride': 1, 'external_exact_pixel_metrics': True, 'external_metric_chunk_pixels': 5000000, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-03 20:42:51 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-03 20:42:54 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-03 20:42:55 test.py 691: -----------------------------------------------
+2026-08-03 20:42:55 test.py 692: load model from epoch 8
+2026-08-03 20:42:55 test.py 694: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 20:42:55 test.py 703: -----------------------------------------------
+2026-08-03 21:05:49 test.py 788: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain     95.1706  47.2035    81.1     93.95 
+ Average     95.1706  47.2035    81.1     93.95 
+2026-08-03 21:05:53 test.py 523: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 2, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Liver', 'medical_split': 'test', 'medical_manifest_root': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1/protocol/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1', 'num_workers': 2, 'epochs': [8], 'metric_thresholds': None, 'pixel_stride': 1, 'external_exact_pixel_metrics': True, 'external_metric_chunk_pixels': 5000000, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-03 21:05:53 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-03 21:05:57 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-03 21:05:57 test.py 691: -----------------------------------------------
+2026-08-03 21:05:57 test.py 692: load model from epoch 8
+2026-08-03 21:05:57 test.py 694: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 21:05:57 test.py 703: -----------------------------------------------
+2026-08-03 21:15:05 test.py 788: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver     97.3851  9.4549     65.28    59.15 
+ Average     97.3851  9.4549     65.28    59.15 
+2026-08-03 21:15:08 test.py 523: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 2, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Retina', 'medical_split': 'test', 'medical_manifest_root': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1/protocol/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1', 'num_workers': 2, 'epochs': [8], 'metric_thresholds': None, 'pixel_stride': 1, 'external_exact_pixel_metrics': True, 'external_metric_chunk_pixels': 5000000, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-03 21:15:09 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-03 21:15:12 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-03 21:15:12 test.py 691: -----------------------------------------------
+2026-08-03 21:15:12 test.py 692: load model from epoch 8
+2026-08-03 21:15:12 test.py 694: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 21:15:12 test.py 703: -----------------------------------------------
+2026-08-03 21:26:02 test.py 788: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina     88.3344  21.2541    73.98    72.87 
+ Average     88.3344  21.2541    73.98    72.87 
+2026-08-03 21:26:05 test.py 523: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 2, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Colon_clinicDB', 'medical_split': 'test', 'medical_manifest_root': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1/protocol/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1', 'num_workers': 2, 'epochs': [8], 'metric_thresholds': None, 'pixel_stride': 1, 'external_exact_pixel_metrics': True, 'external_metric_chunk_pixels': 5000000, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-03 21:26:05 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-03 21:26:09 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-03 21:26:09 test.py 691: -----------------------------------------------
+2026-08-03 21:26:09 test.py 692: load model from epoch 8
+2026-08-03 21:26:09 test.py 694: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 21:26:09 test.py 703: -----------------------------------------------
+2026-08-03 21:28:41 test.py 788: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB   72.4806  19.4819     0.0      0.0  
+       Average   72.4806  19.4819     0.0      0.0  
+2026-08-03 21:28:45 test.py 523: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 2, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Colon_colonDB', 'medical_split': 'test', 'medical_manifest_root': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1/protocol/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1', 'num_workers': 2, 'epochs': [8], 'metric_thresholds': None, 'pixel_stride': 1, 'external_exact_pixel_metrics': True, 'external_metric_chunk_pixels': 5000000, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-03 21:28:45 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-03 21:28:48 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-03 21:28:49 test.py 691: -----------------------------------------------
+2026-08-03 21:28:49 test.py 692: load model from epoch 8
+2026-08-03 21:28:49 test.py 694: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 21:28:49 test.py 703: -----------------------------------------------
+2026-08-03 21:30:19 test.py 788: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB   74.7308  19.5161     0.0      0.0  
+      Average   74.7308  19.5161     0.0      0.0  
+2026-08-03 21:30:23 test.py 523: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 2, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Colon_Kvasir', 'medical_split': 'test', 'medical_manifest_root': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1/protocol/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_cops_dynamic_prompt_seed0_retry1', 'num_workers': 2, 'epochs': [8], 'metric_thresholds': None, 'pixel_stride': 1, 'external_exact_pixel_metrics': True, 'external_metric_chunk_pixels': 5000000, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-03 21:30:23 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-03 21:30:27 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-03 21:30:27 test.py 691: -----------------------------------------------
+2026-08-03 21:30:27 test.py 692: load model from epoch 8
+2026-08-03 21:30:27 test.py 694: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-03 21:30:27 test.py 703: -----------------------------------------------
+2026-08-03 21:34:37 test.py 788: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir   61.9641  19.6926     0.0      0.0  
+     Average   61.9641  19.6926     0.0      0.0  

@@ -1,0 +1,114 @@
+{
+  "best_epoch": {
+    "combined_score": 32.67210254095044,
+    "epoch": 8.0,
+    "image_AP": 37.593333333333334,
+    "image_AUROC": 36.87333333333333,
+    "image_score": 37.233333333333334,
+    "pixel_AP": 21.711666666666662,
+    "pixel_AUROC": 81.36,
+    "pixel_score": 51.53583333333333
+  },
+  "datasets": [
+    "Brain",
+    "Liver",
+    "Retina",
+    "Colon_clinicDB",
+    "Colon_colonDB",
+    "Colon_Kvasir"
+  ],
+  "epochs": [
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+  ],
+  "macro_by_epoch": [
+    {
+      "combined_score": 32.67210254095044,
+      "epoch": 8,
+      "image_AP": 37.593333333333334,
+      "image_AUROC": 36.87333333333333,
+      "image_score": 37.233333333333334,
+      "pixel_AP": 21.711666666666662,
+      "pixel_AUROC": 81.36,
+      "pixel_score": 51.53583333333333
+    },
+    {
+      "combined_score": 32.09102815382499,
+      "epoch": 9,
+      "image_AP": 36.45666666666667,
+      "image_AUROC": 35.775,
+      "image_score": 36.115833333333335,
+      "pixel_AP": 20.921666666666667,
+      "pixel_AUROC": 80.94833333333334,
+      "pixel_score": 50.935
+    },
+    {
+      "combined_score": 31.939964551601694,
+      "epoch": 10,
+      "image_AP": 36.16833333333333,
+      "image_AUROC": 36.43,
+      "image_score": 36.29916666666667,
+      "pixel_AP": 20.308333333333334,
+      "pixel_AUROC": 80.57833333333333,
+      "pixel_score": 50.44333333333333
+    },
+    {
+      "combined_score": 32.4817407527955,
+      "epoch": 11,
+      "image_AP": 36.64666666666667,
+      "image_AUROC": 36.415,
+      "image_score": 36.530833333333334,
+      "pixel_AP": 22.340000000000003,
+      "pixel_AUROC": 81.45666666666666,
+      "pixel_score": 51.89833333333333
+    },
+    {
+      "combined_score": 32.20498838262818,
+      "epoch": 12,
+      "image_AP": 36.14333333333334,
+      "image_AUROC": 35.78333333333333,
+      "image_score": 35.96333333333333,
+      "pixel_AP": 21.518333333333334,
+      "pixel_AUROC": 80.75166666666667,
+      "pixel_score": 51.135
+    },
+    {
+      "combined_score": 32.34767203553283,
+      "epoch": 13,
+      "image_AP": 36.29833333333333,
+      "image_AUROC": 36.54,
+      "image_score": 36.41916666666666,
+      "pixel_AP": 21.888333333333335,
+      "pixel_AUROC": 81.47833333333334,
+      "pixel_score": 51.68333333333334
+    },
+    {
+      "combined_score": 31.917116044044217,
+      "epoch": 14,
+      "image_AP": 35.635,
+      "image_AUROC": 35.89666666666667,
+      "image_score": 35.765833333333326,
+      "pixel_AP": 20.868333333333336,
+      "pixel_AUROC": 80.72833333333334,
+      "pixel_score": 50.79833333333334
+    },
+    {
+      "combined_score": 32.098327670698005,
+      "epoch": 15,
+      "image_AP": 35.82,
+      "image_AUROC": 36.39333333333334,
+      "image_score": 36.10666666666666,
+      "pixel_AP": 20.985,
+      "pixel_AUROC": 80.68666666666667,
+      "pixel_score": 50.83583333333333
+    }
+  ],
+  "selection_rule": "maximize the six-dataset validation macro average of per-dataset harmonic_mean(image_score,pixel_score)",
+  "split": "val"
+}

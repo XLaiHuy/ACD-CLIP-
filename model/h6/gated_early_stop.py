@@ -26,6 +26,7 @@ HARD_GATE_NAMES = (
 @dataclass(frozen=True)
 class StructuralGateConfig:
     enabled: bool = False
+    mode: str = "abort"  # abort keeps v6 behaviour; monitor records without structural exit.
     patience: int = 2
     dense_start_epoch: int = 8
     require_all_levels: bool = True
@@ -47,6 +48,7 @@ class StructuralGateConfig:
     def from_args(cls, args) -> "StructuralGateConfig":
         return cls(
             enabled=bool(args.h6_structural_gate_enabled),
+            mode=str(getattr(args, "h6_structural_gate_mode", "abort")),
             patience=int(args.h6_structural_gate_patience),
             dense_start_epoch=int(args.h6_structural_gate_dense_start_epoch),
             require_all_levels=bool(args.h6_structural_gate_require_all_levels),
@@ -68,6 +70,7 @@ class StructuralGateConfig:
     def to_dict(self) -> dict[str, Any]:
         return {
             "structural_gate_enabled": self.enabled,
+            "structural_gate_mode": self.mode,
             "structural_gate_version": STRUCTURAL_GATE_VERSION,
             "structural_gate_patience": self.patience,
             "structural_gate_dense_start_epoch": self.dense_start_epoch,
@@ -236,9 +239,17 @@ class H6StructuralGateState:
         dynamic_mean_anchor_target: float,
         query_mode: str,
         tangent_enabled: bool,
+        expert_enabled: bool = False,
+        expert_scale: float = 0.0,
+        expert_scale_target: float = 0.0,
+        etf_weight: float = 0.0,
+        etf_target: float = 0.0,
+        gate_sample_count: int = 0,
     ) -> GateDecision:
         decision = GateDecision()
-        if not self.config.enabled:
+        if self.config.mode not in {"abort", "monitor", "off"}:
+            raise ValueError("structural gate mode must be abort|monitor|off")
+        if not self.config.enabled or self.config.mode == "off":
             self.last_decision = decision
             return decision
 
@@ -331,6 +342,29 @@ class H6StructuralGateState:
             and abs(orth - self.config.dynamic_orth_center) <= self.config.dynamic_orth_tolerance
             and tangent_pair_cos >= self.config.dynamic_cosine_min
         )
+        expert_eligible = False
+        # P1-v7 gates functional output collapse, never the healthy frozen
+        # FOFS basis itself. Several downstream signals must agree.
+        if "expert_delta_norm_mean" in diagnostics:
+            expert_delta = self._float(diagnostics.get("expert_delta_norm_mean"), 0.0)
+            expert_cos = self._float(diagnostics.get("final_expert_direction_cos_max"), 0.0, reducer="max")
+            expert_logit_std = self._float(diagnostics.get("expert_patch_logit_std_across_experts"), float("inf"))
+            scale_ready = float(expert_scale) >= 0.95 * float(expert_scale_target)
+            etf_ready = float(etf_target) <= 0.0 or float(etf_weight) >= 0.95 * float(etf_target)
+            valid_fraction = self._float(diagnostics.get("expert_delta_valid_fraction"), 0.0)
+            expert_eligible = bool(
+                expert_enabled and scale_ready and etf_ready
+                and valid_fraction >= 0.50 and expert_delta > 1e-6
+                and gate_sample_count > 0
+            )
+            factor_failed = (
+                expert_eligible and epoch >= self.config.dense_start_epoch
+                and expert_cos >= 0.995 and expert_logit_std <= self.config.logit_std_max
+            )
+            decision.per_level["expert_gate"] = [
+                bool(expert_eligible), bool(scale_ready), bool(etf_ready), bool(expert_delta > 1e-6),
+                bool(expert_cos >= 0.995), bool(expert_logit_std <= self.config.logit_std_max),
+            ]
         decision.failed["factor_collapse"] = factor_failed
 
         mean_hard_cos = self._float(diagnostics.get("dynamic_mean_hard_cos"), 1.0, reducer="min")
@@ -338,6 +372,16 @@ class H6StructuralGateState:
             decision.soft_warnings.append("dynamic_mean_below_trust_floor")
         trust_full = float(dynamic_mean_anchor_weight) >= float(dynamic_mean_anchor_target) - 1e-12
         semantic_failed = trust_full and alpha_full and mean_hard_cos < self.config.hard_anchor_cosine_min
+        if expert_enabled and "final_expert_mean_hard_cos_mean" in diagnostics:
+            expert_floor = self._float(diagnostics.get("expert_anchor_floor"), 0.70)
+            expert_min = self._float(diagnostics.get("final_expert_mean_hard_cos_min"), 1.0, reducer="min")
+            expert_mean = self._float(diagnostics.get("final_expert_mean_hard_cos_mean"), 1.0)
+            if expert_min < expert_floor:
+                decision.soft_warnings.append("expert_mean_below_trust_floor")
+            semantic_failed = (
+                expert_eligible and epoch >= self.config.dense_start_epoch
+                and expert_min < 0.02 and expert_mean < 0.10
+            )
         decision.failed["semantic_drift"] = semantic_failed
 
         sparse_dead = self._level_list(diagnostics.get("sparse_dead_factors", diagnostics.get("sparse_dead")))
@@ -366,11 +410,11 @@ class H6StructuralGateState:
             "sparse_collapse": "h6_sparse_single_pair_collapse",
         }
         for name in HARD_GATE_NAMES:
-            if self._update_counter(name, bool(decision.failed.get(name, False))):
+            persistent = self._update_counter(name, bool(decision.failed.get(name, False)))
+            if persistent and self.config.mode == "abort":
                 decision.hard_failure = True
                 decision.abort_reason = abort_map[name]
                 break
 
         self.last_decision = decision
         return decision
-

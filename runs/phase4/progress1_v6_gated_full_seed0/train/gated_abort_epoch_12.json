@@ -1,0 +1,973 @@
+{
+  "abort_reason": "h6_catastrophic_clip_semantic_drift",
+  "alpha": 0.2,
+  "command_configuration": {
+    "amp": false,
+    "batch_size": 1,
+    "beta_h6_vae_kl": 1e-05,
+    "conv_kernel_size_list": [
+      3,
+      5
+    ],
+    "conv_lora_alpha": 2.0,
+    "conv_lora_rank": 8,
+    "cuda_device": 0,
+    "dataset": "VisA",
+    "dfg_attn_dim": 256,
+    "dfg_attn_tau": 8.0,
+    "dfg_beta": 0.1,
+    "dfg_beta_schedule": "warmup010",
+    "dfg_beta_target": 0.1,
+    "dfg_gamma_max": 0.2,
+    "dfg_mode": "attn",
+    "dfg_ss2d_fusion": "weight_residual",
+    "epoch": 20,
+    "grad_accum_steps": 6,
+    "grad_checkpointing": true,
+    "grad_clip_norm": 1.0,
+    "h6_bank_dim": 256,
+    "h6_center_detach_assignment": true,
+    "h6_center_factor_aware": true,
+    "h6_center_margin": 0.0,
+    "h6_concept_key_cosine_margin": 0.5,
+    "h6_concept_key_diversity_start_epoch": 1,
+    "h6_concept_key_diversity_warmup_epochs": 3,
+    "h6_dense_routing_epochs": 8,
+    "h6_dynamic_mean_anchor_min_cosine": 0.7,
+    "h6_dynamic_mean_anchor_start_epoch": 4,
+    "h6_dynamic_mean_anchor_warmup_epochs": 3,
+    "h6_expert_bottleneck": 64,
+    "h6_factor_context_adaptation_initial_ratio": 0.1,
+    "h6_factor_context_adaptation_max_ratio": 0.25,
+    "h6_factor_context_anchor_enabled": true,
+    "h6_factor_context_anchor_seed_offset": 7400,
+    "h6_factor_grad_diagnostics": true,
+    "h6_factor_id_max_ratio": 0.05,
+    "h6_factor_id_scale": 0.02,
+    "h6_factor_identity_tangent_projection_enabled": true,
+    "h6_gate_dynamic_cosine_min": 0.999,
+    "h6_gate_dynamic_orth_center": 0.75,
+    "h6_gate_dynamic_orth_tolerance": 0.005,
+    "h6_gate_hard_anchor_cosine_min": 0.3,
+    "h6_gate_key_cosine_max": 0.95,
+    "h6_gate_key_l2_min": 0.05,
+    "h6_gate_logit_std_max": 1e-06,
+    "h6_gate_max_sparse_dead_factors": 1,
+    "h6_gate_min_unique_topk_pairs": 2,
+    "h6_gate_query_cosine_min": 0.9999,
+    "h6_gate_query_rank_max": 1.1,
+    "h6_gate_query_top1_energy_min": 0.995,
+    "h6_gate_sparse_min_ratio": 0.5,
+    "h6_kl_free_bits": 0.02,
+    "h6_kl_warmup_epochs": 4,
+    "h6_kl_zero_epochs": 8,
+    "h6_late_factor_identity_enabled": true,
+    "h6_load_bias_enabled": true,
+    "h6_load_bias_max": 0.03,
+    "h6_load_bias_momentum": 0.9,
+    "h6_load_bias_step": 0.001,
+    "h6_num_factors": 4,
+    "h6_progress": 1,
+    "h6_router_dim": 128,
+    "h6_router_failure_patience": 2,
+    "h6_router_key_adaptation_initial_ratio": 0.1,
+    "h6_router_key_adaptation_max_ratio": 0.25,
+    "h6_router_key_anchor_enabled": true,
+    "h6_router_key_anchor_seed_offset": 7300,
+    "h6_router_local_bypass_max_ratio": 0.2,
+    "h6_router_local_bypass_scale": 0.1,
+    "h6_router_local_projection_seed_offset": 7200,
+    "h6_router_max_sparse_dead_factors": 1,
+    "h6_router_min_unique_topk_pairs": 2,
+    "h6_router_query_global_weight": 0.1,
+    "h6_router_query_mode": "local_global_bypass",
+    "h6_router_soft_epochs": 8,
+    "h6_router_teacher_mode": "state_centered_cosine",
+    "h6_router_teacher_start_epoch": 3,
+    "h6_router_teacher_temperature": 0.15,
+    "h6_router_teacher_warmup_epochs": 3,
+    "h6_router_temperature": 1.0,
+    "h6_slot_init_enabled": true,
+    "h6_slot_init_scale": 0.02,
+    "h6_slot_init_seed_offset": 6100,
+    "h6_sparse_start_epoch": null,
+    "h6_sparse_transition_epochs": 4,
+    "h6_structural_gate_dense_start_epoch": 8,
+    "h6_structural_gate_enabled": true,
+    "h6_structural_gate_patience": 2,
+    "h6_structural_gate_require_all_levels": true,
+    "h6_structural_gate_reset_state": false,
+    "h6_teacher_confidence_gate": true,
+    "h6_teacher_entropy_threshold": 0.98,
+    "h6_teacher_prob_std_threshold": 0.001,
+    "h6_top_k": 2,
+    "h6_two_view": false,
+    "h6_vae_class_ratio": 0.25,
+    "h6_vae_hidden_dim": 512,
+    "h6_vae_latent_dim": 256,
+    "hybrid_alpha_max": 0.2,
+    "image_adapt_weight": 0.2,
+    "image_lr": 0.001,
+    "img_size": 518,
+    "lambda_h6_balance": 0.001,
+    "lambda_h6_center": 0.1,
+    "lambda_h6_concept_key_diversity": 0.0001,
+    "lambda_h6_consistency": 0.01,
+    "lambda_h6_dynamic_mean_anchor": 0.001,
+    "lambda_h6_orth": 0.001,
+    "lambda_h6_router_teacher": 0.01,
+    "lambda_h6_vae_rec": 0.05,
+    "lambda_h6_visual_residual": 0.01,
+    "lambda_k": 0.0,
+    "lambda_kg": 0.001,
+    "lora_alpha": 2.0,
+    "lora_rank": 16,
+    "lr_gamma": 0.9,
+    "model_name": "ViT-L-14-336",
+    "n_groups": 3,
+    "non_finite_loss_abort_threshold": 20,
+    "num_workers": 2,
+    "pin_memory": false,
+    "precision": "bf16",
+    "save_path": "runs/phase4/progress1_v6_gated_full_seed0/train",
+    "seed": 0,
+    "soft_prompt_ctx_len": 4,
+    "soft_prompt_freeze_epochs": 3,
+    "soft_prompt_init": "phrase",
+    "soft_prompt_init_phrase": "a photo of a",
+    "soft_prompt_lr": 5e-05,
+    "text_adapt_weight": 0.2,
+    "text_lr": 0.0005,
+    "use_hybrid_soft_prompt": false,
+    "use_soft_prompt": false,
+    "use_ss2d_dfg": true
+  },
+  "diagnostics": {
+    "concept_key_cos_max": 0.0322265625,
+    "concept_key_cos_mean": 0.01116943359375,
+    "concept_key_cosine": [
+      [
+        1.0,
+        -0.0013275146484375,
+        0.0322265625,
+        0.0186767578125
+      ],
+      [
+        -0.0013275146484375,
+        1.0,
+        0.004638671875,
+        -0.0113525390625
+      ],
+      [
+        0.0322265625,
+        0.004638671875,
+        1.0,
+        0.024169921875
+      ],
+      [
+        0.0186767578125,
+        -0.0113525390625,
+        0.024169921875,
+        1.0
+      ]
+    ],
+    "concept_key_l2_min": 1.3911129236221313,
+    "concept_key_norm": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "context_angle_change_degrees_max": 0.02797645516693592,
+    "context_angle_change_degrees_mean": 0.017697416245937347,
+    "dead_factors": [
+      0,
+      0,
+      0
+    ],
+    "dense_factor_usage": [
+      [
+        0.2618175446987152,
+        0.24674776196479797,
+        0.24727192521095276,
+        0.24416284263134003
+      ],
+      [
+        0.261656254529953,
+        0.24680930376052856,
+        0.2473897933959961,
+        0.24414469301700592
+      ],
+      [
+        0.26153191924095154,
+        0.24690566956996918,
+        0.24748054146766663,
+        0.24408191442489624
+      ]
+    ],
+    "dense_normalized_entropy": [
+      0.999716579914093,
+      0.9997155666351318,
+      0.999701976776123
+    ],
+    "dynamic_mean_anchor_loss_raw": 0.08942610025405884,
+    "dynamic_mean_hard_cos": [
+      [
+        [
+          0.28032705187797546,
+          0.21400827169418335
+        ]
+      ],
+      [
+        [
+          0.6105720400810242,
+          0.4610186219215393
+        ]
+      ],
+      [
+        [
+          0.5479220151901245,
+          0.5102472901344299
+        ]
+      ]
+    ],
+    "dynamic_residual_cos_max": 1.0,
+    "dynamic_residual_cos_mean": 1.0,
+    "dynamic_residual_l2_min": 0.006733712274581194,
+    "ema_topk_usage": [
+      [
+        0.36500969529151917,
+        0.24423623085021973,
+        0.24893814325332642,
+        0.14181572198867798
+      ],
+      [
+        0.342452734708786,
+        0.2130984365940094,
+        0.2840609550476074,
+        0.16038766503334045
+      ],
+      [
+        0.33953219652175903,
+        0.24121366441249847,
+        0.2530633807182312,
+        0.16619060933589935
+      ]
+    ],
+    "factor_context_anchor_cos_max": 1.30385160446167e-08,
+    "factor_context_anchor_cos_mean": 6.548361852765083e-10,
+    "factor_id_max_ratio": 0.05000000074505806,
+    "factor_id_residual_norm_max": 0.007735111750662327,
+    "factor_id_residual_norm_mean": 0.0072349198162555695,
+    "factor_id_residual_to_context_ratio_max": 0.020000001415610313,
+    "factor_id_residual_to_context_ratio_mean": 0.019999999552965164,
+    "factor_id_scale": 0.019999999552965164,
+    "factor_identity_tangent_base_abs_cos_max": 1.210719347000122e-08,
+    "factor_identity_tangent_base_abs_cos_mean": 3.827153705060482e-09,
+    "factor_identity_tangent_l2_min": 1.398454189300537,
+    "factor_identity_tangent_pair_cos_max": 0.02216290682554245,
+    "factor_identity_tangent_pair_cos_mean": 0.015569022856652737,
+    "factor_usage": [
+      [
+        0.31847843527793884,
+        0.418199747800827,
+        0.10333026945590973,
+        0.15999159216880798
+      ],
+      [
+        0.34683167934417725,
+        0.2698116600513458,
+        0.2532821595668793,
+        0.13007459044456482
+      ],
+      [
+        0.29563865065574646,
+        0.3252250552177429,
+        0.18938897550106049,
+        0.1897473782300949
+      ]
+    ],
+    "final_query_effective_rank": [
+      71.8055648803711,
+      71.73150634765625,
+      72.06385803222656
+    ],
+    "final_query_pairwise_cos_mean": [
+      0.9902443885803223,
+      0.9902254343032837,
+      0.990274965763092
+    ],
+    "final_query_top1_energy_ratio": [
+      0.7779719233512878,
+      0.39087429642677307,
+      0.4995887875556946
+    ],
+    "final_query_variance_across_patches": [
+      3.80803357984405e-05,
+      3.815435047727078e-05,
+      3.7960831832606345e-05
+    ],
+    "final_router_key_cos_max": 0.03240235522389412,
+    "final_router_key_cos_mean": 0.011240702122449875,
+    "final_router_key_l2_min": 1.3911129236221313,
+    "late_factor_identity_enabled": true,
+    "level_input_alias": false,
+    "level_input_difference": 7.656829833984375,
+    "level_logit_difference": 0.6375076174736023,
+    "level_query_difference": 5.22148323059082,
+    "load_bias": [
+      [
+        -0.029999999329447746,
+        0.027375930920243263,
+        0.02040613628923893,
+        0.029999999329447746
+      ],
+      [
+        -0.029999999329447746,
+        0.02426653541624546,
+        0.020547538995742798,
+        0.029999999329447746
+      ],
+      [
+        -0.029999999329447746,
+        0.023325404152274132,
+        0.01741843856871128,
+        0.029999999329447746
+      ]
+    ],
+    "local_bypass_norm_mean": 0.08044713735580444,
+    "local_bypass_to_learned_ratio_max": 0.10000000894069672,
+    "local_bypass_to_learned_ratio_mean": 0.09999999403953552,
+    "local_query_pairwise_cos_mean": [
+      0.012150831520557404,
+      0.009238594211637974,
+      0.01066698506474495
+    ],
+    "local_query_variance_across_patches": [
+      0.7781819105148315,
+      0.6080818176269531,
+      0.3137754797935486
+    ],
+    "max_factor_usage": [
+      0.418199747800827,
+      0.34683167934417725,
+      0.3252250552177429
+    ],
+    "normalized_entropy": [
+      0.49976813793182373,
+      0.49977660179138184,
+      0.4997548758983612
+    ],
+    "per_factor_logit_std_across_patches": [
+      [
+        0.006954559590667486,
+        0.003990460652858019,
+        0.0037338004913181067,
+        0.005901274736970663
+      ],
+      [
+        0.010308296419680119,
+        0.005391485523432493,
+        0.005379428155720234,
+        0.006817163433879614
+      ],
+      [
+        0.015823889523744583,
+        0.00719075370579958,
+        0.005161170847713947,
+        0.009802102111279964
+      ]
+    ],
+    "prediction_factor_usage": [
+      [
+        0.31847843527793884,
+        0.418199747800827,
+        0.10333026945590973,
+        0.15999159216880798
+      ],
+      [
+        0.34683167934417725,
+        0.2698116600513458,
+        0.2532821595668793,
+        0.13007459044456482
+      ],
+      [
+        0.29563865065574646,
+        0.3252250552177429,
+        0.18938897550106049,
+        0.1897473782300949
+      ]
+    ],
+    "prediction_normalized_entropy": [
+      0.49976813793182373,
+      0.49977660179138184,
+      0.4997548758983612
+    ],
+    "query_effective_rank": [
+      71.8055648803711,
+      71.73150634765625,
+      72.06385803222656
+    ],
+    "query_norm": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "query_pairwise_cos_max_across_patches": [
+      0.9999909996986389,
+      0.9999915361404419,
+      0.999988853931427
+    ],
+    "query_pairwise_cos_mean_across_patches": [
+      0.9902443885803223,
+      0.9902254343032837,
+      0.990274965763092
+    ],
+    "query_singular_value_ratio": [
+      0.7779719233512878,
+      0.39087429642677307,
+      0.4995887875556946
+    ],
+    "query_variance": [
+      0.0039031771011650562,
+      0.003903109347447753,
+      0.0039032064378261566
+    ],
+    "query_variance_across_patches": [
+      3.80803357984405e-05,
+      3.815435047727078e-05,
+      3.7960831832606345e-05
+    ],
+    "raw_concept_key_cos_max": 0.9999616742134094,
+    "raw_concept_key_cos_mean": 0.9941446781158447,
+    "raw_concept_key_l2_min": 1.7771673810784705e-05,
+    "raw_query_pairwise_cos_mean": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "raw_query_variance_across_patches": [
+      6.3587219333693e-19,
+      3.5714156257133456e-20,
+      1.0935154507010273e-19
+    ],
+    "router_key_adaptation_ratio_max": 0.10000000894069672,
+    "router_key_adaptation_ratio_mean": 0.10000000149011612,
+    "router_logit_std": [
+      0.027815133333206177,
+      0.027939053252339363,
+      0.02864706516265869
+    ],
+    "router_patch_count": 1369,
+    "router_prob_std": [
+      0.0070424857549369335,
+      0.007054264657199383,
+      0.00722445547580719
+    ],
+    "router_softmax_dim": 3,
+    "router_topk_dim": 3,
+    "selected_topk_frequency": [
+      [
+        0.3086194396018982,
+        0.4254930913448334,
+        0.10482104122638702,
+        0.161066472530365
+      ],
+      [
+        0.3367421627044678,
+        0.2728268802165985,
+        0.2578524649143219,
+        0.1325785368680954
+      ],
+      [
+        0.2859751880168915,
+        0.3316289484500885,
+        0.191380575299263,
+        0.1910153478384018
+      ]
+    ],
+    "slot_initial_cos_max": 0.9996027946472168,
+    "slot_initial_cos_mean": 0.9996013641357422,
+    "slot_initial_l2_min": 0.00490850443020463,
+    "slot_initial_relative_scale": 0.019999999552965164,
+    "slot_residual_norm": [
+      0.21439844369888306,
+      0.2129218876361847,
+      0.21304526925086975,
+      0.21228113770484924
+    ],
+    "slot_storage_offsets": [
+      0,
+      256,
+      512,
+      768
+    ],
+    "sparse_factor_usage": [
+      [
+        0.31847843527793884,
+        0.418199747800827,
+        0.10333026945590973,
+        0.15999159216880798
+      ],
+      [
+        0.34683167934417725,
+        0.2698116600513458,
+        0.2532821595668793,
+        0.13007459044456482
+      ],
+      [
+        0.29563865065574646,
+        0.3252250552177429,
+        0.18938897550106049,
+        0.1897473782300949
+      ]
+    ],
+    "sparse_normalized_entropy": [
+      0.49976813793182373,
+      0.49977660179138184,
+      0.4997548758983612
+    ],
+    "sparse_ratio": 1.0,
+    "stage_abnormal_queries_cos_max": 1.0,
+    "stage_abnormal_queries_cos_mean": 0.99609375,
+    "stage_abnormal_queries_l2_min": 0.012951905839145184,
+    "stage_concept_keys_cos_max": 1.0,
+    "stage_concept_keys_cos_mean": 0.9921875,
+    "stage_concept_keys_l2_min": 1.7771673810784705e-05,
+    "stage_concept_slots_cos_max": 0.99609375,
+    "stage_concept_slots_cos_mean": 0.97265625,
+    "stage_concept_slots_l2_min": 0.02106439135968685,
+    "stage_context_before_encoder_cos_max": 1.0,
+    "stage_context_before_encoder_cos_mean": 1.0,
+    "stage_context_before_encoder_l2_min": 0.00010257372923661023,
+    "stage_dynamic_text_norm_cos_max": 1.0,
+    "stage_dynamic_text_norm_cos_mean": 1.0,
+    "stage_dynamic_text_norm_l2_min": 0.019942879676818848,
+    "stage_dynamic_text_raw_cos_max": 1.0,
+    "stage_dynamic_text_raw_cos_mean": 1.0,
+    "stage_dynamic_text_raw_l2_min": 0.5424039363861084,
+    "stage_normal_queries_cos_max": 1.0,
+    "stage_normal_queries_cos_mean": 1.0,
+    "stage_normal_queries_l2_min": 0.008572599850594997,
+    "stage_prototype_abnormal_cos_max": 1.0,
+    "stage_prototype_abnormal_cos_mean": 1.0,
+    "stage_prototype_abnormal_l2_min": 0.012951887212693691,
+    "stage_prototype_normal_cos_max": 1.0,
+    "stage_prototype_normal_cos_mean": 1.0,
+    "stage_prototype_normal_l2_min": 0.008572586812078953,
+    "stage_state_to_context_norm_cos_max": 1.0,
+    "stage_state_to_context_norm_cos_mean": 1.0,
+    "stage_state_to_context_norm_l2_min": 0.0018316253554075956,
+    "stage_state_to_context_raw_cos_max": 1.0,
+    "stage_state_to_context_raw_cos_mean": 1.0,
+    "stage_state_to_context_raw_l2_min": 0.03160525858402252,
+    "stage_state_to_context_with_identity_cos_max": 1.0,
+    "stage_state_to_context_with_identity_cos_mean": 1.0,
+    "stage_state_to_context_with_identity_l2_min": 0.042311057448387146,
+    "top1_share": [
+      0.418199747800827,
+      0.34683167934417725,
+      0.3252250552177429
+    ],
+    "unique_topk_pairs": [
+      6,
+      6,
+      6
+    ]
+  },
+  "epoch": 12,
+  "gate_abort_reason": "h6_catastrophic_clip_semantic_drift",
+  "gate_counters": {
+    "factor_collapse": 0,
+    "key_anchor_failure": 0,
+    "query_collapse": 0,
+    "semantic_drift": 2,
+    "sparse_collapse": 0
+  },
+  "gate_failed": {
+    "factor_collapse": false,
+    "key_anchor_failure": false,
+    "query_collapse": false,
+    "semantic_drift": true,
+    "sparse_collapse": false
+  },
+  "gate_fatal_metrics": [],
+  "gate_hard_failure": true,
+  "gate_per_level": {
+    "query_failed_levels": [
+      false,
+      false,
+      false
+    ],
+    "sparse_failed_levels": [
+      false,
+      false,
+      false
+    ]
+  },
+  "gate_soft_warnings": [
+    "raw_concept_key_geometry_similar",
+    "dynamic_residual_cosine_high",
+    "dynamic_mean_below_trust_floor"
+  ],
+  "gate_state": "hard_failure",
+  "git_head": "e1c96902c3dc6de1da0a6c6ecfdce9dc30faad88",
+  "latest_checkpoint_path": "runs/phase4/progress1_v6_gated_full_seed0/train/adapter_12.pth",
+  "metrics": {
+    "balance": 0.0001857210558123635,
+    "center": 0.0008005044711621937,
+    "cls": 0.42807429365875765,
+    "concept_key_diversity_raw": 0.0,
+    "concept_key_diversity_weighted": 0.0,
+    "dynamic_mean_anchor_raw": 0.08750868100883176,
+    "dynamic_mean_anchor_weight": 0.0010000000474974513,
+    "dynamic_mean_anchor_weighted": 8.750868518115258e-05,
+    "kg": 0.5664672627838313,
+    "orth": 0.75,
+    "router_teacher": 1.3831269644566093,
+    "router_teacher_effective_weight": 0.009999999776482582,
+    "router_teacher_scheduled_weight": 0.009999999776482582,
+    "router_teacher_weighted": 0.01383126934449241,
+    "seg": 0.36257034099413554,
+    "task": 0.7906446345047086,
+    "task_rolling_median": 0.82114968214539,
+    "total": 0.8059866618947449,
+    "vae_kl_effective": 0.0541665316675682,
+    "vae_kl_raw": 0.0541665316675682,
+    "vae_rec": 0.0005202240666774533
+  },
+  "per_level_decisions": {
+    "query_failed_levels": [
+      false,
+      false,
+      false
+    ],
+    "sparse_failed_levels": [
+      false,
+      false,
+      false
+    ]
+  },
+  "routing_mode": "straight_through_sparse",
+  "sparse_ratio": 1.0,
+  "teacher_state": {
+    "abnormal_patch_count": [
+      0,
+      0,
+      0
+    ],
+    "normal_patch_count": [
+      1369,
+      1369,
+      1369
+    ],
+    "router_teacher_entropy": 1.3519947528839111,
+    "router_teacher_finite": true,
+    "teacher_active_levels": [
+      true,
+      true,
+      true
+    ],
+    "teacher_centered_candidate_entropy": [
+      0.9869991540908813,
+      0.9596982598304749,
+      0.9790768623352051
+    ],
+    "teacher_centered_candidate_logit_range": [
+      0.2041015625,
+      0.23779296875,
+      0.240234375
+    ],
+    "teacher_centered_candidate_logit_std_across_factors": [
+      0.024579714983701706,
+      0.04996158927679062,
+      0.03495331108570099
+    ],
+    "teacher_centered_candidate_logit_std_across_patches": [
+      0.021342257037758827,
+      0.014382563531398773,
+      0.018765579909086227
+    ],
+    "teacher_centered_candidate_max_probability": [
+      0.305351197719574,
+      0.3770379424095154,
+      0.33573898673057556
+    ],
+    "teacher_centered_candidate_probability_std_across_patches": [
+      0.03410685807466507,
+      0.02261200174689293,
+      0.030777275562286377
+    ],
+    "teacher_centered_candidate_unique_topk_pairs": [
+      5,
+      3,
+      4
+    ],
+    "teacher_centered_candidate_usage": [
+      [
+        0.22760465741157532,
+        0.2919567823410034,
+        0.22154730558395386,
+        0.2588913142681122
+      ],
+      [
+        0.3763420879840851,
+        0.15111808478832245,
+        0.23702915012836456,
+        0.2355107069015503
+      ],
+      [
+        0.2609086334705353,
+        0.3287462890148163,
+        0.22101402282714844,
+        0.18933109939098358
+      ]
+    ],
+    "teacher_distance_candidate_entropy": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "teacher_distance_candidate_logit_range": [
+      0.0018709030700847507,
+      0.0002008228620979935,
+      0.00013286065950524062
+    ],
+    "teacher_distance_candidate_logit_std_across_factors": [
+      4.0330843376068515e-07,
+      8.189162485905399e-07,
+      2.5721587348925823e-07
+    ],
+    "teacher_distance_candidate_logit_std_across_patches": [
+      0.0002406634739600122,
+      2.8561009457916953e-05,
+      2.1121284589753486e-05
+    ],
+    "teacher_distance_candidate_max_probability": [
+      0.25000086426734924,
+      0.2500017285346985,
+      0.2500006854534149
+    ],
+    "teacher_distance_candidate_probability_std_across_patches": [
+      5.439845267574128e-07,
+      4.0513066323910607e-07,
+      3.0557185937141185e-07
+    ],
+    "teacher_distance_candidate_unique_topk_pairs": [
+      5,
+      3,
+      4
+    ],
+    "teacher_distance_candidate_usage": [
+      [
+        0.24999947845935822,
+        0.25000035762786865,
+        0.24999983608722687,
+        0.2500004172325134
+      ],
+      [
+        0.2500016987323761,
+        0.24999794363975525,
+        0.25000008940696716,
+        0.2500002682209015
+      ],
+      [
+        0.2499999701976776,
+        0.25000059604644775,
+        0.2499997466802597,
+        0.2499997913837433
+      ]
+    ],
+    "teacher_entropy": [
+      0.9869990348815918,
+      0.9596982002258301,
+      0.9790768027305603
+    ],
+    "teacher_gate_reason": 0,
+    "teacher_informative_patch_count": [
+      356,
+      1239,
+      466
+    ],
+    "teacher_informative_patch_fraction": [
+      0.26004382967948914,
+      0.9050402045249939,
+      0.34039443731307983
+    ],
+    "teacher_max_probability": [
+      0.305351197719574,
+      0.3770379424095154,
+      0.33573898673057556
+    ],
+    "teacher_probability_std_across_patches": [
+      0.03410685807466507,
+      0.02261200174689293,
+      0.030777277424931526
+    ],
+    "teacher_raw_candidate_entropy": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "teacher_raw_candidate_logit_range": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "teacher_raw_candidate_logit_std_across_factors": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "teacher_raw_candidate_logit_std_across_patches": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "teacher_raw_candidate_max_probability": [
+      0.25,
+      0.25,
+      0.25
+    ],
+    "teacher_raw_candidate_probability_std_across_patches": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "teacher_raw_candidate_unique_topk_pairs": [
+      1,
+      1,
+      1
+    ],
+    "teacher_raw_candidate_usage": [
+      [
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ],
+      [
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ],
+      [
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ]
+    ],
+    "teacher_raw_logit_range": [
+      1.359375,
+      1.5859375,
+      1.6015625
+    ],
+    "teacher_raw_similarity_max": [
+      0.09765625,
+      0.115234375,
+      0.1396484375
+    ],
+    "teacher_raw_similarity_mean_per_factor": [
+      [
+        -0.0120849609375,
+        0.0238037109375,
+        -0.0203857421875,
+        0.00738525390625
+      ],
+      [
+        0.0703125,
+        -0.06787109375,
+        0.001312255859375,
+        0.0002155303955078125
+      ],
+      [
+        0.004241943359375,
+        0.0390625,
+        -0.0203857421875,
+        -0.043212890625
+      ]
+    ],
+    "teacher_raw_similarity_min": [
+      -0.1064453125,
+      -0.12255859375,
+      -0.1005859375
+    ],
+    "teacher_raw_similarity_std_across_factors": [
+      0.0245361328125,
+      0.050048828125,
+      0.034912109375
+    ],
+    "teacher_raw_similarity_std_across_patches": [
+      0.021240234375,
+      0.01434326171875,
+      0.018798828125
+    ],
+    "teacher_router_kl": [
+      0.01970130205154419,
+      0.04852981120347977,
+      0.02841135300695896
+    ],
+    "teacher_unique_topk_pairs": [
+      5,
+      3,
+      4
+    ],
+    "teacher_usage": [
+      [
+        0.22760465741157532,
+        0.2919568121433258,
+        0.22154727578163147,
+        0.2588913142681122
+      ],
+      [
+        0.3763420879840851,
+        0.15111808478832245,
+        0.23702915012836456,
+        0.2355107069015503
+      ],
+      [
+        0.2609086334705353,
+        0.3287462890148163,
+        0.22101402282714844,
+        0.18933109939098358
+      ]
+    ],
+    "teacher_valid_patch_count": [
+      1369,
+      1369,
+      1369
+    ]
+  },
+  "thresholds": {
+    "h6_gate_dynamic_cosine_min": 0.999,
+    "h6_gate_dynamic_orth_center": 0.75,
+    "h6_gate_dynamic_orth_tolerance": 0.005,
+    "h6_gate_hard_anchor_cosine_min": 0.3,
+    "h6_gate_key_cosine_max": 0.95,
+    "h6_gate_key_l2_min": 0.05,
+    "h6_gate_logit_std_max": 1e-06,
+    "h6_gate_max_sparse_dead_factors": 1,
+    "h6_gate_min_unique_topk_pairs": 2,
+    "h6_gate_query_cosine_min": 0.9999,
+    "h6_gate_query_rank_max": 1.1,
+    "h6_gate_query_top1_energy_min": 0.995,
+    "h6_gate_sparse_min_ratio": 0.5,
+    "structural_gate_dense_start_epoch": 8,
+    "structural_gate_enabled": true,
+    "structural_gate_patience": 2,
+    "structural_gate_require_all_levels": true,
+    "structural_gate_version": 1,
+    "warning_thresholds": {
+      "dynamic_mean_hard_cosine": 0.7,
+      "dynamic_residual_cosine": 0.99,
+      "final_key_cosine": 0.8,
+      "query_rank": 2.0,
+      "query_top1_energy": 0.95,
+      "task_loss_rolling_median_multiplier": 2.0,
+      "teacher_entropy": 0.98
+    }
+  },
+  "trust_region_weight": 0.001
+}

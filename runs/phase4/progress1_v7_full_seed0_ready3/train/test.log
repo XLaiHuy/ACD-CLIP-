@@ -1,0 +1,708 @@
+2026-08-05 05:14:04 test.py 629: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 8, 'h6_dense_routing_epochs': 8, 'h6_sparse_start_epoch': 9, 'h6_sparse_transition_epochs': 4, 'h6_load_bias_enabled': True, 'h6_load_bias_momentum': 0.9, 'h6_load_bias_step': 0.001, 'h6_load_bias_max': 0.03, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'h6_vae_class_ratio': 0.25, 'h6_slot_init_enabled': True, 'h6_slot_init_scale': 0.02, 'h6_slot_init_seed_offset': 6100, 'h6_factor_grad_diagnostics': True, 'h6_late_factor_identity_enabled': False, 'h6_factor_id_scale': 0.02, 'h6_factor_id_max_ratio': 0.05, 'h6_router_query_mode': 'local_global_bypass', 'h6_router_query_global_weight': 0.1, 'h6_router_local_bypass_scale': 0.1, 'h6_router_local_bypass_max_ratio': 0.2, 'h6_router_local_projection_seed_offset': 7200, 'h6_router_key_anchor_enabled': True, 'h6_router_key_anchor_seed_offset': 7300, 'h6_router_key_adaptation_initial_ratio': 0.1, 'h6_router_key_adaptation_max_ratio': 0.25, 'h6_factor_context_anchor_enabled': True, 'h6_factor_context_anchor_seed_offset': 7400, 'h6_factor_context_adaptation_initial_ratio': 0.1, 'h6_factor_context_adaptation_max_ratio': 0.25, 'h6_factor_identity_tangent_projection_enabled': True, 'lambda_h6_dynamic_mean_anchor': 0.001, 'h6_dynamic_mean_anchor_min_cosine': 0.7, 'h6_dynamic_mean_anchor_start_epoch': 4, 'h6_dynamic_mean_anchor_warmup_epochs': 3, 'h6_progress_version': 'P1-v7-full', 'h6_expert_enabled': True, 'h6_expert_bottleneck': 64, 'h6_expert_fofs_seed_offset': 7500, 'h6_expert_state_condition_scale': 0.25, 'h6_expert_scale_target': 0.1, 'h6_expert_scale_start_epoch': 1, 'h6_expert_scale_warmup_epochs': 6, 'h6_expert_max_relative_ratio': 0.1, 'h6_router_teacher_mode': 'state_centered_cosine', 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Brain', 'medical_split': 'val', 'medical_manifest_root': 'runs/phase4/progress1_v7_full_seed0_ready3/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_v7_full_seed0_ready3/train', 'num_workers': 4, 'epochs': [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], 'metric_thresholds': None, 'pixel_stride': 1, 'external_exact_pixel_metrics': True, 'external_metric_chunk_pixels': 5000000, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-05 05:14:04 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-05 05:14:07 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-05 05:14:08 test.py 838: -----------------------------------------------
+2026-08-05 05:14:08 test.py 839: load model from epoch 8
+2026-08-05 05:14:08 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:14:08 test.py 850: -----------------------------------------------
+2026-08-05 05:15:14 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain     94.7887  21.2314    78.9     79.93 
+ Average     94.7887  21.2314    78.9     79.93 
+2026-08-05 05:15:14 test.py 838: -----------------------------------------------
+2026-08-05 05:15:14 test.py 839: load model from epoch 9
+2026-08-05 05:15:14 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:15:14 test.py 850: -----------------------------------------------
+2026-08-05 05:16:15 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain     94.2896  19.8419    75.41    74.21 
+ Average     94.2896  19.8419    75.41    74.21 
+2026-08-05 05:16:15 test.py 838: -----------------------------------------------
+2026-08-05 05:16:15 test.py 839: load model from epoch 10
+2026-08-05 05:16:15 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:16:15 test.py 850: -----------------------------------------------
+2026-08-05 05:17:17 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain     94.2439  16.985     75.47    74.57 
+ Average     94.2439  16.985     75.47    74.57 
+2026-08-05 05:17:18 test.py 838: -----------------------------------------------
+2026-08-05 05:17:18 test.py 839: load model from epoch 11
+2026-08-05 05:17:18 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:17:18 test.py 850: -----------------------------------------------
+2026-08-05 05:18:21 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain     94.8366  18.6845    77.74    77.18 
+ Average     94.8366  18.6845    77.74    77.18 
+2026-08-05 05:18:21 test.py 838: -----------------------------------------------
+2026-08-05 05:18:21 test.py 839: load model from epoch 12
+2026-08-05 05:18:21 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:18:21 test.py 850: -----------------------------------------------
+2026-08-05 05:19:24 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain     94.6309  21.2652    79.72    80.86 
+ Average     94.6309  21.2652    79.72    80.86 
+2026-08-05 05:19:24 test.py 838: -----------------------------------------------
+2026-08-05 05:19:24 test.py 839: load model from epoch 13
+2026-08-05 05:19:24 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:19:24 test.py 850: -----------------------------------------------
+2026-08-05 05:20:27 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain     94.694   19.4219    77.16    74.82 
+ Average     94.694   19.4219    77.16    74.82 
+2026-08-05 05:20:27 test.py 838: -----------------------------------------------
+2026-08-05 05:20:27 test.py 839: load model from epoch 14
+2026-08-05 05:20:27 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:20:27 test.py 850: -----------------------------------------------
+2026-08-05 05:21:30 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain     95.2292  21.4575    75.35    71.87 
+ Average     95.2292  21.4575    75.35    71.87 
+2026-08-05 05:21:30 test.py 838: -----------------------------------------------
+2026-08-05 05:21:30 test.py 839: load model from epoch 15
+2026-08-05 05:21:30 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:21:30 test.py 850: -----------------------------------------------
+2026-08-05 05:22:34 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain     94.6725  18.4655    77.68    75.83 
+ Average     94.6725  18.4655    77.68    75.83 
+2026-08-05 05:22:34 test.py 838: -----------------------------------------------
+2026-08-05 05:22:34 test.py 839: load model from epoch 16
+2026-08-05 05:22:34 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:22:34 test.py 850: -----------------------------------------------
+2026-08-05 05:23:37 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain     94.1795  16.4718    75.0     72.42 
+ Average     94.1795  16.4718    75.0     72.42 
+2026-08-05 05:23:37 test.py 838: -----------------------------------------------
+2026-08-05 05:23:37 test.py 839: load model from epoch 17
+2026-08-05 05:23:37 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:23:37 test.py 850: -----------------------------------------------
+2026-08-05 05:24:41 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain     94.3825  17.5281    74.42    71.57 
+ Average     94.3825  17.5281    74.42    71.57 
+2026-08-05 05:24:41 test.py 838: -----------------------------------------------
+2026-08-05 05:24:41 test.py 839: load model from epoch 18
+2026-08-05 05:24:41 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:24:41 test.py 850: -----------------------------------------------
+2026-08-05 05:25:45 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain     94.1612  17.4635    74.83    71.64 
+ Average     94.1612  17.4635    74.83    71.64 
+2026-08-05 05:25:45 test.py 838: -----------------------------------------------
+2026-08-05 05:25:45 test.py 839: load model from epoch 19
+2026-08-05 05:25:45 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:25:45 test.py 850: -----------------------------------------------
+2026-08-05 05:26:48 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain     93.9483  16.855     78.55    74.07 
+ Average     93.9483  16.855     78.55    74.07 
+2026-08-05 05:26:49 test.py 838: -----------------------------------------------
+2026-08-05 05:26:49 test.py 839: load model from epoch 20
+2026-08-05 05:26:49 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:26:49 test.py 850: -----------------------------------------------
+2026-08-05 05:27:52 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain     94.0522  16.2952    76.17    74.24 
+ Average     94.0522  16.2952    76.17    74.24 
+2026-08-05 05:27:56 test.py 629: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 8, 'h6_dense_routing_epochs': 8, 'h6_sparse_start_epoch': 9, 'h6_sparse_transition_epochs': 4, 'h6_load_bias_enabled': True, 'h6_load_bias_momentum': 0.9, 'h6_load_bias_step': 0.001, 'h6_load_bias_max': 0.03, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'h6_vae_class_ratio': 0.25, 'h6_slot_init_enabled': True, 'h6_slot_init_scale': 0.02, 'h6_slot_init_seed_offset': 6100, 'h6_factor_grad_diagnostics': True, 'h6_late_factor_identity_enabled': False, 'h6_factor_id_scale': 0.02, 'h6_factor_id_max_ratio': 0.05, 'h6_router_query_mode': 'local_global_bypass', 'h6_router_query_global_weight': 0.1, 'h6_router_local_bypass_scale': 0.1, 'h6_router_local_bypass_max_ratio': 0.2, 'h6_router_local_projection_seed_offset': 7200, 'h6_router_key_anchor_enabled': True, 'h6_router_key_anchor_seed_offset': 7300, 'h6_router_key_adaptation_initial_ratio': 0.1, 'h6_router_key_adaptation_max_ratio': 0.25, 'h6_factor_context_anchor_enabled': True, 'h6_factor_context_anchor_seed_offset': 7400, 'h6_factor_context_adaptation_initial_ratio': 0.1, 'h6_factor_context_adaptation_max_ratio': 0.25, 'h6_factor_identity_tangent_projection_enabled': True, 'lambda_h6_dynamic_mean_anchor': 0.001, 'h6_dynamic_mean_anchor_min_cosine': 0.7, 'h6_dynamic_mean_anchor_start_epoch': 4, 'h6_dynamic_mean_anchor_warmup_epochs': 3, 'h6_progress_version': 'P1-v7-full', 'h6_expert_enabled': True, 'h6_expert_bottleneck': 64, 'h6_expert_fofs_seed_offset': 7500, 'h6_expert_state_condition_scale': 0.25, 'h6_expert_scale_target': 0.1, 'h6_expert_scale_start_epoch': 1, 'h6_expert_scale_warmup_epochs': 6, 'h6_expert_max_relative_ratio': 0.1, 'h6_router_teacher_mode': 'state_centered_cosine', 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Liver', 'medical_split': 'val', 'medical_manifest_root': 'runs/phase4/progress1_v7_full_seed0_ready3/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_v7_full_seed0_ready3/train', 'num_workers': 4, 'epochs': [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], 'metric_thresholds': None, 'pixel_stride': 1, 'external_exact_pixel_metrics': True, 'external_metric_chunk_pixels': 5000000, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-05 05:27:56 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-05 05:27:59 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-05 05:27:59 test.py 838: -----------------------------------------------
+2026-08-05 05:27:59 test.py 839: load model from epoch 8
+2026-08-05 05:27:59 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:27:59 test.py 850: -----------------------------------------------
+2026-08-05 05:29:53 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver     95.5925  3.8536     56.47    48.03 
+ Average     95.5925  3.8536     56.47    48.03 
+2026-08-05 05:29:53 test.py 838: -----------------------------------------------
+2026-08-05 05:29:53 test.py 839: load model from epoch 9
+2026-08-05 05:29:53 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:29:53 test.py 850: -----------------------------------------------
+2026-08-05 05:31:44 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver     95.9959  4.2698     55.88    47.31 
+ Average     95.9959  4.2698     55.88    47.31 
+2026-08-05 05:31:45 test.py 838: -----------------------------------------------
+2026-08-05 05:31:45 test.py 839: load model from epoch 10
+2026-08-05 05:31:45 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:31:45 test.py 850: -----------------------------------------------
+2026-08-05 05:33:37 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver     96.1746  4.8836     55.86    46.48 
+ Average     96.1746  4.8836     55.86    46.48 
+2026-08-05 05:33:38 test.py 838: -----------------------------------------------
+2026-08-05 05:33:38 test.py 839: load model from epoch 11
+2026-08-05 05:33:38 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:33:38 test.py 850: -----------------------------------------------
+2026-08-05 05:35:31 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver     96.5679  4.8696     55.16    47.54 
+ Average     96.5679  4.8696     55.16    47.54 
+2026-08-05 05:35:31 test.py 838: -----------------------------------------------
+2026-08-05 05:35:31 test.py 839: load model from epoch 12
+2026-08-05 05:35:31 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:35:31 test.py 850: -----------------------------------------------
+2026-08-05 05:37:25 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver     96.5825  4.9671     58.12    50.26 
+ Average     96.5825  4.9671     58.12    50.26 
+2026-08-05 05:37:25 test.py 838: -----------------------------------------------
+2026-08-05 05:37:25 test.py 839: load model from epoch 13
+2026-08-05 05:37:25 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:37:25 test.py 850: -----------------------------------------------
+2026-08-05 05:39:19 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver     96.5493  4.8513     54.77    47.57 
+ Average     96.5493  4.8513     54.77    47.57 
+2026-08-05 05:39:19 test.py 838: -----------------------------------------------
+2026-08-05 05:39:19 test.py 839: load model from epoch 14
+2026-08-05 05:39:19 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:39:19 test.py 850: -----------------------------------------------
+2026-08-05 05:41:13 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver     96.4931  4.6499     52.0     46.31 
+ Average     96.4931  4.6499     52.0     46.31 
+2026-08-05 05:41:13 test.py 838: -----------------------------------------------
+2026-08-05 05:41:13 test.py 839: load model from epoch 15
+2026-08-05 05:41:13 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:41:13 test.py 850: -----------------------------------------------
+2026-08-05 05:43:07 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver     96.705   5.1218     55.28    47.6  
+ Average     96.705   5.1218     55.28    47.6  
+2026-08-05 05:43:07 test.py 838: -----------------------------------------------
+2026-08-05 05:43:07 test.py 839: load model from epoch 16
+2026-08-05 05:43:07 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:43:07 test.py 850: -----------------------------------------------
+2026-08-05 05:45:01 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver     96.4842  4.9115     55.77    46.59 
+ Average     96.4842  4.9115     55.77    46.59 
+2026-08-05 05:45:01 test.py 838: -----------------------------------------------
+2026-08-05 05:45:01 test.py 839: load model from epoch 17
+2026-08-05 05:45:01 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:45:01 test.py 850: -----------------------------------------------
+2026-08-05 05:46:55 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver     96.6621  5.1854     55.21    49.24 
+ Average     96.6621  5.1854     55.21    49.24 
+2026-08-05 05:46:55 test.py 838: -----------------------------------------------
+2026-08-05 05:46:55 test.py 839: load model from epoch 18
+2026-08-05 05:46:55 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:46:55 test.py 850: -----------------------------------------------
+2026-08-05 05:48:49 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver     96.5299  4.7442     55.86    47.81 
+ Average     96.5299  4.7442     55.86    47.81 
+2026-08-05 05:48:49 test.py 838: -----------------------------------------------
+2026-08-05 05:48:49 test.py 839: load model from epoch 19
+2026-08-05 05:48:49 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:48:49 test.py 850: -----------------------------------------------
+2026-08-05 05:50:44 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver     96.7234  5.3749     54.78    46.04 
+ Average     96.7234  5.3749     54.78    46.04 
+2026-08-05 05:50:44 test.py 838: -----------------------------------------------
+2026-08-05 05:50:44 test.py 839: load model from epoch 20
+2026-08-05 05:50:44 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:50:44 test.py 850: -----------------------------------------------
+2026-08-05 05:52:38 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver     96.7607  5.2145     55.15    45.95 
+ Average     96.7607  5.2145     55.15    45.95 
+2026-08-05 05:52:42 test.py 629: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 8, 'h6_dense_routing_epochs': 8, 'h6_sparse_start_epoch': 9, 'h6_sparse_transition_epochs': 4, 'h6_load_bias_enabled': True, 'h6_load_bias_momentum': 0.9, 'h6_load_bias_step': 0.001, 'h6_load_bias_max': 0.03, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'h6_vae_class_ratio': 0.25, 'h6_slot_init_enabled': True, 'h6_slot_init_scale': 0.02, 'h6_slot_init_seed_offset': 6100, 'h6_factor_grad_diagnostics': True, 'h6_late_factor_identity_enabled': False, 'h6_factor_id_scale': 0.02, 'h6_factor_id_max_ratio': 0.05, 'h6_router_query_mode': 'local_global_bypass', 'h6_router_query_global_weight': 0.1, 'h6_router_local_bypass_scale': 0.1, 'h6_router_local_bypass_max_ratio': 0.2, 'h6_router_local_projection_seed_offset': 7200, 'h6_router_key_anchor_enabled': True, 'h6_router_key_anchor_seed_offset': 7300, 'h6_router_key_adaptation_initial_ratio': 0.1, 'h6_router_key_adaptation_max_ratio': 0.25, 'h6_factor_context_anchor_enabled': True, 'h6_factor_context_anchor_seed_offset': 7400, 'h6_factor_context_adaptation_initial_ratio': 0.1, 'h6_factor_context_adaptation_max_ratio': 0.25, 'h6_factor_identity_tangent_projection_enabled': True, 'lambda_h6_dynamic_mean_anchor': 0.001, 'h6_dynamic_mean_anchor_min_cosine': 0.7, 'h6_dynamic_mean_anchor_start_epoch': 4, 'h6_dynamic_mean_anchor_warmup_epochs': 3, 'h6_progress_version': 'P1-v7-full', 'h6_expert_enabled': True, 'h6_expert_bottleneck': 64, 'h6_expert_fofs_seed_offset': 7500, 'h6_expert_state_condition_scale': 0.25, 'h6_expert_scale_target': 0.1, 'h6_expert_scale_start_epoch': 1, 'h6_expert_scale_warmup_epochs': 6, 'h6_expert_max_relative_ratio': 0.1, 'h6_router_teacher_mode': 'state_centered_cosine', 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Retina', 'medical_split': 'val', 'medical_manifest_root': 'runs/phase4/progress1_v7_full_seed0_ready3/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_v7_full_seed0_ready3/train', 'num_workers': 4, 'epochs': [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], 'metric_thresholds': None, 'pixel_stride': 1, 'external_exact_pixel_metrics': True, 'external_metric_chunk_pixels': 5000000, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-05 05:52:42 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-05 05:52:45 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-05 05:52:46 test.py 838: -----------------------------------------------
+2026-08-05 05:52:46 test.py 839: load model from epoch 8
+2026-08-05 05:52:46 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:52:46 test.py 850: -----------------------------------------------
+2026-08-05 05:54:02 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina     92.571   43.2878    69.78    78.38 
+ Average     92.571   43.2878    69.78    78.38 
+2026-08-05 05:54:02 test.py 838: -----------------------------------------------
+2026-08-05 05:54:02 test.py 839: load model from epoch 9
+2026-08-05 05:54:02 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:54:02 test.py 850: -----------------------------------------------
+2026-08-05 05:55:17 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina     92.1564  41.0924    70.73    78.71 
+ Average     92.1564  41.0924    70.73    78.71 
+2026-08-05 05:55:17 test.py 838: -----------------------------------------------
+2026-08-05 05:55:17 test.py 839: load model from epoch 10
+2026-08-05 05:55:17 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:55:17 test.py 850: -----------------------------------------------
+2026-08-05 05:56:33 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina     90.4515  37.2459    68.54    75.08 
+ Average     90.4515  37.2459    68.54    75.08 
+2026-08-05 05:56:33 test.py 838: -----------------------------------------------
+2026-08-05 05:56:33 test.py 839: load model from epoch 11
+2026-08-05 05:56:33 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:56:33 test.py 850: -----------------------------------------------
+2026-08-05 05:57:49 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina     90.8717  40.0228    68.79    78.38 
+ Average     90.8717  40.0228    68.79    78.38 
+2026-08-05 05:57:49 test.py 838: -----------------------------------------------
+2026-08-05 05:57:49 test.py 839: load model from epoch 12
+2026-08-05 05:57:49 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:57:49 test.py 850: -----------------------------------------------
+2026-08-05 05:59:05 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina     92.0094  40.5484    69.71    77.04 
+ Average     92.0094  40.5484    69.71    77.04 
+2026-08-05 05:59:05 test.py 838: -----------------------------------------------
+2026-08-05 05:59:05 test.py 839: load model from epoch 13
+2026-08-05 05:59:05 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 05:59:05 test.py 850: -----------------------------------------------
+2026-08-05 06:00:20 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina     90.7203  37.256     65.14    72.47 
+ Average     90.7203  37.256     65.14    72.47 
+2026-08-05 06:00:20 test.py 838: -----------------------------------------------
+2026-08-05 06:00:20 test.py 839: load model from epoch 14
+2026-08-05 06:00:20 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:00:20 test.py 850: -----------------------------------------------
+2026-08-05 06:01:36 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina     90.755   38.2975    66.63    73.69 
+ Average     90.755   38.2975    66.63    73.69 
+2026-08-05 06:01:36 test.py 838: -----------------------------------------------
+2026-08-05 06:01:36 test.py 839: load model from epoch 15
+2026-08-05 06:01:36 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:01:36 test.py 850: -----------------------------------------------
+2026-08-05 06:02:52 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina     88.5765  34.5835    67.14    74.02 
+ Average     88.5765  34.5835    67.14    74.02 
+2026-08-05 06:02:52 test.py 838: -----------------------------------------------
+2026-08-05 06:02:52 test.py 839: load model from epoch 16
+2026-08-05 06:02:52 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:02:52 test.py 850: -----------------------------------------------
+2026-08-05 06:04:08 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina     89.5689  34.0009    65.27    71.16 
+ Average     89.5689  34.0009    65.27    71.16 
+2026-08-05 06:04:08 test.py 838: -----------------------------------------------
+2026-08-05 06:04:08 test.py 839: load model from epoch 17
+2026-08-05 06:04:08 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:04:08 test.py 850: -----------------------------------------------
+2026-08-05 06:05:23 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina     89.3471  37.4059    66.54    73.62 
+ Average     89.3471  37.4059    66.54    73.62 
+2026-08-05 06:05:24 test.py 838: -----------------------------------------------
+2026-08-05 06:05:24 test.py 839: load model from epoch 18
+2026-08-05 06:05:24 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:05:24 test.py 850: -----------------------------------------------
+2026-08-05 06:06:40 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina     90.4852  38.4705    67.68    73.44 
+ Average     90.4852  38.4705    67.68    73.44 
+2026-08-05 06:06:40 test.py 838: -----------------------------------------------
+2026-08-05 06:06:40 test.py 839: load model from epoch 19
+2026-08-05 06:06:40 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:06:40 test.py 850: -----------------------------------------------
+2026-08-05 06:07:56 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina     89.9653  35.8909    66.86    72.57 
+ Average     89.9653  35.8909    66.86    72.57 
+2026-08-05 06:07:56 test.py 838: -----------------------------------------------
+2026-08-05 06:07:56 test.py 839: load model from epoch 20
+2026-08-05 06:07:56 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:07:56 test.py 850: -----------------------------------------------
+2026-08-05 06:09:12 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina     90.4974  37.7067    68.86    74.13 
+ Average     90.4974  37.7067    68.86    74.13 
+2026-08-05 06:09:15 test.py 629: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 8, 'h6_dense_routing_epochs': 8, 'h6_sparse_start_epoch': 9, 'h6_sparse_transition_epochs': 4, 'h6_load_bias_enabled': True, 'h6_load_bias_momentum': 0.9, 'h6_load_bias_step': 0.001, 'h6_load_bias_max': 0.03, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'h6_vae_class_ratio': 0.25, 'h6_slot_init_enabled': True, 'h6_slot_init_scale': 0.02, 'h6_slot_init_seed_offset': 6100, 'h6_factor_grad_diagnostics': True, 'h6_late_factor_identity_enabled': False, 'h6_factor_id_scale': 0.02, 'h6_factor_id_max_ratio': 0.05, 'h6_router_query_mode': 'local_global_bypass', 'h6_router_query_global_weight': 0.1, 'h6_router_local_bypass_scale': 0.1, 'h6_router_local_bypass_max_ratio': 0.2, 'h6_router_local_projection_seed_offset': 7200, 'h6_router_key_anchor_enabled': True, 'h6_router_key_anchor_seed_offset': 7300, 'h6_router_key_adaptation_initial_ratio': 0.1, 'h6_router_key_adaptation_max_ratio': 0.25, 'h6_factor_context_anchor_enabled': True, 'h6_factor_context_anchor_seed_offset': 7400, 'h6_factor_context_adaptation_initial_ratio': 0.1, 'h6_factor_context_adaptation_max_ratio': 0.25, 'h6_factor_identity_tangent_projection_enabled': True, 'lambda_h6_dynamic_mean_anchor': 0.001, 'h6_dynamic_mean_anchor_min_cosine': 0.7, 'h6_dynamic_mean_anchor_start_epoch': 4, 'h6_dynamic_mean_anchor_warmup_epochs': 3, 'h6_progress_version': 'P1-v7-full', 'h6_expert_enabled': True, 'h6_expert_bottleneck': 64, 'h6_expert_fofs_seed_offset': 7500, 'h6_expert_state_condition_scale': 0.25, 'h6_expert_scale_target': 0.1, 'h6_expert_scale_start_epoch': 1, 'h6_expert_scale_warmup_epochs': 6, 'h6_expert_max_relative_ratio': 0.1, 'h6_router_teacher_mode': 'state_centered_cosine', 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Colon_clinicDB', 'medical_split': 'val', 'medical_manifest_root': 'runs/phase4/progress1_v7_full_seed0_ready3/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_v7_full_seed0_ready3/train', 'num_workers': 4, 'epochs': [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], 'metric_thresholds': None, 'pixel_stride': 1, 'external_exact_pixel_metrics': True, 'external_metric_chunk_pixels': 5000000, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-05 06:09:15 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-05 06:09:19 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-05 06:09:19 test.py 838: -----------------------------------------------
+2026-08-05 06:09:19 test.py 839: load model from epoch 8
+2026-08-05 06:09:19 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:09:19 test.py 850: -----------------------------------------------
+2026-08-05 06:11:46 test.py 935: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB   88.5667  54.1093     0.0      0.0  
+       Average   88.5667  54.1093     0.0      0.0  
+2026-08-05 06:11:46 test.py 838: -----------------------------------------------
+2026-08-05 06:11:46 test.py 839: load model from epoch 9
+2026-08-05 06:11:46 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:11:46 test.py 850: -----------------------------------------------
+2026-08-05 06:14:11 test.py 935: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB   87.7185  52.8373     0.0      0.0  
+       Average   87.7185  52.8373     0.0      0.0  
+2026-08-05 06:14:11 test.py 838: -----------------------------------------------
+2026-08-05 06:14:11 test.py 839: load model from epoch 10
+2026-08-05 06:14:11 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:14:11 test.py 850: -----------------------------------------------
+2026-08-05 06:16:38 test.py 935: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB   86.5881  47.9525     0.0      0.0  
+       Average   86.5881  47.9525     0.0      0.0  
+2026-08-05 06:16:38 test.py 838: -----------------------------------------------
+2026-08-05 06:16:38 test.py 839: load model from epoch 11
+2026-08-05 06:16:38 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:16:38 test.py 850: -----------------------------------------------
+2026-08-05 06:19:07 test.py 935: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB   87.5919  53.0693     0.0      0.0  
+       Average   87.5919  53.0693     0.0      0.0  
+2026-08-05 06:19:07 test.py 838: -----------------------------------------------
+2026-08-05 06:19:07 test.py 839: load model from epoch 12
+2026-08-05 06:19:07 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:19:07 test.py 850: -----------------------------------------------
+2026-08-05 06:21:35 test.py 935: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB   86.7328  51.3653     0.0      0.0  
+       Average   86.7328  51.3653     0.0      0.0  
+2026-08-05 06:21:35 test.py 838: -----------------------------------------------
+2026-08-05 06:21:35 test.py 839: load model from epoch 13
+2026-08-05 06:21:35 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:21:35 test.py 850: -----------------------------------------------
+2026-08-05 06:24:03 test.py 935: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB   87.8585  50.7552     0.0      0.0  
+       Average   87.8585  50.7552     0.0      0.0  
+2026-08-05 06:24:04 test.py 838: -----------------------------------------------
+2026-08-05 06:24:04 test.py 839: load model from epoch 14
+2026-08-05 06:24:04 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:24:04 test.py 850: -----------------------------------------------
+2026-08-05 06:26:32 test.py 935: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB   88.4256  54.4171     0.0      0.0  
+       Average   88.4256  54.4171     0.0      0.0  
+2026-08-05 06:26:32 test.py 838: -----------------------------------------------
+2026-08-05 06:26:32 test.py 839: load model from epoch 15
+2026-08-05 06:26:32 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:26:32 test.py 850: -----------------------------------------------
+2026-08-05 06:29:00 test.py 935: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB   87.3097  48.7827     0.0      0.0  
+       Average   87.3097  48.7827     0.0      0.0  
+2026-08-05 06:29:00 test.py 838: -----------------------------------------------
+2026-08-05 06:29:00 test.py 839: load model from epoch 16
+2026-08-05 06:29:00 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:29:00 test.py 850: -----------------------------------------------
+2026-08-05 06:31:28 test.py 935: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB   86.7521  47.4352     0.0      0.0  
+       Average   86.7521  47.4352     0.0      0.0  
+2026-08-05 06:31:28 test.py 838: -----------------------------------------------
+2026-08-05 06:31:28 test.py 839: load model from epoch 17
+2026-08-05 06:31:28 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:31:28 test.py 850: -----------------------------------------------
+2026-08-05 06:33:58 test.py 935: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB   86.9403  48.0791     0.0      0.0  
+       Average   86.9403  48.0791     0.0      0.0  
+2026-08-05 06:33:58 test.py 838: -----------------------------------------------
+2026-08-05 06:33:58 test.py 839: load model from epoch 18
+2026-08-05 06:33:58 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:33:58 test.py 850: -----------------------------------------------
+2026-08-05 06:36:27 test.py 935: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB   87.3551  49.0696     0.0      0.0  
+       Average   87.3551  49.0696     0.0      0.0  
+2026-08-05 06:36:27 test.py 838: -----------------------------------------------
+2026-08-05 06:36:27 test.py 839: load model from epoch 19
+2026-08-05 06:36:27 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:36:27 test.py 850: -----------------------------------------------
+2026-08-05 06:38:56 test.py 935: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB   86.6169  46.0599     0.0      0.0  
+       Average   86.6169  46.0599     0.0      0.0  
+2026-08-05 06:38:57 test.py 838: -----------------------------------------------
+2026-08-05 06:38:57 test.py 839: load model from epoch 20
+2026-08-05 06:38:57 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:38:57 test.py 850: -----------------------------------------------
+2026-08-05 06:41:28 test.py 935: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB   86.8206  46.4182     0.0      0.0  
+       Average   86.8206  46.4182     0.0      0.0  
+2026-08-05 06:41:31 test.py 629: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 8, 'h6_dense_routing_epochs': 8, 'h6_sparse_start_epoch': 9, 'h6_sparse_transition_epochs': 4, 'h6_load_bias_enabled': True, 'h6_load_bias_momentum': 0.9, 'h6_load_bias_step': 0.001, 'h6_load_bias_max': 0.03, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'h6_vae_class_ratio': 0.25, 'h6_slot_init_enabled': True, 'h6_slot_init_scale': 0.02, 'h6_slot_init_seed_offset': 6100, 'h6_factor_grad_diagnostics': True, 'h6_late_factor_identity_enabled': False, 'h6_factor_id_scale': 0.02, 'h6_factor_id_max_ratio': 0.05, 'h6_router_query_mode': 'local_global_bypass', 'h6_router_query_global_weight': 0.1, 'h6_router_local_bypass_scale': 0.1, 'h6_router_local_bypass_max_ratio': 0.2, 'h6_router_local_projection_seed_offset': 7200, 'h6_router_key_anchor_enabled': True, 'h6_router_key_anchor_seed_offset': 7300, 'h6_router_key_adaptation_initial_ratio': 0.1, 'h6_router_key_adaptation_max_ratio': 0.25, 'h6_factor_context_anchor_enabled': True, 'h6_factor_context_anchor_seed_offset': 7400, 'h6_factor_context_adaptation_initial_ratio': 0.1, 'h6_factor_context_adaptation_max_ratio': 0.25, 'h6_factor_identity_tangent_projection_enabled': True, 'lambda_h6_dynamic_mean_anchor': 0.001, 'h6_dynamic_mean_anchor_min_cosine': 0.7, 'h6_dynamic_mean_anchor_start_epoch': 4, 'h6_dynamic_mean_anchor_warmup_epochs': 3, 'h6_progress_version': 'P1-v7-full', 'h6_expert_enabled': True, 'h6_expert_bottleneck': 64, 'h6_expert_fofs_seed_offset': 7500, 'h6_expert_state_condition_scale': 0.25, 'h6_expert_scale_target': 0.1, 'h6_expert_scale_start_epoch': 1, 'h6_expert_scale_warmup_epochs': 6, 'h6_expert_max_relative_ratio': 0.1, 'h6_router_teacher_mode': 'state_centered_cosine', 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Colon_colonDB', 'medical_split': 'val', 'medical_manifest_root': 'runs/phase4/progress1_v7_full_seed0_ready3/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_v7_full_seed0_ready3/train', 'num_workers': 4, 'epochs': [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], 'metric_thresholds': None, 'pixel_stride': 1, 'external_exact_pixel_metrics': True, 'external_metric_chunk_pixels': 5000000, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-05 06:41:31 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-05 06:41:35 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-05 06:41:35 test.py 838: -----------------------------------------------
+2026-08-05 06:41:35 test.py 839: load model from epoch 8
+2026-08-05 06:41:35 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:41:35 test.py 850: -----------------------------------------------
+2026-08-05 06:43:07 test.py 935: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB   83.531   32.008      0.0      0.0  
+      Average   83.531   32.008      0.0      0.0  
+2026-08-05 06:43:07 test.py 838: -----------------------------------------------
+2026-08-05 06:43:07 test.py 839: load model from epoch 9
+2026-08-05 06:43:07 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:43:07 test.py 850: -----------------------------------------------
+2026-08-05 06:44:34 test.py 935: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB   83.2055  32.3097     0.0      0.0  
+      Average   83.2055  32.3097     0.0      0.0  
+2026-08-05 06:44:34 test.py 838: -----------------------------------------------
+2026-08-05 06:44:34 test.py 839: load model from epoch 10
+2026-08-05 06:44:34 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:44:34 test.py 850: -----------------------------------------------
+2026-08-05 06:46:03 test.py 935: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB   82.9411  32.0435     0.0      0.0  
+      Average   82.9411  32.0435     0.0      0.0  
+2026-08-05 06:46:03 test.py 838: -----------------------------------------------
+2026-08-05 06:46:03 test.py 839: load model from epoch 11
+2026-08-05 06:46:03 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:46:03 test.py 850: -----------------------------------------------
+2026-08-05 06:47:34 test.py 935: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB   82.1649  31.8862     0.0      0.0  
+      Average   82.1649  31.8862     0.0      0.0  
+2026-08-05 06:47:35 test.py 838: -----------------------------------------------
+2026-08-05 06:47:35 test.py 839: load model from epoch 12
+2026-08-05 06:47:35 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:47:35 test.py 850: -----------------------------------------------
+2026-08-05 06:49:06 test.py 935: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB   82.781   32.1759     0.0      0.0  
+      Average   82.781   32.1759     0.0      0.0  
+2026-08-05 06:49:06 test.py 838: -----------------------------------------------
+2026-08-05 06:49:06 test.py 839: load model from epoch 13
+2026-08-05 06:49:06 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:49:06 test.py 850: -----------------------------------------------
+2026-08-05 06:50:36 test.py 935: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB   81.9594  31.9991     0.0      0.0  
+      Average   81.9594  31.9991     0.0      0.0  
+2026-08-05 06:50:37 test.py 838: -----------------------------------------------
+2026-08-05 06:50:37 test.py 839: load model from epoch 14
+2026-08-05 06:50:37 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:50:37 test.py 850: -----------------------------------------------
+2026-08-05 06:52:06 test.py 935: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB   83.1903  33.7364     0.0      0.0  
+      Average   83.1903  33.7364     0.0      0.0  
+2026-08-05 06:52:07 test.py 838: -----------------------------------------------
+2026-08-05 06:52:07 test.py 839: load model from epoch 15
+2026-08-05 06:52:07 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:52:07 test.py 850: -----------------------------------------------
+2026-08-05 06:53:37 test.py 935: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB   83.3737  33.6927     0.0      0.0  
+      Average   83.3737  33.6927     0.0      0.0  
+2026-08-05 06:53:37 test.py 838: -----------------------------------------------
+2026-08-05 06:53:37 test.py 839: load model from epoch 16
+2026-08-05 06:53:37 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:53:37 test.py 850: -----------------------------------------------
+2026-08-05 06:55:08 test.py 935: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB   82.2383  32.7311     0.0      0.0  
+      Average   82.2383  32.7311     0.0      0.0  
+2026-08-05 06:55:08 test.py 838: -----------------------------------------------
+2026-08-05 06:55:08 test.py 839: load model from epoch 17
+2026-08-05 06:55:08 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:55:08 test.py 850: -----------------------------------------------
+2026-08-05 06:56:41 test.py 935: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB   82.7559  34.1341     0.0      0.0  
+      Average   82.7559  34.1341     0.0      0.0  
+2026-08-05 06:56:41 test.py 838: -----------------------------------------------
+2026-08-05 06:56:41 test.py 839: load model from epoch 18
+2026-08-05 06:56:41 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:56:41 test.py 850: -----------------------------------------------
+2026-08-05 06:58:12 test.py 935: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB   82.6716  34.0724     0.0      0.0  
+      Average   82.6716  34.0724     0.0      0.0  
+2026-08-05 06:58:12 test.py 838: -----------------------------------------------
+2026-08-05 06:58:12 test.py 839: load model from epoch 19
+2026-08-05 06:58:12 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:58:12 test.py 850: -----------------------------------------------
+2026-08-05 06:59:43 test.py 935: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB   83.0523  33.3275     0.0      0.0  
+      Average   83.0523  33.3275     0.0      0.0  
+2026-08-05 06:59:43 test.py 838: -----------------------------------------------
+2026-08-05 06:59:43 test.py 839: load model from epoch 20
+2026-08-05 06:59:43 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 06:59:43 test.py 850: -----------------------------------------------
+2026-08-05 07:01:15 test.py 935: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB   82.4307  32.0589     0.0      0.0  
+      Average   82.4307  32.0589     0.0      0.0  
+2026-08-05 07:01:18 test.py 629: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 8, 'h6_dense_routing_epochs': 8, 'h6_sparse_start_epoch': 9, 'h6_sparse_transition_epochs': 4, 'h6_load_bias_enabled': True, 'h6_load_bias_momentum': 0.9, 'h6_load_bias_step': 0.001, 'h6_load_bias_max': 0.03, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'h6_vae_class_ratio': 0.25, 'h6_slot_init_enabled': True, 'h6_slot_init_scale': 0.02, 'h6_slot_init_seed_offset': 6100, 'h6_factor_grad_diagnostics': True, 'h6_late_factor_identity_enabled': False, 'h6_factor_id_scale': 0.02, 'h6_factor_id_max_ratio': 0.05, 'h6_router_query_mode': 'local_global_bypass', 'h6_router_query_global_weight': 0.1, 'h6_router_local_bypass_scale': 0.1, 'h6_router_local_bypass_max_ratio': 0.2, 'h6_router_local_projection_seed_offset': 7200, 'h6_router_key_anchor_enabled': True, 'h6_router_key_anchor_seed_offset': 7300, 'h6_router_key_adaptation_initial_ratio': 0.1, 'h6_router_key_adaptation_max_ratio': 0.25, 'h6_factor_context_anchor_enabled': True, 'h6_factor_context_anchor_seed_offset': 7400, 'h6_factor_context_adaptation_initial_ratio': 0.1, 'h6_factor_context_adaptation_max_ratio': 0.25, 'h6_factor_identity_tangent_projection_enabled': True, 'lambda_h6_dynamic_mean_anchor': 0.001, 'h6_dynamic_mean_anchor_min_cosine': 0.7, 'h6_dynamic_mean_anchor_start_epoch': 4, 'h6_dynamic_mean_anchor_warmup_epochs': 3, 'h6_progress_version': 'P1-v7-full', 'h6_expert_enabled': True, 'h6_expert_bottleneck': 64, 'h6_expert_fofs_seed_offset': 7500, 'h6_expert_state_condition_scale': 0.25, 'h6_expert_scale_target': 0.1, 'h6_expert_scale_start_epoch': 1, 'h6_expert_scale_warmup_epochs': 6, 'h6_expert_max_relative_ratio': 0.1, 'h6_router_teacher_mode': 'state_centered_cosine', 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Colon_Kvasir', 'medical_split': 'val', 'medical_manifest_root': 'runs/phase4/progress1_v7_full_seed0_ready3/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_v7_full_seed0_ready3/train', 'num_workers': 4, 'epochs': [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], 'metric_thresholds': None, 'pixel_stride': 1, 'external_exact_pixel_metrics': True, 'external_metric_chunk_pixels': 5000000, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-05 07:01:18 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-05 07:01:21 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-05 07:01:22 test.py 838: -----------------------------------------------
+2026-08-05 07:01:22 test.py 839: load model from epoch 8
+2026-08-05 07:01:22 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 07:01:22 test.py 850: -----------------------------------------------
+2026-08-05 07:05:23 test.py 935: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir   86.1947  54.9741     0.0      0.0  
+     Average   86.1947  54.9741     0.0      0.0  
+2026-08-05 07:05:23 test.py 838: -----------------------------------------------
+2026-08-05 07:05:23 test.py 839: load model from epoch 9
+2026-08-05 07:05:23 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 07:05:23 test.py 850: -----------------------------------------------
+2026-08-05 07:09:23 test.py 935: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir   85.3479  52.862      0.0      0.0  
+     Average   85.3479  52.862      0.0      0.0  
+2026-08-05 07:09:23 test.py 838: -----------------------------------------------
+2026-08-05 07:09:23 test.py 839: load model from epoch 10
+2026-08-05 07:09:23 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 07:09:23 test.py 850: -----------------------------------------------
+2026-08-05 07:13:26 test.py 935: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir   86.0731  53.4695     0.0      0.0  
+     Average   86.0731  53.4695     0.0      0.0  
+2026-08-05 07:13:26 test.py 838: -----------------------------------------------
+2026-08-05 07:13:26 test.py 839: load model from epoch 11
+2026-08-05 07:13:26 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 07:13:26 test.py 850: -----------------------------------------------
+2026-08-05 07:17:31 test.py 935: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir   86.5668  55.4826     0.0      0.0  
+     Average   86.5668  55.4826     0.0      0.0  
+2026-08-05 07:17:31 test.py 838: -----------------------------------------------
+2026-08-05 07:17:31 test.py 839: load model from epoch 12
+2026-08-05 07:17:31 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 07:17:31 test.py 850: -----------------------------------------------
+2026-08-05 07:21:35 test.py 935: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir   86.5817  55.5789     0.0      0.0  
+     Average   86.5817  55.5789     0.0      0.0  
+2026-08-05 07:21:35 test.py 838: -----------------------------------------------
+2026-08-05 07:21:35 test.py 839: load model from epoch 13
+2026-08-05 07:21:35 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 07:21:35 test.py 850: -----------------------------------------------
+2026-08-05 07:25:41 test.py 935: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir   86.7666  54.7706     0.0      0.0  
+     Average   86.7666  54.7706     0.0      0.0  
+2026-08-05 07:25:41 test.py 838: -----------------------------------------------
+2026-08-05 07:25:41 test.py 839: load model from epoch 14
+2026-08-05 07:25:41 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 07:25:41 test.py 850: -----------------------------------------------
+2026-08-05 07:29:45 test.py 935: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir   86.9963  55.8514     0.0      0.0  
+     Average   86.9963  55.8514     0.0      0.0  
+2026-08-05 07:29:45 test.py 838: -----------------------------------------------
+2026-08-05 07:29:45 test.py 839: load model from epoch 15
+2026-08-05 07:29:45 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 07:29:45 test.py 850: -----------------------------------------------
+2026-08-05 07:33:48 test.py 935: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir   86.8559  53.9739     0.0      0.0  
+     Average   86.8559  53.9739     0.0      0.0  
+2026-08-05 07:33:48 test.py 838: -----------------------------------------------
+2026-08-05 07:33:48 test.py 839: load model from epoch 16
+2026-08-05 07:33:48 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 07:33:48 test.py 850: -----------------------------------------------
+2026-08-05 07:37:53 test.py 935: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir   86.7368  54.8509     0.0      0.0  
+     Average   86.7368  54.8509     0.0      0.0  
+2026-08-05 07:37:53 test.py 838: -----------------------------------------------
+2026-08-05 07:37:53 test.py 839: load model from epoch 17
+2026-08-05 07:37:53 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 07:37:53 test.py 850: -----------------------------------------------
+2026-08-05 07:41:59 test.py 935: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir   86.7775  54.8449     0.0      0.0  
+     Average   86.7775  54.8449     0.0      0.0  
+2026-08-05 07:41:59 test.py 838: -----------------------------------------------
+2026-08-05 07:41:59 test.py 839: load model from epoch 18
+2026-08-05 07:41:59 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 07:41:59 test.py 850: -----------------------------------------------
+2026-08-05 07:46:04 test.py 935: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir   86.5383  54.949      0.0      0.0  
+     Average   86.5383  54.949      0.0      0.0  
+2026-08-05 07:46:04 test.py 838: -----------------------------------------------
+2026-08-05 07:46:04 test.py 839: load model from epoch 19
+2026-08-05 07:46:04 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 07:46:04 test.py 850: -----------------------------------------------
+2026-08-05 07:50:09 test.py 935: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir   86.1353  52.9341     0.0      0.0  
+     Average   86.1353  52.9341     0.0      0.0  
+2026-08-05 07:50:09 test.py 838: -----------------------------------------------
+2026-08-05 07:50:09 test.py 839: load model from epoch 20
+2026-08-05 07:50:09 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 07:50:09 test.py 850: -----------------------------------------------
+2026-08-05 07:54:15 test.py 935: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir   86.3851  53.5207     0.0      0.0  
+     Average   86.3851  53.5207     0.0      0.0  
+2026-08-05 07:54:20 test.py 629: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 8, 'h6_dense_routing_epochs': 8, 'h6_sparse_start_epoch': 9, 'h6_sparse_transition_epochs': 4, 'h6_load_bias_enabled': True, 'h6_load_bias_momentum': 0.9, 'h6_load_bias_step': 0.001, 'h6_load_bias_max': 0.03, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'h6_vae_class_ratio': 0.25, 'h6_slot_init_enabled': True, 'h6_slot_init_scale': 0.02, 'h6_slot_init_seed_offset': 6100, 'h6_factor_grad_diagnostics': True, 'h6_late_factor_identity_enabled': False, 'h6_factor_id_scale': 0.02, 'h6_factor_id_max_ratio': 0.05, 'h6_router_query_mode': 'local_global_bypass', 'h6_router_query_global_weight': 0.1, 'h6_router_local_bypass_scale': 0.1, 'h6_router_local_bypass_max_ratio': 0.2, 'h6_router_local_projection_seed_offset': 7200, 'h6_router_key_anchor_enabled': True, 'h6_router_key_anchor_seed_offset': 7300, 'h6_router_key_adaptation_initial_ratio': 0.1, 'h6_router_key_adaptation_max_ratio': 0.25, 'h6_factor_context_anchor_enabled': True, 'h6_factor_context_anchor_seed_offset': 7400, 'h6_factor_context_adaptation_initial_ratio': 0.1, 'h6_factor_context_adaptation_max_ratio': 0.25, 'h6_factor_identity_tangent_projection_enabled': True, 'lambda_h6_dynamic_mean_anchor': 0.001, 'h6_dynamic_mean_anchor_min_cosine': 0.7, 'h6_dynamic_mean_anchor_start_epoch': 4, 'h6_dynamic_mean_anchor_warmup_epochs': 3, 'h6_progress_version': 'P1-v7-full', 'h6_expert_enabled': True, 'h6_expert_bottleneck': 64, 'h6_expert_fofs_seed_offset': 7500, 'h6_expert_state_condition_scale': 0.25, 'h6_expert_scale_target': 0.1, 'h6_expert_scale_start_epoch': 1, 'h6_expert_scale_warmup_epochs': 6, 'h6_expert_max_relative_ratio': 0.1, 'h6_router_teacher_mode': 'state_centered_cosine', 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Brain', 'medical_split': 'test', 'medical_manifest_root': 'runs/phase4/progress1_v7_full_seed0_ready3/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_v7_full_seed0_ready3/train', 'num_workers': 4, 'epochs': [12], 'metric_thresholds': None, 'pixel_stride': 1, 'external_exact_pixel_metrics': True, 'external_metric_chunk_pixels': 5000000, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-05 07:54:20 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-05 07:54:24 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-05 07:54:24 test.py 838: -----------------------------------------------
+2026-08-05 07:54:24 test.py 839: load model from epoch 12
+2026-08-05 07:54:24 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 07:54:24 test.py 850: -----------------------------------------------
+2026-08-05 08:45:08 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Brain     94.9491  33.2863    84.27    95.0  
+ Average     94.9491  33.2863    84.27    95.0  
+2026-08-05 08:45:14 test.py 629: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 8, 'h6_dense_routing_epochs': 8, 'h6_sparse_start_epoch': 9, 'h6_sparse_transition_epochs': 4, 'h6_load_bias_enabled': True, 'h6_load_bias_momentum': 0.9, 'h6_load_bias_step': 0.001, 'h6_load_bias_max': 0.03, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'h6_vae_class_ratio': 0.25, 'h6_slot_init_enabled': True, 'h6_slot_init_scale': 0.02, 'h6_slot_init_seed_offset': 6100, 'h6_factor_grad_diagnostics': True, 'h6_late_factor_identity_enabled': False, 'h6_factor_id_scale': 0.02, 'h6_factor_id_max_ratio': 0.05, 'h6_router_query_mode': 'local_global_bypass', 'h6_router_query_global_weight': 0.1, 'h6_router_local_bypass_scale': 0.1, 'h6_router_local_bypass_max_ratio': 0.2, 'h6_router_local_projection_seed_offset': 7200, 'h6_router_key_anchor_enabled': True, 'h6_router_key_anchor_seed_offset': 7300, 'h6_router_key_adaptation_initial_ratio': 0.1, 'h6_router_key_adaptation_max_ratio': 0.25, 'h6_factor_context_anchor_enabled': True, 'h6_factor_context_anchor_seed_offset': 7400, 'h6_factor_context_adaptation_initial_ratio': 0.1, 'h6_factor_context_adaptation_max_ratio': 0.25, 'h6_factor_identity_tangent_projection_enabled': True, 'lambda_h6_dynamic_mean_anchor': 0.001, 'h6_dynamic_mean_anchor_min_cosine': 0.7, 'h6_dynamic_mean_anchor_start_epoch': 4, 'h6_dynamic_mean_anchor_warmup_epochs': 3, 'h6_progress_version': 'P1-v7-full', 'h6_expert_enabled': True, 'h6_expert_bottleneck': 64, 'h6_expert_fofs_seed_offset': 7500, 'h6_expert_state_condition_scale': 0.25, 'h6_expert_scale_target': 0.1, 'h6_expert_scale_start_epoch': 1, 'h6_expert_scale_warmup_epochs': 6, 'h6_expert_max_relative_ratio': 0.1, 'h6_router_teacher_mode': 'state_centered_cosine', 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Liver', 'medical_split': 'test', 'medical_manifest_root': 'runs/phase4/progress1_v7_full_seed0_ready3/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_v7_full_seed0_ready3/train', 'num_workers': 4, 'epochs': [12], 'metric_thresholds': None, 'pixel_stride': 1, 'external_exact_pixel_metrics': True, 'external_metric_chunk_pixels': 5000000, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-05 08:45:14 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-05 08:45:17 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-05 08:45:18 test.py 838: -----------------------------------------------
+2026-08-05 08:45:18 test.py 839: load model from epoch 12
+2026-08-05 08:45:18 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 08:45:18 test.py 850: -----------------------------------------------
+2026-08-05 09:03:20 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+   Liver     96.993   6.7172     61.71    52.97 
+ Average     96.993   6.7172     61.71    52.97 
+2026-08-05 09:03:23 test.py 629: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 8, 'h6_dense_routing_epochs': 8, 'h6_sparse_start_epoch': 9, 'h6_sparse_transition_epochs': 4, 'h6_load_bias_enabled': True, 'h6_load_bias_momentum': 0.9, 'h6_load_bias_step': 0.001, 'h6_load_bias_max': 0.03, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'h6_vae_class_ratio': 0.25, 'h6_slot_init_enabled': True, 'h6_slot_init_scale': 0.02, 'h6_slot_init_seed_offset': 6100, 'h6_factor_grad_diagnostics': True, 'h6_late_factor_identity_enabled': False, 'h6_factor_id_scale': 0.02, 'h6_factor_id_max_ratio': 0.05, 'h6_router_query_mode': 'local_global_bypass', 'h6_router_query_global_weight': 0.1, 'h6_router_local_bypass_scale': 0.1, 'h6_router_local_bypass_max_ratio': 0.2, 'h6_router_local_projection_seed_offset': 7200, 'h6_router_key_anchor_enabled': True, 'h6_router_key_anchor_seed_offset': 7300, 'h6_router_key_adaptation_initial_ratio': 0.1, 'h6_router_key_adaptation_max_ratio': 0.25, 'h6_factor_context_anchor_enabled': True, 'h6_factor_context_anchor_seed_offset': 7400, 'h6_factor_context_adaptation_initial_ratio': 0.1, 'h6_factor_context_adaptation_max_ratio': 0.25, 'h6_factor_identity_tangent_projection_enabled': True, 'lambda_h6_dynamic_mean_anchor': 0.001, 'h6_dynamic_mean_anchor_min_cosine': 0.7, 'h6_dynamic_mean_anchor_start_epoch': 4, 'h6_dynamic_mean_anchor_warmup_epochs': 3, 'h6_progress_version': 'P1-v7-full', 'h6_expert_enabled': True, 'h6_expert_bottleneck': 64, 'h6_expert_fofs_seed_offset': 7500, 'h6_expert_state_condition_scale': 0.25, 'h6_expert_scale_target': 0.1, 'h6_expert_scale_start_epoch': 1, 'h6_expert_scale_warmup_epochs': 6, 'h6_expert_max_relative_ratio': 0.1, 'h6_router_teacher_mode': 'state_centered_cosine', 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Retina', 'medical_split': 'test', 'medical_manifest_root': 'runs/phase4/progress1_v7_full_seed0_ready3/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_v7_full_seed0_ready3/train', 'num_workers': 4, 'epochs': [12], 'metric_thresholds': None, 'pixel_stride': 1, 'external_exact_pixel_metrics': True, 'external_metric_chunk_pixels': 5000000, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-05 09:03:23 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-05 09:03:27 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-05 09:03:27 test.py 838: -----------------------------------------------
+2026-08-05 09:03:27 test.py 839: load model from epoch 12
+2026-08-05 09:03:27 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 09:03:27 test.py 850: -----------------------------------------------
+2026-08-05 09:24:03 test.py 935: final results:
+class name pixel AUC pixel AP image AUC image AP
+  Retina      92.95   35.4446    73.27    68.34 
+ Average      92.95   35.4446    73.27    68.34 
+2026-08-05 09:24:06 test.py 629: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 8, 'h6_dense_routing_epochs': 8, 'h6_sparse_start_epoch': 9, 'h6_sparse_transition_epochs': 4, 'h6_load_bias_enabled': True, 'h6_load_bias_momentum': 0.9, 'h6_load_bias_step': 0.001, 'h6_load_bias_max': 0.03, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'h6_vae_class_ratio': 0.25, 'h6_slot_init_enabled': True, 'h6_slot_init_scale': 0.02, 'h6_slot_init_seed_offset': 6100, 'h6_factor_grad_diagnostics': True, 'h6_late_factor_identity_enabled': False, 'h6_factor_id_scale': 0.02, 'h6_factor_id_max_ratio': 0.05, 'h6_router_query_mode': 'local_global_bypass', 'h6_router_query_global_weight': 0.1, 'h6_router_local_bypass_scale': 0.1, 'h6_router_local_bypass_max_ratio': 0.2, 'h6_router_local_projection_seed_offset': 7200, 'h6_router_key_anchor_enabled': True, 'h6_router_key_anchor_seed_offset': 7300, 'h6_router_key_adaptation_initial_ratio': 0.1, 'h6_router_key_adaptation_max_ratio': 0.25, 'h6_factor_context_anchor_enabled': True, 'h6_factor_context_anchor_seed_offset': 7400, 'h6_factor_context_adaptation_initial_ratio': 0.1, 'h6_factor_context_adaptation_max_ratio': 0.25, 'h6_factor_identity_tangent_projection_enabled': True, 'lambda_h6_dynamic_mean_anchor': 0.001, 'h6_dynamic_mean_anchor_min_cosine': 0.7, 'h6_dynamic_mean_anchor_start_epoch': 4, 'h6_dynamic_mean_anchor_warmup_epochs': 3, 'h6_progress_version': 'P1-v7-full', 'h6_expert_enabled': True, 'h6_expert_bottleneck': 64, 'h6_expert_fofs_seed_offset': 7500, 'h6_expert_state_condition_scale': 0.25, 'h6_expert_scale_target': 0.1, 'h6_expert_scale_start_epoch': 1, 'h6_expert_scale_warmup_epochs': 6, 'h6_expert_max_relative_ratio': 0.1, 'h6_router_teacher_mode': 'state_centered_cosine', 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Colon_clinicDB', 'medical_split': 'test', 'medical_manifest_root': 'runs/phase4/progress1_v7_full_seed0_ready3/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_v7_full_seed0_ready3/train', 'num_workers': 4, 'epochs': [12], 'metric_thresholds': None, 'pixel_stride': 1, 'external_exact_pixel_metrics': True, 'external_metric_chunk_pixels': 5000000, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-05 09:24:06 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-05 09:24:10 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-05 09:24:10 test.py 838: -----------------------------------------------
+2026-08-05 09:24:10 test.py 839: load model from epoch 12
+2026-08-05 09:24:10 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 09:24:10 test.py 850: -----------------------------------------------
+2026-08-05 09:29:59 test.py 935: final results:
+  class name   pixel AUC pixel AP image AUC image AP
+Colon_clinicDB   87.2212  47.1606     0.0      0.0  
+       Average   87.2212  47.1606     0.0      0.0  
+2026-08-05 09:30:03 test.py 629: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 8, 'h6_dense_routing_epochs': 8, 'h6_sparse_start_epoch': 9, 'h6_sparse_transition_epochs': 4, 'h6_load_bias_enabled': True, 'h6_load_bias_momentum': 0.9, 'h6_load_bias_step': 0.001, 'h6_load_bias_max': 0.03, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'h6_vae_class_ratio': 0.25, 'h6_slot_init_enabled': True, 'h6_slot_init_scale': 0.02, 'h6_slot_init_seed_offset': 6100, 'h6_factor_grad_diagnostics': True, 'h6_late_factor_identity_enabled': False, 'h6_factor_id_scale': 0.02, 'h6_factor_id_max_ratio': 0.05, 'h6_router_query_mode': 'local_global_bypass', 'h6_router_query_global_weight': 0.1, 'h6_router_local_bypass_scale': 0.1, 'h6_router_local_bypass_max_ratio': 0.2, 'h6_router_local_projection_seed_offset': 7200, 'h6_router_key_anchor_enabled': True, 'h6_router_key_anchor_seed_offset': 7300, 'h6_router_key_adaptation_initial_ratio': 0.1, 'h6_router_key_adaptation_max_ratio': 0.25, 'h6_factor_context_anchor_enabled': True, 'h6_factor_context_anchor_seed_offset': 7400, 'h6_factor_context_adaptation_initial_ratio': 0.1, 'h6_factor_context_adaptation_max_ratio': 0.25, 'h6_factor_identity_tangent_projection_enabled': True, 'lambda_h6_dynamic_mean_anchor': 0.001, 'h6_dynamic_mean_anchor_min_cosine': 0.7, 'h6_dynamic_mean_anchor_start_epoch': 4, 'h6_dynamic_mean_anchor_warmup_epochs': 3, 'h6_progress_version': 'P1-v7-full', 'h6_expert_enabled': True, 'h6_expert_bottleneck': 64, 'h6_expert_fofs_seed_offset': 7500, 'h6_expert_state_condition_scale': 0.25, 'h6_expert_scale_target': 0.1, 'h6_expert_scale_start_epoch': 1, 'h6_expert_scale_warmup_epochs': 6, 'h6_expert_max_relative_ratio': 0.1, 'h6_router_teacher_mode': 'state_centered_cosine', 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Colon_colonDB', 'medical_split': 'test', 'medical_manifest_root': 'runs/phase4/progress1_v7_full_seed0_ready3/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_v7_full_seed0_ready3/train', 'num_workers': 4, 'epochs': [12], 'metric_thresholds': None, 'pixel_stride': 1, 'external_exact_pixel_metrics': True, 'external_metric_chunk_pixels': 5000000, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-05 09:30:03 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-05 09:30:06 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-05 09:30:07 test.py 838: -----------------------------------------------
+2026-08-05 09:30:07 test.py 839: load model from epoch 12
+2026-08-05 09:30:07 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 09:30:07 test.py 850: -----------------------------------------------
+2026-08-05 09:33:41 test.py 935: final results:
+  class name  pixel AUC pixel AP image AUC image AP
+Colon_colonDB   82.6266  29.6705     0.0      0.0  
+      Average   82.6266  29.6705     0.0      0.0  
+2026-08-05 09:33:44 test.py 629: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'h6_progress': 1, 'h6_num_factors': 4, 'h6_top_k': 2, 'h6_bank_dim': 256, 'h6_router_dim': 128, 'h6_router_temperature': 1.0, 'h6_router_soft_epochs': 8, 'h6_dense_routing_epochs': 8, 'h6_sparse_start_epoch': 9, 'h6_sparse_transition_epochs': 4, 'h6_load_bias_enabled': True, 'h6_load_bias_momentum': 0.9, 'h6_load_bias_step': 0.001, 'h6_load_bias_max': 0.03, 'h6_vae_hidden_dim': 512, 'h6_vae_latent_dim': 256, 'h6_vae_class_ratio': 0.25, 'h6_slot_init_enabled': True, 'h6_slot_init_scale': 0.02, 'h6_slot_init_seed_offset': 6100, 'h6_factor_grad_diagnostics': True, 'h6_late_factor_identity_enabled': False, 'h6_factor_id_scale': 0.02, 'h6_factor_id_max_ratio': 0.05, 'h6_router_query_mode': 'local_global_bypass', 'h6_router_query_global_weight': 0.1, 'h6_router_local_bypass_scale': 0.1, 'h6_router_local_bypass_max_ratio': 0.2, 'h6_router_local_projection_seed_offset': 7200, 'h6_router_key_anchor_enabled': True, 'h6_router_key_anchor_seed_offset': 7300, 'h6_router_key_adaptation_initial_ratio': 0.1, 'h6_router_key_adaptation_max_ratio': 0.25, 'h6_factor_context_anchor_enabled': True, 'h6_factor_context_anchor_seed_offset': 7400, 'h6_factor_context_adaptation_initial_ratio': 0.1, 'h6_factor_context_adaptation_max_ratio': 0.25, 'h6_factor_identity_tangent_projection_enabled': True, 'lambda_h6_dynamic_mean_anchor': 0.001, 'h6_dynamic_mean_anchor_min_cosine': 0.7, 'h6_dynamic_mean_anchor_start_epoch': 4, 'h6_dynamic_mean_anchor_warmup_epochs': 3, 'h6_progress_version': 'P1-v7-full', 'h6_expert_enabled': True, 'h6_expert_bottleneck': 64, 'h6_expert_fofs_seed_offset': 7500, 'h6_expert_state_condition_scale': 0.25, 'h6_expert_scale_target': 0.1, 'h6_expert_scale_start_epoch': 1, 'h6_expert_scale_warmup_epochs': 6, 'h6_expert_max_relative_ratio': 0.1, 'h6_router_teacher_mode': 'state_centered_cosine', 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Colon_Kvasir', 'medical_split': 'test', 'medical_manifest_root': 'runs/phase4/progress1_v7_full_seed0_ready3/medical_manifests', 'batch_size': 1, 'cuda_device': 0, 'save_path': 'runs/phase4/progress1_v7_full_seed0_ready3/train', 'num_workers': 4, 'epochs': [12], 'metric_thresholds': None, 'pixel_stride': 1, 'external_exact_pixel_metrics': True, 'external_metric_chunk_pixels': 5000000, 'max_samples': None, 'max_samples_per_label': None}
+2026-08-05 09:33:44 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-08-05 09:33:48 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-08-05 09:33:48 test.py 838: -----------------------------------------------
+2026-08-05 09:33:48 test.py 839: load model from epoch 12
+2026-08-05 09:33:48 test.py 841: effective_prompt_mode=h6_dynamic effective_alpha=0.2 hard_branch_lora_used=False soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-08-05 09:33:48 test.py 850: -----------------------------------------------
+2026-08-05 09:43:27 test.py 935: final results:
+ class name  pixel AUC pixel AP image AUC image AP
+Colon_Kvasir   86.379   56.5274     0.0      0.0  
+     Average   86.379   56.5274     0.0      0.0  

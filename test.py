@@ -433,6 +433,15 @@ def main():
     parser.add_argument("--h6_dynamic_mean_anchor_min_cosine", type=float, default=0.70)
     parser.add_argument("--h6_dynamic_mean_anchor_start_epoch", type=int, default=4)
     parser.add_argument("--h6_dynamic_mean_anchor_warmup_epochs", type=int, default=3)
+    parser.add_argument("--h6_progress_version", choices=["P1-v6", "P1-v7-full"], default="P1-v6")
+    parser.add_argument("--h6_expert_enabled", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_expert_bottleneck", type=int, default=64)
+    parser.add_argument("--h6_expert_fofs_seed_offset", type=int, default=7500)
+    parser.add_argument("--h6_expert_state_condition_scale", type=float, default=0.25)
+    parser.add_argument("--h6_expert_scale_target", type=float, default=0.10)
+    parser.add_argument("--h6_expert_scale_start_epoch", type=int, default=1)
+    parser.add_argument("--h6_expert_scale_warmup_epochs", type=int, default=6)
+    parser.add_argument("--h6_expert_max_relative_ratio", type=float, default=0.10)
     parser.add_argument(
         "--h6_router_teacher_mode",
         choices=["raw_cosine", "state_centered_cosine", "negative_squared_distance"],
@@ -596,6 +605,15 @@ def main():
         args.h6_dynamic_mean_anchor_start_epoch = int(preflight_h6.get("dynamic_mean_anchor_start_epoch", 4))
         args.h6_dynamic_mean_anchor_warmup_epochs = int(preflight_h6.get("dynamic_mean_anchor_warmup_epochs", 3))
         args.h6_router_teacher_mode = str(preflight_h6.get("router_teacher_mode", "raw_cosine"))
+        args.h6_progress_version = str(preflight_h6.get("progress_version", "P1-v6"))
+        args.h6_expert_enabled = bool(preflight_h6.get("expert_enabled", False))
+        args.h6_expert_bottleneck = int(preflight_h6.get("expert_bottleneck", 64))
+        args.h6_expert_fofs_seed_offset = int(preflight_h6.get("expert_fofs_seed_offset", 7500))
+        args.h6_expert_state_condition_scale = float(preflight_h6.get("expert_state_condition_scale", 0.25))
+        args.h6_expert_scale_target = float(preflight_h6.get("expert_scale_target", 0.10))
+        args.h6_expert_scale_start_epoch = int(preflight_h6.get("expert_scale_start_epoch", 1))
+        args.h6_expert_scale_warmup_epochs = int(preflight_h6.get("expert_scale_warmup_epochs", 6))
+        args.h6_expert_max_relative_ratio = float(preflight_h6.get("expert_max_relative_ratio", 0.10))
     elif args.h6_progress is None:
         args.h6_progress = 0
     # ========================================================
@@ -682,6 +700,15 @@ def main():
         h6_dynamic_mean_anchor_start_epoch=args.h6_dynamic_mean_anchor_start_epoch,
         h6_dynamic_mean_anchor_warmup_epochs=args.h6_dynamic_mean_anchor_warmup_epochs,
         h6_router_teacher_mode=args.h6_router_teacher_mode,
+        h6_progress_version=args.h6_progress_version,
+        h6_expert_enabled=args.h6_expert_enabled,
+        h6_expert_bottleneck=args.h6_expert_bottleneck,
+        h6_expert_fofs_seed_offset=args.h6_expert_fofs_seed_offset,
+        h6_expert_state_condition_scale=args.h6_expert_state_condition_scale,
+        h6_expert_scale_target=args.h6_expert_scale_target,
+        h6_expert_scale_start_epoch=args.h6_expert_scale_start_epoch,
+        h6_expert_scale_warmup_epochs=args.h6_expert_scale_warmup_epochs,
+        h6_expert_max_relative_ratio=args.h6_expert_max_relative_ratio,
     ).to(device)
     model.eval()
     model.prompt_mode = "h6_dynamic" if args.h6_progress == 1 else ("hybrid" if args.use_hybrid_soft_prompt else ("soft" if args.use_soft_prompt else "hard"))

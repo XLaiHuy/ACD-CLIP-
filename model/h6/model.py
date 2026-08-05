@@ -8,9 +8,17 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from .losses import dynamic_residual_diagnostics, dynamic_residual_diversity_loss, factor_stage_diagnostics
+from .losses import (
+    compute_final_expert_hard_cosine,
+    dynamic_residual_diagnostics,
+    dynamic_residual_diversity_loss,
+    factor_bank_against_reference_diagnostics,
+    factor_bank_comparison_diagnostics,
+    factor_stage_diagnostics,
+)
 from .router import PatchRouter
 from .semantic_bank import BoundedPositiveGate, CoPSSemanticCore
+from .paired_experts import FOFSPairedSemanticExperts
 
 
 class H6Progress1(nn.Module):
@@ -68,6 +76,15 @@ class H6Progress1(nn.Module):
         dynamic_mean_anchor_start_epoch: int = 4,
         dynamic_mean_anchor_warmup_epochs: int = 3,
         router_teacher_mode: str = "raw_cosine",
+        progress_version: str = "P1-v6",
+        expert_enabled: bool = False,
+        expert_bottleneck: int = 64,
+        expert_fofs_seed_offset: int = 7500,
+        expert_state_condition_scale: float = 0.25,
+        expert_scale_target: float = 0.10,
+        expert_scale_start_epoch: int = 1,
+        expert_scale_warmup_epochs: int = 6,
+        expert_max_relative_ratio: float = 0.10,
         text_dim: int = 768,
         ctx_len: int = 4,
         h6_logit_temperature: float = 10.0,
@@ -115,6 +132,15 @@ class H6Progress1(nn.Module):
         self.dynamic_mean_anchor_start_epoch = int(dynamic_mean_anchor_start_epoch)
         self.dynamic_mean_anchor_warmup_epochs = int(dynamic_mean_anchor_warmup_epochs)
         self.router_teacher_mode = str(router_teacher_mode)
+        self.progress_version = str(progress_version)
+        self.expert_enabled = bool(expert_enabled)
+        self.expert_bottleneck = int(expert_bottleneck)
+        self.expert_fofs_seed_offset = int(expert_fofs_seed_offset)
+        self.expert_state_condition_scale = float(expert_state_condition_scale)
+        self.expert_scale_target = float(expert_scale_target)
+        self.expert_scale_start_epoch = int(expert_scale_start_epoch)
+        self.expert_scale_warmup_epochs = int(expert_scale_warmup_epochs)
+        self.expert_max_relative_ratio = float(expert_max_relative_ratio)
         self.text_dim = int(text_dim)
         self.ctx_len = int(ctx_len)
         self.h6_logit_temperature = float(h6_logit_temperature)
@@ -167,13 +193,19 @@ class H6Progress1(nn.Module):
             router_key_adaptation_initial_ratio=router_key_adaptation_initial_ratio,
             router_key_adaptation_max_ratio=router_key_adaptation_max_ratio,
         )
+        self.paired_experts = FOFSPairedSemanticExperts(
+            num_factors=num_factors, text_dim=text_dim, bank_dim=bank_dim,
+            bottleneck=expert_bottleneck, seed_offset=expert_fofs_seed_offset,
+            state_condition_scale=expert_state_condition_scale,
+            max_relative_ratio=expert_max_relative_ratio,
+        ) if self.expert_enabled else None
         self.rho = BoundedPositiveGate(initial=0.05, maximum=0.50, count=n_groups)
         self.epoch_one_based = 1
 
     def config_dict(self) -> Dict[str, int | float | str]:
         return {
-            "variant": "p1_v6_structural_specialization",
-            "progress_version": "P1-v6",
+            "variant": "p1_v7_full_fofs_paired_semantic_moe" if self.expert_enabled else "p1_v6_structural_specialization",
+            "progress_version": self.progress_version,
             "progress": self.progress,
             "n_groups": self.n_groups,
             "num_factors": self.num_factors,
@@ -263,6 +295,14 @@ class H6Progress1(nn.Module):
             "router_teacher_center_detached": True,
             "router_teacher_probability_detached": True,
             "teacher_gate_scope": "patch",
+            "expert_enabled": self.expert_enabled,
+            "expert_bottleneck": self.expert_bottleneck,
+            "expert_fofs_seed_offset": self.expert_fofs_seed_offset,
+            "expert_state_condition_scale": self.expert_state_condition_scale,
+            "expert_scale_target": self.expert_scale_target,
+            "expert_scale_start_epoch": self.expert_scale_start_epoch,
+            "expert_scale_warmup_epochs": self.expert_scale_warmup_epochs,
+            "expert_max_relative_ratio": self.expert_max_relative_ratio,
         }
 
     def set_epoch(self, epoch_one_based: int) -> None:
@@ -273,6 +313,12 @@ class H6Progress1(nn.Module):
 
     def rho_values(self) -> torch.Tensor:
         return self.rho(cap=self.rho_cap())
+
+    def expert_scale(self) -> float:
+        if not self.expert_enabled or self.epoch_one_based < self.expert_scale_start_epoch:
+            return 0.0
+        step = self.epoch_one_based - self.expert_scale_start_epoch + 1
+        return min(self.expert_scale_target, self.expert_scale_target * step / max(1, self.expert_scale_warmup_epochs))
 
     def forward_core(self, visual_output: Dict[str, torch.Tensor], ctx_normal: torch.Tensor, ctx_abnormal: torch.Tensor, debug: bool = False) -> Dict[str, torch.Tensor]:
         return self.semantic_core(
@@ -370,6 +416,7 @@ class H6Progress1(nn.Module):
         visual_output: Dict[str, torch.Tensor],
         hybrid_alpha: float,
         debug: bool = False,
+        update_load_bias: bool | None = None,
     ) -> Dict[str, torch.Tensor]:
         """Create the unique dynamic factor bank and route every patch through it."""
         if len(class_names) != visual_output["cls24"].shape[0]:
@@ -391,6 +438,8 @@ class H6Progress1(nn.Module):
         dynamic = F.normalize(dynamic.float(), dim=3)
         dynamic_mean_anchor_loss_raw, dynamic_mean_hard_cos = self.dynamic_mean_anchor_loss(dynamic, hard_frozen)
         factor_bank = self._fuse_factor_bank(hard_adapted, dynamic, hybrid_alpha)
+        # This is the exact fusion-path no-op, not an assumed raw CLIP bank.
+        expected_noop_pre_expert_bank = self._fuse_factor_bank(hard_adapted, dynamic, hybrid_alpha=0.0)
         anchor = hard_frozen.unsqueeze(2).expand_as(dynamic)
         kg_loss = (1.0 - F.cosine_similarity(dynamic.float(), anchor, dim=3)).mean()
         residual_diversity = dynamic_residual_diversity_loss(dynamic, hard_frozen)
@@ -398,13 +447,103 @@ class H6Progress1(nn.Module):
             visual_output["seg_tokens"],
             epoch_one_based=self.epoch_one_based,
             concept_keys=core["concept_keys"],
-            update_load_bias=self.training,
+            update_load_bias=self.training if update_load_bias is None else bool(update_load_bias),
         )
         prediction_probabilities = routing["prediction_probabilities"]
-        local_text = self.router.local_text(prediction_probabilities, factor_bank)
+        raw_semantic_keys = core["concept_keys"]
+        final_router_keys = routing["final_router_keys"]
+        expert_payload = {}
+        active_factor_bank = factor_bank
+        if self.paired_experts is not None:
+            expert_payload = self.paired_experts(
+                factor_bank, core["prototype_normal"], core["prototype_abnormal"], self.expert_scale()
+            )
+            active_factor_bank = expert_payload["expert_factor_bank"]
+        local_text = self.router.local_text(prediction_probabilities, active_factor_bank)
         patches = torch.stack(visual_output["seg_tokens"], dim=0).float()
         patches = F.normalize(patches, dim=-1)
         h6_logits = self.h6_logit(patches, local_text)
+        expert_patch_logits = self.h6_logit(
+            patches.unsqueeze(3), active_factor_bank.unsqueeze(2)
+        ) if self.paired_experts is not None else None
+        expert_diagnostics = {}
+        if self.paired_experts is not None:
+            delta_raw = expert_payload["expert_delta_raw"].float()
+            delta_tangent = expert_payload["expert_delta_tangent"].float()
+            delta_applied = expert_payload["expert_applied_delta"].float()
+            tangent_norm = delta_tangent.norm(dim=-1)
+            valid = tangent_norm > 1e-8
+            direction = delta_tangent / tangent_norm.unsqueeze(-1).clamp_min(1e-8)
+            gram = torch.einsum("gbmd,gbnd->gbmn", direction, direction)
+            offdiag = ~torch.eye(self.num_factors, dtype=torch.bool, device=gram.device)
+            pair_valid = valid.unsqueeze(-1) & valid.unsqueeze(-2)
+            valid_offdiag = pair_valid[..., offdiag]
+            pair_values = gram[..., offdiag]
+            safe_pair_mean = pair_values[valid_offdiag].mean() if valid_offdiag.any() else gram.sum() * 0.0
+            safe_pair_max = pair_values[valid_offdiag].abs().max() if valid_offdiag.any() else gram.sum() * 0.0
+            final_direction = active_factor_bank[..., 1].float() - active_factor_bank[..., 0].float()
+            final_norm = final_direction.norm(dim=-1)
+            final_unit = final_direction / final_norm.unsqueeze(-1).clamp_min(1e-8)
+            final_gram = torch.einsum("gbmd,gbnd->gbmn", final_unit, final_unit)
+            final_pairs = final_gram[..., offdiag]
+            # Shared with anchor loss and the structural trust gate diagnostics.
+            pre_state_cos = compute_final_expert_hard_cosine(factor_bank, hard_frozen)
+            state_cos = compute_final_expert_hard_cosine(active_factor_bank, hard_frozen)  # [G,B,2]
+            final_pre_state_cos = compute_final_expert_hard_cosine(
+                active_factor_bank, factor_bank.float().mean(dim=2)
+            )
+            bank_comparisons = {
+                "hard_frozen_vs_pre_expert": factor_bank_against_reference_diagnostics(factor_bank, hard_frozen),
+                "hard_adapted_vs_pre_expert": factor_bank_against_reference_diagnostics(factor_bank, hard_adapted),
+                "pre_expert_vs_expected_noop": factor_bank_comparison_diagnostics(
+                    factor_bank, expected_noop_pre_expert_bank
+                ),
+                "final_expert_vs_pre_expert": factor_bank_comparison_diagnostics(active_factor_bank, factor_bank),
+            }
+            expert_diagnostics = {
+                "expert_scale_current": torch.tensor(self.expert_scale(), device=patches.device),
+                "expert_scale_target": torch.tensor(self.expert_scale_target, device=patches.device),
+                "expert_delta_raw_norm_mean": delta_raw.norm(dim=-1).mean().detach(),
+                "expert_delta_raw_norm_max": delta_raw.norm(dim=-1).max().detach(),
+                "expert_delta_tangent_norm_mean": tangent_norm.mean().detach(),
+                "expert_delta_tangent_norm_min": tangent_norm.min().detach(),
+                "expert_delta_valid_fraction": valid.float().mean().detach(),
+                "expert_delta_tangent_cos_mean": safe_pair_mean.detach(),
+                "expert_delta_tangent_cos_max": safe_pair_max.detach(),
+                "expert_delta_tangent_l2_min": torch.pdist(delta_tangent.reshape(-1, self.text_dim)).min().detach() if delta_tangent.numel() > self.text_dim else tangent_norm.sum().detach() * 0.0,
+                "expert_residual_relative_ratio_mean": expert_payload["expert_relative_ratio"].mean().detach(),
+                "expert_residual_relative_ratio_max": expert_payload["expert_relative_ratio"].max().detach(),
+                "expert_residual_clamp_fraction": expert_payload["expert_clamp_fraction"].detach(),
+                "expert_delta_norm_mean": delta_applied.norm(dim=-1).mean().detach(),
+                "expert_direction_cos_mean": safe_pair_mean.detach(),
+                "expert_direction_cos_max": safe_pair_max.detach(),
+                "final_expert_direction_cos_mean": final_pairs.mean().detach(),
+                "final_expert_direction_cos_max": final_pairs.abs().max().detach(),
+                "final_expert_direction_l2_min": torch.pdist(final_direction.reshape(-1, self.text_dim)).min().detach(),
+                "final_expert_direction_norm_mean": final_norm.mean().detach(),
+                "final_expert_orth_raw": (final_pairs + 1.0 / float(self.num_factors - 1)).pow(2).mean().detach(),
+                "expert_patch_logit_std_across_experts": expert_patch_logits.float().std(dim=-1, unbiased=False).mean().detach(),
+                "expert_patch_logit_std_across_patches": expert_patch_logits.float().std(dim=2, unbiased=False).mean().detach(),
+                "expert_patch_logit_pairwise_difference_mean": torch.pdist(expert_patch_logits.float().movedim(-1, 0).reshape(self.num_factors, -1)).mean().detach(),
+                "expert_mean_hard_cos": state_cos.detach(),
+                "pre_expert_mean_hard_cos_per_level_normal": pre_state_cos[..., 0].mean(dim=1).detach(),
+                "pre_expert_mean_hard_cos_per_level_abnormal": pre_state_cos[..., 1].mean(dim=1).detach(),
+                "pre_expert_mean_hard_cos_mean": pre_state_cos.mean().detach(),
+                "pre_expert_mean_hard_cos_min": pre_state_cos.min().detach(),
+                "pre_expert_mean_hard_cos_p05": torch.quantile(pre_state_cos.reshape(-1), 0.05).detach(),
+                "final_expert_mean_hard_cos_per_level_normal": state_cos[..., 0].mean(dim=1).detach(),
+                "final_expert_mean_hard_cos_per_level_abnormal": state_cos[..., 1].mean(dim=1).detach(),
+                "final_expert_mean_hard_cos_mean": state_cos.mean().detach(),
+                "final_expert_mean_hard_cos_min": state_cos.min().detach(),
+                "final_expert_mean_hard_cos_p05": torch.quantile(state_cos.reshape(-1), 0.05).detach(),
+                "final_expert_mean_pre_expert_cos_mean": final_pre_state_cos.mean().detach(),
+                "final_expert_mean_pre_expert_cos_min": final_pre_state_cos.min().detach(),
+                **{
+                    f"{comparison_name}_{metric_name}": metric_value
+                    for comparison_name, comparison in bank_comparisons.items()
+                    for metric_name, metric_value in comparison.items()
+                },
+            }
         return {
             **core,
             **routing,
@@ -413,14 +552,21 @@ class H6Progress1(nn.Module):
             "dynamic_text": dynamic,
             "dynamic_text_raw": dynamic_raw,
             "factor_bank": factor_bank,
+            "expected_noop_pre_expert_bank": expected_noop_pre_expert_bank,
+            "active_factor_bank": active_factor_bank,
+            "raw_semantic_keys": raw_semantic_keys,
+            "final_router_keys": final_router_keys,
             "kg_loss": kg_loss,
             "residual_diversity": residual_diversity,
             "dynamic_mean_anchor_loss_raw": dynamic_mean_anchor_loss_raw,
             "dynamic_mean_hard_cos": dynamic_mean_hard_cos,
-            "text_global": self.router.aggregate_global(prediction_probabilities, factor_bank),
+            "text_global": self.router.aggregate_global(prediction_probabilities, active_factor_bank),
             "local_text": local_text,
             "h6_logits": h6_logits,
             "rho": self.rho_values(),
+            "expert_scale": torch.tensor(self.expert_scale(), device=patches.device),
+            "expert_patch_logits": expert_patch_logits,
+            **expert_payload,
             "router_diagnostics": {
                 **self.router.diagnostics(
                 prediction_probabilities,
@@ -428,7 +574,7 @@ class H6Progress1(nn.Module):
                 sparse_probabilities=routing["sparse_probabilities"],
                 topk_indices=routing["topk_indices"],
                 ),
-                **self.router.concept_key_diagnostics(routing["concept_keys"]),
+                **self.router.concept_key_diagnostics(final_router_keys),
                 "raw_concept_key_cos_mean": routing["raw_concept_key_cos_mean"].detach(),
                 "raw_concept_key_cos_max": routing["raw_concept_key_cos_max"].detach(),
                 "raw_concept_key_l2_min": routing["raw_concept_key_l2_min"].detach(),
@@ -510,6 +656,7 @@ class H6Progress1(nn.Module):
                 "context_angle_change_degrees_max": core["context_angle_change_degrees_max"].detach(),
                 "dynamic_mean_hard_cos": dynamic_mean_hard_cos.detach(),
                 "dynamic_mean_anchor_loss_raw": dynamic_mean_anchor_loss_raw.detach(),
+                **expert_diagnostics,
             },
         }
 
@@ -522,7 +669,7 @@ class H6Progress1(nn.Module):
 
     def parameter_partitions(self) -> Dict[str, Iterable[nn.Parameter]]:
         """Named optimizer partitions matching the Progress 1 protocol."""
-        return {
+        partitions = {
             "h6_projectors": self.semantic_core.level_projectors.parameters(),
             "h6_concepts": list(self.semantic_core.normal_query.parameters())
             + list(self.semantic_core.abnormal_query.parameters())
@@ -541,3 +688,6 @@ class H6Progress1(nn.Module):
             + list(self.rho.parameters()),
             "h6_late_factor_identity": self.semantic_core.factor_id_projection.parameters(),
         }
+        if self.paired_experts is not None:
+            partitions["h6_paired_experts"] = self.paired_experts.parameters()
+        return partitions

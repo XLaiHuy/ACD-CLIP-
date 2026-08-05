@@ -1,0 +1,1466 @@
+{
+  "command_config_fingerprint": "296db4b3d2ee3d2b56e9681447c396f9dc824e44b2eac13ec99efed37d3219f9",
+  "datasets": [
+    "Brain",
+    "Liver",
+    "Retina",
+    "Colon_clinicDB",
+    "Colon_colonDB",
+    "Colon_Kvasir"
+  ],
+  "deterministic_tie_break_reason": "lower epoch wins after sorting support_aware_combined_score desc, epoch asc",
+  "epoch_changed_from_legacy": false,
+  "epochs": [
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+  ],
+  "excluded_image_datasets": [
+    "Colon_Kvasir",
+    "Colon_clinicDB",
+    "Colon_colonDB"
+  ],
+  "exclusion_reasons": {
+    "Colon_Kvasir": "single_class_split: normal=0 anomaly=300",
+    "Colon_clinicDB": "single_class_split: normal=0 anomaly=184",
+    "Colon_colonDB": "single_class_split: normal=0 anomaly=114"
+  },
+  "fingerprint_config": {
+    "checkpoint_list": [
+      "adapter_8.pth:256806219",
+      "adapter_9.pth:256806283",
+      "adapter_10.pth:256806943",
+      "adapter_11.pth:256806943",
+      "adapter_12.pth:256806943",
+      "adapter_13.pth:256806943",
+      "adapter_14.pth:256806943",
+      "adapter_15.pth:256806943",
+      "adapter_16.pth:256806943",
+      "adapter_17.pth:256806943",
+      "adapter_18.pth:256806943",
+      "adapter_19.pth:256806943",
+      "adapter_20.pth:256806943"
+    ],
+    "dataset_list": [
+      "Brain",
+      "Colon_Kvasir",
+      "Colon_clinicDB",
+      "Colon_colonDB",
+      "Liver",
+      "Retina"
+    ],
+    "exact_pixel_metric_mode": "external_sorted_chunks",
+    "image_scoring_rule": "arithmetic_mean(image_AUROC, image_AP)",
+    "metric_implementation_version": "summarize_phase4_results_v1",
+    "pixel_stride": 1,
+    "postprocessing_config": "none",
+    "seed": 0,
+    "selection_rule_version": "support-aware-v2",
+    "temperature": 1.0,
+    "threshold_policy": "none",
+    "valid_metric_policy": "image_valid_when_normal>=1_and_anomaly>=1; pixel_valid_when_anomaly>=1",
+    "validation_split_manifest_hash": "063778780b4add04723f7ff4a6ae97dc30d953aedfc9621c6deb3e7de78820bb"
+  },
+  "legacy_combined_score_for_legacy_selected_epoch": 31.564514262372864,
+  "legacy_combined_score_for_selected_epoch": 31.564514262372864,
+  "legacy_selected_epoch": 12,
+  "macro_by_epoch": [
+    {
+      "epoch": 8,
+      "excluded_image_datasets": [
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB"
+      ],
+      "excluded_pixel_datasets": [],
+      "exclusion_reasons": {
+        "Colon_Kvasir": "single_class_split: normal=0 anomaly=300",
+        "Colon_clinicDB": "single_class_split: normal=0 anomaly=184",
+        "Colon_colonDB": "single_class_split: normal=0 anomaly=114"
+      },
+      "legacy_combined_score": 31.47870952433092,
+      "per_dataset": [
+        {
+          "dataset": "Brain",
+          "exclusion_reason": "",
+          "image_AP": 79.93,
+          "image_AUROC": 78.9,
+          "image_score": 79.415,
+          "image_valid": true,
+          "pixel_AP": 21.2314,
+          "pixel_AUROC": 94.7887,
+          "pixel_score": 58.01005000000001,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_Kvasir",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=300",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 54.9741,
+          "pixel_AUROC": 86.1947,
+          "pixel_score": 70.5844,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_clinicDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=184",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 54.1093,
+          "pixel_AUROC": 88.5667,
+          "pixel_score": 71.338,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_colonDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=114",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 32.008,
+          "pixel_AUROC": 83.531,
+          "pixel_score": 57.76950000000001,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Liver",
+          "exclusion_reason": "",
+          "image_AP": 48.03,
+          "image_AUROC": 56.47,
+          "image_score": 52.25,
+          "image_valid": true,
+          "pixel_AP": 3.8536,
+          "pixel_AUROC": 95.5925,
+          "pixel_score": 49.72305,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Retina",
+          "exclusion_reason": "",
+          "image_AP": 78.38000000000001,
+          "image_AUROC": 69.78,
+          "image_score": 74.08000000000001,
+          "image_valid": true,
+          "pixel_AP": 43.2878,
+          "pixel_AUROC": 92.571,
+          "pixel_score": 67.9294,
+          "pixel_valid": true
+        }
+      ],
+      "support_aware_combined_score": 65.4320735908311,
+      "support_aware_image_macro": 68.58166666666668,
+      "support_aware_pixel_macro": 62.559066666666666,
+      "valid_image_datasets": [
+        "Brain",
+        "Liver",
+        "Retina"
+      ],
+      "valid_pixel_datasets": [
+        "Brain",
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB",
+        "Liver",
+        "Retina"
+      ]
+    },
+    {
+      "epoch": 9,
+      "excluded_image_datasets": [
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB"
+      ],
+      "excluded_pixel_datasets": [],
+      "exclusion_reasons": {
+        "Colon_Kvasir": "single_class_split: normal=0 anomaly=300",
+        "Colon_clinicDB": "single_class_split: normal=0 anomaly=184",
+        "Colon_colonDB": "single_class_split: normal=0 anomaly=114"
+      },
+      "legacy_combined_score": 31.006313731186307,
+      "per_dataset": [
+        {
+          "dataset": "Brain",
+          "exclusion_reason": "",
+          "image_AP": 74.21,
+          "image_AUROC": 75.41,
+          "image_score": 74.81,
+          "image_valid": true,
+          "pixel_AP": 19.8419,
+          "pixel_AUROC": 94.2896,
+          "pixel_score": 57.065749999999994,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_Kvasir",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=300",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 52.862,
+          "pixel_AUROC": 85.3479,
+          "pixel_score": 69.10495,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_clinicDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=184",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 52.8373,
+          "pixel_AUROC": 87.7185,
+          "pixel_score": 70.2779,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_colonDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=114",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 32.3097,
+          "pixel_AUROC": 83.2055,
+          "pixel_score": 57.7576,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Liver",
+          "exclusion_reason": "",
+          "image_AP": 47.31,
+          "image_AUROC": 55.879999999999995,
+          "image_score": 51.595,
+          "image_valid": true,
+          "pixel_AP": 4.2698,
+          "pixel_AUROC": 95.9959,
+          "pixel_score": 50.132850000000005,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Retina",
+          "exclusion_reason": "",
+          "image_AP": 78.71000000000001,
+          "image_AUROC": 70.73,
+          "image_score": 74.72,
+          "image_valid": true,
+          "pixel_AP": 41.0924,
+          "pixel_AUROC": 92.1564,
+          "pixel_score": 66.62440000000001,
+          "pixel_valid": true
+        }
+      ],
+      "support_aware_combined_score": 64.32895847949014,
+      "support_aware_image_macro": 67.04166666666667,
+      "support_aware_pixel_macro": 61.82724166666666,
+      "valid_image_datasets": [
+        "Brain",
+        "Liver",
+        "Retina"
+      ],
+      "valid_pixel_datasets": [
+        "Brain",
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB",
+        "Liver",
+        "Retina"
+      ]
+    },
+    {
+      "epoch": 10,
+      "excluded_image_datasets": [
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB"
+      ],
+      "excluded_pixel_datasets": [],
+      "exclusion_reasons": {
+        "Colon_Kvasir": "single_class_split: normal=0 anomaly=300",
+        "Colon_clinicDB": "single_class_split: normal=0 anomaly=184",
+        "Colon_colonDB": "single_class_split: normal=0 anomaly=114"
+      },
+      "legacy_combined_score": 30.38652726417745,
+      "per_dataset": [
+        {
+          "dataset": "Brain",
+          "exclusion_reason": "",
+          "image_AP": 74.57000000000001,
+          "image_AUROC": 75.47,
+          "image_score": 75.02000000000001,
+          "image_valid": true,
+          "pixel_AP": 16.985,
+          "pixel_AUROC": 94.2439,
+          "pixel_score": 55.61445,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_Kvasir",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=300",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 53.4695,
+          "pixel_AUROC": 86.0731,
+          "pixel_score": 69.7713,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_clinicDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=184",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 47.9525,
+          "pixel_AUROC": 86.5881,
+          "pixel_score": 67.27029999999999,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_colonDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=114",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 32.0435,
+          "pixel_AUROC": 82.9411,
+          "pixel_score": 57.4923,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Liver",
+          "exclusion_reason": "",
+          "image_AP": 46.48,
+          "image_AUROC": 55.86,
+          "image_score": 51.17,
+          "image_valid": true,
+          "pixel_AP": 4.8836,
+          "pixel_AUROC": 96.1746,
+          "pixel_score": 50.5291,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Retina",
+          "exclusion_reason": "",
+          "image_AP": 75.08,
+          "image_AUROC": 68.54,
+          "image_score": 71.81,
+          "image_valid": true,
+          "pixel_AP": 37.2459,
+          "pixel_AUROC": 90.4515,
+          "pixel_score": 63.848699999999994,
+          "pixel_valid": true
+        }
+      ],
+      "support_aware_combined_score": 63.26863553606935,
+      "support_aware_image_macro": 66.0,
+      "support_aware_pixel_macro": 60.754358333333336,
+      "valid_image_datasets": [
+        "Brain",
+        "Liver",
+        "Retina"
+      ],
+      "valid_pixel_datasets": [
+        "Brain",
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB",
+        "Liver",
+        "Retina"
+      ]
+    },
+    {
+      "epoch": 11,
+      "excluded_image_datasets": [
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB"
+      ],
+      "excluded_pixel_datasets": [],
+      "exclusion_reasons": {
+        "Colon_Kvasir": "single_class_split: normal=0 anomaly=300",
+        "Colon_clinicDB": "single_class_split: normal=0 anomaly=184",
+        "Colon_colonDB": "single_class_split: normal=0 anomaly=114"
+      },
+      "legacy_combined_score": 30.970755809629953,
+      "per_dataset": [
+        {
+          "dataset": "Brain",
+          "exclusion_reason": "",
+          "image_AP": 77.18,
+          "image_AUROC": 77.74,
+          "image_score": 77.46000000000001,
+          "image_valid": true,
+          "pixel_AP": 18.6845,
+          "pixel_AUROC": 94.8366,
+          "pixel_score": 56.76055,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_Kvasir",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=300",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 55.4826,
+          "pixel_AUROC": 86.5668,
+          "pixel_score": 71.0247,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_clinicDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=184",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 53.0693,
+          "pixel_AUROC": 87.5919,
+          "pixel_score": 70.3306,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_colonDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=114",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 31.8862,
+          "pixel_AUROC": 82.1649,
+          "pixel_score": 57.02555,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Liver",
+          "exclusion_reason": "",
+          "image_AP": 47.54,
+          "image_AUROC": 55.16,
+          "image_score": 51.349999999999994,
+          "image_valid": true,
+          "pixel_AP": 4.8696,
+          "pixel_AUROC": 96.5679,
+          "pixel_score": 50.71875,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Retina",
+          "exclusion_reason": "",
+          "image_AP": 78.38000000000001,
+          "image_AUROC": 68.78999999999999,
+          "image_score": 73.58500000000001,
+          "image_valid": true,
+          "pixel_AP": 40.0228,
+          "pixel_AUROC": 90.8717,
+          "pixel_score": 65.44725,
+          "pixel_valid": true
+        }
+      ],
+      "support_aware_combined_score": 64.55440706540185,
+      "support_aware_image_macro": 67.465,
+      "support_aware_pixel_macro": 61.884566666666665,
+      "valid_image_datasets": [
+        "Brain",
+        "Liver",
+        "Retina"
+      ],
+      "valid_pixel_datasets": [
+        "Brain",
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB",
+        "Liver",
+        "Retina"
+      ]
+    },
+    {
+      "epoch": 12,
+      "excluded_image_datasets": [
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB"
+      ],
+      "excluded_pixel_datasets": [],
+      "exclusion_reasons": {
+        "Colon_Kvasir": "single_class_split: normal=0 anomaly=300",
+        "Colon_clinicDB": "single_class_split: normal=0 anomaly=184",
+        "Colon_colonDB": "single_class_split: normal=0 anomaly=114"
+      },
+      "legacy_combined_score": 31.564514262372864,
+      "per_dataset": [
+        {
+          "dataset": "Brain",
+          "exclusion_reason": "",
+          "image_AP": 80.86,
+          "image_AUROC": 79.72,
+          "image_score": 80.28999999999999,
+          "image_valid": true,
+          "pixel_AP": 21.2652,
+          "pixel_AUROC": 94.6309,
+          "pixel_score": 57.948049999999995,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_Kvasir",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=300",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 55.5789,
+          "pixel_AUROC": 86.5817,
+          "pixel_score": 71.0803,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_clinicDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=184",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 51.3653,
+          "pixel_AUROC": 86.7328,
+          "pixel_score": 69.04905,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_colonDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=114",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 32.1759,
+          "pixel_AUROC": 82.781,
+          "pixel_score": 57.47845,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Liver",
+          "exclusion_reason": "",
+          "image_AP": 50.260000000000005,
+          "image_AUROC": 58.120000000000005,
+          "image_score": 54.190000000000005,
+          "image_valid": true,
+          "pixel_AP": 4.9671,
+          "pixel_AUROC": 96.5825,
+          "pixel_score": 50.7748,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Retina",
+          "exclusion_reason": "",
+          "image_AP": 77.03999999999999,
+          "image_AUROC": 69.71000000000001,
+          "image_score": 73.375,
+          "image_valid": true,
+          "pixel_AP": 40.5484,
+          "pixel_AUROC": 92.0094,
+          "pixel_score": 66.2789,
+          "pixel_valid": true
+        }
+      ],
+      "support_aware_combined_score": 65.49692360604276,
+      "support_aware_image_macro": 69.285,
+      "support_aware_pixel_macro": 62.10159166666667,
+      "valid_image_datasets": [
+        "Brain",
+        "Liver",
+        "Retina"
+      ],
+      "valid_pixel_datasets": [
+        "Brain",
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB",
+        "Liver",
+        "Retina"
+      ]
+    },
+    {
+      "epoch": 13,
+      "excluded_image_datasets": [
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB"
+      ],
+      "excluded_pixel_datasets": [],
+      "exclusion_reasons": {
+        "Colon_Kvasir": "single_class_split: normal=0 anomaly=300",
+        "Colon_clinicDB": "single_class_split: normal=0 anomaly=184",
+        "Colon_colonDB": "single_class_split: normal=0 anomaly=114"
+      },
+      "legacy_combined_score": 30.40338135126449,
+      "per_dataset": [
+        {
+          "dataset": "Brain",
+          "exclusion_reason": "",
+          "image_AP": 74.82,
+          "image_AUROC": 77.16,
+          "image_score": 75.99,
+          "image_valid": true,
+          "pixel_AP": 19.4219,
+          "pixel_AUROC": 94.694,
+          "pixel_score": 57.057950000000005,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_Kvasir",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=300",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 54.7706,
+          "pixel_AUROC": 86.7666,
+          "pixel_score": 70.76859999999999,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_clinicDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=184",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 50.7552,
+          "pixel_AUROC": 87.8585,
+          "pixel_score": 69.30685,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_colonDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=114",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 31.9991,
+          "pixel_AUROC": 81.9594,
+          "pixel_score": 56.97925,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Liver",
+          "exclusion_reason": "",
+          "image_AP": 47.57,
+          "image_AUROC": 54.769999999999996,
+          "image_score": 51.17,
+          "image_valid": true,
+          "pixel_AP": 4.8513,
+          "pixel_AUROC": 96.5493,
+          "pixel_score": 50.7003,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Retina",
+          "exclusion_reason": "",
+          "image_AP": 72.47,
+          "image_AUROC": 65.14,
+          "image_score": 68.805,
+          "image_valid": true,
+          "pixel_AP": 37.256,
+          "pixel_AUROC": 90.7203,
+          "pixel_score": 63.98815,
+          "pixel_valid": true
+        }
+      ],
+      "support_aware_combined_score": 63.335658343664406,
+      "support_aware_image_macro": 65.32166666666667,
+      "support_aware_pixel_macro": 61.46685,
+      "valid_image_datasets": [
+        "Brain",
+        "Liver",
+        "Retina"
+      ],
+      "valid_pixel_datasets": [
+        "Brain",
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB",
+        "Liver",
+        "Retina"
+      ]
+    },
+    {
+      "epoch": 14,
+      "excluded_image_datasets": [
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB"
+      ],
+      "excluded_pixel_datasets": [],
+      "exclusion_reasons": {
+        "Colon_Kvasir": "single_class_split: normal=0 anomaly=300",
+        "Colon_clinicDB": "single_class_split: normal=0 anomaly=184",
+        "Colon_colonDB": "single_class_split: normal=0 anomaly=114"
+      },
+      "legacy_combined_score": 30.36200143598634,
+      "per_dataset": [
+        {
+          "dataset": "Brain",
+          "exclusion_reason": "",
+          "image_AP": 71.87,
+          "image_AUROC": 75.35,
+          "image_score": 73.61,
+          "image_valid": true,
+          "pixel_AP": 21.4575,
+          "pixel_AUROC": 95.2292,
+          "pixel_score": 58.34335,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_Kvasir",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=300",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 55.8514,
+          "pixel_AUROC": 86.9963,
+          "pixel_score": 71.42385,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_clinicDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=184",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 54.4171,
+          "pixel_AUROC": 88.4256,
+          "pixel_score": 71.42135,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_colonDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=114",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 33.7364,
+          "pixel_AUROC": 83.1903,
+          "pixel_score": 58.46335,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Liver",
+          "exclusion_reason": "",
+          "image_AP": 46.31,
+          "image_AUROC": 52.0,
+          "image_score": 49.155,
+          "image_valid": true,
+          "pixel_AP": 4.6499,
+          "pixel_AUROC": 96.4931,
+          "pixel_score": 50.5715,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Retina",
+          "exclusion_reason": "",
+          "image_AP": 73.69,
+          "image_AUROC": 66.63,
+          "image_score": 70.16,
+          "image_valid": true,
+          "pixel_AP": 38.2975,
+          "pixel_AUROC": 90.755,
+          "pixel_score": 64.52625,
+          "pixel_valid": true
+        }
+      ],
+      "support_aware_combined_score": 63.36980409799032,
+      "support_aware_image_macro": 64.30833333333334,
+      "support_aware_pixel_macro": 62.45827500000001,
+      "valid_image_datasets": [
+        "Brain",
+        "Liver",
+        "Retina"
+      ],
+      "valid_pixel_datasets": [
+        "Brain",
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB",
+        "Liver",
+        "Retina"
+      ]
+    },
+    {
+      "epoch": 15,
+      "excluded_image_datasets": [
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB"
+      ],
+      "excluded_pixel_datasets": [],
+      "exclusion_reasons": {
+        "Colon_Kvasir": "single_class_split: normal=0 anomaly=300",
+        "Colon_clinicDB": "single_class_split: normal=0 anomaly=184",
+        "Colon_colonDB": "single_class_split: normal=0 anomaly=114"
+      },
+      "legacy_combined_score": 30.347126984483435,
+      "per_dataset": [
+        {
+          "dataset": "Brain",
+          "exclusion_reason": "",
+          "image_AP": 75.83,
+          "image_AUROC": 77.68,
+          "image_score": 76.755,
+          "image_valid": true,
+          "pixel_AP": 18.4655,
+          "pixel_AUROC": 94.6725,
+          "pixel_score": 56.569,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_Kvasir",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=300",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 53.9739,
+          "pixel_AUROC": 86.8559,
+          "pixel_score": 70.4149,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_clinicDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=184",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 48.7827,
+          "pixel_AUROC": 87.3097,
+          "pixel_score": 68.0462,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_colonDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=114",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 33.6927,
+          "pixel_AUROC": 83.3737,
+          "pixel_score": 58.5332,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Liver",
+          "exclusion_reason": "",
+          "image_AP": 47.599999999999994,
+          "image_AUROC": 55.279999999999994,
+          "image_score": 51.44,
+          "image_valid": true,
+          "pixel_AP": 5.1218,
+          "pixel_AUROC": 96.705,
+          "pixel_score": 50.913399999999996,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Retina",
+          "exclusion_reason": "",
+          "image_AP": 74.02,
+          "image_AUROC": 67.14,
+          "image_score": 70.58,
+          "image_valid": true,
+          "pixel_AP": 34.5835,
+          "pixel_AUROC": 88.5765,
+          "pixel_score": 61.58,
+          "pixel_valid": true
+        }
+      ],
+      "support_aware_combined_score": 63.52565226968281,
+      "support_aware_image_macro": 66.25833333333333,
+      "support_aware_pixel_macro": 61.009449999999994,
+      "valid_image_datasets": [
+        "Brain",
+        "Liver",
+        "Retina"
+      ],
+      "valid_pixel_datasets": [
+        "Brain",
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB",
+        "Liver",
+        "Retina"
+      ]
+    },
+    {
+      "epoch": 16,
+      "excluded_image_datasets": [
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB"
+      ],
+      "excluded_pixel_datasets": [],
+      "exclusion_reasons": {
+        "Colon_Kvasir": "single_class_split: normal=0 anomaly=300",
+        "Colon_clinicDB": "single_class_split: normal=0 anomaly=184",
+        "Colon_colonDB": "single_class_split: normal=0 anomaly=114"
+      },
+      "legacy_combined_score": 29.831146722571287,
+      "per_dataset": [
+        {
+          "dataset": "Brain",
+          "exclusion_reason": "",
+          "image_AP": 72.42,
+          "image_AUROC": 75.0,
+          "image_score": 73.71000000000001,
+          "image_valid": true,
+          "pixel_AP": 16.4718,
+          "pixel_AUROC": 94.1795,
+          "pixel_score": 55.32565,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_Kvasir",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=300",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 54.8509,
+          "pixel_AUROC": 86.7368,
+          "pixel_score": 70.79385,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_clinicDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=184",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 47.4352,
+          "pixel_AUROC": 86.7521,
+          "pixel_score": 67.09365,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_colonDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=114",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 32.7311,
+          "pixel_AUROC": 82.2383,
+          "pixel_score": 57.4847,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Liver",
+          "exclusion_reason": "",
+          "image_AP": 46.589999999999996,
+          "image_AUROC": 55.769999999999996,
+          "image_score": 51.17999999999999,
+          "image_valid": true,
+          "pixel_AP": 4.9115,
+          "pixel_AUROC": 96.4842,
+          "pixel_score": 50.69785,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Retina",
+          "exclusion_reason": "",
+          "image_AP": 71.16,
+          "image_AUROC": 65.27,
+          "image_score": 68.215,
+          "image_valid": true,
+          "pixel_AP": 34.0009,
+          "pixel_AUROC": 89.5689,
+          "pixel_score": 61.7849,
+          "pixel_valid": true
+        }
+      ],
+      "support_aware_combined_score": 62.390240606167204,
+      "support_aware_image_macro": 64.36833333333334,
+      "support_aware_pixel_macro": 60.530100000000004,
+      "valid_image_datasets": [
+        "Brain",
+        "Liver",
+        "Retina"
+      ],
+      "valid_pixel_datasets": [
+        "Brain",
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB",
+        "Liver",
+        "Retina"
+      ]
+    },
+    {
+      "epoch": 17,
+      "excluded_image_datasets": [
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB"
+      ],
+      "excluded_pixel_datasets": [],
+      "exclusion_reasons": {
+        "Colon_Kvasir": "single_class_split: normal=0 anomaly=300",
+        "Colon_clinicDB": "single_class_split: normal=0 anomaly=184",
+        "Colon_colonDB": "single_class_split: normal=0 anomaly=114"
+      },
+      "legacy_combined_score": 30.245897101017032,
+      "per_dataset": [
+        {
+          "dataset": "Brain",
+          "exclusion_reason": "",
+          "image_AP": 71.57,
+          "image_AUROC": 74.42,
+          "image_score": 72.995,
+          "image_valid": true,
+          "pixel_AP": 17.5281,
+          "pixel_AUROC": 94.3825,
+          "pixel_score": 55.955299999999994,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_Kvasir",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=300",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 54.8449,
+          "pixel_AUROC": 86.7775,
+          "pixel_score": 70.8112,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_clinicDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=184",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 48.0791,
+          "pixel_AUROC": 86.9403,
+          "pixel_score": 67.5097,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_colonDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=114",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 34.1341,
+          "pixel_AUROC": 82.7559,
+          "pixel_score": 58.44499999999999,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Liver",
+          "exclusion_reason": "",
+          "image_AP": 49.24,
+          "image_AUROC": 55.21,
+          "image_score": 52.225,
+          "image_valid": true,
+          "pixel_AP": 5.1854,
+          "pixel_AUROC": 96.6621,
+          "pixel_score": 50.92375,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Retina",
+          "exclusion_reason": "",
+          "image_AP": 73.61999999999999,
+          "image_AUROC": 66.53999999999999,
+          "image_score": 70.07999999999998,
+          "image_valid": true,
+          "pixel_AP": 37.4059,
+          "pixel_AUROC": 89.3471,
+          "pixel_score": 63.3765,
+          "pixel_valid": true
+        }
+      ],
+      "support_aware_combined_score": 63.073970239358985,
+      "support_aware_image_macro": 65.1,
+      "support_aware_pixel_macro": 61.17024166666667,
+      "valid_image_datasets": [
+        "Brain",
+        "Liver",
+        "Retina"
+      ],
+      "valid_pixel_datasets": [
+        "Brain",
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB",
+        "Liver",
+        "Retina"
+      ]
+    },
+    {
+      "epoch": 18,
+      "excluded_image_datasets": [
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB"
+      ],
+      "excluded_pixel_datasets": [],
+      "exclusion_reasons": {
+        "Colon_Kvasir": "single_class_split: normal=0 anomaly=300",
+        "Colon_clinicDB": "single_class_split: normal=0 anomaly=184",
+        "Colon_colonDB": "single_class_split: normal=0 anomaly=114"
+      },
+      "legacy_combined_score": 30.326422977311065,
+      "per_dataset": [
+        {
+          "dataset": "Brain",
+          "exclusion_reason": "",
+          "image_AP": 71.64,
+          "image_AUROC": 74.83,
+          "image_score": 73.235,
+          "image_valid": true,
+          "pixel_AP": 17.4635,
+          "pixel_AUROC": 94.1612,
+          "pixel_score": 55.812349999999995,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_Kvasir",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=300",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 54.949,
+          "pixel_AUROC": 86.5383,
+          "pixel_score": 70.74365,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_clinicDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=184",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 49.0696,
+          "pixel_AUROC": 87.3551,
+          "pixel_score": 68.21235,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_colonDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=114",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 34.0724,
+          "pixel_AUROC": 82.6716,
+          "pixel_score": 58.372,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Liver",
+          "exclusion_reason": "",
+          "image_AP": 47.81,
+          "image_AUROC": 55.86,
+          "image_score": 51.835,
+          "image_valid": true,
+          "pixel_AP": 4.7442,
+          "pixel_AUROC": 96.5299,
+          "pixel_score": 50.63705,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Retina",
+          "exclusion_reason": "",
+          "image_AP": 73.44000000000001,
+          "image_AUROC": 67.67999999999999,
+          "image_score": 70.56,
+          "image_valid": true,
+          "pixel_AP": 38.4705,
+          "pixel_AUROC": 90.4852,
+          "pixel_score": 64.47785,
+          "pixel_valid": true
+        }
+      ],
+      "support_aware_combined_score": 63.23487211744597,
+      "support_aware_image_macro": 65.21,
+      "support_aware_pixel_macro": 61.375875,
+      "valid_image_datasets": [
+        "Brain",
+        "Liver",
+        "Retina"
+      ],
+      "valid_pixel_datasets": [
+        "Brain",
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB",
+        "Liver",
+        "Retina"
+      ]
+    },
+    {
+      "epoch": 19,
+      "excluded_image_datasets": [
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB"
+      ],
+      "excluded_pixel_datasets": [],
+      "exclusion_reasons": {
+        "Colon_Kvasir": "single_class_split: normal=0 anomaly=300",
+        "Colon_clinicDB": "single_class_split: normal=0 anomaly=184",
+        "Colon_colonDB": "single_class_split: normal=0 anomaly=114"
+      },
+      "legacy_combined_score": 30.17862909105197,
+      "per_dataset": [
+        {
+          "dataset": "Brain",
+          "exclusion_reason": "",
+          "image_AP": 74.07000000000001,
+          "image_AUROC": 78.55,
+          "image_score": 76.31,
+          "image_valid": true,
+          "pixel_AP": 16.855,
+          "pixel_AUROC": 93.9483,
+          "pixel_score": 55.401650000000004,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_Kvasir",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=300",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 52.9341,
+          "pixel_AUROC": 86.1353,
+          "pixel_score": 69.5347,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_clinicDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=184",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 46.0599,
+          "pixel_AUROC": 86.6169,
+          "pixel_score": 66.33840000000001,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_colonDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=114",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 33.3275,
+          "pixel_AUROC": 83.0523,
+          "pixel_score": 58.1899,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Liver",
+          "exclusion_reason": "",
+          "image_AP": 46.04,
+          "image_AUROC": 54.779999999999994,
+          "image_score": 50.41,
+          "image_valid": true,
+          "pixel_AP": 5.3749,
+          "pixel_AUROC": 96.7234,
+          "pixel_score": 51.04915,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Retina",
+          "exclusion_reason": "",
+          "image_AP": 72.57000000000001,
+          "image_AUROC": 66.86,
+          "image_score": 69.715,
+          "image_valid": true,
+          "pixel_AP": 35.8909,
+          "pixel_AUROC": 89.9653,
+          "pixel_score": 62.9281,
+          "pixel_valid": true
+        }
+      ],
+      "support_aware_combined_score": 62.93057103954071,
+      "support_aware_image_macro": 65.47833333333334,
+      "support_aware_pixel_macro": 60.57365000000001,
+      "valid_image_datasets": [
+        "Brain",
+        "Liver",
+        "Retina"
+      ],
+      "valid_pixel_datasets": [
+        "Brain",
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB",
+        "Liver",
+        "Retina"
+      ]
+    },
+    {
+      "epoch": 20,
+      "excluded_image_datasets": [
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB"
+      ],
+      "excluded_pixel_datasets": [],
+      "exclusion_reasons": {
+        "Colon_Kvasir": "single_class_split: normal=0 anomaly=300",
+        "Colon_clinicDB": "single_class_split: normal=0 anomaly=184",
+        "Colon_colonDB": "single_class_split: normal=0 anomaly=114"
+      },
+      "legacy_combined_score": 30.33589945648775,
+      "per_dataset": [
+        {
+          "dataset": "Brain",
+          "exclusion_reason": "",
+          "image_AP": 74.24,
+          "image_AUROC": 76.17,
+          "image_score": 75.205,
+          "image_valid": true,
+          "pixel_AP": 16.2952,
+          "pixel_AUROC": 94.0522,
+          "pixel_score": 55.1737,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_Kvasir",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=300",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 53.5207,
+          "pixel_AUROC": 86.3851,
+          "pixel_score": 69.9529,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_clinicDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=184",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 46.4182,
+          "pixel_AUROC": 86.8206,
+          "pixel_score": 66.6194,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_colonDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=114",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 32.0589,
+          "pixel_AUROC": 82.4307,
+          "pixel_score": 57.2448,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Liver",
+          "exclusion_reason": "",
+          "image_AP": 45.95,
+          "image_AUROC": 55.15,
+          "image_score": 50.55,
+          "image_valid": true,
+          "pixel_AP": 5.2145,
+          "pixel_AUROC": 96.7607,
+          "pixel_score": 50.9876,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Retina",
+          "exclusion_reason": "",
+          "image_AP": 74.13,
+          "image_AUROC": 68.86,
+          "image_score": 71.495,
+          "image_valid": true,
+          "pixel_AP": 37.7067,
+          "pixel_AUROC": 90.4974,
+          "pixel_score": 64.10204999999999,
+          "pixel_valid": true
+        }
+      ],
+      "support_aware_combined_score": 63.11338391992569,
+      "support_aware_image_macro": 65.75,
+      "support_aware_pixel_macro": 60.68007499999999,
+      "valid_image_datasets": [
+        "Brain",
+        "Liver",
+        "Retina"
+      ],
+      "valid_pixel_datasets": [
+        "Brain",
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB",
+        "Liver",
+        "Retina"
+      ]
+    }
+  ],
+  "metric_implementation_version": "summarize_phase4_results_v1",
+  "selected_checkpoint": "runs/phase4/progress1_v7_full_seed0_ready3/train/adapter_12.pth",
+  "selected_epoch": 12,
+  "selection_rule": "maximize support_aware_combined_score = harmonic_mean(image_macro_over_valid_datasets, pixel_macro_over_valid_datasets); tie-break: lower epoch wins on exact numerical ties",
+  "selection_rule_version": "support-aware-v2",
+  "split": "val",
+  "support_aware_combined_score": 65.49692360604276,
+  "support_aware_image_macro": 69.285,
+  "support_aware_pixel_macro": 62.10159166666667,
+  "valid_image_datasets": [
+    "Brain",
+    "Liver",
+    "Retina"
+  ],
+  "valid_pixel_datasets": [
+    "Brain",
+    "Colon_Kvasir",
+    "Colon_clinicDB",
+    "Colon_colonDB",
+    "Liver",
+    "Retina"
+  ]
+}

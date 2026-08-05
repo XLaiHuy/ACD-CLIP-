@@ -38,6 +38,9 @@ from model.h6.losses import (
     teacher_candidate_diagnostics,
     router_teacher_loss,
     routing_balance_loss,
+    assigned_expert_loss, expert_advantage_loss, expert_etf_loss,
+    dual_routing_balance_loss, expert_clip_anchor_loss, expert_radius_loss,
+    expert_dead_counts, expert_patch_function_diagnostics, sum_loss_components,
 )
 
 
@@ -78,19 +81,91 @@ def tensor_debug_stats(tensor):
 
 
 def diagnostics_to_python(diagnostics):
+    if torch.is_tensor(diagnostics):
+        value = diagnostics.detach().cpu()
+        return value.item() if value.ndim == 0 else value.tolist()
+    if not isinstance(diagnostics, dict):
+        return diagnostics
     converted = {}
     for key, value in diagnostics.items():
         if value is None:
             converted[key] = None
         elif torch.is_tensor(value):
-            if value.ndim == 0:
-                item = value.item()
-                converted[key] = item
-            else:
-                converted[key] = value.tolist()
+            converted[key] = diagnostics_to_python(value)
         else:
             converted[key] = value
     return converted
+
+
+def h6_drift_gradient_attribution(losses, parameter_groups):
+    """Measure component gradients without writing ``.grad`` or mutating parameters."""
+    grouped = {
+        name: [parameter for parameter in parameters if parameter.requires_grad]
+        for name, parameters in parameter_groups.items()
+    }
+    unique_parameters, seen = [], set()
+    for parameters in grouped.values():
+        for parameter in parameters:
+            if id(parameter) not in seen:
+                unique_parameters.append(parameter); seen.add(id(parameter))
+    before_grads = {
+        id(parameter): None if parameter.grad is None else parameter.grad.detach().clone()
+        for parameter in unique_parameters
+    }
+    result = {}
+    for name, payload in losses.items():
+        loss, weight = payload
+        active = bool(float(weight) != 0.0 and torch.is_tensor(loss) and loss.requires_grad)
+        entry = {"raw": float(loss.detach().float().item()), "weight": float(weight), "active": active}
+        if active:
+            gradients = torch.autograd.grad(
+                loss * float(weight), unique_parameters, retain_graph=True, allow_unused=True,
+            )
+            by_id = {id(parameter): gradient for parameter, gradient in zip(unique_parameters, gradients)}
+            for group_name, parameters in grouped.items():
+                squared = [by_id[id(parameter)].detach().float().pow(2).sum()
+                           for parameter in parameters if by_id[id(parameter)] is not None]
+                entry[group_name] = float(torch.stack(squared).sum().sqrt().item()) if squared else 0.0
+        result[name] = entry
+    for parameter in unique_parameters:
+        before = before_grads[id(parameter)]
+        after = parameter.grad
+        if before is None:
+            assert after is None, "drift attribution must not populate parameter.grad"
+        else:
+            assert after is not None and torch.equal(before, after), "drift attribution must not mutate parameter.grad"
+    task_shared = result.get("main_task", {}).get("shared_semantic", 0.0)
+    denominator = task_shared if task_shared > 1e-12 else None
+    ratios = {
+        "assigned_to_task_shared_grad_ratio": None if denominator is None else result.get("assigned_expert", {}).get("shared_semantic", 0.0) / denominator,
+        "anchor_to_task_shared_grad_ratio": None if denominator is None else result.get("expert_anchor", {}).get("shared_semantic", 0.0) / denominator,
+        "center_to_task_shared_grad_ratio": None if denominator is None else result.get("center", {}).get("shared_semantic", 0.0) / denominator,
+        "total_aux_to_task_shared_grad_ratio": None if denominator is None else sum(
+            entry.get("shared_semantic", 0.0) for key, entry in result.items() if key != "main_task" and entry["active"]
+        ) / denominator,
+    }
+    return {"components": result, "ratios": ratios}
+
+
+def h6_drift_parameter_groups(model):
+    """Non-overlapping parameter groups for one-batch P1-v7 attribution."""
+    semantic_state_prefixes = (
+        "normal_query", "abnormal_query", "prototype_attention", "normal_state_update",
+        "abnormal_state_update", "state_to_context", "class_to_context",
+    )
+    shared_semantic, prototype_state = [], []
+    for name, parameter in model.h6.semantic_core.named_parameters():
+        (prototype_state if name.startswith(semantic_state_prefixes) else shared_semantic).append(parameter)
+    paired = model.h6.paired_experts
+    return {
+        "shared_semantic": shared_semantic,
+        "dynamic_context": [model.soft_prompt.ctx_normal, model.soft_prompt.ctx_abnormal],
+        "prototype_state": prototype_state,
+        "text_adapter": list(model.text_adapter.parameters()),
+        "expert_B": [] if paired is None else [paired.expert_B],
+        "expert_state_projection": [] if paired is None else list(paired.state_projection.parameters()),
+        "router_query_key": list(model.h6.router.parameters()),
+    }
 
 
 def write_json_atomic(path: str | Path, payload: dict) -> None:
@@ -973,6 +1048,7 @@ def _phase2b_config_from_args(args) -> dict:
         "h6_router_max_sparse_dead_factors": args.h6_router_max_sparse_dead_factors,
         "h6_router_min_unique_topk_pairs": args.h6_router_min_unique_topk_pairs,
         "h6_structural_gate_enabled": args.h6_structural_gate_enabled,
+        "h6_structural_gate_mode": args.h6_structural_gate_mode,
         "h6_structural_gate_patience": args.h6_structural_gate_patience,
         "h6_structural_gate_dense_start_epoch": args.h6_structural_gate_dense_start_epoch,
         "h6_structural_gate_require_all_levels": args.h6_structural_gate_require_all_levels,
@@ -990,6 +1066,29 @@ def _phase2b_config_from_args(args) -> dict:
         "h6_gate_sparse_min_ratio": args.h6_gate_sparse_min_ratio,
         "h6_gate_max_sparse_dead_factors": args.h6_gate_max_sparse_dead_factors,
         "h6_gate_min_unique_topk_pairs": args.h6_gate_min_unique_topk_pairs,
+        "h6_progress_version": args.h6_progress_version,
+        "h6_expert_enabled": args.h6_expert_enabled,
+        "h6_expert_bottleneck": args.h6_expert_bottleneck,
+        "h6_expert_fofs_seed_offset": args.h6_expert_fofs_seed_offset,
+        "h6_expert_state_condition_scale": args.h6_expert_state_condition_scale,
+        "h6_expert_scale_target": args.h6_expert_scale_target,
+        "h6_expert_scale_start_epoch": args.h6_expert_scale_start_epoch,
+        "h6_expert_scale_warmup_epochs": args.h6_expert_scale_warmup_epochs,
+        "h6_expert_max_relative_ratio": args.h6_expert_max_relative_ratio,
+        "lambda_h6_expert": args.lambda_h6_expert,
+        "lambda_h6_advantage": args.lambda_h6_advantage,
+        "lambda_h6_etf": args.lambda_h6_etf,
+        "lambda_h6_expert_anchor": args.lambda_h6_expert_anchor,
+        "lambda_h6_expert_radius": args.lambda_h6_expert_radius,
+        "h6_expert_start_epoch": args.h6_expert_start_epoch,
+        "h6_expert_warmup_epochs": args.h6_expert_warmup_epochs,
+        "h6_advantage_start_epoch": args.h6_advantage_start_epoch,
+        "h6_advantage_warmup_epochs": args.h6_advantage_warmup_epochs,
+        "h6_advantage_margin": args.h6_advantage_margin,
+        "h6_etf_start_epoch": args.h6_etf_start_epoch,
+        "h6_etf_warmup_epochs": args.h6_etf_warmup_epochs,
+        "lambda_h6_balance_final": args.lambda_h6_balance_final,
+        "h6_balance_decay_epochs": args.h6_balance_decay_epochs,
     }
 
 
@@ -1074,6 +1173,17 @@ def train_h6_progress1(
             "vae_rec", "vae_kl_raw", "vae_kl_effective", "kg", "orth", "balance",
             "concept_key_diversity_raw", "concept_key_diversity_weighted",
             "dynamic_mean_anchor_raw", "dynamic_mean_anchor_weighted", "dynamic_mean_anchor_weight",
+            "expert", "advantage", "etf", "expert_anchor", "expert_radius", "expert_weight",
+            "advantage_weight", "etf_weight", "balance_weight", "expert_delta_norm",
+            "expert_assigned_raw", "expert_assigned_weight", "expert_assigned_weighted",
+            "expert_advantage_raw", "expert_advantage_weight", "expert_advantage_weighted",
+            "expert_etf_raw", "expert_etf_weight", "expert_etf_weighted",
+            "expert_balance_dense_raw", "expert_balance_prediction_raw", "expert_balance_weight", "expert_balance_weighted",
+            "expert_anchor_raw", "expert_anchor_weight", "expert_anchor_weighted",
+            "expert_radius_raw", "expert_radius_weight", "expert_radius_weighted",
+            "loss_component_sum", "loss_component_residual", "expert_assigned_normal", "expert_assigned_abnormal",
+            "selected_expert_loss", "nonselected_expert_loss", "expert_advantage_margin_satisfied_fraction",
+            "legacy_pre_expert_orth_raw", "legacy_pre_expert_orth_weight", "legacy_pre_expert_orth_weighted",
         )}
         factor_grad_diag = {
             "factor_grad_norms": None,
@@ -1084,8 +1194,40 @@ def train_h6_progress1(
             "factor_id_projection_grad_norm": None,
         }
         optimizer.zero_grad(set_to_none=True)
+        # Structural gates must describe the epoch, never just its final batch.
+        epoch_diag_sum: dict[str, torch.Tensor] = {}
+        epoch_diag_count: dict[str, int] = {}
+        epoch_probe_values: dict[str, list[torch.Tensor]] = {}
+        drift_snapshots: dict[str, dict] = {}
+        drift_gradient_report = None
+        epoch_probe_keys = {
+            "expert_delta_norm_mean", "expert_delta_valid_fraction", "final_expert_direction_cos_max",
+            "expert_patch_logit_std_across_experts", "final_expert_mean_hard_cos_mean", "unique_topk_pairs",
+        }
+        gradient_samples: list[dict[str, torch.Tensor]] = []
+        epoch_batch_limit = min(len(train_loader), int(args.h6_smoke_max_batches)) if args.h6_smoke_max_batches > 0 else len(train_loader)
         progress = tqdm(train_loader, desc=f"[PHASE4-P1][TRAIN][epoch {epoch:02d}/{args.epoch:02d}]")
+
+        def _record_drift_snapshot(name: str, batch_payload: dict):
+            router_diag = batch_payload.get("router_diagnostics", {})
+            comparison_keys = (
+                "hard_frozen_vs_pre_expert", "hard_adapted_vs_pre_expert",
+                "pre_expert_vs_expected_noop", "final_expert_vs_pre_expert",
+            )
+            metric_keys = ("cos_mean", "cos_min", "cos_p05", "max_abs_diff")
+            snapshot = {
+                f"{comparison}_{metric}": diagnostics_to_python(router_diag.get(f"{comparison}_{metric}"))
+                for comparison in comparison_keys for metric in metric_keys
+            }
+            snapshot.update({
+                "alpha_current": float(hybrid_alpha),
+                "expert_scale_current": diagnostics_to_python(batch_payload["expert_scale"]),
+            })
+            drift_snapshots[name] = snapshot
+
         for batch_idx, input_data in enumerate(progress, start=1):
+            if batch_idx > epoch_batch_limit:
+                break
             image = input_data["image"].to(device, non_blocking=args.pin_memory)
             mask = input_data["mask"].to(device, non_blocking=args.pin_memory)
             label = input_data["label"].to(device, non_blocking=args.pin_memory)
@@ -1095,6 +1237,19 @@ def train_h6_progress1(
                 h6_batch = model.h6.build_batch(
                     model, dataset_name, class_names, visual_output, hybrid_alpha=hybrid_alpha
                 )
+                if args.h6_drift_diagnostics and batch_idx == 1:
+                    _record_drift_snapshot("batch_000_before_first_backward", h6_batch)
+                if args.h6_drift_diagnostics and batch_idx == epoch_batch_limit:
+                    _record_drift_snapshot("final_smoke_batch", h6_batch)
+                for diag_name, diag_value in h6_batch.get("router_diagnostics", {}).items():
+                    if torch.is_tensor(diag_value):
+                        # Keep integer Top-K counts and boolean finite flags as
+                        # epoch means too; downstream logger/gates consume both.
+                        value = diag_value.detach().float()
+                        epoch_diag_sum[diag_name] = epoch_diag_sum.get(diag_name, torch.zeros_like(value)) + value
+                        epoch_diag_count[diag_name] = epoch_diag_count.get(diag_name, 0) + 1
+                        if diag_name in epoch_probe_keys:
+                            epoch_probe_values.setdefault(diag_name, []).append(value.mean().cpu())
                 if args.h6_factor_grad_diagnostics and batch_idx == 1:
                     h6_batch["dynamic_text"].retain_grad()
                 seg_features = torch.stack(visual_output["seg_tokens"], dim=0)
@@ -1194,7 +1349,7 @@ def train_h6_progress1(
                     args.lambda_h6_concept_key_diversity,
                 )
                 h6_concept_key_diversity = concept_key_diversity_loss(
-                    h6_batch["concept_keys"],
+                    h6_batch["raw_semantic_keys"],
                     margin=args.h6_concept_key_cosine_margin,
                 )
                 dynamic_mean_anchor_weight = linear_ramp_weight(
@@ -1203,18 +1358,67 @@ def train_h6_progress1(
                     args.h6_dynamic_mean_anchor_warmup_epochs,
                     args.lambda_h6_dynamic_mean_anchor,
                 )
-                total_loss = (
-                    task_loss
-                    + args.lambda_h6_center * h6_center
-                    + effective_router_teacher_weight * h6_router_teacher
-                    + args.lambda_h6_vae_rec * h6_batch["reconstruction"]
-                    + beta_vae_kl * h6_kl_effective
-                    + args.lambda_kg * h6_batch["kg_loss"]
-                    + args.lambda_h6_orth * h6_orth
-                    + args.lambda_h6_balance * h6_balance
-                    + concept_key_diversity_weight * h6_concept_key_diversity
-                    + dynamic_mean_anchor_weight * h6_batch["dynamic_mean_anchor_loss_raw"]
-                )
+                expert_weight = linear_ramp_weight(epoch, args.h6_expert_start_epoch, args.h6_expert_warmup_epochs, args.lambda_h6_expert)
+                advantage_weight = linear_ramp_weight(epoch, args.h6_advantage_start_epoch, args.h6_advantage_warmup_epochs, args.lambda_h6_advantage)
+                etf_weight = linear_ramp_weight(epoch, args.h6_etf_start_epoch, args.h6_etf_warmup_epochs, args.lambda_h6_etf)
+                balance_weight = args.lambda_h6_balance
+                if model.h6.expert_enabled:
+                    h6_expert, expert_terms = assigned_expert_loss(h6_batch["expert_patch_logits"], h6_batch["prediction_probabilities"], mask)
+                    h6_advantage = expert_advantage_loss(h6_batch["expert_patch_logits"], h6_batch["topk_indices"], mask, args.h6_advantage_margin)
+                    h6_etf, expert_delta_norm = expert_etf_loss(h6_batch["expert_delta_tangent"])
+                    final_balance = args.lambda_h6_balance if args.lambda_h6_balance_final is None else args.lambda_h6_balance_final
+                    decay = min(1.0, max(0.0, (epoch - args.h6_router_soft_epochs) / max(1, args.h6_balance_decay_epochs)))
+                    balance_weight = args.lambda_h6_balance + decay * (final_balance - args.lambda_h6_balance)
+                    h6_balance, balance_terms = dual_routing_balance_loss(h6_batch["dense_probabilities"], h6_batch["prediction_probabilities"])
+                    h6_expert_anchor, expert_anchor_cos = expert_clip_anchor_loss(h6_batch["active_factor_bank"], h6_batch["hard_frozen"], args.h6_expert_anchor_min_cosine)
+                    h6_expert_radius = expert_radius_loss(h6_batch["expert_relative_ratio"], args.h6_expert_max_relative_ratio)
+                    expert_function = expert_patch_function_diagnostics(
+                        h6_batch["expert_patch_logits"], h6_batch["topk_indices"], mask, args.h6_advantage_margin
+                    )
+                else:
+                    zero = h6_balance * 0.0
+                    h6_expert = h6_advantage = h6_etf = h6_expert_anchor = h6_expert_radius = zero
+                    expert_delta_norm = zero.detach(); expert_anchor_cos = zero.detach()
+                    expert_terms = {"expert_normal_all": zero.detach(), "expert_abnormal_assigned": zero.detach()}
+                    balance_terms = {"dense_cv2": h6_balance.detach(), "prediction_cv2": zero.detach()}
+                    expert_function = {
+                        "expert_normal_patch_count": zero.detach(), "expert_abnormal_patch_count": zero.detach(),
+                        "expert_valid_patch_count": zero.detach(), "selected_expert_loss": zero.detach(),
+                        "nonselected_expert_loss": zero.detach(), "selected_minus_nonselected_loss": zero.detach(),
+                        "expert_advantage_margin_satisfied_fraction": zero.detach(), "expert_advantage_valid_count": zero.detach(),
+                    }
+                for diag_name, diag_value in expert_function.items():
+                    value = diag_value.detach().float()
+                    epoch_diag_sum[diag_name] = epoch_diag_sum.get(diag_name, torch.zeros_like(value)) + value
+                    epoch_diag_count[diag_name] = epoch_diag_count.get(diag_name, 0) + 1
+                loss_components = {
+                    "task": task_loss, "center": args.lambda_h6_center * h6_center,
+                    "router_teacher": effective_router_teacher_weight * h6_router_teacher,
+                    "vae_rec": args.lambda_h6_vae_rec * h6_batch["reconstruction"],
+                    "vae_kl": beta_vae_kl * h6_kl_effective, "kg": args.lambda_kg * h6_batch["kg_loss"],
+                    "legacy_pre_expert_orth": args.lambda_h6_orth * h6_orth,
+                    "balance": balance_weight * h6_balance,
+                    "raw_key_diversity": concept_key_diversity_weight * h6_concept_key_diversity,
+                    "dynamic_mean_anchor": dynamic_mean_anchor_weight * h6_batch["dynamic_mean_anchor_loss_raw"],
+                    "expert_assigned": expert_weight * h6_expert, "expert_advantage": advantage_weight * h6_advantage,
+                    "expert_etf": etf_weight * h6_etf, "expert_anchor": args.lambda_h6_expert_anchor * h6_expert_anchor,
+                    "expert_radius": args.lambda_h6_expert_radius * h6_expert_radius,
+                }
+                loss_component_sum = sum_loss_components(loss_components)
+                total_loss = loss_component_sum
+                loss_component_residual = total_loss - loss_component_sum
+                if args.h6_drift_diagnostics and batch_idx == 1:
+                    drift_gradient_report = h6_drift_gradient_attribution(
+                        {
+                            "main_task": (task_loss, 1.0),
+                            "assigned_expert": (h6_expert, expert_weight),
+                            "advantage": (h6_advantage, advantage_weight),
+                            "expert_anchor": (h6_expert_anchor, args.lambda_h6_expert_anchor),
+                            "center": (h6_center, args.lambda_h6_center),
+                            "dynamic_mean_anchor": (h6_batch["dynamic_mean_anchor_loss_raw"], dynamic_mean_anchor_weight),
+                        },
+                        h6_drift_parameter_groups(model),
+                    )
             if not torch.isfinite(total_loss).all():
                 if structural_gate_config.enabled:
                     decision = GateDecision(
@@ -1254,16 +1458,39 @@ def train_h6_progress1(
                 factor_id_grad = model.h6.semantic_core.factor_id_projection.weight.grad
                 if factor_id_grad is not None:
                     factor_grad_diag["factor_id_projection_grad_norm"] = factor_id_grad.detach().float().norm()
-            do_step = batch_idx % args.grad_accum_steps == 0 or batch_idx == len(train_loader)
+            do_step = batch_idx % args.grad_accum_steps == 0 or batch_idx == epoch_batch_limit
             if do_step:
                 scaler.unscale_(optimizer)
                 if has_non_finite_grad(optimizer):
                     optimizer.zero_grad(set_to_none=True)
                     raise RuntimeError(f"non-finite H6 gradient at epoch={epoch}, batch={batch_idx}")
+                def _grad_norm(parameter):
+                    return parameter.grad.detach().float().norm() if parameter is not None and parameter.grad is not None else torch.zeros((), device=device)
+                if model.h6.paired_experts is not None:
+                    expert_b_grad = model.h6.paired_experts.expert_B.grad
+                    expert_b_per_factor = (
+                        expert_b_grad.detach().float().norm(dim=(1, 2)) if expert_b_grad is not None
+                        else torch.zeros(model.h6.num_factors, device=device)
+                    )
+                    gradient_samples.append({
+                        "expert_B_grad_norm": _grad_norm(model.h6.paired_experts.expert_B),
+                        "expert_B_grad_norm_per_factor": expert_b_per_factor,
+                        "expert_state_projection_grad_norm": _grad_norm(model.h6.paired_experts.state_projection.weight),
+                        "router_query_grad_norm": _grad_norm(model.h6.router.local_query_projector[0].weight) + _grad_norm(model.h6.router.query_projector[0].weight),
+                        "router_key_adaptation_grad_norm": _grad_norm(model.h6.semantic_core.router_key.weight),
+                    })
                 nn.utils.clip_grad_norm_((p for p in model.parameters() if p.requires_grad), args.grad_clip_norm)
                 scaler.step(optimizer)
                 scaler.update()
                 optimizer.zero_grad(set_to_none=True)
+                if args.h6_drift_diagnostics and "batch_000_after_first_optimizer_step" not in drift_snapshots:
+                    with torch.no_grad(), _phase4_autocast(device, args.precision):
+                        post_step_visual = model(image, return_phase4_features=True)
+                        post_step_batch = model.h6.build_batch(
+                            model, dataset_name, class_names, post_step_visual,
+                            hybrid_alpha=hybrid_alpha, update_load_bias=False,
+                        )
+                    _record_drift_snapshot("batch_000_after_first_optimizer_step", post_step_batch)
             for key, value in {
                 "total": total_loss, "task": task_loss, "cls": cls_loss, "seg": seg_loss,
                 "center": h6_center,
@@ -1280,6 +1507,41 @@ def train_h6_progress1(
                 "dynamic_mean_anchor_raw": h6_batch["dynamic_mean_anchor_loss_raw"],
                 "dynamic_mean_anchor_weighted": dynamic_mean_anchor_weight * h6_batch["dynamic_mean_anchor_loss_raw"],
                 "dynamic_mean_anchor_weight": torch.as_tensor(dynamic_mean_anchor_weight, device=device),
+                "expert": h6_expert, "advantage": h6_advantage, "etf": h6_etf,
+                "expert_anchor": h6_expert_anchor, "expert_radius": h6_expert_radius,
+                "expert_weight": torch.as_tensor(expert_weight, device=device),
+                "advantage_weight": torch.as_tensor(advantage_weight, device=device),
+                "etf_weight": torch.as_tensor(etf_weight, device=device),
+                "balance_weight": torch.as_tensor(balance_weight, device=device),
+                "expert_delta_norm": expert_delta_norm,
+                "loss_component_sum": loss_component_sum, "loss_component_residual": loss_component_residual,
+                "expert_assigned_normal": expert_terms["expert_normal_all"],
+                "expert_assigned_abnormal": expert_terms["expert_abnormal_assigned"],
+                "selected_expert_loss": expert_function["selected_expert_loss"],
+                "nonselected_expert_loss": expert_function["nonselected_expert_loss"],
+                "expert_advantage_margin_satisfied_fraction": expert_function["expert_advantage_margin_satisfied_fraction"],
+                "expert_assigned_raw": h6_expert,
+                "expert_assigned_weight": torch.as_tensor(expert_weight, device=device),
+                "expert_assigned_weighted": expert_weight * h6_expert,
+                "expert_advantage_raw": h6_advantage,
+                "expert_advantage_weight": torch.as_tensor(advantage_weight, device=device),
+                "expert_advantage_weighted": advantage_weight * h6_advantage,
+                "expert_etf_raw": h6_etf,
+                "expert_etf_weight": torch.as_tensor(etf_weight, device=device),
+                "expert_etf_weighted": etf_weight * h6_etf,
+                "expert_balance_dense_raw": balance_terms["dense_cv2"],
+                "expert_balance_prediction_raw": balance_terms["prediction_cv2"],
+                "expert_balance_weight": torch.as_tensor(balance_weight, device=device),
+                "expert_balance_weighted": balance_weight * h6_balance,
+                "expert_anchor_raw": h6_expert_anchor,
+                "expert_anchor_weight": torch.as_tensor(args.lambda_h6_expert_anchor, device=device),
+                "expert_anchor_weighted": args.lambda_h6_expert_anchor * h6_expert_anchor,
+                "expert_radius_raw": h6_expert_radius,
+                "expert_radius_weight": torch.as_tensor(args.lambda_h6_expert_radius, device=device),
+                "expert_radius_weighted": args.lambda_h6_expert_radius * h6_expert_radius,
+                "legacy_pre_expert_orth_raw": h6_orth,
+                "legacy_pre_expert_orth_weight": torch.as_tensor(args.lambda_h6_orth, device=device),
+                "legacy_pre_expert_orth_weighted": args.lambda_h6_orth * h6_orth,
             }.items():
                 metrics[key].append(float(value.detach().float().item()))
             if device.type == "cuda":
@@ -1289,9 +1551,9 @@ def train_h6_progress1(
             else:
                 allocated = reserved = peak = 0.0
             elapsed = time.monotonic() - started
-            remaining = max(len(train_loader) - batch_idx, 0)
+            remaining = max(epoch_batch_limit - batch_idx, 0)
             eta = elapsed / batch_idx * remaining if batch_idx else 0.0
-            progress.set_postfix({
+            progress_postfix = {
                 "loss": f"{metrics['total'][-1]:.4f}", "task": f"{metrics['task'][-1]:.4f}",
                 "center": f"{metrics['center'][-1]:.4f}", "vae": f"{metrics['vae_rec'][-1]:.4f}",
                 "kl": f"{metrics['vae_kl_raw'][-1]:.5f}", "rt": f"{metrics['router_teacher'][-1]:.4f}",
@@ -1302,10 +1564,25 @@ def train_h6_progress1(
                 "gamma_c": f"{h6_batch['gamma_class'].detach().item():.3f}",
                 "rho": "/".join(f"{x:.2f}" for x in h6_batch["rho"].detach().cpu()),
                 "vram": f"{allocated:.2f}/{reserved:.2f}/{peak:.2f}G", "eta": f"{eta / 60:.1f}m",
-            })
+            }
+            if getattr(model.h6, "progress_version", "P1-v6") == "P1-v7-full":
+                progress_postfix.pop("orth", None)
+            progress.set_postfix(progress_postfix)
         scheduler.step()
         _set_soft_prompt_lr(optimizer, soft_prompt_frozen)
-        diagnostics = h6_batch["router_diagnostics"]
+        diagnostics = {
+            key: value / float(epoch_diag_count[key])
+            for key, value in epoch_diag_sum.items()
+        }
+        for key, values in epoch_probe_values.items():
+            stacked = torch.stack(values)
+            diagnostics[f"{key}_min"] = stacked.min().to(device)
+            diagnostics[f"{key}_p05"] = torch.quantile(stacked, 0.05).to(device)
+        diagnostics["gate_sample_count"] = torch.tensor(float(epoch_batch_limit), device=device)
+        if model.h6.expert_enabled:
+            diagnostics["expert_anchor_floor"] = torch.tensor(
+                float(args.h6_expert_anchor_min_cosine), device=device
+            )
         proto_diag = prototype_diagnostics(h6_batch["prototype_normal"], h6_batch["prototype_abnormal"])
         dynamic_hard_cosine = F.cosine_similarity(
             h6_batch["dynamic_text"].float(),
@@ -1328,6 +1605,16 @@ def train_h6_progress1(
             return float(diagnostics[key].detach().float().cpu().item())
 
         epoch_metric_means = {key: float(np.mean(values)) for key, values in metrics.items() if values}
+        gradient_epoch = {
+            key: torch.stack([sample[key] for sample in gradient_samples]).mean(dim=0)
+            for key in gradient_samples[0]
+        } if gradient_samples else {
+            "expert_B_grad_norm": torch.zeros((), device=device),
+            "expert_B_grad_norm_per_factor": torch.zeros(model.h6.num_factors, device=device),
+            "expert_state_projection_grad_norm": torch.zeros((), device=device),
+            "router_query_grad_norm": torch.zeros((), device=device),
+            "router_key_adaptation_grad_norm": torch.zeros((), device=device),
+        }
         epoch_metric_means["task_rolling_median"] = (
             float(np.median(task_loss_history[-5:])) if task_loss_history else epoch_metric_means.get("task", 0.0)
         )
@@ -1345,11 +1632,98 @@ def train_h6_progress1(
             dynamic_mean_anchor_target=args.lambda_h6_dynamic_mean_anchor,
             query_mode=args.h6_router_query_mode,
             tangent_enabled=bool(args.h6_factor_identity_tangent_projection_enabled),
+            expert_enabled=bool(model.h6.expert_enabled),
+            expert_scale=float(model.h6.expert_scale()),
+            expert_scale_target=float(model.h6.expert_scale_target),
+            etf_weight=float(etf_weight),
+            etf_target=float(args.lambda_h6_etf),
+            gate_sample_count=len(train_loader) if args.h6_smoke_max_batches == 0 else epoch_batch_limit,
         )
         task_loss_history.append(epoch_metric_means.get("task", 0.0))
 
-        logger.info(
-            "phase4_p1_v6 epoch=%d total=%s task=%s cls=%s seg=%s center=%s router_teacher=%s "
+        is_v7 = getattr(model.h6, "progress_version", "P1-v6") == "P1-v7-full"
+        if is_v7:
+            def _d(name, default=0.0):
+                value = diagnostics.get(name)
+                if value is None:
+                    return default
+                if torch.is_tensor(value):
+                    return value.detach().cpu().item() if value.ndim == 0 else value.detach().cpu().tolist()
+                return value
+            dead_threshold = float(args.h6_expert_dead_usage_threshold)
+            dense_dead_mask, dense_dead_count = expert_dead_counts(diagnostics["dense_factor_usage"], dead_threshold)
+            sparse_dead_mask, sparse_dead_count = expert_dead_counts(diagnostics["sparse_factor_usage"], dead_threshold)
+            gate_mode = structural_gate_config.mode
+            gate_raw_state = (
+                "hard_failure" if gate_decision.hard_failure
+                else "warning" if gate_decision.soft_warnings or any(gate_decision.failed.values())
+                else "ok"
+            )
+            expert_ready = float(model.h6.expert_scale()) >= 0.95 * float(model.h6.expert_scale_target)
+            gate_effective_state = (
+                ("warmup" if not expert_ready else "monitoring")
+                if gate_mode == "monitor" else gate_raw_state
+            )
+            logger.info(
+                "phase4_p1_v7_full epoch=%d total=%.6f task=%.6f cls=%.6f seg=%.6f lr=%.3e "
+                "expert_scale=%.5f expert_delta_norm=%s expert_delta_cos=%s final_expert_direction_cos=%s expert_logit_std=%s expert_B_grad_norm=%s "
+                "assigned_w=%.6f advantage_w=%.6f ETF_w=%.6f balance_w=%.6f anchor_w=%.6f radius_w=%.6f "
+                "anchor_cos=%s radius_ratio=%s clamp_frac=%s dense_usage=%s sparse_usage=%s dead_experts=%s unique_pairs=%s "
+                "gate_mode=%s gate_raw_state=%s gate_effective_state=%s hard_failure=%s abort_reason=%s",
+                epoch, epoch_metric_means["total"], epoch_metric_means["task"], epoch_metric_means["cls"], epoch_metric_means["seg"], optimizer.param_groups[0]["lr"],
+                float(model.h6.expert_scale()), _d("expert_delta_norm_mean"), _d("expert_delta_tangent_cos_mean"), _d("final_expert_direction_cos_mean"),
+                _d("expert_patch_logit_std_across_experts"), diagnostics_to_python(gradient_epoch["expert_B_grad_norm"]),
+                epoch_metric_means["expert_assigned_weighted"], epoch_metric_means["expert_advantage_weighted"], epoch_metric_means["expert_etf_weighted"],
+                epoch_metric_means["expert_balance_weighted"], epoch_metric_means["expert_anchor_weighted"], epoch_metric_means["expert_radius_weighted"],
+                _d("final_expert_mean_hard_cos_mean"), _d("expert_residual_relative_ratio_mean"), _d("expert_residual_clamp_fraction"),
+                _d("dense_factor_usage"), _d("sparse_factor_usage"), diagnostics_to_python(sparse_dead_count), _d("unique_topk_pairs"),
+                gate_mode, gate_raw_state, gate_effective_state, gate_decision.hard_failure, gate_decision.abort_reason,
+            )
+            detailed_loss_components = {
+                key: value for key, value in epoch_metric_means.items() if key != "orth"
+            }
+            write_json_atomic(
+                Path(args.save_path) / "diagnostics" / f"epoch_{epoch:03d}.json",
+                diagnostics_to_python({
+                    "progress_version": model.h6.progress_version, "checkpoint_version": 7,
+                    "loss_components": {**detailed_loss_components, "component_residual": epoch_metric_means["loss_component_residual"]},
+                    "expert_schedule": {"current": model.h6.expert_scale(), "target": model.h6.expert_scale_target},
+                    "expert_geometry": {
+                        key: _d(key) for key in diagnostics
+                        if key.startswith(("expert_", "pre_expert_", "final_expert_"))
+                    },
+                    "router": {
+                        "dense_usage": _d("dense_factor_usage"), "sparse_usage": _d("sparse_factor_usage"),
+                        "dense_dead_mask": diagnostics_to_python(dense_dead_mask), "dense_dead_count": diagnostics_to_python(dense_dead_count),
+                        "sparse_dead_mask": diagnostics_to_python(sparse_dead_mask), "sparse_dead_count": diagnostics_to_python(sparse_dead_count),
+                        "dead_usage_threshold": dead_threshold, "unique_topk_pairs": _d("unique_topk_pairs"),
+                    },
+                    "gate": {
+                        "mode": gate_mode, "raw_state": gate_raw_state, "effective_state": gate_effective_state,
+                        "soft_warnings": gate_decision.soft_warnings, "hard_failure": gate_decision.hard_failure,
+                        "abort_reason": gate_decision.abort_reason, "decision": structural_gate.decision_to_dict(gate_decision),
+                        "sample_count": epoch_batch_limit,
+                    },
+                    "gradients": diagnostics_to_python(gradient_epoch), "patch_counts": {key: _d(key) for key in diagnostics if key.startswith("expert_") and key.endswith("patch_count")},
+                }),
+            )
+            if args.h6_drift_diagnostics:
+                write_json_atomic(
+                    Path(args.save_path) / "diagnostics" / f"drift_epoch_{epoch:03d}.json",
+                    diagnostics_to_python({
+                        "progress_version": model.h6.progress_version,
+                        "snapshots": drift_snapshots,
+                        "gradient_attribution": drift_gradient_report,
+                        "loss_components": detailed_loss_components,
+                        "expert_B_grad_norm": diagnostics_to_python(gradient_epoch["expert_B_grad_norm"]),
+                        "shared_semantic_gradient": None if drift_gradient_report is None else drift_gradient_report["components"]["main_task"].get("shared_semantic"),
+                        "alpha_current": hybrid_alpha,
+                        "expert_scale_current": model.h6.expert_scale(),
+                    }),
+                )
+
+        (logger.info if not is_v7 else (lambda *args, **kwargs: None))(
+            "%s progress_version=%s epoch=%d total=%s task=%s cls=%s seg=%s center=%s router_teacher=%s "
             "router_teacher_weighted=%s vae_rec=%s vae_kl_raw=%s vae_kl_effective=%s beta_vae_kl=%s "
             "kg=%s orth=%s balance=%s alpha=%s sparse_ratio=%s routing_mode=%s gamma_state=%s gamma_class=%s rho=%s lr=%s "
             "gate_enabled=%s gate_state=%s gate_soft_warnings=%s gate_query_collapse_count=%s "
@@ -1408,7 +1782,7 @@ def train_h6_progress1(
             "factor_id_projection_grad_norm=%s teacher_mode=%s teacher_confidence_gate_enabled=%s "
             "teacher_informative_patch_fraction=%s teacher_informative_patch_count=%s teacher_valid_patch_count=%s "
             "teacher_active_levels=%s teacher_gate_reason=%s",
-            epoch, *(float(np.mean(metrics[key])) for key in (
+            "phase4_p1_debug" if is_v7 else "phase4_p1_v6", model.h6.progress_version, epoch, *(float(np.mean(metrics[key])) for key in (
                 "total", "task", "cls", "seg", "center", "router_teacher", "router_teacher_weighted",
                 "vae_rec", "vae_kl_raw", "vae_kl_effective"
             )),
@@ -1705,6 +2079,14 @@ def main():
     parser.add_argument("--lambda_kg", type=float, default=1e-3)
     parser.add_argument("--lambda_k", type=float, default=0.0, help="hybrid K-space regularization weight")
     parser.add_argument("--h6_progress", type=int, choices=[0, 1], default=0)
+    parser.add_argument(
+        "--h6_smoke_max_batches", type=int, default=0,
+        help="Development-only cap per epoch for Phase4 runtime smoke checks; 0 means the full loader.",
+    )
+    parser.add_argument(
+        "--h6_drift_diagnostics", action=argparse.BooleanOptionalAction, default=False,
+        help="One-batch bank snapshots and autograd attribution for a diagnostic smoke only.",
+    )
     parser.add_argument("--h6_num_factors", type=int, default=4)
     parser.add_argument("--h6_top_k", type=int, default=2)
     parser.add_argument("--h6_bank_dim", type=int, default=256)
@@ -1733,7 +2115,9 @@ def main():
     parser.add_argument("--h6_router_failure_patience", type=int, default=2)
     parser.add_argument("--h6_router_max_sparse_dead_factors", type=int, default=1)
     parser.add_argument("--h6_router_min_unique_topk_pairs", type=int, default=2)
+    parser.add_argument("--h6_expert_dead_usage_threshold", type=float, default=0.01)
     parser.add_argument("--h6_structural_gate_enabled", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_structural_gate_mode", choices=["abort", "monitor", "off"], default="abort")
     parser.add_argument("--h6_structural_gate_patience", type=int, default=2)
     parser.add_argument("--h6_structural_gate_dense_start_epoch", type=int, default=8)
     parser.add_argument("--h6_structural_gate_require_all_levels", action=argparse.BooleanOptionalAction, default=True)
@@ -1784,6 +2168,29 @@ def main():
     parser.add_argument("--h6_dynamic_mean_anchor_start_epoch", type=int, default=4)
     parser.add_argument("--h6_dynamic_mean_anchor_warmup_epochs", type=int, default=3)
     parser.add_argument("--h6_expert_bottleneck", type=int, default=64, help="reserved for Progress 2; unused in Progress 1")
+    parser.add_argument("--h6_progress_version", choices=["P1-v6", "P1-v7-full"], default="P1-v6")
+    parser.add_argument("--h6_expert_enabled", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_expert_fofs_seed_offset", type=int, default=7500)
+    parser.add_argument("--h6_expert_state_condition_scale", type=float, default=0.25)
+    parser.add_argument("--h6_expert_scale_target", type=float, default=0.10)
+    parser.add_argument("--h6_expert_scale_start_epoch", type=int, default=1)
+    parser.add_argument("--h6_expert_scale_warmup_epochs", type=int, default=6)
+    parser.add_argument("--h6_expert_max_relative_ratio", type=float, default=0.10)
+    parser.add_argument("--lambda_h6_expert", type=float, default=0.0)
+    parser.add_argument("--h6_expert_start_epoch", type=int, default=1)
+    parser.add_argument("--h6_expert_warmup_epochs", type=int, default=3)
+    parser.add_argument("--lambda_h6_advantage", type=float, default=0.0)
+    parser.add_argument("--h6_advantage_start_epoch", type=int, default=4)
+    parser.add_argument("--h6_advantage_warmup_epochs", type=int, default=3)
+    parser.add_argument("--h6_advantage_margin", type=float, default=0.05)
+    parser.add_argument("--lambda_h6_etf", type=float, default=0.0)
+    parser.add_argument("--h6_etf_start_epoch", type=int, default=3)
+    parser.add_argument("--h6_etf_warmup_epochs", type=int, default=4)
+    parser.add_argument("--lambda_h6_balance_final", type=float, default=None)
+    parser.add_argument("--h6_balance_decay_epochs", type=int, default=4)
+    parser.add_argument("--lambda_h6_expert_anchor", type=float, default=0.0)
+    parser.add_argument("--h6_expert_anchor_min_cosine", type=float, default=0.70)
+    parser.add_argument("--lambda_h6_expert_radius", type=float, default=0.0)
     parser.add_argument("--lambda_h6_center", type=float, default=0.10)
     parser.add_argument("--h6_center_factor_aware", action="store_true")
     parser.add_argument("--h6_center_detach_assignment", action=argparse.BooleanOptionalAction, default=True)
@@ -1872,6 +2279,8 @@ def main():
         raise ValueError("--h6_load_bias_step/max must be >= 0")
     if args.h6_structural_gate_patience < 1:
         raise ValueError("--h6_structural_gate_patience must be >= 1")
+    if not 0 <= args.h6_expert_dead_usage_threshold <= 1:
+        raise ValueError("--h6_expert_dead_usage_threshold must be in [0, 1]")
     if args.h6_structural_gate_dense_start_epoch < 1:
         raise ValueError("--h6_structural_gate_dense_start_epoch must be >= 1")
     if args.h6_gate_query_rank_max < 1.0:
@@ -1935,6 +2344,10 @@ def main():
     if args.h6_progress == 1:
         if args.h6_num_factors != 4 or args.h6_top_k != 2:
             raise ValueError("Phase4 Progress 1 is locked to --h6_num_factors 4 and --h6_top_k 2")
+        if args.h6_progress_version == "P1-v7-full" and not args.h6_expert_enabled:
+            raise ValueError("P1-v7-full requires --h6_expert_enabled")
+        if args.h6_progress_version != "P1-v7-full" and args.h6_expert_enabled:
+            raise ValueError("paired experts are explicit P1-v7-full only")
         if args.h6_two_view:
             raise ValueError("--h6_two_view belongs to Progress 3 and is not implemented in Progress 1")
         if torch.cuda.is_available() and args.precision == "bf16" and not torch.cuda.is_bf16_supported():
@@ -2029,6 +2442,15 @@ def main():
         h6_dynamic_mean_anchor_start_epoch=args.h6_dynamic_mean_anchor_start_epoch,
         h6_dynamic_mean_anchor_warmup_epochs=args.h6_dynamic_mean_anchor_warmup_epochs,
         h6_router_teacher_mode=args.h6_router_teacher_mode,
+        h6_progress_version=args.h6_progress_version,
+        h6_expert_enabled=args.h6_expert_enabled,
+        h6_expert_bottleneck=args.h6_expert_bottleneck,
+        h6_expert_fofs_seed_offset=args.h6_expert_fofs_seed_offset,
+        h6_expert_state_condition_scale=args.h6_expert_state_condition_scale,
+        h6_expert_scale_target=args.h6_expert_scale_target,
+        h6_expert_scale_start_epoch=args.h6_expert_scale_start_epoch,
+        h6_expert_scale_warmup_epochs=args.h6_expert_scale_warmup_epochs,
+        h6_expert_max_relative_ratio=args.h6_expert_max_relative_ratio,
     ).to(device)
     model.eval()
     model.use_hybrid_soft_prompt = bool(args.use_hybrid_soft_prompt)

@@ -1,0 +1,182 @@
+{
+  "command_config_fingerprint": "66c59e29f09ca2b3a7c11489d1922f9bd05343a0790bcd160af9c3b1cb9d2bf1",
+  "datasets": [
+    "Brain",
+    "Liver",
+    "Retina",
+    "Colon_clinicDB",
+    "Colon_colonDB",
+    "Colon_Kvasir"
+  ],
+  "deterministic_tie_break_reason": "lower epoch wins after sorting support_aware_combined_score desc, epoch asc",
+  "epoch_changed_from_legacy": false,
+  "epochs": [
+    12
+  ],
+  "excluded_image_datasets": [
+    "Colon_Kvasir",
+    "Colon_clinicDB",
+    "Colon_colonDB"
+  ],
+  "exclusion_reasons": {
+    "Colon_Kvasir": "single_class_split: normal=0 anomaly=700",
+    "Colon_clinicDB": "single_class_split: normal=0 anomaly=428",
+    "Colon_colonDB": "single_class_split: normal=0 anomaly=266"
+  },
+  "fingerprint_config": {
+    "checkpoint_list": [
+      "adapter_12.pth:256806943"
+    ],
+    "dataset_list": [
+      "Brain",
+      "Colon_Kvasir",
+      "Colon_clinicDB",
+      "Colon_colonDB",
+      "Liver",
+      "Retina"
+    ],
+    "exact_pixel_metric_mode": "external_sorted_chunks",
+    "image_scoring_rule": "arithmetic_mean(image_AUROC, image_AP)",
+    "metric_implementation_version": "summarize_phase4_results_v1",
+    "pixel_stride": 1,
+    "postprocessing_config": "none",
+    "seed": 0,
+    "selection_rule_version": "support-aware-v2",
+    "temperature": 1.0,
+    "threshold_policy": "none",
+    "valid_metric_policy": "image_valid_when_normal>=1_and_anomaly>=1; pixel_valid_when_anomaly>=1",
+    "validation_split_manifest_hash": "063778780b4add04723f7ff4a6ae97dc30d953aedfc9621c6deb3e7de78820bb"
+  },
+  "legacy_combined_score_for_legacy_selected_epoch": 31.564514262372864,
+  "legacy_combined_score_for_selected_epoch": 32.75968692239218,
+  "legacy_selected_epoch": 12,
+  "macro_by_epoch": [
+    {
+      "epoch": 12,
+      "excluded_image_datasets": [
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB"
+      ],
+      "excluded_pixel_datasets": [],
+      "exclusion_reasons": {
+        "Colon_Kvasir": "single_class_split: normal=0 anomaly=700",
+        "Colon_clinicDB": "single_class_split: normal=0 anomaly=428",
+        "Colon_colonDB": "single_class_split: normal=0 anomaly=266"
+      },
+      "legacy_combined_score": 32.75968692239218,
+      "per_dataset": [
+        {
+          "dataset": "Brain",
+          "exclusion_reason": "",
+          "image_AP": 95.0,
+          "image_AUROC": 84.27,
+          "image_score": 89.63499999999999,
+          "image_valid": true,
+          "pixel_AP": 33.2863,
+          "pixel_AUROC": 94.9491,
+          "pixel_score": 64.1177,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_Kvasir",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=700",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 56.5274,
+          "pixel_AUROC": 86.379,
+          "pixel_score": 71.45320000000001,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_clinicDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=428",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 47.1606,
+          "pixel_AUROC": 87.2212,
+          "pixel_score": 67.1909,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Colon_colonDB",
+          "exclusion_reason": "single_class_split: normal=0 anomaly=266",
+          "image_AP": 0.0,
+          "image_AUROC": 0.0,
+          "image_score": null,
+          "image_valid": false,
+          "pixel_AP": 29.6705,
+          "pixel_AUROC": 82.6266,
+          "pixel_score": 56.14855,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Liver",
+          "exclusion_reason": "",
+          "image_AP": 52.96999999999999,
+          "image_AUROC": 61.71,
+          "image_score": 57.339999999999996,
+          "image_valid": true,
+          "pixel_AP": 6.7172,
+          "pixel_AUROC": 96.993,
+          "pixel_score": 51.8551,
+          "pixel_valid": true
+        },
+        {
+          "dataset": "Retina",
+          "exclusion_reason": "",
+          "image_AP": 68.34,
+          "image_AUROC": 73.27,
+          "image_score": 70.805,
+          "image_valid": true,
+          "pixel_AP": 35.4446,
+          "pixel_AUROC": 92.95,
+          "pixel_score": 64.1973,
+          "pixel_valid": true
+        }
+      ],
+      "support_aware_combined_score": 67.16602562564304,
+      "support_aware_image_macro": 72.59333333333333,
+      "support_aware_pixel_macro": 62.49379166666666,
+      "valid_image_datasets": [
+        "Brain",
+        "Liver",
+        "Retina"
+      ],
+      "valid_pixel_datasets": [
+        "Brain",
+        "Colon_Kvasir",
+        "Colon_clinicDB",
+        "Colon_colonDB",
+        "Liver",
+        "Retina"
+      ]
+    }
+  ],
+  "metric_implementation_version": "summarize_phase4_results_v1",
+  "selected_checkpoint": "runs/phase4/progress1_v7_full_seed0_ready3/train/adapter_12.pth",
+  "selected_epoch": 12,
+  "selection_rule": "maximize support_aware_combined_score = harmonic_mean(image_macro_over_valid_datasets, pixel_macro_over_valid_datasets); tie-break: lower epoch wins on exact numerical ties",
+  "selection_rule_version": "support-aware-v2",
+  "split": "test",
+  "support_aware_combined_score": 67.16602562564304,
+  "support_aware_image_macro": 72.59333333333333,
+  "support_aware_pixel_macro": 62.49379166666666,
+  "valid_image_datasets": [
+    "Brain",
+    "Liver",
+    "Retina"
+  ],
+  "valid_pixel_datasets": [
+    "Brain",
+    "Colon_Kvasir",
+    "Colon_clinicDB",
+    "Colon_colonDB",
+    "Liver",
+    "Retina"
+  ]
+}

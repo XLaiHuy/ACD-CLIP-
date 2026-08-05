@@ -485,6 +485,174 @@ def routing_balance_loss(probabilities: torch.Tensor) -> torch.Tensor:
     return (usage - target).pow(2).sum()
 
 
+def assigned_expert_loss(expert_patch_logits: torch.Tensor, prediction_probabilities: torch.Tensor,
+                         masks: torch.Tensor) -> tuple[torch.Tensor, Dict[str, torch.Tensor]]:
+    """Every expert learns normal; detached router responsibility learns anomaly."""
+    if expert_patch_logits.ndim != 4 or prediction_probabilities.shape != expert_patch_logits.shape:
+        raise ValueError("expert logits and prediction probabilities must both be [G,B,P,M]")
+    _, _, patches, _ = expert_patch_logits.shape
+    patch_is_abnormal = _patch_labels(masks, patches).to(expert_patch_logits.device)
+    logits, weights = expert_patch_logits.float(), prediction_probabilities.detach().float()
+    normal_mask = (~patch_is_abnormal).unsqueeze(0).unsqueeze(-1).expand_as(logits)
+    zero = logits.sum() * 0.0
+    normal_loss = F.binary_cross_entropy_with_logits(logits[normal_mask], torch.zeros_like(logits[normal_mask])) if normal_mask.any() else zero
+    abnormal_mask = patch_is_abnormal.unsqueeze(0).unsqueeze(-1).expand_as(logits)
+    bce = F.binary_cross_entropy_with_logits(logits, torch.ones_like(logits), reduction="none")
+    denominator = (weights * abnormal_mask).sum()
+    assigned = (weights * bce * abnormal_mask).sum() / denominator.clamp_min(1e-8) if denominator.detach().item() > 0 else zero
+    return normal_loss + assigned, {"expert_normal_all": normal_loss.detach(), "expert_abnormal_assigned": assigned.detach()}
+
+
+def expert_advantage_loss(expert_patch_logits: torch.Tensor, topk_indices: torch.Tensor,
+                          masks: torch.Tensor, margin: float = 0.05) -> torch.Tensor:
+    if expert_patch_logits.ndim != 4 or topk_indices.ndim != 4:
+        raise ValueError("expert logits [G,B,P,M] and indices [G,B,P,K] are required")
+    _, _, patches, factors = expert_patch_logits.shape
+    abnormal = _patch_labels(masks, patches).to(expert_patch_logits.device).unsqueeze(0).unsqueeze(-1)
+    selected = F.one_hot(topk_indices.detach().long(), factors).any(dim=-2) & abnormal
+    nonselected = (~selected) & abnormal
+    if not selected.any() or not nonselected.any():
+        return expert_patch_logits.float().sum() * 0.0
+    bce = F.binary_cross_entropy_with_logits(expert_patch_logits.float(), torch.ones_like(expert_patch_logits.float()), reduction="none")
+    return F.relu(bce[selected].mean() - bce[nonselected].mean() + float(margin))
+
+
+def expert_etf_loss(delta_tangent: torch.Tensor, eps: float = 1e-6) -> tuple[torch.Tensor, torch.Tensor]:
+    if delta_tangent.ndim != 4:
+        raise ValueError("delta_tangent must be [G,B,M,D]")
+    factors = delta_tangent.shape[2]
+    if factors < 2:
+        return delta_tangent.sum() * 0.0, delta_tangent.norm(dim=-1).mean().detach()
+    norm = delta_tangent.float().norm(dim=-1, keepdim=True)
+    directions = delta_tangent.float() / norm.clamp_min(eps)
+    gram = torch.einsum("gbmd,gbnd->gbmn", directions, directions)
+    target = torch.full_like(gram, -1.0 / float(factors - 1))
+    target.diagonal(dim1=-2, dim2=-1).fill_(1.0)
+    valid = (norm.squeeze(-1) > eps).all(dim=-1)
+    per = (gram - target).pow(2).mean(dim=(-1, -2))
+    return (per[valid].mean() if valid.any() else delta_tangent.float().sum() * 0.0), norm.squeeze(-1).mean().detach()
+
+
+def dual_routing_balance_loss(dense: torch.Tensor, prediction: torch.Tensor, sparse_weight: float = 1.0) -> tuple[torch.Tensor, Dict[str, torch.Tensor]]:
+    dense_loss, prediction_loss = routing_balance_loss(dense), routing_balance_loss(prediction)
+    return dense_loss + float(sparse_weight) * prediction_loss, {"dense_cv2": dense_loss.detach(), "prediction_cv2": prediction_loss.detach()}
+
+
+def compute_final_expert_hard_cosine(
+    expert_factor_bank: torch.Tensor,
+    hard_frozen: torch.Tensor,
+) -> torch.Tensor:
+    """State-preserving FP32 cosine between final expert and frozen hard banks.
+
+    The factor bank is [G, B, M, D, 2] while the frozen hard bank is
+    [G, B, D, 2].  Moving the final state axis before cosine makes the
+    embedding axis unambiguous and prevents accidentally comparing the two
+    normal/abnormal states (an axis of length two) instead of D.
+    """
+    if expert_factor_bank.ndim != 5:
+        raise ValueError("expert_factor_bank must be [G,B,M,D,2]")
+    if hard_frozen.ndim != 4:
+        raise ValueError("hard_frozen must be [G,B,D,2]")
+    groups, batch, _, dim, states = expert_factor_bank.shape
+    if hard_frozen.shape != (groups, batch, dim, states) or states != 2:
+        raise ValueError("hard_frozen must match [G,B,D,2] from expert_factor_bank")
+    final_mean = expert_factor_bank.float().mean(dim=2)  # [G,B,D,2]
+    final_state = final_mean.movedim(-1, -2)             # [G,B,2,D]
+    hard_state = hard_frozen.detach().float().movedim(-1, -2)
+    return F.cosine_similarity(final_state, hard_state, dim=-1)
+
+
+def factor_bank_comparison_diagnostics(
+    left: torch.Tensor,
+    right: torch.Tensor,
+) -> Dict[str, torch.Tensor]:
+    """FP32 state-preserving comparison for two [G,B,M,D,2] factor banks."""
+    if left.ndim != 5 or right.ndim != 5 or left.shape != right.shape or left.shape[-1] != 2:
+        raise ValueError("both factor banks must have matching [G,B,M,D,2] shape")
+    left_state = left.float().movedim(-1, -2)    # [G,B,M,2,D]
+    right_state = right.detach().float().movedim(-1, -2)
+    cosine = F.cosine_similarity(left_state, right_state, dim=-1)
+    difference = (left.float() - right.detach().float()).abs()
+    return {
+        "cos_mean": cosine.mean().detach(),
+        "cos_min": cosine.min().detach(),
+        "cos_p05": torch.quantile(cosine.reshape(-1), 0.05).detach(),
+        "max_abs_diff": difference.max().detach(),
+    }
+
+
+def factor_bank_against_reference_diagnostics(
+    factor_bank: torch.Tensor,
+    reference_bank: torch.Tensor,
+) -> Dict[str, torch.Tensor]:
+    """Compare [G,B,M,D,2] to a reference [G,B,D,2] on the embedding axis."""
+    if factor_bank.ndim != 5 or reference_bank.ndim != 4:
+        raise ValueError("factor_bank/reference_bank must be [G,B,M,D,2]/[G,B,D,2]")
+    if factor_bank.shape[:2] + factor_bank.shape[3:] != reference_bank.shape:
+        raise ValueError("reference_bank must match factor bank [G,B,D,2]")
+    broadcast = reference_bank.detach().unsqueeze(2).expand_as(factor_bank)
+    return factor_bank_comparison_diagnostics(factor_bank, broadcast)
+
+
+def expert_clip_anchor_loss(expert_factor_bank: torch.Tensor, hard_frozen: torch.Tensor,
+                            min_cosine: float = 0.70) -> tuple[torch.Tensor, torch.Tensor]:
+    cosine = compute_final_expert_hard_cosine(expert_factor_bank, hard_frozen)
+    return F.relu(float(min_cosine) - cosine).pow(2).mean(), cosine.detach()
+
+
+def expert_radius_loss(relative_ratio: torch.Tensor, maximum: float) -> torch.Tensor:
+    return F.relu(relative_ratio.float() - float(maximum)).pow(2).mean()
+
+
+def expert_dead_counts(usage: torch.Tensor, threshold: float) -> tuple[torch.Tensor, torch.Tensor]:
+    """Return boolean [G,M] dead mask and [G] dead-factor counts."""
+    if usage.ndim != 2:
+        raise ValueError("usage must be [G,M]")
+    mask = usage.detach().float() <= float(threshold)
+    return mask, mask.sum(dim=-1)
+
+
+def sum_loss_components(components: Dict[str, torch.Tensor]) -> torch.Tensor:
+    """Single source of truth for the loss assembled by the training loop."""
+    if not components:
+        raise ValueError("loss components must not be empty")
+    return sum(components.values())
+
+
+def expert_patch_function_diagnostics(
+    expert_patch_logits: torch.Tensor, topk_indices: torch.Tensor, masks: torch.Tensor, margin: float,
+) -> Dict[str, torch.Tensor]:
+    """Detached assigned-patch observability using the exact loss geometry."""
+    groups, batch, patches, factors = expert_patch_logits.shape
+    abnormal_patch = _patch_labels(masks, patches).to(expert_patch_logits.device)
+    normal_patch = ~abnormal_patch
+    selected = F.one_hot(topk_indices.detach().long(), factors).any(dim=-2)
+    abnormal = abnormal_patch.unsqueeze(0).unsqueeze(-1).expand_as(selected)
+    selected_abnormal, nonselected_abnormal = selected & abnormal, (~selected) & abnormal
+    bce = F.binary_cross_entropy_with_logits(
+        expert_patch_logits.float(), torch.ones_like(expert_patch_logits.float()), reduction="none"
+    )
+    zero = bce.sum() * 0.0
+    selected_loss = bce[selected_abnormal].mean() if selected_abnormal.any() else zero
+    nonselected_loss = bce[nonselected_abnormal].mean() if nonselected_abnormal.any() else zero
+    valid_comparison = selected_abnormal.any() and nonselected_abnormal.any()
+    return {
+        "expert_normal_patch_count": normal_patch.float().sum().detach(),
+        "expert_abnormal_patch_count": abnormal_patch.float().sum().detach(),
+        "expert_valid_patch_count": torch.tensor(float(batch * patches), device=bce.device),
+        "selected_expert_loss": selected_loss.detach(),
+        "nonselected_expert_loss": nonselected_loss.detach(),
+        "selected_minus_nonselected_loss": (selected_loss - nonselected_loss).detach(),
+        "expert_advantage_margin_satisfied_fraction": (
+            (bce[selected_abnormal] + float(margin) < nonselected_loss).float().mean().detach()
+            if valid_comparison else zero.detach()
+        ),
+        "expert_advantage_valid_count": torch.tensor(
+            float(selected_abnormal.sum().item() if valid_comparison else 0), device=bce.device
+        ),
+    }
+
+
 def h6_loss_diagnostics(
     factor_bank: torch.Tensor,
     probabilities: torch.Tensor,

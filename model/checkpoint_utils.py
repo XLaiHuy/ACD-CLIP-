@@ -7,7 +7,7 @@ from typing import Any, Dict, Mapping
 import torch
 
 
-PHASE4_CHECKPOINT_VERSION = 6
+PHASE4_CHECKPOINT_VERSION = 7
 
 
 def is_phase4_checkpoint(checkpoint: Mapping[str, Any]) -> bool:
@@ -32,15 +32,14 @@ def validate_h6_configuration(model, checkpoint: Mapping[str, Any]) -> None:
     expected = model.h6.config_dict()
     expected_version = expected.get("progress_version")
     if expected_version == "P1-v6":
-        if int(checkpoint.get("checkpoint_version", 0)) != PHASE4_CHECKPOINT_VERSION:
+        if int(checkpoint.get("checkpoint_version", 0)) != 6:
             raise ValueError(
                 "P1-v6 model requires checkpoint_version=6. P1-v5 checkpoints are not "
                 "silently migrated because v6 adds deterministic router/query/factor anchor buffers."
             )
-        if config.get("progress_version") != "P1-v6":
-            raise ValueError(
-                f"P1-v6 model requires progress_version='P1-v6'; got {config.get('progress_version')!r}"
-            )
+    if expected_version == "P1-v7-full":
+        if int(checkpoint.get("checkpoint_version", 0)) != 7 or config.get("progress_version") != "P1-v7-full":
+            raise ValueError("P1-v7-full requires explicit checkpoint_version=7 and P1-v7-full metadata")
     if expected_version in {"P1-v3", "P1-v4", "P1-v5", "P1-v5-fix"} and config.get("progress_version") != expected_version:
         raise ValueError(
             f"{expected_version} model requires a {expected_version} checkpoint with explicit "
@@ -190,8 +189,20 @@ def build_phase4_checkpoint(
         "teacher_probability_std_threshold": loss_weights.get("teacher_prob_std_threshold"),
         "teacher_gate_scope": "patch",
     })
+    # Keep the full P1-v7 schedule alongside the architecture.  These are
+    # intentionally explicit rather than inferred from a launcher at test time.
+    for key in (
+        "lambda_h6_expert", "lambda_h6_advantage", "lambda_h6_etf",
+        "lambda_h6_expert_anchor", "lambda_h6_expert_radius",
+        "h6_expert_start_epoch", "h6_expert_warmup_epochs",
+        "h6_advantage_start_epoch", "h6_advantage_warmup_epochs", "h6_advantage_margin",
+        "h6_etf_start_epoch", "h6_etf_warmup_epochs", "lambda_h6_balance_final",
+        "h6_balance_decay_epochs",
+    ):
+        if key in phase2b_config:
+            h6_config[key] = phase2b_config[key]
     payload: Dict[str, Any] = {
-        "checkpoint_version": PHASE4_CHECKPOINT_VERSION,
+        "checkpoint_version": 7 if h6_config.get("progress_version") == "P1-v7-full" else 6,
         "epoch": int(epoch),
         "seed": int(seed),
         "phase4_progress": 1,
@@ -239,6 +250,7 @@ def build_phase4_checkpoint(
         payload["scheduler_state"] = scheduler.state_dict()
     if structural_gate_config is not None:
         payload["structural_gate_config"] = dict(structural_gate_config)
+        payload["h6_config"]["structural_gate_mode"] = structural_gate_config.get("structural_gate_mode", "abort")
     if structural_gate_state is not None:
         payload["structural_gate_state"] = dict(structural_gate_state)
     return payload
