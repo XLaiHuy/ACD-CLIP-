@@ -69,6 +69,14 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--pixel_stride", type=int, default=1)
     parser.add_argument("--temperature", type=float, default=1.0)
+    parser.add_argument(
+        "--allow-missing-original-selection",
+        action="store_true",
+        help=(
+            "Permit diagnostic-only aggregation when no training-time "
+            "medical_validation_selection.json exists."
+        ),
+    )
     args = parser.parse_args()
 
     save_path = Path(args.save_path)
@@ -83,7 +91,7 @@ def main() -> None:
 
     # Protect: do NOT overwrite original selection artifact
     original = save_path / "medical_validation_selection.json"
-    if not original.exists():
+    if not original.exists() and not args.allow_missing_original_selection:
         raise FileNotFoundError(
             f"Original selection artifact not found: {original}\n"
             "Run validation summarization first."
@@ -125,11 +133,18 @@ def main() -> None:
     )
     fingerprint = compute_config_fingerprint(fingerprint_config)
 
-    # Also load original selection for legacy comparison
-    with open(original) as fh:
-        original_selection = json.load(fh)
-    original_best_epoch = int(original_selection.get("best_epoch", {}).get("epoch", -1))
-    original_combined = original_selection.get("best_epoch", {}).get("combined_score", None)
+    # Training runs have an original selection artifact.  Post-smoke
+    # diagnostics intentionally do not, so retain that fact rather than
+    # fabricating a legacy selection.
+    original_selection_available = original.exists()
+    if original_selection_available:
+        with open(original) as fh:
+            original_selection = json.load(fh)
+        original_best_epoch = int(original_selection.get("best_epoch", {}).get("epoch", -1))
+        original_combined = original_selection.get("best_epoch", {}).get("combined_score", None)
+    else:
+        original_best_epoch = None
+        original_combined = None
 
     # Build output artifact
     artifact = {
@@ -153,9 +168,12 @@ def main() -> None:
         "support_aware_image_macro": best["support_aware_image_macro"],
         "support_aware_pixel_macro": best["support_aware_pixel_macro"],
         "legacy_combined_score_for_selected_epoch": best["legacy_combined_score"],
+        "original_selection_available": original_selection_available,
         "legacy_selected_epoch": original_best_epoch,
         "legacy_combined_score_for_legacy_selected_epoch": original_combined,
-        "epoch_changed_from_legacy": best_epoch != original_best_epoch,
+        "epoch_changed_from_legacy": (
+            best_epoch != original_best_epoch if original_selection_available else None
+        ),
         "command_config_fingerprint": fingerprint,
         "fingerprint_config": fingerprint_config,
         "deterministic_tie_break_reason": (
@@ -242,12 +260,20 @@ def main() -> None:
     print(f"[support-aware-v2] support_aware_image_macro={best['support_aware_image_macro']}")
     print(f"[support-aware-v2] support_aware_pixel_macro={best['support_aware_pixel_macro']}")
     print(f"[support-aware-v2] legacy_selected_epoch={original_best_epoch}")
-    print(f"[support-aware-v2] epoch_changed={best_epoch != original_best_epoch}")
+    print(
+        "[support-aware-v2] epoch_changed="
+        f"{best_epoch != original_best_epoch if original_selection_available else 'not_applicable'}"
+    )
     print(f"[support-aware-v2] fingerprint={fingerprint}")
     print(f"[support-aware-v2] artifacts: {json_out}")
     print(f"[support-aware-v2] artifacts: {csv_out}")
 
-    if best_epoch != original_best_epoch:
+    if not original_selection_available:
+        print(
+            "\n[support-aware-v2] Diagnostic-only aggregation: no training-time "
+            "selection artifact was expected or created."
+        )
+    elif best_epoch != original_best_epoch:
         print(
             f"\n[support-aware-v2] EPOCH CHANGED: {original_best_epoch} -> {best_epoch}\n"
             f"  The running test (epoch {original_best_epoch}) remains valid but is now labeled:\n"

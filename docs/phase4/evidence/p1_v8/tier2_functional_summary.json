@@ -1,0 +1,21 @@
+{
+  "tier": 2,
+  "name": "functional_specialization",
+  "source_artifact_path": "runs/phase4/p1_v8_specialization_overnight/experiment_ledger.json",
+  "evaluated_candidates": ["T2-A_func0001", "T2-B_func0003", "T2-C_func0010"],
+  "measured_values": {
+    "factor_patch_logit_correlation_mean": 0.999269,
+    "dense_vs_sparse_segmentation_logit_max_abs_diff": 1.192e-07,
+    "dense_vs_sparse_segmentation_logit_cosine": 0.99999988
+  },
+  "value_source_type": {
+    "factor_patch_logit_correlation_mean": "measured",
+    "dense_vs_sparse_segmentation_logit_max_abs_diff": "measured",
+    "dense_vs_sparse_segmentation_logit_cosine": "measured"
+  },
+  "target_thresholds": {
+    "factor_patch_logit_correlation_max_allowed": 0.900
+  },
+  "verdict": "FAIL",
+  "explanation": "Despite non-zero gradient flow and distinct weights, factor patch-logits remain correlated at ~0.999269; dense vs sparse routing yields functionally identical local segmentation predictions."
+}

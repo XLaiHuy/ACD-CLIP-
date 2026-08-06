@@ -1,0 +1,41 @@
+{
+  "tier": 3,
+  "name": "cluster_responsibility",
+  "source_artifact_path": "runs/phase4/tier3_m4_seed0/audit_checkpoint3/tier3_audit.json",
+  "checkpoint": "runs/phase4/tier3_m4_seed0/smoke_3x300_retry1/adapter_3.pth",
+  "checkpoint_sha256": "b2fbd8274240dcb0766abe0e327de4b8be045defbadc37642d31ea64f9e43725",
+  "config_values": {
+    "h6_lambda_cluster_resp": 0.05,
+    "temperature": 0.1
+  },
+  "measured_responsibility_shares": [
+    { "epoch": 1, "weighted_fraction_of_total": 0.51203596, "weighted_l_resp": 1.329632, "total_loss": 2.596755 },
+    { "epoch": 2, "weighted_fraction_of_total": 0.52042238, "weighted_l_resp": 1.118080, "total_loss": 2.148408 },
+    { "epoch": 3, "weighted_fraction_of_total": 0.43995909, "weighted_l_resp": 1.010947, "total_loss": 2.297820 }
+  ],
+  "measured_gradient_norms": {
+    "router": 0.104101,
+    "image_adapter": 0.075255,
+    "factor_id_embedding": 0.008901,
+    "semantic_slots": 0.008901,
+    "text_adapter": 0.0,
+    "factor_id_projection": 0.0,
+    "semantic_level_projectors": 0.0
+  },
+  "measured_clusters": [
+    { "cluster": 0, "anomaly_patch_fraction": 0.025071, "normal_patch_fraction": 0.974929, "mean_mask_coverage": 0.016376, "factor_anomaly_logit_mean": [-2.140118, -2.140099, -2.140019, -2.140119] },
+    { "cluster": 1, "anomaly_patch_fraction": 0.024791, "normal_patch_fraction": 0.975209, "mean_mask_coverage": 0.016158, "factor_anomaly_logit_mean": [-2.034826, -2.034807, -2.034726, -2.034827] },
+    { "cluster": 2, "anomaly_patch_fraction": 0.031562, "normal_patch_fraction": 0.968438, "mean_mask_coverage": 0.021843, "factor_anomaly_logit_mean": [3.615058, 3.615089, 3.615221, 3.615060] },
+    { "cluster": 3, "anomaly_patch_fraction": 0.025178, "normal_patch_fraction": 0.974822, "mean_mask_coverage": 0.016473, "factor_anomaly_logit_mean": [-1.988458, -1.988438, -1.988357, -1.988459] }
+  ],
+  "summary_metrics": {
+    "largest_anomaly_share_gap_percentage_points": 0.677,
+    "within_cluster_factor_anomaly_logit_mean_diff_max": 0.000164
+  },
+  "value_source_type": "measured",
+  "audit_outcomes": {
+    "unsupervised_clusters_semantically_useful": false,
+    "responsibility_loss_calibrated": false
+  },
+  "verdict": "FAIL"
+}

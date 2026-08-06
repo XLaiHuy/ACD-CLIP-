@@ -23,6 +23,7 @@ from model.adapter import (
     ACDCLIP
 )
 from model.checkpoint_utils import h6_config_from_checkpoint, load_adapter_checkpoint
+from utils import get_phase2b_global_text_features
 from model.clip import create_model
 
 
@@ -74,15 +75,24 @@ def get_predictions(
             )
             seg_features = torch.stack(visual_output["seg_tokens"], dim=0)
             det_features = torch.stack(visual_output["det_tokens"], dim=0)
-            epoch_text_features = h6_batch["text_global"].to(dtype=det_features.dtype)
+            h6_mode = getattr(model, "h6_global_text_mode", "phase2b_hybrid")
+            if h6_mode in ("phase2b_hybrid", "hard_anchor"):
+                is_hybrid = h6_mode == "phase2b_hybrid" and getattr(model, "use_hybrid_soft_prompt", False)
+                epoch_text_features = get_phase2b_global_text_features(
+                    model, dataset, list(class_name), device,
+                    use_hybrid_soft_prompt=is_hybrid,
+                    use_soft_prompt=getattr(model, "use_soft_prompt", False) if is_hybrid else False,
+                ).to(dtype=det_features.dtype)
+            else:
+                epoch_text_features = h6_batch["text_global"].to(dtype=det_features.dtype)
             h6_patch_logits = h6_batch["h6_logits"]
         else:
-            epoch_text_features = class_text_embeddings.unsqueeze(dim=1)  # [n_groups, 1, 768, 2]
+            epoch_text_embeddings = class_text_embeddings.unsqueeze(dim=1)  # [n_groups, 1, 768, 2]
             seg_tokens, det_tokens = model(image)
             seg_features = torch.stack(seg_tokens, dim=0)
             det_features = torch.stack(det_tokens, dim=0)
             B = seg_features.shape[1]
-            epoch_text_features = epoch_text_features.repeat(1, B, 1, 1)
+            epoch_text_features = epoch_text_embeddings.repeat(1, B, 1, 1)
             h6_patch_logits = None
         cls_preds = [
             torch.matmul(
@@ -136,7 +146,16 @@ def get_streaming_metrics(
             )
             seg_features = torch.stack(visual_output["seg_tokens"], dim=0)
             det_features = torch.stack(visual_output["det_tokens"], dim=0)
-            epoch_text_features = h6_batch["text_global"].to(dtype=det_features.dtype)
+            h6_mode = getattr(model, "h6_global_text_mode", "phase2b_hybrid")
+            if h6_mode in ("phase2b_hybrid", "hard_anchor"):
+                is_hybrid = h6_mode == "phase2b_hybrid" and getattr(model, "use_hybrid_soft_prompt", False)
+                epoch_text_features = get_phase2b_global_text_features(
+                    model, dataset, list(batch_class_name), device,
+                    use_hybrid_soft_prompt=is_hybrid,
+                    use_soft_prompt=getattr(model, "use_soft_prompt", False) if is_hybrid else False,
+                ).to(dtype=det_features.dtype)
+            else:
+                epoch_text_features = h6_batch["text_global"].to(dtype=det_features.dtype)
             h6_patch_logits = h6_batch["h6_logits"]
         else:
             epoch_text_features = class_text_embeddings.unsqueeze(dim=1)
@@ -287,7 +306,16 @@ def get_external_exact_metrics(
                 )
                 seg_features = torch.stack(visual_output["seg_tokens"], dim=0)
                 det_features = torch.stack(visual_output["det_tokens"], dim=0)
-                epoch_text_features = h6_batch["text_global"].to(dtype=det_features.dtype)
+                h6_mode = getattr(model, "h6_global_text_mode", "phase2b_hybrid")
+                if h6_mode in ("phase2b_hybrid", "hard_anchor"):
+                    is_hybrid = h6_mode == "phase2b_hybrid" and getattr(model, "use_hybrid_soft_prompt", False)
+                    epoch_text_features = get_phase2b_global_text_features(
+                        model, dataset, list(batch_class_name), device,
+                        use_hybrid_soft_prompt=is_hybrid,
+                        use_soft_prompt=getattr(model, "use_soft_prompt", False) if is_hybrid else False,
+                    ).to(dtype=det_features.dtype)
+                else:
+                    epoch_text_features = h6_batch["text_global"].to(dtype=det_features.dtype)
                 h6_patch_logits = h6_batch["h6_logits"]
             else:
                 epoch_text_features = class_text_embeddings.unsqueeze(dim=1)
@@ -397,7 +425,10 @@ def main():
     parser.add_argument("--h6_dense_routing_epochs", type=int, default=None)
     parser.add_argument("--h6_sparse_start_epoch", type=int, default=None)
     parser.add_argument("--h6_sparse_transition_epochs", type=int, default=1)
-    parser.add_argument("--h6_load_bias_enabled", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_global_text_mode", type=str, choices=["hard_anchor", "phase2b_hybrid", "dynamic_legacy"], default="hard_anchor")
+    parser.add_argument("--h6_prediction_routing", type=str, choices=["dense", "scheduled_topk", "readiness_topk"], default="dense")
+    parser.add_argument("--h6_diagnostics_mode", type=str, choices=["none", "light", "full"], default="light")
+    parser.add_argument("--h6_diagnostics_interval", type=int, default=1)
     parser.add_argument("--h6_load_bias_momentum", type=float, default=0.9)
     parser.add_argument("--h6_load_bias_step", type=float, default=0.001)
     parser.add_argument("--h6_load_bias_max", type=float, default=0.03)
@@ -411,6 +442,13 @@ def main():
     parser.add_argument("--h6_late_factor_identity_enabled", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--h6_factor_id_scale", type=float, default=0.02)
     parser.add_argument("--h6_factor_id_max_ratio", type=float, default=0.05)
+    parser.add_argument("--h6_factor_generator_specialization_enabled", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_factor_head_init_scale", type=float, default=1e-3)
+    parser.add_argument("--h6_factor_local_dynamic_mix", type=float, default=0.0)
+    parser.add_argument("--h6_cluster_responsibility", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_cluster_centroid_path", type=str, default=None)
+    parser.add_argument("--h6_cluster_temperature", type=float, default=0.10)
+    parser.add_argument("--h6_lambda_cluster_resp", type=float, default=0.0)
     parser.add_argument(
         "--h6_router_query_mode",
         choices=["raw", "local_residual", "local_global_bypass"],
@@ -433,8 +471,9 @@ def main():
     parser.add_argument("--h6_dynamic_mean_anchor_min_cosine", type=float, default=0.70)
     parser.add_argument("--h6_dynamic_mean_anchor_start_epoch", type=int, default=4)
     parser.add_argument("--h6_dynamic_mean_anchor_warmup_epochs", type=int, default=3)
-    parser.add_argument("--h6_progress_version", choices=["P1-v6", "P1-v7-full"], default="P1-v6")
+    parser.add_argument("--h6_progress_version", choices=["P1-v6", "P1-v7-full", "P1-v8-minimal"], default="P1-v6")
     parser.add_argument("--h6_expert_enabled", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_test_rho_override", type=float, default=None, help="Override rho value during inference (e.g., 0.0 to disable local residual)")
     parser.add_argument("--h6_expert_bottleneck", type=int, default=64)
     parser.add_argument("--h6_expert_fofs_seed_offset", type=int, default=7500)
     parser.add_argument("--h6_expert_state_condition_scale", type=float, default=0.25)
@@ -533,6 +572,8 @@ def main():
         default=None,
         help="Debug only: limit each class dataset to N samples per label. Prefer this over --max_samples.",
     )
+    parser.add_argument("--h6_load_bias_enabled", action=argparse.BooleanOptionalAction, default=False)
+
 
     args = parser.parse_args()
     if args.h6_dense_routing_epochs is not None:
@@ -580,6 +621,14 @@ def main():
         args.h6_late_factor_identity_enabled = bool(preflight_h6.get("late_factor_identity_enabled", False))
         args.h6_factor_id_scale = float(preflight_h6.get("factor_id_scale", 0.02))
         args.h6_factor_id_max_ratio = float(preflight_h6.get("factor_id_max_ratio", 0.05))
+        args.h6_factor_generator_specialization_enabled = bool(
+            preflight_h6.get("factor_generator_specialization_enabled", False)
+        )
+        args.h6_factor_head_init_scale = float(preflight_h6.get("factor_head_init_scale", 1e-3))
+        args.h6_factor_local_dynamic_mix = float(preflight_h6.get("factor_local_dynamic_mix", 0.0))
+        args.h6_cluster_responsibility = bool(preflight_h6.get("cluster_responsibility_enabled", False))
+        args.h6_cluster_temperature = float(preflight_h6.get("cluster_temperature", 0.10))
+        args.h6_lambda_cluster_resp = float(preflight_h6.get("cluster_loss_weight", 0.0))
         args.h6_router_query_mode = str(preflight_h6.get("router_query_mode", "local_global_bypass"))
         args.h6_router_query_global_weight = float(preflight_h6.get("router_query_global_weight", 0.10))
         args.h6_router_local_bypass_scale = float(preflight_h6.get("router_local_bypass_scale", 0.10))
@@ -681,6 +730,11 @@ def main():
         h6_late_factor_identity_enabled=args.h6_late_factor_identity_enabled,
         h6_factor_id_scale=args.h6_factor_id_scale,
         h6_factor_id_max_ratio=args.h6_factor_id_max_ratio,
+        h6_factor_generator_specialization_enabled=args.h6_factor_generator_specialization_enabled,
+        h6_factor_head_init_scale=args.h6_factor_head_init_scale,
+        h6_factor_local_dynamic_mix=args.h6_factor_local_dynamic_mix,
+        h6_cluster_responsibility=args.h6_cluster_responsibility,
+        h6_cluster_temperature=args.h6_cluster_temperature,
         h6_router_query_mode=args.h6_router_query_mode,
         h6_router_query_global_weight=args.h6_router_query_global_weight,
         h6_router_local_bypass_scale=args.h6_router_local_bypass_scale,
@@ -695,11 +749,6 @@ def main():
         h6_factor_context_adaptation_initial_ratio=args.h6_factor_context_adaptation_initial_ratio,
         h6_factor_context_adaptation_max_ratio=args.h6_factor_context_adaptation_max_ratio,
         h6_factor_identity_tangent_projection_enabled=args.h6_factor_identity_tangent_projection_enabled,
-        lambda_h6_dynamic_mean_anchor=args.lambda_h6_dynamic_mean_anchor,
-        h6_dynamic_mean_anchor_min_cosine=args.h6_dynamic_mean_anchor_min_cosine,
-        h6_dynamic_mean_anchor_start_epoch=args.h6_dynamic_mean_anchor_start_epoch,
-        h6_dynamic_mean_anchor_warmup_epochs=args.h6_dynamic_mean_anchor_warmup_epochs,
-        h6_router_teacher_mode=args.h6_router_teacher_mode,
         h6_progress_version=args.h6_progress_version,
         h6_expert_enabled=args.h6_expert_enabled,
         h6_expert_bottleneck=args.h6_expert_bottleneck,
@@ -709,8 +758,18 @@ def main():
         h6_expert_scale_start_epoch=args.h6_expert_scale_start_epoch,
         h6_expert_scale_warmup_epochs=args.h6_expert_scale_warmup_epochs,
         h6_expert_max_relative_ratio=args.h6_expert_max_relative_ratio,
+        lambda_h6_dynamic_mean_anchor=args.lambda_h6_dynamic_mean_anchor,
+        h6_dynamic_mean_anchor_min_cosine=args.h6_dynamic_mean_anchor_min_cosine,
+        h6_dynamic_mean_anchor_start_epoch=args.h6_dynamic_mean_anchor_start_epoch,
+        h6_dynamic_mean_anchor_warmup_epochs=args.h6_dynamic_mean_anchor_warmup_epochs,
+        h6_router_teacher_mode=args.h6_router_teacher_mode,
+        h6_prediction_routing=args.h6_prediction_routing,
+        diagnostics_mode=args.h6_diagnostics_mode,
+        diagnostics_interval=args.h6_diagnostics_interval,
+        test_rho_override=args.h6_test_rho_override,
     ).to(device)
     model.eval()
+    model.h6_global_text_mode = args.h6_global_text_mode
     model.prompt_mode = "h6_dynamic" if args.h6_progress == 1 else ("hybrid" if args.use_hybrid_soft_prompt else ("soft" if args.use_soft_prompt else "hard"))
     model.use_hybrid_soft_prompt = bool(args.use_hybrid_soft_prompt or args.h6_progress == 1)
     model.hybrid_alpha_current = 0.0 if args.hybrid_alpha is None else float(args.hybrid_alpha)

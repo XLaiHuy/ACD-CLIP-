@@ -27,6 +27,7 @@ class PatchRouter(nn.Module):
         load_bias_momentum: float = 0.9,
         load_bias_step: float = 0.001,
         load_bias_max: float = 0.03,
+        prediction_routing: str = "dense",
         slot_init_enabled: bool = False,
         slot_init_scale: float = 0.02,
         slot_init_seed_offset: int = 6100,
@@ -55,6 +56,7 @@ class PatchRouter(nn.Module):
         self.soft_routing_epochs = int(soft_routing_epochs)
         self.sparse_transition_epochs = max(1, int(sparse_transition_epochs))
         self.top_k = int(top_k)
+        self.prediction_routing = prediction_routing
         self.load_bias_enabled = bool(load_bias_enabled)
         self.load_bias_momentum = float(load_bias_momentum)
         self.load_bias_step = float(load_bias_step)
@@ -155,7 +157,7 @@ class PatchRouter(nn.Module):
             concept_keys = self.fallback_concept_keys
         if concept_keys.ndim != 2 or concept_keys.shape != (self.num_factors, self.bank_dim):
             raise ValueError(f"concept_keys must be [{self.num_factors}, {self.bank_dim}]")
-        tokens = F.normalize(tokens.float(), dim=-1)
+        tokens = self.router_input_features(tokens)
         groups, batch, patches, _ = tokens.shape
         local_patch, local_input, combined_input = self._local_query_inputs(tokens, valid_patch_mask)
         level = self.level_embedding[:, None, None, :].expand(groups, batch, patches, -1)
@@ -202,7 +204,13 @@ class PatchRouter(nn.Module):
         masked_logits.scatter_(-1, topk_indices, logits.gather(-1, topk_indices))
         sparse_probabilities = F.softmax(masked_logits, dim=-1)
         st_sparse_probabilities = dense_probabilities + (sparse_probabilities - dense_probabilities).detach()
-        prediction_probabilities = (1.0 - ratio) * dense_probabilities + ratio * st_sparse_probabilities
+        if self.prediction_routing == "dense":
+            prediction_probabilities = dense_probabilities
+        elif self.prediction_routing == "readiness_topk":
+            # Sparse only after gates pass. For now, we will fallback to st_sparse if ratio >= 1.0, else dense
+            prediction_probabilities = st_sparse_probabilities if ratio >= 1.0 else dense_probabilities
+        else: # scheduled_topk
+            prediction_probabilities = (1.0 - ratio) * dense_probabilities + ratio * st_sparse_probabilities
         sparse_active = bool(ratio >= 1.0)
         topk_frequency = self.topk_frequency(topk_indices, self.num_factors).detach()
         if self.training and update_load_bias and bias_active:
@@ -220,6 +228,9 @@ class PatchRouter(nn.Module):
             learned_query=learned_query,
         )
         return {
+            # Tier-3 patch-bank contract: this is the FP32/L2 tensor consumed
+            # by the dense router before any local/global query transform.
+            "router_input_features": tokens,
             "logits": logits,
             "selection_logits": selection_logits,
             "queries": query,
@@ -249,6 +260,13 @@ class PatchRouter(nn.Module):
             **key_diagnostics,
             **query_patch,
         }
+
+    def router_input_features(self, tokens: Sequence[torch.Tensor] | torch.Tensor) -> torch.Tensor:
+        """Return the exact normalized patch tensor consumed by dense routing."""
+        tokens = self._stack(tokens)
+        if tokens.ndim != 4 or tokens.shape[0] != self.n_groups or tokens.shape[-1] != self.text_dim:
+            raise ValueError("router input must be [n_groups, B, P, 768]")
+        return F.normalize(tokens.float(), dim=-1)
 
     def _local_query_inputs(
         self,

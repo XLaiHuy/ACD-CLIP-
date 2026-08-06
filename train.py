@@ -1,5 +1,7 @@
 import argparse
 import contextlib
+import csv
+import hashlib
 import json
 import logging
 import os
@@ -21,6 +23,7 @@ from dataset import get_text_and_image_dataset
 from utils import (
     calculate_seg_loss,
     get_hybrid_soft_prompt_single_class_text_embedding,
+    get_phase2b_global_text_features,
     get_multiple_adapted_single_class_text_embedding,
     get_soft_prompt_single_class_text_embedding,
 )
@@ -41,7 +44,9 @@ from model.h6.losses import (
     assigned_expert_loss, expert_advantage_loss, expert_etf_loss,
     dual_routing_balance_loss, expert_clip_anchor_loss, expert_radius_loss,
     expert_dead_counts, expert_patch_function_diagnostics, sum_loss_components,
+    delta_t_diversity_loss, functional_factor_diversity_loss,
 )
+from model.h6.cluster_responsibility import cluster_responsibility_loss
 
 
 def tensor_debug_stats(tensor):
@@ -84,17 +89,11 @@ def diagnostics_to_python(diagnostics):
     if torch.is_tensor(diagnostics):
         value = diagnostics.detach().cpu()
         return value.item() if value.ndim == 0 else value.tolist()
-    if not isinstance(diagnostics, dict):
-        return diagnostics
-    converted = {}
-    for key, value in diagnostics.items():
-        if value is None:
-            converted[key] = None
-        elif torch.is_tensor(value):
-            converted[key] = diagnostics_to_python(value)
-        else:
-            converted[key] = value
-    return converted
+    if isinstance(diagnostics, dict):
+        return {key: diagnostics_to_python(value) for key, value in diagnostics.items()}
+    if isinstance(diagnostics, (list, tuple)):
+        return [diagnostics_to_python(value) for value in diagnostics]
+    return diagnostics
 
 
 def h6_drift_gradient_attribution(losses, parameter_groups):
@@ -349,6 +348,15 @@ def grad_norm_or_none(param: torch.nn.Parameter):
     if param.grad is None:
         return None
     return float(param.grad.detach().float().norm().item())
+
+
+def module_grad_norm(module: torch.nn.Module | None) -> torch.Tensor | None:
+    if module is None:
+        return None
+    squared_norms = [p.grad.detach().float().norm().square() for p in module.parameters() if p.grad is not None]
+    if not squared_norms:
+        return None
+    return torch.stack(squared_norms).sum().sqrt()
 
 
 def get_hybrid_alpha_for_epoch(epoch_one_based: int, hybrid_alpha_max: float, soft_prompt_freeze_epochs: int):
@@ -1002,6 +1010,13 @@ def _phase2b_config_from_args(args) -> dict:
         "h6_kl_warmup_epochs": args.h6_kl_warmup_epochs,
         "h6_kl_free_bits": args.h6_kl_free_bits,
         "beta_h6_vae_kl": args.beta_h6_vae_kl,
+        "lambda_h6_delta_div": args.lambda_h6_delta_div,
+        "lambda_h6_func_div": args.lambda_h6_func_div,
+        "h6_cluster_responsibility": args.h6_cluster_responsibility,
+        "h6_cluster_centroid_path": args.h6_cluster_centroid_path,
+        "h6_cluster_temperature": args.h6_cluster_temperature,
+        "h6_lambda_cluster_resp": args.h6_lambda_cluster_resp,
+        "h6_cluster_centroid_sha256": getattr(args, "h6_cluster_centroid_sha256", None),
         "h6_vae_class_ratio": args.h6_vae_class_ratio,
         "lambda_h6_concept_key_diversity": args.lambda_h6_concept_key_diversity,
         "h6_concept_key_cosine_margin": args.h6_concept_key_cosine_margin,
@@ -1014,6 +1029,9 @@ def _phase2b_config_from_args(args) -> dict:
         "h6_late_factor_identity_enabled": args.h6_late_factor_identity_enabled,
         "h6_factor_id_scale": args.h6_factor_id_scale,
         "h6_factor_id_max_ratio": args.h6_factor_id_max_ratio,
+        "h6_factor_generator_specialization_enabled": args.h6_factor_generator_specialization_enabled,
+        "h6_factor_head_init_scale": args.h6_factor_head_init_scale,
+        "h6_factor_local_dynamic_mix": args.h6_factor_local_dynamic_mix,
         "h6_router_query_mode": args.h6_router_query_mode,
         "h6_router_query_global_weight": args.h6_router_query_global_weight,
         "h6_router_local_bypass_scale": args.h6_router_local_bypass_scale,
@@ -1125,6 +1143,8 @@ def train_h6_progress1(
         "vae_kl_free_bits": args.h6_kl_free_bits,
         "vae_class_ratio": args.h6_vae_class_ratio,
         "orth": args.lambda_h6_orth,
+        "delta_t_diversity": args.lambda_h6_delta_div,
+        "functional_factor_diversity": args.lambda_h6_func_div,
         "balance": args.lambda_h6_balance,
         "concept_key_diversity": args.lambda_h6_concept_key_diversity,
         "concept_key_cosine_margin": args.h6_concept_key_cosine_margin,
@@ -1136,6 +1156,9 @@ def train_h6_progress1(
         "dynamic_mean_anchor_min_cosine": args.h6_dynamic_mean_anchor_min_cosine,
         "dynamic_mean_anchor_start_epoch": args.h6_dynamic_mean_anchor_start_epoch,
         "dynamic_mean_anchor_warmup_epochs": args.h6_dynamic_mean_anchor_warmup_epochs,
+        "cluster_responsibility": args.h6_cluster_responsibility,
+        "cluster_temperature": args.h6_cluster_temperature,
+        "cluster_loss_weight": args.h6_lambda_cluster_resp,
     }
     structural_gate_config = StructuralGateConfig.from_args(args)
     structural_gate = H6StructuralGateState(structural_gate_config)
@@ -1144,6 +1167,7 @@ def train_h6_progress1(
     router_failure_streak = 0
     task_loss_history: list[float] = []
     saved_checkpoints: list[str] = []
+    wiring_factor_collapse_probes = 0
     for epoch_zero_based in range(args.epoch):
         epoch = epoch_zero_based + 1
         started = time.monotonic()
@@ -1184,6 +1208,10 @@ def train_h6_progress1(
             "loss_component_sum", "loss_component_residual", "expert_assigned_normal", "expert_assigned_abnormal",
             "selected_expert_loss", "nonselected_expert_loss", "expert_advantage_margin_satisfied_fraction",
             "legacy_pre_expert_orth_raw", "legacy_pre_expert_orth_weight", "legacy_pre_expert_orth_weighted",
+            "delta_t_diversity_raw", "delta_t_diversity_weight", "delta_t_diversity_weighted",
+            "functional_factor_diversity_raw", "functional_factor_diversity_weight", "functional_factor_diversity_weighted",
+            "cluster_resp_raw", "cluster_resp_weight", "cluster_resp_weighted",
+            "cluster_target_entropy", "cluster_router_entropy",
         )}
         factor_grad_diag = {
             "factor_grad_norms": None,
@@ -1192,6 +1220,18 @@ def train_h6_progress1(
             "factor_grad_l2_min": None,
             "dynamic_residual_grad_norms": None,
             "factor_id_projection_grad_norm": None,
+            "factor_generator_identity_grad_norm": None,
+            "factor_generator_context_grad_norm": None,
+            "factor_generator_head_grad_norms": None,
+            "dynamic_prompt_shared_trunk_grad_norm": None,
+            "vae_mu_grad_norm": None,
+            "vae_logvar_grad_norm": None,
+            "prototype_modules_grad_norm": None,
+            "router_grad_norm": None,
+            "rho_gate_grad_norm": None,
+            "phase2b_image_adapter_grad_norm": None,
+            "phase2b_text_adapter_grad_norm": None,
+            "dfg_grad_norm": None,
         }
         optimizer.zero_grad(set_to_none=True)
         # Structural gates must describe the epoch, never just its final batch.
@@ -1237,6 +1277,21 @@ def train_h6_progress1(
                 h6_batch = model.h6.build_batch(
                     model, dataset_name, class_names, visual_output, hybrid_alpha=hybrid_alpha
                 )
+                if args.h6_cluster_responsibility:
+                    h6_cluster_resp, q_cluster, cluster_diag = cluster_responsibility_loss(
+                        h6_batch["router_patch_features"],
+                        model.h6.cluster_centroids,
+                        h6_batch["dense_probabilities"],
+                        args.h6_cluster_temperature,
+                    )
+                    for diag_name, diag_value in cluster_diag.items():
+                        value = diag_value.detach().float()
+                        epoch_diag_sum[diag_name] = epoch_diag_sum.get(diag_name, torch.zeros_like(value)) + value
+                        epoch_diag_count[diag_name] = epoch_diag_count.get(diag_name, 0) + 1
+                else:
+                    h6_cluster_resp = h6_batch["dense_probabilities"].sum() * 0.0
+                    q_cluster = None
+                    cluster_diag = {}
                 if args.h6_drift_diagnostics and batch_idx == 1:
                     _record_drift_snapshot("batch_000_before_first_backward", h6_batch)
                 if args.h6_drift_diagnostics and batch_idx == epoch_batch_limit:
@@ -1254,7 +1309,15 @@ def train_h6_progress1(
                     h6_batch["dynamic_text"].retain_grad()
                 seg_features = torch.stack(visual_output["seg_tokens"], dim=0)
                 det_features = torch.stack(visual_output["det_tokens"], dim=0)
-                text_global = h6_batch["text_global"].to(dtype=det_features.dtype)
+                if args.h6_global_text_mode in ("phase2b_hybrid", "hard_anchor"):
+                    is_hybrid = args.h6_global_text_mode == "phase2b_hybrid"
+                    text_global = get_phase2b_global_text_features(
+                        model, dataset_name, class_names, device,
+                        use_hybrid_soft_prompt=is_hybrid,
+                        use_soft_prompt=args.use_soft_prompt
+                    ).to(dtype=det_features.dtype)
+                else:
+                    text_global = h6_batch["text_global"].to(dtype=det_features.dtype)
                 cls_pred = torch.stack([
                     torch.matmul(det_features[level].unsqueeze(1), text_global[level]).squeeze(1)
                     for level in range(model.n_groups)
@@ -1288,6 +1351,29 @@ def train_h6_progress1(
                         label,
                     )
                 h6_orth = h6_batch["residual_diversity"]
+                h6_delta_div = (
+                    delta_t_diversity_loss(h6_batch["dynamic_text"], h6_batch["hard_frozen"])
+                    if args.lambda_h6_delta_div > 0.0
+                    else h6_orth * 0.0
+                )
+                if args.lambda_h6_func_div > 0.0:
+                    factor_bank = h6_batch["factor_bank"].float()
+                    factor_patch_logits = torch.einsum(
+                        "gbpd,gbmd->gbpm", F.normalize(seg_features.float(), dim=-1),
+                        factor_bank[..., 1] - factor_bank[..., 0],
+                    ) * model.h6.h6_logit_temperature
+                    hard_direction = h6_batch["hard_frozen"].float()[..., 1] - h6_batch["hard_frozen"].float()[..., 0]
+                    hard_logits = torch.einsum("gbpd,gbd->gbp", F.normalize(seg_features.float(), dim=-1), hard_direction)
+                    hard_centered = hard_logits - hard_logits.mean(dim=2, keepdim=True)
+                    confidence = hard_centered.abs() / hard_centered.std(dim=2, keepdim=True).clamp_min(1e-6)
+                    patch_weights = 1.0 + confidence.detach()
+                    patch_labels = F.adaptive_max_pool2d(mask.float(), (int(factor_patch_logits.shape[2] ** 0.5),) * 2).flatten(1)
+                    patch_weights = patch_weights + patch_labels.detach().unsqueeze(0)
+                    h6_func_div, h6_func_corr = functional_factor_diversity_loss(factor_patch_logits, patch_weights)
+                    epoch_diag_sum["functional_factor_correlation_matrix"] = epoch_diag_sum.get("functional_factor_correlation_matrix", torch.zeros_like(h6_func_corr)) + h6_func_corr.detach()
+                    epoch_diag_count["functional_factor_correlation_matrix"] = epoch_diag_count.get("functional_factor_correlation_matrix", 0) + 1
+                else:
+                    h6_func_div = h6_orth * 0.0
                 h6_balance = routing_balance_loss(h6_batch["dense_probabilities"])
                 if router_teacher_weight > 0.0:
                     h6_router_teacher, teacher_diag = router_teacher_loss(
@@ -1397,6 +1483,9 @@ def train_h6_progress1(
                     "vae_rec": args.lambda_h6_vae_rec * h6_batch["reconstruction"],
                     "vae_kl": beta_vae_kl * h6_kl_effective, "kg": args.lambda_kg * h6_batch["kg_loss"],
                     "legacy_pre_expert_orth": args.lambda_h6_orth * h6_orth,
+                    "delta_t_diversity": args.lambda_h6_delta_div * h6_delta_div,
+                    "functional_factor_diversity": args.lambda_h6_func_div * h6_func_div,
+                    "cluster_responsibility": args.h6_lambda_cluster_resp * h6_cluster_resp,
                     "balance": balance_weight * h6_balance,
                     "raw_key_diversity": concept_key_diversity_weight * h6_concept_key_diversity,
                     "dynamic_mean_anchor": dynamic_mean_anchor_weight * h6_batch["dynamic_mean_anchor_loss_raw"],
@@ -1407,6 +1496,53 @@ def train_h6_progress1(
                 loss_component_sum = sum_loss_components(loss_components)
                 total_loss = loss_component_sum
                 loss_component_residual = total_loss - loss_component_sum
+                if batch_idx in set(args.h6_wiring_probe_batches):
+                    factor_bank = h6_batch["factor_bank"].float()
+                    factor_patch_logits = torch.einsum(
+                        "gbpd,gbmd->gbpm",
+                        F.normalize(seg_features.float(), dim=-1),
+                        factor_bank[..., 1] - factor_bank[..., 0],
+                    ) * model.h6.h6_logit_temperature
+                    delta_t = (
+                        h6_batch["dynamic_text"].float()
+                        - h6_batch["hard_frozen"].unsqueeze(2).expand_as(h6_batch["dynamic_text"]).float()
+                    ).permute(0, 1, 2, 4, 3).reshape(-1, model.h6.num_factors, 2 * model.h6.text_dim)
+                    delta_unit = F.normalize(delta_t, dim=-1, eps=1e-6)
+                    delta_cos = torch.bmm(delta_unit, delta_unit.transpose(1, 2))
+                    offdiag = ~torch.eye(model.h6.num_factors, device=device, dtype=torch.bool)
+                    factor_std = factor_patch_logits.std(dim=-1, unbiased=False).mean()
+                    factor_max_diff = (
+                        factor_patch_logits.max(dim=-1).values - factor_patch_logits.min(dim=-1).values
+                    ).mean()
+                    collapsed = bool(factor_max_diff.detach().abs().item() <= 1e-9)
+                    wiring_factor_collapse_probes = wiring_factor_collapse_probes + 1 if collapsed else 0
+                    write_json_atomic(
+                        Path(args.save_path) / "wiring_probes" / f"batch_{batch_idx:03d}.json",
+                        diagnostics_to_python({
+                            "epoch": epoch,
+                            "batch": batch_idx,
+                            "loss_total": total_loss,
+                            "loss_delta_t_diversity_raw": h6_delta_div,
+                            "loss_delta_t_diversity_weighted": args.lambda_h6_delta_div * h6_delta_div,
+                            "loss_cluster_responsibility_raw": h6_cluster_resp,
+                            "loss_cluster_responsibility_weighted": args.h6_lambda_cluster_resp * h6_cluster_resp,
+                            "cluster_target": None if q_cluster is None else q_cluster,
+                            "cluster_diagnostics": cluster_diag,
+                            "delta_t_norm_mean": delta_t.norm(dim=-1).mean(),
+                            "delta_t_norm_min": delta_t.norm(dim=-1).min(),
+                            "delta_t_cosine_offdiag_mean": delta_cos[..., offdiag].mean(),
+                            "delta_t_cosine_offdiag_max": delta_cos[..., offdiag].max(),
+                            "factor_patch_logit_std_across_factors": factor_std,
+                            "factor_patch_logit_max_diff_across_factors": factor_max_diff,
+                            "factor_outputs_collapsed": collapsed,
+                            "consecutive_factor_output_collapse_probes": wiring_factor_collapse_probes,
+                            "router": h6_batch["router_diagnostics"],
+                        }),
+                    )
+                    if wiring_factor_collapse_probes >= 2:
+                        raise RuntimeError(
+                            "factor outputs became exactly identical for two consecutive wiring probes"
+                        )
                 if args.h6_drift_diagnostics and batch_idx == 1:
                     drift_gradient_report = h6_drift_gradient_attribution(
                         {
@@ -1458,6 +1594,53 @@ def train_h6_progress1(
                 factor_id_grad = model.h6.semantic_core.factor_id_projection.weight.grad
                 if factor_id_grad is not None:
                     factor_grad_diag["factor_id_projection_grad_norm"] = factor_id_grad.detach().float().norm()
+                core = model.h6.semantic_core
+                if getattr(core, "factor_generator_specialization_enabled", False):
+                    identity_grad = core.factor_id_embedding.grad
+                    if identity_grad is not None:
+                        factor_grad_diag["factor_generator_identity_grad_norm"] = identity_grad.detach().float().norm()
+                    context_grads = [
+                        p.grad.detach().float().norm()
+                        for p in core.factor_id_to_context.parameters() if p.grad is not None
+                    ]
+                    if context_grads:
+                        factor_grad_diag["factor_generator_context_grad_norm"] = torch.stack(context_grads).norm()
+                    factor_grad_diag["factor_generator_head_grad_norms"] = torch.stack([
+                        head.weight.grad.detach().float().norm()
+                        if head.weight.grad is not None else torch.zeros((), device=device)
+                        for head in core.factor_output_heads
+                    ])
+                shared_trunk_norms = [
+                    module_grad_norm(getattr(core, name, None)) for name in (
+                        "normal_state_update", "abnormal_state_update",
+                        "state_to_context_normal", "state_to_context_abnormal",
+                    )
+                ]
+                shared_trunk_norms = [value for value in shared_trunk_norms if value is not None]
+                if shared_trunk_norms:
+                    factor_grad_diag["dynamic_prompt_shared_trunk_grad_norm"] = torch.stack(shared_trunk_norms).norm()
+                vae = getattr(core, "class_vae", None)
+                factor_grad_diag["vae_mu_grad_norm"] = module_grad_norm(getattr(vae, "mu", None))
+                factor_grad_diag["vae_logvar_grad_norm"] = module_grad_norm(getattr(vae, "logvar", None))
+                prototype_norms = [module_grad_norm(getattr(core, "prototype_attention", None))]
+                prototype_norms = [value for value in prototype_norms if value is not None]
+                if prototype_norms:
+                    factor_grad_diag["prototype_modules_grad_norm"] = torch.stack(prototype_norms).norm()
+                factor_grad_diag["router_grad_norm"] = module_grad_norm(model.h6.router)
+                rho_modules = [getattr(model.h6, "rho", None)]
+                rho_norms = [module_grad_norm(module) for module in rho_modules]
+                rho_norms = [value for value in rho_norms if value is not None]
+                if rho_norms:
+                    factor_grad_diag["rho_gate_grad_norm"] = torch.stack(rho_norms).norm()
+                factor_grad_diag["phase2b_image_adapter_grad_norm"] = module_grad_norm(model.image_adapter)
+                factor_grad_diag["phase2b_text_adapter_grad_norm"] = module_grad_norm(model.text_adapter)
+                dfg_module = (
+                    model.image_adapter["vision_text_gate"]
+                    if "vision_text_gate" in model.image_adapter
+                    else model.image_adapter["vision_text_q"]
+                    if "vision_text_q" in model.image_adapter else None
+                )
+                factor_grad_diag["dfg_grad_norm"] = module_grad_norm(dfg_module)
             do_step = batch_idx % args.grad_accum_steps == 0 or batch_idx == epoch_batch_limit
             if do_step:
                 scaler.unscale_(optimizer)
@@ -1542,6 +1725,17 @@ def train_h6_progress1(
                 "legacy_pre_expert_orth_raw": h6_orth,
                 "legacy_pre_expert_orth_weight": torch.as_tensor(args.lambda_h6_orth, device=device),
                 "legacy_pre_expert_orth_weighted": args.lambda_h6_orth * h6_orth,
+                "delta_t_diversity_raw": h6_delta_div,
+                "delta_t_diversity_weight": torch.as_tensor(args.lambda_h6_delta_div, device=device),
+                "delta_t_diversity_weighted": args.lambda_h6_delta_div * h6_delta_div,
+                "functional_factor_diversity_raw": h6_func_div,
+                "functional_factor_diversity_weight": torch.as_tensor(args.lambda_h6_func_div, device=device),
+                "functional_factor_diversity_weighted": args.lambda_h6_func_div * h6_func_div,
+                "cluster_resp_raw": h6_cluster_resp,
+                "cluster_resp_weight": torch.as_tensor(args.h6_lambda_cluster_resp, device=device),
+                "cluster_resp_weighted": args.h6_lambda_cluster_resp * h6_cluster_resp,
+                "cluster_target_entropy": cluster_diag.get("cluster_target_entropy", h6_cluster_resp.detach() * 0.0),
+                "cluster_router_entropy": cluster_diag.get("cluster_router_entropy", h6_cluster_resp.detach() * 0.0),
             }.items():
                 metrics[key].append(float(value.detach().float().item()))
             if device.type == "cuda":
@@ -1642,6 +1836,46 @@ def train_h6_progress1(
         task_loss_history.append(epoch_metric_means.get("task", 0.0))
 
         is_v7 = getattr(model.h6, "progress_version", "P1-v6") == "P1-v7-full"
+        if not is_v7:
+            write_json_atomic(
+                Path(args.save_path) / "diagnostics" / f"epoch_{epoch:03d}.json",
+                diagnostics_to_python({
+                    "progress_version": model.h6.progress_version,
+                    "loss_components": epoch_metric_means,
+                    "gradients": factor_grad_diag,
+                    "router": {
+                        "dense_usage": diagnostics.get("dense_factor_usage"),
+                        "sparse_usage": diagnostics.get("sparse_factor_usage"),
+                        "unique_topk_pairs": diagnostics.get("unique_topk_pairs"),
+                    },
+                    "gate": {
+                        "hard_failure": gate_decision.hard_failure,
+                        "soft_warnings": gate_decision.soft_warnings,
+                        "abort_reason": gate_decision.abort_reason,
+                        "sample_count": epoch_batch_limit,
+                    },
+                }),
+            )
+            loss_row = {
+                "epoch": epoch,
+                **epoch_metric_means,
+                **{f"weight_{key}": value for key, value in loss_weights.items()},
+            }
+            loss_csv_path = Path(args.save_path) / "losses.csv"
+            with open(loss_csv_path, "a", newline="", encoding="utf-8") as handle:
+                writer = csv.DictWriter(handle, fieldnames=list(loss_row))
+                if handle.tell() == 0:
+                    writer.writeheader()
+                writer.writerow(loss_row)
+            gradient_row = {"epoch": epoch}
+            for key, value in diagnostics_to_python(factor_grad_diag).items():
+                gradient_row[key] = json.dumps(value) if isinstance(value, (list, dict)) else value
+            gradient_csv_path = Path(args.save_path) / "gradient_norms.csv"
+            with open(gradient_csv_path, "a", newline="", encoding="utf-8") as handle:
+                writer = csv.DictWriter(handle, fieldnames=list(gradient_row))
+                if handle.tell() == 0:
+                    writer.writeheader()
+                writer.writerow(gradient_row)
         if is_v7:
             def _d(name, default=0.0):
                 value = diagnostics.get(name)
@@ -2084,6 +2318,10 @@ def main():
         help="Development-only cap per epoch for Phase4 runtime smoke checks; 0 means the full loader.",
     )
     parser.add_argument(
+        "--h6_wiring_probe_batches", type=int, nargs="*", default=[],
+        help="Optional one-based batch indices for compact factor-specialization wiring probes.",
+    )
+    parser.add_argument(
         "--h6_drift_diagnostics", action=argparse.BooleanOptionalAction, default=False,
         help="One-batch bank snapshots and autograd attribution for a diagnostic smoke only.",
     )
@@ -2105,9 +2343,12 @@ def main():
         choices=["raw_cosine", "state_centered_cosine", "negative_squared_distance"],
         default="raw_cosine",
     )
-    parser.add_argument("--h6_teacher_confidence_gate", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_teacher_confidence_gate", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--h6_teacher_entropy_threshold", type=float, default=0.98)
-    parser.add_argument("--h6_teacher_prob_std_threshold", type=float, default=1e-3)
+    parser.add_argument("--h6_global_text_mode", type=str, choices=["hard_anchor", "phase2b_hybrid", "dynamic_legacy"], default="hard_anchor")
+    parser.add_argument("--h6_prediction_routing", type=str, choices=["dense", "scheduled_topk", "readiness_topk"], default="dense")
+    parser.add_argument("--h6_diagnostics_mode", type=str, choices=["none", "light", "full"], default="light")
+    parser.add_argument("--h6_diagnostics_interval", type=int, default=1)
     parser.add_argument("--h6_load_bias_enabled", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--h6_load_bias_momentum", type=float, default=0.9)
     parser.add_argument("--h6_load_bias_step", type=float, default=0.001)
@@ -2146,6 +2387,17 @@ def main():
     parser.add_argument("--h6_factor_id_scale", type=float, default=0.02)
     parser.add_argument("--h6_factor_id_max_ratio", type=float, default=0.05)
     parser.add_argument(
+        "--h6_factor_generator_specialization_enabled",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Enable Tier-1 factor IDs and lightweight factor-specific residual heads.",
+    )
+    parser.add_argument("--h6_factor_head_init_scale", type=float, default=1e-3)
+    parser.add_argument(
+        "--h6_factor_local_dynamic_mix", type=float, default=0.0,
+        help="Opt-in local CoPS blend of dynamic factors; global hard-anchor text remains unchanged.",
+    )
+    parser.add_argument(
         "--h6_router_query_mode",
         choices=["raw", "local_residual", "local_global_bypass"],
         default="local_global_bypass",
@@ -2167,8 +2419,8 @@ def main():
     parser.add_argument("--h6_dynamic_mean_anchor_min_cosine", type=float, default=0.70)
     parser.add_argument("--h6_dynamic_mean_anchor_start_epoch", type=int, default=4)
     parser.add_argument("--h6_dynamic_mean_anchor_warmup_epochs", type=int, default=3)
-    parser.add_argument("--h6_expert_bottleneck", type=int, default=64, help="reserved for Progress 2; unused in Progress 1")
-    parser.add_argument("--h6_progress_version", choices=["P1-v6", "P1-v7-full"], default="P1-v6")
+    parser.add_argument("--h6_expert_bottleneck", type=int, default=64)
+    parser.add_argument("--h6_progress_version", choices=["P1-v6", "P1-v7-full", "P1-v8-minimal"], default="P1-v6")
     parser.add_argument("--h6_expert_enabled", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--h6_expert_fofs_seed_offset", type=int, default=7500)
     parser.add_argument("--h6_expert_state_condition_scale", type=float, default=0.25)
@@ -2201,6 +2453,14 @@ def main():
     parser.add_argument("--h6_kl_warmup_epochs", type=int, default=4)
     parser.add_argument("--h6_kl_free_bits", type=float, default=0.0)
     parser.add_argument("--lambda_h6_orth", type=float, default=1e-3)
+    parser.add_argument("--lambda_h6_delta_div", type=float, default=0.0)
+    parser.add_argument("--lambda_h6_func_div", type=float, default=0.0)
+    parser.add_argument("--h6_cluster_responsibility", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_cluster_centroid_path", type=str, default=None)
+    parser.add_argument("--h6_cluster_temperature", type=float, default=0.10)
+    parser.add_argument("--h6_lambda_cluster_resp", type=float, default=0.0)
+    parser.add_argument("--h6_cluster_tie_factor_ids", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--h6_cluster_tie_router_keys", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--lambda_h6_balance", type=float, default=1e-2)
     parser.add_argument("--lambda_h6_concept_key_diversity", type=float, default=0.0)
     parser.add_argument("--h6_concept_key_cosine_margin", type=float, default=0.5)
@@ -2252,6 +2512,8 @@ def main():
     )
     parser.add_argument("--num_workers", type=int, default=4 if os.name != "nt" else 0)
     parser.add_argument("--pin_memory", action="store_true", default=False)
+
+    parser.add_argument("--h6_teacher_prob_std_threshold", type=float, default=0.0)
 
     args = parser.parse_args()
     if args.h6_dense_routing_epochs is not None:
@@ -2366,6 +2628,9 @@ def main():
         datefmt="%Y-%m-%d %H:%M:%S",
     )
     logger.info("args: %s", vars(args))
+    run_config_path = Path(args.save_path) / "config.json"
+    if not run_config_path.exists():
+        write_json_atomic(run_config_path, vars(args))
     device = torch.device(f"cuda:{args.cuda_device}" if torch.cuda.is_available() else "cpu")
     clip_model = create_model(
         model_name=args.model_name,
@@ -2423,6 +2688,11 @@ def main():
         h6_late_factor_identity_enabled=args.h6_late_factor_identity_enabled,
         h6_factor_id_scale=args.h6_factor_id_scale,
         h6_factor_id_max_ratio=args.h6_factor_id_max_ratio,
+        h6_factor_generator_specialization_enabled=args.h6_factor_generator_specialization_enabled,
+        h6_factor_head_init_scale=args.h6_factor_head_init_scale,
+        h6_factor_local_dynamic_mix=args.h6_factor_local_dynamic_mix,
+        h6_cluster_responsibility=args.h6_cluster_responsibility,
+        h6_cluster_temperature=args.h6_cluster_temperature,
         h6_router_query_mode=args.h6_router_query_mode,
         h6_router_query_global_weight=args.h6_router_query_global_weight,
         h6_router_local_bypass_scale=args.h6_router_local_bypass_scale,
@@ -2451,6 +2721,9 @@ def main():
         h6_expert_scale_start_epoch=args.h6_expert_scale_start_epoch,
         h6_expert_scale_warmup_epochs=args.h6_expert_scale_warmup_epochs,
         h6_expert_max_relative_ratio=args.h6_expert_max_relative_ratio,
+        h6_prediction_routing=args.h6_prediction_routing,
+        diagnostics_mode=args.h6_diagnostics_mode,
+        diagnostics_interval=args.h6_diagnostics_interval,
     ).to(device)
     model.eval()
     model.use_hybrid_soft_prompt = bool(args.use_hybrid_soft_prompt)
@@ -2468,6 +2741,20 @@ def main():
         model.text_adapter.requires_grad_(True)
         model.soft_prompt.requires_grad_(False)
         model.h6.requires_grad_(True)
+        if args.h6_cluster_responsibility:
+            if args.h6_lambda_cluster_resp <= 0.0:
+                raise ValueError("--h6_cluster_responsibility requires --h6_lambda_cluster_resp > 0")
+            if not args.h6_cluster_centroid_path:
+                raise ValueError("--h6_cluster_responsibility requires --h6_cluster_centroid_path")
+            centroid_path = Path(args.h6_cluster_centroid_path)
+            if not centroid_path.is_file():
+                raise FileNotFoundError(f"Tier-3 centroid file does not exist: {centroid_path}")
+            args.h6_cluster_centroid_sha256 = hashlib.sha256(centroid_path.read_bytes()).hexdigest()
+            cluster_metadata = model.h6.load_cluster_centroids(str(centroid_path))
+            logger.info(
+                "tier3_cluster_bound path=%s sha256=%s metadata=%s",
+                centroid_path, args.h6_cluster_centroid_sha256, cluster_metadata,
+            )
         trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
         frozen_params = sum(p.numel() for p in model.parameters() if not p.requires_grad)
         logger.info("phase4_progress=1 trainable parameters=%s frozen parameters=%s", f"{trainable_params:,}", f"{frozen_params:,}")

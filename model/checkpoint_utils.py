@@ -67,10 +67,24 @@ def load_adapter_checkpoint(model, checkpoint: Mapping[str, Any]) -> bool:
         model.soft_prompt.load_state_dict(checkpoint["soft_prompt"])
     if not is_phase4_checkpoint(checkpoint):
         return False
-    validate_h6_configuration(model, checkpoint)
     if "h6_state_dict" not in checkpoint:
         raise ValueError("Phase 4 checkpoint is missing h6_state_dict")
-    model.h6.load_state_dict(checkpoint["h6_state_dict"], strict=True)
+    h6_state = checkpoint["h6_state_dict"]
+    saved_centroids = h6_state.get("cluster_centroids")
+    if torch.is_tensor(saved_centroids) and saved_centroids.numel():
+        # Buffers are shape-dependent, so materialize them before strict load.
+        model.h6.bind_cluster_centroids(saved_centroids)
+    validate_h6_configuration(model, checkpoint)
+    incompatible = model.h6.load_state_dict(h6_state, strict=False)
+    allowed_missing = {
+        "cluster_centroids", "cluster_identity", "cluster_identity_projection",
+    }
+    missing = set(incompatible.missing_keys) - allowed_missing
+    if missing or incompatible.unexpected_keys:
+        raise RuntimeError(
+            "incompatible H6 checkpoint state: "
+            f"missing={sorted(missing)}, unexpected={sorted(incompatible.unexpected_keys)}"
+        )
     model.h6.set_epoch(int(checkpoint.get("router_warmup_epoch", checkpoint.get("epoch", 1))))
     return True
 
@@ -121,6 +135,7 @@ def build_phase4_checkpoint(
         "beta_kl_max": phase2b_config.get("beta_h6_vae_kl", loss_weights.get("vae_kl_current")),
         "kl_free_bits": phase2b_config.get("h6_kl_free_bits"),
         "kl_reduction_mode": "sum_latent_mean_batch",
+        "delta_t_diversity_weight": phase2b_config.get("lambda_h6_delta_div", 0.0),
         "concept_key_diversity_weight": phase2b_config.get("lambda_h6_concept_key_diversity", 0.0),
         "concept_key_cosine_margin": phase2b_config.get("h6_concept_key_cosine_margin"),
         "concept_key_diversity_start_epoch": phase2b_config.get("h6_concept_key_diversity_start_epoch"),
@@ -136,6 +151,15 @@ def build_phase4_checkpoint(
         "factor_id_direction_method": h6_config.get("factor_id_direction_method"),
         "factor_id_projection_mode": "shared_linear_bankdim_to_textdim",
         "factor_id_shared_across_states": True,
+        "factor_generator_specialization_enabled": _config_value(
+            "h6_factor_generator_specialization_enabled", "factor_generator_specialization_enabled"
+        ),
+        "factor_head_init_scale": _config_value(
+            "h6_factor_head_init_scale", "factor_head_init_scale"
+        ),
+        "factor_local_dynamic_mix": _config_value(
+            "h6_factor_local_dynamic_mix", "factor_local_dynamic_mix"
+        ),
         "router_query_mode": _config_value("h6_router_query_mode", "router_query_mode"),
         "router_query_global_weight": _config_value("h6_router_query_global_weight", "router_query_global_weight"),
         "router_local_bypass_scale": _config_value("h6_router_local_bypass_scale", "router_local_bypass_scale"),
@@ -188,6 +212,13 @@ def build_phase4_checkpoint(
         "teacher_confidence_gate_enabled": loss_weights.get("teacher_confidence_gate"),
         "teacher_probability_std_threshold": loss_weights.get("teacher_prob_std_threshold"),
         "teacher_gate_scope": "patch",
+        "cluster_responsibility_enabled": _config_value(
+            "h6_cluster_responsibility", "cluster_responsibility_enabled"
+        ),
+        "cluster_temperature": _config_value("h6_cluster_temperature", "cluster_temperature"),
+        "cluster_loss_weight": phase2b_config.get("h6_lambda_cluster_resp", 0.0),
+        "cluster_centroid_path": phase2b_config.get("h6_cluster_centroid_path"),
+        "cluster_centroid_sha256": phase2b_config.get("h6_cluster_centroid_sha256"),
     })
     # Keep the full P1-v7 schedule alongside the architecture.  These are
     # intentionally explicit rather than inferred from a launcher at test time.

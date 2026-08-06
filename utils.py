@@ -413,6 +413,34 @@ def get_multiple_adapted_text_embedding(
     return ret_dict
 
 
+def get_phase2b_global_text_features(
+    model, dataset_name, class_names, device,
+    use_hybrid_soft_prompt=False, use_soft_prompt=False
+):
+    epoch_text_feature_dict = {}
+    for class_name in class_names:
+        if class_name in epoch_text_feature_dict:
+            continue
+        if use_hybrid_soft_prompt:
+            text_embedding_levels, _, _, _ = get_hybrid_soft_prompt_single_class_text_embedding(
+                model, dataset_name, class_name, device, return_kg=True, return_components=True
+            )
+        elif use_soft_prompt:
+            text_embedding_levels, _, _ = get_soft_prompt_single_class_text_embedding(
+                model, dataset_name, class_name, device, return_kg=True
+            )
+        else:
+            text_embedding_levels = get_multiple_adapted_single_class_text_embedding(
+                model, dataset_name, class_name, device
+            )
+        epoch_text_feature_dict[class_name] = text_embedding_levels
+
+    epoch_text_features = torch.stack(
+        [epoch_text_feature_dict[class_name] for class_name in class_names],
+        dim=0,
+    )  # [bs, n_groups, 768, 2]
+    return epoch_text_features.permute(1, 0, 2, 3)  # [n_groups, bs, 768, 2]
+
 focal_loss = FocalLoss()
 dice_loss = BinaryDiceLoss()
 

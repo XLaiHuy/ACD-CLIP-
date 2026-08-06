@@ -14,7 +14,17 @@ from .openai import load_openai_model
 
 _MODEL_CONFIG_PATHS = [Path(__file__).parent]
 _MODEL_CONFIGS = {}  # directory (model_name: config) of model architecture configs
-_MODEL_CKPT_PATHS = {'ViT-L-14-336': Path(__file__).parent / "ViT-L-14-336px.pt"}
+_MODEL_CKPT_PATHS = {
+    "RN50": Path(__file__).parent / "RN50.pt",
+    "RN101": Path(__file__).parent / "RN101.pt",
+    "RN50x4": Path(__file__).parent / "RN50x4.pt",
+    "RN50x16": Path(__file__).parent / "RN50x16.pt",
+    "RN50x64": Path(__file__).parent / "RN50x64.pt",
+    "ViT-B-32": Path(__file__).parent / "ViT-B-32.pt",
+    "ViT-B-16": Path(__file__).parent / "ViT-B-16.pt",
+    "ViT-L-14": Path(__file__).parent / "ViT-L-14.pt",
+    "ViT-L-14-336": Path("/home/ai4/.cache/clip/ViT-L-14-336px.pt"),
+}
 
 
 def _natural_key(string_):

@@ -17,7 +17,7 @@ from .losses import (
     factor_stage_diagnostics,
 )
 from .router import PatchRouter
-from .semantic_bank import BoundedPositiveGate, CoPSSemanticCore
+from .semantic_bank import BoundedPositiveGate, CoPSSemanticCore, deterministic_slot_directions
 from .paired_experts import FOFSPairedSemanticExperts
 
 
@@ -37,6 +37,7 @@ class H6Progress1(nn.Module):
         n_groups: int,
         num_factors: int = 4,
         top_k: int = 2,
+        prediction_routing: str = "dense",
         bank_dim: int = 256,
         router_dim: int = 128,
         router_temperature: float = 1.0,
@@ -54,6 +55,9 @@ class H6Progress1(nn.Module):
         slot_init_seed_offset: int = 6100,
         slot_init_method: str = "qr_relative_offset",
         factor_grad_diagnostics: bool = False,
+        diagnostics_mode: str = "light",
+        diagnostics_interval: int = 1,
+        test_rho_override: float | None = None,
         late_factor_identity_enabled: bool = False,
         factor_id_scale: float = 0.02,
         factor_id_max_ratio: float = 0.05,
@@ -71,6 +75,9 @@ class H6Progress1(nn.Module):
         factor_context_adaptation_initial_ratio: float = 0.10,
         factor_context_adaptation_max_ratio: float = 0.25,
         factor_identity_tangent_projection_enabled: bool = True,
+        factor_generator_specialization_enabled: bool = False,
+        factor_head_init_scale: float = 1e-3,
+        factor_local_dynamic_mix: float = 0.0,
         lambda_dynamic_mean_anchor: float = 0.001,
         dynamic_mean_anchor_min_cosine: float = 0.70,
         dynamic_mean_anchor_start_epoch: int = 4,
@@ -88,6 +95,8 @@ class H6Progress1(nn.Module):
         text_dim: int = 768,
         ctx_len: int = 4,
         h6_logit_temperature: float = 10.0,
+        cluster_responsibility_enabled: bool = False,
+        cluster_temperature: float = 0.10,
     ):
         super().__init__()
         self.n_groups = int(n_groups)
@@ -110,6 +119,8 @@ class H6Progress1(nn.Module):
         self.slot_init_seed_offset = int(slot_init_seed_offset)
         self.slot_init_method = str(slot_init_method)
         self.factor_grad_diagnostics = bool(factor_grad_diagnostics)
+        self.diagnostics_mode = str(diagnostics_mode)
+        self.diagnostics_interval = int(diagnostics_interval)
         self.late_factor_identity_enabled = bool(late_factor_identity_enabled)
         self.factor_id_scale = float(factor_id_scale)
         self.factor_id_max_ratio = float(factor_id_max_ratio)
@@ -127,6 +138,11 @@ class H6Progress1(nn.Module):
         self.factor_context_adaptation_initial_ratio = float(factor_context_adaptation_initial_ratio)
         self.factor_context_adaptation_max_ratio = float(factor_context_adaptation_max_ratio)
         self.factor_identity_tangent_projection_enabled = bool(factor_identity_tangent_projection_enabled)
+        self.factor_generator_specialization_enabled = bool(factor_generator_specialization_enabled)
+        self.factor_head_init_scale = float(factor_head_init_scale)
+        self.factor_local_dynamic_mix = float(factor_local_dynamic_mix)
+        if not 0.0 <= self.factor_local_dynamic_mix <= 1.0:
+            raise ValueError("factor_local_dynamic_mix must be in [0, 1]")
         self.lambda_dynamic_mean_anchor = float(lambda_dynamic_mean_anchor)
         self.dynamic_mean_anchor_min_cosine = float(dynamic_mean_anchor_min_cosine)
         self.dynamic_mean_anchor_start_epoch = int(dynamic_mean_anchor_start_epoch)
@@ -144,6 +160,10 @@ class H6Progress1(nn.Module):
         self.text_dim = int(text_dim)
         self.ctx_len = int(ctx_len)
         self.h6_logit_temperature = float(h6_logit_temperature)
+        self.cluster_responsibility_enabled = bool(cluster_responsibility_enabled)
+        self.cluster_temperature = float(cluster_temperature)
+        if self.cluster_temperature <= 0:
+            raise ValueError("cluster_temperature must be positive")
         self.semantic_core = CoPSSemanticCore(
             n_groups=n_groups,
             num_factors=num_factors,
@@ -165,6 +185,8 @@ class H6Progress1(nn.Module):
             factor_context_adaptation_initial_ratio=factor_context_adaptation_initial_ratio,
             factor_context_adaptation_max_ratio=factor_context_adaptation_max_ratio,
             factor_identity_tangent_projection_enabled=factor_identity_tangent_projection_enabled,
+            factor_generator_specialization_enabled=factor_generator_specialization_enabled,
+            factor_head_init_scale=factor_head_init_scale,
         )
         self.router = PatchRouter(
             n_groups=n_groups,
@@ -172,6 +194,7 @@ class H6Progress1(nn.Module):
             text_dim=text_dim,
             bank_dim=bank_dim,
             hidden_dim=router_dim,
+            prediction_routing=prediction_routing,
             temperature=router_temperature,
             soft_routing_epochs=router_soft_epochs,
             sparse_transition_epochs=sparse_transition_epochs,
@@ -200,6 +223,15 @@ class H6Progress1(nn.Module):
             max_relative_ratio=expert_max_relative_ratio,
         ) if self.expert_enabled else None
         self.rho = BoundedPositiveGate(initial=0.05, maximum=0.50, count=n_groups)
+        # Persistent Tier-3 provenance.  Empty buffers preserve the Tier-2
+        # path and are populated only by bind_cluster_centroids().
+        self.register_buffer("cluster_centroids", torch.empty(0, text_dim))
+        self.register_buffer("cluster_identity", torch.empty(0, bank_dim))
+        self.register_buffer(
+            "cluster_identity_projection",
+            deterministic_slot_directions(bank_dim, text_dim, slot_init_seed_offset + 8100).T.contiguous(),
+        )
+        self.test_rho_override = test_rho_override
         self.epoch_one_based = 1
 
     def config_dict(self) -> Dict[str, int | float | str]:
@@ -284,6 +316,9 @@ class H6Progress1(nn.Module):
             "factor_context_adaptation_initial_ratio": self.factor_context_adaptation_initial_ratio,
             "factor_context_adaptation_max_ratio": self.factor_context_adaptation_max_ratio,
             "factor_identity_tangent_projection_enabled": self.factor_identity_tangent_projection_enabled,
+            "factor_generator_specialization_enabled": self.factor_generator_specialization_enabled,
+            "factor_head_init_scale": self.factor_head_init_scale,
+            "factor_local_dynamic_mix": self.factor_local_dynamic_mix,
             "lambda_dynamic_mean_anchor": self.lambda_dynamic_mean_anchor,
             "dynamic_mean_anchor_min_cosine": self.dynamic_mean_anchor_min_cosine,
             "dynamic_mean_anchor_start_epoch": self.dynamic_mean_anchor_start_epoch,
@@ -303,7 +338,52 @@ class H6Progress1(nn.Module):
             "expert_scale_start_epoch": self.expert_scale_start_epoch,
             "expert_scale_warmup_epochs": self.expert_scale_warmup_epochs,
             "expert_max_relative_ratio": self.expert_max_relative_ratio,
+            "cluster_responsibility_enabled": self.cluster_responsibility_enabled,
+            "cluster_temperature": self.cluster_temperature,
+            "cluster_identity_tied": bool(self.cluster_centroids.numel()),
+            "cluster_centroid_count": int(self.cluster_centroids.shape[0]),
         }
+
+    @property
+    def cluster_ready(self) -> bool:
+        return bool(self.cluster_centroids.shape == (self.num_factors, self.text_dim))
+
+    @torch.no_grad()
+    def bind_cluster_centroids(self, centroids: torch.Tensor) -> None:
+        """Bind centroid m to the same m across all Tier-3 identity paths."""
+        if centroids.ndim != 2 or tuple(centroids.shape) != (self.num_factors, self.text_dim):
+            raise ValueError(
+                f"centroids must be [{self.num_factors}, {self.text_dim}], got {tuple(centroids.shape)}"
+            )
+        if not self.semantic_core.factor_generator_specialization_enabled:
+            raise ValueError("Tier-3 requires --h6_factor_generator_specialization_enabled")
+        normalized_centroids = F.normalize(
+            centroids.detach().to(device=self.cluster_identity_projection.device, dtype=torch.float32), dim=-1
+        )
+        identity = F.normalize(normalized_centroids @ self.cluster_identity_projection.float(), dim=-1)
+        self.cluster_centroids = normalized_centroids.to(
+            device=self.cluster_identity_projection.device, dtype=self.cluster_identity_projection.dtype
+        )
+        self.cluster_identity = identity.to(
+            device=self.cluster_identity_projection.device, dtype=self.cluster_identity_projection.dtype
+        )
+        core = self.semantic_core
+        slot_scale = core.concept_slots.detach().float().norm(dim=-1).mean().clamp_min(1e-6)
+        factor_scale = core.factor_id_embedding.detach().float().norm(dim=-1).mean().clamp_min(1e-6)
+        # The m-th values share one projected centroid identity.  concept_slots
+        # feed semantic prototypes and core.router_key(concept_slots), while
+        # factor_id_embedding[m] feeds the factor generator before text encode.
+        core.concept_slots.copy_(identity.to(core.concept_slots) * slot_scale)
+        core.factor_id_embedding.copy_(identity.to(core.factor_id_embedding) * factor_scale)
+        core.tier3_cluster_identity_enabled = True
+
+    def load_cluster_centroids(self, path: str) -> dict:
+        payload = torch.load(path, map_location="cpu")
+        centroids = payload.get("centroids") if isinstance(payload, dict) else payload
+        if not torch.is_tensor(centroids):
+            raise ValueError("cluster centroid file must contain a tensor or {'centroids': tensor}")
+        self.bind_cluster_centroids(centroids)
+        return payload.get("metadata", {}) if isinstance(payload, dict) else {}
 
     def set_epoch(self, epoch_one_based: int) -> None:
         self.epoch_one_based = int(epoch_one_based)
@@ -312,6 +392,8 @@ class H6Progress1(nn.Module):
         return min(0.50, 0.10 * max(1, self.epoch_one_based))
 
     def rho_values(self) -> torch.Tensor:
+        if not self.training and self.test_rho_override is not None:
+            return torch.full_like(self.rho.raw, float(self.test_rho_override))
         return self.rho(cap=self.rho_cap())
 
     def expert_scale(self) -> float:
@@ -437,7 +519,13 @@ class H6Progress1(nn.Module):
         hard_frozen = F.normalize(hard_frozen.float(), dim=2)
         dynamic = F.normalize(dynamic.float(), dim=3)
         dynamic_mean_anchor_loss_raw, dynamic_mean_hard_cos = self.dynamic_mean_anchor_loss(dynamic, hard_frozen)
-        factor_bank = self._fuse_factor_bank(hard_adapted, dynamic, hybrid_alpha)
+        # Global hard-anchor text remains independent of the factor-local
+        # residual blend.  The latter is opt-in and only makes generated
+        # factor differences reachable by the local CoPS pathway while the
+        # shared global text stays at its hard-anchor blend.
+        global_factor_bank = self._fuse_factor_bank(hard_adapted, dynamic, hybrid_alpha)
+        local_factor_mix = max(float(hybrid_alpha), self.factor_local_dynamic_mix)
+        factor_bank = self._fuse_factor_bank(hard_adapted, dynamic, local_factor_mix)
         # This is the exact fusion-path no-op, not an assumed raw CLIP bank.
         expected_noop_pre_expert_bank = self._fuse_factor_bank(hard_adapted, dynamic, hybrid_alpha=0.0)
         anchor = hard_frozen.unsqueeze(2).expand_as(dynamic)
@@ -552,15 +640,17 @@ class H6Progress1(nn.Module):
             "dynamic_text": dynamic,
             "dynamic_text_raw": dynamic_raw,
             "factor_bank": factor_bank,
+            "global_factor_bank": global_factor_bank,
             "expected_noop_pre_expert_bank": expected_noop_pre_expert_bank,
             "active_factor_bank": active_factor_bank,
             "raw_semantic_keys": raw_semantic_keys,
             "final_router_keys": final_router_keys,
+            "router_patch_features": routing["router_input_features"],
             "kg_loss": kg_loss,
             "residual_diversity": residual_diversity,
             "dynamic_mean_anchor_loss_raw": dynamic_mean_anchor_loss_raw,
             "dynamic_mean_hard_cos": dynamic_mean_hard_cos,
-            "text_global": self.router.aggregate_global(prediction_probabilities, active_factor_bank),
+            "text_global": self.router.aggregate_global(prediction_probabilities, global_factor_bank),
             "local_text": local_text,
             "h6_logits": h6_logits,
             "rho": self.rho_values(),
@@ -635,6 +725,16 @@ class H6Progress1(nn.Module):
                 **factor_stage_diagnostics(dynamic, "stage_dynamic_text_norm", factor_dim=2),
                 **dynamic_residual_diagnostics(dynamic, hard_frozen),
                 "late_factor_identity_enabled": core["late_factor_identity_enabled"].detach(),
+                "factor_generator_specialization_enabled": core[
+                    "factor_generator_specialization_enabled"
+                ].detach(),
+                "factor_generator_id_norm_mean": core["factor_generator_id_norm_mean"].detach(),
+                "factor_generator_head_delta_norm_mean": core[
+                    "factor_generator_head_delta_norm_mean"
+                ].detach(),
+                "factor_local_dynamic_mix": torch.tensor(
+                    self.factor_local_dynamic_mix, device=patches.device
+                ),
                 "factor_id_scale": core["factor_id_scale"].detach(),
                 "factor_id_max_ratio": core["factor_id_max_ratio"].detach(),
                 "factor_id_residual_norm_mean": core["factor_id_residual_norm_mean"].detach(),
@@ -687,6 +787,13 @@ class H6Progress1(nn.Module):
             + list(self.semantic_core.gamma_class.parameters())
             + list(self.rho.parameters()),
             "h6_late_factor_identity": self.semantic_core.factor_id_projection.parameters(),
+            "h6_factor_generator": (
+                [self.semantic_core.factor_id_embedding]
+                + list(self.semantic_core.factor_id_to_context.parameters())
+                + list(self.semantic_core.factor_output_heads.parameters())
+                if self.factor_generator_specialization_enabled
+                else []
+            ),
         }
         if self.paired_experts is not None:
             partitions["h6_paired_experts"] = self.paired_experts.parameters()

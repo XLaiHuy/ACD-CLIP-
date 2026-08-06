@@ -1,0 +1,31 @@
+{
+  "tier": 1,
+  "name": "vector_specialization",
+  "source_artifact_path": "runs/phase4/p1_v8_specialization_overnight/T1-A_delta001/smoke_3x300/adapter_3.pth",
+  "candidate": "T1-A_delta001",
+  "config_values": {
+    "h6_progress_version": "P1-v8-minimal",
+    "h6_expert_enabled": false,
+    "h6_prediction_routing": "dense",
+    "h6_global_text_mode": "hard_anchor",
+    "h6_num_factors": 4,
+    "lambda_h6_orth": 0.001
+  },
+  "measured_values": {
+    "delta_T_cosine_median": 0.8930,
+    "delta_T_cosine_max": 0.9821,
+    "effective_rank": 2.64,
+    "full_factor_text_cosine_offdiag_mean": 0.9996
+  },
+  "value_source_type": {
+    "delta_T_cosine_median": "measured",
+    "delta_T_cosine_max": "measured",
+    "effective_rank": "measured",
+    "full_factor_text_cosine_offdiag_mean": "measured"
+  },
+  "gate_thresholds": {
+    "delta_T_cosine_median_max_allowed": 0.900,
+    "effective_rank_min_required": 2.0
+  },
+  "verdict": "PASS"
+}

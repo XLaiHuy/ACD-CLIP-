@@ -454,6 +454,53 @@ def dynamic_residual_diversity_loss(dynamic_text: torch.Tensor, hard_frozen: tor
     return (gram - identity).pow(2).mean()
 
 
+def delta_t_diversity_loss(dynamic_text: torch.Tensor, hard_frozen: torch.Tensor) -> torch.Tensor:
+    """Mean off-diagonal squared cosine of dynamic residual directions only."""
+    if dynamic_text.ndim != 5:
+        raise ValueError("dynamic_text must be [G,B,M,768,2]")
+    if hard_frozen.ndim == 4:
+        hard_frozen = hard_frozen.unsqueeze(2)
+    if hard_frozen.ndim != 5:
+        raise ValueError("hard_frozen must be [G,B,768,2] or [G,B,M,768,2]")
+    residual = F.normalize(dynamic_text.float(), dim=3) - F.normalize(
+        hard_frozen.float(), dim=3
+    ).expand_as(dynamic_text)
+    delta_t = residual[..., 1] - residual[..., 0]
+    directions = F.normalize(delta_t.float(), dim=-1, eps=1e-6)
+    gram = torch.einsum("gbmd,gbnd->gbmn", directions, directions)
+    mask = ~torch.eye(gram.shape[-1], device=gram.device, dtype=torch.bool)
+    return gram[..., mask].square().mean()
+
+
+def functional_factor_diversity_loss(
+    factor_patch_logits: torch.Tensor,
+    patch_weights: torch.Tensor | None = None,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Decorrelate centered factor patch functions, returning loss and correlation matrix.
+
+    ``factor_patch_logits`` is [G,B,P,M].  We detach the supplied informative
+    patch weights so GT/high-confidence anchor selection cannot be optimized as
+    a proxy for diversity.
+    """
+    if factor_patch_logits.ndim != 4:
+        raise ValueError("factor_patch_logits must be [G,B,P,M]")
+    logits = factor_patch_logits.float()
+    if patch_weights is None:
+        weights = torch.ones_like(logits[..., 0])
+    else:
+        if patch_weights.shape != logits.shape[:-1]:
+            raise ValueError("patch_weights must be [G,B,P]")
+        weights = patch_weights.detach().float().clamp_min(0.0)
+    weights = weights * torch.isfinite(logits).all(dim=-1).float()
+    denom = weights.sum(dim=2, keepdim=True).clamp_min(1e-6)
+    centered = logits - (weights.unsqueeze(-1) * logits).sum(dim=2, keepdim=True) / denom.unsqueeze(-1)
+    weighted = centered * weights.sqrt().unsqueeze(-1)
+    normalized = F.normalize(weighted.movedim(-1, -2), dim=-1, eps=1e-6)
+    correlation = torch.matmul(normalized, normalized.transpose(-1, -2))
+    mask = ~torch.eye(correlation.shape[-1], device=correlation.device, dtype=torch.bool)
+    return correlation[..., mask].square().mean(), correlation.mean(dim=(0, 1))
+
+
 def dynamic_residual_diagnostics(dynamic_text: torch.Tensor, hard_frozen: torch.Tensor) -> Dict[str, torch.Tensor]:
     if hard_frozen.ndim == 4:
         hard_frozen = hard_frozen.unsqueeze(2)

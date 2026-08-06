@@ -1,0 +1,38 @@
+{
+  "tier": 2,
+  "name": "wiring_audit",
+  "source_artifact_path": "runs/phase4/p1_v8_specialization_overnight/t2_wiring_audit_runtime.json",
+  "candidates": {
+    "T2-A_func0001": {
+      "checkpoint": "runs/phase4/p1_v8_specialization_overnight/T2-A_func0001/smoke_3x300/adapter_3.pth",
+      "lambda_func_div": 0.0001,
+      "factor_patch_logits_sha256": "d9bfac1d5092360648804dd26268dd28b66e031aebaa03286c420e3e0fbce071"
+    },
+    "T2-B_func0003": {
+      "checkpoint": "runs/phase4/p1_v8_specialization_overnight/T2-B_func0003/smoke_3x300/adapter_3.pth",
+      "lambda_func_div": 0.0003,
+      "factor_patch_logits_sha256": "7028aa2796b56f8a2869512a349b3dec251a5159f3d9237da6919d3d5ebbc8e5"
+    },
+    "T2-C_func0010": {
+      "checkpoint": "runs/phase4/p1_v8_specialization_overnight/T2-C_func0010/smoke_3x300/adapter_3.pth",
+      "lambda_func_div": 0.0010,
+      "factor_patch_logits_sha256": "a7a9e6d4bd6c161d53b9a53bee08368ae31c7e70276e548183ef586b562f011d",
+      "functional_loss_raw": 0.9999994,
+      "gradient_norms": {
+        "factor_specific_heads": 4.997e-06,
+        "factor_identity_embeddings": 5.929e-07,
+        "dynamic_prompt_generator": 6.476e-06,
+        "encoded_factor_text": 0.0004297,
+        "dynamic_text": 2.166e-05
+      }
+    }
+  },
+  "value_source_type": "measured",
+  "audit_results": {
+    "checkpoints_differ": true,
+    "fingerprints_all_distinct": true,
+    "all_requested_gradient_norms_nonzero": true,
+    "no_detach_bug": true
+  },
+  "verdict": "PASS"
+}
