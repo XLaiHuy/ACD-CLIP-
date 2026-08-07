@@ -27,7 +27,8 @@ def cluster_responsibility_loss(
     q = detached_cluster_targets(patch_features, centroids, temperature)
     if q.shape != router_probs.shape:
         raise ValueError(f"target/router shape mismatch: {q.shape} vs {router_probs.shape}")
-    loss = F.kl_div(router_probs.float().clamp_min(1e-8).log(), q, reduction="batchmean")
+    per_patch = F.kl_div(router_probs.float().clamp_min(1e-8).log(), q, reduction="none").sum(dim=-1)
+    loss = per_patch.mean()
     diagnostics = {
         "cluster_target_usage": q.float().mean(dim=(0, 1, 2)).detach(),
         "cluster_router_usage": router_probs.float().mean(dim=(0, 1, 2)).detach(),

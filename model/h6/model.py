@@ -97,6 +97,7 @@ class H6Progress1(nn.Module):
         h6_logit_temperature: float = 10.0,
         cluster_responsibility_enabled: bool = False,
         cluster_temperature: float = 0.10,
+        **kwargs,
     ):
         super().__init__()
         self.n_groups = int(n_groups)
@@ -143,6 +144,14 @@ class H6Progress1(nn.Module):
         self.factor_local_dynamic_mix = float(factor_local_dynamic_mix)
         if not 0.0 <= self.factor_local_dynamic_mix <= 1.0:
             raise ValueError("factor_local_dynamic_mix must be in [0, 1]")
+            
+        # P1-v8.2 Geometry
+        self.local_factor_mode = kwargs.get("local_factor_mode", "legacy_mix")
+        if self.local_factor_mode not in ("legacy_mix", "center_spread"):
+            raise ValueError("local_factor_mode must be legacy_mix or center_spread")
+        self.local_center_mix = float(kwargs.get("local_center_mix", 0.05))
+        self.local_factor_spread = float(kwargs.get("local_factor_spread", 0.10))
+        
         self.lambda_dynamic_mean_anchor = float(lambda_dynamic_mean_anchor)
         self.dynamic_mean_anchor_min_cosine = float(dynamic_mean_anchor_min_cosine)
         self.dynamic_mean_anchor_start_epoch = int(dynamic_mean_anchor_start_epoch)
@@ -319,6 +328,9 @@ class H6Progress1(nn.Module):
             "factor_generator_specialization_enabled": self.factor_generator_specialization_enabled,
             "factor_head_init_scale": self.factor_head_init_scale,
             "factor_local_dynamic_mix": self.factor_local_dynamic_mix,
+            "local_factor_mode": self.local_factor_mode,
+            "local_center_mix": self.local_center_mix,
+            "local_factor_spread": self.local_factor_spread,
             "lambda_dynamic_mean_anchor": self.lambda_dynamic_mean_anchor,
             "dynamic_mean_anchor_min_cosine": self.dynamic_mean_anchor_min_cosine,
             "dynamic_mean_anchor_start_epoch": self.dynamic_mean_anchor_start_epoch,
@@ -467,7 +479,7 @@ class H6Progress1(nn.Module):
         return dynamic
 
     @staticmethod
-    def _fuse_factor_bank(hard_adapted: torch.Tensor, dynamic_text: torch.Tensor, hybrid_alpha: float) -> torch.Tensor:
+    def _fuse_factor_bank_legacy(hard_adapted: torch.Tensor, dynamic_text: torch.Tensor, hybrid_alpha: float) -> torch.Tensor:
         if hard_adapted.ndim != 4:
             raise ValueError("hard_adapted must be [G,B,768,2]")
         if dynamic_text.ndim != 5:
@@ -476,6 +488,37 @@ class H6Progress1(nn.Module):
         dynamic_text = F.normalize(dynamic_text.float(), dim=3)
         mixed = (1.0 - float(hybrid_alpha)) * hard_adapted.unsqueeze(2) + float(hybrid_alpha) * dynamic_text
         return F.normalize(mixed, dim=3)
+
+    @staticmethod
+    def _fuse_factor_bank_center_spread(hard_adapted: torch.Tensor, dynamic_text: torch.Tensor, center_mix: float, factor_spread: float) -> torch.Tensor:
+        if hard_adapted.ndim != 4:
+            raise ValueError("hard_adapted must be [G,B,768,2]")
+        if dynamic_text.ndim != 5:
+            raise ValueError("dynamic_text must be [G,B,M,768,2]")
+        
+        # 1. raw factor mean (semantic center)
+        raw_factor_mean = dynamic_text.mean(dim=2, keepdim=True)
+        # 2. normalize semantic center and local center
+        semantic_center_norm = F.normalize(raw_factor_mean.float(), dim=3)
+        hard_adapted_norm = F.normalize(hard_adapted.float(), dim=2).unsqueeze(2)
+        local_center = (1.0 - float(center_mix)) * hard_adapted_norm + float(center_mix) * semantic_center_norm
+        local_center_norm = F.normalize(local_center, dim=3)
+        
+        # 3. subtract raw factor mean
+        residual = dynamic_text.float() - raw_factor_mean.float()
+        
+        # 4. project residual onto tangent space of normalized local center
+        # Tangent projection: R - (R dot C) * C
+        dot_product = (residual * local_center_norm).sum(dim=3, keepdim=True)
+        tangent_residual = residual - dot_product * local_center_norm
+        
+        # 5. normalize tangent residual with zero-norm protection
+        tangent_norm = tangent_residual.norm(dim=3, keepdim=True).clamp_min(1e-8)
+        normalized_tangent = tangent_residual / tangent_norm
+        
+        # 6. apply factor spread and normalize final factor
+        final_factor = local_center_norm + float(factor_spread) * normalized_tangent
+        return F.normalize(final_factor, dim=3)
 
     def dynamic_mean_anchor_loss(
         self,
@@ -523,11 +566,16 @@ class H6Progress1(nn.Module):
         # residual blend.  The latter is opt-in and only makes generated
         # factor differences reachable by the local CoPS pathway while the
         # shared global text stays at its hard-anchor blend.
-        global_factor_bank = self._fuse_factor_bank(hard_adapted, dynamic, hybrid_alpha)
-        local_factor_mix = max(float(hybrid_alpha), self.factor_local_dynamic_mix)
-        factor_bank = self._fuse_factor_bank(hard_adapted, dynamic, local_factor_mix)
+        global_factor_bank = self._fuse_factor_bank_legacy(hard_adapted, dynamic, hybrid_alpha)
+        
+        if self.local_factor_mode == "center_spread":
+            factor_bank = self._fuse_factor_bank_center_spread(hard_adapted, dynamic, self.local_center_mix, self.local_factor_spread)
+        else:
+            local_factor_mix = max(float(hybrid_alpha), self.factor_local_dynamic_mix)
+            factor_bank = self._fuse_factor_bank_legacy(hard_adapted, dynamic, local_factor_mix)
+            
         # This is the exact fusion-path no-op, not an assumed raw CLIP bank.
-        expected_noop_pre_expert_bank = self._fuse_factor_bank(hard_adapted, dynamic, hybrid_alpha=0.0)
+        expected_noop_pre_expert_bank = self._fuse_factor_bank_legacy(hard_adapted, dynamic, hybrid_alpha=0.0)
         anchor = hard_frozen.unsqueeze(2).expand_as(dynamic)
         kg_loss = (1.0 - F.cosine_similarity(dynamic.float(), anchor, dim=3)).mean()
         residual_diversity = dynamic_residual_diversity_loss(dynamic, hard_frozen)
@@ -551,9 +599,11 @@ class H6Progress1(nn.Module):
         patches = torch.stack(visual_output["seg_tokens"], dim=0).float()
         patches = F.normalize(patches, dim=-1)
         h6_logits = self.h6_logit(patches, local_text)
-        expert_patch_logits = self.h6_logit(
+        
+        factor_patch_logits = self.h6_logit(
             patches.unsqueeze(3), active_factor_bank.unsqueeze(2)
-        ) if self.paired_experts is not None else None
+        )
+        expert_patch_logits = factor_patch_logits if self.paired_experts is not None else None
         expert_diagnostics = {}
         if self.paired_experts is not None:
             delta_raw = expert_payload["expert_delta_raw"].float()
@@ -632,6 +682,11 @@ class H6Progress1(nn.Module):
                     for metric_name, metric_value in comparison.items()
                 },
             }
+        rho = self.rho_values()
+        G, B, P, M = factor_patch_logits.shape
+        rho_scaled_factor_correction = factor_patch_logits * rho.view(G, 1, 1, 1).to(factor_patch_logits.dtype)
+        rho_scaled_actual_correction = h6_logits * rho.view(G, 1, 1).to(h6_logits.dtype)
+        
         return {
             **core,
             **routing,
@@ -651,12 +706,19 @@ class H6Progress1(nn.Module):
             "dynamic_mean_anchor_loss_raw": dynamic_mean_anchor_loss_raw,
             "dynamic_mean_hard_cos": dynamic_mean_hard_cos,
             "text_global": self.router.aggregate_global(prediction_probabilities, global_factor_bank),
-            "local_text": local_text,
+            "topk_indices": routing.get("topk_indices", None),
+            "prediction_logits": routing.get("logits", None),
+            "prediction_probabilities": routing["prediction_probabilities"],
             "h6_logits": h6_logits,
             "rho": self.rho_values(),
             "expert_scale": torch.tensor(self.expert_scale(), device=patches.device),
+            "factor_patch_logits": factor_patch_logits,
             "expert_patch_logits": expert_patch_logits,
+            "local_text": local_text,
             **expert_payload,
+            "actual_local_text": local_text,
+            "rho_scaled_factor_correction": rho_scaled_factor_correction,
+            "rho_scaled_actual_correction": rho_scaled_actual_correction,
             "router_diagnostics": {
                 **self.router.diagnostics(
                 prediction_probabilities,

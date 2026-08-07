@@ -1,0 +1,87 @@
+--- tools/calibrate_p1_v8_2.py
++++ tools/calibrate_p1_v8_2.py
+@@ -137,45 +137,46 @@
+         local_mask_valid = batch.get("local_mask_valid", torch.ones_like(masks)).to(device)
+ 
+         class_names = list(batch["class_name"])
+ 
+         # Forward pass (with grad)
+-        print(f"conv1 shape: {model.image_encoder.conv1(images).shape}")
+-        visual_output = model(images, return_phase4_features=True)
+-        h6_batch = model.h6.build_batch(
+-            model, args.dataset, class_names, visual_output, hybrid_alpha=1.0, update_load_bias=False
+-        )
+-
+-        seg_features = torch.stack(visual_output["seg_tokens"], dim=0)
+-        det_features = torch.stack(visual_output["det_tokens"], dim=0)
+-        text_global = get_phase2b_global_text_features(
+-            model, args.dataset, class_names, device,
+-            use_hybrid_soft_prompt=True,
+-            use_soft_prompt=True
+-        ).to(dtype=det_features.dtype)
+-
+-        cls_pred = torch.stack([
+-            torch.matmul(det_features[level].unsqueeze(1), text_global[level]).squeeze(1)
+-            for level in range(model.n_groups)
+-        ], dim=0).mean(dim=0)
+-        cls_loss = F.cross_entropy(cls_pred.float(), labels)
+-
+-        # Exact per-level base logits
+-        base_seg_pred = model.vision_text_fusion_gate_seg(
+-            seg_features,
+-            text_global,
+-            img_size=518,
+-            h6_patch_logits=None,
+-            return_details=True
+-        )
+-        base_logits = base_seg_pred["base_logits"]
+-        base_abnormal_minus_normal = base_logits[..., 1] - base_logits[..., 0] # [G, B, P]
+-        
+-        seg_pred = model.vision_text_fusion_gate_seg(
+-            seg_features,
+-            text_global,
+-            img_size=518,
+-            h6_patch_logits=h6_batch["h6_logits"],
+-            return_details=False
+-        )
++        with torch.autocast("cuda", dtype=torch.bfloat16):
++            visual_output = model(images, return_phase4_features=True)
++            h6_batch = model.h6.build_batch(
++                model, args.dataset, class_names, visual_output, hybrid_alpha=1.0, update_load_bias=False
++            )
++
++            seg_features = torch.stack(visual_output["seg_tokens"], dim=0)
++            det_features = torch.stack(visual_output["det_tokens"], dim=0)
++            text_global = get_phase2b_global_text_features(
++                model, args.dataset, class_names, device,
++                use_hybrid_soft_prompt=True,
++                use_soft_prompt=True
++            ).to(dtype=det_features.dtype)
++
++            cls_pred = torch.stack([
++                torch.matmul(det_features[level].unsqueeze(1), text_global[level]).squeeze(1)
++                for level in range(model.n_groups)
++            ], dim=0).mean(dim=0)
++            cls_loss = F.cross_entropy(cls_pred.float(), labels)
++
++            # Exact per-level base logits
++            base_seg_pred = model.vision_text_fusion_gate_seg(
++                seg_features,
++                text_global,
++                img_size=518,
++                h6_patch_logits=None,
++                return_details=True
++            )
++            base_logits = base_seg_pred["base_logits"]
++            base_abnormal_minus_normal = base_logits[..., 1] - base_logits[..., 0] # [G, B, P]
++            
++            seg_pred = model.vision_text_fusion_gate_seg(
++                seg_features,
++                text_global,
++                img_size=518,
++                h6_patch_logits=h6_batch["h6_logits"],
++                return_details=False
++            )
++
+         seg_loss = calculate_seg_loss(seg_pred.float(), masks.float())
+         task_loss = cls_loss + seg_loss

@@ -472,6 +472,9 @@ def main():
     parser.add_argument("--h6_dynamic_mean_anchor_start_epoch", type=int, default=4)
     parser.add_argument("--h6_dynamic_mean_anchor_warmup_epochs", type=int, default=3)
     parser.add_argument("--h6_progress_version", choices=["P1-v6", "P1-v7-full", "P1-v8-minimal"], default="P1-v6")
+    parser.add_argument("--h6_local_factor_mode", type=str, choices=["legacy_mix", "center_spread"], default="legacy_mix")
+    parser.add_argument("--h6_local_center_mix", type=float, default=0.05)
+    parser.add_argument("--h6_local_factor_spread", type=float, default=0.10)
     parser.add_argument("--h6_expert_enabled", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--h6_test_rho_override", type=float, default=None, help="Override rho value during inference (e.g., 0.0 to disable local residual)")
     parser.add_argument("--h6_expert_bottleneck", type=int, default=64)
@@ -750,6 +753,9 @@ def main():
         h6_factor_context_adaptation_max_ratio=args.h6_factor_context_adaptation_max_ratio,
         h6_factor_identity_tangent_projection_enabled=args.h6_factor_identity_tangent_projection_enabled,
         h6_progress_version=args.h6_progress_version,
+        local_factor_mode=args.h6_local_factor_mode,
+        local_center_mix=args.h6_local_center_mix,
+        local_factor_spread=args.h6_local_factor_spread,
         h6_expert_enabled=args.h6_expert_enabled,
         h6_expert_bottleneck=args.h6_expert_bottleneck,
         h6_expert_fofs_seed_offset=args.h6_expert_fofs_seed_offset,

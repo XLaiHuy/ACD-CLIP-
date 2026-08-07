@@ -716,3 +716,183 @@ def h6_loss_diagnostics(
         "factor_bank_finite": torch.isfinite(factor_bank).all().detach(),
         "routing_finite": torch.isfinite(probabilities).all().detach(),
     }
+
+def build_semantic_roles(masks: torch.Tensor, labels: torch.Tensor, patch_count: int, local_mask_valid: torch.Tensor, core_threshold: float = 0.99, boundary_threshold: float = 0.01) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    """
+    Returns:
+      q_role: [B, P, 4] soft indexed targets (one-hot of hard_role for now, or bounded distribution)
+      hard_role: [B, P] integer roles 0-3
+      mask_coverage: [B, P] float average of mask inside each patch
+      local_valid_patch: [B, P] boolean mask of patches that should contribute to local losses
+      local_valid_image: [B] boolean mask of images that have valid positive masks
+    """
+    B = masks.shape[0]
+    grid = int(math.isqrt(int(patch_count)))
+    mask_coverage = F.adaptive_avg_pool2d(masks.float(), output_size=(grid, grid)).view(B, patch_count)
+    valid_coverage = F.adaptive_avg_pool2d(local_mask_valid.float(), output_size=(grid, grid)).view(B, patch_count)
+    is_anomaly = labels.bool()
+    
+    local_valid_image = is_anomaly & (mask_coverage.sum(dim=-1) > 0)
+    local_valid_patch = (~is_anomaly).unsqueeze(1).expand(B, patch_count) | local_valid_image.unsqueeze(1).expand(B, patch_count)
+    local_valid_patch = local_valid_patch & (valid_coverage >= 0.5)
+    
+    hard_role = torch.zeros(B, patch_count, dtype=torch.long, device=masks.device)
+    # Role 0 remains 0 on normal images. On valid anomaly images, initialize to 1.
+    hard_role[local_valid_image] = 1
+    # Overwrite boundary
+    boundary_mask = local_valid_image.unsqueeze(1) & (mask_coverage > boundary_threshold) & (mask_coverage < core_threshold)
+    hard_role[boundary_mask] = 2
+    # Overwrite core
+    core_mask = local_valid_image.unsqueeze(1) & (mask_coverage >= core_threshold)
+    hard_role[core_mask] = 3
+    
+    # Soft target one-hot for now. Role 0 never receives probability on anomaly images.
+    q_role = F.one_hot(hard_role, num_classes=4).float()
+    
+    return q_role, hard_role, mask_coverage, local_valid_patch, local_valid_image
+
+def active_role_balanced_router_loss(
+    dense_probabilities: torch.Tensor, 
+    q_role: torch.Tensor, 
+    hard_role: torch.Tensor, 
+    local_valid_patch: torch.Tensor
+) -> torch.Tensor:
+    """
+    dense_probabilities: [G, B, P, 4]
+    q_role: [B, P, 4] soft targets
+    hard_role: [B, P] integer 0-3
+    local_valid_patch: [B, P] boolean
+    """
+    G, B, P, M = dense_probabilities.shape
+    
+    # [G, B, P]
+    ce_patch = -(q_role.unsqueeze(0) * dense_probabilities.clamp_min(1e-8).log()).sum(dim=-1)
+    
+    hard_role_exp = hard_role.unsqueeze(0).expand(G, B, P)
+    valid_exp = local_valid_patch.unsqueeze(0).expand(G, B, P)
+    
+    loss_sum = 0.0
+    valid_roles = 0
+    
+    for m in range(M):
+        # Find patches that are valid and belong to hard role m
+        role_mask = valid_exp & (hard_role_exp == m)
+        count = role_mask.sum()
+        if count > 0:
+            role_ce = ce_patch[role_mask].sum() / count
+            loss_sum += role_ce
+            valid_roles += 1
+            
+    if valid_roles == 0:
+        return dense_probabilities.sum() * 0.0
+        
+    return loss_sum / valid_roles
+
+def get_desired_correction(
+    mask_coverage: torch.Tensor, 
+    base_abnormal_minus_normal: torch.Tensor, 
+    correction_max: float = 10.0, 
+    epsilon: float = 1e-4
+) -> torch.Tensor:
+    target_prob = mask_coverage.clamp(epsilon, 1.0 - epsilon)
+    target_logit = torch.log(target_prob / (1.0 - target_prob))
+    required = target_logit.unsqueeze(0) - base_abnormal_minus_normal.detach()
+    required = required.clamp(-correction_max, correction_max)
+    return required
+
+def _role_balanced_smooth_l1(
+    actual: torch.Tensor,
+    desired: torch.Tensor,
+    q_role: torch.Tensor,
+    hard_role: torch.Tensor,
+    local_valid_patch: torch.Tensor,
+    role_idx: int,
+    beta: float = 1.0
+) -> torch.Tensor:
+    G, B, P = actual.shape
+    hard_role_exp = hard_role.unsqueeze(0).expand(G, B, P)
+    valid_exp = local_valid_patch.unsqueeze(0).expand(G, B, P)
+    role_mask = valid_exp & (hard_role_exp == role_idx)
+    
+    count = role_mask.sum()
+    if count == 0:
+        return actual.sum() * 0.0
+        
+    diff = actual - desired
+    loss = F.smooth_l1_loss(diff, torch.zeros_like(diff), beta=beta, reduction='none')
+    
+    q_role_exp = q_role[..., role_idx].unsqueeze(0).expand(G, B, P)
+    return (loss * q_role_exp)[role_mask].sum() / count
+
+def factor_specific_residual_role_loss(
+    rho_factor_patch_logits: torch.Tensor, 
+    q_role: torch.Tensor,
+    hard_role: torch.Tensor,
+    mask_coverage: torch.Tensor,
+    local_valid_patch: torch.Tensor,
+    base_abnormal_minus_normal: torch.Tensor,
+    correction_max: float = 10.0,
+    epsilon: float = 1e-4,
+) -> torch.Tensor:
+    """
+    rho_factor_patch_logits: [G, B, P, M]
+    """
+    G, B, P, M = rho_factor_patch_logits.shape
+    desired = get_desired_correction(mask_coverage, base_abnormal_minus_normal, correction_max, epsilon) # [G, B, P]
+    
+    losses = []
+    
+    for m in range(M):
+        actual = rho_factor_patch_logits[..., m]
+        if m == 0:
+            target_desired = torch.zeros_like(desired)
+        elif m == 1:
+            target_desired = torch.minimum(desired, torch.zeros_like(desired))
+        elif m == 2:
+            target_desired = desired
+        elif m == 3:
+            target_desired = torch.maximum(desired, torch.zeros_like(desired))
+        
+        role_loss = _role_balanced_smooth_l1(actual, target_desired, q_role, hard_role, local_valid_patch, m)
+        if role_loss.requires_grad or role_loss.item() != 0.0:
+            losses.append(role_loss)
+            
+    if not losses:
+        return rho_factor_patch_logits.sum() * 0.0
+    return sum(losses) / len(losses)
+
+def actual_local_residual_loss(
+    rho_h6_logits: torch.Tensor, 
+    q_role: torch.Tensor,
+    hard_role: torch.Tensor,
+    mask_coverage: torch.Tensor,
+    local_valid_patch: torch.Tensor,
+    base_abnormal_minus_normal: torch.Tensor,
+    correction_max: float = 10.0,
+    epsilon: float = 1e-4,
+) -> torch.Tensor:
+    """
+    rho_h6_logits: [G, B, P]
+    """
+    G, B, P = rho_h6_logits.shape
+    desired = get_desired_correction(mask_coverage, base_abnormal_minus_normal, correction_max, epsilon)
+    
+    losses = []
+    for m in range(4):
+        actual = rho_h6_logits
+        if m == 0:
+            target_desired = torch.zeros_like(desired)
+        elif m == 1:
+            target_desired = torch.minimum(desired, torch.zeros_like(desired))
+        elif m == 2:
+            target_desired = desired
+        elif m == 3:
+            target_desired = torch.maximum(desired, torch.zeros_like(desired))
+            
+        role_loss = _role_balanced_smooth_l1(actual, target_desired, q_role, hard_role, local_valid_patch, m)
+        if role_loss.requires_grad or role_loss.item() != 0.0:
+            losses.append(role_loss)
+            
+    if not losses:
+        return rho_h6_logits.sum() * 0.0
+    return sum(losses) / len(losses)

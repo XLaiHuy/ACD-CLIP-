@@ -444,6 +444,7 @@ class ACDCLIP(nn.Module):
             test_mode: bool = False,
             domain: str = "Industrial",
             h6_patch_logits: torch.Tensor | None = None,
+            return_details: bool = False,
     ):
         """
         Fuse vision and text features using a gating mechanism.
@@ -454,6 +455,7 @@ class ACDCLIP(nn.Module):
         B, patch_size, _ = vision_tokens.shape[1:]
         H = int(np.sqrt(patch_size))
         group_seg_preds = []
+        base_group_logits_list = []
         for i in range(self.n_groups):
             img_feat = vision_tokens[i]  # [bs, patch_num, 768]
             img_feat = 10 * img_feat
@@ -474,6 +476,9 @@ class ACDCLIP(nn.Module):
                     i,
                 )
             fused_feature = torch.matmul(img_feat, group_text_features)  # [bs, patch_num, 2]
+            if return_details:
+                base_group_logits_list.append(fused_feature.clone())
+
             if h6_patch_logits is not None:
                 if not self.h6_enabled or self.h6 is None:
                     raise ValueError("H6 residual logits require an H6-enabled ACDCLIP model")
@@ -517,6 +522,12 @@ class ACDCLIP(nn.Module):
             # [bs, img_size, img_size]
             final_seg_pred = final_seg_pred[:, 1, :, :]
             # final_seg_pred = (final_seg_pred[:, 1, :, :] + 1 - final_seg_pred[:, 0, :, :]) / 2
+            
+        if return_details:
+            base_group_logits = torch.stack(base_group_logits_list, dim=0) # [G, B, P, 2]
+            base_abnormal_minus_normal = base_group_logits[..., 1] - base_group_logits[..., 0] # [G, B, P]
+            return final_seg_pred, base_group_logits, base_abnormal_minus_normal
+            
         return final_seg_pred
 
     def _vision_text_attention_fusion(

@@ -1,0 +1,31 @@
+{
+  "final_decision": "PRELAUNCH_READY",
+  "branch": "phase4-progress1-cops-dynamic-prompt",
+  "commit_head": "96c5b9c6ad8ec2b3b2eaec11a5b0deab58d41b2c",
+  "metrics_status": "METRICS_READY",
+  "calibration_status": "READY_FOR_ITERATION_D",
+  "preflight_status": "PREFLIGHT_CHECK_PASSED",
+  "resolved_blockers": {
+    "center_spread_flags": "ADDED (--h6_local_factor_mode center_spread --h6_local_center_mix 0.05 --h6_local_factor_spread 0.10)",
+    "dfg_beta_schedule": "RESOLVED (fixed, matching 120-image Candidate-1 calibration)",
+    "progress_version_string": "RESOLVED (P1-v8-minimal, authoritative valid choice in train.py parser)",
+    "test_ram_safety": "RESOLVED (--external_exact_pixel_metrics added for disk-backed pixel sorting)"
+  },
+  "train_probe": {
+    "peak_reserved_mb": 5198.0,
+    "total_gpu_mem_mb": 15839.4,
+    "gpu_headroom_pct": 67.18,
+    "optimizer_step_occurred": true,
+    "gate_passed": true
+  },
+  "test_probe": {
+    "peak_reserved_mb": 2872.0,
+    "total_gpu_mem_mb": 15839.4,
+    "gpu_headroom_pct": 81.87,
+    "after_cleanup_allocated_mb": 113.0,
+    "gate_passed": true
+  },
+  "unit_tests_passed": 39,
+  "unit_tests_failed": 0,
+  "full_training_executed": false
+}

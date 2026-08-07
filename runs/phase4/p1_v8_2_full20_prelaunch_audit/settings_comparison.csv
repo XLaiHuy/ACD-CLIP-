@@ -1,0 +1,44 @@
+setting,Phase-2B,P1-v7 stable/full,P1-v8 prior smoke,P1-v8.2 final,difference,justification,risk
+dataset and split,VisA/medical train,VisA/medical train,VisA/medical train,VisA train,SAME_AS_STABLE,Official VisA training split for P1-v8.2 20-epoch training,LOW
+image size,518,518,518,518,SAME_AS_STABLE,High-resolution patch grid for ViT-L-14-336,LOW
+model backbone,ViT-L-14-336,ViT-L-14-336,ViT-L-14-336,ViT-L-14-336,SAME_AS_STABLE,Standard OpenAI CLIP ViT-L-14-336 backbone,LOW
+pretrained source,openai,openai,openai,openai,SAME_AS_STABLE,Authoritative OpenAI pretrained weights,LOW
+n_groups,4,3,3,3,INTENTIONAL_CHANGE,Phase4 progress 1 standard 3 multi-level groups,LOW
+DFG mode,mlp,attn,attn,attn,INTENTIONAL_CHANGE,Phase 1A dual-softmax attention DFG,LOW
+DFG temperature/tau,N/A,8.0,8.0,8.0,SAME_AS_STABLE,Fixed DFG attention temperature,LOW
+SS2D enabled,false,true,true,true,SAME_AS_STABLE,Phase 1B SS2D residual query branch,LOW
+SS2D fusion,N/A,weight_residual,weight_residual,weight_residual,SAME_AS_STABLE,Post-softmax weight residual SS2D DFG fusion,LOW
+batch size,1,1,1,1,SAME_AS_STABLE,Batch size 1 image per microbatch,LOW
+gradient accumulation,1,6,6,6,SAME_AS_STABLE,6 microbatches = 1 optimizer-equivalent accumulation window,LOW
+effective batch size,1,6,6,6,SAME_AS_STABLE,Effective batch size 6 images,LOW
+precision,bf16,bf16,bf16,bf16,SAME_AS_STABLE,BFloat16 mixed precision,LOW
+autocast dtype,torch.bfloat16,torch.bfloat16,torch.bfloat16,torch.bfloat16,SAME_AS_STABLE,Native BFloat16 autocast,LOW
+GradScaler use,disabled (fp16 only),disabled (fp16 only),disabled (fp16 only),disabled (fp16 only),SAME_AS_STABLE,GradScaler disabled for BF16,LOW
+gradient checkpointing,true,true,true,true,SAME_AS_STABLE,Activation checkpointing enabled for ViT memory safety,LOW
+CLIP visual train/eval mode,eval,eval,eval,eval,SAME_AS_STABLE,Frozen CLIP backbone in eval mode,LOW
+patch dropout state,disabled,disabled,disabled,disabled,SAME_AS_STABLE,Patch dropout disabled for fixed square patch grid,LOW
+optimizer,Adam,Adam,Adam,Adam,SAME_AS_STABLE,Adam optimizer,LOW
+learning rate,1e-3 / 5e-4,1e-3,1e-3,1e-3,SAME_AS_STABLE,1e-3 image adapter learning rate,LOW
+per-module learning rates,image:1e-3 text:5e-4,image:1e-3 text:5e-4,image:1e-3 text:5e-4,image:1e-3 text:5e-4,SAME_AS_STABLE,Standard module learning rates,LOW
+weight decay,0.0,0.0,0.0,0.0,SAME_AS_STABLE,Zero weight decay,LOW
+scheduler,StepLR(gamma=0.9),StepLR(gamma=0.9),StepLR(gamma=0.9),StepLR(gamma=0.9),SAME_AS_STABLE,StepLR with gamma=0.9 per epoch,LOW
+warmup,none,none,none,none,SAME_AS_STABLE,Standard learning rate schedule,LOW
+gradient clipping,1.0,1.0,1.0,1.0,SAME_AS_STABLE,Clip grad norm 1.0,LOW
+zero_grad(set_to_none=True),true,true,true,true,SAME_AS_STABLE,Memory-efficient zero_grad(set_to_none=True),LOW
+number of workers,4,2,2,2,INTENTIONAL_CHANGE,Bounded DataLoader workers (2) to prevent host RAM inflation,LOW
+pin_memory,true,true,true,true,SAME_AS_STABLE,Pinned memory enabled for fast GPU transfer,LOW
+persistent_workers,false,false,false,false,SAME_AS_STABLE,Disabled to prevent RAM retention,LOW
+prefetch_factor,2,2,2,2,SAME_AS_STABLE,Standard prefetch factor,LOW
+drop_last,true (train) / false (test),true (train) / false (test),true (train) / false (test),true (train) / false (test),SAME_AS_STABLE,Full sample preservation on test split,LOW
+shuffle,true (train) / false (test),true (train) / false (test),true (train) / false (test),true (train) / false (test),SAME_AS_STABLE,Deterministic test loader order,LOW
+seed,0,0,0,0,SAME_AS_STABLE,Deterministic seed 0,LOW
+determinism settings,cudnn.deterministic=True,cudnn.deterministic=True,cudnn.deterministic=True,cudnn.deterministic=True,SAME_AS_STABLE,Fully deterministic CuDNN configuration,LOW
+augmentation,none,none,none,none,SAME_AS_STABLE,No image distortion augmentation,LOW
+checkpoint frequency,every epoch,every epoch,every epoch,every epoch,SAME_AS_STABLE,Saves adapter_1.pth ... adapter_20.pth,LOW
+resume state,supported,supported,supported,supported,SAME_AS_STABLE,Full optimizer and scheduler checkpoint resumption,LOW
+logging frequency,per microbatch,per microbatch,per microbatch,per microbatch,SAME_AS_STABLE,Detailed per-batch logger,LOW
+validation behavior,gated val split,gated val split,none,none (no validation),INTENTIONAL_CHANGE,Protocol requirement: Epoch 20 is canonical final model; no validation set used,LOW
+test batch size,1,1,1,1,SAME_AS_STABLE,Batch size 1 image per test sample,LOW
+test workers,2,2,2,2,SAME_AS_STABLE,2 test workers,LOW
+metric chunk size,exact/streaming,exact/streaming,exact/streaming,exact/streaming,SAME_AS_STABLE,Memory-safe exact/streaming metric calculation,LOW
+raw prediction retention,optional disk,optional disk,optional disk,optional disk,SAME_AS_STABLE,Incremental prediction saving to disk,LOW

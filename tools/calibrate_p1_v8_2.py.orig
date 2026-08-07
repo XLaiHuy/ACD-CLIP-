@@ -1,0 +1,259 @@
+import argparse
+import json
+import os
+import random
+import torch
+import torch.nn.functional as F
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+
+from dataset import get_text_and_image_dataset
+from model.clip import create_model
+from model.adapter import ACDCLIP
+from test import get_phase2b_global_text_features
+from utils import calculate_seg_loss
+from model.h6.losses import (
+    build_semantic_roles,
+    active_role_balanced_router_loss,
+    factor_specific_residual_role_loss,
+    actual_local_residual_loss,
+)
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dataset", type=str, default="Brain", help="Dataset to calibrate on")
+    parser.add_argument("--sample-count", type=int, default=50, help="Number of batches to calibrate")
+    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--device", type=str, default="cuda:0")
+    parser.add_argument("--output-dir", type=str, default="runs/phase4/p1_v8_2_iteration/calibration")
+    return parser.parse_args()
+
+class DummyArgs:
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+    def __getattr__(self, name):
+        return None
+
+def main():
+    args = parse_args()
+    torch.manual_seed(args.seed)
+    random.seed(args.seed)
+    os.makedirs(args.output_dir, exist_ok=True)
+    device = torch.device(args.device)
+
+    # 1. Canonical source-training initialization
+    clip_model = create_model(
+        model_name="ViT-L-14-336",
+        img_size=518,
+        device=device,
+        pretrained="openai",
+        require_pretrained=False, precision="bf16",
+    )
+    clip_model.set_grad_checkpointing(True)
+    clip_model.eval()
+
+    h6_config = DummyArgs(
+        n_groups=4,
+        num_factors=4,
+        top_k=1, # Candidate 1
+        bank_dim=256,
+        router_dim=128,
+        router_temperature=1.0,
+        router_soft_epochs=2,
+        sparse_transition_epochs=1,
+        load_bias_enabled=False,
+        text_dim=768,
+        ctx_len=16,
+        h6_logit_temperature=0.07,
+        cluster_responsibility_enabled=False,
+        expert_enabled=False,
+        factor_local_dynamic_mix=0.0,
+        local_factor_mode="center_spread",
+        local_center_mix=0.05,
+        local_factor_spread=0.10,
+        lambda_dynamic_mean_anchor=0.0,
+        dynamic_mean_anchor_min_cosine=0.5,
+        dynamic_mean_anchor_start_epoch=1,
+        dynamic_mean_anchor_warmup_epochs=1,
+        router_teacher_mode="off",
+        expert_bottleneck=128,
+        expert_fofs_seed_offset=0,
+        expert_state_condition_scale=0.1,
+        expert_scale_target=1.0,
+        expert_scale_start_epoch=1,
+        expert_scale_warmup_epochs=1,
+        expert_max_relative_ratio=0.1,
+        cluster_temperature=0.1,
+        progress_version="P1-v8.2",
+    )
+
+    model = ACDCLIP(
+        clip_model=clip_model,
+        n_groups=4,
+        lora_rank=16,
+        lora_alpha=2.0,
+        conv_lora_rank=8,
+        conv_lora_alpha=2.0,
+        conv_kernel_size_list=[3, 5],
+        dfg_mode="mlp",
+        dfg_attn_dim=256,
+        dfg_attn_tau=4.0,
+        use_ss2d_dfg=False,
+        dfg_ss2d_fusion="feature_residual",
+        dfg_beta=0.1,
+        h6_progress=1,
+        h6_config=h6_config
+    )
+    model.train()
+    model.to(device)
+    model.clipmodel.eval()
+
+    # 2. Load Dataset
+    dataset = get_text_and_image_dataset(args.dataset, img_size=518, stage="train")
+    if isinstance(dataset, dict):
+        dataset = torch.utils.data.ConcatDataset(dataset.values())
+
+    dataloader = DataLoader(dataset, batch_size=1, shuffle=True, drop_last=True)
+
+    # 3. Statistics tracking
+    sum_task = 0.0
+    sum_route = 0.0
+    sum_factor_role = 0.0
+    sum_actual_local = 0.0
+    count = 0
+
+    # 4. Evaluation Loop
+    batch_count = 0
+    for batch in tqdm(dataloader, total=args.sample_count):
+        if batch_count >= args.sample_count:
+            break
+        batch_count += 1
+        count += 1
+
+        images = batch["image"].to(device)
+        masks = batch["mask"].to(device) # [B, 1, 518, 518]
+        labels = batch["label"].to(device) # [B]
+        
+        local_mask_valid = batch.get("local_mask_valid", torch.ones_like(masks)).to(device)
+
+        class_names = list(batch["class_name"])
+
+        # Forward pass (with grad)
+        print(f"conv1 shape: {model.image_encoder.conv1(images).shape}")
+        visual_output = model(images, return_phase4_features=True)
+        h6_batch = model.h6.build_batch(
+            model, args.dataset, class_names, visual_output, hybrid_alpha=1.0, update_load_bias=False
+        )
+
+        seg_features = torch.stack(visual_output["seg_tokens"], dim=0)
+        det_features = torch.stack(visual_output["det_tokens"], dim=0)
+        text_global = get_phase2b_global_text_features(
+            model, args.dataset, class_names, device,
+            use_hybrid_soft_prompt=True,
+            use_soft_prompt=True
+        ).to(dtype=det_features.dtype)
+
+        cls_pred = torch.stack([
+            torch.matmul(det_features[level].unsqueeze(1), text_global[level]).squeeze(1)
+            for level in range(model.n_groups)
+        ], dim=0).mean(dim=0)
+        cls_loss = F.cross_entropy(cls_pred.float(), labels)
+
+        # Exact per-level base logits
+        base_seg_pred = model.vision_text_fusion_gate_seg(
+            seg_features,
+            text_global,
+            img_size=518,
+            h6_patch_logits=None,
+            return_details=True
+        )
+        base_logits = base_seg_pred["base_logits"]
+        base_abnormal_minus_normal = base_logits[..., 1] - base_logits[..., 0] # [G, B, P]
+        
+        seg_pred = model.vision_text_fusion_gate_seg(
+            seg_features,
+            text_global,
+            img_size=518,
+            h6_patch_logits=h6_batch["h6_logits"],
+            return_details=False
+        )
+        seg_loss = calculate_seg_loss(seg_pred.float(), masks.float())
+        task_loss = cls_loss + seg_loss
+
+        B, P = base_abnormal_minus_normal.shape[1:3]
+        q_role, hard_role, mask_coverage, local_valid_patch, local_valid_image = build_semantic_roles(masks, labels, P, local_mask_valid)
+
+        h6_route = active_role_balanced_router_loss(h6_batch["dense_probabilities"], q_role, hard_role, local_valid_patch)
+        h6_factor_role = factor_specific_residual_role_loss(h6_batch["rho_scaled_factor_correction"], q_role, hard_role, mask_coverage, local_valid_patch, base_abnormal_minus_normal)
+        h6_actual_local = actual_local_residual_loss(h6_batch["rho_scaled_actual_correction"], q_role, hard_role, mask_coverage, local_valid_patch, base_abnormal_minus_normal)
+
+        # Autograd probe
+        if batch_count == 1:
+            # check gradients
+            grad_probe_route = torch.autograd.grad(h6_route, model.h6.router.parameters(), retain_graph=True, allow_unused=True)
+            grad_probe_factor = torch.autograd.grad(h6_factor_role, model.h6.semantic_core.parameters(), retain_graph=True, allow_unused=True)
+            grad_probe_actual = torch.autograd.grad(h6_actual_local, model.h6.semantic_core.parameters(), retain_graph=True, allow_unused=True)
+            print(f"grad_probe_route valid: {any(g is not None for g in grad_probe_route)}")
+            print(f"grad_probe_factor valid: {any(g is not None for g in grad_probe_factor)}")
+            print(f"grad_probe_actual valid: {any(g is not None for g in grad_probe_actual)}")
+
+        sum_task += task_loss.item()
+        sum_route += h6_route.item()
+        sum_factor_role += h6_factor_role.item()
+        sum_actual_local += h6_actual_local.item()
+
+    # 5. Compile Results
+    avg_task = sum_task / count
+    avg_route = sum_route / count
+    avg_factor_role = sum_factor_role / count
+    avg_actual_local = sum_actual_local / count
+
+    target_route = 0.015 * avg_task
+    target_factor_role = 0.020 * avg_task
+    target_actual_local = 0.015 * avg_task
+
+    lambda_route = target_route / avg_route if avg_route > 0 else 0.0
+    lambda_factor_role = target_factor_role / avg_factor_role if avg_factor_role > 0 else 0.0
+    lambda_actual_local = target_actual_local / avg_actual_local if avg_actual_local > 0 else 0.0
+
+    report = {
+        "dataset": args.dataset,
+        "samples_evaluated": count * 4,
+        "averages": {
+            "task_loss": avg_task,
+            "route_loss_raw": avg_route,
+            "factor_role_loss_raw": avg_factor_role,
+            "actual_local_loss_raw": avg_actual_local,
+        },
+        "recommended_lambdas": {
+            "lambda_h6_route": lambda_route,
+            "lambda_h6_factor_role": lambda_factor_role,
+            "lambda_h6_actual_local": lambda_actual_local,
+        }
+    }
+
+    md_path = os.path.join(args.output_dir, "CALIBRATION_REPORT.md")
+    with open(md_path, "w") as f:
+        f.write("# Loss Calibration Audit\n\n")
+        f.write(f"- **Dataset**: {args.dataset} (train)\n")
+        f.write(f"- **Samples Evaluated**: {report['samples_evaluated']}\n\n")
+
+        f.write("## Unweighted Averages\n")
+        f.write(f"- **Task Loss**: {avg_task:.4f}\n")
+        f.write(f"- **Route Loss (Raw)**: {avg_route:.4f}\n")
+        f.write(f"- **Factor Role Loss (Raw)**: {avg_factor_role:.4f}\n")
+        f.write(f"- **Actual Local Loss (Raw)**: {avg_actual_local:.4f}\n\n")
+
+        f.write("## Recommended Lambdas\n")
+        f.write(f"- **`--lambda_h6_route`**: {lambda_route:.6f} (Target: 1.5% of task)\n")
+        f.write(f"- **`--lambda_h6_factor_role`**: {lambda_factor_role:.6f} (Target: 2.0% of task)\n")
+        f.write(f"- **`--lambda_h6_actual_local`**: {lambda_actual_local:.6f} (Target: 1.5% of task)\n")
+
+    print(f"\nCalibration completed. Results saved to {md_path}")
+    print(f"Recommended Lambda Route: {lambda_route:.6f}")
+    print(f"Recommended Lambda Factor Role: {lambda_factor_role:.6f}")
+    print(f"Recommended Lambda Actual Local: {lambda_actual_local:.6f}")
+
+if __name__ == "__main__":
+    main()

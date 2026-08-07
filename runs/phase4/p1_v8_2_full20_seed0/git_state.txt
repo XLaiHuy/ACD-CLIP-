@@ -1,0 +1,109 @@
+Branch: phase4-progress1-cops-dynamic-prompt
+HEAD: 96c5b9c6ad8ec2b3b2eaec11a5b0deab58d41b2c
+ M dataset/__init__.py
+ M model/adapter.py
+ M model/h6/cluster_responsibility.py
+ M model/h6/losses.py
+ M model/h6/model.py
+ M runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/adapter_10.pth
+ M runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/test.log
+ D runs/phase4/progress1_v7_full_seed0_ready3/train/exact_results_Brain_test_epoch_12.csv
+ D runs/phase4/progress1_v7_full_seed0_ready3/train/exact_results_Brain_val_epoch_12.csv
+ D runs/phase4/progress1_v7_full_seed0_ready3/train/exact_results_Colon_Kvasir_test_epoch_12.csv
+ D runs/phase4/progress1_v7_full_seed0_ready3/train/exact_results_Colon_Kvasir_val_epoch_12.csv
+ D runs/phase4/progress1_v7_full_seed0_ready3/train/exact_results_Colon_clinicDB_test_epoch_12.csv
+ D runs/phase4/progress1_v7_full_seed0_ready3/train/exact_results_Colon_clinicDB_val_epoch_12.csv
+ D runs/phase4/progress1_v7_full_seed0_ready3/train/exact_results_Colon_colonDB_test_epoch_12.csv
+ D runs/phase4/progress1_v7_full_seed0_ready3/train/exact_results_Colon_colonDB_val_epoch_12.csv
+ D runs/phase4/progress1_v7_full_seed0_ready3/train/exact_results_Liver_test_epoch_12.csv
+ D runs/phase4/progress1_v7_full_seed0_ready3/train/exact_results_Liver_val_epoch_12.csv
+ D runs/phase4/progress1_v7_full_seed0_ready3/train/exact_results_Retina_test_epoch_12.csv
+ D runs/phase4/progress1_v7_full_seed0_ready3/train/exact_results_Retina_val_epoch_12.csv
+ M runs/phase4/progress1_v7_full_seed0_ready3/train/medical_val_results_by_dataset.csv
+ M runs/phase4/progress1_v7_full_seed0_ready3/train/medical_val_results_by_epoch.csv
+ M runs/phase4/progress1_v7_full_seed0_ready3/train/medical_validation_selection.json
+ M runs/phase4/progress1_v7_full_seed0_ready3/train/test.log
+ M test.py
+ M train.py
+?? P1_fast_audit_runtime_decision_tree_gemini_prompt_v2_nonregression.md
+?? TIER3_ROUTER_PATCH_CONTRACT.md
+?? configs/
+?? err.log
+?? fix_getattr.py
+?? fix_tests.py
+?? fix_tests2.py
+?? fix_tests3.py
+?? fix_tests4.py
+?? generate_argparse.py
+?? generate_tests.py
+?? inject_args.py
+?? inject_args_fixed.py
+?? model/adapter.py.orig
+?? patch_autocast.patch
+?? patch_dataset.py
+?? patch_residual.py
+?? patch_weight_test.py
+?? phase2b.log
+?? print_conv1.patch
+?? print_dataset.py
+?? print_t_shape.patch
+?? profile.log
+?? runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/B0_-_Phase2B_baseline/
+?? runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/exact_results_Brain_val_epoch_10.csv
+?? runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/exact_results_Colon_Kvasir_val_epoch_10.csv
+?? runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/exact_results_Colon_clinicDB_val_epoch_10.csv
+?? runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/exact_results_Colon_colonDB_val_epoch_10.csv
+?? runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/exact_results_Liver_val_epoch_10.csv
+?? runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/exact_results_Retina_val_epoch_10.csv
+?? runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/medical_val_results_by_dataset.csv
+?? runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/medical_val_results_by_epoch.csv
+?? runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/medical_validation_selection.json
+?? runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/phase2b_triage/
+?? runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/protocol/
+?? runs/phase4/p1_fast_audit/
+?? runs/phase4/p1_v8_2_full20_prelaunch_audit/
+?? runs/phase4/p1_v8_2_full20_script_build/
+?? runs/phase4/p1_v8_2_full20_seed0/
+?? runs/phase4/p1_v8_2_iteration/
+?? runs/phase4/p1_v8_evidence/
+?? runs/phase4/p1_v8_minimal_wiring_smoke/
+?? runs/phase4/p1_v8_specialization_overnight/
+?? runs/phase4/progress1_v7_full_seed0_ready3/train/A0_-_legacy_P1-v7/
+?? runs/phase4/progress1_v7_full_seed0_ready3/train/A1_-_hard-anchor_baseline_inside_P1_checkpoint/
+?? runs/phase4/progress1_v7_full_seed0_ready3/train/A2_-_target_P1-v8/
+?? runs/phase4/progress1_v7_full_seed0_ready3/train/A3_-_sparse_comparison/
+?? runs/phase4/progress1_v7_full_seed0_ready3/train/A4_-_optional_safety_comparison/
+?? runs/phase4/progress1_v7_full_seed0_ready3/train/B0_-_Phase2B_baseline/
+?? runs/phase4/progress1_v7_full_seed0_ready3/train/protocol/
+?? runs/phase4/progress1_v8_structural_smoke_seed0/
+?? runs/phase4/tier3_m4_seed0/
+?? scripts/phase4/README_P1_V8_2_FULL20.md
+?? scripts/phase4/resume_p1_v8_2_full20_train_then_test.sh
+?? scripts/phase4/run_p1_v8_2_full20_train.sh
+?? scripts/phase4/run_p1_v8_2_full20_train_then_test.sh
+?? scripts/phase4/run_p1_v8_2_full_test_e10_e20.sh
+?? scripts/phase4/run_p1_v8_2_memory_probe.sh
+?? stage_c_ablation.py
+?? temp_ckpt.pt
+?? temp_rewrite.py
+?? test_shape.py
+?? tests/test_checkpoint_roundtrip.py
+?? tests/test_h6_p1_v8_2.py
+?? tests/test_p1_v8_2_metrics.py
+?? tests/test_p1_v8_2_prelaunch.py
+?? tools/audit_p1_v8_2.py
+?? tools/b7_one_batch_dry_run.py
+?? tools/calibrate_p1_v8_2.py
+?? tools/calibrate_p1_v8_2.py.orig
+?? tools/calibrate_p1_v8_2.py.rej
+?? tools/check_test_placeholders.py
+?? tools/instrument_train.py
+?? tools/phase4_v8_minimal_fix.py
+?? tools/preflight_p1_v8_2_full20.py
+?? tools/probe_augmentation.py
+?? tools/probe_p1_v8_2_full20_memory.py
+?? tools/probe_p1_v8_2_test_memory.py
+?? tools/summarize_p1_v8_2_full_test_epochs.py
+?? train_profile.py
+?? triage_A0_A3.log
+?? wiring.log

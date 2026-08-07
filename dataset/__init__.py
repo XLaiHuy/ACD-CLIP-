@@ -79,16 +79,42 @@ class TextAndImageDataset(Dataset):
         else:
             mask = torch.zeros([1, self.img_size, self.img_size])
 
-        random_transform = tv_transforms.Compose(self.transforms_list)
-        transform_tensor = torch.cat([img, mask], dim=0)
-        assert transform_tensor.shape[0] == 4
-        transform_tensor = random_transform(transform_tensor)
-        img = transform_tensor[0:3, :, :]
-        mask = transform_tensor[3:4, :, :]
+        import torchvision.transforms.functional as TF
+        import random
+        import math
+        
+        valid_mask = torch.ones([1, self.img_size, self.img_size], dtype=torch.float32)
+
+        if random.random() < 0.5:
+            angle = random.uniform(-30, 30)
+            img = TF.rotate(img, angle, interpolation=TF.InterpolationMode.BILINEAR)
+            mask = TF.rotate(mask, angle, interpolation=TF.InterpolationMode.NEAREST)
+            valid_mask = TF.rotate(valid_mask, angle, interpolation=TF.InterpolationMode.NEAREST)
+
+        if random.random() < 0.5:
+            translate_x = int(random.uniform(-0.15, 0.15) * self.img_size)
+            translate_y = int(random.uniform(-0.15, 0.15) * self.img_size)
+            img = TF.affine(img, angle=0.0, translate=[translate_x, translate_y], scale=1.0, shear=0.0, interpolation=TF.InterpolationMode.BILINEAR)
+            mask = TF.affine(mask, angle=0.0, translate=[translate_x, translate_y], scale=1.0, shear=0.0, interpolation=TF.InterpolationMode.NEAREST)
+            valid_mask = TF.affine(valid_mask, angle=0.0, translate=[translate_x, translate_y], scale=1.0, shear=0.0, interpolation=TF.InterpolationMode.NEAREST)
+
+        if random.random() < 0.5:
+            img = TF.hflip(img)
+            mask = TF.hflip(mask)
+            valid_mask = TF.hflip(valid_mask)
+
+        if random.random() < 0.5:
+            img = TF.vflip(img)
+            mask = TF.vflip(mask)
+            valid_mask = TF.vflip(valid_mask)
+            
+        mask = (mask > 0.5).float()
+        valid_mask = (valid_mask > 0.5).float()
 
         inputs = {
             "image": img,
             "mask": mask,
+            "local_mask_valid": valid_mask,
             "label": torch.tensor(meta["label"]).to(torch.int64),
             "file_name": meta["image_path"],
             "class_name": meta["class_name"],

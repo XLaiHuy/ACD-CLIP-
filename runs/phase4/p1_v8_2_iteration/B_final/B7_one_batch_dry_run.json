@@ -1,0 +1,132 @@
+{
+  "ONE_BATCH_SANITY_ESTIMATE_ONLY": true,
+  "NOT_FOR_TRAINING": true,
+  "config_hash": "b0c959c5b79ef3574d91e6075f03700bf55ed0872f68d464c6e06a3e39b75319",
+  "G": 3,
+  "B": 1,
+  "P": 1369,
+  "M": 4,
+  "rho_values": [
+    0.05000000074505806,
+    0.05000000074505806,
+    0.05000000074505806
+  ],
+  "rho_frozen": true,
+  "h6_logit_temperature": 10.0,
+  "theoretical_capacity": 1.0,
+  "correction_max": 1.0,
+  "losses": {
+    "task": 2.1643383502960205,
+    "cls": 0.6949799060821533,
+    "seg": 1.4693584442138672,
+    "route": 1.4247064590454102,
+    "factor_role": 3.2109214771480765e-06,
+    "actual_local": 3.242632828914793e-06
+  },
+  "gradients": {
+    "route_to_router": {
+      "total_params": 14,
+      "valid": 8,
+      "finite": 8,
+      "nonzero": 8,
+      "l2_norm": 0.6466773748397827,
+      "max_abs": 0.04478554427623749,
+      "connected": true
+    },
+    "factor_to_core": {
+      "total_params": 52,
+      "valid": 48,
+      "finite": 48,
+      "nonzero": 48,
+      "l2_norm": 2.8193977414048277e-05,
+      "max_abs": 9.889354259939864e-07,
+      "connected": true
+    },
+    "actual_to_router": {
+      "total_params": 14,
+      "valid": 8,
+      "finite": 8,
+      "nonzero": 8,
+      "l2_norm": 1.3606768334284425e-07,
+      "max_abs": 4.459840496906509e-09,
+      "connected": true
+    },
+    "actual_to_core": {
+      "total_params": 52,
+      "valid": 49,
+      "finite": 49,
+      "nonzero": 49,
+      "l2_norm": 2.8139267669757828e-05,
+      "max_abs": 9.996036851589452e-07,
+      "connected": true
+    },
+    "task_to_adapter": {
+      "total_params": 99,
+      "valid": 96,
+      "finite": 96,
+      "nonzero": 96,
+      "l2_norm": 0.6537860631942749,
+      "max_abs": 0.0283203125,
+      "connected": true
+    }
+  },
+  "correction_capacity": {
+    "actual_correction_quantiles": {
+      "min": -0.0120157515630126,
+      "p01": -0.009891185909509659,
+      "p05": -0.009150968864560127,
+      "p50": -0.003582218661904335,
+      "p95": 0.0011061601107940078,
+      "p99": 0.0027363100089132786,
+      "max": 0.006986062973737717
+    },
+    "factor_correction_quantiles": {
+      "min": -0.012337922118604183,
+      "p01": -0.009920522570610046,
+      "p05": -0.009121522307395935,
+      "p50": -0.003580797463655472,
+      "p95": 0.0010570097947493196,
+      "p99": 0.002684048842638731,
+      "max": 0.007146626710891724
+    },
+    "desired_correction_quantiles": {
+      "min": -1.0,
+      "p01": -1.0,
+      "p05": -1.0,
+      "p50": -1.0,
+      "p95": -1.0,
+      "p99": -1.0,
+      "max": -1.0
+    },
+    "saturation_rate": 0.0,
+    "clamp_rate_by_role": {
+      "role_0": 0.0
+    }
+  },
+  "router": {
+    "entropy": 1.384567141532898,
+    "mean_usage": [
+      0.24085284769535065,
+      0.2539716958999634,
+      0.26080283522605896,
+      0.2443726807832718
+    ]
+  },
+  "role_counts": [
+    1369,
+    0,
+    0,
+    0
+  ],
+  "lambda_estimates": {
+    "ONE_BATCH_SANITY_ESTIMATE_ONLY": true,
+    "NOT_FOR_TRAINING": true,
+    "lambda_route": 0.02278720296965084,
+    "lambda_factor_role": 13481.104198277528,
+    "lambda_actual_local": 10011.949229942677
+  },
+  "perf": {
+    "fwd_time_s": 0.6086821556091309,
+    "gpu_peak_mb": 3042.64208984375
+  }
+}

@@ -1,4 +1,5 @@
 import argparse
+import collections
 import contextlib
 import csv
 import hashlib
@@ -47,7 +48,12 @@ from model.h6.losses import (
     delta_t_diversity_loss, functional_factor_diversity_loss,
 )
 from model.h6.cluster_responsibility import cluster_responsibility_loss
-
+from model.h6.losses import (
+    build_semantic_roles,
+    active_role_balanced_router_loss,
+    factor_specific_residual_role_loss,
+    actual_local_residual_loss,
+)
 
 def tensor_debug_stats(tensor):
     if tensor is None:
@@ -1191,28 +1197,7 @@ def train_h6_progress1(
             args.h6_router_teacher_warmup_epochs,
             args.lambda_h6_router_teacher,
         )
-        metrics = {key: [] for key in (
-            "total", "task", "cls", "seg", "center", "router_teacher", "router_teacher_weighted",
-            "router_teacher_scheduled_weight", "router_teacher_effective_weight",
-            "vae_rec", "vae_kl_raw", "vae_kl_effective", "kg", "orth", "balance",
-            "concept_key_diversity_raw", "concept_key_diversity_weighted",
-            "dynamic_mean_anchor_raw", "dynamic_mean_anchor_weighted", "dynamic_mean_anchor_weight",
-            "expert", "advantage", "etf", "expert_anchor", "expert_radius", "expert_weight",
-            "advantage_weight", "etf_weight", "balance_weight", "expert_delta_norm",
-            "expert_assigned_raw", "expert_assigned_weight", "expert_assigned_weighted",
-            "expert_advantage_raw", "expert_advantage_weight", "expert_advantage_weighted",
-            "expert_etf_raw", "expert_etf_weight", "expert_etf_weighted",
-            "expert_balance_dense_raw", "expert_balance_prediction_raw", "expert_balance_weight", "expert_balance_weighted",
-            "expert_anchor_raw", "expert_anchor_weight", "expert_anchor_weighted",
-            "expert_radius_raw", "expert_radius_weight", "expert_radius_weighted",
-            "loss_component_sum", "loss_component_residual", "expert_assigned_normal", "expert_assigned_abnormal",
-            "selected_expert_loss", "nonselected_expert_loss", "expert_advantage_margin_satisfied_fraction",
-            "legacy_pre_expert_orth_raw", "legacy_pre_expert_orth_weight", "legacy_pre_expert_orth_weighted",
-            "delta_t_diversity_raw", "delta_t_diversity_weight", "delta_t_diversity_weighted",
-            "functional_factor_diversity_raw", "functional_factor_diversity_weight", "functional_factor_diversity_weighted",
-            "cluster_resp_raw", "cluster_resp_weight", "cluster_resp_weighted",
-            "cluster_target_entropy", "cluster_router_entropy",
-        )}
+        metrics = collections.defaultdict(list)
         factor_grad_diag = {
             "factor_grad_norms": None,
             "factor_grad_cos_mean": None,
@@ -1270,6 +1255,12 @@ def train_h6_progress1(
                 break
             image = input_data["image"].to(device, non_blocking=args.pin_memory)
             mask = input_data["mask"].to(device, non_blocking=args.pin_memory)
+
+            # Default to a fully valid mask if local_mask_valid is not present in the batch
+            if "local_mask_valid" in input_data:
+                local_mask_valid = input_data["local_mask_valid"].to(device, non_blocking=args.pin_memory)
+            else:
+                local_mask_valid = torch.ones_like(mask)
             label = input_data["label"].to(device, non_blocking=args.pin_memory)
             class_names = list(input_data["class_name"])
             with _phase4_autocast(device, args.precision):
@@ -1323,12 +1314,15 @@ def train_h6_progress1(
                     for level in range(model.n_groups)
                 ], dim=0).mean(dim=0)
                 cls_loss = F.cross_entropy(cls_pred.float(), label)
-                seg_pred = model.vision_text_fusion_gate_seg(
+                seg_pred, base_group_logits, base_abnormal_minus_normal = model.vision_text_fusion_gate_seg(
                     seg_features,
                     text_global,
                     img_size=args.img_size,
                     h6_patch_logits=h6_batch["h6_logits"],
+                    return_details=True,
                 )
+                base_abnormal_minus_normal = base_abnormal_minus_normal.detach()
+
                 seg_loss = calculate_seg_loss(seg_pred.float(), mask.float())
                 task_loss = cls_loss + seg_loss
                 if args.h6_center_factor_aware:
@@ -1357,11 +1351,7 @@ def train_h6_progress1(
                     else h6_orth * 0.0
                 )
                 if args.lambda_h6_func_div > 0.0:
-                    factor_bank = h6_batch["factor_bank"].float()
-                    factor_patch_logits = torch.einsum(
-                        "gbpd,gbmd->gbpm", F.normalize(seg_features.float(), dim=-1),
-                        factor_bank[..., 1] - factor_bank[..., 0],
-                    ) * model.h6.h6_logit_temperature
+                    factor_patch_logits = h6_batch["factor_patch_logits"]
                     hard_direction = h6_batch["hard_frozen"].float()[..., 1] - h6_batch["hard_frozen"].float()[..., 0]
                     hard_logits = torch.einsum("gbpd,gbd->gbp", F.normalize(seg_features.float(), dim=-1), hard_direction)
                     hard_centered = hard_logits - hard_logits.mean(dim=2, keepdim=True)
@@ -1448,6 +1438,23 @@ def train_h6_progress1(
                 advantage_weight = linear_ramp_weight(epoch, args.h6_advantage_start_epoch, args.h6_advantage_warmup_epochs, args.lambda_h6_advantage)
                 etf_weight = linear_ramp_weight(epoch, args.h6_etf_start_epoch, args.h6_etf_warmup_epochs, args.lambda_h6_etf)
                 balance_weight = args.lambda_h6_balance
+                # Option A-prime Losses
+                h6_route = 0.0
+                h6_factor_role = 0.0
+                h6_actual_local = 0.0
+                if any(getattr(args, k, 0.0) > 0.0 for k in ["lambda_h6_route", "lambda_h6_factor_role", "lambda_h6_actual_local"]):
+                    B, P = base_abnormal_minus_normal.shape[1:3]
+                    q_role, hard_role, mask_coverage, local_valid_patch, local_valid_image = build_semantic_roles(mask, label, P, local_mask_valid)
+
+                    if getattr(args, "lambda_h6_route", 0.0) > 0.0:
+                        h6_route = active_role_balanced_router_loss(h6_batch["dense_probabilities"], q_role, hard_role, local_valid_patch)
+
+                    if getattr(args, "lambda_h6_factor_role", 0.0) > 0.0:
+                        h6_factor_role = factor_specific_residual_role_loss(h6_batch["rho_scaled_factor_correction"], q_role, hard_role, mask_coverage, local_valid_patch, base_abnormal_minus_normal)
+
+                    if getattr(args, "lambda_h6_actual_local", 0.0) > 0.0:
+                        h6_actual_local = actual_local_residual_loss(h6_batch["rho_scaled_actual_correction"], q_role, hard_role, mask_coverage, local_valid_patch, base_abnormal_minus_normal)
+
                 if model.h6.expert_enabled:
                     h6_expert, expert_terms = assigned_expert_loss(h6_batch["expert_patch_logits"], h6_batch["prediction_probabilities"], mask)
                     h6_advantage = expert_advantage_loss(h6_batch["expert_patch_logits"], h6_batch["topk_indices"], mask, args.h6_advantage_margin)
@@ -1457,7 +1464,13 @@ def train_h6_progress1(
                     balance_weight = args.lambda_h6_balance + decay * (final_balance - args.lambda_h6_balance)
                     h6_balance, balance_terms = dual_routing_balance_loss(h6_batch["dense_probabilities"], h6_batch["prediction_probabilities"])
                     h6_expert_anchor, expert_anchor_cos = expert_clip_anchor_loss(h6_batch["active_factor_bank"], h6_batch["hard_frozen"], args.h6_expert_anchor_min_cosine)
-                    h6_expert_radius = expert_radius_loss(h6_batch["expert_relative_ratio"], args.h6_expert_max_relative_ratio)
+                    if args.lambda_h6_expert_radius > 0.0:
+                        h6_expert_radius = expert_radius_loss(h6_batch["expert_scale"], args.h6_expert_max_relative_ratio)
+                    else:
+                        h6_expert_radius = h6_orth * 0.0
+
+                    # The returned h6_expert_scale from the gate is used downstream
+                    # only for diagnostics.  Actual forward uses min(target, ...).
                     expert_function = expert_patch_function_diagnostics(
                         h6_batch["expert_patch_logits"], h6_batch["topk_indices"], mask, args.h6_advantage_margin
                     )
@@ -1486,6 +1499,9 @@ def train_h6_progress1(
                     "delta_t_diversity": args.lambda_h6_delta_div * h6_delta_div,
                     "functional_factor_diversity": args.lambda_h6_func_div * h6_func_div,
                     "cluster_responsibility": args.h6_lambda_cluster_resp * h6_cluster_resp,
+                    "route": getattr(args, "lambda_h6_route", 0.0) * h6_route,
+                    "factor_role": getattr(args, "lambda_h6_factor_role", 0.0) * h6_factor_role,
+                    "actual_local": getattr(args, "lambda_h6_actual_local", 0.0) * h6_actual_local,
                     "balance": balance_weight * h6_balance,
                     "raw_key_diversity": concept_key_diversity_weight * h6_concept_key_diversity,
                     "dynamic_mean_anchor": dynamic_mean_anchor_weight * h6_batch["dynamic_mean_anchor_loss_raw"],
@@ -1497,12 +1513,7 @@ def train_h6_progress1(
                 total_loss = loss_component_sum
                 loss_component_residual = total_loss - loss_component_sum
                 if batch_idx in set(args.h6_wiring_probe_batches):
-                    factor_bank = h6_batch["factor_bank"].float()
-                    factor_patch_logits = torch.einsum(
-                        "gbpd,gbmd->gbpm",
-                        F.normalize(seg_features.float(), dim=-1),
-                        factor_bank[..., 1] - factor_bank[..., 0],
-                    ) * model.h6.h6_logit_temperature
+                    factor_patch_logits = h6_batch["factor_patch_logits"]
                     delta_t = (
                         h6_batch["dynamic_text"].float()
                         - h6_batch["hard_frozen"].unsqueeze(2).expand_as(h6_batch["dynamic_text"]).float()
@@ -1689,6 +1700,15 @@ def train_h6_progress1(
                 "concept_key_diversity_weighted": concept_key_diversity_weight * h6_concept_key_diversity,
                 "dynamic_mean_anchor_raw": h6_batch["dynamic_mean_anchor_loss_raw"],
                 "dynamic_mean_anchor_weighted": dynamic_mean_anchor_weight * h6_batch["dynamic_mean_anchor_loss_raw"],
+                "route_raw": h6_route,
+                "route_weight": torch.as_tensor(getattr(args, "lambda_h6_route", 0.0), device=device),
+                "route_weighted": getattr(args, "lambda_h6_route", 0.0) * h6_route,
+                "factor_role_raw": h6_factor_role,
+                "factor_role_weight": torch.as_tensor(getattr(args, "lambda_h6_factor_role", 0.0), device=device),
+                "factor_role_weighted": getattr(args, "lambda_h6_factor_role", 0.0) * h6_factor_role,
+                "actual_local_raw": h6_actual_local,
+                "actual_local_weight": torch.as_tensor(getattr(args, "lambda_h6_actual_local", 0.0), device=device),
+                "actual_local_weighted": getattr(args, "lambda_h6_actual_local", 0.0) * h6_actual_local,
                 "dynamic_mean_anchor_weight": torch.as_tensor(dynamic_mean_anchor_weight, device=device),
                 "expert": h6_expert, "advantage": h6_advantage, "etf": h6_etf,
                 "expert_anchor": h6_expert_anchor, "expert_radius": h6_expert_radius,
@@ -2421,6 +2441,9 @@ def main():
     parser.add_argument("--h6_dynamic_mean_anchor_warmup_epochs", type=int, default=3)
     parser.add_argument("--h6_expert_bottleneck", type=int, default=64)
     parser.add_argument("--h6_progress_version", choices=["P1-v6", "P1-v7-full", "P1-v8-minimal"], default="P1-v6")
+    parser.add_argument("--h6_local_factor_mode", type=str, choices=["legacy_mix", "center_spread"], default="legacy_mix")
+    parser.add_argument("--h6_local_center_mix", type=float, default=0.05)
+    parser.add_argument("--h6_local_factor_spread", type=float, default=0.10)
     parser.add_argument("--h6_expert_enabled", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--h6_expert_fofs_seed_offset", type=int, default=7500)
     parser.add_argument("--h6_expert_state_condition_scale", type=float, default=0.25)
@@ -2455,6 +2478,9 @@ def main():
     parser.add_argument("--lambda_h6_orth", type=float, default=1e-3)
     parser.add_argument("--lambda_h6_delta_div", type=float, default=0.0)
     parser.add_argument("--lambda_h6_func_div", type=float, default=0.0)
+    parser.add_argument("--lambda_h6_route", type=float, default=0.0)
+    parser.add_argument("--lambda_h6_factor_role", type=float, default=0.0)
+    parser.add_argument("--lambda_h6_actual_local", type=float, default=0.0)
     parser.add_argument("--h6_cluster_responsibility", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--h6_cluster_centroid_path", type=str, default=None)
     parser.add_argument("--h6_cluster_temperature", type=float, default=0.10)
@@ -2614,6 +2640,19 @@ def main():
             raise ValueError("--h6_two_view belongs to Progress 3 and is not implemented in Progress 1")
         if torch.cuda.is_available() and args.precision == "bf16" and not torch.cuda.is_bf16_supported():
             raise RuntimeError("GPU does not support BF16. Use --precision fp16 or --precision fp32.")
+
+        if (args.h6_progress == 1) and args.lambda_h6_actual_local > 0.0:
+            assert not args.h6_load_bias_enabled, "Candidate 1 must disable load bias"
+            assert args.lambda_h6_balance == 0.0, "Candidate 1 must disable balance"
+            assert not getattr(args, "h6_cluster_responsibility_enabled", False), "Candidate 1 must disable cluster responsibility"
+            assert getattr(args, "lambda_h6_functional_decorrelation", 0.0) == 0.0, "Candidate 1 must disable functional decorrelation"
+            assert getattr(args, "lambda_h6_router_teacher", 0.0) == 0.0, "Candidate 1 must disable router teacher"
+            assert getattr(args, "lambda_h6_center", 0.0) == 0.0, "Candidate 1 must disable center losses"
+            assert getattr(args, "lambda_h6_dynamic_mean_anchor", 0.0) == 0.0, "Candidate 1 must disable center losses"
+            assert not getattr(args, "h6_expert_enabled", False), "Candidate 1 must disable experts"
+            assert getattr(args, "h6_prediction_routing", "dense") == "dense", "Candidate 1 must disable Top-K prediction"
+            assert not getattr(args, "h6_rho_trainable", False), "Candidate 1 must disable rho training"
+
         set_phase4_seed(args.seed)
     # ========================================================
     # check save_path and setting logger
@@ -2713,6 +2752,9 @@ def main():
         h6_dynamic_mean_anchor_warmup_epochs=args.h6_dynamic_mean_anchor_warmup_epochs,
         h6_router_teacher_mode=args.h6_router_teacher_mode,
         h6_progress_version=args.h6_progress_version,
+        local_factor_mode=args.h6_local_factor_mode,
+        local_center_mix=args.h6_local_center_mix,
+        local_factor_spread=args.h6_local_factor_spread,
         h6_expert_enabled=args.h6_expert_enabled,
         h6_expert_bottleneck=args.h6_expert_bottleneck,
         h6_expert_fofs_seed_offset=args.h6_expert_fofs_seed_offset,

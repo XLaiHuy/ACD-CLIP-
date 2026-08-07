@@ -1,0 +1,17 @@
+/home/ai4/caohuy/ACD-CLIP-phase4/tools/probe_p1_v8_2_full20_memory.py:107: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(precision == "fp16"))
+=== Starting Controlled Train Memory Probe (6 Microbatches = 1 Accumulation Window) ===
+  Microbatch 1/6: loss=4.5357 | VRAM allocated=2119.8MB reserved=3420.0MB peak=2832.7MB | RSS=3634.9MB
+  Microbatch 2/6: loss=4.5699 | VRAM allocated=2118.5MB reserved=3910.0MB peak=3785.7MB | RSS=3635.0MB
+  Microbatch 3/6: loss=2.2539 | VRAM allocated=2118.7MB reserved=4026.0MB peak=3788.9MB | RSS=3635.0MB
+  Microbatch 4/6: loss=3.5454 | VRAM allocated=2118.5MB reserved=4026.0MB peak=3792.2MB | RSS=3635.1MB
+  Microbatch 5/6: loss=3.5063 | VRAM allocated=2119.2MB reserved=4026.0MB peak=3794.3MB | RSS=3635.1MB
+  Microbatch 6/6: loss=3.4778 | VRAM allocated=3100.0MB reserved=5198.0MB peak=5067.6MB | RSS=3682.8MB
+
+=== Controlled Train Memory Probe Completed ===
+Total GPU Memory: 15839.4 MB
+Peak Reserved GPU Memory: 5198.0 MB (32.8%)
+GPU Headroom: 67.18% (Requirement >= 15.0%)
+Host RSS: start=841.2MB, end=3682.9MB
+Optimizer Step Occurred: True
+Probe Result Saved to: runs/phase4/p1_v8_2_full20_prelaunch_audit/train_memory_probe.json
