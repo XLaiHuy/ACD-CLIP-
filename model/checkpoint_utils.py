@@ -8,6 +8,7 @@ import torch
 
 
 PHASE4_CHECKPOINT_VERSION = 8
+P1_V84A_CHECKPOINT_VERSION = 9
 
 
 def validate_p1_v83_checkpoint_contract(checkpoint: Mapping[str, Any]) -> None:
@@ -98,6 +99,27 @@ def validate_h6_configuration(model, checkpoint: Mapping[str, Any]) -> None:
         if config.get("rho_fixed") is not True or config.get("rho_trainable") is not False:
             raise ValueError("P1-v8.3 checkpoint must declare fixed, non-trainable rho")
         validate_p1_v83_checkpoint_contract(checkpoint)
+    if expected_version == "P1-v8.4-A":
+        if int(checkpoint.get("checkpoint_version", 0)) != P1_V84A_CHECKPOINT_VERSION:
+            raise ValueError("P1-v8.4-A requires explicit checkpoint_version=9 metadata")
+        if config.get("progress_version") != "P1-v8.4-A":
+            raise ValueError("P1-v8.4-A checkpoint is missing explicit progress_version metadata")
+        required = {
+            "rho_fixed": True,
+            "rho_trainable": False,
+            "act_enabled": True,
+            "act_model": "layernorm_linear",
+            "act_probability_mode": "continuous_sigmoid",
+            "local_correction_semantics": "act_times_routed_true_residual",
+            "noop_reference": "expected_noop_pre_expert_bank",
+        }
+        mismatches = {
+            key: (config.get(key), value)
+            for key, value in required.items()
+            if config.get(key) != value
+        }
+        if mismatches:
+            raise ValueError(f"P1-v8.4-A checkpoint contract mismatch: {mismatches}")
     if expected_version in {"P1-v3", "P1-v4", "P1-v5", "P1-v5-fix"} and config.get("progress_version") != expected_version:
         raise ValueError(
             f"{expected_version} model requires a {expected_version} checkpoint with explicit "
@@ -198,6 +220,8 @@ def build_phase4_checkpoint(
         ],
         "utility_factor_weight": phase2b_config.get("lambda_h6_factor"),
         "utility_router_weight": phase2b_config.get("lambda_h6_router"),
+        "utility_act_weight": phase2b_config.get("lambda_h6_act"),
+        "act_effective_beta": phase2b_config.get("h6_act_effective_beta"),
         "utility_factor_effective_beta": phase2b_config.get(
             "h6_utility_factor_effective_beta"
         ),
@@ -333,7 +357,8 @@ def build_phase4_checkpoint(
             h6_config[key] = phase2b_config[key]
     payload: Dict[str, Any] = {
         "checkpoint_version": (
-            PHASE4_CHECKPOINT_VERSION if h6_config.get("progress_version") == "P1-v8.3"
+            P1_V84A_CHECKPOINT_VERSION if h6_config.get("progress_version") == "P1-v8.4-A"
+            else PHASE4_CHECKPOINT_VERSION if h6_config.get("progress_version") == "P1-v8.3"
             else 7 if h6_config.get("progress_version") == "P1-v7-full" else 6
         ),
         "epoch": int(epoch),

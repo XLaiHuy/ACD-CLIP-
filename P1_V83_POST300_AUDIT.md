@@ -1,1404 +1,2547 @@
-# P1-v8.3 POST-300 AUDIT
-## anomaly semantics + canonical schedule + grad-accum remainder + lambda gradient probe
+You are continuing the ACD-CLIP P1 research workflow after the P1-v8.3
+EXIT_FOR_DISCUSSION decision.
 
-Continue from the CURRENT LAB MACHINE state.
+This task is an evidence-driven architecture rescue focused ONLY on the local
+factor mechanism.
 
-Project:
+The objective is:
 
-```text
-Phase 4 → Progress 1 → candidate P1-v8.3
-```
+1. determine exactly WHY P1-v8.3 produces:
+   - useful normal correction,
+   - harmful anomaly correction,
+   - almost-identical factors,
+   - zero informative router supervision;
 
-Expected repo:
+2. validate whether TRUE RESIDUAL FACTORS + an explicit ACT/NO-ACT mechanism
+   solve the root cause;
 
-```text
+3. only if needed, add the minimum factor-specific capacity required to create
+   genuine functional specialization;
+
+4. validate development candidates through:
+   no-training forensic audit
+   → 8-batch smoke
+   → fresh corrected 300B
+   → fresh 1 epoch
+   → fresh 3 epochs;
+
+5. stop immediately if evidence requires a fundamentally different scientific
+   hypothesis.
+
+IMPORTANT:
+
+DO NOT COMMIT.
+DO NOT PUSH.
+DO NOT git add.
+DO NOT git commit.
+DO NOT git cherry-pick.
+DO NOT git reset/rebase/clean/stash destructively.
+
+Leave all source modifications UNCOMMITTED for user review.
+
+DO NOT run final20.
+DO NOT run ANY medical evaluation.
+DO NOT use medical datasets for tuning or validation.
+
+============================================================
+0. CURRENT STATE
+============================================================
+
+Repository:
+
+https://github.com/XLaiHuy/ACD-CLIP-
+
+Current isolated worktree:
+
+/home/ai4/caohuy/ACD-CLIP-p1v83-autopilot
+
+Original lab worktree:
+
 /home/ai4/caohuy/ACD-CLIP-phase4
-```
 
-Verify path and Git state rather than blindly assuming it.
+DO NOT modify the original lab worktree.
 
-Current relevant commits:
+Current branch:
 
-```text
-parent implementation/fix:
-12d0b7fbb045b2c549e4be2c6c6daf85dae342f2
+autopilot/p1-v83-root-cause-d58b84bc
 
-diagnostics commit:
-2019e5ada8f30166ab70c8a859de35c487ecc1c1
-```
+Historical Phase-4 base:
 
-Do NOT pull/rebase/reset unless an actual repository problem requires it.
+d58b84bcecb9c4d22bdef321ea0ca28bd3b6745b
 
-Do NOT push.
+Existing local development commits include:
 
-Do NOT run final20.
+4b57b24
+primary-anchored factor surgery
 
-Do NOT run medical evaluation.
+459e546
+corrected-300B exit decision
 
-Do NOT run a full VisA epoch in this task.
+These are already historical context for this task.
 
-This is a focused audit/probe session only.
+DO NOT create another commit.
 
----
+First run:
 
-# 1. CURRENT EVIDENCE
+cd /home/ai4/caohuy/ACD-CLIP-p1v83-autopilot
 
-The canonical 300-batch probe completed:
+pwd
+git branch --show-current
+git status --short
+git log --oneline -6
 
-```text
+Preserve all existing artifacts.
+
+============================================================
+1. AUTHORITATIVE P1-v8.3 RESULT
+============================================================
+
+Corrected 300B attempt1:
+
+fresh OpenAI CLIP only
+
 300 batches
 50 optimizer steps
-seed 0
-FP32
-rho=.05 fixed
-no exact factor collapse
-```
+batch1
+grad_accum6
 
-Main findings:
+runtime:
+~294 seconds
 
-```text
-final recent-window G_local ≈ 0.08325
-final recent-window G_multi ≈ 0.00333
+Optimization:
 
-F1 winner share ≈ 99.36%
+PASS
 
-factor effective rank ≈ 1.0187
-factor embedding cosine mean ≈ 0.9967
-factor function correlation mean ≈ 0.9985
-```
+Primary-anchored factor surgery:
 
-Router teacher eventually became active:
+PASS
 
-```text
-informative fraction ≈ 4.44%
-router top1 agreement ≈ 95.2%
-capture ≈ 3.67%
-```
+MAIN exact-change max:
+0
 
-But anomaly-region behavior was concerning:
+correction reconstruction error:
+0
 
-```text
-anomaly informative fraction = 0
+raw main/factor conflicts:
+19 / 50 windows
 
-anomaly all-harm fraction = 1.0
+weighted factor/main:
 
-anomaly best_gain_rel_mean < 0
+median:
+0.167
 
-anomaly gain_rel_mean < 0
-```
+p95:
+0.713
 
-Normal-region utility was positive.
+Therefore optimizer scale/conflict is NOT considered the remaining primary
+root cause.
 
-Gradient attribution at the end also showed:
+------------------------------------------------------------
+SEMANTIC FAILURE
+------------------------------------------------------------
 
-```text
-utility_factor / main shared grad ≈ 22.6%
+At batch300:
 
-utility_router / main shared grad ≈ 87.9%
+G_local:
+3.43%
 
-total auxiliary / main shared grad ≈ 110.5%
-```
+G_multi:
+0.303%
 
-This task must determine whether these observations come from:
+BestSingle:
+0.075662
 
-```text
-A. implementation/semantic bug
+OracleMulti:
+0.075426
 
-B. canonical schedule/runtime mismatch
+factor patch correlation:
+0.998699
 
-C. excessive auxiliary scaling
+factor embedding effective rank:
+1.0055
 
-D. genuine current learning behavior
-```
+anomaly all-harm:
+99.90%
 
-Do not assume which one is true.
+anomaly best gain:
+-3.19%
 
----
+normal best gain:
++2.94%
 
-# 2. AUTHORITATIVE CONTRACT
+teacher normalized entropy:
+~0.99949
 
-For this task, use the current P1-v8.3 implementation/spec already encoded in the
-repo plus these explicit contracts.
+teacher max probability:
+~0.259
 
-Patch target:
+router informative fraction:
+0%
 
-```text
-y_patch = anomaly coverage
-```
+router utility loss:
+0
 
-Expected polarity:
+Normal valid patches:
+~1,064,118
 
-```text
-normal ≈ 0
-anomaly ≈ 1
-```
-
-Base margin:
-
-```text
-z0 = abnormal_logit - normal_logit
-```
+Anomaly valid patches:
+~6,258
 
 Therefore:
 
-```text
-positive z0
-→ more abnormal
+- local correction helps normal patches;
+- almost every anomaly patch is harmed by every factor;
+- four factors produce nearly the same function;
+- teacher cannot confidently distinguish factor identities;
+- router therefore receives zero utility supervision.
 
-negative z0
-→ more normal
-```
+============================================================
+2. CURRENT ROOT-CAUSE HYPOTHESES
+============================================================
 
-Factor local evidence:
+Do NOT assume these hypotheses are true.
 
-```text
+Test them.
+
+------------------------------------------------------------
+H1 — COMMON-MODE / ABSOLUTE-CORRECTION PROBLEM
+------------------------------------------------------------
+
+Current local factor evidence is approximately:
+
 l_m =
 10 * (
-    similarity(patch, A_m)
-    -
-    similarity(patch, N_m)
+  similarity(patch, abnormal_factor_m)
+  -
+  similarity(patch, normal_factor_m)
 )
-```
+
+Candidate:
+
+z_m =
+z_base + rho * l_m
+
+rho=.05
+
+But factor banks are constructed around a strong shared center.
+
+Conceptually:
+
+factor_m =
+COMMON + delta_m
+
+Current correction therefore behaves approximately like:
+
+rho * (COMMON + delta_m)
+
+instead of:
+
+rho * delta_m
+
+If COMMON is a normalizing direction:
+
+normal patch:
+helpful
+
+anomaly patch:
+harmful
+
+then all four factors can simultaneously harm anomaly patches even if their
+small residual differences are not identical.
+
+This may explain:
+
+normal gain positive
++
+anomaly gain negative
++
+factor correlation ~.999.
+
+------------------------------------------------------------
+H2 — FORCED-ACTION PROBLEM
+------------------------------------------------------------
+
+Current dense router satisfies:
+
+sum_m pi_m = 1
+
+Therefore the model always uses a weighted combination of active factors.
+
+It cannot explicitly say:
+
+"none of these corrections should be applied."
+
+If all four factor candidates are harmful:
+
+the router still produces a correction.
+
+------------------------------------------------------------
+H3 — SYMMETRY / SPECIALIZATION DEADLOCK
+------------------------------------------------------------
+
+Current factor utility teacher is approximately uniform:
+
+q ≈ [.25,.25,.25,.25]
+
+Then responsibility is also nearly uniform.
+
+Therefore all four factors receive almost the same utility objective.
+
+At the same time the dense router is also approximately uniform.
+
+This can create:
+
+similar factor
+→ similar utility
+→ uniform teacher
+→ similar gradients
+→ even more similar factors
+
+which prevents specialization.
+
+------------------------------------------------------------
+H4 — FACTOR-SPECIFIC SIGNAL MAY DIE INSIDE THE PROMPT PATH
+------------------------------------------------------------
+
+P1-v8.3 structured contexts share much of their machinery.
+
+The STATE token is factor-specific, but:
+
+shared contexts
+shared text encoder
+shared normal/abnormal semantics
+shared fusion center
+
+may make factor-specific differences too weak by the time they reach patch
+functions.
+
+Need locate EXACTLY where collapse occurs.
+
+============================================================
+3. DO NOT IMPLEMENT ANYTHING YET
+============================================================
+
+First perform a NO-TRAIN forensic audit on the completed corrected-300B
+checkpoint.
+
+No optimizer step.
+
+No backward needed unless explicitly required for diagnostics.
+
+No source behavior changes.
+
+No medical data.
+
+Use VisA training/development evidence only.
+
+Create a dedicated directory such as:
+
+runs/p1_v83_dev/v84_forensic_audit/
+
+Do not delete historical artifacts.
+
+============================================================
+4. FORENSIC AUDIT A — EXACT NO-OP REFERENCE
+============================================================
+
+Identify the exact local-path no-op/reference bank.
+
+Current source already exposes an object equivalent to:
+
+expected_noop_pre_expert_bank
+
+Verify mathematically and by source trace what it represents.
+
+Do NOT assume it equals z_base.
+
+These are different concepts:
+
+z_base:
+base segmentation margin used by the utility teacher
+
+l_ref:
+local semantic logit produced by the exact no-op/reference local bank
+
+Compute:
+
+l_ref =
+10 * (
+ sim(patch, abnormal_noop)
+ -
+ sim(patch, normal_noop)
+)
+
+For every active factor:
+
+l_m =
+current factor patch margin
+
+Define counterfactual residual evidence:
+
+delta_m =
+l_m - l_ref
+
+Then candidate residual logits:
+
+z_residual_m =
+z_base + rho * delta_m
+
+rho stays:
+
+0.05
+
+No trainable rho.
+
+============================================================
+5. FORENSIC AUDIT B — THREE ORACLES
+============================================================
+
+Evaluate on the SAME stored/evaluated VisA patch support:
+
+------------------------------------------------------------
+CURRENT ORACLE
+------------------------------------------------------------
+
+min loss over:
+
+z_base + rho*l_1
+...
+z_base + rho*l_4
+
+------------------------------------------------------------
+ORACLE + NO-OP
+------------------------------------------------------------
+
+min loss over:
+
+z_base
+z_base + rho*l_1
+...
+z_base + rho*l_4
+
+------------------------------------------------------------
+RESIDUAL ORACLE + NO-OP
+------------------------------------------------------------
+
+min loss over:
+
+z_base
+
+z_base + rho*(l_1-l_ref)
+...
+z_base + rho*(l_4-l_ref)
+
+============================================================
+6. REPORT NORMAL AND ANOMALY SEPARATELY
+============================================================
+
+For BOTH normal and anomaly patches report:
+
+count
+
+mean l_ref
+
+for each factor:
+mean l_m
+
+mean delta_m
+
+std delta_m
+
+P(l_m > 0)
+P(l_m < 0)
+
+P(delta_m > 0)
+P(delta_m < 0)
+
+best absolute-factor gain
+
+best residual-factor gain
+
+current all-harm fraction
+
+residual all-harm fraction
+
+no-op selected fraction
+
+residual-no-op selected fraction
+
+Base loss
+
+Current Oracle loss
+
+Oracle+NoOp loss
+
+ResidualOracle+NoOp loss
+
+Do not hide class imbalance by reporting only a global average.
+
+============================================================
+7. FORENSIC AUDIT C — COMMON-MODE DECOMPOSITION
+============================================================
+
+For each patch define:
+
+factor_mean =
+mean_m(l_m)
+
+factor_residual_m =
+l_m - factor_mean
+
+Measure:
+
+variance explained by common factor mean
+
+variance across factor residuals
+
+sign agreement across F1..F4
+
+pairwise correlation of:
+
+absolute l_m
+
+residual delta_m
+
+mean-subtracted factor evidence
+
+If absolute correlation≈1 but residual correlation falls substantially:
+
+COMMON-MODE DOMINANCE is supported.
+
+If residual correlation also≈1:
+
+true factor functional collapse is supported.
+
+============================================================
+8. FORENSIC AUDIT D — STAGE-BY-STAGE COLLAPSE TRACE
+============================================================
+
+Trace factor identity through:
+
+concept slots
+↓
+normal/abnormal queries
+↓
+normal/abnormal prototypes
+↓
+state_delta_raw
+↓
+state_delta_generated
+↓
+state_delta_with_identity
+↓
+STATE tokens
+↓
+dynamic contexts
+↓
+dynamic text raw
+↓
+dynamic text normalized
+↓
+factor bank
+↓
+abnormal-normal factor direction
+↓
+patch logits
+↓
+residual patch logits
+
+At each meaningful stage report:
+
+pairwise cosine mean/min/max
+
+pairwise L2
+
+effective rank
+
+factor-wise std
+
+where appropriate:
+functional correlation
+
+Determine the first stage where:
+
+distinct factors
+→ almost identical factors.
+
+Classify the bottleneck as one of:
+
+STATE_GENERATION_COLLAPSE
+
+PROMPT_CONTEXT_COLLAPSE
+
+TEXT_ENCODER_COLLAPSE
+
+CENTER_SPREAD_FUSION_COLLAPSE
+
+PATCH_FUNCTION_COLLAPSE
+
+NO_SINGLE_STAGE_COLLAPSE
+
+============================================================
+9. FORENSIC DECISION TREE
+============================================================
+
+------------------------------------------------------------
+CASE F-A
+RESIDUAL ORACLE MATERIALLY IMPROVES ANOMALY
+------------------------------------------------------------
+
+Evidence pattern:
+
+current absolute factors harmful
+
+but:
+
+residual candidate set produces positive anomaly gains
+and/or materially reduces anomaly all-harm
+
+Interpretation:
+
+COMMON absolute component is a major root cause.
+
+Action:
+
+authorize P1-v8.4-A:
+
+TRUE RESIDUAL FACTORS
++
+ACT/NO-ACT mechanism.
+
+------------------------------------------------------------
+CASE F-B
+NO-OP HELPS BUT RESIDUALIZATION DOES NOT CREATE USEFUL ANOMALY MODES
+------------------------------------------------------------
+
+Evidence:
+
+Oracle+NoOp protects Base strongly
+
+but residual factors remain mostly harmful/redundant.
+
+Interpretation:
+
+forced-action is real,
+but factor generator still lacks useful anomaly modes.
+
+Action:
+
+still implement ACT/no-op for safety,
+but mark specialization unresolved.
+
+P1-v8.4-A may be run to determine whether training with explicit abstention changes
+the learned factor geometry.
+
+Do NOT claim residualization alone solves S2.
+
+------------------------------------------------------------
+CASE F-C
+RESIDUAL FACTORS BECOME FUNCTIONALLY DISTINCT
+------------------------------------------------------------
+
+Evidence:
+
+residual correlation drops substantially
+
+Residual G_multi increases
+
+some factors win different patches
+
+Interpretation:
+
+absolute COMMON mode was hiding meaningful factor differences.
+
+Action:
+
+P1-v8.4-A only.
+
+Do NOT add extra capacity yet.
+
+------------------------------------------------------------
+CASE F-D
+RESIDUAL FACTORS REMAIN NEAR-IDENTICAL
+------------------------------------------------------------
+
+Evidence:
+
+residual corr remains near 1
+
+Residual G_multi remains near 0
+
+effective rank remains near 1
+
+Interpretation:
+
+factor generation itself lacks specialization.
+
+Do NOT immediately implement a large MoE.
+
+First complete the stage-by-stage collapse trace.
+
+If the collapse location is clear:
+
+prepare the minimum factor-specific residual capacity branch.
+
+This becomes P1-v8.4-B, but only AFTER v8.4-A evidence if v8.4-A remains
+scientifically plausible.
+
+------------------------------------------------------------
+CASE F-E
+NO-OP AND RESIDUAL ORACLES BOTH SHOW ESSENTIALLY NO POTENTIAL
+------------------------------------------------------------
+
+Interpretation:
+
+the current local factor hypothesis is not supported.
+
+EXIT_FOR_DISCUSSION.
+
+Do not train another architecture automatically.
+
+============================================================
+10. P1-v8.4-A — TRUE RESIDUAL FACTORS
+============================================================
+
+If authorized by forensic evidence:
+
+change local correction semantics from:
+
+factor absolute margin
+
+to:
+
+factor residual relative to exact no-op local reference.
+
+For each factor:
+
+delta_m =
+factor_patch_logit_m
+-
+noop_reference_patch_logit
+
+Final active local correction:
+
+rho * delta_m
+
+NOT:
+
+rho * factor_patch_logit_m
+
+No-op must satisfy EXACTLY:
+
+delta_noop = 0
 
 Therefore:
 
-```text
-positive l_m
-→ factor pushes toward abnormal
+ACT=0
+→ correction exactly zero
+→ final local branch preserves Base.
 
-negative l_m
-→ factor pushes toward normal
-```
+Add explicit diagnostics:
 
-Candidate factor margin:
+noop_reference_logit
 
-```text
-z_m =
-stopgrad(z0)
+factor_absolute_logits
+
+factor_residual_logits
+
+residual_factor_correlation
+
+residual_effective_rank
+
+absolute_vs_residual_variance
+
+residual sign distribution
+
+============================================================
+11. P1-v8.4-A — SEPARATE ACT FROM WHICH-FACTOR
+============================================================
+
+Do NOT represent no-op simply by forcing factor router probabilities to zero.
+
+Introduce an explicit ACT gate:
+
+a(p) ∈ [0,1]
+
+Factor router remains:
+
+pi_m(p)
+
+sum_m pi_m = 1
+
+Final local correction:
+
+correction(p) =
+a(p)
+*
+rho
+*
+sum_m pi_m(p) * delta_m(p)
+
+This cleanly separates:
+
+ACT:
+should local correction be applied?
+
+ROUTER:
+if yes, which factor mixture is useful?
+
+============================================================
+12. ACT TEACHER
+============================================================
+
+Build ACT supervision from the detached RESIDUAL utility teacher.
+
+For each valid patch:
+
+best_residual_gain =
+max_m(
+  relative BCE improvement from residual factor m
+)
+
+Use three zones:
+
+POSITIVE ACT SUPPORT:
+
+best_residual_gain > +0.02
+
+target_act = 1
+
+NEGATIVE ACT SUPPORT:
+
+best_residual_gain <= 0
+
+target_act = 0
+
+AMBIGUOUS:
+
+0 < best_residual_gain <= .02
+
+do not supervise ACT strongly.
+
+Reason:
+
+existing .02 utility threshold is already part of the development contract.
+
+Do not invent many new thresholds.
+
+ACT teacher is detached.
+
+============================================================
+13. ACT LOSS MUST NOT REINTRODUCE CLASS IMBALANCE
+============================================================
+
+Normal patches greatly outnumber anomaly patches.
+
+Do NOT use a naive global mean BCE for ACT if it causes normal support to dominate.
+
+Audit ACT target distributions separately by:
+
+normal/anomaly
+
+positive/negative/ambiguous.
+
+Prefer the already validated effective-number region weighting principle:
+
+beta=.999
+
+for valid ACT support if class imbalance would otherwise dominate.
+
+Do not reuse the OLD hard 50/50 region-mean implementation.
+
+Use patch-level effective-number weights + one normalized weighted mean.
+
+Report ACT gradient/main distributions before accepting it.
+
+============================================================
+14. ACT MODEL
+============================================================
+
+Use the minimum-capacity gate that reuses existing router/local patch features.
+
+Do NOT add a second vision encoder.
+
+Do NOT rerun CLIP.
+
+Prefer a small head on already-computed patch/router features.
+
+Example conceptual form:
+
+existing patch/router representation
+→ small LayerNorm/Linear/MLP
+→ scalar act logit
+→ sigmoid
+
+Keep parameter overhead small and explicit.
+
+Do not add a deep gate network unless measured evidence requires it.
+
+============================================================
+15. FACTOR ROUTER TEACHER AFTER ACT DECOMPOSITION
+============================================================
+
+Factor router supervision should answer ONLY:
+
+"which factor?"
+
+Do not require the router to decide whether local should be used.
+
+Router supervision support:
+
+ACT-positive patch
+AND
+factor utility identity sufficiently distinguishable.
+
+Use existing factor utility q and entropy logic only inside ACT-positive support.
+
+If factors are tied:
+
+ACT may still learn ON/OFF
+
+while factor router may remain unsupervised.
+
+This is intentional.
+
+============================================================
+16. P1-v8.4-A INFERENCE
+============================================================
+
+Use continuous soft ACT probability initially:
+
+a = sigmoid(act_logit)
+
+Do not introduce a hard threshold into final prediction without calibration evidence.
+
+Prediction:
+
+delta_soft =
+sum_m pi_m * delta_m
+
+correction =
+a * rho * delta_soft
+
+final local logits =
+base + correction
+
+No-op identity invariant:
+
+if a=0:
+
+final local logits == base
+
+within floating-point tolerance.
+
+============================================================
+17. PRESERVE EVERYTHING ELSE
+============================================================
+
+Do NOT automatically change:
+
+OpenAI CLIP initialization
+
+DFG
+
+SS2D
+
+global text mode
+
+phase2b_hybrid
+
+structured prompt layout
+
+CLASS token semantics
+
+STATE semantics
+
+rho=.05
+
+number of factors=4
+
+dense factor routing
+
+effective-number beta=.999
+
+primary-anchored factor surgery
+
+lambda_factor=.03
+
+legacy auxiliary losses
+
+medical scoring
+
+test protocol.
+
+Only change what is required for:
+
+true residual semantics
 +
-rho * l_m
-```
+ACT/no-act.
 
-with:
+============================================================
+18. UTILITY FACTOR LOSS FOR RESIDUAL FACTORS
+============================================================
 
-```text
-rho = .05 fixed
-```
+After changing factor semantics:
 
-Utility:
+the factor utility teacher MUST evaluate:
 
-```text
-L0 =
-BCEWithLogits(z0.detach(), y_patch)
+z_base + rho*delta_m
 
-Lm =
-BCEWithLogits(z_m, y_patch)
-```
+not the old:
 
-Relative gain:
+z_base + rho*l_m.
 
-```text
-gain_rel =
-(L0 - Lm)
-/
-clamp_min(L0, floor)
-```
+Recompute:
 
-Positive gain means the factor helps.
+loss_per_factor
 
-Negative gain means the factor harms.
+gain_rel
 
-Do not change these equations unless an actual implementation contradiction is
-proved.
+q_utility
 
----
+responsibility
 
-# 3. FIRST: GIT / SOURCE SAFETY
-
-Run:
-
-```bash
-cd /home/ai4/caohuy/ACD-CLIP-phase4
-
-git branch --show-current
-git rev-parse HEAD
-git status --short
-git log --oneline --decorate -6
-```
-
-Preserve all historical dirty/untracked artifacts.
-
-Do NOT use:
-
-```text
-git reset --hard
-git clean
-git stash -u
-```
-
-Create:
-
-```text
-runs/p1_v83_dev/post300_audit/
-```
-
-Store all audit evidence there.
-
----
-
-# 4. DO NOT RERUN LONG TRAINING
-
-Do NOT rerun:
-
-```text
-300 batches
-1 epoch
-3 epochs
-20 epochs
-medical test
-```
-
-This task should primarily use:
-
-```text
-source inspection
-existing 300-batch artifacts
-fixed-batch forward probes
-no-optimizer-step autograd probes
-small unit tests
-```
-
-A few deterministic real batches are allowed only when necessary to prove
-semantics.
-
----
-
-# 5. AUDIT A — PATCH TARGET POLARITY
-
-Trace the exact code path from:
-
-```text
-VisA GT mask
-→ augmentation
-→ valid mask
-→ patch target
-→ BCE target
-```
-
-Verify empirically and in source:
-
-```text
-normal pixels/patches → target near 0
-
-anomaly pixels/patches → target > 0
-and strongly anomalous patch → target near 1 where appropriate
-```
-
-Check:
-
-```text
-mask dtype
-mask normalization
-255→1 conversion
-logical inversion
-interpolation mode
-area/average pooling
-valid-mask multiplication
-thresholding if any
-```
-
-Pay special attention to any convention such as:
-
-```text
-0=defect
-1=normal
-```
-
-or accidental inversion.
-
-Do not trust variable names alone.
-
-For a few real VisA anomaly images:
-
-record:
-
-```text
-raw mask min/max/unique
-
-pooled y_patch:
-min
-max
-mean
-
-normal-region sample y values
-
-anomaly-region sample y values
-```
-
-Expected result:
-
-```text
-normal y ≈ 0
-anomaly y > 0
-```
-
-If polarity is reversed:
-
-HARD FAIL.
-
-Do not continue to lambda probing until fixed and retested.
-
----
-
-# 6. AUDIT B — BASE LOGIT POLARITY
-
-Trace the exact model output convention.
-
-Prove which channel/index means:
-
-```text
-normal
-abnormal
-```
-
-Then verify that utility code computes:
-
-```text
-z0 = abnormal - normal
-```
-
-not the reverse.
-
-For a fixed real batch, log:
-
-```text
-normal_logit
-abnormal_logit
-z0
-y_patch
-```
-
-for selected:
-
-```text
-normal patches
-anomaly patches
-```
-
-Do not require the model to already classify perfectly.
-
-This audit is only about sign convention.
-
-Add a deterministic unit test if channel order is not already protected by one.
-
----
-
-# 7. AUDIT C — FACTOR N/A POLARITY
-
-Trace factor pair construction and ensure:
-
-```text
-N_m = normal semantic endpoint
-A_m = abnormal semantic endpoint
-```
-
-Verify local evidence is exactly:
-
-```text
-l_m = 10 * (sim_A - sim_N)
-```
-
-not:
-
-```text
-sim_N - sim_A
-```
-
-and not accidentally swapped due to tensor ordering.
-
-For a fixed batch, log per factor:
-
-```text
-sim_N
-sim_A
-l_m
-```
-
-for selected normal/anomaly patches.
-
-Again, do not demand learned behavior yet.
-
-Only prove semantic polarity.
-
----
-
-# 8. AUDIT D — DIRECT ANOMALY PATCH TRACE
-
-This is critical.
-
-Choose a small deterministic set of real anomaly patches from VisA.
-
-Prefer at least:
-
-```text
-8–16 anomaly patches
-```
-
-across several images/classes if practical.
-
-For each selected patch record:
-
-```text
-class_name
-image identifier
-patch coordinate/index
-y_patch
-
-zN
-zA
-z0
-
-for m=1..4:
-    sim_N_m
-    sim_A_m
-    l_m
-    rho*l_m
-    z_m
-    L0
-    Lm
-    gain_rel_m
-```
-
-Also record:
-
-```text
-best factor
 best gain
-all_harm boolean
-```
 
-Write results to something like:
+all-harm
 
-```text
-runs/p1_v83_dev/post300_audit/anomaly_patch_trace.json
-```
+G_local
 
-Main question:
+G_multi
 
-```text
-WHY are anomaly factors all-harm?
-```
+Oracle
 
-Classify observed behavior:
+using the residual candidate semantics.
 
-### SIGN_BUG
+Do not mix old absolute utility teacher with new residual predictions.
 
-Example:
+============================================================
+19. PRIMARY-ANCHORED FACTOR SURGERY
+============================================================
 
-```text
-anomaly y=1
-but positive abnormal evidence increases loss due to reversed margin/target
-```
+Keep the validated primary-preserving surgery.
 
-### MODEL_BEHAVIOR
+MAIN gradient remains unchanged.
 
-Example:
+Only harmful auxiliary factor shared-semantic component may be projected.
 
-```text
-signs are mathematically correct
-but learned factors genuinely produce negative abnormal correction on anomaly patches
-```
+Because factor utility semantics changed:
 
-### TARGET/VALID_MASK_BUG
+redo no-step gradient magnitude/conflict diagnostics before 300B.
 
-Example:
+Do not assume old .03 remains ideal.
 
-```text
-selected anomaly region is labeled/weighted incorrectly
-```
+However:
 
-Do not speculate without this direct trace.
+start from lambda_factor=.03
 
----
+and change it only if current residual-gradient evidence proves scale changed
+materially.
 
-# 9. AUDIT E — NORMAL/ANOMALY BALANCING IMPLEMENTATION
+Router lambda remains .10 unless evidence changes.
 
-The factor utility loss is intended to prevent background dominance.
+ACT loss needs its own lambda calibration.
 
-For anomaly-containing images, verify implementation behaves approximately as:
+============================================================
+20. NEW NO-STEP GRADIENT CALIBRATION
+============================================================
 
-```text
-0.5 * mean(valid normal-region utility loss)
-+
-0.5 * mean(valid anomaly-region utility loss)
-```
+Before GPU training:
 
-For fully normal images:
+use natural six-microbatch optimizer windows.
 
-```text
-mean(valid normal-region utility loss)
-```
+Measure:
 
-Audit source AND one fixed batch.
-
-Log:
-
-```text
-normal valid patch count
-anomaly valid patch count
-
-normal-region mean factor loss
-anomaly-region mean factor loss
-
-balanced combined factor loss
-```
-
-Check for bugs such as:
-
-```text
-anomaly patches absent from balancing
-
-normal patches counted twice
-
-region masks inverted
-
-soft y_patch incorrectly split
-
-invalid/padded patches included
-
-normal/anomaly branch chosen using wrong image label
-```
-
-If anomaly signal is effectively underweighted despite intended balancing:
-
-fix it before any longer run.
-
----
-
-# 10. AUDIT F — EXPLORATION EPSILON SCHEDULE
-
-Determine the exact epsilon schedule used by:
-
-```text
-the canonical 20-epoch training path
-```
-
-and separately:
-
-```text
-the completed 300-batch diagnostic runner
-```
-
-The intended initial schedule is approximately:
-
-```text
-epsilon = .15 early
-→ .05 late
-```
-
-Do not assume the 300-batch probe used the right value.
-
-Inspect code/config and report exact:
-
-```text
-current epoch
-total schedule epochs
-computed epsilon
-```
-
-for:
-
-```text
-canonical epoch 1 / 20
-
-canonical epoch 20 / 20
-
-300-batch probe
-```
-
-Explicitly test for this failure mode:
-
-```text
-diagnostic runner sets:
-current_epoch=1
-total_epochs=1
-
-therefore schedule immediately returns .05
-```
-
-If the 300-batch probe used `.05` instead of canonical early `.15`:
-
-mark:
-
-```text
-NONCANONICAL_EARLY_EXPLORATION
-```
-
-Do NOT discard the existing results.
-
-Explain whether that likely biases specialization toward less exploration.
-
-Fix the diagnostic runner / schedule plumbing if necessary.
-
-Add an exact unit test for:
-
-```text
-epoch1/20 ≈ .15
-epoch20/20 ≈ .05
-```
-
----
-
-# 11. AUDIT G — GRADIENT ACCUMULATION REMAINDER
-
-300 batches had:
-
-```text
-300 % 6 = 0
-```
-
-so the completed 300-batch probe itself has no remainder problem.
-
-The future full VisA epoch has:
-
-```text
-2162 samples
-batch_size=1
-grad_accum_steps=6
-
-2162 % 6 = 2
-```
-
-Audit exactly what canonical `train.py` does with the final 2 micro-batches.
-
-Classify behavior as:
-
-### CARRY
-
-accumulation continues correctly across epoch boundary
-
-### RESCALED_FLUSH
-
-partial group is flushed with correct normalization
-
-### DROP
-
-remainder is intentionally dropped and explicitly documented
-
-### UNDERWEIGHT_BUG
-
-loss was divided by 6 for only 2 samples, then optimizer stepped without correcting
-the scale
-
-### OTHER
-
-explain precisely
-
-Do not guess from apparent optimizer step count.
-
-Create a tiny deterministic unit test using a toy scalar model.
-
-Test at least:
-
-```text
-6 microbatches
-8 microbatches
-12 microbatches
-```
-
-Compare accumulated update against a mathematically equivalent reference.
-
-Do not alter main training behavior unless test proves a bug.
-
----
-
-# 12. AUDIT H — NULL GRADIENT DIAGNOSTICS
-
-Classify these fields:
-
-```text
-class_to_context_grad_norm
-
-factor_generator_context_grad_norm
-
-factor_generator_head_grad_norms
-
-factor_generator_identity_grad_norm
-
-factor_id_projection_grad_norm
-```
-
-Each must be labeled:
-
-```text
-EXPECTED_NA
-```
-
-if the corresponding legacy/noncanonical module is intentionally unused in
-P1-v8.3,
-
-or:
-
-```text
-BUG
-```
-
-if current canonical P1-v8.3 expects that path to participate.
-
-Do NOT modify architecture just to make a legacy diagnostic non-null.
-
-Where appropriate, update diagnostic output from ambiguous:
-
-```text
-null
-```
-
-to explicit metadata:
-
-```text
-status: EXPECTED_NA
-reason: ...
-```
-
-only if that can be done without invasive changes.
-
----
-
-# 13. GRADIENT ATTRIBUTION — VERIFY WEIGHTED VS RAW SEMANTICS
-
-The previous report showed roughly:
-
-```text
-utility_factor/main shared grad ≈ .226
-
-utility_router/main shared grad ≈ .879
-
-total auxiliary/main ≈ 1.105
-```
-
-Before changing lambdas, verify exactly what these ratios mean.
-
-Inspect gradient attribution code.
-
-Determine whether ratios are based on:
-
-```text
-RAW auxiliary loss gradient
-```
-
-or:
-
-```text
-ACTUAL weighted contribution:
-lambda * auxiliary_loss
-```
-
-This distinction is CRITICAL.
-
-For each component report:
-
-```text
-raw loss value
-
-lambda
-
-raw shared gradient norm
-
-weighted shared gradient norm
-
-weighted/main ratio
-```
-
-for:
-
-```text
 main
-utility_factor
-utility_router
-```
 
-If current diagnostics already include weights but ratio calculations ignore them,
-that is a diagnostic bug.
+residual factor utility
 
-Fix the diagnostic before tuning lambdas.
+router utility
 
-Add a deterministic test proving:
+ACT utility
 
-```text
-changing lambda by factor k
-changes reported weighted gradient contribution by approximately factor k
-on identical forward state
-```
-
-Do not tune lambda before this is proven.
-
----
-
-# 14. FIXED-STATE LAMBDA GRADIENT-ONLY PROBE
-
-ONLY if all semantic/sign audits pass.
-
-Do NOT train.
-
-Do NOT optimizer.step().
-
-Use ONE deterministic fixed model state and fixed real batch/probe set.
-
-Prefer a checkpoint/state where router utility is active, e.g. the end or late state
-from the completed 300-batch run, if available.
-
-If the 300-batch runner did not save a usable state:
-
-use the smallest reproducible late-state mechanism available.
-
-Do not rerun 300 batches solely for this unless unavoidable.
-If unavoidable, STOP and report rather than launching automatically.
-
-Evaluate gradient attribution under a small lambda grid.
-
-Canonical current:
-
-```text
-lambda_factor = .10
-lambda_router = .10
-```
-
-Candidate diagnostic grid:
-
-```text
-lambda_factor:
-.10
-.05
-.03
-
-lambda_router:
-.10
-.03
-.01
-```
-
-You do NOT need all 9 combinations if separability lets you derive scaling exactly.
-
-Because gradients of:
-
-```text
-lambda * L
-```
-
-scale linearly with lambda on a fixed forward graph, prefer computing raw component
-gradient once and analytically reporting candidate weighted ratios.
-
-Do not perform redundant backward passes when linear scaling is sufficient.
-
-Report for each candidate:
-
-```text
-factor weighted/main shared grad ratio
-
-router weighted/main shared grad ratio
-
-total aux/main shared grad ratio
-```
-
-Also report parameter-group-specific ratios for:
-
-```text
-shared semantics
-
-STATE path
-
-router
-
-Text-LoRA
-```
-
-where meaningful.
-
----
-
-# 15. GRADIENT GUARDRAIL
-
-Use the existing engineering guardrail only as a guide:
-
-```text
-each auxiliary shared contribution:
-roughly 5–10% of main
-
-total auxiliary:
-roughly 20–30% of main
-```
-
-Do not force exact equality.
-
-Do not optimize solely to hit these numbers.
-
-The final recommendation must also consider:
-
-```text
-factor specialization purpose
-
-router teacher sparsity
-
-anomaly-region behavior
-
-main-task preservation
-```
-
-Recommend at most ONE lambda pair for the next experiment.
-
-Do not execute it.
-
----
-
-# 16. DO NOT CHANGE ARCHITECTURE
-
-This task may fix proven bugs in:
-
-```text
-sign convention
-mask/target plumbing
-epsilon schedule plumbing
-gradient accumulation
-diagnostic weighting
-```
-
-But do NOT introduce:
-
-```text
-functional diversity
-
-orthogonal loss
-
-new factor identities
-
-new router architecture
-
-selective-use gate
-
-trainable rho
-
-Top-K
-
-load balancing
-
-new semantic roles
-```
-
-If no implementation bug is found:
-
-leave architecture unchanged.
-
----
-
-# 17. SOURCE CHANGE POLICY
-
-If a real bug is found:
-
-make the smallest focused fix.
-
-For every source fix:
-
-```text
-add/update deterministic test
-run affected test
-```
-
-Then once at end run:
-
-```bash
-PYTHONPATH=. pytest -q \
-  tests/test_p1_v83_runtime.py \
-  tests/test_p1_v83_structured_utility.py \
-  tests/test_setup_med_visa_data.py
-```
-
-Also:
-
-```bash
-git diff --check
-python -m py_compile \
-  model/h6/utility_routing.py \
-  model/h6/model.py \
-  model/adapter.py \
-  train.py \
-  test.py
-```
-
-Do not commit runtime artifacts.
-
----
-
-# 18. OPTIONAL SMALL REAL PROBE AFTER BUG FIX
-
-If and ONLY if a semantic implementation bug is found and fixed:
-
-run the minimum real-data probe needed to prove the fix.
-
-Maximum:
-
-```text
-8–16 batches
-```
-
-No long training.
-
-Do NOT rerun 300 batches in this task.
-
-Do NOT run one epoch.
-
-For an anomaly-related bug, directly verify:
-
-```text
-anomaly target polarity correct
-
-anomaly gain no longer structurally wrong due to sign/plumbing
-```
-
-Do not require the model to become good immediately after a bug fix.
-
----
-
-# 19. OUTPUT ARTIFACTS
-
-Use:
-
-```text
-runs/p1_v83_dev/post300_audit/
-```
-
-Create:
-
-```text
-audit_summary.json
-
-semantic_polarity.json
-
-anomaly_patch_trace.json
-
-na_balance_audit.json
-
-epsilon_schedule_audit.json
-
-grad_accum_audit.json
-
-null_gradient_classification.json
-
-gradient_weighting_audit.json
-
-lambda_gradient_probe.json
-
-tests.log
-```
-
-Only create files that are meaningful.
-
----
-
-# 20. STATUS UPDATE
-
-Update:
-
-```text
-runs/p1_v83_dev/STATUS.json
-```
-
-Add:
-
-```text
-post300_semantic_audit
-
-epsilon_schedule_audit
-
-grad_accum_remainder_audit
-
-gradient_weighting_audit
-
-lambda_gradient_probe
-```
-
-Use:
-
-```text
-PASS
-FAIL
-NOT_RUN
-```
-
-Do not change the overall claim to final architecture PASS.
-
----
-
-# 21. COMMIT POLICY
-
-If source was modified and all tests pass:
-
-create ONE local commit.
-
-Suggested:
-
-```text
-fix(p1-v8.3): harden post-300 training contracts
-```
-
-or a more precise subject based on actual fixes.
-
-Do NOT amend prior commits.
-
-Do NOT push.
-
-If no source changes are necessary:
-
-do not create an empty commit.
-
----
-
-# 22. SLEEP / EXECUTION POLICY
-
-Most tasks here should be short.
-
-Do NOT busy poll.
-
-For static tests / small probes:
-
-use a foreground timeout around:
-
-```text
-600–1200 seconds
-```
-
-For any permitted 8–16 batch GPU probe:
-
-use:
-
-```text
-1200–1800 seconds
-```
-
-If asynchronous execution is absolutely necessary:
-
-```text
-sleep 300
-```
-
-before the first check.
-
-Then:
-
-```text
-sleep 180
-```
-
-between later checks.
-
-Do NOT poll every few seconds.
-
-Do NOT use:
-
-```text
-watch
-tail -f
-while true
-sleep 5
-sleep 10
-```
-
----
-
-# 23. HARD STOP CONDITIONS
-
-STOP and report immediately if any of these are found:
-
-```text
-mask target polarity reversed
-
-normal/abnormal output channels reversed
-
-factor N/A ordering reversed
-
-utility BCE target incorrect
-
-valid mask removes anomaly regions incorrectly
-
-normal/anomaly balancing not actually implemented as intended
-
-rho changes from .05
-
-rho gets gradient
-
-canonical epoch1 epsilon unexpectedly equals final-schedule value due to runner bug
-
-gradient accumulation remainder mathematically underweighted
-
-gradient attribution ratios ignore lambda weights
-
-checkpoint/state needed for lambda probe is unavailable and would require rerunning
-300 batches
-```
-
-Do not hide any of these by tuning lambdas.
-
----
-
-# 24. FINAL DECISION REPORT
-
-Return a compact decision report.
-
-## A. Semantic correctness
-
-```text
-patch target polarity: PASS/FAIL
-
-base logit polarity: PASS/FAIL
-
-factor A-N polarity: PASS/FAIL
-
-BCE utility semantics: PASS/FAIL
-
-valid mask semantics: PASS/FAIL
-
-normal/anomaly balancing: PASS/FAIL
-```
-
-## B. Why anomaly all-harm happened
-
-Classify:
-
-```text
-SIGN/IMPLEMENTATION BUG
-
-TARGET/MASK BUG
-
-BALANCING BUG
-
-or
-
-CURRENT MODEL BEHAVIOR
-```
-
-Provide evidence from direct anomaly patch traces.
-
-## C. Schedule/runtime
+for relevant shared parameter groups.
 
 Report:
 
-```text
-canonical epoch1 epsilon
+raw norm/main
 
-300-batch epsilon
+weighted norm/main
 
-canonical epoch20 epsilon
+median
+p75
+p90
+p95
+max
 
-300-batch canonical/noncanonical exploration?
-```
+cos(main,factor)
 
-## D. Accumulation
+cos(main,act)
 
-Report exact semantics for:
+true combined aux/main.
 
-```text
-2162 samples
-accum=6
-remainder=2
-```
+Calibrate ACT lambda analytically.
 
-and whether a fix is required before one epoch/final20.
+Do NOT brute-force train lambdas.
 
-## E. Gradient weighting
+Choose the largest stable ACT lambda whose common-window gradient is meaningful
+but does not systematically dominate main.
 
-Report actual weighted:
+If ACT gradient scale cannot be made stable with static weighting:
 
-```text
-factor/main ratio
-router/main ratio
-total aux/main ratio
-```
+EXIT_FOR_DISCUSSION.
 
-at current `.10/.10`.
+Do not automatically introduce GradNorm.
 
-Clearly distinguish:
+============================================================
+21. UNIT / SOURCE TESTS
+============================================================
 
-```text
-raw vs weighted
-```
+Add tests for at least:
 
-## F. Lambda probe
+1.
+no-op residual exactly zero.
 
-If valid, report compact candidates such as:
+2.
+factor identical to reference:
+delta=0.
 
-```text
-factor_lambda
-router_lambda
-factor/main
-router/main
-total_aux/main
-```
+3.
+ACT=0:
+final prediction exactly equals Base.
 
-Recommend exactly ONE pair for the next controlled experiment.
+4.
+ACT=1:
+final uses routed residual.
 
-Do NOT apply it to training yet.
+5.
+soft ACT interpolation correct.
 
-## G. Next experiment
+6.
+residual teacher uses residual candidates, not absolute factor logits.
 
-Recommend exactly one of:
+7.
+negative anomaly residual gain produces ACT target 0.
 
-```text
-1. rerun a short corrected probe
-   if a real implementation bug was found
+8.
+positive gain >.02 produces ACT target 1.
 
-2. run one full VisA epoch with unchanged config
-   if all audits pass and scaling is acceptable
+9.
+ambiguous 0..02 handled according to contract.
 
-3. run one full VisA epoch with ONE explicitly recommended lambda pair
-   if only auxiliary scaling requires correction
-```
+10.
+router teacher only supervises factor identity where ACT-positive and informative.
 
-Do NOT execute the recommendation.
+11.
+ACT loss class/support normalization correct.
 
----
+12.
+rho fixed .05.
 
-# 25. START NOW
+13.
+primary MAIN gradient unchanged.
 
-Execute in this order:
+14.
+grad_accum=6 remains exact.
 
-```text
-1. Verify Git state.
+15.
+checkpoint/config metadata reflects P1-v8.4-A semantics.
 
-2. Audit patch target polarity.
+16.
+old P1-v8.3 checkpoints remain readable if backward compatibility is expected.
 
-3. Audit base normal/abnormal logit polarity.
+17.
+P1-v8.3 path unchanged when new mechanism disabled.
 
-4. Audit factor N/A polarity.
+Run:
 
-5. Produce direct anomaly patch trace.
+focused pytest
 
-6. Audit normal/anomaly balancing.
+py_compile
 
-7. Audit epsilon schedule.
+bash -n changed scripts
 
-8. Audit full-epoch grad accumulation remainder.
+git diff --check
 
-9. Classify legacy null gradient diagnostics.
+DO NOT COMMIT.
 
-10. Verify raw-vs-weighted gradient attribution semantics.
+============================================================
+22. VERSIONING
+============================================================
 
-11. If all semantic audits pass:
-    perform fixed-state lambda gradient-only probe.
+If mechanism changes as above, research candidate becomes:
 
-12. Fix only proven implementation bugs.
+P1-v8.4-A
 
-13. Run affected tests and focused suite if source changed.
+Do not call it H6.
 
-14. Update artifacts and STATUS.json.
+Legacy h6 code namespace may remain.
 
-15. Create one local commit only if source changed.
+P1-v8.3 must remain reproducible.
 
-16. Do NOT push.
+Do not silently change P1-v8.3 behavior.
 
-17. Recommend exactly one next experiment.
+Use explicit version/config flags.
 
-18. STOP.
+============================================================
+23. 8-BATCH SMOKE
+============================================================
 
-No one-epoch training.
-No final20.
-No medical evaluation.
-```
+Only after CPU/no-step gates PASS.
+
+Fresh OpenAI CLIP initialization.
+
+8 batches.
+
+batch1
+grad_accum6
+
+FP32
+TF32 OFF
+AMP OFF
+
+gradient checkpointing ON.
+
+Verify:
+
+2 optimizer windows:
+6 + remainder2
+
+ACT forward/backward works
+
+residual correction works
+
+ACT=0 identity path is numerically exact in unit test
+
+no NaN
+
+no gradient duplication
+
+MAIN exact-change=0
+
+rho=.05
+
+checkpoint metadata correct.
+
+============================================================
+24. GPU OCCUPANCY
+============================================================
+
+Before long GPU commands:
+
+nvidia-smi
+
+Do NOT kill another user's process.
+
+If GPU is actively occupied:
+
+STOP with:
+
+WAITING_FOR_GPU
+
+Do not restart CPU audits.
+
+============================================================
+25. LONG-RUN TIMEOUT POLICY
+============================================================
+
+Use long foreground timeouts.
+
+Minimum recommended:
+
+8-batch:
+5 min
+
+300B:
+20 min
+
+1 epoch:
+90 min
+
+3 epochs:
+240 min
+
+A tool timeout is NOT evidence that the training process failed.
+
+If a foreground call times out:
+
+check:
+
+process
+GPU
+log
+RUN_DIR
+
+before doing anything.
+
+Never start a duplicate training run unless the original process is confirmed
+dead/failed.
+============================================================
+25B. ADAPTIVE WAIT / POLLING POLICY
+============================================================
+
+For long-running commands, choose the waiting/polling interval based on the
+EXPECTED remaining runtime.
+
+Goal:
+
+- avoid wasting tokens by polling too frequently;
+- avoid unnecessarily waiting a long time after a command has already finished;
+- never restart a healthy process merely because there was no recent output.
+
+------------------------------------------------------------
+A. ESTIMATE RUNTIME FIRST
+------------------------------------------------------------
+
+After the first few batches/iterations, estimate:
+
+seconds_per_iteration
+
+estimated_remaining_seconds =
+remaining_iterations * seconds_per_iteration
+
+Update this estimate only when useful.
+
+Do NOT repeatedly recompute/report ETA every few seconds.
+
+------------------------------------------------------------
+B. ADAPTIVE POLL INTERVALS
+------------------------------------------------------------
+
+Use approximately:
+
+Expected remaining time <= 2 minutes:
+    poll every 20–30 seconds
+
+2–10 minutes:
+    poll every 45–60 seconds
+
+10–30 minutes:
+    poll every 2–3 minutes
+
+30–90 minutes:
+    poll every 5 minutes
+
+90 minutes–4 hours:
+    poll every 8–10 minutes
+
+>4 hours:
+    poll every 10–15 minutes
+
+These are guidelines, not rigid timing requirements.
+
+If the process emits useful progress continuously in the foreground:
+prefer simply waiting for the command instead of additional polling.
+
+------------------------------------------------------------
+C. NEAR-COMPLETION ADJUSTMENT
+------------------------------------------------------------
+
+When estimated remaining runtime becomes short, reduce the poll interval.
+
+Example:
+
+3-epoch run initially has ~2 hours remaining:
+    poll every ~8–10 min
+
+when ~25 min remain:
+    poll every ~3 min
+
+when ~5 min remain:
+    poll every ~45–60 sec
+
+when <2 min remain:
+    poll every ~20–30 sec
+
+This avoids both excessive token use and unnecessary post-completion waiting.
+
+------------------------------------------------------------
+D. POLL QUIETLY
+------------------------------------------------------------
+
+A polling turn should be minimal.
+
+Prefer checking only:
+
+- process alive/dead;
+- latest progress counter;
+- latest loss finite/nonfinite;
+- RUN_DIR/log modification;
+- GPU state only when necessary.
+
+Do NOT reread full logs on every poll.
+
+Do NOT repeatedly summarize unchanged metrics.
+
+Do NOT rerun expensive diagnostics during waiting.
+
+Do NOT repeatedly call nvidia-smi if the training process is clearly progressing.
+
+Only perform full analysis AFTER the stage completes or when a failure signal
+appears.
+
+------------------------------------------------------------
+E. FAILURE SIGNALS THAT JUSTIFY EARLY INSPECTION
+------------------------------------------------------------
+
+Immediately inspect rather than waiting for the next scheduled poll if any of
+these appear:
+
+- NaN / Inf;
+- CUDA OOM;
+- fatal traceback;
+- process exit;
+- progress stops for substantially longer than expected;
+- RUN_DIR/log stops changing unexpectedly;
+- GPU utilization drops to idle while the process should still be computing;
+- optimizer/batch counters violate the expected contract.
+
+Otherwise, do not interrupt a healthy run.
+
+------------------------------------------------------------
+F. TOOL TIMEOUT VS POLLING
+------------------------------------------------------------
+
+Prefer a sufficiently long foreground timeout whenever supported.
+
+Polling is a fallback for tool/session limitations, not the default if a command
+can safely remain attached.
+
+If the interface/tool times out while the underlying process may still be alive:
+
+1. do NOT relaunch;
+2. check the existing process/session;
+3. inspect only enough log/progress state to confirm health;
+4. continue waiting using the adaptive interval above.
+
+------------------------------------------------------------
+G. TOKEN-EFFICIENCY RULE
+------------------------------------------------------------
+
+Do not spend reasoning/token budget while nothing has changed.
+
+During a healthy long run:
+
+WAIT > POLL LIGHTLY > ANALYZE ON COMPLETION.
+
+Do not generate intermediate research conclusions from partial metrics unless
+they indicate an immediate stop/failure condition.
+
+For 300B / 1e / 3e, perform the expensive decision-tree analysis only after the
+required horizon has completed.
+
+------------------------------------------------------------
+H. EXAMPLE FOR THIS PROJECT
+------------------------------------------------------------
+
+If corrected 300B runs at ~1 sec/batch:
+
+expected runtime ~5 minutes
+
+→ wait/poll approximately every 45–60 seconds,
+→ tighten to ~20–30 seconds near completion.
+
+If 1 epoch is estimated at ~35 minutes:
+
+→ initially poll around every 5 minutes,
+→ around the last 10 minutes poll every ~2 minutes,
+→ near the final 2 minutes poll every ~20–30 seconds.
+
+If 3 epochs are estimated at ~100–120 minutes:
+
+→ poll every ~8–10 minutes initially,
+→ then ~5 minutes,
+→ ~2 minutes near the end,
+→ ~20–30 seconds only when almost complete.
+
+Do not blindly use these example runtimes if measured throughput differs.
+Always adapt to the current measured rate.
+============================================================
+26. P1-v8.4-A FRESH 300B
+============================================================
+
+Only after all prior gates PASS.
+
+Fresh OpenAI CLIP only.
+
+Never resume from P1-v8.3 checkpoint.
+
+Canonical:
+
+VisA
+img518
+seed0
+batch1
+grad_accum6
+FP32
+TF32 OFF
+AMP OFF
+gradient checkpointing ON
+
+300 batches
+50 optimizer steps.
+
+Keep DFG/SS2D and base protocol frozen.
+
+============================================================
+27. REQUIRED P1-v8.4-A 300B METRICS
+============================================================
+
+Report legacy-comparable metrics:
+
+Base
+BestSingle
+OracleMulti
+Uniform
+SoftRouted
+HardRouted
+
+G_local
+G_multi
+capture
+
+normal gain
+anomaly gain
+
+normal all-harm
+anomaly all-harm
+
+factor correlation
+factor effective rank
+winner shares.
+
+Also report NEW metrics:
+
+absolute factor correlation
+
+residual factor correlation
+
+residual effective rank
+
+no-op fraction
+
+ACT probability:
+
+overall
+normal
+anomaly
+
+ACT target fractions:
+
+positive
+negative
+ambiguous
+
+normal ACT mean
+
+anomaly ACT mean
+
+ACT AUROC against detached utility target if meaningful
+
+ACT loss
+
+ACT gradient/main
+
+factor residual sign agreement
+
+Residual Oracle
+
+Residual BestSingle
+
+Residual G_multi
+
+fraction where:
+Base wins
+F1 wins
+F2 wins
+F3 wins
+F4 wins
+
+============================================================
+28. V8.4-A DECISION TREE
+============================================================
+
+------------------------------------------------------------
+CASE A1 — S4 FIXED + S2 IMPROVES
+------------------------------------------------------------
+
+Desired pattern:
+
+anomaly all-harm falls materially from 99.9%
+
+anomaly best gain improves toward/above zero
+
+ACT is lower on harmful anomaly patches
+
+residual factors become less correlated
+
+G_multi rises
+
+Oracle separates from BestSingle.
+
+Action:
+
+P1-v8.4-A PASS.
+
+Proceed fresh 1 epoch.
+
+------------------------------------------------------------
+CASE A2 — S4 FIXED BUT S2 REMAINS
+------------------------------------------------------------
+
+Pattern:
+
+ACT/no-op protects anomaly
+
+anomaly harm greatly reduced
+
+BUT:
+
+residual factor corr still ~1
+
+G_multi still deeply <2%
+
+Oracle≈BestSingle.
+
+Interpretation:
+
+abstention solved forced-harm,
+but factor generator still has no specialization.
+
+Authorize P1-v8.4-B:
+
+minimum factor-specific residual capacity.
+
+Do NOT proceed to 1e under A if multi-factor hypothesis remains clearly failed.
+
+------------------------------------------------------------
+CASE A3 — RESIDUAL FACTORS GOOD BUT ACT FAILS
+------------------------------------------------------------
+
+Pattern:
+
+Residual Oracle is clearly useful
+
+multiple factors have positive residual utility
+
+but ACT fails to distinguish harmful/useful patches.
+
+First diagnose:
+
+ACT feature quality
+ACT target support
+ACT class imbalance
+ACT gradient magnitude.
+
+If implementation/optimization issue:
+fix exact root cause.
+
+If ACT cannot predict utility from available features:
+
+EXIT_FOR_DISCUSSION.
+
+Do not make ACT network arbitrarily large.
+
+------------------------------------------------------------
+CASE A4 — ACT WORKS BUT ROUTER FAILS
+------------------------------------------------------------
+
+Pattern:
+
+ACT correctly turns local on/off
+
+Residual G_multi meaningful
+
+OracleMulti significantly > BestSingle
+
+but SoftRouted fails to approach Oracle/Hard.
+
+Then router becomes the bottleneck.
+
+Perform no-training router temperature/calibration analysis.
+
+Do not increase lambda blindly.
+
+If simple calibration explains failure:
+one bounded router fix may be attempted.
+
+Otherwise:
+
+EXIT_FOR_DISCUSSION.
+
+------------------------------------------------------------
+CASE A5 — RESIDUALIZATION DOES NOT HELP
+------------------------------------------------------------
+
+Pattern:
+
+anomaly residual gain remains negative
+
+residual all-harm remains very high
+
+Residual Oracle≈Base
+
+and factors remain redundant.
+
+Interpretation:
+
+current factor generator cannot create anomaly-useful directions.
+
+Proceed to B ONLY if forensic stage identifies a concrete capacity bottleneck.
+
+Otherwise EXIT.
+
+============================================================
+29. P1-v8.4-B — MINIMUM FACTOR-SPECIFIC CAPACITY
+============================================================
+
+Use ONLY if A2/A5 provides direct evidence.
+
+Do NOT create four separate CLIP encoders.
+
+Do NOT add large independent experts.
+
+Prefer existing repository infrastructure where appropriate:
+
+factor_id_embedding
+
+factor_id_to_context
+
+factor_output_heads
+
+or an equivalent SMALL residual specialization path.
+
+Goal:
+
+shared semantic base
++
+small factor-specific residual transformation.
+
+Conceptually:
+
+shared context
+        ↓
+factor-specific residual head m
+        ↓
+distinct Δprompt_m
+        ↓
+text encoder
+        ↓
+residual factor m.
+
+Keep the common representation shared.
+
+============================================================
+30. CAPACITY BRANCH RULE
+============================================================
+
+The added factor capacity must:
+
+be factor-specific
+
+be small relative to shared path
+
+start near identity/no-op
+
+preserve stable OpenAI CLIP semantics
+
+operate as residual capacity
+
+not replace the entire text encoder.
+
+Add diagnostics:
+
+per-head gradient norm
+
+per-head residual norm
+
+pairwise head output cosine
+
+residual effective rank
+
+functional residual correlation.
+
+Do NOT add diversity loss initially.
+
+Let distinct utility + assignment determine specialization first.
+
+============================================================
+31. SPECIALIZATION OBJECTIVE POLICY
+============================================================
+
+Do NOT automatically add:
+
+orthogonality loss
+
+load balance
+
+equal-use loss
+
+entropy minimization
+
+functional diversity penalty.
+
+Reason:
+
+forcing factors to LOOK different is not evidence that they become USEFULLY
+different.
+
+Specialization is validated by:
+
+OracleMulti > BestSingle
+
+G_multi
+
+different factor winners
+
+functional patch residual correlation
+
+different positive utility regions.
+
+Representation-angle diversity alone is insufficient.
+
+============================================================
+32. V8.4-B 300B
+============================================================
+
+If B is authorized:
+
+tests
+↓
+no-step gradient audit
+↓
+8B smoke
+↓
+fresh OpenAI CLIP 300B
+
+Do not inherit v8.4-A training weights.
+
+Compare A vs B on identical development protocol.
+
+B passes only if factor-specific capacity produces FUNCTIONAL specialization.
+
+============================================================
+33. B DECISION TREE
+============================================================
+
+------------------------------------------------------------
+B1 — SPECIALIZATION EMERGES
+------------------------------------------------------------
+
+Evidence:
+
+Residual G_multi increases materially
+
+OracleMulti separates from BestSingle
+
+residual correlation decreases
+
+different factors show distinct useful patch regions
+
+ACT protects harmful cases.
+
+Action:
+
+PASS.
+
+Proceed fresh 1e.
+
+------------------------------------------------------------
+B2 — REPRESENTATIONS DIFFER BUT FUNCTION REMAINS SAME
+------------------------------------------------------------
+
+Embedding/state cosine falls
+
+BUT:
+
+patch residual corr remains ~1
+
+Oracle≈BestSingle
+
+G_multi≈0.
+
+Interpretation:
+
+cosmetic diversity only.
+
+EXIT_FOR_DISCUSSION.
+
+Do NOT add orthogonality.
+
+------------------------------------------------------------
+B3 — FACTORS SPECIALIZE BUT ANOMALY STILL HAS NO USEFUL MODE
+------------------------------------------------------------
+
+Different factors exist
+
+BUT anomaly Residual Oracle≈Base or harmful.
+
+Interpretation:
+
+conditioning signal is not anomaly-aware enough.
+
+EXIT_FOR_DISCUSSION.
+
+Future candidate may require stronger local/anomaly visual conditioning.
+
+Relevant conceptual families to discuss:
+
+conditional prompt generation
+
+local visual-conditioned prompting
+
+anomaly-aware prompt/adaptation
+
+CoCoOp-like instance conditioning
+
+AdaCLIP / anomaly-aware ZSAD approaches.
+
+Do not auto-implement this branch.
+
+------------------------------------------------------------
+B4 — FACTORS SPECIALIZE BUT ROUTER STARVES THEM
+------------------------------------------------------------
+
+If useful factor modes exist but router fails to train/use them:
+
+router/expert assignment becomes the real problem.
+
+MoE / Expert-Choice-style mechanisms become relevant.
+
+This changes routing semantics substantially.
+
+EXIT_FOR_DISCUSSION.
+
+Do not auto-enable load balancing.
+
+============================================================
+34. MAXIMUM ARCHITECTURE ITERATION
+============================================================
+
+This task permits at most:
+
+P1-v8.4-A
+and
+P1-v8.4-B
+
+development candidates.
+
+Do NOT automatically create v8.4-C.
+
+If B fails:
+
+EXIT_FOR_DISCUSSION.
+
+No uncontrolled architecture search.
+
+============================================================
+35. FRESH 1-EPOCH GATE
+============================================================
+
+Only after a 300B candidate passes.
+
+Run fresh from OpenAI CLIP.
+
+Do NOT resume the 300B checkpoint.
+
+VisA only.
+
+No medical.
+
+Same frozen accepted config.
+
+Analyze:
+
+Base/task losses
+
+G_local
+
+G_multi
+
+Residual G_multi
+
+normal/anomaly gains
+
+normal/anomaly all-harm
+
+ACT normal/anomaly behavior
+
+no-op selection
+
+factor residual correlation
+
+factor rank
+
+winner shares
+
+Oracle vs BestSingle
+
+router capture
+
+gradient stability.
+
+If 1e contradicts 300B materially:
+
+EXIT_FOR_DISCUSSION.
+
+============================================================
+36. FRESH 3-EPOCH GATE
+============================================================
+
+Only after fresh1e PASS.
+
+Run fresh 3 epochs from OpenAI CLIP.
+
+Do NOT continue from the 1e checkpoint.
+
+No medical.
+
+No validation.
+
+No config changes between epochs.
+
+Analyze trajectories at:
+
+epoch1
+epoch2
+epoch3.
+
+Need to ensure:
+
+ACT does not collapse to always ON
+
+ACT does not collapse to always OFF
+
+anomaly protection persists
+
+normal benefit persists
+
+G_local remains useful
+
+G_multi does not collapse
+
+residual factor correlation does not return toward 1
+
+factor specialization remains functional
+
+main task remains stable.
+
+============================================================
+37. ACT FAILURE CASES DURING 1E/3E
+============================================================
+
+------------------------------------------------------------
+ACT ALWAYS ON
+------------------------------------------------------------
+
+Likely:
+
+negative/no-op supervision insufficient
+
+class imbalance
+
+gate objective too weak.
+
+Audit ACT targets and gradient scale.
+
+Do not simply increase lambda.
+
+------------------------------------------------------------
+ACT ALWAYS OFF
+------------------------------------------------------------
+
+Likely:
+
+local residual candidates not sufficiently useful
+
+or negative supervision dominates.
+
+Check Residual Oracle.
+
+If Oracle itself weak:
+
+EXIT.
+
+Do not force ACT ON.
+
+------------------------------------------------------------
+ACT NORMAL ON / ANOMALY OFF
+------------------------------------------------------------
+
+This may be correct under current training data IF anomaly factors remain harmful.
+
+But desired long-term result is not merely:
+
+"never use local on anomalies."
+
+Check whether anomaly residual experts eventually become useful.
+
+If ACT only protects Base but factors never learn anomaly modes:
+
+S4 safety is fixed
+but multi-mode anomaly modeling remains unresolved.
+
+Do not overclaim.
+
+============================================================
+38. METRIC INTERPRETATION
+============================================================
+
+Remember why this matters for final zero-shot anomaly detection.
+
+A useful local mechanism should improve separation:
+
+normal:
+lower anomaly score when appropriate
+
+anomaly:
+preserve/increase anomaly score when appropriate.
+
+Current v8.3:
+
+normal improved
+but anomaly almost universally harmed.
+
+This can damage especially:
+
+pixel AP
+
+pixel AUROC
+
+and indirectly:
+
+image AP
+image AUROC
+
+through anomaly map / peak scoring.
+
+However:
+
+DO NOT evaluate medical during development.
+
+Do not claim medical improvement before final frozen evaluation.
+
+============================================================
+39. SUCCESS CRITERIA
+============================================================
+
+A candidate is not successful just because anomaly harm is hidden by no-op.
+
+Strong candidate should ideally demonstrate BOTH:
+
+SAFETY:
+harmful local corrections can be suppressed
+
+AND
+
+UTILITY:
+multiple residual factors provide genuinely different useful corrections.
+
+Evidence:
+
+anomaly all-harm strongly improved
+
+normal gain retained
+
+Residual Oracle useful
+
+G_multi improved
+
+Oracle > BestSingle
+
+residual functional corr reduced
+
+effective rank improved
+
+router/ACT capture useful modes.
+
+============================================================
+40. DEVELOPMENT SUCCESS
+============================================================
+
+After fresh3e PASS:
+
+mark:
+
+BEST VALIDATED P1-v8.4 DEVELOPMENT CANDIDATE
+
+not:
+
+globally optimal.
+
+Freeze the accepted settings in a summary/config artifact.
+
+Do NOT run final20.
+
+Do NOT run medical.
+
+============================================================
+41. ARTIFACTS
+============================================================
+
+Maintain one discussion file, e.g.:
+
+P1_V84_AUTOPILOT_DISCUSSION.md
+
+and compact JSON summaries.
+
+Include:
+
+source provenance
+
+uncommitted diff status
+
+v8.3 baseline
+
+forensic results
+
+oracle comparisons
+
+collapse stage
+
+A implementation
+
+A 300B
+
+B if used
+
+1e
+
+3e
+
+all decisions
+
+all stopped branches
+
+all relevant metrics.
+
+============================================================
+42. NO COMMIT / NO PUSH POLICY
+============================================================
+
+This is absolute.
+
+At all times:
+
+NO git add
+
+NO git commit
+
+NO git push
+
+NO PR
+
+NO cherry-pick.
+
+At the end show:
+
+git status --short
+
+git diff --stat
+
+git diff --check
+
+Leave code and artifacts in the worktree for user review.
+
+============================================================
+43. FINAL OUTPUT — FORENSIC EXIT
+============================================================
+
+If forensic evidence says neither residual nor no-op has credible potential:
+
+DECISION:
+EXIT_FOR_DISCUSSION
+
+Root cause:
+
+Evidence:
+
+Current Oracle:
+
+Oracle+NoOp:
+
+ResidualOracle+NoOp:
+
+Collapse stage:
+
+Recommended next hypothesis:
+
+300B:
+NOT RUN
+
+1e:
+NOT RUN
+
+3e:
+NOT RUN
+
+FINAL20:
+NOT RUN
+
+MEDICAL:
+NOT RUN
+
+COMMIT:
+NONE
+
+PUSH:
+NONE
+
+============================================================
+44. FINAL OUTPUT — WAITING FOR GPU
+============================================================
+
+If source/tests are ready but GPU busy:
+
+DECISION:
+WAITING_FOR_GPU
+
+Candidate:
+P1-v8.4-A or B
+
+CPU gates:
+PASS
+
+Next:
+8B smoke or fresh300B
+
+COMMIT:
+NONE
+
+PUSH:
+NONE
+
+============================================================
+45. FINAL OUTPUT — ARCHITECTURE EXIT
+============================================================
+
+If A/B proves another semantic redesign is needed:
+
+DECISION:
+EXIT_FOR_DISCUSSION
+
+Candidate:
+
+Stage:
+
+Measured failure:
+
+Numbers:
+
+What was ruled out:
+
+What was fixed:
+
+Remaining root cause:
+
+Paper/similar-method families relevant:
+
+Exact recommended next experiment:
+
+Do not implement it.
+
+COMMIT:
+NONE
+
+PUSH:
+NONE
+
+============================================================
+46. FINAL OUTPUT — DEVELOPMENT PASS
+============================================================
+
+If 3e passes:
+
+DECISION:
+DEVELOPMENT_GATES_PASS
+
+Candidate:
+
+Source state:
+UNCOMMITTED WORKTREE
+
+Mechanism:
+
+true residual factors:
+YES
+
+ACT/no-act:
+YES
+
+factor-specific capacity:
+YES/NO
+
+rho:
+.05
+
+factor loss:
+
+ACT loss:
+
+router loss:
+
+lambda values:
+
+300B summary:
+
+1e summary:
+
+3e summary:
+
+v8.3 comparison:
+
+G_local:
+
+G_multi:
+
+anomaly best gain:
+
+anomaly all-harm:
+
+residual factor corr:
+
+factor effective rank:
+
+ACT normal/anomaly behavior:
+
+FINAL20:
+NOT RUN
+
+MEDICAL:
+NOT RUN
+
+NO MEDICAL VALIDATION
+
+COMMIT:
+NONE
+
+PUSH:
+NONE
+
+============================================================
+47. EXECUTION ORDER
+============================================================
+
+Follow exactly:
+
+1.
+verify worktree/provenance
+
+2.
+read current source
+
+3.
+NO-TRAIN forensic audit
+
+4.
+calculate:
+Current Oracle
+Oracle+NoOp
+ResidualOracle+NoOp
+
+5.
+normal/anomaly decomposition
+
+6.
+stage-by-stage collapse trace
+
+7.
+classify forensic case
+
+8.
+if evidence supports:
+implement P1-v8.4-A
+true residual + ACT/no-act
+
+9.
+CPU tests
+
+10.
+no-step gradient calibration
+
+11.
+GPU availability
+
+12.
+8B smoke
+
+13.
+fresh A 300B
+
+14.
+analyze full decision tree
+
+15.
+if A solves root causes:
+fresh1e → fresh3e
+
+16.
+if A fixes safety but specialization still failed:
+implement only evidence-backed P1-v8.4-B small factor-specific residual capacity
+
+17.
+tests → smoke → fresh B 300B
+
+18.
+if B passes:
+fresh1e → fresh3e
+
+19.
+if B fails:
+EXIT
+
+20.
+never final20
+
+21.
+never medical
+
+22.
+never commit
+
+23.
+never push.
+
+============================================================
+48. RESEARCH PRINCIPLE
+============================================================
+
+The priority order is:
+
+correct correction semantics
+>
+ability to abstain safely
+>
+factor utility
+>
+factor functional specialization
+>
+router capture
+>
+additional capacity.
+
+Do NOT try to fix the router before useful factor modes exist.
+
+Do NOT force factor diversity before proving that diversity is useful.
+
+Do NOT interpret balanced router usage as specialization.
+
+Do NOT interpret different embeddings as functional specialization.
+
+Do NOT use medical results to choose architecture.
+
+Every automatic modification must answer:
+
+What exact measured failure does it solve?
+
+Why is this a root cause?
+
+What evidence supports the mechanism?
+
+How will the next experiment falsify it?
+
+If those questions cannot be answered:
+
+EXIT_FOR_DISCUSSION.
+
+Start now.

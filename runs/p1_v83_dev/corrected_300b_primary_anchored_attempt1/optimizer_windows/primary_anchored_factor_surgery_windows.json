@@ -1,0 +1,2810 @@
+{
+  "factor_effective_beta": 0.999,
+  "formula": "main-preserving auxiliary projection on accumulated main/factor shared-semantic gradients",
+  "lambda_factor": 0.03,
+  "lambda_router": 0.1,
+  "main_gradient_policy": "exactly preserved",
+  "router": "support-normalized fixed-lambda gradient tracked but not projected",
+  "windows": [
+    {
+      "counts": {
+        "anomaly_fraction": 0.0005491488193300384,
+        "anomaly_patch_count": 4,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7280,
+        "valid_group_patch_count": 21852,
+        "valid_patch_count": 7284
+      },
+      "ending_batch": 6,
+      "losses": {
+        "factor": 0.7162885069847107,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 1,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.9897363185882568,
+        "dot_main_factor": 6.730032282575849e-07,
+        "dot_main_safe_factor": 6.730032282575849e-07,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 0.00013593972835224122,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.005002086982131004,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 0.00013593972835224122
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.02717660181224346,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9897363185882568,
+        "cos_main_factor": 0.9897363185882568,
+        "cos_main_router": null,
+        "factor_norm": 0.00013593972835224122,
+        "factor_to_main": 0.02717660181224346,
+        "main_norm": 0.005002086982131004,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.02717660181224346,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9897363185882568,
+        "cos_main_factor": 0.9897363185882568,
+        "cos_main_router": null,
+        "factor_norm": 0.00013593972835224122,
+        "factor_to_main": 0.02717660181224346,
+        "main_norm": 0.005002086982131004,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0008792865217937445,
+        "anomaly_patch_count": 7,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7954,
+        "valid_group_patch_count": 23883,
+        "valid_patch_count": 7961
+      },
+      "ending_batch": 12,
+      "losses": {
+        "factor": 0.44929195443789166,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 2,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.968828022480011,
+        "dot_main_factor": 1.9042140309011302e-07,
+        "dot_main_safe_factor": 1.9042140309011302e-07,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 7.907061808509752e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0024857299868017435,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 7.907061808509752e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.031809817999601364,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.968828022480011,
+        "cos_main_factor": 0.968828022480011,
+        "cos_main_router": null,
+        "factor_norm": 7.907061808509752e-05,
+        "factor_to_main": 0.031809817999601364,
+        "main_norm": 0.0024857299868017435,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.031809817999601364,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.968828022480011,
+        "cos_main_factor": 0.968828022480011,
+        "cos_main_router": null,
+        "factor_norm": 7.907061808509752e-05,
+        "factor_to_main": 0.031809817999601364,
+        "main_norm": 0.0024857299868017435,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.00012871669455528383,
+        "anomaly_patch_count": 1,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7768,
+        "valid_group_patch_count": 23307,
+        "valid_patch_count": 7769
+      },
+      "ending_batch": 18,
+      "losses": {
+        "factor": 0.2514324908455213,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 3,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.9826048016548157,
+        "dot_main_factor": 2.928244668964908e-07,
+        "dot_main_safe_factor": 2.928244668964908e-07,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 0.00011632987298071384,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0025617529172450304,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 0.00011632987298071384
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.045410264283418655,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9826048016548157,
+        "cos_main_factor": 0.9826048016548157,
+        "cos_main_router": null,
+        "factor_norm": 0.00011632987298071384,
+        "factor_to_main": 0.045410264283418655,
+        "main_norm": 0.0025617529172450304,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.045410264283418655,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9826048016548157,
+        "cos_main_factor": 0.9826048016548157,
+        "cos_main_router": null,
+        "factor_norm": 0.00011632987298071384,
+        "factor_to_main": 0.045410264283418655,
+        "main_norm": 0.0025617529172450304,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0030386740331491712,
+        "anomaly_patch_count": 22,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7218,
+        "valid_group_patch_count": 21720,
+        "valid_patch_count": 7240
+      },
+      "ending_batch": 24,
+      "losses": {
+        "factor": 0.35512206082542735,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 4,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.6402624249458313,
+        "dot_main_factor": 4.859719027194842e-08,
+        "dot_main_safe_factor": 4.859719027194842e-08,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 4.322443055571057e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0017559973057359457,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 4.322443055571057e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.024615317583084106,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.6402624249458313,
+        "cos_main_factor": 0.6402624249458313,
+        "cos_main_router": null,
+        "factor_norm": 4.322443055571057e-05,
+        "factor_to_main": 0.024615317583084106,
+        "main_norm": 0.0017559973057359457,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.024615317583084106,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.6402624249458313,
+        "cos_main_factor": 0.6402624249458313,
+        "cos_main_router": null,
+        "factor_norm": 4.322443055571057e-05,
+        "factor_to_main": 0.024615317583084106,
+        "main_norm": 0.0017559973057359457,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0034882098507046182,
+        "anomaly_patch_count": 25,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7142,
+        "valid_group_patch_count": 21501,
+        "valid_patch_count": 7167
+      },
+      "ending_batch": 30,
+      "losses": {
+        "factor": 0.26229678218563396,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 5,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.8063757419586182,
+        "dot_main_factor": 3.6401750946879474e-08,
+        "dot_main_safe_factor": 3.6401750946879474e-08,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 3.178882980137132e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.001420071697793901,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 3.178882980137132e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.0223853699862957,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.8063757419586182,
+        "cos_main_factor": 0.8063757419586182,
+        "cos_main_router": null,
+        "factor_norm": 3.178882980137132e-05,
+        "factor_to_main": 0.0223853699862957,
+        "main_norm": 0.001420071697793901,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.0223853699862957,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.8063757419586182,
+        "cos_main_factor": 0.8063757419586182,
+        "cos_main_router": null,
+        "factor_norm": 3.178882980137132e-05,
+        "factor_to_main": 0.0223853699862957,
+        "main_norm": 0.001420071697793901,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0,
+        "anomaly_patch_count": 0,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7536,
+        "valid_group_patch_count": 22608,
+        "valid_patch_count": 7536
+      },
+      "ending_batch": 36,
+      "losses": {
+        "factor": 0.08647095784544945,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 6,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.9943414926528931,
+        "dot_main_factor": 9.905379982910745e-08,
+        "dot_main_safe_factor": 9.905379982910745e-08,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 7.544878462795168e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.001320332521572709,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 7.544878462795168e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.05714377388358116,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9943414926528931,
+        "cos_main_factor": 0.9943414926528931,
+        "cos_main_router": null,
+        "factor_norm": 7.544878462795168e-05,
+        "factor_to_main": 0.05714377388358116,
+        "main_norm": 0.001320332521572709,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.05714377388358116,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9943414926528931,
+        "cos_main_factor": 0.9943414926528931,
+        "cos_main_router": null,
+        "factor_norm": 7.544878462795168e-05,
+        "factor_to_main": 0.05714377388358116,
+        "main_norm": 0.001320332521572709,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.043887601390498264,
+        "anomaly_patch_count": 303,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6601,
+        "valid_group_patch_count": 20712,
+        "valid_patch_count": 6904
+      },
+      "ending_batch": 42,
+      "losses": {
+        "factor": 0.32000694423913956,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 7,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.9538317322731018,
+        "dot_main_factor": 1.4512302470848226e-07,
+        "dot_main_safe_factor": 1.4512302470848226e-07,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 8.048947347560897e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.001890277024358511,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 8.048947347560897e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.04258078336715698,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9538317322731018,
+        "cos_main_factor": 0.9538317322731018,
+        "cos_main_router": null,
+        "factor_norm": 8.048947347560897e-05,
+        "factor_to_main": 0.04258078336715698,
+        "main_norm": 0.001890277024358511,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.04258078336715698,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9538317322731018,
+        "cos_main_factor": 0.9538317322731018,
+        "cos_main_router": null,
+        "factor_norm": 8.048947347560897e-05,
+        "factor_to_main": 0.04258078336715698,
+        "main_norm": 0.001890277024358511,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0,
+        "anomaly_patch_count": 0,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7115,
+        "valid_group_patch_count": 21345,
+        "valid_patch_count": 7115
+      },
+      "ending_batch": 48,
+      "losses": {
+        "factor": 0.05130252490441004,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 8,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.9974364042282104,
+        "dot_main_factor": 7.608655039348378e-08,
+        "dot_main_safe_factor": 7.608655039348378e-08,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 6.798234971938655e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0011220868909731507,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 6.798234971938655e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.060585636645555496,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9974364042282104,
+        "cos_main_factor": 0.9974364042282104,
+        "cos_main_router": null,
+        "factor_norm": 6.798234971938655e-05,
+        "factor_to_main": 0.060585636645555496,
+        "main_norm": 0.0011220868909731507,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.060585636645555496,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9974364042282104,
+        "cos_main_factor": 0.9974364042282104,
+        "cos_main_router": null,
+        "factor_norm": 6.798234971938655e-05,
+        "factor_to_main": 0.060585636645555496,
+        "main_norm": 0.0011220868909731507,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.027723032453028512,
+        "anomaly_patch_count": 211,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7400,
+        "valid_group_patch_count": 22833,
+        "valid_patch_count": 7611
+      },
+      "ending_batch": 54,
+      "losses": {
+        "factor": 0.38671055622398853,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 9,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.8478447794914246,
+        "dot_main_factor": 1.358448713517646e-07,
+        "dot_main_safe_factor": 1.358448713517646e-07,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 0.00010771198867587373,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.001487520057708025,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 0.00010771198867587373
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.07241044193506241,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.8478447794914246,
+        "cos_main_factor": 0.8478447794914246,
+        "cos_main_router": null,
+        "factor_norm": 0.00010771198867587373,
+        "factor_to_main": 0.07241044193506241,
+        "main_norm": 0.001487520057708025,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.07241044193506241,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.8478447794914246,
+        "cos_main_factor": 0.8478447794914246,
+        "cos_main_router": null,
+        "factor_norm": 0.00010771198867587373,
+        "factor_to_main": 0.07241044193506241,
+        "main_norm": 0.001487520057708025,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0009457755359394704,
+        "anomaly_patch_count": 6,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6338,
+        "valid_group_patch_count": 19032,
+        "valid_patch_count": 6344
+      },
+      "ending_batch": 60,
+      "losses": {
+        "factor": 0.17218931081394354,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 10,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.31362077593803406,
+        "dot_main_factor": 9.703980730080275e-09,
+        "dot_main_safe_factor": 9.703980730080275e-09,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 3.577948154998012e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0008647908107377589,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 3.577948154998012e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.04137356951832771,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.31362077593803406,
+        "cos_main_factor": 0.31362077593803406,
+        "cos_main_router": null,
+        "factor_norm": 3.577948154998012e-05,
+        "factor_to_main": 0.04137356951832771,
+        "main_norm": 0.0008647908107377589,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.04137356951832771,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.31362077593803406,
+        "cos_main_factor": 0.31362077593803406,
+        "cos_main_router": null,
+        "factor_norm": 3.577948154998012e-05,
+        "factor_to_main": 0.04137356951832771,
+        "main_norm": 0.0008647908107377589,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0005381407237992735,
+        "anomaly_patch_count": 4,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7429,
+        "valid_group_patch_count": 22299,
+        "valid_patch_count": 7433
+      },
+      "ending_batch": 66,
+      "losses": {
+        "factor": 0.13468613071988025,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 11,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.43452438712120056,
+        "dot_main_factor": 7.030682258601928e-09,
+        "dot_main_safe_factor": 7.030682258601928e-09,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 2.1234114683466032e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0007619897951371968,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 2.1234114683466032e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.0278666652739048,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.43452438712120056,
+        "cos_main_factor": 0.43452438712120056,
+        "cos_main_router": null,
+        "factor_norm": 2.1234114683466032e-05,
+        "factor_to_main": 0.0278666652739048,
+        "main_norm": 0.0007619897951371968,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.0278666652739048,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.43452438712120056,
+        "cos_main_factor": 0.43452438712120056,
+        "cos_main_router": null,
+        "factor_norm": 2.1234114683466032e-05,
+        "factor_to_main": 0.0278666652739048,
+        "main_norm": 0.0007619897951371968,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0009779267951941883,
+        "anomaly_patch_count": 7,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7151,
+        "valid_group_patch_count": 21474,
+        "valid_patch_count": 7158
+      },
+      "ending_batch": 72,
+      "losses": {
+        "factor": 0.32566380966454744,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 12,
+      "primary_anchored_factor_surgery": {
+        "conflict": true,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": -0.8240527510643005,
+        "dot_main_factor": -3.5069131598675085e-08,
+        "dot_main_safe_factor": 1.2771088440249878e-15,
+        "factor_correction_norm": 6.190618296386674e-05,
+        "factor_norm": 7.512405136367306e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0005664883647114038,
+        "removed_factor_component_norm": 6.190618296386674e-05,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 4.2558756831567734e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.13261358439922333,
+        "cos_factor_router": null,
+        "cos_main_combined": -0.8240527510643005,
+        "cos_main_factor": -0.8240527510643005,
+        "cos_main_router": null,
+        "factor_norm": 7.512405136367306e-05,
+        "factor_to_main": 0.13261358439922333,
+        "main_norm": 0.0005664883647114038,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.07512732595205307,
+        "cos_factor_router": null,
+        "cos_main_combined": 5.297219729527569e-08,
+        "cos_main_factor": 5.297219729527569e-08,
+        "cos_main_router": null,
+        "factor_norm": 4.2558756831567734e-05,
+        "factor_to_main": 0.07512732595205307,
+        "main_norm": 0.0005664883647114038,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0002718499388337638,
+        "anomaly_patch_count": 2,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7355,
+        "valid_group_patch_count": 22071,
+        "valid_patch_count": 7357
+      },
+      "ending_batch": 78,
+      "losses": {
+        "factor": 0.18376196610430875,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 13,
+      "primary_anchored_factor_surgery": {
+        "conflict": true,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": -0.896742582321167,
+        "dot_main_factor": -1.7661346163322378e-08,
+        "dot_main_safe_factor": 4.080598164056537e-16,
+        "factor_correction_norm": 2.697653508221265e-05,
+        "factor_norm": 3.0082810553722084e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0006546928780153394,
+        "removed_factor_component_norm": 2.697653508221265e-05,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 1.3313229828781914e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.04594950005412102,
+        "cos_factor_router": null,
+        "cos_main_combined": -0.896742582321167,
+        "cos_main_factor": -0.896742582321167,
+        "cos_main_router": null,
+        "factor_norm": 3.0082810553722084e-05,
+        "factor_to_main": 0.04594950005412102,
+        "main_norm": 0.0006546928780153394,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.02033507637679577,
+        "cos_factor_router": null,
+        "cos_main_combined": 4.681691478936045e-08,
+        "cos_main_factor": 4.681691478936045e-08,
+        "cos_main_router": null,
+        "factor_norm": 1.3313229828781914e-05,
+        "factor_to_main": 0.02033507637679577,
+        "main_norm": 0.0006546928780153394,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.004651860744297719,
+        "anomaly_patch_count": 31,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6633,
+        "valid_group_patch_count": 19992,
+        "valid_patch_count": 6664
+      },
+      "ending_batch": 84,
+      "losses": {
+        "factor": 0.3830081899650395,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 14,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.015611846931278706,
+        "dot_main_factor": 3.4070435361854834e-10,
+        "dot_main_safe_factor": 3.4070435361854834e-10,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 0.00011438279034337029,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.00019079311459790915,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 0.00011438279034337029
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.5995121598243713,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.015611846931278706,
+        "cos_main_factor": 0.015611846931278706,
+        "cos_main_router": null,
+        "factor_norm": 0.00011438279034337029,
+        "factor_to_main": 0.5995121598243713,
+        "main_norm": 0.00019079311459790915,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.5995121598243713,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.015611846931278706,
+        "cos_main_factor": 0.015611846931278706,
+        "cos_main_router": null,
+        "factor_norm": 0.00011438279034337029,
+        "factor_to_main": 0.5995121598243713,
+        "main_norm": 0.00019079311459790915,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0016797312430011197,
+        "anomaly_patch_count": 12,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7132,
+        "valid_group_patch_count": 21432,
+        "valid_patch_count": 7144
+      },
+      "ending_batch": 90,
+      "losses": {
+        "factor": 0.3347899072493116,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 15,
+      "primary_anchored_factor_surgery": {
+        "conflict": true,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": -0.4586946368217468,
+        "dot_main_factor": -1.3357248640488706e-08,
+        "dot_main_safe_factor": 1.2634614491788265e-15,
+        "factor_correction_norm": 3.59335244866088e-05,
+        "factor_norm": 7.833865674911067e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0003717211075127125,
+        "removed_factor_component_norm": 3.59335244866088e-05,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 6.961126200621948e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.21074578166007996,
+        "cos_factor_router": null,
+        "cos_main_combined": -0.4586946368217468,
+        "cos_main_factor": -0.4586946368217468,
+        "cos_main_router": null,
+        "factor_norm": 7.833865674911067e-05,
+        "factor_to_main": 0.21074578166007996,
+        "main_norm": 0.0003717211075127125,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.18726743757724762,
+        "cos_factor_router": null,
+        "cos_main_combined": 4.882758730673231e-08,
+        "cos_main_factor": 4.882758730673231e-08,
+        "cos_main_router": null,
+        "factor_norm": 6.961126200621948e-05,
+        "factor_to_main": 0.18726743757724762,
+        "main_norm": 0.0003717211075127125,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0010083549409392106,
+        "anomaly_patch_count": 7,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6935,
+        "valid_group_patch_count": 20826,
+        "valid_patch_count": 6942
+      },
+      "ending_batch": 96,
+      "losses": {
+        "factor": 0.3838222650034974,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 16,
+      "primary_anchored_factor_surgery": {
+        "conflict": true,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": -0.9820002913475037,
+        "dot_main_factor": -2.899943396528215e-08,
+        "dot_main_safe_factor": -2.123924950844791e-15,
+        "factor_correction_norm": 0.0001025055389618501,
+        "factor_norm": 0.00010438443132443354,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.00028290602494962513,
+        "removed_factor_component_norm": 0.0001025055389618501,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 1.9716046153916977e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.3689720928668976,
+        "cos_factor_router": null,
+        "cos_main_combined": -0.9820002913475037,
+        "cos_main_factor": -0.9820002913475037,
+        "cos_main_router": null,
+        "factor_norm": 0.00010438443132443354,
+        "factor_to_main": 0.3689720928668976,
+        "main_norm": 0.00028290602494962513,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.06969115138053894,
+        "cos_factor_router": null,
+        "cos_main_combined": -3.8078263742136187e-07,
+        "cos_main_factor": -3.8078263742136187e-07,
+        "cos_main_router": null,
+        "factor_norm": 1.9716046153916977e-05,
+        "factor_to_main": 0.06969115138053894,
+        "main_norm": 0.00028290602494962513,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0,
+        "anomaly_patch_count": 0,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6979,
+        "valid_group_patch_count": 20937,
+        "valid_patch_count": 6979
+      },
+      "ending_batch": 102,
+      "losses": {
+        "factor": 0.014209361669297019,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 17,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.9978950619697571,
+        "dot_main_factor": 7.425922987636113e-09,
+        "dot_main_safe_factor": 7.425922987636113e-09,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 2.0260256860638037e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.00036729974090121686,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 2.0260256860638037e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.05516000837087631,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9978950619697571,
+        "cos_main_factor": 0.9978950619697571,
+        "cos_main_router": null,
+        "factor_norm": 2.0260256860638037e-05,
+        "factor_to_main": 0.05516000837087631,
+        "main_norm": 0.00036729974090121686,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.05516000837087631,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9978950619697571,
+        "cos_main_factor": 0.9978950619697571,
+        "cos_main_router": null,
+        "factor_norm": 2.0260256860638037e-05,
+        "factor_to_main": 0.05516000837087631,
+        "main_norm": 0.00036729974090121686,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0011851851851851852,
+        "anomaly_patch_count": 8,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6742,
+        "valid_group_patch_count": 20250,
+        "valid_patch_count": 6750
+      },
+      "ending_batch": 108,
+      "losses": {
+        "factor": 0.2508676760286714,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 18,
+      "primary_anchored_factor_surgery": {
+        "conflict": true,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": -0.8576558828353882,
+        "dot_main_factor": -1.2803871740629802e-08,
+        "dot_main_safe_factor": -1.2871648191747909e-15,
+        "factor_correction_norm": 6.867662159493193e-05,
+        "factor_norm": 8.007479482330382e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0001864371297415346,
+        "removed_factor_component_norm": 6.867662159493193e-05,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 4.117636854061857e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.4295002520084381,
+        "cos_factor_router": null,
+        "cos_main_combined": -0.8576558828353882,
+        "cos_main_factor": -0.8576558828353882,
+        "cos_main_router": null,
+        "factor_norm": 8.007479482330382e-05,
+        "factor_to_main": 0.4295002520084381,
+        "main_norm": 0.0001864371297415346,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.22085927426815033,
+        "cos_factor_router": null,
+        "cos_main_combined": -1.67669355732869e-07,
+        "cos_main_factor": -1.67669355732869e-07,
+        "cos_main_router": null,
+        "factor_norm": 4.117636854061857e-05,
+        "factor_to_main": 0.22085927426815033,
+        "main_norm": 0.0001864371297415346,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.00040655915435695893,
+        "anomaly_patch_count": 3,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7376,
+        "valid_group_patch_count": 22137,
+        "valid_patch_count": 7379
+      },
+      "ending_batch": 114,
+      "losses": {
+        "factor": 0.18741468619555235,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 19,
+      "primary_anchored_factor_surgery": {
+        "conflict": true,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": -0.6532371044158936,
+        "dot_main_factor": -1.019112705336056e-08,
+        "dot_main_safe_factor": -3.7990444123892075e-16,
+        "factor_correction_norm": 4.2846713768085465e-05,
+        "factor_norm": 6.559136818395928e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.00023785083612892777,
+        "removed_factor_component_norm": 4.2846713768085465e-05,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 4.9662721721688285e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.2757668197154999,
+        "cos_factor_router": null,
+        "cos_main_combined": -0.6532371044158936,
+        "cos_main_factor": -0.6532371044158936,
+        "cos_main_router": null,
+        "factor_norm": 6.559136818395928e-05,
+        "factor_to_main": 0.2757668197154999,
+        "main_norm": 0.00023785083612892777,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.20879775285720825,
+        "cos_factor_router": null,
+        "cos_main_combined": -3.2161711516209834e-08,
+        "cos_main_factor": -3.2161711516209834e-08,
+        "cos_main_router": null,
+        "factor_norm": 4.9662721721688285e-05,
+        "factor_to_main": 0.20879775285720825,
+        "main_norm": 0.00023785083612892777,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.010101010101010102,
+        "anomaly_patch_count": 70,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6860,
+        "valid_group_patch_count": 20790,
+        "valid_patch_count": 6930
+      },
+      "ending_batch": 120,
+      "losses": {
+        "factor": 0.3926472504778455,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 20,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.9804096221923828,
+        "dot_main_factor": 1.2507527458183176e-07,
+        "dot_main_safe_factor": 1.2507527458183176e-07,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 0.00015844030713196844,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.000805189716629684,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 0.00015844030713196844
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.19677388668060303,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9804096221923828,
+        "cos_main_factor": 0.9804096221923828,
+        "cos_main_router": null,
+        "factor_norm": 0.00015844030713196844,
+        "factor_to_main": 0.19677388668060303,
+        "main_norm": 0.000805189716629684,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.19677388668060303,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9804096221923828,
+        "cos_main_factor": 0.9804096221923828,
+        "cos_main_router": null,
+        "factor_norm": 0.00015844030713196844,
+        "factor_to_main": 0.19677388668060303,
+        "main_norm": 0.000805189716629684,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.010804157549234136,
+        "anomaly_patch_count": 79,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7233,
+        "valid_group_patch_count": 21936,
+        "valid_patch_count": 7312
+      },
+      "ending_batch": 126,
+      "losses": {
+        "factor": 0.5032479527484005,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 21,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.9923784732818604,
+        "dot_main_factor": 2.3415255157033243e-07,
+        "dot_main_safe_factor": 2.3415255157033243e-07,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 0.0002444848360028118,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0009650940774008632,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 0.0002444848360028118
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.25332745909690857,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9923784732818604,
+        "cos_main_factor": 0.9923784732818604,
+        "cos_main_router": null,
+        "factor_norm": 0.0002444848360028118,
+        "factor_to_main": 0.25332745909690857,
+        "main_norm": 0.0009650940774008632,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.25332745909690857,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9923784732818604,
+        "cos_main_factor": 0.9923784732818604,
+        "cos_main_router": null,
+        "factor_norm": 0.0002444848360028118,
+        "factor_to_main": 0.25332745909690857,
+        "main_norm": 0.0009650940774008632,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.001404135818228236,
+        "anomaly_patch_count": 11,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7823,
+        "valid_group_patch_count": 23502,
+        "valid_patch_count": 7834
+      },
+      "ending_batch": 132,
+      "losses": {
+        "factor": 0.19799725827760994,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 22,
+      "primary_anchored_factor_surgery": {
+        "conflict": true,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": -0.3805878162384033,
+        "dot_main_factor": -6.172506061830063e-09,
+        "dot_main_safe_factor": -4.541316324727096e-16,
+        "factor_correction_norm": 2.9512242690543644e-05,
+        "factor_norm": 7.754385296721011e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.00020915067580062896,
+        "removed_factor_component_norm": 2.9512242690543644e-05,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 7.170828030211851e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.3707559406757355,
+        "cos_factor_router": null,
+        "cos_main_combined": -0.3805878162384033,
+        "cos_main_factor": -0.3805878162384033,
+        "cos_main_router": null,
+        "factor_norm": 7.754385296721011e-05,
+        "factor_to_main": 0.3707559406757355,
+        "main_norm": 0.00020915067580062896,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.34285464882850647,
+        "cos_factor_router": null,
+        "cos_main_combined": -3.027981065883978e-08,
+        "cos_main_factor": -3.027981065883978e-08,
+        "cos_main_router": null,
+        "factor_norm": 7.170828030211851e-05,
+        "factor_to_main": 0.34285464882850647,
+        "main_norm": 0.00020915067580062896,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0036427415002698326,
+        "anomaly_patch_count": 27,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7385,
+        "valid_group_patch_count": 22236,
+        "valid_patch_count": 7412
+      },
+      "ending_batch": 138,
+      "losses": {
+        "factor": 0.5140264079285165,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 23,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.9397580027580261,
+        "dot_main_factor": 7.277871816313564e-08,
+        "dot_main_safe_factor": 7.277871816313564e-08,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 0.0002961281861644238,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.00026152224745601416,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 0.0002961281861644238
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 1.1323250532150269,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9397580027580261,
+        "cos_main_factor": 0.9397580027580261,
+        "cos_main_router": null,
+        "factor_norm": 0.0002961281861644238,
+        "factor_to_main": 1.1323250532150269,
+        "main_norm": 0.00026152224745601416,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 1.1323250532150269,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9397580027580261,
+        "cos_main_factor": 0.9397580027580261,
+        "cos_main_router": null,
+        "factor_norm": 0.0002961281861644238,
+        "factor_to_main": 1.1323250532150269,
+        "main_norm": 0.00026152224745601416,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.003565592036844451,
+        "anomaly_patch_count": 24,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6707,
+        "valid_group_patch_count": 20193,
+        "valid_patch_count": 6731
+      },
+      "ending_batch": 144,
+      "losses": {
+        "factor": 0.45358089450746775,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 24,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.2888723313808441,
+        "dot_main_factor": 6.3984422205010105e-09,
+        "dot_main_safe_factor": 6.3984422205010105e-09,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 0.00017116856179200113,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0001294029934797436,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 0.00017116856179200113
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 1.3227558135986328,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.2888723313808441,
+        "cos_main_factor": 0.2888723313808441,
+        "cos_main_router": null,
+        "factor_norm": 0.00017116856179200113,
+        "factor_to_main": 1.3227558135986328,
+        "main_norm": 0.0001294029934797436,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 1.3227558135986328,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.2888723313808441,
+        "cos_main_factor": 0.2888723313808441,
+        "cos_main_router": null,
+        "factor_norm": 0.00017116856179200113,
+        "factor_to_main": 1.3227558135986328,
+        "main_norm": 0.0001294029934797436,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.004770590711379262,
+        "anomaly_patch_count": 34,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7093,
+        "valid_group_patch_count": 21381,
+        "valid_patch_count": 7127
+      },
+      "ending_batch": 150,
+      "losses": {
+        "factor": 0.4113880687703689,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 25,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.9587505459785461,
+        "dot_main_factor": 3.7482191572735246e-08,
+        "dot_main_safe_factor": 3.7482191572735246e-08,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 0.00016542199591640383,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0002363339444855228,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 0.00016542199591640383
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.6999502182006836,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9587505459785461,
+        "cos_main_factor": 0.9587505459785461,
+        "cos_main_router": null,
+        "factor_norm": 0.00016542199591640383,
+        "factor_to_main": 0.6999502182006836,
+        "main_norm": 0.0002363339444855228,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.6999502182006836,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9587505459785461,
+        "cos_main_factor": 0.9587505459785461,
+        "cos_main_router": null,
+        "factor_norm": 0.00016542199591640383,
+        "factor_to_main": 0.6999502182006836,
+        "main_norm": 0.0002363339444855228,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.03925677563565242,
+        "anomaly_patch_count": 281,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6877,
+        "valid_group_patch_count": 21474,
+        "valid_patch_count": 7158
+      },
+      "ending_batch": 156,
+      "losses": {
+        "factor": 0.505474685691297,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 26,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.9469924569129944,
+        "dot_main_factor": 4.1730035604814475e-07,
+        "dot_main_safe_factor": 4.1730035604814475e-07,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 0.00017807941185310483,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.002474506152793765,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 0.00017807941185310483
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.07196563482284546,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9469924569129944,
+        "cos_main_factor": 0.9469924569129944,
+        "cos_main_router": null,
+        "factor_norm": 0.00017807941185310483,
+        "factor_to_main": 0.07196563482284546,
+        "main_norm": 0.002474506152793765,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.07196563482284546,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9469924569129944,
+        "cos_main_factor": 0.9469924569129944,
+        "cos_main_router": null,
+        "factor_norm": 0.00017807941185310483,
+        "factor_to_main": 0.07196563482284546,
+        "main_norm": 0.002474506152793765,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0005450333832947268,
+        "anomaly_patch_count": 4,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7335,
+        "valid_group_patch_count": 22017,
+        "valid_patch_count": 7339
+      },
+      "ending_batch": 162,
+      "losses": {
+        "factor": 0.2147320235380903,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 27,
+      "primary_anchored_factor_surgery": {
+        "conflict": true,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": -0.7759958505630493,
+        "dot_main_factor": -1.617897460448603e-08,
+        "dot_main_safe_factor": -7.503729354454286e-16,
+        "factor_correction_norm": 5.138207052368671e-05,
+        "factor_norm": 6.621436477871612e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.00031487588421441615,
+        "removed_factor_component_norm": 5.138207052368671e-05,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 4.17639130319003e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.2102871835231781,
+        "cos_factor_router": null,
+        "cos_main_combined": -0.7759958505630493,
+        "cos_main_factor": -0.7759958505630493,
+        "cos_main_router": null,
+        "factor_norm": 6.621436477871612e-05,
+        "factor_to_main": 0.2102871835231781,
+        "main_norm": 0.00031487588421441615,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.13263611495494843,
+        "cos_factor_router": null,
+        "cos_main_combined": -5.706063177512988e-08,
+        "cos_main_factor": -5.706063177512988e-08,
+        "cos_main_router": null,
+        "factor_norm": 4.17639130319003e-05,
+        "factor_to_main": 0.13263611495494843,
+        "main_norm": 0.00031487588421441615,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0,
+        "anomaly_patch_count": 0,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7447,
+        "valid_group_patch_count": 22341,
+        "valid_patch_count": 7447
+      },
+      "ending_batch": 168,
+      "losses": {
+        "factor": 0.013456407158325115,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 28,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.9912223219871521,
+        "dot_main_factor": 4.242647566599089e-09,
+        "dot_main_safe_factor": 4.242647566599089e-09,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 1.553178117319476e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0002755780587904155,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 1.553178117319476e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.05636073276400566,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9912223219871521,
+        "cos_main_factor": 0.9912223219871521,
+        "cos_main_router": null,
+        "factor_norm": 1.553178117319476e-05,
+        "factor_to_main": 0.05636073276400566,
+        "main_norm": 0.0002755780587904155,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.05636073276400566,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9912223219871521,
+        "cos_main_factor": 0.9912223219871521,
+        "cos_main_router": null,
+        "factor_norm": 1.553178117319476e-05,
+        "factor_to_main": 0.05636073276400566,
+        "main_norm": 0.0002755780587904155,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.004693458492226459,
+        "anomaly_patch_count": 32,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6786,
+        "valid_group_patch_count": 20454,
+        "valid_patch_count": 6818
+      },
+      "ending_batch": 174,
+      "losses": {
+        "factor": 0.38061676966026425,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 29,
+      "primary_anchored_factor_surgery": {
+        "conflict": true,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": -0.7474764585494995,
+        "dot_main_factor": -1.6314926298832688e-08,
+        "dot_main_safe_factor": 1.2579455706263065e-15,
+        "factor_correction_norm": 7.913323497632518e-05,
+        "factor_norm": 0.00010586718417471275,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.00020617035625036806,
+        "removed_factor_component_norm": 7.913323497632518e-05,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 7.032632129266858e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.5134937167167664,
+        "cos_factor_router": null,
+        "cos_main_combined": -0.7474764585494995,
+        "cos_main_factor": -0.7474764585494995,
+        "cos_main_router": null,
+        "factor_norm": 0.00010586718417471275,
+        "factor_to_main": 0.5134937167167664,
+        "main_norm": 0.00020617035625036806,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.3411078155040741,
+        "cos_factor_router": null,
+        "cos_main_combined": 8.675963414361831e-08,
+        "cos_main_factor": 8.675963414361831e-08,
+        "cos_main_router": null,
+        "factor_norm": 7.032632129266858e-05,
+        "factor_to_main": 0.3411078155040741,
+        "main_norm": 0.00020617035625036806,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.007033842070338421,
+        "anomaly_patch_count": 53,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7482,
+        "valid_group_patch_count": 22605,
+        "valid_patch_count": 7535
+      },
+      "ending_batch": 180,
+      "losses": {
+        "factor": 0.2797147451589505,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 30,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.38992276787757874,
+        "dot_main_factor": 3.928491754123797e-09,
+        "dot_main_safe_factor": 3.928491754123797e-09,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 6.284553819568828e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.00016031450650189072,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 6.284553819568828e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.3920140564441681,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.38992276787757874,
+        "cos_main_factor": 0.38992276787757874,
+        "cos_main_router": null,
+        "factor_norm": 6.284553819568828e-05,
+        "factor_to_main": 0.3920140564441681,
+        "main_norm": 0.00016031450650189072,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.3920140564441681,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.38992276787757874,
+        "cos_main_factor": 0.38992276787757874,
+        "cos_main_router": null,
+        "factor_norm": 6.284553819568828e-05,
+        "factor_to_main": 0.3920140564441681,
+        "main_norm": 0.00016031450650189072,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.00030344409042633893,
+        "anomaly_patch_count": 2,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6589,
+        "valid_group_patch_count": 19773,
+        "valid_patch_count": 6591
+      },
+      "ending_batch": 186,
+      "losses": {
+        "factor": 0.1392749436199665,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 31,
+      "primary_anchored_factor_surgery": {
+        "conflict": true,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": -0.4290119409561157,
+        "dot_main_factor": -3.925154423711774e-09,
+        "dot_main_safe_factor": -5.513642385539252e-16,
+        "factor_correction_norm": 1.1553059266589116e-05,
+        "factor_norm": 2.692946327442769e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.00033975017140619457,
+        "removed_factor_component_norm": 1.1553059266589116e-05,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 2.432535620755516e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.07926254719495773,
+        "cos_factor_router": null,
+        "cos_main_combined": -0.4290119409561157,
+        "cos_main_factor": -0.4290119409561157,
+        "cos_main_router": null,
+        "factor_norm": 2.692946327442769e-05,
+        "factor_to_main": 0.07926254719495773,
+        "main_norm": 0.00033975017140619457,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.07159777730703354,
+        "cos_factor_router": null,
+        "cos_main_combined": -6.671442065453448e-08,
+        "cos_main_factor": -6.671442065453448e-08,
+        "cos_main_router": null,
+        "factor_norm": 2.432535620755516e-05,
+        "factor_to_main": 0.07159777730703354,
+        "main_norm": 0.00033975017140619457,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.005931365626323966,
+        "anomaly_patch_count": 42,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7039,
+        "valid_group_patch_count": 21243,
+        "valid_patch_count": 7081
+      },
+      "ending_batch": 192,
+      "losses": {
+        "factor": 0.42712696253632504,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 32,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.19145286083221436,
+        "dot_main_factor": 5.681745296470808e-09,
+        "dot_main_safe_factor": 5.681745296470808e-09,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 0.0001464982924517244,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0002025756984949112,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 0.0001464982924517244
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.7231780290603638,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.19145286083221436,
+        "cos_main_factor": 0.19145286083221436,
+        "cos_main_router": null,
+        "factor_norm": 0.0001464982924517244,
+        "factor_to_main": 0.7231780290603638,
+        "main_norm": 0.0002025756984949112,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.7231780290603638,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.19145286083221436,
+        "cos_main_factor": 0.19145286083221436,
+        "cos_main_router": null,
+        "factor_norm": 0.0001464982924517244,
+        "factor_to_main": 0.7231780290603638,
+        "main_norm": 0.0002025756984949112,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0032098044937262913,
+        "anomaly_patch_count": 22,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6832,
+        "valid_group_patch_count": 20562,
+        "valid_patch_count": 6854
+      },
+      "ending_batch": 198,
+      "losses": {
+        "factor": 0.25951056151340407,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 33,
+      "primary_anchored_factor_surgery": {
+        "conflict": true,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": -0.9194570183753967,
+        "dot_main_factor": -2.23412151001412e-08,
+        "dot_main_safe_factor": 3.813464301283265e-15,
+        "factor_correction_norm": 7.913213630672544e-05,
+        "factor_norm": 8.606398478150368e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0002823279646690935,
+        "removed_factor_component_norm": 7.913213630672544e-05,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 3.3839565730886534e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.3048368990421295,
+        "cos_factor_router": null,
+        "cos_main_combined": -0.9194570183753967,
+        "cos_main_factor": -0.9194570183753967,
+        "cos_main_router": null,
+        "factor_norm": 8.606398478150368e-05,
+        "factor_to_main": 0.3048368990421295,
+        "main_norm": 0.0002823279646690935,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.11985906213521957,
+        "cos_factor_router": null,
+        "cos_main_combined": 3.991544872405939e-07,
+        "cos_main_factor": 3.991544872405939e-07,
+        "cos_main_router": null,
+        "factor_norm": 3.3839565730886534e-05,
+        "factor_to_main": 0.11985906213521957,
+        "main_norm": 0.0002823279646690935,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.016050714863771243,
+        "anomaly_patch_count": 119,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7295,
+        "valid_group_patch_count": 22242,
+        "valid_patch_count": 7414
+      },
+      "ending_batch": 204,
+      "losses": {
+        "factor": 0.3299910382678111,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 34,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.9469143152236938,
+        "dot_main_factor": 1.5486662618968694e-07,
+        "dot_main_safe_factor": 1.5486662618968694e-07,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 0.00013008643873035908,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0012572311097756028,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 0.00013008643873035908
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.1034705862402916,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9469143152236938,
+        "cos_main_factor": 0.9469143152236938,
+        "cos_main_router": null,
+        "factor_norm": 0.00013008643873035908,
+        "factor_to_main": 0.1034705862402916,
+        "main_norm": 0.0012572311097756028,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.1034705862402916,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9469143152236938,
+        "cos_main_factor": 0.9469143152236938,
+        "cos_main_router": null,
+        "factor_norm": 0.00013008643873035908,
+        "factor_to_main": 0.1034705862402916,
+        "main_norm": 0.0012572311097756028,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0,
+        "anomaly_patch_count": 0,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6961,
+        "valid_group_patch_count": 20883,
+        "valid_patch_count": 6961
+      },
+      "ending_batch": 210,
+      "losses": {
+        "factor": 0.028984556905925274,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 35,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.9843345284461975,
+        "dot_main_factor": 2.6766771910047282e-08,
+        "dot_main_safe_factor": 2.6766771910047282e-08,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 4.113023533136584e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.000661137979477644,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 4.113023533136584e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.06221127137541771,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9843345284461975,
+        "cos_main_factor": 0.9843345284461975,
+        "cos_main_router": null,
+        "factor_norm": 4.113023533136584e-05,
+        "factor_to_main": 0.06221127137541771,
+        "main_norm": 0.000661137979477644,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.06221127137541771,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9843345284461975,
+        "cos_main_factor": 0.9843345284461975,
+        "cos_main_router": null,
+        "factor_norm": 4.113023533136584e-05,
+        "factor_to_main": 0.06221127137541771,
+        "main_norm": 0.000661137979477644,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.004285714285714286,
+        "anomaly_patch_count": 30,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6970,
+        "valid_group_patch_count": 21000,
+        "valid_patch_count": 7000
+      },
+      "ending_batch": 216,
+      "losses": {
+        "factor": 0.3334205290302634,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 36,
+      "primary_anchored_factor_surgery": {
+        "conflict": true,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": -0.5449358820915222,
+        "dot_main_factor": -9.011900559130481e-09,
+        "dot_main_safe_factor": -2.6763530627804677e-16,
+        "factor_correction_norm": 4.1358867747476324e-05,
+        "factor_norm": 7.589675806229934e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.00021789524180348963,
+        "removed_factor_component_norm": 4.1358867747476324e-05,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 6.363773718476295e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.3483176529407501,
+        "cos_factor_router": null,
+        "cos_main_combined": -0.5449358820915222,
+        "cos_main_factor": -0.5449358820915222,
+        "cos_main_router": null,
+        "factor_norm": 7.589675806229934e-05,
+        "factor_to_main": 0.3483176529407501,
+        "main_norm": 0.00021789524180348963,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.2920565605163574,
+        "cos_factor_router": null,
+        "cos_main_combined": -1.9301049647424406e-08,
+        "cos_main_factor": -1.9301049647424406e-08,
+        "cos_main_router": null,
+        "factor_norm": 6.363773718476295e-05,
+        "factor_to_main": 0.2920565605163574,
+        "main_norm": 0.00021789524180348963,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.012642225031605562,
+        "anomaly_patch_count": 90,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7029,
+        "valid_group_patch_count": 21357,
+        "valid_patch_count": 7119
+      },
+      "ending_batch": 222,
+      "losses": {
+        "factor": 0.578992396282653,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 37,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.8538389205932617,
+        "dot_main_factor": 1.7599633395093406e-07,
+        "dot_main_safe_factor": 1.7599633395093406e-07,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 0.00034594483440741897,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0005958278779871762,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 0.00034594483440741897
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.5806120038032532,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.8538389205932617,
+        "cos_main_factor": 0.8538389205932617,
+        "cos_main_router": null,
+        "factor_norm": 0.00034594483440741897,
+        "factor_to_main": 0.5806120038032532,
+        "main_norm": 0.0005958278779871762,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.5806120038032532,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.8538389205932617,
+        "cos_main_factor": 0.8538389205932617,
+        "cos_main_router": null,
+        "factor_norm": 0.00034594483440741897,
+        "factor_to_main": 0.5806120038032532,
+        "main_norm": 0.0005958278779871762,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0005534800055348,
+        "anomaly_patch_count": 4,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7223,
+        "valid_group_patch_count": 21681,
+        "valid_patch_count": 7227
+      },
+      "ending_batch": 228,
+      "losses": {
+        "factor": 0.1906042917010685,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 38,
+      "primary_anchored_factor_surgery": {
+        "conflict": true,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": -0.7011180520057678,
+        "dot_main_factor": -9.627412644874767e-09,
+        "dot_main_safe_factor": -1.03488452616457e-15,
+        "factor_correction_norm": 2.2953920051804744e-05,
+        "factor_norm": 3.2739022572059184e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.00041942347888834774,
+        "removed_factor_component_norm": 2.2953920051804744e-05,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 2.3344402507063933e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.078057199716568,
+        "cos_factor_router": null,
+        "cos_main_combined": -0.7011180520057678,
+        "cos_main_factor": -0.7011180520057678,
+        "cos_main_router": null,
+        "factor_norm": 3.2739022572059184e-05,
+        "factor_to_main": 0.078057199716568,
+        "main_norm": 0.00041942347888834774,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.055658310651779175,
+        "cos_factor_router": null,
+        "cos_main_combined": -1.056954772593599e-07,
+        "cos_main_factor": -1.056954772593599e-07,
+        "cos_main_router": null,
+        "factor_norm": 2.3344402507063933e-05,
+        "factor_to_main": 0.055658310651779175,
+        "main_norm": 0.00041942347888834774,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.03758238676202496,
+        "anomaly_patch_count": 268,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6863,
+        "valid_group_patch_count": 21393,
+        "valid_patch_count": 7131
+      },
+      "ending_batch": 234,
+      "losses": {
+        "factor": 0.4844575508808096,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 39,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.0847126916050911,
+        "dot_main_factor": 2.1785316661748766e-08,
+        "dot_main_safe_factor": 2.1785316661748766e-08,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 0.000246743846219033,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0010422432096675038,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 0.000246743846219033
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.23674306273460388,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.0847126916050911,
+        "cos_main_factor": 0.0847126916050911,
+        "cos_main_router": null,
+        "factor_norm": 0.000246743846219033,
+        "factor_to_main": 0.23674306273460388,
+        "main_norm": 0.0010422432096675038,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.23674306273460388,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.0847126916050911,
+        "cos_main_factor": 0.0847126916050911,
+        "cos_main_router": null,
+        "factor_norm": 0.000246743846219033,
+        "factor_to_main": 0.23674306273460388,
+        "main_norm": 0.0010422432096675038,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.003910362460520379,
+        "anomaly_patch_count": 26,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6623,
+        "valid_group_patch_count": 19947,
+        "valid_patch_count": 6649
+      },
+      "ending_batch": 240,
+      "losses": {
+        "factor": 0.38086212472990155,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 40,
+      "primary_anchored_factor_surgery": {
+        "conflict": true,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": -0.4033086597919464,
+        "dot_main_factor": -1.5710726941620123e-08,
+        "dot_main_safe_factor": -2.4113740518250104e-15,
+        "factor_correction_norm": 3.6390625609783456e-05,
+        "factor_norm": 9.023021266330034e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0004317245620768517,
+        "removed_factor_component_norm": 3.6390625609783456e-05,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 8.256642468040809e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.20899948477745056,
+        "cos_factor_router": null,
+        "cos_main_combined": -0.4033086597919464,
+        "cos_main_factor": -0.4033086597919464,
+        "cos_main_router": null,
+        "factor_norm": 9.023021266330034e-05,
+        "factor_to_main": 0.20899948477745056,
+        "main_norm": 0.0004317245620768517,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.19124792516231537,
+        "cos_factor_router": null,
+        "cos_main_combined": -6.764790327906667e-08,
+        "cos_main_factor": -6.764790327906667e-08,
+        "cos_main_router": null,
+        "factor_norm": 8.256642468040809e-05,
+        "factor_to_main": 0.19124792516231537,
+        "main_norm": 0.0004317245620768517,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.008149010477299184,
+        "anomaly_patch_count": 56,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6816,
+        "valid_group_patch_count": 20616,
+        "valid_patch_count": 6872
+      },
+      "ending_batch": 246,
+      "losses": {
+        "factor": 0.40370633810137707,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 41,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.5815995335578918,
+        "dot_main_factor": 1.2703790019941152e-08,
+        "dot_main_safe_factor": 1.2703790019941152e-08,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 0.00011258058657404035,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.00019401966710574925,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 0.00011258058657404035
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.5802534818649292,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.5815995335578918,
+        "cos_main_factor": 0.5815995335578918,
+        "cos_main_router": null,
+        "factor_norm": 0.00011258058657404035,
+        "factor_to_main": 0.5802534818649292,
+        "main_norm": 0.00019401966710574925,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.5802534818649292,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.5815995335578918,
+        "cos_main_factor": 0.5815995335578918,
+        "cos_main_router": null,
+        "factor_norm": 0.00011258058657404035,
+        "factor_to_main": 0.5802534818649292,
+        "main_norm": 0.00019401966710574925,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0,
+        "anomaly_patch_count": 0,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7091,
+        "valid_group_patch_count": 21273,
+        "valid_patch_count": 7091
+      },
+      "ending_batch": 252,
+      "losses": {
+        "factor": 0.016707036333779495,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 42,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.9985259771347046,
+        "dot_main_factor": 1.0642312808784027e-08,
+        "dot_main_safe_factor": 1.0642312808784027e-08,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 2.5320421627839096e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0004209259641356766,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 2.5320421627839096e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.06015409901738167,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9985259771347046,
+        "cos_main_factor": 0.9985259771347046,
+        "cos_main_router": null,
+        "factor_norm": 2.5320421627839096e-05,
+        "factor_to_main": 0.06015409901738167,
+        "main_norm": 0.0004209259641356766,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.06015409901738167,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9985259771347046,
+        "cos_main_factor": 0.9985259771347046,
+        "cos_main_router": null,
+        "factor_norm": 2.5320421627839096e-05,
+        "factor_to_main": 0.06015409901738167,
+        "main_norm": 0.0004209259641356766,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0028731700643042824,
+        "anomaly_patch_count": 21,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7288,
+        "valid_group_patch_count": 21927,
+        "valid_patch_count": 7309
+      },
+      "ending_batch": 258,
+      "losses": {
+        "factor": 0.16572256029273072,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 43,
+      "primary_anchored_factor_surgery": {
+        "conflict": true,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": -0.20536428689956665,
+        "dot_main_factor": -1.6995292950738872e-09,
+        "dot_main_safe_factor": 4.945317159249507e-17,
+        "factor_correction_norm": 6.17939213043428e-06,
+        "factor_norm": 3.008990279340651e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0002750318089965731,
+        "removed_factor_component_norm": 6.17939213043428e-06,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 2.944855259556789e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.10940517485141754,
+        "cos_factor_router": null,
+        "cos_main_combined": -0.20536428689956665,
+        "cos_main_factor": -0.20536428689956665,
+        "cos_main_router": null,
+        "factor_norm": 3.008990279340651e-05,
+        "factor_to_main": 0.10940517485141754,
+        "main_norm": 0.0002750318089965731,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.10707326233386993,
+        "cos_factor_router": null,
+        "cos_main_combined": 6.1058664790891726e-09,
+        "cos_main_factor": 6.1058664790891726e-09,
+        "cos_main_router": null,
+        "factor_norm": 2.944855259556789e-05,
+        "factor_to_main": 0.10707326233386993,
+        "main_norm": 0.0002750318089965731,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.009487951807228915,
+        "anomaly_patch_count": 63,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6577,
+        "valid_group_patch_count": 19920,
+        "valid_patch_count": 6640
+      },
+      "ending_batch": 264,
+      "losses": {
+        "factor": 0.3460521684028208,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 44,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.8183275461196899,
+        "dot_main_factor": 4.7091322841197325e-08,
+        "dot_main_safe_factor": 4.7091322841197325e-08,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 0.00014240515884011984,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0004040992062073201,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 0.00014240515884011984
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.3524014949798584,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.8183275461196899,
+        "cos_main_factor": 0.8183275461196899,
+        "cos_main_router": null,
+        "factor_norm": 0.00014240515884011984,
+        "factor_to_main": 0.3524014949798584,
+        "main_norm": 0.0004040992062073201,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.3524014949798584,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.8183275461196899,
+        "cos_main_factor": 0.8183275461196899,
+        "cos_main_router": null,
+        "factor_norm": 0.00014240515884011984,
+        "factor_to_main": 0.3524014949798584,
+        "main_norm": 0.0004040992062073201,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0010813733441470668,
+        "anomaly_patch_count": 8,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7390,
+        "valid_group_patch_count": 22194,
+        "valid_patch_count": 7398
+      },
+      "ending_batch": 270,
+      "losses": {
+        "factor": 0.2986402506940067,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 45,
+      "primary_anchored_factor_surgery": {
+        "conflict": true,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": -0.8377909064292908,
+        "dot_main_factor": -2.184063419008453e-08,
+        "dot_main_safe_factor": -1.2558313763899598e-15,
+        "factor_correction_norm": 5.67047500226181e-05,
+        "factor_norm": 6.768365710740909e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0003851640794891864,
+        "removed_factor_component_norm": 5.67047500226181e-05,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 3.6954683309886605e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.17572681605815887,
+        "cos_factor_router": null,
+        "cos_main_combined": -0.8377909064292908,
+        "cos_main_factor": -0.8377909064292908,
+        "cos_main_router": null,
+        "factor_norm": 6.768365710740909e-05,
+        "factor_to_main": 0.17572681605815887,
+        "main_norm": 0.0003851640794891864,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.09594529867172241,
+        "cos_factor_router": null,
+        "cos_main_combined": -8.822995312129933e-08,
+        "cos_main_factor": -8.822995312129933e-08,
+        "cos_main_router": null,
+        "factor_norm": 3.6954683309886605e-05,
+        "factor_to_main": 0.09594529867172241,
+        "main_norm": 0.0003851640794891864,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.002092342028176873,
+        "anomaly_patch_count": 15,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7154,
+        "valid_group_patch_count": 21507,
+        "valid_patch_count": 7169
+      },
+      "ending_batch": 276,
+      "losses": {
+        "factor": 0.2770584059568743,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 46,
+      "primary_anchored_factor_surgery": {
+        "conflict": true,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": -0.4668925106525421,
+        "dot_main_factor": -7.563637716145877e-09,
+        "dot_main_safe_factor": -1.1469774782724151e-15,
+        "factor_correction_norm": 3.6910962080582976e-05,
+        "factor_norm": 7.905667007435113e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.00020491573377512395,
+        "removed_factor_component_norm": 3.6910962080582976e-05,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 6.991092232055962e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.38580086827278137,
+        "cos_factor_router": null,
+        "cos_main_combined": -0.4668925106525421,
+        "cos_main_factor": -0.4668925106525421,
+        "cos_main_router": null,
+        "factor_norm": 7.905667007435113e-05,
+        "factor_to_main": 0.38580086827278137,
+        "main_norm": 0.00020491573377512395,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.3411691188812256,
+        "cos_factor_router": null,
+        "cos_main_combined": -8.006349361266984e-08,
+        "cos_main_factor": -8.006349361266984e-08,
+        "cos_main_router": null,
+        "factor_norm": 6.991092232055962e-05,
+        "factor_to_main": 0.3411691188812256,
+        "main_norm": 0.00020491573377512395,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0002967799376762131,
+        "anomaly_patch_count": 2,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6737,
+        "valid_group_patch_count": 20217,
+        "valid_patch_count": 6739
+      },
+      "ending_batch": 282,
+      "losses": {
+        "factor": 0.1272674036833147,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 47,
+      "primary_anchored_factor_surgery": {
+        "conflict": true,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": -0.637355387210846,
+        "dot_main_factor": -1.507510205556173e-08,
+        "dot_main_safe_factor": 8.333177897723587e-16,
+        "factor_correction_norm": 2.873387529689353e-05,
+        "factor_norm": 4.508296842686832e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.000524645671248436,
+        "removed_factor_component_norm": 2.873387529689353e-05,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 3.473958349786699e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.08593031764030457,
+        "cos_factor_router": null,
+        "cos_main_combined": -0.637355387210846,
+        "cos_main_factor": -0.637355387210846,
+        "cos_main_router": null,
+        "factor_norm": 4.508296842686832e-05,
+        "factor_to_main": 0.08593031764030457,
+        "main_norm": 0.000524645671248436,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.06621532142162323,
+        "cos_factor_router": null,
+        "cos_main_combined": 4.5721446184643355e-08,
+        "cos_main_factor": 4.5721446184643355e-08,
+        "cos_main_router": null,
+        "factor_norm": 3.473958349786699e-05,
+        "factor_to_main": 0.06621532142162323,
+        "main_norm": 0.000524645671248436,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.005204568454532312,
+        "anomaly_patch_count": 36,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6881,
+        "valid_group_patch_count": 20751,
+        "valid_patch_count": 6917
+      },
+      "ending_batch": 288,
+      "losses": {
+        "factor": 0.2578976775209109,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 48,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.8215500712394714,
+        "dot_main_factor": 1.9005026885565712e-08,
+        "dot_main_safe_factor": 1.9005026885565712e-08,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 8.45693502924405e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.00027354038320481777,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 8.45693502924405e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.3091658651828766,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.8215500712394714,
+        "cos_main_factor": 0.8215500712394714,
+        "cos_main_router": null,
+        "factor_norm": 8.45693502924405e-05,
+        "factor_to_main": 0.3091658651828766,
+        "main_norm": 0.00027354038320481777,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.3091658651828766,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.8215500712394714,
+        "cos_main_factor": 0.8215500712394714,
+        "cos_main_router": null,
+        "factor_norm": 8.45693502924405e-05,
+        "factor_to_main": 0.3091658651828766,
+        "main_norm": 0.00027354038320481777,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0014308198597796538,
+        "anomaly_patch_count": 10,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 6979,
+        "valid_group_patch_count": 20967,
+        "valid_patch_count": 6989
+      },
+      "ending_batch": 294,
+      "losses": {
+        "factor": 0.32847654229650897,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 49,
+      "primary_anchored_factor_surgery": {
+        "conflict": true,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": -0.5922625064849854,
+        "dot_main_factor": -1.6697299543011468e-08,
+        "dot_main_safe_factor": -2.3382717203451753e-15,
+        "factor_correction_norm": 3.9631999243283644e-05,
+        "factor_norm": 6.6916283685714e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0004213084757793695,
+        "removed_factor_component_norm": 3.9631999243283644e-05,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 5.391746526584029e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.15882965922355652,
+        "cos_factor_router": null,
+        "cos_main_combined": -0.5922625064849854,
+        "cos_main_factor": -0.5922625064849854,
+        "cos_main_router": null,
+        "factor_norm": 6.6916283685714e-05,
+        "factor_to_main": 0.15882965922355652,
+        "main_norm": 0.0004213084757793695,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.1279762238264084,
+        "cos_factor_router": null,
+        "cos_main_combined": -1.0293553742712902e-07,
+        "cos_main_factor": -1.0293553742712902e-07,
+        "cos_main_router": null,
+        "factor_norm": 5.391746526584029e-05,
+        "factor_to_main": 0.1279762238264084,
+        "main_norm": 0.0004213084757793695,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0005508883073956756,
+        "anomaly_patch_count": 4,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7257,
+        "valid_group_patch_count": 21783,
+        "valid_patch_count": 7261
+      },
+      "ending_batch": 300,
+      "losses": {
+        "factor": 0.08663063403218985,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 50,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.49470585584640503,
+        "dot_main_factor": 2.5891659927168575e-09,
+        "dot_main_safe_factor": 2.5891659927168575e-09,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 1.3921502613811754e-05,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.00037594710011035204,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 1.3921502613811754e-05
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.03703048452734947,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.49470585584640503,
+        "cos_main_factor": 0.49470585584640503,
+        "cos_main_router": null,
+        "factor_norm": 1.3921502613811754e-05,
+        "factor_to_main": 0.03703048452734947,
+        "main_norm": 0.00037594710011035204,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.03703048452734947,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.49470585584640503,
+        "cos_main_factor": 0.49470585584640503,
+        "cos_main_router": null,
+        "factor_norm": 1.3921502613811754e-05,
+        "factor_to_main": 0.03703048452734947,
+        "main_norm": 0.00037594710011035204,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    }
+  ]
+}

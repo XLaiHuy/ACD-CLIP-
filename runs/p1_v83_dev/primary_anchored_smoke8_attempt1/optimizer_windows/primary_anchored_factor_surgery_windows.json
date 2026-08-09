@@ -1,0 +1,122 @@
+{
+  "factor_effective_beta": 0.999,
+  "formula": "main-preserving auxiliary projection on accumulated main/factor shared-semantic gradients",
+  "lambda_factor": 0.03,
+  "lambda_router": 0.1,
+  "main_gradient_policy": "exactly preserved",
+  "router": "support-normalized fixed-lambda gradient tracked but not projected",
+  "windows": [
+    {
+      "counts": {
+        "anomaly_fraction": 0.0005491488193300384,
+        "anomaly_patch_count": 4,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 7280,
+        "valid_group_patch_count": 21852,
+        "valid_patch_count": 7284
+      },
+      "ending_batch": 6,
+      "losses": {
+        "factor": 0.7162885069847107,
+        "router": 0.0
+      },
+      "microbatch_count": 6,
+      "optimizer_step": 1,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.9897363781929016,
+        "dot_main_factor": 6.730024324497208e-07,
+        "dot_main_safe_factor": 6.730024324497208e-07,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 0.00013593972835224122,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.005002080928534269,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 0.00013593972835224122
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.027176635339856148,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9897363781929016,
+        "cos_main_factor": 0.9897363781929016,
+        "cos_main_router": null,
+        "factor_norm": 0.00013593972835224122,
+        "factor_to_main": 0.027176635339856148,
+        "main_norm": 0.005002080928534269,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.027176635339856148,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9897363781929016,
+        "cos_main_factor": 0.9897363781929016,
+        "cos_main_router": null,
+        "factor_norm": 0.00013593972835224122,
+        "factor_to_main": 0.027176635339856148,
+        "main_norm": 0.005002080928534269,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    },
+    {
+      "counts": {
+        "anomaly_fraction": 0.0,
+        "anomaly_patch_count": 0,
+        "informative_fraction": 0.0,
+        "informative_group_patch_count": 0,
+        "normal_patch_count": 2594,
+        "valid_group_patch_count": 7782,
+        "valid_patch_count": 2594
+      },
+      "ending_batch": 8,
+      "losses": {
+        "factor": 0.38993948698043823,
+        "router": 0.0
+      },
+      "microbatch_count": 2,
+      "optimizer_step": 2,
+      "primary_anchored_factor_surgery": {
+        "conflict": false,
+        "correction_reconstruction_error_norm": 0.0,
+        "cos_main_factor": 0.9853214025497437,
+        "dot_main_factor": 4.700005717950262e-07,
+        "dot_main_safe_factor": 4.700005717950262e-07,
+        "factor_correction_norm": 0.0,
+        "factor_norm": 0.00013814530393574387,
+        "main_gradient_exact_change_norm": 0.0,
+        "main_norm": 0.0034529026597738266,
+        "removed_factor_component_norm": 0.0,
+        "router_gradient_projected": false,
+        "safe_factor_norm": 0.00013814530393574387
+      },
+      "raw_weighted_geometry": {
+        "combined_to_main": 0.04000845551490784,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9853214025497437,
+        "cos_main_factor": 0.9853214025497437,
+        "cos_main_router": null,
+        "factor_norm": 0.00013814530393574387,
+        "factor_to_main": 0.04000845551490784,
+        "main_norm": 0.0034529026597738266,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      },
+      "safe_weighted_geometry": {
+        "combined_to_main": 0.04000845551490784,
+        "cos_factor_router": null,
+        "cos_main_combined": 0.9853214025497437,
+        "cos_main_factor": 0.9853214025497437,
+        "cos_main_router": null,
+        "factor_norm": 0.00013814530393574387,
+        "factor_to_main": 0.04000845551490784,
+        "main_norm": 0.0034529026597738266,
+        "router_norm": 0.0,
+        "router_to_main": 0.0
+      }
+    }
+  ]
+}

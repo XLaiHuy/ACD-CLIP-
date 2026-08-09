@@ -1,0 +1,133 @@
+{
+  "checks": {
+    "all_epoch_metrics_finite": true,
+    "class_vae_path_alive": true,
+    "experts_off": true,
+    "factor_gradients_alive": true,
+    "factor_outputs_not_collapsed": true,
+    "legacy_auxiliaries_off": true,
+    "optimizer_step_executed": true,
+    "rho_fixed_005": true,
+    "rho_gradient_none": true,
+    "router_dense": true,
+    "router_gradient_alive": true,
+    "state_path_alive": true,
+    "text_lora_alive": true,
+    "utility_losses_finite": true
+  },
+  "epoch": 1,
+  "failed": [],
+  "gpu_allocated_bytes": 2248475136,
+  "gpu_peak_allocated_bytes": 4117860352,
+  "gpu_peak_reserved_bytes": 4647288832,
+  "gpu_reserved_bytes": 4647288832,
+  "grad_accum_steps": 6,
+  "gradients": {
+    "class_to_context_grad_norm": null,
+    "dfg_grad_norm": 8.827871170069557e-06,
+    "dynamic_prompt_shared_trunk_grad_norm": 0.001288395025767386,
+    "dynamic_residual_grad_norms": [
+      0.02229388616979122,
+      0.02812989056110382,
+      0.03656638041138649,
+      0.021764105185866356
+    ],
+    "factor_generator_context_grad_norm": null,
+    "factor_generator_head_grad_norms": null,
+    "factor_generator_identity_grad_norm": null,
+    "factor_grad_cos_max": 0.7459843754768372,
+    "factor_grad_cos_mean": -0.3159870207309723,
+    "factor_grad_cos_min": -0.7459843754768372,
+    "factor_grad_l2_min": 0.0003946127253584564,
+    "factor_grad_norms": [
+      0.0003847216139547527,
+      0.000313700846163556,
+      0.00042570638470351696,
+      0.0002963175065815449
+    ],
+    "factor_id_projection_grad_norm": null,
+    "phase2b_image_adapter_grad_norm": 0.2450537532567978,
+    "phase2b_text_adapter_grad_norm": 0.14390255510807037,
+    "prototype_modules_grad_norm": 0.0009274084004573524,
+    "rho_gate_grad_norm": null,
+    "router_grad_norm": 6.434938404709101e-05,
+    "vae_decoder_grad_norm": 0.0020259576849639416,
+    "vae_logvar_grad_norm": 5.3859708714298904e-05,
+    "vae_mu_grad_norm": 0.00015504148905165493
+  },
+  "losses": {
+    "task": 2.1414473950862885,
+    "total": 2.162945881485939,
+    "utility_factor": 0.6347012519836426,
+    "utility_router": 0.0
+  },
+  "optimizer_step_count": 2,
+  "rho": [
+    0.05000000074505806,
+    0.05000000074505806,
+    0.05000000074505806
+  ],
+  "sample_count": 8,
+  "status": "PASS",
+  "structure": {
+    "factor_embedding_effective_rank": 1.0048158168792725,
+    "factor_embedding_pairwise_cosine_max": 0.9994537234306335,
+    "factor_embedding_pairwise_cosine_mean": 0.9993345141410828,
+    "factor_embedding_pairwise_cosine_min": 0.9992203116416931,
+    "factor_embedding_pairwise_l2_max": 0.09536531567573547,
+    "factor_embedding_pairwise_l2_mean": 0.08791932463645935,
+    "factor_embedding_pairwise_l2_min": 0.07961348444223404,
+    "factor_patch_outputs_exactly_collapsed": 0.0,
+    "factor_patch_pairwise_correlation_max": 0.8390387892723083,
+    "factor_patch_pairwise_correlation_mean": 0.6310197710990906,
+    "factor_patch_pairwise_correlation_min": 0.4525744616985321,
+    "factor_patch_pairwise_max_difference": 0.2746981680393219,
+    "factor_patch_std_across_factors": 0.0495934821665287,
+    "state_pairwise_l2_max": 0.20509210228919983,
+    "state_pairwise_l2_mean": 0.1920066624879837,
+    "state_pairwise_l2_min": 0.1827738732099533
+  },
+  "utility": {
+    "Base": 0.6374344229698181,
+    "BestSingle": 0.6350494623184204,
+    "G_local": 0.007490870542824268,
+    "G_multi": 0.0011413046158850193,
+    "HardRouted": 0.6357200145721436,
+    "L_base": 0.6374344229698181,
+    "L_per_factor": [
+      0.6351862549781799,
+      0.6354594826698303,
+      0.6358516812324524,
+      0.6362420916557312
+    ],
+    "OracleMulti": 0.6342964768409729,
+    "SoftRouted": 0.6356881856918335,
+    "Uniform": 0.6356840133666992,
+    "all_harm_fraction": 0.27065491676330566,
+    "base_denominator_valid": 1.0,
+    "best_second_utility_margin": 0.0014984948793426156,
+    "capture": -0.0032323338091373444,
+    "capture_denominator": 0.0013876073062419891,
+    "capture_valid": 1.0,
+    "exploration_epsilon": 0.14999999105930328,
+    "gain_rel_mean": 0.0055055622942745686,
+    "informative_fraction": 0.0,
+    "router_entropy": 0.9990366697311401,
+    "router_top1_agreement": 0.0,
+    "router_usage": [
+      0.24755515158176422,
+      0.2466629147529602,
+      0.2523167133331299,
+      0.2534652054309845
+    ],
+    "teacher_entropy": 0.9994183778762817,
+    "teacher_max_probability": 0.26148176193237305,
+    "teacher_router_KL": 0.0,
+    "winner_shares": [
+      0.33192065358161926,
+      0.3471600413322449,
+      0.21923701465129852,
+      0.10168224573135376
+    ]
+  }
+}

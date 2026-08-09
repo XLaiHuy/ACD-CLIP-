@@ -54,7 +54,9 @@ from model.h6.losses import (
 )
 from model.h6.cluster_responsibility import cluster_responsibility_loss
 from model.h6.utility_routing import (
+    act_diagnostics, act_teacher,
     build_patch_targets, exploration_epsilon, utility_diagnostics,
+    effective_number_act_loss,
     effective_number_utility_factor_loss,
     support_normalized_utility_router_loss,
     utility_factor_loss, utility_router_loss, utility_teacher,
@@ -175,6 +177,27 @@ def p1_v83_structure_diagnostics(h6_batch):
         logit_rows[:, None, :] - logit_rows[None, :, :]
     ).abs().amax(dim=-1)[pair_mask]
 
+    def functional_metrics(functions):
+        rows = functions.movedim(-1, 0).reshape(factor_count, -1)
+        centered = rows - rows.mean(dim=-1, keepdim=True)
+        correlations = (
+            F.normalize(centered, dim=-1) @ F.normalize(centered, dim=-1).transpose(0, 1)
+        )[pair_mask]
+        singular_values = torch.linalg.svdvals(rows)
+        energy = singular_values.square()
+        probabilities = energy / energy.sum().clamp_min(1e-12)
+        effective_rank = torch.exp(
+            -(probabilities * probabilities.clamp_min(1e-12).log()).sum()
+        )
+        return correlations, effective_rank
+
+    residual_logits = h6_batch.get("factor_residual_logits")
+    if residual_logits is None:
+        residual_logits = logits
+    residual_logits = residual_logits.detach().float()
+    residual_correlation, residual_effective_rank = functional_metrics(residual_logits)
+    absolute_correlation, absolute_effective_rank = functional_metrics(logits)
+
     return {
         "factor_embedding_pairwise_cosine_mean": embedding_pair_cosine.mean(),
         "factor_embedding_pairwise_cosine_max": embedding_pair_cosine.max(),
@@ -194,6 +217,17 @@ def p1_v83_structure_diagnostics(h6_batch):
         "factor_patch_outputs_exactly_collapsed": (
             logit_pair_max_difference.max() == 0
         ).float(),
+        "absolute_factor_correlation_mean": absolute_correlation.mean(),
+        "absolute_factor_effective_rank": absolute_effective_rank,
+        "residual_factor_correlation_mean": residual_correlation.mean(),
+        "residual_factor_correlation_min": residual_correlation.min(),
+        "residual_factor_correlation_max": residual_correlation.max(),
+        "residual_factor_effective_rank": residual_effective_rank,
+        "absolute_vs_residual_variance_ratio": (
+            residual_logits.var(unbiased=False) / logits.var(unbiased=False).clamp_min(1e-12)
+        ),
+        "residual_positive_fraction": (residual_logits > 0).float().mean(),
+        "residual_negative_fraction": (residual_logits < 0).float().mean(),
     }
 
 
@@ -267,6 +301,7 @@ def h6_drift_gradient_attribution(losses, parameter_groups):
             "center_to_task_shared_grad_ratio": _ratio("center"),
             "utility_factor_to_task_shared_grad_ratio": _ratio("utility_factor"),
             "utility_router_to_task_shared_grad_ratio": _ratio("utility_router"),
+            "utility_act_to_task_shared_grad_ratio": _ratio("utility_act"),
             "total_aux_to_task_shared_grad_ratio": None if denominator is None else sum(
                 entry.get(key, {}).get("shared_semantic", 0.0)
                 for component, entry in result.items()
@@ -313,6 +348,7 @@ def h6_drift_parameter_groups(model):
         "expert_state_projection": [] if paired is None else list(paired.state_projection.parameters()),
         "router_query_key": list(model.h6.router.parameters()),
         "router": list(model.h6.router.parameters()),
+        "act_head": [] if model.h6.act_head is None else list(model.h6.act_head.parameters()),
     }
 
 
@@ -638,6 +674,7 @@ def p1_v83_model_gradient_diagnostics(model, h6_batch, device):
         torch.stack(prototype_norms).norm() if prototype_norms else None
     )
     result["router_grad_norm"] = module_grad_norm(model.h6.router)
+    result["act_head_grad_norm"] = module_grad_norm(getattr(model.h6, "act_head", None))
     result["rho_gate_grad_norm"] = module_grad_norm(getattr(model.h6, "rho", None))
     result["phase2b_image_adapter_grad_norm"] = module_grad_norm(model.image_adapter)
     result["phase2b_text_adapter_grad_norm"] = module_grad_norm(model.text_adapter)
@@ -1478,6 +1515,8 @@ def _phase2b_config_from_args(args) -> dict:
         "h6_local_factor_spread": args.h6_local_factor_spread,
         "lambda_h6_factor": args.lambda_h6_factor,
         "lambda_h6_router": args.lambda_h6_router,
+        "lambda_h6_act": args.lambda_h6_act,
+        "h6_act_effective_beta": args.h6_act_effective_beta,
         "h6_utility_factor_effective_beta": args.h6_utility_factor_effective_beta,
         "h6_router_support_normalized": bool(args.h6_router_support_normalized),
         "h6_pcgrad_main_factor": bool(args.h6_pcgrad_main_factor),
@@ -1568,6 +1607,10 @@ def train_h6_progress1(
         "cluster_responsibility": args.h6_cluster_responsibility,
         "cluster_temperature": args.h6_cluster_temperature,
         "cluster_loss_weight": args.h6_lambda_cluster_resp,
+        "utility_factor": args.lambda_h6_factor,
+        "utility_router": args.lambda_h6_router,
+        "utility_act": args.lambda_h6_act,
+        "act_effective_beta": args.h6_act_effective_beta,
     }
     structural_gate_config = StructuralGateConfig.from_args(args)
     structural_gate = H6StructuralGateState(structural_gate_config)
@@ -1905,8 +1948,10 @@ def train_h6_progress1(
 
                 h6_utility_factor = h6_orth * 0.0
                 h6_utility_router = h6_orth * 0.0
+                h6_utility_act = h6_orth * 0.0
                 utility_payload = None
-                if model.h6.progress_version == "P1-v8.3":
+                act_payload = None
+                if model.h6.progress_version in {"P1-v8.3", "P1-v8.4-A"}:
                     patch_count = h6_batch["factor_patch_logits"].shape[2]
                     y_patch, utility_valid = build_patch_targets(mask, patch_count, local_mask_valid)
                     epsilon_total_epochs = (
@@ -1919,7 +1964,12 @@ def train_h6_progress1(
                         args.h6_exploration_start, args.h6_exploration_end,
                     )
                     utility_payload = utility_teacher(
-                        base_abnormal_minus_normal, h6_batch["factor_patch_logits"],
+                        base_abnormal_minus_normal,
+                        (
+                            h6_batch["factor_residual_logits"]
+                            if model.h6.progress_version == "P1-v8.4-A"
+                            else h6_batch["factor_patch_logits"]
+                        ),
                         y_patch, utility_valid, rho=0.05,
                         denominator_floor=args.h6_utility_denominator_floor,
                         tau_utility=args.h6_tau_utility, epsilon=epsilon,
@@ -1944,6 +1994,25 @@ def train_h6_progress1(
                             h6_batch["dense_probabilities"], utility_payload
                         )
                     )
+                    if model.h6.progress_version == "P1-v8.4-A":
+                        act_payload = act_teacher(
+                            utility_payload,
+                            gain_threshold=args.h6_utility_gain_threshold,
+                        )
+                        h6_utility_act = effective_number_act_loss(
+                            h6_batch["act_logits"],
+                            act_payload,
+                            y_patch,
+                            beta=args.h6_act_effective_beta,
+                        )
+                        for diag_name, diag_value in act_diagnostics(
+                            h6_batch["act_probability"], act_payload, y_patch
+                        ).items():
+                            value = diag_value.detach().float()
+                            epoch_diag_sum[diag_name] = epoch_diag_sum.get(
+                                diag_name, torch.zeros_like(value)
+                            ) + value
+                            epoch_diag_count[diag_name] = epoch_diag_count.get(diag_name, 0) + 1
                     if gradient_surgery_enabled:
                         physical_valid = utility_valid
                         physical_anomaly = physical_valid & (y_patch >= 0.5)
@@ -1981,6 +2050,9 @@ def train_h6_progress1(
                         trajectory_records.append(capture_utility_record(
                             utility_payload, h6_batch["dense_probabilities"], y_patch,
                             h6_utility_router,
+                            act_probability=h6_batch.get("act_probability"),
+                            act_payload=act_payload,
+                            utility_act_loss=h6_utility_act,
                         ))
                     if not trajectory_enabled or batch_idx in trajectory_milestones:
                         structure_diag = p1_v83_structure_diagnostics(h6_batch)
@@ -2042,6 +2114,7 @@ def train_h6_progress1(
                     "actual_local": getattr(args, "lambda_h6_actual_local", 0.0) * h6_actual_local,
                     "utility_factor": args.lambda_h6_factor * h6_utility_factor,
                     "utility_router": args.lambda_h6_router * h6_utility_router,
+                    "utility_act": args.lambda_h6_act * h6_utility_act,
                     "balance": balance_weight * h6_balance,
                     "raw_key_diversity": concept_key_diversity_weight * h6_concept_key_diversity,
                     "dynamic_mean_anchor": dynamic_mean_anchor_weight * h6_batch["dynamic_mean_anchor_loss_raw"],
@@ -2107,6 +2180,7 @@ def train_h6_progress1(
                             "dynamic_mean_anchor": (h6_batch["dynamic_mean_anchor_loss_raw"], dynamic_mean_anchor_weight),
                             "utility_factor": (h6_utility_factor, args.lambda_h6_factor),
                             "utility_router": (h6_utility_router, args.lambda_h6_router),
+                            "utility_act": (h6_utility_act, args.lambda_h6_act),
                         },
                         h6_drift_parameter_groups(model),
                     )
@@ -2134,6 +2208,13 @@ def train_h6_progress1(
                     "dynamic_text": h6_batch["dynamic_text"],
                     "total_loss": total_loss,
                 }
+                if model.h6.residual_act_enabled:
+                    tensors.update({
+                        "noop_reference_logit": h6_batch["noop_reference_logit"],
+                        "factor_residual_logits": h6_batch["factor_residual_logits"],
+                        "act_logits": h6_batch["act_logits"],
+                        "act_probability": h6_batch["act_probability"],
+                    })
                 finite = {
                     name: bool(torch.isfinite(value.detach().float()).all().item())
                     for name, value in tensors.items()
@@ -2302,6 +2383,9 @@ def train_h6_progress1(
                 if prototype_norms:
                     factor_grad_diag["prototype_modules_grad_norm"] = torch.stack(prototype_norms).norm()
                 factor_grad_diag["router_grad_norm"] = module_grad_norm(model.h6.router)
+                factor_grad_diag["act_head_grad_norm"] = module_grad_norm(
+                    getattr(model.h6, "act_head", None)
+                )
                 rho_modules = [getattr(model.h6, "rho", None)]
                 rho_norms = [module_grad_norm(module) for module in rho_modules]
                 rho_norms = [value for value in rho_norms if value is not None]
@@ -2359,6 +2443,10 @@ def train_h6_progress1(
                     ),
                     "dfg_gradient": _positive_gradient(factor_grad_diag.get("dfg_grad_norm")),
                     "router_gradient_when_applicable": (not informative) or router_gradient_alive,
+                    "act_gradient_when_enabled": (
+                        not model.h6.residual_act_enabled
+                        or _positive_gradient(factor_grad_diag.get("act_head_grad_norm"))
+                    ),
                     "rho_gradient_none": model.h6.rho.raw.grad is None,
                     "rho_fixed_005": bool(torch.equal(
                         model.h6.rho_values().detach().cpu(),
@@ -2598,6 +2686,8 @@ def train_h6_progress1(
                 "vae_kl_effective": h6_kl_effective,
                 "utility_factor": h6_utility_factor,
                 "utility_router": h6_utility_router,
+                "utility_act": h6_utility_act,
+                "utility_act_weighted": args.lambda_h6_act * h6_utility_act,
                 "kg": h6_batch["kg_loss"], "orth": h6_orth, "balance": h6_balance,
                 "concept_key_diversity_raw": h6_concept_key_diversity,
                 "concept_key_diversity_weighted": concept_key_diversity_weight * h6_concept_key_diversity,
@@ -2879,7 +2969,7 @@ def train_h6_progress1(
                     }),
                 )
 
-        if model.h6.progress_version == "P1-v8.3" and args.h6_smoke_max_batches > 0:
+        if model.h6.progress_version in {"P1-v8.3", "P1-v8.4-A"} and args.h6_smoke_max_batches > 0:
             def _positive_diagnostic(name):
                 value = factor_grad_diag.get(name)
                 return bool(
@@ -2900,7 +2990,7 @@ def train_h6_progress1(
                     np.isfinite(value) for value in epoch_metric_means.values()
                 ),
                 "utility_losses_finite": all(np.isfinite(epoch_metric_means[key]) for key in (
-                    "utility_factor", "utility_router",
+                    "utility_factor", "utility_router", "utility_act",
                 )),
                 "optimizer_step_executed": optimizer_step_count >= 1,
                 "rho_fixed_005": bool(torch.equal(
@@ -2931,6 +3021,19 @@ def train_h6_progress1(
                 )),
                 "experts_off": not model.h6.expert_enabled,
             }
+            if model.h6.progress_version == "P1-v8.4-A":
+                expected_steps = (
+                    epoch_batch_limit // args.grad_accum_steps
+                    + int(epoch_batch_limit % args.grad_accum_steps != 0)
+                )
+                checks.update({
+                    "residual_semantics_enabled": model.h6.residual_act_enabled,
+                    "act_head_present": model.h6.act_head is not None,
+                    "act_forward_finite": bool(torch.isfinite(h6_batch["act_probability"]).all().item()),
+                    "act_loss_finite": np.isfinite(epoch_metric_means["utility_act"]),
+                    "act_gradient_alive": _positive_diagnostic("act_head_grad_norm"),
+                    "optimizer_window_count_exact": optimizer_step_count == expected_steps,
+                })
             smoke_payload = diagnostics_to_python({
                 "status": "PASS" if all(checks.values()) else "FAIL",
                 "epoch": epoch,
@@ -2942,7 +3045,7 @@ def train_h6_progress1(
                 "rho": rho_values,
                 "losses": {
                     key: epoch_metric_means[key] for key in (
-                        "task", "utility_factor", "utility_router", "total"
+                        "task", "utility_factor", "utility_router", "utility_act", "total"
                     )
                 },
                 "utility": utility_epoch,
@@ -3017,7 +3120,7 @@ def train_h6_progress1(
                 write_trajectory_artifacts(args.save_path, trajectory_outputs, final_summary)
             if smoke_payload["failed"]:
                 raise RuntimeError(
-                    f"P1-v8.3 bounded smoke failed: {smoke_payload['failed']}"
+                    f"{model.h6.progress_version} bounded smoke failed: {smoke_payload['failed']}"
                 )
 
         (logger.info if not is_v7 else (lambda *args, **kwargs: None))(
@@ -3496,7 +3599,11 @@ def main():
     parser.add_argument("--h6_dynamic_mean_anchor_start_epoch", type=int, default=4)
     parser.add_argument("--h6_dynamic_mean_anchor_warmup_epochs", type=int, default=3)
     parser.add_argument("--h6_expert_bottleneck", type=int, default=64)
-    parser.add_argument("--h6_progress_version", choices=["P1-v6", "P1-v7-full", "P1-v8-minimal", "P1-v8.3"], default="P1-v8.3")
+    parser.add_argument(
+        "--h6_progress_version",
+        choices=["P1-v6", "P1-v7-full", "P1-v8-minimal", "P1-v8.3", "P1-v8.4-A"],
+        default="P1-v8.3",
+    )
     parser.add_argument("--h6_local_factor_mode", type=str, choices=["legacy_mix", "center_spread"], default="center_spread")
     parser.add_argument("--h6_local_center_mix", type=float, default=0.05)
     parser.add_argument("--h6_local_factor_spread", type=float, default=0.10)
@@ -3539,6 +3646,14 @@ def main():
     parser.add_argument("--lambda_h6_actual_local", type=float, default=0.0)
     parser.add_argument("--lambda_h6_factor", type=float, default=0.10)
     parser.add_argument("--lambda_h6_router", type=float, default=0.10)
+    parser.add_argument(
+        "--lambda_h6_act", type=float, default=0.0,
+        help="P1-v8.4-A ACT utility weight; choose by no-step gradient calibration.",
+    )
+    parser.add_argument(
+        "--h6_act_effective_beta", type=float, default=0.999,
+        help="Inverse effective-number normal/anomaly weighting for ACT support.",
+    )
     parser.add_argument(
         "--h6_utility_factor_effective_beta", type=float, default=None,
         help="Use inverse-effective-number patch weighting for P1-v8.3 factor utility.",
@@ -3650,8 +3765,8 @@ def main():
             raise ValueError("trajectory milestones require --h6_smoke_max_batches")
         if args.h6_trajectory_milestones[-1] != args.h6_smoke_max_batches:
             raise ValueError("final trajectory milestone must equal --h6_smoke_max_batches")
-        if args.epoch != 1 or args.h6_progress_version != "P1-v8.3":
-            raise ValueError("trajectory diagnostics are restricted to one-epoch P1-v8.3 probes")
+        if args.epoch != 1 or args.h6_progress_version not in {"P1-v8.3", "P1-v8.4-A"}:
+            raise ValueError("trajectory diagnostics are restricted to one-epoch P1-v8.3/v8.4-A probes")
         if args.h6_smoke_forward_only or args.h6_smoke_backward_only:
             raise ValueError("trajectory diagnostics require normal optimizer execution")
     if args.h6_dense_routing_epochs is not None:
@@ -3748,15 +3863,16 @@ def main():
             raise ValueError("P1-v7-full requires --h6_expert_enabled")
         if args.h6_progress_version != "P1-v7-full" and args.h6_expert_enabled:
             raise ValueError("paired experts are explicit P1-v7-full only")
-        if args.h6_progress_version == "P1-v8.3":
+        if args.h6_progress_version in {"P1-v8.3", "P1-v8.4-A"}:
+            contract_version = args.h6_progress_version
             if args.precision != "fp32" or args.amp:
-                raise ValueError("P1-v8.3 requires --precision fp32 with AMP disabled")
+                raise ValueError(f"{contract_version} requires --precision fp32 with AMP disabled")
             if args.h6_local_factor_mode != "center_spread":
-                raise ValueError("P1-v8.3 requires --h6_local_factor_mode center_spread")
+                raise ValueError(f"{contract_version} requires --h6_local_factor_mode center_spread")
             if abs(args.h6_local_center_mix - 0.05) > 1e-12 or abs(args.h6_local_factor_spread - 0.10) > 1e-12:
-                raise ValueError("P1-v8.3 requires center/spread geometry 0.05/0.10")
+                raise ValueError(f"{contract_version} requires center/spread geometry 0.05/0.10")
             if args.img_size != 518 or not args.grad_checkpointing:
-                raise ValueError("P1-v8.3 requires --img_size 518 --grad_checkpointing")
+                raise ValueError(f"{contract_version} requires --img_size 518 --grad_checkpointing")
             if args.h6_smoke_forward_only and args.h6_smoke_max_batches != 1:
                 raise ValueError("--h6_smoke_forward_only requires --h6_smoke_max_batches 1")
             if args.h6_smoke_backward_only and args.h6_smoke_max_batches != 1:
@@ -3764,7 +3880,7 @@ def main():
             if args.h6_smoke_forward_only and args.h6_smoke_backward_only:
                 raise ValueError("forward-only and backward-only probes are mutually exclusive")
             if args.h6_global_text_mode != "phase2b_hybrid":
-                raise ValueError("P1-v8.3 requires --h6_global_text_mode phase2b_hybrid")
+                raise ValueError(f"{contract_version} requires --h6_global_text_mode phase2b_hybrid")
             if not (
                 args.dfg_mode == "attn"
                 and args.dfg_attn_dim == 256
@@ -3775,15 +3891,15 @@ def main():
                 and args.dfg_beta_schedule == "warmup010"
                 and abs(args.dfg_beta_target - 0.10) <= 1e-12
             ):
-                raise ValueError("P1-v8.3 requires the canonical Phase2B-style DFG+SS2D base path")
+                raise ValueError(f"{contract_version} requires the canonical Phase2B-style DFG+SS2D base path")
             if torch.backends.cuda.matmul.allow_tf32 or torch.backends.cudnn.allow_tf32:
-                raise ValueError("P1-v8.3 requires TF32 disabled")
+                raise ValueError(f"{contract_version} requires TF32 disabled")
             if args.batch_size != 1 or args.grad_accum_steps != 6:
-                raise ValueError("P1-v8.3 requires --batch_size 1 --grad_accum_steps 6")
+                raise ValueError(f"{contract_version} requires --batch_size 1 --grad_accum_steps 6")
             if args.h6_prediction_routing != "dense" or args.h6_load_bias_enabled:
-                raise ValueError("P1-v8.3 requires dense routing with load bias disabled")
+                raise ValueError(f"{contract_version} requires dense routing with load bias disabled")
             if args.h6_cluster_responsibility or args.h6_expert_enabled:
-                raise ValueError("P1-v8.3 disables cluster responsibility and paired experts")
+                raise ValueError(f"{contract_version} disables cluster responsibility and paired experts")
             legacy_weights = {
                 "balance": args.lambda_h6_balance, "center": args.lambda_h6_center,
                 "orth": args.lambda_h6_orth, "route": args.lambda_h6_route,
@@ -3793,9 +3909,17 @@ def main():
             }
             enabled_legacy = {name: value for name, value in legacy_weights.items() if float(value) != 0.0}
             if enabled_legacy:
-                raise ValueError(f"P1-v8.3 legacy auxiliary losses must be OFF: {enabled_legacy}")
+                raise ValueError(f"{contract_version} legacy auxiliary losses must be OFF: {enabled_legacy}")
             if args.h6_tau_utility <= 0 or args.h6_utility_denominator_floor <= 0:
-                raise ValueError("P1-v8.3 utility temperature and floor must be positive")
+                raise ValueError(f"{contract_version} utility temperature and floor must be positive")
+            if not 0.0 < args.h6_act_effective_beta < 1.0:
+                raise ValueError("--h6_act_effective_beta must be in (0, 1)")
+            if args.lambda_h6_act < 0.0:
+                raise ValueError("--lambda_h6_act must be non-negative")
+            if contract_version == "P1-v8.3" and args.lambda_h6_act != 0.0:
+                raise ValueError("P1-v8.3 path requires --lambda_h6_act 0")
+            if contract_version == "P1-v8.4-A" and args.lambda_h6_act <= 0.0:
+                raise ValueError("P1-v8.4-A requires calibrated --lambda_h6_act > 0")
             if args.h6_utility_factor_effective_beta is not None and not (
                 0.0 < args.h6_utility_factor_effective_beta < 1.0
             ):
@@ -3998,7 +4122,7 @@ def main():
         optimizer = torch.optim.Adam(_h6_optimizer_groups(model, args))
         lr_scheduler = StepLR(optimizer, step_size=1, gamma=args.lr_gamma)
         model.h6_global_text_mode = args.h6_global_text_mode
-        if args.h6_progress_version == "P1-v8.3":
+        if args.h6_progress_version in {"P1-v8.3", "P1-v8.4-A"}:
             optimizer_parameter_ids = {
                 id(parameter)
                 for group in optimizer.param_groups
@@ -4047,7 +4171,15 @@ def main():
                 "topk_prediction_off": model.h6.router.prediction_routing == "dense",
                 "cluster_responsibility_off": not model.h6.cluster_responsibility_enabled,
                 "functional_diversity_off": args.lambda_h6_func_div == 0.0,
-                "selective_use_gate_off": not hasattr(model.h6, "selective_use_gate"),
+                "act_contract": (
+                    model.h6.act_head is not None
+                    and h6_config["act_enabled"] is True
+                    and h6_config["local_correction_semantics"] == "act_times_routed_true_residual"
+                    and abs(args.h6_act_effective_beta - 0.999) <= 1e-12
+                    and args.lambda_h6_act > 0.0
+                    if args.h6_progress_version == "P1-v8.4-A"
+                    else model.h6.act_head is None and h6_config["act_enabled"] is False
+                ),
                 "text_lora_trainable": any(p.requires_grad for p in model.text_adapter.parameters()),
                 "effective_number_factor_beta_0999": (
                     args.h6_utility_factor_effective_beta is not None
@@ -4077,7 +4209,7 @@ def main():
             }
             write_json_atomic(Path(args.save_path) / "model_preflight.json", model_preflight)
             if failed_contracts:
-                raise RuntimeError(f"P1-v8.3 model preflight failed: {failed_contracts}")
+                raise RuntimeError(f"{args.h6_progress_version} model preflight failed: {failed_contracts}")
         dataset = get_text_and_image_dataset(args.dataset, args.img_size, "train")
         dataloader = torch.utils.data.DataLoader(
             dataset,

@@ -228,6 +228,15 @@ class H6Progress1(nn.Module):
             router_key_adaptation_initial_ratio=router_key_adaptation_initial_ratio,
             router_key_adaptation_max_ratio=router_key_adaptation_max_ratio,
         )
+        self.residual_act_enabled = self.progress_version == "P1-v8.4-A"
+        self.act_head = None
+        if self.residual_act_enabled:
+            # Minimum-capacity ACT gate over the exact already-computed router
+            # patch features. Zero initialization starts from continuous a=.5
+            # without adding another encoder or a deep gating network.
+            self.act_head = nn.Sequential(nn.LayerNorm(text_dim), nn.Linear(text_dim, 1))
+            nn.init.zeros_(self.act_head[-1].weight)
+            nn.init.zeros_(self.act_head[-1].bias)
         self.paired_experts = FOFSPairedSemanticExperts(
             num_factors=num_factors, text_dim=text_dim, bank_dim=bank_dim,
             bottleneck=expert_bottleneck, seed_offset=expert_fofs_seed_offset,
@@ -253,8 +262,12 @@ class H6Progress1(nn.Module):
 
     def config_dict(self) -> Dict[str, int | float | str]:
         is_v83 = self.progress_version == "P1-v8.3"
+        is_v84a = self.progress_version == "P1-v8.4-A"
+        is_structured_utility = is_v83 or is_v84a
         return {
             "variant": (
+                "p1_v8_4_a_true_residual_act" if is_v84a
+                else
                 "p1_v8_3_structured_utility_routing" if is_v83
                 else "p1_v7_full_fofs_paired_semantic_moe" if self.expert_enabled
                 else "p1_v6_structural_specialization"
@@ -272,10 +285,10 @@ class H6Progress1(nn.Module):
             "sparse_start_epoch": self.router_soft_epochs + 1,
             "sparse_transition_epochs": self.sparse_transition_epochs,
             "sparse_full_epoch": self.router_soft_epochs + self.sparse_transition_epochs,
-            "sparse_mode": "diagnostic_only" if is_v83 else "straight_through_topk",
-            "prediction_interpolation_enabled": not is_v83,
+            "sparse_mode": "diagnostic_only" if is_structured_utility else "straight_through_topk",
+            "prediction_interpolation_enabled": not is_structured_utility,
             "prediction_routing": self.router.prediction_routing,
-            "routing": "dense" if is_v83 else self.router.prediction_routing,
+            "routing": "dense" if is_structured_utility else self.router.prediction_routing,
             "router_mode": "concept_key_dot",
             "router_scoring": "concept_key_dot",
             "load_bias_enabled": self.load_bias_enabled,
@@ -311,8 +324,8 @@ class H6Progress1(nn.Module):
             "vae_class_skip_enabled": True,
             "vae_prompt_path": "decoder_mu",
             "structured_text_layout": "[C1][C2][C3][C4][STATE_m][CLASS][literal_state][REAL_NAME]",
-            "structured_text_enabled": self.progress_version == "P1-v8.3",
-            "dynamic_text_adapt_text": self.progress_version == "P1-v8.3",
+            "structured_text_enabled": is_structured_utility,
+            "dynamic_text_adapt_text": is_structured_utility,
             "state_token_factor_specific": True,
             "utility_denominator_floor": 0.10,
             "tau_utility": 0.05,
@@ -320,7 +333,21 @@ class H6Progress1(nn.Module):
             "utility_entropy_threshold": 0.98,
             "exploration_schedule": [0.15, 0.05],
             "utility_teacher_detached": True,
-            "dense_router_only": is_v83,
+            "dense_router_only": is_structured_utility,
+            "local_correction_semantics": (
+                "act_times_routed_true_residual" if is_v84a else "routed_absolute_factor_margin"
+            ),
+            "noop_reference": (
+                "expected_noop_pre_expert_bank" if is_v84a else None
+            ),
+            "act_enabled": is_v84a,
+            "act_model": "layernorm_linear" if is_v84a else None,
+            "act_probability_mode": "continuous_sigmoid" if is_v84a else None,
+            "act_initial_probability": 0.5 if is_v84a else None,
+            "act_parameter_count": (
+                sum(parameter.numel() for parameter in self.act_head.parameters())
+                if self.act_head is not None else 0
+            ),
             "class_token_deterministic_decoder_mu": True,
             "slot_init_enabled": self.slot_init_enabled,
             "slot_init_scale": self.slot_init_scale,
@@ -603,7 +630,7 @@ class H6Progress1(nn.Module):
             base_model.soft_prompt.ctx_abnormal,
             debug=debug,
         )
-        structured_text = self.progress_version == "P1-v8.3"
+        structured_text = self.progress_version in {"P1-v8.3", "P1-v8.4-A"}
         prompt_contexts = core["structured_contexts"] if structured_text else core["dynamic_contexts"]
         dynamic, dynamic_raw = self._encode_dynamic_bank(
             base_model, dataset_name, class_names, prompt_contexts,
@@ -655,11 +682,29 @@ class H6Progress1(nn.Module):
         local_text = self.router.local_text(prediction_probabilities, active_factor_bank)
         patches = torch.stack(visual_output["seg_tokens"], dim=0).float()
         patches = F.normalize(patches, dim=-1)
-        h6_logits = self.h6_logit(patches, local_text)
+        absolute_h6_logits = self.h6_logit(patches, local_text)
         
         factor_patch_logits = self.h6_logit(
             patches.unsqueeze(3), active_factor_bank.unsqueeze(2)
         )
+        noop_reference_patch_logit = self.h6_logit(
+            patches, expected_noop_pre_expert_bank[:, :, 0].unsqueeze(2)
+        )
+        factor_residual_logits = (
+            factor_patch_logits - noop_reference_patch_logit.unsqueeze(-1)
+        )
+        if self.residual_act_enabled:
+            from .utility_routing import routed_residual_correction
+
+            act_logits = self.act_head(routing["router_input_features"]).squeeze(-1)
+            act_probability = torch.sigmoid(act_logits)
+            h6_logits = routed_residual_correction(
+                act_probability, prediction_probabilities, factor_residual_logits
+            )
+        else:
+            act_logits = None
+            act_probability = None
+            h6_logits = absolute_h6_logits
         expert_patch_logits = factor_patch_logits if self.paired_experts is not None else None
         expert_diagnostics = {}
         if self.paired_experts is not None:
@@ -741,7 +786,10 @@ class H6Progress1(nn.Module):
             }
         rho = self.rho_values()
         G, B, P, M = factor_patch_logits.shape
-        rho_scaled_factor_correction = factor_patch_logits * rho.view(G, 1, 1, 1).to(factor_patch_logits.dtype)
+        active_factor_evidence = (
+            factor_residual_logits if self.residual_act_enabled else factor_patch_logits
+        )
+        rho_scaled_factor_correction = active_factor_evidence * rho.view(G, 1, 1, 1).to(factor_patch_logits.dtype)
         rho_scaled_actual_correction = h6_logits * rho.view(G, 1, 1).to(h6_logits.dtype)
         
         return {
@@ -770,6 +818,12 @@ class H6Progress1(nn.Module):
             "rho": self.rho_values(),
             "expert_scale": torch.tensor(self.expert_scale(), device=patches.device),
             "factor_patch_logits": factor_patch_logits,
+            "factor_absolute_logits": factor_patch_logits,
+            "noop_reference_logit": noop_reference_patch_logit,
+            "factor_residual_logits": factor_residual_logits,
+            "act_logits": act_logits,
+            "act_probability": act_probability,
+            "residual_act_enabled": torch.tensor(self.residual_act_enabled, device=patches.device),
             "expert_patch_logits": expert_patch_logits,
             "local_text": local_text,
             **expert_payload,
@@ -914,6 +968,8 @@ class H6Progress1(nn.Module):
                 else []
             ),
         }
+        if self.act_head is not None:
+            partitions["h6_act"] = self.act_head.parameters()
         if self.paired_experts is not None:
             partitions["h6_paired_experts"] = self.paired_experts.parameters()
         return partitions

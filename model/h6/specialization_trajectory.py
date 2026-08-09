@@ -22,6 +22,10 @@ def capture_utility_record(
     dense_probabilities: torch.Tensor,
     y_patch: torch.Tensor,
     utility_router_loss: torch.Tensor,
+    *,
+    act_probability: torch.Tensor | None = None,
+    act_payload: dict[str, torch.Tensor] | None = None,
+    utility_act_loss: torch.Tensor | None = None,
 ) -> dict[str, torch.Tensor]:
     """Detach the sufficient utility evidence for exact later aggregation."""
     keys = (
@@ -33,6 +37,15 @@ def capture_utility_record(
     record["dense_probabilities"] = dense_probabilities.detach().cpu()
     record["y_patch"] = y_patch.detach().cpu()
     record["utility_router_loss"] = _cpu(utility_router_loss)
+    if act_probability is not None or act_payload is not None:
+        if act_probability is None or act_payload is None:
+            raise ValueError("ACT probability and payload must be supplied together")
+        record["act_probability"] = _cpu(act_probability)
+        for key in ("target", "positive", "negative", "ambiguous", "support"):
+            record[f"act_{key}"] = act_payload[key].detach().cpu()
+        record["utility_act_loss"] = _cpu(
+            utility_act_loss if utility_act_loss is not None else utility_router_loss * 0.0
+        )
     return record
 
 
@@ -140,6 +153,65 @@ def aggregate_utility_records(
             "active" if supervised_count else "inactive_due_to_teacher_gate"
         ),
     })
+    if all("act_probability" in record for record in records):
+        act_probability = _cat(records, "act_probability").float()
+        act_positive = _cat(records, "act_positive").bool()
+        act_negative = _cat(records, "act_negative").bool()
+        act_ambiguous = _cat(records, "act_ambiguous").bool()
+        act_support = _cat(records, "act_support").bool()
+        region_targets = y_patch.unsqueeze(0).expand_as(act_probability)
+
+        def safe_mean(values: torch.Tensor, mask: torch.Tensor) -> float:
+            return float(values[mask].mean().item()) if mask.any() else 0.0
+
+        def safe_fraction(mask: torch.Tensor, region: torch.Tensor) -> float:
+            return float(mask[region].float().mean().item()) if region.any() else 0.0
+
+        def binary_auroc(scores: torch.Tensor, labels: torch.Tensor) -> float | None:
+            scores = scores.flatten().float()
+            labels = labels.flatten().bool()
+            positive_count = int(labels.sum().item())
+            negative_count = int((~labels).sum().item())
+            if not positive_count or not negative_count:
+                return None
+            order = scores.argsort()
+            ranks = torch.empty_like(order, dtype=torch.float32)
+            ranks[order] = torch.arange(1, scores.numel() + 1, dtype=torch.float32)
+            # Average tied ranks so a constant predictor has AUROC=.5.
+            unique, inverse, counts = torch.unique(scores, return_inverse=True, return_counts=True)
+            if (counts > 1).any():
+                for index in range(unique.numel()):
+                    tie = inverse == index
+                    if int(tie.sum().item()) > 1:
+                        ranks[tie] = ranks[tie].mean()
+            rank_sum = ranks[labels].sum()
+            value = (
+                rank_sum - positive_count * (positive_count + 1) / 2.0
+            ) / float(positive_count * negative_count)
+            return float(value.item())
+
+        normal = valid & (region_targets < 0.5)
+        anomaly = valid & (region_targets >= 0.5)
+        supported_scores = act_probability[act_support]
+        supported_labels = act_positive[act_support]
+        result["act"] = {
+            "probability_mean": safe_mean(act_probability, valid),
+            "probability_normal_mean": safe_mean(act_probability, normal),
+            "probability_anomaly_mean": safe_mean(act_probability, anomaly),
+            "target_positive_fraction": safe_fraction(act_positive, valid),
+            "target_negative_fraction": safe_fraction(act_negative, valid),
+            "target_ambiguous_fraction": safe_fraction(act_ambiguous, valid),
+            "target_positive_normal_fraction": safe_fraction(act_positive, normal),
+            "target_negative_normal_fraction": safe_fraction(act_negative, normal),
+            "target_ambiguous_normal_fraction": safe_fraction(act_ambiguous, normal),
+            "target_positive_anomaly_fraction": safe_fraction(act_positive, anomaly),
+            "target_negative_anomaly_fraction": safe_fraction(act_negative, anomaly),
+            "target_ambiguous_anomaly_fraction": safe_fraction(act_ambiguous, anomaly),
+            "teacher_auroc": binary_auroc(supported_scores, supported_labels),
+            "utility_act_loss": float(torch.stack([
+                record["utility_act_loss"] for record in records
+            ]).mean().item()),
+        }
     return result
 
 

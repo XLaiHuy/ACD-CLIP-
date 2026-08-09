@@ -478,7 +478,11 @@ def main():
     parser.add_argument("--h6_dynamic_mean_anchor_min_cosine", type=float, default=0.70)
     parser.add_argument("--h6_dynamic_mean_anchor_start_epoch", type=int, default=4)
     parser.add_argument("--h6_dynamic_mean_anchor_warmup_epochs", type=int, default=3)
-    parser.add_argument("--h6_progress_version", choices=["P1-v6", "P1-v7-full", "P1-v8-minimal", "P1-v8.3"], default="P1-v8.3")
+    parser.add_argument(
+        "--h6_progress_version",
+        choices=["P1-v6", "P1-v7-full", "P1-v8-minimal", "P1-v8.3", "P1-v8.4-A"],
+        default="P1-v8.3",
+    )
     parser.add_argument("--h6_local_factor_mode", type=str, choices=["legacy_mix", "center_spread"], default="center_spread")
     parser.add_argument("--h6_local_center_mix", type=float, default=0.05)
     parser.add_argument("--h6_local_factor_spread", type=float, default=0.10)
@@ -667,7 +671,7 @@ def main():
         args.h6_dynamic_mean_anchor_warmup_epochs = int(preflight_h6.get("dynamic_mean_anchor_warmup_epochs", 3))
         args.h6_router_teacher_mode = str(preflight_h6.get("router_teacher_mode", "raw_cosine"))
         args.h6_progress_version = str(preflight_h6.get("progress_version", "P1-v6"))
-        if args.h6_progress_version == "P1-v8.3":
+        if args.h6_progress_version in {"P1-v8.3", "P1-v8.4-A"}:
             args.h6_global_text_mode = str(preflight_checkpoint["global_text_mode"])
             args.h6_prediction_routing = str(preflight_h6["prediction_routing"])
         args.h6_local_factor_mode = str(preflight_h6.get("local_factor_mode", "legacy_mix"))

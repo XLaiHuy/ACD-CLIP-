@@ -1,0 +1,173 @@
+{
+  "gate": {
+    "abort_reason": null,
+    "hard_failure": false,
+    "sample_count": 300,
+    "soft_warnings": []
+  },
+  "gradients": {
+    "class_to_context_grad_norm": null,
+    "dfg_grad_norm": 8.827871170069557e-06,
+    "dynamic_prompt_shared_trunk_grad_norm": 0.001288394327275455,
+    "dynamic_residual_grad_norms": [
+      0.022293884307146072,
+      0.02812989056110382,
+      0.03656637668609619,
+      0.021764107048511505
+    ],
+    "factor_generator_context_grad_norm": null,
+    "factor_generator_head_grad_norms": null,
+    "factor_generator_identity_grad_norm": null,
+    "factor_grad_cos_max": 0.7459843754768372,
+    "factor_grad_cos_mean": -0.3159869909286499,
+    "factor_grad_cos_min": -0.7459843754768372,
+    "factor_grad_l2_min": 0.00039461275446228683,
+    "factor_grad_norms": [
+      0.0003847215266432613,
+      0.0003137009043712169,
+      0.0004257065011188388,
+      0.0002963174774777144
+    ],
+    "factor_id_projection_grad_norm": null,
+    "phase2b_image_adapter_grad_norm": 0.2450537532567978,
+    "phase2b_text_adapter_grad_norm": 0.14390255510807037,
+    "prototype_modules_grad_norm": 0.0009274074109271169,
+    "rho_gate_grad_norm": null,
+    "router_grad_norm": 6.434938404709101e-05,
+    "vae_decoder_grad_norm": 0.002025956753641367,
+    "vae_logvar_grad_norm": 5.3859708714298904e-05,
+    "vae_mu_grad_norm": 0.00015504132898058742
+  },
+  "loss_components": {
+    "actual_local_raw": 0.0,
+    "actual_local_weight": 0.0,
+    "actual_local_weighted": 0.0,
+    "advantage": 0.0,
+    "advantage_weight": 0.0,
+    "balance": 6.62779742742714e-05,
+    "balance_weight": 0.0,
+    "center": 1.040093347231547,
+    "cls": 0.6924300907055537,
+    "cluster_resp_raw": 0.0,
+    "cluster_resp_weight": 0.0,
+    "cluster_resp_weighted": 0.0,
+    "cluster_router_entropy": 0.0,
+    "cluster_target_entropy": 0.0,
+    "concept_key_diversity_raw": 0.0,
+    "concept_key_diversity_weighted": 0.0,
+    "delta_t_diversity_raw": 0.0,
+    "delta_t_diversity_weight": 0.0,
+    "delta_t_diversity_weighted": 0.0,
+    "dynamic_mean_anchor_raw": 0.04098824847644816,
+    "dynamic_mean_anchor_weight": 0.0,
+    "dynamic_mean_anchor_weighted": 0.0,
+    "etf": 0.0,
+    "etf_weight": 0.0,
+    "expert": 0.0,
+    "expert_advantage_margin_satisfied_fraction": 0.0,
+    "expert_advantage_raw": 0.0,
+    "expert_advantage_weight": 0.0,
+    "expert_advantage_weighted": 0.0,
+    "expert_anchor": 0.0,
+    "expert_anchor_raw": 0.0,
+    "expert_anchor_weight": 0.0,
+    "expert_anchor_weighted": 0.0,
+    "expert_assigned_abnormal": 0.0,
+    "expert_assigned_normal": 0.0,
+    "expert_assigned_raw": 0.0,
+    "expert_assigned_weight": 0.0,
+    "expert_assigned_weighted": 0.0,
+    "expert_balance_dense_raw": 6.62779742742714e-05,
+    "expert_balance_prediction_raw": 0.0,
+    "expert_balance_weight": 0.0,
+    "expert_balance_weighted": 0.0,
+    "expert_delta_norm": 0.0,
+    "expert_etf_raw": 0.0,
+    "expert_etf_weight": 0.0,
+    "expert_etf_weighted": 0.0,
+    "expert_radius": 0.0,
+    "expert_radius_raw": 0.0,
+    "expert_radius_weight": 0.0,
+    "expert_radius_weighted": 0.0,
+    "expert_weight": 0.0,
+    "factor_role_raw": 0.0,
+    "factor_role_weight": 0.0,
+    "factor_role_weighted": 0.0,
+    "functional_factor_diversity_raw": 0.0,
+    "functional_factor_diversity_weight": 0.0,
+    "functional_factor_diversity_weighted": 0.0,
+    "kg": 0.33769026686747866,
+    "legacy_pre_expert_orth_raw": 0.7415668270985285,
+    "legacy_pre_expert_orth_weight": 0.0,
+    "legacy_pre_expert_orth_weighted": 0.0,
+    "loss_component_residual": 0.0,
+    "loss_component_sum": 1.750072097380956,
+    "nonselected_expert_loss": 0.0,
+    "orth": 0.7415668270985285,
+    "route_raw": 0.0,
+    "route_weight": 0.0,
+    "route_weighted": 0.0,
+    "router_teacher": 0.0,
+    "router_teacher_effective_weight": 0.0,
+    "router_teacher_scheduled_weight": 0.0,
+    "router_teacher_weighted": 0.0,
+    "seg": 1.0469929818312327,
+    "selected_expert_loss": 0.0,
+    "task": 1.7394230743249257,
+    "task_rolling_median": 1.7394230743249257,
+    "total": 1.750072097380956,
+    "utility_factor": 0.29155205037212,
+    "utility_router": 0.0,
+    "vae_kl_effective": 0.1360424033800761,
+    "vae_kl_raw": 0.1360424033800761,
+    "vae_rec": 0.03129541723057628
+  },
+  "progress_version": "P1-v8.3",
+  "router": {
+    "dense_usage": [
+      [
+        0.25166234374046326,
+        0.2460736185312271,
+        0.2527318000793457,
+        0.24953214824199677
+      ],
+      [
+        0.2540501654148102,
+        0.24790827929973602,
+        0.25223255157470703,
+        0.24580907821655273
+      ],
+      [
+        0.259242981672287,
+        0.2392336130142212,
+        0.2480572760105133,
+        0.2534661293029785
+      ]
+    ],
+    "sparse_usage": [
+      [
+        0.2724202275276184,
+        0.17802731692790985,
+        0.29299792647361755,
+        0.25655466318130493
+      ],
+      [
+        0.28508561849594116,
+        0.26987144351005554,
+        0.25297489762306213,
+        0.19206814467906952
+      ],
+      [
+        0.3369811177253723,
+        0.06393080204725266,
+        0.30315256118774414,
+        0.2959356904029846
+      ]
+    ],
+    "unique_topk_pairs": [
+      6.0,
+      6.0,
+      5.75
+    ]
+  }
+}

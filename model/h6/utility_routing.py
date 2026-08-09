@@ -116,6 +116,135 @@ def utility_teacher(
     }
 
 
+def routed_residual_correction(
+    act_probability: torch.Tensor,
+    factor_probabilities: torch.Tensor,
+    factor_residual_logits: torch.Tensor,
+) -> torch.Tensor:
+    """Apply continuous ACT to a dense mixture of true residual factors.
+
+    The multiplication is deliberately explicit: supplying an ACT probability
+    of exactly zero yields an exactly-zero correction tensor, so the caller's
+    base logits are preserved bit-for-bit by the local branch.
+    """
+    if factor_probabilities.shape != factor_residual_logits.shape:
+        raise ValueError(
+            "factor probabilities/residual logits must have identical shape; "
+            f"got {tuple(factor_probabilities.shape)} vs {tuple(factor_residual_logits.shape)}"
+        )
+    if act_probability.shape != factor_residual_logits.shape[:-1]:
+        raise ValueError("act_probability must match [G,B,P]")
+    return act_probability * (
+        factor_probabilities.float() * factor_residual_logits.float()
+    ).sum(dim=-1)
+
+
+def act_teacher(
+    utility_payload: Dict[str, torch.Tensor],
+    *,
+    gain_threshold: float = 0.02,
+) -> Dict[str, torch.Tensor]:
+    """Detached three-zone ACT teacher from residual-factor utility.
+
+    Positive support is strictly above ``gain_threshold``; non-positive gain
+    is negative support; the open interval in between is intentionally left
+    ambiguous and receives no ACT loss.
+    """
+    if float(gain_threshold) <= 0.0:
+        raise ValueError("gain_threshold must be positive")
+    best_gain = utility_payload["best_gain_rel"].detach().float()
+    valid = utility_payload["valid"].detach().bool()
+    positive = valid & (best_gain > float(gain_threshold))
+    negative = valid & (best_gain <= 0.0)
+    ambiguous = valid & (best_gain > 0.0) & (best_gain <= float(gain_threshold))
+    support = positive | negative
+    target = positive.to(best_gain.dtype)
+    return {
+        "target": target.detach(),
+        "positive": positive.detach(),
+        "negative": negative.detach(),
+        "ambiguous": ambiguous.detach(),
+        "support": support.detach(),
+        "valid": valid.detach(),
+        "best_residual_gain": best_gain.detach(),
+    }
+
+
+def effective_number_act_loss(
+    act_logits: torch.Tensor,
+    teacher: Dict[str, torch.Tensor],
+    y_patch: torch.Tensor,
+    *,
+    beta: float = 0.999,
+) -> torch.Tensor:
+    """Region-balanced ACT BCE over positive and negative teacher support.
+
+    Normal/anomaly regions receive inverse effective-number patch weights and
+    are combined in one normalized weighted mean. Ambiguous patches have zero
+    weight, avoiding the old hard 50/50 mean-of-region-means construction.
+    """
+    if not 0.0 < float(beta) < 1.0:
+        raise ValueError("beta must be in (0, 1)")
+    if act_logits.shape != teacher["target"].shape:
+        raise ValueError("act_logits and ACT target must have identical [G,B,P] shape")
+    if y_patch.shape != act_logits.shape[1:]:
+        raise ValueError("y_patch must be [B,P]")
+    per_patch = F.binary_cross_entropy_with_logits(
+        act_logits.float(), teacher["target"].float(), reduction="none"
+    )
+    targets = y_patch.unsqueeze(0).expand_as(act_logits)
+    support = teacher["support"].bool()
+    weights = torch.zeros_like(per_patch)
+    for region in (support & (targets < 0.5), support & (targets >= 0.5)):
+        count = int(region.sum().item())
+        if count:
+            effective_n = -math.expm1(count * math.log(float(beta))) / (1.0 - float(beta))
+            weights[region] = 1.0 / effective_n
+    denominator = weights.sum()
+    return (
+        (per_patch * weights).sum() / denominator
+        if float(denominator.detach().item()) > 0.0
+        else per_patch.sum() * 0.0
+    )
+
+
+def act_diagnostics(
+    act_probability: torch.Tensor,
+    teacher: Dict[str, torch.Tensor],
+    y_patch: torch.Tensor,
+) -> Dict[str, torch.Tensor]:
+    """Support and probability diagnostics split by physical patch region."""
+    if act_probability.shape != teacher["target"].shape:
+        raise ValueError("ACT probability and teacher tensors must have identical shape")
+    targets = y_patch.unsqueeze(0).expand_as(act_probability)
+    valid = teacher["valid"].bool()
+    zero = act_probability.float().sum() * 0.0
+
+    def fraction(mask: torch.Tensor, region: torch.Tensor) -> torch.Tensor:
+        return mask[region].float().mean() if region.any() else zero
+
+    def mean_probability(region: torch.Tensor) -> torch.Tensor:
+        return act_probability.float()[region].mean() if region.any() else zero
+
+    normal = valid & (targets < 0.5)
+    anomaly = valid & (targets >= 0.5)
+    return {
+        "act_probability_mean": mean_probability(valid),
+        "act_probability_normal_mean": mean_probability(normal),
+        "act_probability_anomaly_mean": mean_probability(anomaly),
+        "act_target_positive_fraction": fraction(teacher["positive"], valid),
+        "act_target_negative_fraction": fraction(teacher["negative"], valid),
+        "act_target_ambiguous_fraction": fraction(teacher["ambiguous"], valid),
+        "act_target_positive_normal_fraction": fraction(teacher["positive"], normal),
+        "act_target_negative_normal_fraction": fraction(teacher["negative"], normal),
+        "act_target_ambiguous_normal_fraction": fraction(teacher["ambiguous"], normal),
+        "act_target_positive_anomaly_fraction": fraction(teacher["positive"], anomaly),
+        "act_target_negative_anomaly_fraction": fraction(teacher["negative"], anomaly),
+        "act_target_ambiguous_anomaly_fraction": fraction(teacher["ambiguous"], anomaly),
+        "act_support_fraction": fraction(teacher["support"], valid),
+    }
+
+
 def _balanced_binary_mean(values: torch.Tensor, targets: torch.Tensor, valid: torch.Tensor) -> torch.Tensor:
     zero = values.sum() * 0.0
     normal = valid & (targets < 0.5)
@@ -269,10 +398,18 @@ def utility_diagnostics(
         for factor in range(per_factor.shape[-1])
     ])
     all_harm = (payload["gain_rel"].max(dim=-1).values <= 0) & valid
+    noop_candidates = torch.cat([base.unsqueeze(-1), per_factor], dim=-1)
+    noop_winner = noop_candidates.argmin(dim=-1)
+    noop_winner_shares = torch.stack([
+        ((noop_winner == index) & valid).sum().float() / valid.sum().clamp_min(1)
+        for index in range(per_factor.shape[-1] + 1)
+    ])
+    oracle_with_noop = valid_mean(noop_candidates.min(dim=-1).values)
     return {
         "Base": base_mean.detach(),
         "BestSingle": best_single.detach(),
         "OracleMulti": oracle.detach(),
+        "OracleWithNoOp": oracle_with_noop.detach(),
         "Uniform": uniform.detach(),
         "SoftRouted": soft.detach(),
         "HardRouted": hard.detach(),
@@ -293,6 +430,8 @@ def utility_diagnostics(
         "informative_fraction": informative.float()[valid].mean().detach(),
         "all_harm_fraction": all_harm.float()[valid].mean().detach(),
         "winner_shares": winner_shares.detach(),
+        "noop_winner_shares": noop_winner_shares.detach(),
+        "noop_selected_fraction": noop_winner_shares[0].detach(),
         "router_top1_agreement": (
             (dense_probabilities.argmax(dim=-1) == winners)[informative].float().mean().detach()
             if informative.any() else base_mean.detach() * 0.0
