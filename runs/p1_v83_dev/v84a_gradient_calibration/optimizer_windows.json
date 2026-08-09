@@ -1,0 +1,4624 @@
+{
+  "summary": {
+    "act_lambda_calibration": {
+      "group": "act_head",
+      "initial_feature_path_note": "ACT-to-image-adapter raw gradient is exactly zero at zero-initialized linear weights; it becomes reachable after the head leaves zero",
+      "raw_norm_to_main": {
+        "count": 21,
+        "max": 10581.20703125,
+        "median": 5211.71875,
+        "p75": 6451.125,
+        "p90": 8445.353515625,
+        "p95": 9486.18359375
+      },
+      "selected_weighted_norm_to_main": {
+        "count": 21,
+        "max": 0.5577167868614197,
+        "median": 0.27470049262046814,
+        "p75": 0.34002742171287537,
+        "p90": 0.44513967633247375,
+        "p95": 0.4999999701976776
+      },
+      "selection_formula": "min(1, 1/raw_max, 0.5/raw_p95)",
+      "stability_contract": "observed max<=1 and p95<=0.5 of main"
+    },
+    "amp": false,
+    "audit": "fresh_p1_v84a_natural_six_microbatch_no_step_gradient_calibration",
+    "gradient_summary": {
+      "groups": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": {
+                "count": 21,
+                "max": 0.27535438537597656,
+                "median": 0.022348321974277496,
+                "p75": 0.15030169486999512,
+                "p90": 0.1869596242904663,
+                "p95": 0.26392120122909546
+              },
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 10581.20703125,
+                "median": 5166.9921875,
+                "p75": 6231.8505859375,
+                "p90": 8416.59765625,
+                "p95": 9330.0595703125
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.5577167868614197,
+                "median": 0.2723430395126343,
+                "p75": 0.32846981287002563,
+                "p90": 0.44362398982048035,
+                "p95": 0.4917709529399872
+              }
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              }
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              }
+            }
+          },
+          "true_combined_weighted_aux_to_main": {
+            "count": 24,
+            "max": 0.5577167272567749,
+            "median": 0.2723430395126343,
+            "p75": 0.32846981287002563,
+            "p90": 0.44362396001815796,
+            "p95": 0.4917709529399872
+          }
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              }
+            },
+            "factor": {
+              "cos_main": {
+                "count": 24,
+                "max": -0.2614523470401764,
+                "median": -0.3135960102081299,
+                "p75": -0.2995285391807556,
+                "p90": -0.2883071005344391,
+                "p95": -0.28522375226020813
+              },
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 0.00764335785061121,
+                "median": 0.006098459009081125,
+                "p75": 0.006528403609991074,
+                "p90": 0.006835717707872391,
+                "p95": 0.007155571598559618
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.00022930072736926377,
+                "median": 0.0001829537795856595,
+                "p75": 0.00019585211703088135,
+                "p90": 0.00020507152657955885,
+                "p95": 0.00021466716134455055
+              }
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              }
+            }
+          },
+          "true_combined_weighted_aux_to_main": {
+            "count": 24,
+            "max": 0.00022930050909053534,
+            "median": 0.00018295348854735494,
+            "p75": 0.0001958521461347118,
+            "p90": 0.00020507151202764362,
+            "p95": 0.0002146668848581612
+          }
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              }
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              }
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              }
+            }
+          },
+          "true_combined_weighted_aux_to_main": {
+            "count": 24,
+            "max": 0.0,
+            "median": 0.0,
+            "p75": 0.0,
+            "p90": 0.0,
+            "p95": 0.0
+          }
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              }
+            },
+            "factor": {
+              "cos_main": {
+                "count": 24,
+                "max": 0.9940312504768372,
+                "median": 0.9888615608215332,
+                "p75": 0.9914546608924866,
+                "p90": 0.9932388663291931,
+                "p95": 0.9937644600868225
+              },
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 1.8809187412261963,
+                "median": 1.763330340385437,
+                "p75": 1.8328921794891357,
+                "p90": 1.8516886234283447,
+                "p95": 1.874884009361267
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.05642756447196007,
+                "median": 0.052899911999702454,
+                "p75": 0.05498676374554634,
+                "p90": 0.05555065721273422,
+                "p95": 0.05624651908874512
+              }
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              }
+            }
+          },
+          "true_combined_weighted_aux_to_main": {
+            "count": 24,
+            "max": 0.05642751604318619,
+            "median": 0.05289991945028305,
+            "p75": 0.054986752569675446,
+            "p90": 0.055550623685121536,
+            "p95": 0.05624654144048691
+          }
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              }
+            },
+            "factor": {
+              "cos_main": {
+                "count": 24,
+                "max": 0.9919161200523376,
+                "median": 0.9881389141082764,
+                "p75": 0.9907375574111938,
+                "p90": 0.9913995265960693,
+                "p95": 0.991797149181366
+              },
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 1.8723959922790527,
+                "median": 1.756389856338501,
+                "p75": 1.8134218454360962,
+                "p90": 1.8272653818130493,
+                "p95": 1.8358968496322632
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.05617188289761543,
+                "median": 0.05269169807434082,
+                "p75": 0.05440265312790871,
+                "p90": 0.054817959666252136,
+                "p95": 0.05507690832018852
+              }
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              }
+            }
+          },
+          "true_combined_weighted_aux_to_main": {
+            "count": 24,
+            "max": 0.05617230385541916,
+            "median": 0.05269089341163635,
+            "p75": 0.05440324917435646,
+            "p90": 0.054816920310258865,
+            "p95": 0.05507587268948555
+          }
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              }
+            },
+            "factor": {
+              "cos_main": {
+                "count": 24,
+                "max": -0.19956757128238678,
+                "median": -0.2553461790084839,
+                "p75": -0.23926526308059692,
+                "p90": -0.21837890148162842,
+                "p95": -0.2167186588048935
+              },
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 0.008730384521186352,
+                "median": 0.0069676535204052925,
+                "p75": 0.007510653231292963,
+                "p90": 0.007694244384765625,
+                "p95": 0.007727968040853739
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.00026191151118837297,
+                "median": 0.00020902960386592895,
+                "p75": 0.00022531959984917194,
+                "p90": 0.00023082732514012605,
+                "p95": 0.00023183903249446303
+              }
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              }
+            }
+          },
+          "true_combined_weighted_aux_to_main": {
+            "count": 24,
+            "max": 0.00026191133656539023,
+            "median": 0.00020902960386592895,
+            "p75": 0.00022532002185471356,
+            "p90": 0.00023082758707460016,
+            "p95": 0.00023183941084425896
+          }
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              }
+            },
+            "factor": {
+              "cos_main": {
+                "count": 24,
+                "max": 0.9953853487968445,
+                "median": 0.9922239780426025,
+                "p75": 0.9935140609741211,
+                "p90": 0.9946796298027039,
+                "p95": 0.9950969815254211
+              },
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 1.8752843141555786,
+                "median": 1.7421189546585083,
+                "p75": 1.8318363428115845,
+                "p90": 1.8598071336746216,
+                "p95": 1.8717718124389648
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.05625852942466736,
+                "median": 0.052263569086790085,
+                "p75": 0.05495508760213852,
+                "p90": 0.055794212967157364,
+                "p95": 0.056153152137994766
+              }
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              },
+              "weighted_norm_to_main": {
+                "count": 24,
+                "max": 0.0,
+                "median": 0.0,
+                "p75": 0.0,
+                "p90": 0.0,
+                "p95": 0.0
+              }
+            }
+          },
+          "true_combined_weighted_aux_to_main": {
+            "count": 24,
+            "max": 0.056258514523506165,
+            "median": 0.052263565361499786,
+            "p75": 0.054955095052719116,
+            "p90": 0.055794235318899155,
+            "p95": 0.056153178215026855
+          }
+        }
+      },
+      "weights": {
+        "act": 5.270823562063741e-05,
+        "factor": 0.03,
+        "router": 0.1
+      }
+    },
+    "initialization": "fresh_openai_clip_seed0_no_checkpoint_weights_loaded",
+    "microbatches_per_window": 6,
+    "optimizer_constructed": false,
+    "optimizer_steps": 0,
+    "parameter_groups": {
+      "act_head": {
+        "parameter_count": 2305,
+        "tensor_count": 4
+      },
+      "image_adapter": {
+        "parameter_count": 14015247,
+        "tensor_count": 99
+      },
+      "router": {
+        "parameter_count": 465920,
+        "tensor_count": 14
+      },
+      "shared_semantic": {
+        "parameter_count": 658433,
+        "tensor_count": 15
+      },
+      "state_path": {
+        "parameter_count": 2435072,
+        "tensor_count": 24
+      },
+      "text_lora": {
+        "parameter_count": 80640,
+        "tensor_count": 15
+      },
+      "vae_class": {
+        "parameter_count": 3544321,
+        "tensor_count": 13
+      }
+    },
+    "precision": "fp32",
+    "progress_version": "P1-v8.4-A",
+    "protocol_checkpoint": "/home/ai4/caohuy/ACD-CLIP-p1v83-autopilot/runs/p1_v83_dev/corrected_300b_primary_anchored_attempt1/adapter_1.pth",
+    "protocol_checkpoint_sha256": "0a53a2abb00162e1565bad1d776fc7c6be134f9a0053d6976575f3e9e9f8629b",
+    "runtime_seconds": 258.6254597000079,
+    "selected_lambda_act": 5.270823562063741e-05,
+    "selected_lambda_factor": 0.03,
+    "selected_lambda_router": 0.1,
+    "source_head": "459e5462c92ea34b3e8c2f29c4f1727e07a2581a",
+    "state_integrity": {
+      "grad_fields_clear": true,
+      "parameter_hash_after": "50a7c4b1160561ae3ab934f34895311b50882706c1acb4e9f6349231ad44fbc6",
+      "parameter_hash_before": "50a7c4b1160561ae3ab934f34895311b50882706c1acb4e9f6349231ad44fbc6",
+      "unchanged": true
+    },
+    "status": "PASS",
+    "tf32": false,
+    "windows": 24
+  },
+  "windows": [
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 21852,
+        "act_negative_group_patch_count": 0,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 8,
+        "normal_patch_count": 7276,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        410,
+        287,
+        535,
+        1447,
+        2109,
+        2144
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0008450314053334296
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.2898467541671689,
+              "raw_norm": 0.005498343147337437,
+              "raw_norm_to_main": 0.0066292086833128535
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.8294116854667664
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0001871075655799359
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9869787554767641,
+              "raw_norm": 0.0044488017447292805,
+              "raw_norm_to_main": 1.8809187546641621
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.002365228021517396
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9881106689438671,
+              "raw_norm": 0.007392391562461853,
+              "raw_norm_to_main": 1.8371233140024086
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0040238951332867146
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.23720666072516264,
+              "raw_norm": 0.004233190789818764,
+              "raw_norm_to_main": 0.007668775230583208
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.5520035028457642
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9911027335184248,
+              "raw_norm": 0.002957601100206375,
+              "raw_norm_to_main": 1.8752843215982404
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0015771480975672603
+        }
+      },
+      "losses": {
+        "act": 0.0,
+        "factor": 0.7106187641620636,
+        "main": 2.217092990875244,
+        "router": 0.0
+      },
+      "window": 1
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 23860,
+        "act_negative_group_patch_count": 23,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 25,
+        "normal_patch_count": 7936,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        1517,
+        595,
+        621,
+        96,
+        407,
+        1471
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": 0.13219092585331152,
+              "raw_norm": 6.763004302978516,
+              "raw_norm_to_main": 8445.35318819771
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0008007959113456309
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.35844930146110676,
+              "raw_norm": 0.005070783197879791,
+              "raw_norm_to_main": 0.0053354411410270666
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.9503962397575378
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00014414855104405433
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9826460302206947,
+              "raw_norm": 0.0041589029133319855,
+              "raw_norm_to_main": 1.7239287931645668
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0024124563205987215
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9843071459718233,
+              "raw_norm": 0.006479210220277309,
+              "raw_norm_to_main": 1.6813101218895636
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00385366752743721
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.25611949639748405,
+              "raw_norm": 0.0037296756636351347,
+              "raw_norm_to_main": 0.006284249611236364
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.593495786190033
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9918841668229854,
+              "raw_norm": 0.002588008064776659,
+              "raw_norm_to_main": 1.6348225088003596
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0015830514021217823
+        }
+      },
+      "losses": {
+        "act": 0.4620981315771739,
+        "factor": 0.7147355278333029,
+        "main": 2.2208127975463867,
+        "router": 0.0
+      },
+      "window": 2
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 23303,
+        "act_negative_group_patch_count": 4,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 29,
+        "normal_patch_count": 7740,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        268,
+        711,
+        576,
+        1094,
+        2150,
+        16
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": 0.048510064264864004,
+              "raw_norm": 3.1581382751464844,
+              "raw_norm_to_main": 5117.51082256472
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0006171239074319601
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.3018971595973272,
+              "raw_norm": 0.005057124886661768,
+              "raw_norm_to_main": 0.006156362974528848
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.8214468359947205
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00015028644702397287
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9841565566555772,
+              "raw_norm": 0.004496968816965818,
+              "raw_norm_to_main": 1.6613962075850879
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.002706740749999881
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9851797898290028,
+              "raw_norm": 0.006774803623557091,
+              "raw_norm_to_main": 1.6260281998168413
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.004166473634541035
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.26050103416330517,
+              "raw_norm": 0.0037397441919893026,
+              "raw_norm_to_main": 0.006993675745311252
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.5347322821617126
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9901286652207227,
+              "raw_norm": 0.0021466147154569626,
+              "raw_norm_to_main": 1.6205976512369316
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0013245821464806795
+        }
+      },
+      "losses": {
+        "act": 0.2310490608215332,
+        "factor": 0.714435617129008,
+        "main": 2.2211369673411054,
+        "router": 0.0
+      },
+      "window": 3
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 21705,
+        "act_negative_group_patch_count": 15,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 8,
+        "normal_patch_count": 7232,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        236,
+        2148,
+        1720,
+        1044,
+        2093,
+        1498
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": 0.2753543974814906,
+              "raw_norm": 3.8261780738830566,
+              "raw_norm_to_main": 6085.974836988535
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.000628687790594995
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.2924226662150052,
+              "raw_norm": 0.004684616811573505,
+              "raw_norm_to_main": 0.005027440895217144
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.9318094253540039
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00015482906019315124
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9832258678205718,
+              "raw_norm": 0.003915775567293167,
+              "raw_norm_to_main": 1.6011553974320587
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.002445593709126115
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9864683404310355,
+              "raw_norm": 0.005990433972328901,
+              "raw_norm_to_main": 1.6052324074950433
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.003731817239895463
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.21892733454868996,
+              "raw_norm": 0.0035561961121857166,
+              "raw_norm_to_main": 0.00629585739049824
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.5648469924926758
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9931582803914464,
+              "raw_norm": 0.002869016956537962,
+              "raw_norm_to_main": 1.5633781552181059
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0018351394683122635
+        }
+      },
+      "losses": {
+        "act": 0.2310490608215332,
+        "factor": 0.7103146413962046,
+        "main": 2.2192580699920654,
+        "router": 0.0
+      },
+      "window": 4
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 21500,
+        "act_negative_group_patch_count": 1,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 26,
+        "normal_patch_count": 7141,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        1184,
+        915,
+        1575,
+        1906,
+        1731,
+        767
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": 0.17069337372104687,
+              "raw_norm": 2.3020927906036377,
+              "raw_norm_to_main": 2970.229626073723
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0007750554941594601
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.30386675774435695,
+              "raw_norm": 0.005223380867391825,
+              "raw_norm_to_main": 0.006189574380981036
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.8438998460769653
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00016096164472401142
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9897680504194084,
+              "raw_norm": 0.004342782311141491,
+              "raw_norm_to_main": 1.7180930677483135
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00252767582423985
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9889972950630519,
+              "raw_norm": 0.007016974035650492,
+              "raw_norm_to_main": 1.722175631128367
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.004074482247233391
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.26349322645408396,
+              "raw_norm": 0.004047532100230455,
+              "raw_norm_to_main": 0.007198484485052556
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.5622755885124207
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9931692908199329,
+              "raw_norm": 0.002651979448273778,
+              "raw_norm_to_main": 1.7608948184372137
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0015060408040881157
+        }
+      },
+      "losses": {
+        "act": 0.1155245304107666,
+        "factor": 0.7123192052046459,
+        "main": 2.2168080409367876,
+        "router": 0.0
+      },
+      "window": 5
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 22605,
+        "act_negative_group_patch_count": 3,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 6,
+        "normal_patch_count": 7530,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        343,
+        442,
+        1555,
+        260,
+        821,
+        1505
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": 0.1203311042171073,
+              "raw_norm": 2.0467426776885986,
+              "raw_norm_to_main": 3813.3480146505176
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0005367311532609165
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.3127840857138072,
+              "raw_norm": 0.005728995893150568,
+              "raw_norm_to_main": 0.005629054536205025
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 1.0177545547485352
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0001724979083519429
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.993856317897652,
+              "raw_norm": 0.004777755122631788,
+              "raw_norm_to_main": 1.7554580296437063
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0027216572780162096
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9908519588773268,
+              "raw_norm": 0.006969956215471029,
+              "raw_norm_to_main": 1.7445200627417414
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0039953431114554405
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.2567985279151356,
+              "raw_norm": 0.004499500151723623,
+              "raw_norm_to_main": 0.006941631103288565
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.6481906175613403
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.993505616673419,
+              "raw_norm": 0.0031685084104537964,
+              "raw_norm_to_main": 1.723343115749758
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.001838582451455295
+        }
+      },
+      "losses": {
+        "act": 0.1155245304107666,
+        "factor": 0.7222049434979757,
+        "main": 2.2332537174224854,
+        "router": 0.0
+      },
+      "window": 6
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 20712,
+        "act_negative_group_patch_count": 0,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 78,
+        "normal_patch_count": 6826,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        818,
+        1161,
+        1261,
+        438,
+        1416,
+        881
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0006838782574050128
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.3224816556229727,
+              "raw_norm": 0.004037375561892986,
+              "raw_norm_to_main": 0.004943811799999606
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.8166523575782776
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00016599292575847358
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.966644167137005,
+              "raw_norm": 0.0033018519170582294,
+              "raw_norm_to_main": 1.3516379334254736
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.002442852361127734
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9716751413920729,
+              "raw_norm": 0.005292849615216255,
+              "raw_norm_to_main": 1.350479819630402
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.003919236361980438
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.25780841597137233,
+              "raw_norm": 0.0033012223429977894,
+              "raw_norm_to_main": 0.006362831069793827
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.5188291668891907
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9773181546080518,
+              "raw_norm": 0.0020239923615008593,
+              "raw_norm_to_main": 1.4455972089752276
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0014001080999150872
+        }
+      },
+      "losses": {
+        "act": 0.0,
+        "factor": 0.7078193227450053,
+        "main": 2.2080818812052407,
+        "router": 0.0
+      },
+      "window": 7
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 21343,
+        "act_negative_group_patch_count": 2,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 3,
+        "normal_patch_count": 7112,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        23,
+        525,
+        1707,
+        354,
+        269,
+        1062
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": 0.019806212938470492,
+              "raw_norm": 4.290218353271484,
+              "raw_norm_to_main": 8349.500395411123
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0005138293490745127
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.33285327161007133,
+              "raw_norm": 0.005506233777850866,
+              "raw_norm_to_main": 0.006885010729126731
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.7997422218322754
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00014664024638477713
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9909604537821483,
+              "raw_norm": 0.004747909959405661,
+              "raw_norm_to_main": 1.771202628507859
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.002680613659322262
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9891606021062432,
+              "raw_norm": 0.00708020431920886,
+              "raw_norm_to_main": 1.7682596672007436
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.004004052374511957
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.2594710692456686,
+              "raw_norm": 0.004051919095218182,
+              "raw_norm_to_main": 0.007503455851471581
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.5400070548057556
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9910995047147169,
+              "raw_norm": 0.0026165428571403027,
+              "raw_norm_to_main": 1.7686379164822035
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0014794112648814917
+        }
+      },
+      "losses": {
+        "act": 0.2310490608215332,
+        "factor": 0.7066401441891987,
+        "main": 2.213172753651937,
+        "router": 0.0
+      },
+      "window": 8
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 22828,
+        "act_negative_group_patch_count": 5,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 10,
+        "normal_patch_count": 7601,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        1200,
+        902,
+        1362,
+        593,
+        1835,
+        1581
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": 0.021941945093722773,
+              "raw_norm": 3.782761573791504,
+              "raw_norm_to_main": 5355.891547301811
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0007062804652377963
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.2883051391284399,
+              "raw_norm": 0.005661678500473499,
+              "raw_norm_to_main": 0.005544704165649514
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 1.0210965871810913
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0001841472985688597
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9932271276688015,
+              "raw_norm": 0.004483155906200409,
+              "raw_norm_to_main": 1.746076588845155
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.002567559713497758
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9919161407773665,
+              "raw_norm": 0.006972921546548605,
+              "raw_norm_to_main": 1.736469745382842
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.004015573300421238
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.19956757470083722,
+              "raw_norm": 0.004369217436760664,
+              "raw_norm_to_main": 0.006844523954240304
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.6383522748947144
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9951490424009081,
+              "raw_norm": 0.003661437425762415,
+              "raw_norm_to_main": 1.6901634516588064
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.002166321501135826
+        }
+      },
+      "losses": {
+        "act": 0.2310490608215332,
+        "factor": 0.7130228976408641,
+        "main": 2.219471573829651,
+        "router": 0.0
+      },
+      "window": 9
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 19027,
+        "act_negative_group_patch_count": 5,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 6,
+        "normal_patch_count": 6338,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        1865,
+        45,
+        529,
+        313,
+        1382,
+        1078
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": -0.02651077848798229,
+              "raw_norm": 2.9046630859375,
+              "raw_norm_to_main": 3340.006321027053
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0008696579607203603
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.3181264561578414,
+              "raw_norm": 0.00572833139449358,
+              "raw_norm_to_main": 0.006150577767914942
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.9313485026359558
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0001504330284660682
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9912682684475144,
+              "raw_norm": 0.0048294407315552235,
+              "raw_norm_to_main": 1.846371110775822
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.002615639241412282
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9908575208784096,
+              "raw_norm": 0.007415206637233496,
+              "raw_norm_to_main": 1.8212468033323117
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.004071500152349472
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.30394165643809307,
+              "raw_norm": 0.00444825179874897,
+              "raw_norm_to_main": 0.007213554116482381
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.6166518926620483
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9933464250095345,
+              "raw_norm": 0.0029663776513189077,
+              "raw_norm_to_main": 1.8399827446941162
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0016121768858283758
+        }
+      },
+      "losses": {
+        "act": 0.2310490608215332,
+        "factor": 0.7155455350875856,
+        "main": 2.2240190505981445,
+        "router": 0.0
+      },
+      "window": 10
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 22290,
+        "act_negative_group_patch_count": 9,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 43,
+        "normal_patch_count": 7390,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        639,
+        1578,
+        425,
+        1516,
+        675,
+        646
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": -0.029156490088332508,
+              "raw_norm": 6.347269535064697,
+              "raw_norm_to_main": 9486.183218390825
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0006691067828796804
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.317256615957587,
+              "raw_norm": 0.004966210573911667,
+              "raw_norm_to_main": 0.005834766887164928
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.8511412143707275
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00014012381143402308
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9819515439353939,
+              "raw_norm": 0.00430670753121376,
+              "raw_norm_to_main": 1.6116240103222461
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0026722780894488096
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9851978777348102,
+              "raw_norm": 0.006407583598047495,
+              "raw_norm_to_main": 1.5548979091870205
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.004120903089642525
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.25457282867073305,
+              "raw_norm": 0.003645155346021056,
+              "raw_norm_to_main": 0.006248534036472183
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.5833616852760315
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.992168116588885,
+              "raw_norm": 0.002228459110483527,
+              "raw_norm_to_main": 1.5286502566687477
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0014577952679246664
+        }
+      },
+      "losses": {
+        "act": 0.4620981216430664,
+        "factor": 0.7161701420942942,
+        "main": 2.220918933550517,
+        "router": 0.0
+      },
+      "window": 11
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 21471,
+        "act_negative_group_patch_count": 3,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 23,
+        "normal_patch_count": 7135,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        1252,
+        654,
+        970,
+        1480,
+        1403,
+        2131
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": 0.18695962127867663,
+              "raw_norm": 3.0628247261047363,
+              "raw_norm_to_main": 4733.063807173463
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0006471124943345785
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.3088651119984993,
+              "raw_norm": 0.005218876525759697,
+              "raw_norm_to_main": 0.006266536234034268
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.8328167796134949
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00015955997514538467
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9872111715351959,
+              "raw_norm": 0.004191639833152294,
+              "raw_norm_to_main": 1.7161524726506894
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0024424635339528322
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9875831198418882,
+              "raw_norm": 0.00644584558904171,
+              "raw_norm_to_main": 1.7195141879645603
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.003748643444851041
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.218143862466833,
+              "raw_norm": 0.003826988162472844,
+              "raw_norm_to_main": 0.007073304188472995
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.5410467386245728
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9934828142257146,
+              "raw_norm": 0.002750294515863061,
+              "raw_norm_to_main": 1.7090687198288679
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0016092357691377401
+        }
+      },
+      "losses": {
+        "act": 0.2310490608215332,
+        "factor": 0.7126260499159495,
+        "main": 2.2193593978881836,
+        "router": 0.0
+      },
+      "window": 12
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 22048,
+        "act_negative_group_patch_count": 23,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 3,
+        "normal_patch_count": 7354,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        1692,
+        2143,
+        1838,
+        1623,
+        101,
+        918
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": 0.16940289334385927,
+              "raw_norm": 4.4542646408081055,
+              "raw_norm_to_main": 7468.359944347196
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0005964180454611778
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.2846799668310428,
+              "raw_norm": 0.005423977971076965,
+              "raw_norm_to_main": 0.006523461176304443
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.8314570784568787
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0001721377338981256
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9869208518398337,
+              "raw_norm": 0.004721064120531082,
+              "raw_norm_to_main": 1.8372628965210296
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0025696181692183018
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9870825477012667,
+              "raw_norm": 0.007184601854532957,
+              "raw_norm_to_main": 1.7982857279391495
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.003995250444859266
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.2397237181327359,
+              "raw_norm": 0.004087588284164667,
+              "raw_norm_to_main": 0.007393879596811477
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.5528340339660645
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9912405605425078,
+              "raw_norm": 0.0028032956179231405,
+              "raw_norm_to_main": 1.7214478845103243
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0016284522134810686
+        }
+      },
+      "losses": {
+        "act": 0.3465735812981923,
+        "factor": 0.7129400273164113,
+        "main": 2.220502177874247,
+        "router": 0.0
+      },
+      "window": 13
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 19989,
+        "act_negative_group_patch_count": 3,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 4,
+        "normal_patch_count": 6660,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        839,
+        655,
+        1102,
+        381,
+        266,
+        261
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": 0.03610712677333901,
+              "raw_norm": 3.1201300621032715,
+              "raw_norm_to_main": 5369.945166346461
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0005810357397422194
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.28831170613802165,
+              "raw_norm": 0.005485746543854475,
+              "raw_norm_to_main": 0.006237318715780853
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.8795039653778076
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00016244234575424343
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9889085084082959,
+              "raw_norm": 0.004500413779169321,
+              "raw_norm_to_main": 1.8402911465920235
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.002445490099489689
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9880966639183144,
+              "raw_norm": 0.007045859936624765,
+              "raw_norm_to_main": 1.8155160109896604
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0038809131365269423
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.23864528681057992,
+              "raw_norm": 0.004200194031000137,
+              "raw_norm_to_main": 0.007574582714412875
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.5545116066932678
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9935395211738671,
+              "raw_norm": 0.003431975841522217,
+              "raw_norm_to_main": 1.83155128420982
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0018738082144409418
+        }
+      },
+      "losses": {
+        "act": 0.2310490608215332,
+        "factor": 0.7097676197687786,
+        "main": 2.2189142306645713,
+        "router": 0.0
+      },
+      "window": 14
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 21430,
+        "act_negative_group_patch_count": 2,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 5,
+        "normal_patch_count": 7139,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        1805,
+        2002,
+        1047,
+        1420,
+        1513,
+        472
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": 0.15030169053380418,
+              "raw_norm": 4.2431111335754395,
+              "raw_norm_to_main": 6451.125083220875
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0006577319581992924
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.3144079685586374,
+              "raw_norm": 0.00510513037443161,
+              "raw_norm_to_main": 0.005892405617145942
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.8663915395736694
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0002013790945056826
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9788918710599397,
+              "raw_norm": 0.004118106793612242,
+              "raw_norm_to_main": 1.673774088295906
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0024603719357401133
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9822302651007808,
+              "raw_norm": 0.006787422578781843,
+              "raw_norm_to_main": 1.6511719611998557
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00411066971719265
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.21646715457195376,
+              "raw_norm": 0.0040517630986869335,
+              "raw_norm_to_main": 0.0069360895012949815
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.5841566920280457
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9850272219166044,
+              "raw_norm": 0.0026205761823803186,
+              "raw_norm_to_main": 1.5795337260384186
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0016590821323916316
+        }
+      },
+      "losses": {
+        "act": 0.2310490608215332,
+        "factor": 0.7130284706751506,
+        "main": 2.2250963846842446,
+        "router": 0.0
+      },
+      "window": 15
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 20826,
+        "act_negative_group_patch_count": 0,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 6,
+        "normal_patch_count": 6936,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        1889,
+        1792,
+        264,
+        107,
+        445,
+        1834
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0006374670774675906
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.3078835799089735,
+              "raw_norm": 0.0052816132083535194,
+              "raw_norm_to_main": 0.006543232116440022
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.8071871995925903
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00015193673607427627
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9901876766636912,
+              "raw_norm": 0.00443631736561656,
+              "raw_norm_to_main": 1.7923841932081288
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.002475092886015773
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9906994058241456,
+              "raw_norm": 0.006952059455215931,
+              "raw_norm_to_main": 1.805318575836231
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.003850876819342375
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.24458633191656437,
+              "raw_norm": 0.004043689928948879,
+              "raw_norm_to_main": 0.00773199296515057
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.522981584072113
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9922797670714414,
+              "raw_norm": 0.0028059235773980618,
+              "raw_norm_to_main": 1.7932922757566232
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0015646772226318717
+        }
+      },
+      "losses": {
+        "act": 0.0,
+        "factor": 0.709276427825292,
+        "main": 2.218638261159261,
+        "router": 0.0
+      },
+      "window": 16
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 20933,
+        "act_negative_group_patch_count": 4,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 2,
+        "normal_patch_count": 6977,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        1900,
+        697,
+        2023,
+        140,
+        1065,
+        1472
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": -0.2807644696688409,
+              "raw_norm": 4.5537309646606445,
+              "raw_norm_to_main": 6158.758818107195
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0007393910200335085
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.3052102301661516,
+              "raw_norm": 0.006082612555474043,
+              "raw_norm_to_main": 0.0057899145235704745
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 1.0505530834197998
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00017305993242189288
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9923322131202318,
+              "raw_norm": 0.004998840391635895,
+              "raw_norm_to_main": 1.8190678735462293
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.002748023020103574
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9900100784779812,
+              "raw_norm": 0.00707820151001215,
+              "raw_norm_to_main": 1.806313573909399
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.003918589558452368
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.27923177564243157,
+              "raw_norm": 0.0044126082211732864,
+              "raw_norm_to_main": 0.006493170076011664
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.6795768737792969
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9943940711574765,
+              "raw_norm": 0.003390965983271599,
+              "raw_norm_to_main": 1.79934630158673
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0018845543963834643
+        }
+      },
+      "losses": {
+        "act": 0.3465735912322998,
+        "factor": 0.7243335942427318,
+        "main": 2.232523361841838,
+        "router": 0.0
+      },
+      "window": 17
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 20249,
+        "act_negative_group_patch_count": 1,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 3,
+        "normal_patch_count": 6747,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        1958,
+        1760,
+        904,
+        864,
+        1694,
+        643
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": -0.011280107331613668,
+              "raw_norm": 2.3020925521850586,
+              "raw_norm_to_main": 4965.944854544866
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0004635759396478534
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.31566078006101717,
+              "raw_norm": 0.005538055207580328,
+              "raw_norm_to_main": 0.006720701107724393
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.8240293860435486
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00018371078476775438
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9888145298676398,
+              "raw_norm": 0.004662341438233852,
+              "raw_norm_to_main": 1.8252449910048507
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.002554364735260606
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9881671489241133,
+              "raw_norm": 0.007181806024163961,
+              "raw_norm_to_main": 1.8233411092972975
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.003938816487789154
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.23947190498681423,
+              "raw_norm": 0.00474722171202302,
+              "raw_norm_to_main": 0.008730384114460586
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.5437586307525635
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9903355743840445,
+              "raw_norm": 0.003211291041225195,
+              "raw_norm_to_main": 1.8326913824084408
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.001752226846292615
+        }
+      },
+      "losses": {
+        "act": 0.1155245304107666,
+        "factor": 0.7136542002360026,
+        "main": 2.220805684725444,
+        "router": 0.0
+      },
+      "window": 18
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 22132,
+        "act_negative_group_patch_count": 5,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 11,
+        "normal_patch_count": 7368,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        1591,
+        954,
+        373,
+        104,
+        446,
+        244
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": -0.5492657159351416,
+              "raw_norm": 2.723357677459717,
+              "raw_norm_to_main": 5211.718798229525
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0005225450149737298
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.3351754996733422,
+              "raw_norm": 0.0050550117157399654,
+              "raw_norm_to_main": 0.005916791514486539
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.8543501496315002
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00014347817341331393
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9857756010403551,
+              "raw_norm": 0.00426241522654891,
+              "raw_norm_to_main": 1.6539371380559595
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0025771325454115868
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9863821868892787,
+              "raw_norm": 0.006670779548585415,
+              "raw_norm_to_main": 1.668622172606897
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.003997777123004198
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.2669283124428951,
+              "raw_norm": 0.0038187834434211254,
+              "raw_norm_to_main": 0.006920112608822495
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.5518383383750916
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9919875407487257,
+              "raw_norm": 0.0024993433617055416,
+              "raw_norm_to_main": 1.682006324016534
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.001485929824411869
+        }
+      },
+      "losses": {
+        "act": 0.2310490608215332,
+        "factor": 0.7098780969778696,
+        "main": 2.218695600827535,
+        "router": 0.0
+      },
+      "window": 19
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 20783,
+        "act_negative_group_patch_count": 7,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 433,
+        "normal_patch_count": 6497,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        2138,
+        1003,
+        1155,
+        592,
+        1625,
+        1448
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": -0.18044387351007532,
+              "raw_norm": 3.11867094039917,
+              "raw_norm_to_main": 4847.314750003709
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0006433811504393816
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.3436894583166159,
+              "raw_norm": 0.0043977173045277596,
+              "raw_norm_to_main": 0.0053118545923203095
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.8279061913490295
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00016360585868824273
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9851074222129389,
+              "raw_norm": 0.0036046146415174007,
+              "raw_norm_to_main": 1.6533391001612576
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00218020286411047
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9826308566635766,
+              "raw_norm": 0.005629085004329681,
+              "raw_norm_to_main": 1.639137195728827
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0034341756254434586
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.27836811847122794,
+              "raw_norm": 0.003297514282166958,
+              "raw_norm_to_main": 0.006383428086104974
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.5165742039680481
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9873962885450314,
+              "raw_norm": 0.002253653947263956,
+              "raw_norm_to_main": 1.5758017290991215
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0014301633927971125
+        }
+      },
+      "losses": {
+        "act": 0.2310490608215332,
+        "factor": 0.711260735988617,
+        "main": 2.170309623082479,
+        "router": 0.0
+      },
+      "window": 20
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 21934,
+        "act_negative_group_patch_count": 2,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 6,
+        "normal_patch_count": 7306,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        2091,
+        1140,
+        495,
+        424,
+        1569,
+        1201
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": 0.019996109587396855,
+              "raw_norm": 4.021220684051514,
+              "raw_norm_to_main": 5114.679329717138
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0007862116908654571
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.2614523397856983,
+              "raw_norm": 0.006141501013189554,
+              "raw_norm_to_main": 0.007203317882273688
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.8525933623313904
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00017133646178990602
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.993243925445418,
+              "raw_norm": 0.005430535413324833,
+              "raw_norm_to_main": 1.8539675302522016
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00292914267629385
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9914615712298204,
+              "raw_norm": 0.008306271396577358,
+              "raw_norm_to_main": 1.812723712197199
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.004582204855978489
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.2678612798385863,
+              "raw_norm": 0.004355316050350666,
+              "raw_norm_to_main": 0.007532245296835811
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.5782228112220764
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9917932537557084,
+              "raw_norm": 0.0028284182772040367,
+              "raw_norm_to_main": 1.837776417074216
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.001539043732918799
+        }
+      },
+      "losses": {
+        "act": 0.2310490608215332,
+        "factor": 0.7122323910395304,
+        "main": 2.219796339670817,
+        "router": 0.0
+      },
+      "window": 21
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 23496,
+        "act_negative_group_patch_count": 6,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 2,
+        "normal_patch_count": 7832,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        3,
+        756,
+        1521,
+        1869,
+        1106,
+        843
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": 0.26392120174619654,
+              "raw_norm": 4.397298336029053,
+              "raw_norm_to_main": 10581.207189729374
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0004155762435402721
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.3274555018093247,
+              "raw_norm": 0.006255982909351587,
+              "raw_norm_to_main": 0.007643357706897506
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.818486213684082
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00016252916248049587
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9940312282158514,
+              "raw_norm": 0.005555461160838604,
+              "raw_norm_to_main": 1.878575069903739
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0029572739731520414
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9901744684015286,
+              "raw_norm": 0.007832583971321583,
+              "raw_norm_to_main": 1.8723960510398876
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.004183187615126371
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.24580303885216812,
+              "raw_norm": 0.0043184212408959866,
+              "raw_norm_to_main": 0.0077051597993753225
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.5604583621025085
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9948019911840416,
+              "raw_norm": 0.002980473218485713,
+              "raw_norm_to_main": 1.8723838111572766
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0015918067656457424
+        }
+      },
+      "losses": {
+        "act": 0.23104907075564068,
+        "factor": 0.7061269084612529,
+        "main": 2.2120246489842734,
+        "router": 0.0
+      },
+      "window": 22
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 22232,
+        "act_negative_group_patch_count": 4,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 23,
+        "normal_patch_count": 7389,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        789,
+        779,
+        886,
+        891,
+        226,
+        1921
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": -0.6594982289462946,
+              "raw_norm": 4.0355448722839355,
+              "raw_norm_to_main": 5186.842920133845
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0007780349114909768
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.33236677425513506,
+              "raw_norm": 0.0054259696044027805,
+              "raw_norm_to_main": 0.005269325933985724
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 1.0297274589538574
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.00015679543139413
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.992013886261682,
+              "raw_norm": 0.0040903957560658455,
+              "raw_norm_to_main": 1.800279898226652
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0022720887791365385
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9912547873895828,
+              "raw_norm": 0.006682701408863068,
+              "raw_norm_to_main": 1.8037767342711486
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.003704838454723358
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.2468600490352251,
+              "raw_norm": 0.004194376524537802,
+              "raw_norm_to_main": 0.006240937659277252
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.6720747351646423
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9953853446534203,
+              "raw_norm": 0.0033182709012180567,
+              "raw_norm_to_main": 1.7727174802395853
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0018718554638326168
+        }
+      },
+      "losses": {
+        "act": 0.3465735912322998,
+        "factor": 0.7162973682085673,
+        "main": 2.2195299863815308,
+        "router": 0.0
+      },
+      "window": 23
+    },
+    {
+      "counts": {
+        "act_ambiguous_group_patch_count": 20187,
+        "act_negative_group_patch_count": 6,
+        "act_positive_group_patch_count": 0,
+        "anomaly_patch_count": 1,
+        "normal_patch_count": 6730,
+        "router_informative_group_patch_count": 0
+      },
+      "dataset_indices": [
+        1500,
+        1508,
+        1079,
+        1879,
+        117,
+        2063
+      ],
+      "geometry": {
+        "act_head": {
+          "components": {
+            "act": {
+              "cos_main": 0.022348321692548787,
+              "raw_norm": 4.4634528160095215,
+              "raw_norm_to_main": 5147.142050086838
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0008671710966154933
+        },
+        "image_adapter": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.32022203520381987,
+              "raw_norm": 0.005488681606948376,
+              "raw_norm_to_main": 0.006046340399833485
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.9077692031860352
+        },
+        "router": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0001516006450401619
+        },
+        "shared_semantic": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9912543902570363,
+              "raw_norm": 0.004411980509757996,
+              "raw_norm_to_main": 1.831435159863999
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0024090290535241365
+        },
+        "state_path": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9918564125862432,
+              "raw_norm": 0.007093308959156275,
+              "raw_norm_to_main": 1.8289471583044044
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.003878356423228979
+        },
+        "text_lora": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": -0.2888587813444895,
+              "raw_norm": 0.004136292263865471,
+              "raw_norm_to_main": 0.006922066580264857
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.5975516438484192
+        },
+        "vae_class": {
+          "components": {
+            "act": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            },
+            "factor": {
+              "cos_main": 0.9936118444317151,
+              "raw_norm": 0.0029975075740367174,
+              "raw_norm_to_main": 1.8683033202219843
+            },
+            "router": {
+              "cos_main": null,
+              "raw_norm": 0.0,
+              "raw_norm_to_main": 0.0
+            }
+          },
+          "main_norm": 0.0016044009244069457
+        }
+      },
+      "losses": {
+        "act": 0.3465735912322998,
+        "factor": 0.7136531869570414,
+        "main": 2.220701138178508,
+        "router": 0.0
+      },
+      "window": 24
+    }
+  ]
+}

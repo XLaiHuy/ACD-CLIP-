@@ -68,29 +68,31 @@ candidate is approved.
 
 ## Incomplete work
 
-- The fresh-init no-step v8.4-A gradient calibration was interrupted by the
-  user at `16/24` natural six-microbatch windows. It has no final summary and
-  no selected ACT lambda. The partial artifact is intentionally retained at
-  `runs/p1_v83_dev/v84a_gradient_calibration/progress.json`.
 - The first calibration attempt completed all 24 windows but correctly
   stopped before reporting a lambda: zero initialization of the ACT output
   linear layer gives zero ACT-loss gradient into image features at step zero.
   The calibration was revised to use the actual common `act_head` group while
-  explicitly reporting the initial zero feature-path gradient; the revised run
-  is the one interrupted at window 16.
+  explicitly reporting the initial zero feature-path gradient.
+- The revised fresh-init no-step calibration completed `24/24` windows and
+  passed its no-step integrity/stability contract. It selected
+  `lambda_act = 5.270823562063741e-05` from the raw ACT-head ratio (maximum
+  `10581.2070`, p95 `9486.1836`), yielding weighted ratios max `0.5577` and
+  p95 `0.5000`. The final evidence is retained in
+  `runs/p1_v83_dev/v84a_gradient_calibration/calibration_summary.json` and
+  `optimizer_windows.json`. This validates that the reported ratios contain
+  both raw and lambda-weighted measurements; selection uses the raw ratio and
+  verifies the weighted contract.
 - Consequently, none of the following was run: v8.4-A 8-batch smoke, fresh
   v8.4-A 300B, 1e, 3e, final20, or medical evaluation.
 - Corrected-300B attempts consumed by v8.4-A: `0 / 3`.
 
 ## Safe resume order
 
-1. Re-run `tools/calibrate_p1_v84_gradients.py` to a completed 24-window
-   summary; accept a lambda only if its no-step integrity and stability checks
-   pass.
-2. Re-run focused tests, `py_compile`, and `git diff --check`.
-3. Run the specified fresh-init 8-batch P1-v8.4-A smoke using the calibrated
+1. Re-run focused tests, `py_compile`, and `git diff --check` if the paused
+   worktree has changed.
+2. Run the specified fresh-init 8-batch P1-v8.4-A smoke using the calibrated
    ACT lambda.
-4. Only if smoke passes, run one fresh 300B attempt and apply the A1--A5
+3. Only if smoke passes, run one fresh 300B attempt and apply the A1--A5
    decision tree from the authoritative specification.
 
 No final20 or medical evaluation was started. No P1-v8.4-B work was started.
