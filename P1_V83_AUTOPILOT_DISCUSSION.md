@@ -45,10 +45,9 @@ states in six-microbatch optimizer windows.
 
 ## Current stage
 
-`SOURCE_FIX_TESTED_WAITING_FOR_GPU`: Stage B and the minimum evidence-backed
-source change are complete.  The corrected smoke/300B has not started because
-an unrelated Python process currently occupies about 8.9 GiB and 90% of the
-only GPU; that process was not touched.
+`SMOKE_PASS_READY_FOR_CORRECTED_300B`: Stage B, the primary-preserving source
+change, CPU gates, and the fresh 8-batch runtime smoke are complete.  The
+corrected 300B has not yet started.
 
 ## Stage B optimizer-window evidence
 
@@ -88,15 +87,29 @@ therefore:
 1. inverse-effective-number factor patch weighting, beta `.999`;
 2. support-normalized router loss;
 3. static lambdas `.03/.10`;
-4. symmetric two-objective PCGrad for accumulated main/factor gradients only
-   on shared-semantic parameters; router remains fixed-lambda and unprojected.
+4. primary-anchored auxiliary surgery for accumulated main/factor gradients
+   only on shared-semantic parameters; MAIN and router remain unprojected.
+
+Symmetric PCGrad was rejected for the development candidate because it also
+projects MAIN.  The selected implementation removes only the factor component
+parallel to and opposing accumulated MAIN, leaving MAIN exactly unchanged.
+This is a custom main-preserving auxiliary projection informed by the
+primary/auxiliary gradient-surgery literature; it is not represented as
+paper-faithful PCGrad.
 
 ## Source/test gate
 
-- focused suite: `35 passed`;
+- focused suite: `41 passed` (prior baseline: `35 passed`);
 - changed modules compile;
 - changed shell launchers pass `bash -n`;
 - `git diff --check` passes;
+- fresh 8-batch smoke: **PASS**, 2 optimizer steps (6 + remainder 2), all
+  metrics finite, peak allocated GPU memory about 4.12 GiB;
+- smoke surgery artifact: MAIN exact-change norm `0` in both windows,
+  correction reconstruction error `0`, router never projected, rho fixed `.05`;
+- both smoke optimizer windows were aligned, so the real no-projection path is
+  runtime-validated; the conflicting projection path remains deterministic
+  unit-test evidence until a natural conflicting training window occurs;
 - corrected-300B launcher is prepared but not executed;
 - final-20 and medical launchers remain prepared-only and were not executed.
 
@@ -129,7 +142,10 @@ data/symlinks, caches, and unrelated historical run folders.
 - **PROVEN:** sign/target path, F0/R0 imbalance behavior, Stage-B distributions,
   parameter immutability, and persistent normalized main-factor conflict.
 - **IMPLEMENTED:** effective-number factor loss, support-normalized router,
-  static `.03/.10`, checkpoint metadata, and two-objective PCGrad source path.
-- **NOT YET VALIDATED BY TRAINING:** whether the new source improves a fresh
-  corrected 300B trajectory.  Corrected 300B, one epoch, three epochs, final20,
-  and six-medical evaluation are all **NOT RUN**.
+  static `.03/.10`, checkpoint metadata, and primary-anchored factor surgery.
+- **TRAINING-VALIDATED (SMOKE):** runtime accumulation, optimizer execution,
+  aligned-window no-projection behavior, MAIN preservation, factor/router
+  gradient liveness, and rho invariants.
+- **NOT YET VALIDATED BY DEVELOPMENT HORIZON:** whether the source improves a
+  fresh corrected 300B trajectory. Corrected 300B, one epoch, three epochs,
+  final20, and six-medical evaluation are all **NOT RUN**.

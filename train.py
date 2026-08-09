@@ -352,6 +352,94 @@ def pcgrad_project_two_task(main_gradients, factor_gradients):
     }
 
 
+def primary_anchored_factor_surgery(main_gradients, factor_gradients):
+    """Remove only the factor component that conflicts with the primary gradient.
+
+    This is a main-preserving auxiliary projection, not symmetric PCGrad.  Dots
+    and norms are computed over the whole shared parameter group so the decision
+    is optimizer-window and vector-group consistent.
+    """
+    if len(main_gradients) != len(factor_gradients):
+        raise ValueError("primary/factor gradient lists must have identical lengths")
+    dot = sum(
+        (main.float() * factor.float()).sum()
+        for main, factor in zip(main_gradients, factor_gradients)
+    )
+    main_norm_sq = sum(main.float().square().sum() for main in main_gradients)
+    factor_norm_sq = sum(factor.float().square().sum() for factor in factor_gradients)
+    conflict = bool(
+        dot.detach().item() < 0.0
+        and main_norm_sq.detach().item() > 0.0
+        and factor_norm_sq.detach().item() > 0.0
+    )
+    unchanged_main = [gradient.clone() for gradient in main_gradients]
+    if conflict:
+        safe_factor = [
+            factor - (dot / main_norm_sq).to(factor) * main
+            for main, factor in zip(main_gradients, factor_gradients)
+        ]
+    else:
+        safe_factor = [gradient.clone() for gradient in factor_gradients]
+
+    safe_dot = sum(
+        (main.float() * factor.float()).sum()
+        for main, factor in zip(unchanged_main, safe_factor)
+    )
+    safe_factor_norm_sq = sum(
+        factor.float().square().sum() for factor in safe_factor
+    )
+    removed_norm_sq = sum(
+        (raw.float() - safe.float()).square().sum()
+        for raw, safe in zip(factor_gradients, safe_factor)
+    )
+    main_change_norm_sq = sum(
+        (raw.float() - unchanged.float()).square().sum()
+        for raw, unchanged in zip(main_gradients, unchanged_main)
+    )
+    denominator = main_norm_sq.sqrt() * factor_norm_sq.sqrt()
+    return unchanged_main, safe_factor, {
+        "conflict": conflict,
+        "dot_main_factor": float(dot.detach().item()),
+        "dot_main_safe_factor": float(safe_dot.detach().item()),
+        "main_norm": float(main_norm_sq.detach().sqrt().item()),
+        "factor_norm": float(factor_norm_sq.detach().sqrt().item()),
+        "safe_factor_norm": float(safe_factor_norm_sq.detach().sqrt().item()),
+        "removed_factor_component_norm": float(removed_norm_sq.detach().sqrt().item()),
+        "main_gradient_exact_change_norm": float(main_change_norm_sq.detach().sqrt().item()),
+        "cos_main_factor": (
+            float((dot / denominator).detach().item())
+            if denominator.detach().item() > 1e-12
+            else None
+        ),
+    }
+
+
+def apply_primary_anchored_factor_correction(
+    parameters, raw_factor_gradients, safe_factor_gradients
+):
+    """Replace raw factor contribution in ``.grad`` without touching main/router."""
+    if not (
+        len(parameters) == len(raw_factor_gradients) == len(safe_factor_gradients)
+    ):
+        raise ValueError("parameter and factor gradient lists must have identical lengths")
+    correction_norm_sq = None
+    for parameter, raw_factor, safe_factor in zip(
+        parameters, raw_factor_gradients, safe_factor_gradients
+    ):
+        correction = safe_factor - raw_factor
+        correction_sq = correction.detach().float().square().sum()
+        correction_norm_sq = (
+            correction_sq
+            if correction_norm_sq is None
+            else correction_norm_sq + correction_sq
+        )
+        if parameter.grad is None:
+            parameter.grad = correction.clone()
+        else:
+            parameter.grad.add_(correction.to(parameter.grad))
+    return 0.0 if correction_norm_sq is None else float(correction_norm_sq.sqrt().item())
+
+
 def _gradient_vector_geometry(main_gradients, factor_gradients, router_gradients):
     def dot(left, right):
         return sum((a.float() * b.float()).sum() for a, b in zip(left, right))
@@ -1393,6 +1481,12 @@ def _phase2b_config_from_args(args) -> dict:
         "h6_utility_factor_effective_beta": args.h6_utility_factor_effective_beta,
         "h6_router_support_normalized": bool(args.h6_router_support_normalized),
         "h6_pcgrad_main_factor": bool(args.h6_pcgrad_main_factor),
+        "h6_primary_anchored_factor_surgery": bool(
+            args.h6_primary_anchored_factor_surgery
+        ),
+        "h6_collect_router_gradient_geometry": bool(
+            args.h6_collect_router_gradient_geometry
+        ),
         "h6_utility_denominator_floor": args.h6_utility_denominator_floor,
         "h6_tau_utility": args.h6_tau_utility,
         "h6_utility_gain_threshold": args.h6_utility_gain_threshold,
@@ -1550,17 +1644,27 @@ def train_h6_progress1(
             "expert_patch_logit_std_across_experts", "final_expert_mean_hard_cos_mean", "unique_topk_pairs",
         }
         gradient_samples: list[dict[str, torch.Tensor]] = []
+        gradient_surgery_enabled = bool(
+            args.h6_pcgrad_main_factor or args.h6_primary_anchored_factor_surgery
+        )
+        collect_router_gradient_geometry = bool(
+            args.h6_pcgrad_main_factor or args.h6_collect_router_gradient_geometry
+        )
         pcgrad_shared_parameters = (
             [
                 parameter
                 for parameter in h6_drift_parameter_groups(model)["shared_semantic"]
                 if parameter.requires_grad
             ]
-            if args.h6_pcgrad_main_factor else []
+            if gradient_surgery_enabled else []
         )
         pcgrad_main_buffer = [torch.zeros_like(parameter) for parameter in pcgrad_shared_parameters]
         pcgrad_factor_buffer = [torch.zeros_like(parameter) for parameter in pcgrad_shared_parameters]
-        pcgrad_router_buffer = [torch.zeros_like(parameter) for parameter in pcgrad_shared_parameters]
+        # Zero placeholders keep geometry schemas stable when the optional
+        # diagnostics-only router autograd traversal is disabled.
+        pcgrad_router_buffer = [
+            torch.zeros_like(parameter) for parameter in pcgrad_shared_parameters
+        ]
         pcgrad_window_records: list[dict] = []
         pcgrad_window_counts = {
             "normal_patch_count": 0,
@@ -1840,7 +1944,7 @@ def train_h6_progress1(
                             h6_batch["dense_probabilities"], utility_payload
                         )
                     )
-                    if args.h6_pcgrad_main_factor:
+                    if gradient_surgery_enabled:
                         physical_valid = utility_valid
                         physical_anomaly = physical_valid & (y_patch >= 0.5)
                         pcgrad_window_counts["normal_patch_count"] += int(
@@ -2127,17 +2231,15 @@ def train_h6_progress1(
             accumulation_divisor = grad_accum_window_size(
                 batch_idx, epoch_batch_limit, args.grad_accum_steps
             )
-            if args.h6_pcgrad_main_factor:
-                component_losses = (
+            if gradient_surgery_enabled:
+                component_losses = [
                     task_loss,
                     args.lambda_h6_factor * h6_utility_factor,
-                    args.lambda_h6_router * h6_utility_router,
-                )
-                component_buffers = (
-                    pcgrad_main_buffer,
-                    pcgrad_factor_buffer,
-                    pcgrad_router_buffer,
-                )
+                ]
+                component_buffers = [pcgrad_main_buffer, pcgrad_factor_buffer]
+                if collect_router_gradient_geometry:
+                    component_losses.append(args.lambda_h6_router * h6_utility_router)
+                    component_buffers.append(pcgrad_router_buffer)
                 for component_loss, component_buffer in zip(component_losses, component_buffers):
                     component_gradients = torch.autograd.grad(
                         component_loss / accumulation_divisor,
@@ -2297,28 +2399,62 @@ def train_h6_progress1(
             do_step = batch_idx % args.grad_accum_steps == 0 or batch_idx == epoch_batch_limit
             if do_step:
                 scaler.unscale_(optimizer)
-                if args.h6_pcgrad_main_factor:
+                if gradient_surgery_enabled:
                     raw_geometry = _gradient_vector_geometry(
                         pcgrad_main_buffer, pcgrad_factor_buffer, pcgrad_router_buffer
                     )
-                    projected_main, projected_factor, pcgrad_decision = pcgrad_project_two_task(
-                        pcgrad_main_buffer, pcgrad_factor_buffer
-                    )
+                    if args.h6_primary_anchored_factor_surgery:
+                        projected_main, projected_factor, pcgrad_decision = (
+                            primary_anchored_factor_surgery(
+                                pcgrad_main_buffer, pcgrad_factor_buffer
+                            )
+                        )
+                        correction_norm = apply_primary_anchored_factor_correction(
+                            pcgrad_shared_parameters,
+                            pcgrad_factor_buffer,
+                            projected_factor,
+                        )
+                        pcgrad_decision.update({
+                            "factor_correction_norm": correction_norm,
+                            "correction_reconstruction_error_norm": abs(
+                                correction_norm
+                                - pcgrad_decision["removed_factor_component_norm"]
+                            ),
+                            "router_gradient_projected": False,
+                        })
+                        artifact_name = "primary_anchored_factor_surgery_windows.json"
+                        formula = (
+                            "main-preserving auxiliary projection on accumulated "
+                            "main/factor shared-semantic gradients"
+                        )
+                        decision_key = "primary_anchored_factor_surgery"
+                    else:
+                        projected_main, projected_factor, pcgrad_decision = (
+                            pcgrad_project_two_task(
+                                pcgrad_main_buffer, pcgrad_factor_buffer
+                            )
+                        )
+                        for parameter, raw_main, raw_factor, new_main, new_factor in zip(
+                            pcgrad_shared_parameters,
+                            pcgrad_main_buffer,
+                            pcgrad_factor_buffer,
+                            projected_main,
+                            projected_factor,
+                        ):
+                            correction = (new_main + new_factor) - (raw_main + raw_factor)
+                            if parameter.grad is None:
+                                parameter.grad = correction.clone()
+                            else:
+                                parameter.grad.add_(correction.to(parameter.grad))
+                        artifact_name = "pcgrad_windows.json"
+                        formula = (
+                            "two-objective symmetric PCGrad on accumulated "
+                            "main/factor shared-semantic gradients"
+                        )
+                        decision_key = "pcgrad"
                     projected_geometry = _gradient_vector_geometry(
                         projected_main, projected_factor, pcgrad_router_buffer
                     )
-                    for parameter, raw_main, raw_factor, new_main, new_factor in zip(
-                        pcgrad_shared_parameters,
-                        pcgrad_main_buffer,
-                        pcgrad_factor_buffer,
-                        projected_main,
-                        projected_factor,
-                    ):
-                        correction = (new_main + new_factor) - (raw_main + raw_factor)
-                        if parameter.grad is None:
-                            parameter.grad = correction.clone()
-                        else:
-                            parameter.grad.add_(correction.to(parameter.grad))
                     valid_count = pcgrad_window_counts["valid_patch_count"]
                     valid_group_count = pcgrad_window_counts["valid_group_patch_count"]
                     microbatch_count = max(1, pcgrad_window_counts["microbatch_count"])
@@ -2345,14 +2481,23 @@ def train_h6_progress1(
                             "router": pcgrad_window_counts["router_loss_sum"] / microbatch_count,
                         },
                         "raw_weighted_geometry": raw_geometry,
-                        "pcgrad": pcgrad_decision,
-                        "projected_weighted_geometry": projected_geometry,
+                        decision_key: pcgrad_decision,
+                        "safe_weighted_geometry": projected_geometry,
                     })
                     write_json_atomic(
-                        Path(args.save_path) / "optimizer_windows" / "pcgrad_windows.json",
+                        Path(args.save_path) / "optimizer_windows" / artifact_name,
                         {
-                            "formula": "two-objective symmetric PCGrad on accumulated main/factor shared-semantic gradients",
-                            "router": "support-normalized fixed-lambda gradient tracked but not projected",
+                            "formula": formula,
+                            "main_gradient_policy": (
+                                "exactly preserved"
+                                if args.h6_primary_anchored_factor_surgery
+                                else "symmetric PCGrad projection"
+                            ),
+                            "router": (
+                                "support-normalized fixed-lambda gradient tracked but not projected"
+                                if collect_router_gradient_geometry
+                                else "support-normalized fixed-lambda gradient not isolated and not projected"
+                            ),
                             "lambda_factor": args.lambda_h6_factor,
                             "lambda_router": args.lambda_h6_router,
                             "factor_effective_beta": args.h6_utility_factor_effective_beta,
@@ -3406,6 +3551,21 @@ def main():
         "--h6_pcgrad_main_factor", action=argparse.BooleanOptionalAction, default=False,
         help="Apply two-objective PCGrad to accumulated main/factor shared-semantic gradients.",
     )
+    parser.add_argument(
+        "--h6_primary_anchored_factor_surgery",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help=(
+            "Project only the conflicting auxiliary factor component while preserving "
+            "the accumulated primary shared-semantic gradient exactly."
+        ),
+    )
+    parser.add_argument(
+        "--h6_collect_router_gradient_geometry",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Diagnostics only: collect isolated router shared-gradient geometry.",
+    )
     parser.add_argument("--h6_utility_denominator_floor", type=float, default=0.10)
     parser.add_argument("--h6_tau_utility", type=float, default=0.05)
     parser.add_argument("--h6_utility_gain_threshold", type=float, default=0.02)
@@ -3640,8 +3800,26 @@ def main():
                 0.0 < args.h6_utility_factor_effective_beta < 1.0
             ):
                 raise ValueError("--h6_utility_factor_effective_beta must be in (0, 1)")
-            if args.h6_pcgrad_main_factor and args.h6_utility_factor_effective_beta is None:
-                raise ValueError("P1-v8.3 PCGrad requires the audited effective-number factor loss")
+            if args.h6_pcgrad_main_factor and args.h6_primary_anchored_factor_surgery:
+                raise ValueError(
+                    "symmetric PCGrad and primary-anchored factor surgery are mutually exclusive"
+                )
+            if (
+                args.h6_pcgrad_main_factor or args.h6_primary_anchored_factor_surgery
+            ) and args.h6_utility_factor_effective_beta is None:
+                raise ValueError(
+                    "P1-v8.3 gradient surgery requires the audited effective-number factor loss"
+                )
+            if (
+                args.h6_collect_router_gradient_geometry
+                and not (
+                    args.h6_pcgrad_main_factor
+                    or args.h6_primary_anchored_factor_surgery
+                )
+            ):
+                raise ValueError(
+                    "router gradient geometry requires an enabled main/factor surgery mode"
+                )
             if (
                 args.h6_exploration_total_epochs is not None
                 and args.h6_exploration_total_epochs < args.epoch
@@ -3876,7 +4054,10 @@ def main():
                     and abs(args.h6_utility_factor_effective_beta - 0.999) <= 1e-12
                 ),
                 "router_support_normalized": bool(args.h6_router_support_normalized),
-                "pcgrad_main_factor": bool(args.h6_pcgrad_main_factor),
+                "primary_anchored_factor_surgery": bool(
+                    args.h6_primary_anchored_factor_surgery
+                ),
+                "pcgrad_main_factor_off": not bool(args.h6_pcgrad_main_factor),
             }
             failed_contracts = [name for name, passed in contract_checks.items() if not passed]
             model_preflight = {

@@ -44,7 +44,10 @@ def validate_final_checkpoint_payload(checkpoint: Mapping[str, Any]) -> dict[str
         "router_support_normalized": (
             h6_config.get("utility_router_support_normalized"), True
         ),
-        "pcgrad_main_factor": (h6_config.get("pcgrad_main_factor"), True),
+        "pcgrad_main_factor": (h6_config.get("pcgrad_main_factor"), False),
+        "primary_anchored_factor_surgery": (
+            h6_config.get("primary_anchored_factor_surgery"), True
+        ),
         "lambda_factor": (h6_config.get("utility_factor_weight"), 0.03),
         "lambda_router": (h6_config.get("utility_router_weight"), 0.10),
     }

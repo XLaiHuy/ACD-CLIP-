@@ -205,6 +205,12 @@ def build_phase4_checkpoint(
             "h6_router_support_normalized", False
         ),
         "pcgrad_main_factor": phase2b_config.get("h6_pcgrad_main_factor", False),
+        "primary_anchored_factor_surgery": phase2b_config.get(
+            "h6_primary_anchored_factor_surgery", False
+        ),
+        "collect_router_gradient_geometry": phase2b_config.get(
+            "h6_collect_router_gradient_geometry", False
+        ),
         "router_teacher_enabled": float(loss_weights.get("router_teacher", 0.0)) > 0.0,
         "router_teacher_temperature": loss_weights.get("router_teacher_temperature"),
         "router_teacher_start_epoch": loss_weights.get("router_teacher_start_epoch"),

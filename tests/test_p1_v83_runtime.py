@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import random
 from types import SimpleNamespace
 
@@ -265,7 +266,9 @@ def test_v83_checkpoint_metadata_and_geometry_roundtrip():
             "lambda_h6_router": 0.10,
             "h6_utility_factor_effective_beta": 0.999,
             "h6_router_support_normalized": True,
-            "h6_pcgrad_main_factor": True,
+            "h6_pcgrad_main_factor": False,
+            "h6_primary_anchored_factor_surgery": True,
+            "h6_collect_router_gradient_geometry": False,
         }, loss_weights={
             "balance": 0.0,
             "center": 0.0,
@@ -289,5 +292,11 @@ def test_v83_checkpoint_metadata_and_geometry_roundtrip():
     assert payload["h6_config"]["local_factor_mode"] == "center_spread"
     assert payload["h6_config"]["local_center_mix"] == pytest.approx(0.05)
     assert payload["h6_config"]["local_factor_spread"] == pytest.approx(0.10)
+    assert payload["h6_config"]["primary_anchored_factor_surgery"] is True
+    assert payload["h6_config"]["pcgrad_main_factor"] is False
     validate_h6_configuration(model, payload)
     assert validate_final_checkpoint_payload(payload)["status"] == "PASS"
+    legacy_symmetric = copy.deepcopy(payload)
+    legacy_symmetric["h6_config"].pop("primary_anchored_factor_surgery")
+    legacy_symmetric["h6_config"]["pcgrad_main_factor"] = True
+    validate_h6_configuration(model, legacy_symmetric)

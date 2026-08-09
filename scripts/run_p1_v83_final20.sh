@@ -34,7 +34,7 @@ CMD=(
   --lambda_h6_func_div 0 --lambda_h6_router_teacher 0 --h6_lambda_cluster_resp 0
   --lambda_h6_factor 0.03 --lambda_h6_router 0.10
   --h6_utility_factor_effective_beta 0.999 --h6_router_support_normalized
-  --h6_pcgrad_main_factor
+  --h6_primary_anchored_factor_surgery
   --h6_utility_denominator_floor 0.10 --h6_tau_utility 0.05
   --h6_utility_gain_threshold 0.02 --h6_utility_entropy_threshold 0.98
   --h6_exploration_start 0.15 --h6_exploration_end 0.05

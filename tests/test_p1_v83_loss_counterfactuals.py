@@ -4,7 +4,11 @@ from model.h6.utility_routing import (
     effective_number_utility_factor_loss,
     support_normalized_utility_router_loss,
 )
-from train import pcgrad_project_two_task
+from train import (
+    apply_primary_anchored_factor_correction,
+    pcgrad_project_two_task,
+    primary_anchored_factor_surgery,
+)
 
 
 def _payload(losses, valid, informative=None):
@@ -107,3 +111,88 @@ def test_pcgrad_conflicting_gradients_are_projected_without_nan():
     assert torch.dot(projected_main[0], factor[0]).abs().item() < 1e-7
     assert torch.dot(projected_factor[0], main[0]).abs().item() < 1e-7
     assert all(torch.isfinite(value).all() for value in projected_main + projected_factor)
+
+
+def test_primary_anchored_aligned_gradients_are_unchanged():
+    main = [torch.tensor([1.0, 0.0])]
+    factor = [torch.tensor([2.0, 1.0])]
+    safe_main, safe_factor, report = primary_anchored_factor_surgery(main, factor)
+    assert not report["conflict"]
+    assert torch.equal(safe_main[0], main[0])
+    assert torch.equal(safe_factor[0], factor[0])
+    assert report["main_gradient_exact_change_norm"] == 0.0
+
+
+def test_primary_anchored_conflict_preserves_main_and_projects_only_factor():
+    main = [torch.tensor([1.0, 0.0])]
+    factor = [torch.tensor([-1.0, 1.0])]
+    safe_main, safe_factor, report = primary_anchored_factor_surgery(main, factor)
+    assert report["conflict"]
+    assert torch.equal(safe_main[0], main[0])
+    assert torch.dot(main[0], safe_factor[0]).abs().item() < 1e-7
+    assert torch.equal(safe_factor[0], torch.tensor([0.0, 1.0]))
+    assert report["main_gradient_exact_change_norm"] == 0.0
+    assert report["removed_factor_component_norm"] == 1.0
+
+
+def test_primary_anchored_zero_norms_are_finite_and_unchanged():
+    for main, factor in (
+        ([torch.zeros(2)], [torch.tensor([-1.0, 1.0])]),
+        ([torch.tensor([1.0, 0.0])], [torch.zeros(2)]),
+    ):
+        safe_main, safe_factor, report = primary_anchored_factor_surgery(main, factor)
+        assert not report["conflict"]
+        assert torch.equal(safe_main[0], main[0])
+        assert torch.equal(safe_factor[0], factor[0])
+        assert torch.isfinite(safe_main[0]).all()
+        assert torch.isfinite(safe_factor[0]).all()
+
+
+def test_primary_anchored_uses_one_vector_group_dot_across_tensors():
+    main = [torch.tensor([1.0]), torch.tensor([1.0])]
+    factor = [torch.tensor([-2.0]), torch.tensor([1.0])]
+    _, safe_factor, report = primary_anchored_factor_surgery(main, factor)
+    assert report["conflict"]
+    assert torch.allclose(safe_factor[0], torch.tensor([-1.5]))
+    assert torch.allclose(safe_factor[1], torch.tensor([1.5]))
+    assert abs(sum(torch.dot(m, f) for m, f in zip(main, safe_factor)).item()) < 1e-7
+
+
+def test_primary_anchored_accum6_matches_window_level_formula():
+    main_microbatches = [torch.tensor([float(i), 1.0]) for i in range(1, 7)]
+    factor_microbatches = [torch.tensor([-2.0 * i, 0.5]) for i in range(1, 7)]
+    accumulated_main = [sum(main_microbatches) / 6.0]
+    accumulated_factor = [sum(factor_microbatches) / 6.0]
+    _, expected_factor, _ = primary_anchored_factor_surgery(
+        accumulated_main, accumulated_factor
+    )
+    window_main = [torch.zeros(2)]
+    window_factor = [torch.zeros(2)]
+    for main, factor in zip(main_microbatches, factor_microbatches):
+        window_main[0].add_(main / 6.0)
+        window_factor[0].add_(factor / 6.0)
+    safe_main, actual_factor, _ = primary_anchored_factor_surgery(
+        window_main, window_factor
+    )
+    assert torch.allclose(safe_main[0], accumulated_main[0])
+    assert torch.allclose(actual_factor[0], expected_factor[0])
+
+
+def test_primary_anchored_correction_leaves_nonshared_and_router_gradients_unchanged():
+    shared = torch.nn.Parameter(torch.tensor([0.0, 0.0]))
+    nonshared = torch.nn.Parameter(torch.tensor([0.0]))
+    router = torch.nn.Parameter(torch.tensor([0.0]))
+    shared.grad = torch.tensor([3.0, 4.0])
+    nonshared.grad = torch.tensor([5.0])
+    router.grad = torch.tensor([6.0])
+    nonshared_before = nonshared.grad.clone()
+    router_before = router.grad.clone()
+    raw_factor = [torch.tensor([-1.0, 1.0])]
+    safe_factor = [torch.tensor([0.0, 1.0])]
+    correction_norm = apply_primary_anchored_factor_correction(
+        [shared], raw_factor, safe_factor
+    )
+    assert torch.equal(shared.grad, torch.tensor([4.0, 4.0]))
+    assert torch.equal(nonshared.grad, nonshared_before)
+    assert torch.equal(router.grad, router_before)
+    assert correction_norm == 1.0
