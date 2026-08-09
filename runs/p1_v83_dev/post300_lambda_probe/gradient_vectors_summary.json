@@ -1,0 +1,611 @@
+{
+  "aggregate_definition": "mean loss and mean component gradient across the frozen selected batches",
+  "groups": {
+    "router_query_key": {
+      "cos_factor_router": null,
+      "cos_main_factor": null,
+      "cos_main_router": -0.5053171515464783,
+      "current_010_010": {
+        "combined_aux_to_main": 108.48345184326172,
+        "cos_factor_router": null,
+        "cos_main_combined_aux": -0.5053173899650574,
+        "cos_main_factor": null,
+        "cos_main_router": -0.5053171515464783,
+        "factor_weighted_to_main": 0.0,
+        "router_weighted_to_main": 108.48345184326172
+      },
+      "factor_raw_norm": 0.0,
+      "main_norm": 0.00015386279847007245,
+      "parameter_count": 465920,
+      "router_raw_norm": 0.16691575944423676
+    },
+    "router_specific": {
+      "cos_factor_router": null,
+      "cos_main_factor": null,
+      "cos_main_router": -0.5053171515464783,
+      "current_010_010": {
+        "combined_aux_to_main": 108.48345184326172,
+        "cos_factor_router": null,
+        "cos_main_combined_aux": -0.5053173899650574,
+        "cos_main_factor": null,
+        "cos_main_router": -0.5053171515464783,
+        "factor_weighted_to_main": 0.0,
+        "router_weighted_to_main": 108.48345184326172
+      },
+      "factor_raw_norm": 0.0,
+      "main_norm": 0.00015386279847007245,
+      "parameter_count": 465920,
+      "router_raw_norm": 0.16691575944423676
+    },
+    "shared_semantic": {
+      "cos_factor_router": 0.0,
+      "cos_main_factor": -0.9003864526748657,
+      "cos_main_router": -0.0015447899932041764,
+      "current_010_010": {
+        "combined_aux_to_main": 2.403752088546753,
+        "cos_factor_router": 0.0,
+        "cos_main_combined_aux": -0.8322378993034363,
+        "cos_main_factor": -0.9003864526748657,
+        "cos_main_router": -0.0015447899932041764,
+        "factor_weighted_to_main": 2.2202353477478027,
+        "router_weighted_to_main": 0.921200692653656
+      },
+      "factor_raw_norm": 0.014996596612036228,
+      "main_norm": 0.0006754506612196565,
+      "parameter_count": 658433,
+      "router_raw_norm": 0.006222255062311888
+    },
+    "state_prototype": {
+      "cos_factor_router": 0.0005174977704882622,
+      "cos_main_factor": -0.8703014850616455,
+      "cos_main_router": -0.005267077125608921,
+      "current_010_010": {
+        "combined_aux_to_main": 3.418241500854492,
+        "cos_factor_router": 0.0005174977704882622,
+        "cos_main_combined_aux": -0.5859199166297913,
+        "cos_main_factor": -0.8703014850616455,
+        "cos_main_router": -0.005267077125608921,
+        "factor_weighted_to_main": 2.2859787940979004,
+        "router_weighted_to_main": 2.541388750076294
+      },
+      "factor_raw_norm": 0.016630085185170174,
+      "main_norm": 0.0007275042589753866,
+      "parameter_count": 2435072,
+      "router_raw_norm": 0.01848871074616909
+    },
+    "text_lora": {
+      "cos_factor_router": null,
+      "cos_main_factor": -0.011774031445384026,
+      "cos_main_router": null,
+      "current_010_010": {
+        "combined_aux_to_main": 0.023736782371997833,
+        "cos_factor_router": null,
+        "cos_main_combined_aux": -0.011774033308029175,
+        "cos_main_factor": -0.011774031445384026,
+        "cos_main_router": null,
+        "factor_weighted_to_main": 0.023736782371997833,
+        "router_weighted_to_main": 0.0
+      },
+      "factor_raw_norm": 0.039160557091236115,
+      "main_norm": 0.16497838497161865,
+      "parameter_count": 80640,
+      "router_raw_norm": 0.0
+    },
+    "vae_class": {
+      "cos_factor_router": null,
+      "cos_main_factor": -0.8711212873458862,
+      "cos_main_router": null,
+      "current_010_010": {
+        "combined_aux_to_main": 2.35671329498291,
+        "cos_factor_router": null,
+        "cos_main_combined_aux": -0.8711211085319519,
+        "cos_main_factor": -0.8711212873458862,
+        "cos_main_router": null,
+        "factor_weighted_to_main": 2.35671329498291,
+        "router_weighted_to_main": 0.0
+      },
+      "factor_raw_norm": 0.010155446827411652,
+      "main_norm": 0.0004309157666284591,
+      "parameter_count": 3544321,
+      "router_raw_norm": 0.0
+    }
+  },
+  "losses": {
+    "main": {
+      "lambda": 1.0,
+      "raw": 1.6550007661183674,
+      "weighted": 1.6550007661183674
+    },
+    "utility_factor": {
+      "lambda": 0.1,
+      "raw": 0.5195260929564635,
+      "weighted": 0.05195260929564635
+    },
+    "utility_router": {
+      "lambda": 0.1,
+      "raw": 1.3633170922597249,
+      "weighted": 0.13633170922597249
+    }
+  },
+  "per_batch": [
+    {
+      "groups": {
+        "router_query_key": {
+          "current_010_010": {
+            "combined_aux_to_main": 169.4034881591797,
+            "cos_factor_router": null,
+            "cos_main_combined_aux": 0.0017573051154613495,
+            "cos_main_factor": null,
+            "cos_main_router": 0.0017572661163285375,
+            "factor_weighted_to_main": 0.0,
+            "router_weighted_to_main": 169.4034881591797
+          },
+          "factor_raw_norm": 0.0,
+          "main_norm": 0.00010912888683378696,
+          "router_raw_norm": 0.18486809730529785
+        },
+        "router_specific": {
+          "current_010_010": {
+            "combined_aux_to_main": 169.4034881591797,
+            "cos_factor_router": null,
+            "cos_main_combined_aux": 0.0017573051154613495,
+            "cos_main_factor": null,
+            "cos_main_router": 0.0017572661163285375,
+            "factor_weighted_to_main": 0.0,
+            "router_weighted_to_main": 169.4034881591797
+          },
+          "factor_raw_norm": 0.0,
+          "main_norm": 0.00010912888683378696,
+          "router_raw_norm": 0.18486809730529785
+        },
+        "shared_semantic": {
+          "current_010_010": {
+            "combined_aux_to_main": 0.4644196629524231,
+            "cos_factor_router": 0.0,
+            "cos_main_combined_aux": 0.4948461353778839,
+            "cos_main_factor": 0.9989433884620667,
+            "cos_main_router": 0.0015859089326113462,
+            "factor_weighted_to_main": 0.22941799461841583,
+            "router_weighted_to_main": 0.4037981629371643
+          },
+          "factor_raw_norm": 0.003951395861804485,
+          "main_norm": 0.0017223544418811798,
+          "router_raw_norm": 0.006954831536859274
+        },
+        "state_prototype": {
+          "current_010_010": {
+            "combined_aux_to_main": 1.1015030145645142,
+            "cos_factor_router": -0.0053130853921175,
+            "cos_main_combined_aux": 0.20865453779697418,
+            "cos_main_factor": 0.9990382790565491,
+            "cos_main_router": 0.00017862996901385486,
+            "factor_weighted_to_main": 0.22987283766269684,
+            "router_weighted_to_main": 1.0790802240371704
+          },
+          "factor_raw_norm": 0.004429990891367197,
+          "main_norm": 0.0019272391218692064,
+          "router_raw_norm": 0.020796453580260277
+        },
+        "text_lora": {
+          "current_010_010": {
+            "combined_aux_to_main": 0.002456946298480034,
+            "cos_factor_router": null,
+            "cos_main_combined_aux": -0.5246226787567139,
+            "cos_main_factor": -0.524621844291687,
+            "cos_main_router": null,
+            "factor_weighted_to_main": 0.002456946298480034,
+            "router_weighted_to_main": 0.0
+          },
+          "factor_raw_norm": 0.007517507299780846,
+          "main_norm": 0.3059690296649933,
+          "router_raw_norm": 0.0
+        },
+        "vae_class": {
+          "current_010_010": {
+            "combined_aux_to_main": 0.22936615347862244,
+            "cos_factor_router": null,
+            "cos_main_combined_aux": 0.9986879825592041,
+            "cos_main_factor": 0.9986885786056519,
+            "cos_main_router": null,
+            "factor_weighted_to_main": 0.22936615347862244,
+            "router_weighted_to_main": 0.0
+          },
+          "factor_raw_norm": 0.0025386912748217583,
+          "main_norm": 0.0011068297317251563,
+          "router_raw_norm": 0.0
+        }
+      },
+      "losses": {
+        "anomaly_patch_count_group_expanded": 0,
+        "epsilon": 0.15,
+        "factor_loss_raw": 0.018396766856312752,
+        "informative_fraction": 0.043827611953020096,
+        "informative_patch_count_group_expanded": 180,
+        "normal_patch_count_group_expanded": 4107,
+        "router_loss_raw": 1.3610472679138184,
+        "router_utility_active": true,
+        "task_loss": 1.819045066833496,
+        "valid_patch_count_group_expanded": 4107
+      },
+      "sample": {
+        "anomaly_patch_count_group_expanded": 0,
+        "augmentation_seed": 8303001,
+        "class_name": "pcb3",
+        "dataset_index": 410,
+        "epsilon": 0.15,
+        "factor_loss_raw": 0.018396766856312752,
+        "file_name": "pcb3/Data/Images/Normal/0423.JPG",
+        "informative_fraction": 0.043827611953020096,
+        "informative_patch_count_group_expanded": 180,
+        "label": 0,
+        "normal_patch_count_group_expanded": 4107,
+        "router_loss_raw": 1.3610472679138184,
+        "router_utility_active": true,
+        "scan_position": 1,
+        "task_loss": 1.819045066833496,
+        "valid_patch_count_group_expanded": 4107
+      },
+      "selected_index": 0
+    },
+    {
+      "groups": {
+        "router_query_key": {
+          "current_010_010": {
+            "combined_aux_to_main": 203.5364227294922,
+            "cos_factor_router": null,
+            "cos_main_combined_aux": -0.06502414494752884,
+            "cos_main_factor": null,
+            "cos_main_router": -0.06502416729927063,
+            "factor_weighted_to_main": 0.0,
+            "router_weighted_to_main": 203.5364227294922
+          },
+          "factor_raw_norm": 0.0,
+          "main_norm": 7.36583533580415e-05,
+          "router_raw_norm": 0.14992162585258484
+        },
+        "router_specific": {
+          "current_010_010": {
+            "combined_aux_to_main": 203.5364227294922,
+            "cos_factor_router": null,
+            "cos_main_combined_aux": -0.06502414494752884,
+            "cos_main_factor": null,
+            "cos_main_router": -0.06502416729927063,
+            "factor_weighted_to_main": 0.0,
+            "router_weighted_to_main": 203.5364227294922
+          },
+          "factor_raw_norm": 0.0,
+          "main_norm": 7.36583533580415e-05,
+          "router_raw_norm": 0.14992162585258484
+        },
+        "shared_semantic": {
+          "current_010_010": {
+            "combined_aux_to_main": 0.8077049851417542,
+            "cos_factor_router": 0.0,
+            "cos_main_combined_aux": 0.27084803581237793,
+            "cos_main_factor": 0.9971438050270081,
+            "cos_main_router": 0.002008565468713641,
+            "factor_weighted_to_main": 0.21782587468624115,
+            "router_weighted_to_main": 0.7777784466743469
+          },
+          "factor_raw_norm": 0.0016040559858083725,
+          "main_norm": 0.0007363958866335452,
+          "router_raw_norm": 0.005727527663111687
+        },
+        "state_prototype": {
+          "current_010_010": {
+            "combined_aux_to_main": 2.217695474624634,
+            "cos_factor_router": 0.007298578042536974,
+            "cos_main_combined_aux": 0.10942958295345306,
+            "cos_main_factor": 0.9966850280761719,
+            "cos_main_router": 0.012023454532027245,
+            "factor_weighted_to_main": 0.21687909960746765,
+            "router_weighted_to_main": 2.2065508365631104
+          },
+          "factor_raw_norm": 0.001665601972490549,
+          "main_norm": 0.0007680163253098726,
+          "router_raw_norm": 0.016946671530604362
+        },
+        "text_lora": {
+          "current_010_010": {
+            "combined_aux_to_main": 0.0012280622031539679,
+            "cos_factor_router": null,
+            "cos_main_combined_aux": 0.7983033657073975,
+            "cos_main_factor": 0.7983027696609497,
+            "cos_main_router": null,
+            "factor_weighted_to_main": 0.0012280622031539679,
+            "router_weighted_to_main": 0.0
+          },
+          "factor_raw_norm": 0.0053726439364254475,
+          "main_norm": 0.43748924136161804,
+          "router_raw_norm": 0.0
+        },
+        "vae_class": {
+          "current_010_010": {
+            "combined_aux_to_main": 0.21892230212688446,
+            "cos_factor_router": null,
+            "cos_main_combined_aux": 0.9953790307044983,
+            "cos_main_factor": 0.9953784942626953,
+            "cos_main_router": null,
+            "factor_weighted_to_main": 0.21892230212688446,
+            "router_weighted_to_main": 0.0
+          },
+          "factor_raw_norm": 0.0011366803664714098,
+          "main_norm": 0.0005192161188460886,
+          "router_raw_norm": 0.0
+        }
+      },
+      "losses": {
+        "anomaly_patch_count_group_expanded": 0,
+        "epsilon": 0.15,
+        "factor_loss_raw": 0.013476604595780373,
+        "informative_fraction": 0.0005947070894762874,
+        "informative_patch_count_group_expanded": 2,
+        "normal_patch_count_group_expanded": 3363,
+        "router_loss_raw": 1.3634624481201172,
+        "router_utility_active": true,
+        "task_loss": 1.5469624996185303,
+        "valid_patch_count_group_expanded": 3363
+      },
+      "sample": {
+        "anomaly_patch_count_group_expanded": 0,
+        "augmentation_seed": 8303002,
+        "class_name": "cashew",
+        "dataset_index": 287,
+        "epsilon": 0.15,
+        "factor_loss_raw": 0.013476604595780373,
+        "file_name": "cashew/Data/Images/Anomaly/057.JPG",
+        "informative_fraction": 0.0005947070894762874,
+        "informative_patch_count_group_expanded": 2,
+        "label": 1,
+        "normal_patch_count_group_expanded": 3363,
+        "router_loss_raw": 1.3634624481201172,
+        "router_utility_active": true,
+        "scan_position": 2,
+        "task_loss": 1.5469624996185303,
+        "valid_patch_count_group_expanded": 3363
+      },
+      "selected_index": 1
+    },
+    {
+      "groups": {
+        "router_query_key": {
+          "current_010_010": {
+            "combined_aux_to_main": 50.288509368896484,
+            "cos_factor_router": null,
+            "cos_main_combined_aux": -0.5903640389442444,
+            "cos_main_factor": null,
+            "cos_main_router": -0.5903640985488892,
+            "factor_weighted_to_main": 0.0,
+            "router_weighted_to_main": 50.288509368896484
+          },
+          "factor_raw_norm": 0.0,
+          "main_norm": 0.00035953702172264457,
+          "router_raw_norm": 0.1808057725429535
+        },
+        "router_specific": {
+          "current_010_010": {
+            "combined_aux_to_main": 50.288509368896484,
+            "cos_factor_router": null,
+            "cos_main_combined_aux": -0.5903640389442444,
+            "cos_main_factor": null,
+            "cos_main_router": -0.5903640985488892,
+            "factor_weighted_to_main": 0.0,
+            "router_weighted_to_main": 50.288509368896484
+          },
+          "factor_raw_norm": 0.0,
+          "main_norm": 0.00035953702172264457,
+          "router_raw_norm": 0.1808057725429535
+        },
+        "shared_semantic": {
+          "current_010_010": {
+            "combined_aux_to_main": 10.998809814453125,
+            "cos_factor_router": 0.0,
+            "cos_main_combined_aux": 0.8584604859352112,
+            "cos_main_factor": 0.8670976161956787,
+            "cos_main_router": -0.015177682973444462,
+            "factor_weighted_to_main": 10.91323471069336,
+            "router_weighted_to_main": 1.369802474975586
+          },
+          "factor_raw_norm": 0.050018344074487686,
+          "main_norm": 0.00045832779142074287,
+          "router_raw_norm": 0.006278186105191708
+        },
+        "state_prototype": {
+          "current_010_010": {
+            "combined_aux_to_main": 10.971854209899902,
+            "cos_factor_router": 0.0005458386149257421,
+            "cos_main_combined_aux": 0.8173521161079407,
+            "cos_main_factor": 0.8745887875556946,
+            "cos_main_router": -0.0366131067276001,
+            "factor_weighted_to_main": 10.400055885314941,
+            "router_weighted_to_main": 3.4931490421295166
+          },
+          "factor_raw_norm": 0.055243734270334244,
+          "main_norm": 0.0005311876302585006,
+          "router_raw_norm": 0.0185551755130291
+        },
+        "text_lora": {
+          "current_010_010": {
+            "combined_aux_to_main": 0.04154157638549805,
+            "cos_factor_router": null,
+            "cos_main_combined_aux": -0.4955464005470276,
+            "cos_main_factor": -0.4955461025238037,
+            "cos_main_router": null,
+            "factor_weighted_to_main": 0.04154157638549805,
+            "router_weighted_to_main": 0.0
+          },
+          "factor_raw_norm": 0.12457896023988724,
+          "main_norm": 0.2998896837234497,
+          "router_raw_norm": 0.0
+        },
+        "vae_class": {
+          "current_010_010": {
+            "combined_aux_to_main": 10.312836647033691,
+            "cos_factor_router": null,
+            "cos_main_combined_aux": 0.8816433548927307,
+            "cos_main_factor": 0.8816430568695068,
+            "cos_main_router": null,
+            "factor_weighted_to_main": 10.312836647033691,
+            "router_weighted_to_main": 0.0
+          },
+          "factor_raw_norm": 0.033649709075689316,
+          "main_norm": 0.00032628944609314203,
+          "router_raw_norm": 0.0
+        }
+      },
+      "losses": {
+        "anomaly_patch_count_group_expanded": 12,
+        "epsilon": 0.15,
+        "factor_loss_raw": 1.5267049074172974,
+        "informative_fraction": 0.004150702618062496,
+        "informative_patch_count_group_expanded": 13,
+        "normal_patch_count_group_expanded": 3120,
+        "router_loss_raw": 1.3654415607452393,
+        "router_utility_active": true,
+        "task_loss": 1.5989947319030762,
+        "valid_patch_count_group_expanded": 3132
+      },
+      "sample": {
+        "anomaly_patch_count_group_expanded": 12,
+        "augmentation_seed": 8303004,
+        "class_name": "pcb4",
+        "dataset_index": 1447,
+        "epsilon": 0.15,
+        "factor_loss_raw": 1.5267049074172974,
+        "file_name": "pcb4/Data/Images/Anomaly/051.JPG",
+        "informative_fraction": 0.004150702618062496,
+        "informative_patch_count_group_expanded": 13,
+        "label": 1,
+        "normal_patch_count_group_expanded": 3120,
+        "router_loss_raw": 1.3654415607452393,
+        "router_utility_active": true,
+        "scan_position": 4,
+        "task_loss": 1.5989947319030762,
+        "valid_patch_count_group_expanded": 3132
+      },
+      "selected_index": 2
+    }
+  ],
+  "recommended_pair_direct_autograd_validation": {
+    "all_groups_allclose": true,
+    "factor_lambda": 0.03,
+    "per_batch": [
+      {
+        "router_query_key": {
+          "allclose": true,
+          "analytical_norm": 0.001848681247793138,
+          "direct_norm": 0.0018486813642084599,
+          "max_absolute_error": 2.546585164964199e-11
+        },
+        "router_specific": {
+          "allclose": true,
+          "analytical_norm": 0.001848681247793138,
+          "direct_norm": 0.0018486813642084599,
+          "max_absolute_error": 2.546585164964199e-11
+        },
+        "shared_semantic": {
+          "allclose": true,
+          "analytical_norm": 0.00013743735325988382,
+          "direct_norm": 0.00013743745512329042,
+          "max_absolute_error": 4.433786671143025e-12
+        },
+        "state_prototype": {
+          "allclose": true,
+          "analytical_norm": 0.00024612504057586193,
+          "direct_norm": 0.0002461250696796924,
+          "max_absolute_error": 1.8189894035458565e-11
+        },
+        "text_lora": {
+          "allclose": true,
+          "analytical_norm": 0.00022552526206709445,
+          "direct_norm": 0.00022552524751517922,
+          "max_absolute_error": 1.77351466845721e-11
+        },
+        "vae_class": {
+          "allclose": true,
+          "analytical_norm": 7.61607225285843e-05,
+          "direct_norm": 7.616072980454192e-05,
+          "max_absolute_error": 3.865352482534945e-11
+        }
+      },
+      {
+        "router_query_key": {
+          "allclose": true,
+          "analytical_norm": 0.0014992159558460116,
+          "direct_norm": 0.001499215723015368,
+          "max_absolute_error": 2.114575181622058e-11
+        },
+        "router_specific": {
+          "allclose": true,
+          "analytical_norm": 0.0014992159558460116,
+          "direct_norm": 0.001499215723015368,
+          "max_absolute_error": 2.114575181622058e-11
+        },
+        "shared_semantic": {
+          "allclose": true,
+          "analytical_norm": 7.480743079213426e-05,
+          "direct_norm": 7.480743079213426e-05,
+          "max_absolute_error": 1.5347723092418164e-12
+        },
+        "state_prototype": {
+          "allclose": true,
+          "analytical_norm": 0.00017693874542601407,
+          "direct_norm": 0.00017693873087409884,
+          "max_absolute_error": 1.6370904631912708e-11
+        },
+        "text_lora": {
+          "allclose": true,
+          "analytical_norm": 0.00016117941413540393,
+          "direct_norm": 0.00016117938503157347,
+          "max_absolute_error": 8.185452315956354e-12
+        },
+        "vae_class": {
+          "allclose": true,
+          "analytical_norm": 3.4100416087312624e-05,
+          "direct_norm": 3.410041244933382e-05,
+          "max_absolute_error": 1.9554136088117957e-11
+        }
+      },
+      {
+        "router_query_key": {
+          "allclose": true,
+          "analytical_norm": 0.0018080584704875946,
+          "direct_norm": 0.0018080583540722728,
+          "max_absolute_error": 1.2732925824820995e-11
+        },
+        "router_specific": {
+          "allclose": true,
+          "analytical_norm": 0.0018080584704875946,
+          "direct_norm": 0.0018080583540722728,
+          "max_absolute_error": 1.2732925824820995e-11
+        },
+        "shared_semantic": {
+          "allclose": true,
+          "analytical_norm": 0.0015018341364338994,
+          "direct_norm": 0.0015018340200185776,
+          "max_absolute_error": 4.433786671143025e-11
+        },
+        "state_prototype": {
+          "allclose": true,
+          "analytical_norm": 0.0016677374951541424,
+          "direct_norm": 0.0016677379608154297,
+          "max_absolute_error": 1.2732925824820995e-10
+        },
+        "text_lora": {
+          "allclose": true,
+          "analytical_norm": 0.003737369552254677,
+          "direct_norm": 0.0037373690865933895,
+          "max_absolute_error": 2.1827872842550278e-10
+        },
+        "vae_class": {
+          "allclose": true,
+          "analytical_norm": 0.0010094911558553576,
+          "direct_norm": 0.0010094913886860013,
+          "max_absolute_error": 1.1059455573558807e-09
+        }
+      }
+    ],
+    "router_lambda": 0.01
+  },
+  "total_aux_definition": "norm(lambda_factor*g_factor_raw + lambda_router*g_router_raw)"
+}

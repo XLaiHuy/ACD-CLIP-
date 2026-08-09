@@ -1,0 +1,82 @@
+{
+  "audit": "P1_V83_POST300_AUDIT",
+  "baseline_checkpoint": "runs/p1_v83_dev/300batch_specialization_probe/adapter_1.pth",
+  "baseline_commit": "2019e5ada8f30166ab70c8a859de35c487ecc1c1",
+  "repair_commit": "da189e40a9f64c10ddd5b2febbd6240dd4b918b8",
+  "decision": "HARD_STOP",
+  "executed": {
+    "fixed_batch_forward_no_step": true,
+    "lambda_gradient_probe": false,
+    "medical_evaluation": false,
+    "new_300_batch_probe": false,
+    "one_full_epoch": false,
+    "optimizer_steps_in_audit_probe": 0,
+    "final20": false
+  },
+  "findings": {
+    "anomaly_semantics": {
+      "status": "PASS",
+      "trace_count": 12,
+      "conclusion": "No mask, channel, factor, BCE-target, or candidate-sign inversion was found."
+    },
+    "anomaly_behavior": {
+      "status": "FAIL_MODEL_BEHAVIOR",
+      "base_margin_range_on_traced_anomaly_patches": [
+        -4.1819305419921875,
+        -1.6538399457931519
+      ],
+      "factor_evidence_range_on_traced_anomaly_patches": [
+        -3.703317880630493,
+        -0.4242745041847229
+      ],
+      "all_factors_harmful_group_patch_count": 36,
+      "group_patch_count": 36
+    },
+    "normal_anomaly_balance": {
+      "status": "PASS",
+      "conclusion": "Normal and anomaly region means receive equal 0.5 weight whenever both are present."
+    },
+    "epsilon_schedule": {
+      "status": "FAIL_FIXED",
+      "classification": "NONCANONICAL_EARLY_EXPLORATION",
+      "historical_epoch1_value": 0.050000131130218506,
+      "canonical_epoch1_value": 0.15
+    },
+    "gradient_accumulation": {
+      "status": "FAIL_FIXED",
+      "classification": "FINAL_REMAINDER_UNDERWEIGHT_BUG",
+      "historical_300_batch_probe_affected": false,
+      "future_full_epoch_remainder": 2
+    },
+    "gradient_attribution": {
+      "status": "PASS_CLARIFIED",
+      "historical_ratio_basis": "lambda_weighted",
+      "historical_batch300_weighted_total_aux_to_task_ratio": 1.1049953144084825,
+      "inferred_batch300_raw_total_aux_to_task_ratio": 11.049953144084826
+    },
+    "null_gradients": {
+      "status": "PASS",
+      "conclusion": "Persistently null fields are frozen, configuration-disabled, or inactive legacy branches; required active paths are non-null."
+    }
+  },
+  "hard_stops": [
+    "canonical epoch1 epsilon equaled the final-schedule value in the historical diagnostic runner",
+    "the future full-epoch final accumulation remainder was mathematically underweighted"
+  ],
+  "repairs": [
+    "separated diagnostic exploration horizon from diagnostic run length",
+    "rescaled every accumulation window by its actual number of microbatches",
+    "made raw and lambda-weighted gradient norms and ratios explicit"
+  ],
+  "tests": {
+    "focused_suite": "PASS",
+    "focused_suite_count": 34,
+    "source_diff_check": "PASS",
+    "full_worktree_diff_check": "PREEXISTING_UNRELATED_TRAILING_WHITESPACE",
+    "py_compile": "PASS",
+    "shell_syntax": "PASS"
+  },
+  "lambda_recommendation": null,
+  "next_experiment_recommendation": "After reviewing the local repair commit, run the fixed-state no-step lambda gradient grid on adapter_1.pth; do not train or evaluate medical data.",
+  "updated_at": "2026-08-09T15:16:25+07:00"
+}

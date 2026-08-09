@@ -1,0 +1,31 @@
+{
+  "canonical_schedule": {
+    "1": 0.15,
+    "10": 0.10263157894736842,
+    "2": 0.14473684210526316,
+    "20": 0.05,
+    "3": 0.1394736842105263
+  },
+  "checks": {
+    "canonical_epoch1_is_start_value": true,
+    "canonical_epoch20_is_end_value": true,
+    "historical_probe_used_final_schedule_value": true
+  },
+  "classification": "NONCANONICAL_EARLY_EXPLORATION",
+  "hard_stop_triggered": true,
+  "historical_run": {
+    "artifacts_preserved": true,
+    "cause": "diagnostic runner used --epoch 1 as both run length and exploration horizon",
+    "effective_schedule_horizon": 1,
+    "epoch_argument": 1,
+    "expected_canonical_epoch1_epsilon": 0.15,
+    "reported_epsilon": 0.050000131130218506
+  },
+  "repair": {
+    "cli": "--h6_exploration_total_epochs",
+    "diagnostic_runner_default": 20,
+    "final20_default_unchanged": true,
+    "repaired_epoch1_epsilon": 0.15
+  },
+  "status": "FAIL_FIXED"
+}

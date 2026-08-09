@@ -1,0 +1,458 @@
+{
+  "batch": 32,
+  "cluster_diagnostics": {},
+  "cluster_target": null,
+  "consecutive_factor_output_collapse_probes": 0,
+  "delta_t_cosine_offdiag_max": 0.9996327757835388,
+  "delta_t_cosine_offdiag_mean": 0.999226450920105,
+  "delta_t_norm_mean": 0.9963140487670898,
+  "delta_t_norm_min": 0.47398310899734497,
+  "epoch": 1,
+  "factor_outputs_collapsed": false,
+  "factor_patch_logit_max_diff_across_factors": 0.23838116228580475,
+  "factor_patch_logit_std_across_factors": 0.09053955972194672,
+  "loss_cluster_responsibility_raw": 0.0,
+  "loss_cluster_responsibility_weighted": 0.0,
+  "loss_delta_t_diversity_raw": 0.0,
+  "loss_delta_t_diversity_weighted": 0.0,
+  "loss_total": 1.7264338731765747,
+  "router": {
+    "concept_key_cos_max": 0.014007952064275742,
+    "concept_key_cos_mean": -0.006285015493631363,
+    "concept_key_cosine": [
+      [
+        1.0,
+        -0.014007952064275742,
+        -0.006012020632624626,
+        -0.011028878390789032
+      ],
+      [
+        -0.014007952064275742,
+        1.0000001192092896,
+        0.009237741120159626,
+        -0.008924088440835476
+      ],
+      [
+        -0.006012020632624626,
+        0.009237741120159626,
+        1.0000001192092896,
+        -0.006974894553422928
+      ],
+      [
+        -0.011028878390789032,
+        -0.008924088440835476,
+        -0.006974894553422928,
+        1.0
+      ]
+    ],
+    "concept_key_l2_min": 1.4076663255691528,
+    "concept_key_norm": [
+      1.0,
+      0.9999999403953552,
+      1.0,
+      1.0
+    ],
+    "context_angle_change_degrees_max": 0.0,
+    "context_angle_change_degrees_mean": 0.0,
+    "dead_factors": [
+      0,
+      0,
+      0
+    ],
+    "dense_factor_usage": [
+      [
+        0.24932509660720825,
+        0.2456391453742981,
+        0.2526246905326843,
+        0.2524110972881317
+      ],
+      [
+        0.25232547521591187,
+        0.24899373948574066,
+        0.2506391704082489,
+        0.24804167449474335
+      ],
+      [
+        0.25643977522850037,
+        0.24392861127853394,
+        0.24516414105892181,
+        0.2544674873352051
+      ]
+    ],
+    "dense_normalized_entropy": [
+      0.9988828301429749,
+      0.9990221858024597,
+      0.9991282224655151
+    ],
+    "dynamic_mean_anchor_loss_raw": 0.025966361165046692,
+    "dynamic_mean_hard_cos": [
+      [
+        [
+          0.9428554773330688,
+          0.944545328617096
+        ]
+      ],
+      [
+        [
+          0.729461669921875,
+          0.7775452733039856
+        ]
+      ],
+      [
+        [
+          0.443429172039032,
+          0.40005069971084595
+        ]
+      ]
+    ],
+    "dynamic_residual_cos_max": 0.9965147972106934,
+    "dynamic_residual_cos_mean": 0.9952191114425659,
+    "dynamic_residual_l2_min": 0.061771899461746216,
+    "ema_topk_usage": [
+      [
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ],
+      [
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ],
+      [
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ]
+    ],
+    "factor_context_anchor_cos_max": 0.0,
+    "factor_context_anchor_cos_mean": 0.0,
+    "factor_generator_head_delta_norm_mean": 0.0,
+    "factor_generator_id_norm_mean": 0.0,
+    "factor_generator_specialization_enabled": false,
+    "factor_id_max_ratio": 0.05000000074505806,
+    "factor_id_residual_norm_max": 0.0,
+    "factor_id_residual_norm_mean": 0.0,
+    "factor_id_residual_to_context_ratio_max": 0.0,
+    "factor_id_residual_to_context_ratio_mean": 0.0,
+    "factor_id_scale": 0.019999999552965164,
+    "factor_identity_tangent_base_abs_cos_max": 0.0,
+    "factor_identity_tangent_base_abs_cos_mean": 0.0,
+    "factor_identity_tangent_l2_min": 0.0,
+    "factor_identity_tangent_pair_cos_max": 0.0,
+    "factor_identity_tangent_pair_cos_mean": 0.0,
+    "factor_local_dynamic_mix": 0.0,
+    "factor_usage": [
+      [
+        0.24932509660720825,
+        0.2456391453742981,
+        0.2526246905326843,
+        0.2524110972881317
+      ],
+      [
+        0.25232547521591187,
+        0.24899373948574066,
+        0.2506391704082489,
+        0.24804167449474335
+      ],
+      [
+        0.25643977522850037,
+        0.24392861127853394,
+        0.24516414105892181,
+        0.2544674873352051
+      ]
+    ],
+    "final_query_effective_rank": [
+      107.20247650146484,
+      94.29235076904297,
+      80.70503234863281
+    ],
+    "final_query_pairwise_cos_mean": [
+      0.21747250854969025,
+      0.2513996362686157,
+      0.3234161138534546
+    ],
+    "final_query_top1_energy_ratio": [
+      0.18055103719234467,
+      0.2969966530799866,
+      0.536435604095459
+    ],
+    "final_query_variance_across_patches": [
+      0.003054514992982149,
+      0.0029220841825008392,
+      0.002640975173562765
+    ],
+    "final_router_key_cos_max": 0.014007952064275742,
+    "final_router_key_cos_mean": -0.006285015493631363,
+    "final_router_key_l2_min": 1.4076663255691528,
+    "late_factor_identity_enabled": false,
+    "level_input_alias": false,
+    "level_input_difference": 27.47259521484375,
+    "level_logit_difference": 5.532232284545898,
+    "level_query_difference": 45.8523063659668,
+    "load_bias": [
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    ],
+    "local_bypass_norm_mean": 0.2787106931209564,
+    "local_bypass_to_learned_ratio_max": 0.10000001639127731,
+    "local_bypass_to_learned_ratio_mean": 0.10000000894069672,
+    "local_query_pairwise_cos_mean": [
+      0.007374809589236975,
+      0.02529100701212883,
+      0.08272258937358856
+    ],
+    "local_query_variance_across_patches": [
+      0.8866943120956421,
+      0.8401423692703247,
+      0.6132206916809082
+    ],
+    "max_factor_usage": [
+      0.2526246905326843,
+      0.25232547521591187,
+      0.25643977522850037
+    ],
+    "normalized_entropy": [
+      0.9988828301429749,
+      0.9990221858024597,
+      0.9991282224655151
+    ],
+    "per_factor_logit_std_across_patches": [
+      [
+        0.061600685119628906,
+        0.04562530666589737,
+        0.058292537927627563,
+        0.06802792847156525
+      ],
+      [
+        0.06130443140864372,
+        0.04341602325439453,
+        0.06035354733467102,
+        0.051756393164396286
+      ],
+      [
+        0.04792091250419617,
+        0.0552561990916729,
+        0.05227915942668915,
+        0.0409153588116169
+      ]
+    ],
+    "prediction_factor_usage": [
+      [
+        0.24932509660720825,
+        0.2456391453742981,
+        0.2526246905326843,
+        0.2524110972881317
+      ],
+      [
+        0.25232547521591187,
+        0.24899373948574066,
+        0.2506391704082489,
+        0.24804167449474335
+      ],
+      [
+        0.25643977522850037,
+        0.24392861127853394,
+        0.24516414105892181,
+        0.2544674873352051
+      ]
+    ],
+    "prediction_normalized_entropy": [
+      0.9988828301429749,
+      0.9990221858024597,
+      0.9991282224655151
+    ],
+    "query_effective_rank": [
+      107.20247650146484,
+      94.29235076904297,
+      80.70503234863281
+    ],
+    "query_norm": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "query_pairwise_cos_max_across_patches": [
+      0.9975538849830627,
+      0.9992253184318542,
+      0.9996978044509888
+    ],
+    "query_pairwise_cos_mean_across_patches": [
+      0.21747250854969025,
+      0.2513996362686157,
+      0.3234161138534546
+    ],
+    "query_singular_value_ratio": [
+      0.18055103719234467,
+      0.2969966530799866,
+      0.536435604095459
+    ],
+    "query_variance": [
+      0.0038997898809611797,
+      0.0039061307907104492,
+      0.0039014273788779974
+    ],
+    "query_variance_across_patches": [
+      0.003054514992982149,
+      0.0029220841825008392,
+      0.002640975173562765
+    ],
+    "raw_concept_key_cos_max": 0.10871685296297073,
+    "raw_concept_key_cos_mean": 0.03552005812525749,
+    "raw_concept_key_l2_min": 0.4341086745262146,
+    "raw_query_pairwise_cos_mean": [
+      0.9990136027336121,
+      0.999275267124176,
+      0.9997135996818542
+    ],
+    "raw_query_variance_across_patches": [
+      2.682105332496576e-06,
+      1.9689518921950366e-06,
+      7.757481625958462e-07
+    ],
+    "router_key_adaptation_ratio_max": 0.10000000149011612,
+    "router_key_adaptation_ratio_mean": 0.10000000149011612,
+    "router_logit_std": [
+      0.0599764883518219,
+      0.055040132254362106,
+      0.05422908067703247
+    ],
+    "router_patch_count": 1369,
+    "router_prob_std": [
+      0.01392111461609602,
+      0.013032892718911171,
+      0.012264800257980824
+    ],
+    "router_softmax_dim": 3,
+    "router_topk_dim": 3,
+    "selected_topk_frequency": [
+      [
+        0.2436084896326065,
+        0.17932797968387604,
+        0.29693207144737244,
+        0.2801314890384674
+      ],
+      [
+        0.26260045170783997,
+        0.25383493304252625,
+        0.2509130835533142,
+        0.23265157639980316
+      ],
+      [
+        0.3816654682159424,
+        0.07450694590806961,
+        0.1848064363002777,
+        0.3590211868286133
+      ]
+    ],
+    "slot_initial_cos_max": 0.10911224037408829,
+    "slot_initial_cos_mean": 0.050092052668333054,
+    "slot_initial_l2_min": 0.42254430055618286,
+    "slot_residual_norm": [
+      0.3096476197242737,
+      0.3447999954223633,
+      0.32327479124069214,
+      0.3145217299461365
+    ],
+    "slot_storage_offsets": [
+      0,
+      256,
+      512,
+      768
+    ],
+    "sparse_factor_usage": [
+      [
+        0.2440895438194275,
+        0.17576651275157928,
+        0.29673880338668823,
+        0.2834051847457886
+      ],
+      [
+        0.2666388750076294,
+        0.2498314380645752,
+        0.2527024447917938,
+        0.23082731664180756
+      ],
+      [
+        0.3827671408653259,
+        0.07395315915346146,
+        0.18616430461406708,
+        0.35711538791656494
+      ]
+    ],
+    "sparse_normalized_entropy": [
+      0.49965590238571167,
+      0.4997018277645111,
+      0.4998388886451721
+    ],
+    "sparse_ratio": 0.0,
+    "stage_abnormal_queries_cos_max": 0.11775147914886475,
+    "stage_abnormal_queries_cos_mean": 0.028460364788770676,
+    "stage_abnormal_queries_l2_min": 0.419196218252182,
+    "stage_concept_keys_cos_max": 0.10871685296297073,
+    "stage_concept_keys_cos_mean": 0.03552005812525749,
+    "stage_concept_keys_l2_min": 0.4341086745262146,
+    "stage_concept_slots_cos_max": 0.10911224037408829,
+    "stage_concept_slots_cos_mean": 0.050092052668333054,
+    "stage_concept_slots_l2_min": 0.42254430055618286,
+    "stage_context_before_encoder_cos_max": 0.9998326301574707,
+    "stage_context_before_encoder_cos_mean": 0.9998173713684082,
+    "stage_context_before_encoder_l2_min": 0.018164120614528656,
+    "stage_dynamic_text_norm_cos_max": 0.9996922016143799,
+    "stage_dynamic_text_norm_cos_mean": 0.9995988607406616,
+    "stage_dynamic_text_norm_l2_min": 0.06077411398291588,
+    "stage_dynamic_text_raw_cos_max": 0.9996921420097351,
+    "stage_dynamic_text_raw_cos_mean": 0.9995988607406616,
+    "stage_dynamic_text_raw_l2_min": 1.682544469833374,
+    "stage_normal_queries_cos_max": 0.0921294242143631,
+    "stage_normal_queries_cos_mean": 0.031179066747426987,
+    "stage_normal_queries_l2_min": 0.4384118616580963,
+    "stage_prototype_abnormal_cos_max": 0.9915516376495361,
+    "stage_prototype_abnormal_cos_mean": 0.990503191947937,
+    "stage_prototype_abnormal_l2_min": 0.41960227489471436,
+    "stage_prototype_normal_cos_max": 0.9906843304634094,
+    "stage_prototype_normal_cos_mean": 0.9896782636642456,
+    "stage_prototype_normal_l2_min": 0.43986672163009644,
+    "stage_state_to_context_norm_cos_max": 0.9917516112327576,
+    "stage_state_to_context_norm_cos_mean": 0.990994930267334,
+    "stage_state_to_context_norm_l2_min": 0.3632824122905731,
+    "stage_state_to_context_raw_cos_max": 0.9917459487915039,
+    "stage_state_to_context_raw_cos_mean": 0.9909852743148804,
+    "stage_state_to_context_raw_l2_min": 1.220584750175476,
+    "stage_state_to_context_with_identity_cos_max": 0.9917459487915039,
+    "stage_state_to_context_with_identity_cos_mean": 0.9909852743148804,
+    "stage_state_to_context_with_identity_l2_min": 1.220584750175476,
+    "structured_STATE_cos_max": 0.9920361638069153,
+    "structured_STATE_cos_mean": 0.9911486506462097,
+    "structured_STATE_l2_min": 0.17848138511180878,
+    "top1_share": [
+      0.2526246905326843,
+      0.25232547521591187,
+      0.25643977522850037
+    ],
+    "unique_topk_pairs": [
+      6,
+      6,
+      6
+    ]
+  }
+}

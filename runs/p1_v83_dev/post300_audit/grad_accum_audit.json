@@ -1,0 +1,42 @@
+{
+  "blocked_full_epoch_geometry": {
+    "batches": 2162,
+    "correct_divisor": 2,
+    "grad_accum_steps": 6,
+    "historical_divisor": 6,
+    "historical_remainder_weight_fraction": 0.3333333333333333,
+    "optimizer_steps": 361,
+    "remainder_microbatches": 2
+  },
+  "checks": {
+    "final_two_use_two": true,
+    "full_windows_use_six": true,
+    "historical_300_probe_unaffected": true
+  },
+  "classification": "FINAL_REMAINDER_UNDERWEIGHT_BUG",
+  "hard_stop_triggered": true,
+  "historical_300_batch_probe": {
+    "affected": false,
+    "batches": 300,
+    "grad_accum_steps": 6,
+    "remainder": 0
+  },
+  "repair": "divide every microbatch by the actual size of its accumulation window",
+  "status": "FAIL_FIXED",
+  "window_sizes_14_batches_accum6": [
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    2,
+    2
+  ]
+}

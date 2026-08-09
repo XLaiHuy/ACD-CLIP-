@@ -1,0 +1,177 @@
+{
+  "classification": {
+    "class_to_context_grad_norm": {
+      "active_class_path_evidence": "vae_mu, vae_decoder, and shared semantic gradients are nonzero",
+      "class": "ARCHITECTURE_INACTIVE_LEGACY_BRANCH",
+      "expected": true,
+      "reason": "structured prompt mode injects decoded class_token directly; legacy class_delta context is not consumed"
+    },
+    "factor_generator_context_grad_norm": {
+      "class": "CONFIG_DISABLED",
+      "expected": true,
+      "reason": "h6_factor_generator_specialization_enabled=false"
+    },
+    "factor_generator_head_grad_norms": {
+      "class": "CONFIG_DISABLED",
+      "expected": true,
+      "reason": "h6_factor_generator_specialization_enabled=false"
+    },
+    "factor_generator_identity_grad_norm": {
+      "class": "CONFIG_DISABLED",
+      "expected": true,
+      "reason": "h6_factor_generator_specialization_enabled=false"
+    },
+    "factor_id_projection_grad_norm": {
+      "class": "CONFIG_DISABLED",
+      "expected": true,
+      "reason": "h6_late_factor_identity_enabled=false"
+    },
+    "rho_gate_grad_norm": {
+      "class": "FROZEN_BY_PROTOCOL",
+      "expected": true,
+      "reason": "rho is fixed at 0.05, requires_grad=false, and absent from optimizer"
+    }
+  },
+  "conclusion": "No active required gradient path is persistently null. The class path is live through the structured class token/VAE path; null legacy and disabled branches are expected.",
+  "milestones": [
+    {
+      "batch": 32,
+      "gradients": {
+        "class_to_context_grad_norm": null,
+        "dfg_grad_norm": 1.8449321942171082e-05,
+        "dynamic_prompt_shared_trunk_grad_norm": 0.00044629810145124793,
+        "dynamic_residual_grad_norms": [
+          0.0037123453803360462,
+          0.0028298047836869955,
+          0.004595523700118065,
+          0.004632690921425819
+        ],
+        "factor_generator_context_grad_norm": null,
+        "factor_generator_head_grad_norms": null,
+        "factor_generator_identity_grad_norm": null,
+        "factor_grad_cos_max": 0.7229339480400085,
+        "factor_grad_cos_mean": -0.32108885049819946,
+        "factor_grad_cos_min": -0.7229339480400085,
+        "factor_grad_l2_min": 0.00017882994143292308,
+        "factor_grad_norms": [
+          0.00013655821385327727,
+          0.000110223627416417,
+          0.00013821716129314154,
+          0.00016237149247899652
+        ],
+        "factor_id_projection_grad_norm": null,
+        "phase2b_image_adapter_grad_norm": 0.02790362574160099,
+        "phase2b_text_adapter_grad_norm": 0.12646274268627167,
+        "prototype_modules_grad_norm": 0.000350124086253345,
+        "rho_gate_grad_norm": null,
+        "router_grad_norm": 1.4358100997924339e-05,
+        "vae_decoder_grad_norm": 0.0024139718152582645,
+        "vae_logvar_grad_norm": 7.562687096651644e-05,
+        "vae_mu_grad_norm": 0.00012965848145540804
+      }
+    },
+    {
+      "batch": 128,
+      "gradients": {
+        "class_to_context_grad_norm": null,
+        "dfg_grad_norm": 1.4659492990176659e-05,
+        "dynamic_prompt_shared_trunk_grad_norm": 0.00014846671547275037,
+        "dynamic_residual_grad_norms": [
+          0.00028802690212614834,
+          0.0001805230713216588,
+          0.00024560821475461125,
+          0.00019321191939525306
+        ],
+        "factor_generator_context_grad_norm": null,
+        "factor_generator_head_grad_norms": null,
+        "factor_generator_identity_grad_norm": null,
+        "factor_grad_cos_max": 0.8389531373977661,
+        "factor_grad_cos_mean": -0.21130678057670593,
+        "factor_grad_cos_min": -0.8389531373977661,
+        "factor_grad_l2_min": 2.859025880752597e-05,
+        "factor_grad_norms": [
+          5.790597424493171e-05,
+          4.373977935756557e-05,
+          2.6906087441602722e-05,
+          1.8192095012636855e-05
+        ],
+        "factor_id_projection_grad_norm": null,
+        "phase2b_image_adapter_grad_norm": 0.03020458295941353,
+        "phase2b_text_adapter_grad_norm": 0.08558669686317444,
+        "prototype_modules_grad_norm": 0.00012447450717445463,
+        "rho_gate_grad_norm": null,
+        "router_grad_norm": 7.73809188103769e-06,
+        "vae_decoder_grad_norm": 0.0021686104591935873,
+        "vae_logvar_grad_norm": 5.987839904264547e-05,
+        "vae_mu_grad_norm": 9.64789287536405e-05
+      }
+    },
+    {
+      "batch": 300,
+      "gradients": {
+        "class_to_context_grad_norm": null,
+        "dfg_grad_norm": 4.83848707517609e-05,
+        "dynamic_prompt_shared_trunk_grad_norm": 0.0009651848813518882,
+        "dynamic_residual_grad_norms": [
+          0.0006159043405205011,
+          0.0003821209247689694,
+          0.00044327633804641664,
+          0.000388669956009835
+        ],
+        "factor_generator_context_grad_norm": null,
+        "factor_generator_head_grad_norms": null,
+        "factor_generator_identity_grad_norm": null,
+        "factor_grad_cos_max": 0.9528082609176636,
+        "factor_grad_cos_mean": -0.31885457038879395,
+        "factor_grad_cos_min": -0.9279344081878662,
+        "factor_grad_l2_min": 0.00022893109417054802,
+        "factor_grad_norms": [
+          0.0009476646664552391,
+          0.0007260966231115162,
+          0.0006299998494796455,
+          0.0005492473719641566
+        ],
+        "factor_id_projection_grad_norm": null,
+        "phase2b_image_adapter_grad_norm": 0.04723554849624634,
+        "phase2b_text_adapter_grad_norm": 0.1926376223564148,
+        "prototype_modules_grad_norm": 0.0008388513815589249,
+        "rho_gate_grad_norm": null,
+        "router_grad_norm": 0.012820575386285782,
+        "vae_decoder_grad_norm": 0.0028619118966162205,
+        "vae_logvar_grad_norm": 9.718009823700413e-05,
+        "vae_mu_grad_norm": 0.00014480527897831053
+      }
+    }
+  ],
+  "persistently_null_fields": [
+    "class_to_context_grad_norm",
+    "factor_generator_context_grad_norm",
+    "factor_generator_head_grad_norms",
+    "factor_generator_identity_grad_norm",
+    "factor_id_projection_grad_norm",
+    "rho_gate_grad_norm"
+  ],
+  "router_schedule_classification": {
+    "class": "DATA_GATE_INACTIVE_THEN_LIVE",
+    "evidence": [
+      {
+        "batch": 32,
+        "utility_router_raw_loss": 0.0,
+        "utility_router_weighted_router_grad": 0.0
+      },
+      {
+        "batch": 128,
+        "utility_router_raw_loss": 0.0,
+        "utility_router_weighted_router_grad": 0.0
+      },
+      {
+        "batch": 300,
+        "utility_router_raw_loss": 1.3648900985717773,
+        "utility_router_weighted_router_grad": 0.01754172518849373
+      }
+    ],
+    "expected": true
+  },
+  "status": "PASS",
+  "unclassified_null_fields": []
+}

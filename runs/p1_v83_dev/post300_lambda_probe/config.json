@@ -1,0 +1,70 @@
+{
+  "amp": false,
+  "augmentation_seed_rule": "8303000 + one_based_scan_position",
+  "checkpoint": "runs/p1_v83_dev/300batch_specialization_probe/adapter_1.pth",
+  "checkpoint_sha256": "3ad425decfbb0a36bdad4c4157dbc2f84ef555e2ba6e0d575e0ecbacbaa62cf7",
+  "checkpoint_source_commit": "2019e5ada8f30166ab70c8a859de35c487ecc1c1",
+  "checkpoint_training_caveat": "historical epoch1 epsilon approximately 0.05",
+  "dataset": "VisA train",
+  "factor_grid": [
+    0.1,
+    0.07,
+    0.05,
+    0.04,
+    0.03
+  ],
+  "optimizer_constructed": false,
+  "optimizer_steps": 0,
+  "ordering": "torch.randperm(len(dataset), generator=torch.Generator().manual_seed(0))",
+  "precision": "fp32",
+  "probe_driver": "/tmp/p1_v83_lambda_probe.py",
+  "probe_driver_sha256": "80d5195bea83c0b33990dbb592d80986f4d0b123a67178473a768b442be7cf65",
+  "probe_epsilon": 0.15,
+  "probe_source": "current repaired source",
+  "repo_head": "da189e40a9f64c10ddd5b2febbd6240dd4b918b8",
+  "rho": 0.05,
+  "router_grid": [
+    0.1,
+    0.05,
+    0.03,
+    0.02,
+    0.015,
+    0.01
+  ],
+  "runtime_contract": {
+    "checks": {
+      "amp_off": true,
+      "balance_off": true,
+      "class_vae_on": true,
+      "cluster_responsibility_off": true,
+      "dense_routing": true,
+      "experts_off": true,
+      "fp32_parameters": true,
+      "functional_diversity_off": true,
+      "load_bias_off": true,
+      "rho_exact_005": true,
+      "rho_requires_grad_false": true,
+      "selective_use_gate_off": true,
+      "state_factor_specific_on": true,
+      "structured_text_on": true,
+      "text_lora_trainable": true,
+      "tf32_off": true,
+      "topk_prediction_off": true
+    },
+    "status": "PASS"
+  },
+  "scan_cap": 32,
+  "scanned_batches": 4,
+  "scheduler_steps": 0,
+  "seed": 0,
+  "selected_batches": 3,
+  "state_integrity": {
+    "hashed_element_count": 21199636,
+    "hashed_tensor_count": 181,
+    "parameter_grad_fields_clear": true,
+    "parameter_hash_after": "7536c325b3e5ce0d25d501cecd518ec003b9fd2a08e43190843db1c7bd67fa09",
+    "parameter_hash_before": "7536c325b3e5ce0d25d501cecd518ec003b9fd2a08e43190843db1c7bd67fa09",
+    "parameter_state_unchanged": true
+  },
+  "tf32": false
+}

@@ -1,0 +1,250 @@
+{
+  "batch": 192,
+  "cumulative": {
+    "Base": 0.09700732678174973,
+    "BestSingle": 0.0942397192120552,
+    "G_local": 0.03134268522262573,
+    "G_multi": 0.002812804188579321,
+    "HardRouted": 0.09428702294826508,
+    "L_base": 0.09700732678174973,
+    "L_per_factor": [
+      0.0942397192120552,
+      0.09431785345077515,
+      0.09445545077323914,
+      0.09438178688287735
+    ],
+    "OracleMulti": 0.09396685659885406,
+    "SoftRouted": 0.09434635192155838,
+    "Uniform": 0.09434794634580612,
+    "all_harm_fraction": 0.02187766321003437,
+    "base_denominator_valid": true,
+    "best_gain_rel": {
+      "mean": 0.030135679990053177,
+      "p50": 0.0231170654296875,
+      "p75": 0.04225730895996094,
+      "p90": 0.06788177788257599,
+      "p95": 0.08519649505615234,
+      "p99": 0.11199235916137695,
+      "std": 0.026373453438282013
+    },
+    "best_second_utility_margin": 0.0020451033487915993,
+    "best_second_utility_margin_distribution": {
+      "mean": 0.002051742747426033,
+      "p50": 0.001468658447265625,
+      "p90": 0.004770755767822266,
+      "p95": 0.005893707275390625,
+      "p99": 0.009555816650390625,
+      "std": 0.0020595784299075603
+    },
+    "capture": 0.004183854907751083,
+    "capture_denominator": 0.0003810897469520569,
+    "capture_valid": true,
+    "entropy_threshold": 0.98,
+    "entropy_threshold_pass_fraction": 0.0006998417749030654,
+    "gain_rel_mean": 0.02776503749191761,
+    "gain_threshold": 0.02,
+    "gain_threshold_pass_fraction": 0.5529039811289042,
+    "informative_fraction": 0.0006998417749030654,
+    "normal_anomaly_breakdown": {
+      "anomaly": {
+        "all_harm_fraction": 0.9984756112098694,
+        "best_gain_rel_mean": -0.031196584925055504,
+        "gain_rel_mean": -0.03346872702240944,
+        "informative_fraction": 0.0,
+        "teacher_entropy_mean": 0.9990523457527161,
+        "valid_patch_count": 3936
+      },
+      "normal": {
+        "all_harm_fraction": 0.016276121139526367,
+        "best_gain_rel_mean": 0.030487466603517532,
+        "gain_rel_mean": 0.028116267174482346,
+        "informative_fraction": 0.0007038558833301067,
+        "teacher_entropy_mean": 0.9993217587471008,
+        "valid_patch_count": 686220
+      }
+    },
+    "normalized_teacher_entropy": {
+      "mean": 0.9993202686309814,
+      "p01": 0.9937949776649475,
+      "p05": 0.9975141286849976,
+      "p10": 0.9983140230178833,
+      "p50": 0.9997836351394653,
+      "p90": 0.9999802112579346,
+      "std": 0.0015422295546159148
+    },
+    "router_entropy": 0.9988917112350464,
+    "router_supervised_patch_count": 483,
+    "router_supervised_patch_fraction": 0.0006998417749030654,
+    "router_top1_agreement": 0.00828157365322113,
+    "router_usage": [
+      0.2541249096393585,
+      0.24503768980503082,
+      0.25064563751220703,
+      0.2501918077468872
+    ],
+    "router_utility_activity": "active",
+    "teacher_entropy": 0.9993202686309814,
+    "teacher_max_probability": 0.262103408575058,
+    "teacher_max_probability_distribution": {
+      "mean": 0.262103408575058,
+      "p50": 0.2590765058994293,
+      "p90": 0.27535247802734375,
+      "p95": 0.2805677056312561,
+      "p99": 0.2963038384914398,
+      "std": 0.010827685706317425
+    },
+    "teacher_router_KL": 0.0413733646273613,
+    "utility_router_loss": 0.007268100511282682,
+    "valid_patch_count": 690156,
+    "winner_shares": [
+      0.5763986706733704,
+      0.06647192686796188,
+      0.03896800056099892,
+      0.31816139817237854
+    ]
+  },
+  "cumulative_range": [
+    1,
+    192
+  ],
+  "elapsed_seconds": 183.63152130006347,
+  "gpu": {
+    "allocated_bytes": 2235383808,
+    "peak_allocated_bytes": 4122424832,
+    "peak_reserved_bytes": 4634705920,
+    "reserved_bytes": 4634705920
+  },
+  "gradient_attribution": null,
+  "gradients": null,
+  "optimizer_steps": 32,
+  "recent_window": {
+    "Base": 0.04286918044090271,
+    "BestSingle": 0.04186225309967995,
+    "G_local": 0.028504185378551483,
+    "G_multi": 0.0050158123485744,
+    "HardRouted": 0.04187469556927681,
+    "L_base": 0.04286918044090271,
+    "L_per_factor": [
+      0.04186225309967995,
+      0.04204736277461052,
+      0.04204541817307472,
+      0.04197185859084129
+    ],
+    "OracleMulti": 0.041647229343652725,
+    "SoftRouted": 0.04197757691144943,
+    "Uniform": 0.04198048636317253,
+    "all_harm_fraction": 0.01269683800637722,
+    "base_denominator_valid": true,
+    "best_gain_rel": {
+      "mean": 0.019946245476603508,
+      "p50": 0.016503334045410156,
+      "p75": 0.028128623962402344,
+      "p90": 0.041527748107910156,
+      "p95": 0.048422813415527344,
+      "p99": 0.08107185363769531,
+      "std": 0.017018968239426613
+    },
+    "best_second_utility_margin": 0.0024152237456291914,
+    "best_second_utility_margin_distribution": {
+      "mean": 0.0024066735059022903,
+      "p50": 0.0015687942504882812,
+      "p90": 0.00576019287109375,
+      "p95": 0.006968975067138672,
+      "p99": 0.013427734375,
+      "std": 0.0026732319965958595
+    },
+    "capture": 0.00873035378754139,
+    "capture_denominator": 0.0003332570195198059,
+    "capture_valid": true,
+    "entropy_threshold": 0.98,
+    "entropy_threshold_pass_fraction": 0.0021016356207657263,
+    "gain_rel_mean": 0.01737111806869507,
+    "gain_threshold": 0.02,
+    "gain_threshold_pass_fraction": 0.40674699004877707,
+    "informative_fraction": 0.0021016356207657263,
+    "normal_anomaly_breakdown": {
+      "anomaly": {
+        "all_harm_fraction": 1.0,
+        "best_gain_rel_mean": -0.02914462611079216,
+        "gain_rel_mean": -0.03220007196068764,
+        "informative_fraction": 0.0,
+        "teacher_entropy_mean": 0.9982932209968567,
+        "valid_patch_count": 1530
+      },
+      "normal": {
+        "all_harm_fraction": 0.006079959217458963,
+        "best_gain_rel_mean": 0.02027525007724762,
+        "gain_rel_mean": 0.01770334504544735,
+        "informative_fraction": 0.0021157206501811743,
+        "teacher_entropy_mean": 0.9991751909255981,
+        "valid_patch_count": 228291
+      }
+    },
+    "normalized_teacher_entropy": {
+      "mean": 0.9991694092750549,
+      "p01": 0.9851921796798706,
+      "p05": 0.9976089000701904,
+      "p10": 0.9982020854949951,
+      "p50": 0.9998181462287903,
+      "p90": 0.9999803900718689,
+      "std": 0.0023171287029981613
+    },
+    "router_entropy": 0.9988266825675964,
+    "router_supervised_patch_count": 483,
+    "router_supervised_patch_fraction": 0.0021016356207657263,
+    "router_top1_agreement": 0.00828157365322113,
+    "router_usage": [
+      0.25536680221557617,
+      0.24409177899360657,
+      0.25078248977661133,
+      0.24975888431072235
+    ],
+    "router_utility_activity": "active",
+    "teacher_entropy": 0.9991694092750549,
+    "teacher_max_probability": 0.26326125860214233,
+    "teacher_max_probability_distribution": {
+      "mean": 0.26326125860214233,
+      "p50": 0.25877630710601807,
+      "p90": 0.2786005735397339,
+      "p95": 0.28311222791671753,
+      "p99": 0.33441925048828125,
+      "std": 0.014117676764726639
+    },
+    "teacher_router_KL": 0.0413733646273613,
+    "utility_router_loss": 0.02180430106818676,
+    "valid_patch_count": 229821,
+    "winner_shares": [
+      0.7062235474586487,
+      0.004673202056437731,
+      0.008062796667218208,
+      0.2810404598712921
+    ]
+  },
+  "recent_window_range": [
+    129,
+    192
+  ],
+  "rho": [
+    0.05000000074505806,
+    0.05000000074505806,
+    0.05000000074505806
+  ],
+  "structure": {
+    "factor_embedding_effective_rank": 1.00597083568573,
+    "factor_embedding_pairwise_cosine_max": 0.9998103380203247,
+    "factor_embedding_pairwise_cosine_mean": 0.9991265535354614,
+    "factor_embedding_pairwise_cosine_min": 0.9983471035957336,
+    "factor_embedding_pairwise_l2_max": 0.1408366858959198,
+    "factor_embedding_pairwise_l2_mean": 0.09730293601751328,
+    "factor_embedding_pairwise_l2_min": 0.04771542176604271,
+    "factor_patch_outputs_exactly_collapsed": 0.0,
+    "factor_patch_pairwise_correlation_max": 0.9996705651283264,
+    "factor_patch_pairwise_correlation_mean": 0.993020236492157,
+    "factor_patch_pairwise_correlation_min": 0.9840869903564453,
+    "factor_patch_pairwise_max_difference": 0.8886890411376953,
+    "factor_patch_std_across_factors": 0.247338205575943,
+    "state_pairwise_l2_max": 0.1850646585226059,
+    "state_pairwise_l2_mean": 0.17474143207073212,
+    "state_pairwise_l2_min": 0.16655588150024414
+  }
+}

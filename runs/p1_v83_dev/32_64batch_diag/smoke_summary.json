@@ -1,0 +1,126 @@
+{
+  "checks": {
+    "all_epoch_metrics_finite": true,
+    "class_vae_path_alive": true,
+    "experts_off": true,
+    "factor_gradients_alive": true,
+    "factor_outputs_not_collapsed": true,
+    "legacy_auxiliaries_off": true,
+    "optimizer_step_executed": true,
+    "rho_fixed_005": true,
+    "rho_gradient_none": true,
+    "router_dense": true,
+    "router_gradient_alive": true,
+    "state_path_alive": true,
+    "text_lora_alive": true,
+    "utility_losses_finite": true
+  },
+  "epoch": 1,
+  "failed": [],
+  "gpu_allocated_bytes": 2235655680,
+  "gpu_peak_allocated_bytes": 4019625984,
+  "gpu_peak_reserved_bytes": 4632608768,
+  "gpu_reserved_bytes": 4632608768,
+  "grad_accum_steps": 6,
+  "gradients": {
+    "class_to_context_grad_norm": null,
+    "dfg_grad_norm": 8.827871170069557e-06,
+    "dynamic_prompt_shared_trunk_grad_norm": 0.0012969060335308313,
+    "dynamic_residual_grad_norms": [
+      0.012641496025025845,
+      0.01586122438311577,
+      0.021313315257430077,
+      0.011558189056813717
+    ],
+    "factor_generator_context_grad_norm": null,
+    "factor_generator_head_grad_norms": null,
+    "factor_generator_identity_grad_norm": null,
+    "factor_grad_cos_max": 0.7446406483650208,
+    "factor_grad_cos_mean": -0.31590139865875244,
+    "factor_grad_l2_min": 0.00039673506398685277,
+    "factor_grad_norms": [
+      0.0003888042410835624,
+      0.00031529663829132915,
+      0.00042821140959858894,
+      0.0002980052086059004
+    ],
+    "factor_id_projection_grad_norm": null,
+    "phase2b_image_adapter_grad_norm": 0.24513183534145355,
+    "phase2b_text_adapter_grad_norm": 0.14391474425792694,
+    "prototype_modules_grad_norm": 0.0009339090320281684,
+    "rho_gate_grad_norm": null,
+    "router_grad_norm": 6.434938404709101e-05,
+    "vae_decoder_grad_norm": 0.0020281109027564526,
+    "vae_logvar_grad_norm": 5.3859708714298904e-05,
+    "vae_mu_grad_norm": 0.00015584951324854046
+  },
+  "losses": {
+    "task": 1.8941065482795238,
+    "total": 1.9450988844037056,
+    "utility_factor": 0.48610071861185133,
+    "utility_router": 0.0
+  },
+  "optimizer_step_count": 6,
+  "rho": [
+    0.05000000074505806,
+    0.05000000074505806,
+    0.05000000074505806
+  ],
+  "sample_count": 32,
+  "status": "PASS",
+  "structure": {
+    "factor_embedding_effective_rank": 1.0052869319915771,
+    "factor_embedding_pairwise_cosine_max": 0.9994521737098694,
+    "factor_embedding_pairwise_cosine_mean": 0.9992528557777405,
+    "factor_embedding_pairwise_l2_min": 0.07937182486057281,
+    "factor_patch_outputs_exactly_collapsed": 0.0,
+    "factor_patch_pairwise_correlation_max": 0.9534695744514465,
+    "factor_patch_pairwise_correlation_mean": 0.8925297856330872,
+    "factor_patch_pairwise_max_difference": 0.32036009430885315,
+    "state_pairwise_l2_mean": 0.19498978555202484,
+    "state_pairwise_l2_min": 0.18553611636161804
+  },
+  "utility": {
+    "Base": 0.31954044103622437,
+    "BestSingle": 0.3119226098060608,
+    "G_local": 0.04426995664834976,
+    "G_multi": 0.0016443540807813406,
+    "HardRouted": 0.31240084767341614,
+    "L_base": 0.31954044103622437,
+    "L_per_factor": [
+      0.31218597292900085,
+      0.3120707869529724,
+      0.3126828670501709,
+      0.3126276731491089
+    ],
+    "OracleMulti": 0.31149935722351074,
+    "SoftRouted": 0.31239232420921326,
+    "Uniform": 0.31239092350006104,
+    "all_harm_fraction": 0.07040893286466599,
+    "base_denominator_valid": 1.0,
+    "best_second_utility_margin": 0.002345508895814419,
+    "capture": -0.0008860902162268758,
+    "capture_denominator": 0.0008916322840377688,
+    "capture_valid": 1.0,
+    "exploration_epsilon": 0.049999985843896866,
+    "gain_rel_mean": 0.03964392468333244,
+    "informative_fraction": 0.0,
+    "router_entropy": 0.9990081787109375,
+    "router_top1_agreement": 0.0,
+    "router_usage": [
+      0.2509610652923584,
+      0.24666856229305267,
+      0.25040480494499207,
+      0.25196555256843567
+    ],
+    "teacher_entropy": 0.9989102482795715,
+    "teacher_max_probability": 0.2665598690509796,
+    "teacher_router_KL": 0.0,
+    "winner_shares": [
+      0.2847541272640228,
+      0.31171494722366333,
+      0.1337437927722931,
+      0.26978713274002075
+    ]
+  }
+}

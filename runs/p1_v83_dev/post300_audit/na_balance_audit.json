@@ -1,0 +1,60 @@
+{
+  "checks": {
+    "both_regions_present": true,
+    "equal_region_weight_when_both_present": true,
+    "manual_matches_implementation": true
+  },
+  "count_effect": "normal and anomaly region means receive equal 0.5 weight when both exist",
+  "definition": "mean(mean(per_patch_loss[target<0.5]), mean(per_patch_loss[target>=0.5]))",
+  "samples": [
+    {
+      "absolute_error": 0.0,
+      "anomaly_patch_count_group_expanded": 1302,
+      "anomaly_region_mean": 3.7163476943969727,
+      "class_name": "cashew",
+      "combined_region_weights": {
+        "anomaly": 0.5,
+        "normal": 0.5
+      },
+      "dataset_index": 1448,
+      "implementation_balanced_loss": 1.8969100713729858,
+      "manual_balanced_loss": 1.8969100713729858,
+      "normal_patch_count_group_expanded": 2154,
+      "normal_region_mean": 0.0774724930524826,
+      "unbalanced_valid_patch_mean": 1.4483680725097656
+    },
+    {
+      "absolute_error": 0.0,
+      "anomaly_patch_count_group_expanded": 1134,
+      "anomaly_region_mean": 3.495851993560791,
+      "class_name": "pipe_fryum",
+      "combined_region_weights": {
+        "anomaly": 0.5,
+        "normal": 0.5
+      },
+      "dataset_index": 327,
+      "implementation_balanced_loss": 1.7707241773605347,
+      "manual_balanced_loss": 1.7707241773605347,
+      "normal_patch_count_group_expanded": 2646,
+      "normal_region_mean": 0.045596424490213394,
+      "unbalanced_valid_patch_mean": 1.080673098564148
+    },
+    {
+      "absolute_error": 0.0,
+      "anomaly_patch_count_group_expanded": 855,
+      "anomaly_region_mean": 2.2426624298095703,
+      "class_name": "fryum",
+      "combined_region_weights": {
+        "anomaly": 0.5,
+        "normal": 0.5
+      },
+      "dataset_index": 315,
+      "implementation_balanced_loss": 1.176491141319275,
+      "manual_balanced_loss": 1.176491141319275,
+      "normal_patch_count_group_expanded": 2187,
+      "normal_region_mean": 0.11031987518072128,
+      "unbalanced_valid_patch_mean": 0.709646999835968
+    }
+  ],
+  "status": "PASS"
+}

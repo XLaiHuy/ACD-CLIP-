@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "decision_label": "INITIAL LAMBDA CANDIDATE",
+  "lambda_h6_factor": 0.03,
+  "lambda_h6_router": 0.01,
+  "not_claimed": [
+    "optimal lambda pair",
+    "approval for final 20-epoch training",
+    "approval for full six-medical evaluation"
+  ],
+  "prerequisite_evidence": {
+    "anomaly_sign_target_balance_path": {
+      "status": "PASS",
+      "evidence": [
+        "runs/p1_v83_dev/post300_audit/semantic_polarity.json",
+        "runs/p1_v83_dev/post300_audit/anomaly_patch_trace.json"
+      ],
+      "finding": "Targets and both utility margins use anomaly-positive / abnormal-minus-normal semantics; fixed-state anomaly traces expose harmful historical behavior rather than a sign inversion."
+    },
+    "historical_auxiliary_gradient_ratio_basis": {
+      "status": "PROVEN_LAMBDA_WEIGHTED",
+      "evidence": "runs/p1_v83_dev/post300_audit/gradient_weighting_audit.json",
+      "finding": "The previously reported auxiliary ratios included lambda; this probe separately reports raw gradient vectors and analytically applies each candidate lambda."
+    }
+  },
+  "fixed_state_probe": {
+    "checkpoint": "runs/p1_v83_dev/300batch_specialization_probe/adapter_1.pth",
+    "checkpoint_sha256": "3ad425decfbb0a36bdad4c4157dbc2f84ef555e2ba6e0d575e0ecbacbaa62cf7",
+    "source_head": "da189e40a9f64c10ddd5b2febbd6240dd4b918b8",
+    "checkpoint_training_caveat": "Historical epoch-1 checkpoint used exploration epsilon approximately 0.05; current repaired source and canonical epsilon 0.15 were used for this fixed-state scale calibration.",
+    "selected_real_batches": 3,
+    "scanned_real_batches": 4,
+    "optimizer_constructed": false,
+    "optimizer_steps": 0,
+    "scheduler_steps": 0,
+    "parameter_state_unchanged": true,
+    "direct_autograd_validation_all_groups_allclose": true
+  },
+  "shared_semantic_aggregate": {
+    "parameter_count": 658433,
+    "main_raw_norm": 0.0006754506612196565,
+    "factor_raw_norm": 0.014996596612036228,
+    "router_raw_norm": 0.006222255062311888,
+    "cos_main_factor_raw": -0.9003864526748657,
+    "cos_main_router_raw": -0.0015447899932041764,
+    "cos_factor_router_raw": 0.0,
+    "current_0p10_0p10": {
+      "factor_weighted_to_main": 2.2202353477478027,
+      "router_weighted_to_main": 0.921200692653656,
+      "true_combined_aux_to_main": 2.403752088546753,
+      "cos_main_true_combined_aux": -0.8322378993034363
+    },
+    "candidate_0p03_0p01": {
+      "factor_weighted_to_main": 0.6660707592964172,
+      "router_weighted_to_main": 0.09212009608745575,
+      "true_combined_aux_to_main": 0.6724074482917786,
+      "cos_main_true_combined_aux": -0.8921129703521729
+    }
+  },
+  "candidate_per_batch_sensitivity": {
+    "factor_weighted_to_main": {
+      "mean": 1.1360463748375575,
+      "min": 0.06534762680530548,
+      "max": 3.273966073989868
+    },
+    "router_weighted_to_main": {
+      "mean": 0.08504600326220195,
+      "min": 0.04037979990243912,
+      "max": 0.1369803249835968
+    },
+    "true_combined_aux_to_main": {
+      "mean": 1.1527169272303581,
+      "min": 0.0797962099313736,
+      "max": 3.276768684387207
+    }
+  },
+  "selection_rationale": [
+    "It is the lowest-combined-pressure pair in the preregistered 30-point grid.",
+    "It reduces aggregate shared-semantic true combined auxiliary/main pressure from 2.403752 at 0.10/0.10 to 0.672407.",
+    "Its aggregate shared-semantic router ratio is 0.092120, within the 0.05-0.10 scale guide while retaining nonzero router utility.",
+    "The factor term remains strong and highly batch-sensitive, so this is only an initial candidate for a corrected 300-batch validation, not an optimum or a final-training recommendation."
+  ],
+  "prepared_not_executed_command": "runs/p1_v83_dev/post300_lambda_probe/prepared_corrected_300b_command.sh",
+  "execution_boundary": {
+    "another_300_batch_probe": "NOT_RUN",
+    "one_full_epoch": "NOT_RUN",
+    "final_20_epoch_training": "NOT_RUN",
+    "full_six_medical_evaluation": "NOT_RUN",
+    "git_push": "NOT_RUN"
+  }
+}

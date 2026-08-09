@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-09T15:38:53+07:00",
+  "claim": "P1-v8.3 implementation/runtime smoke PASS",
+  "source": {
+    "diagnostics_commit_sha": "2019e5ada8f30166ab70c8a859de35c487ecc1c1",
+    "upstream_sha": "b4e8b4d5100db2e9949b668102c1d5d318855c45",
+    "local_commit_sha": "da189e40a9f64c10ddd5b2febbd6240dd4b918b8",
+    "post300_audit_commit_sha": "da189e40a9f64c10ddd5b2febbd6240dd4b918b8",
+    "pushed": false
+  },
+  "stages": {
+    "git_sync": {
+      "status": "PASS",
+      "evidence": "runs/p1_v83_dev/lab_sync/pre_sync.md; fast-forwarded to b4e8b4d5100db2e9949b668102c1d5d318855c45 without touching prior dirty artifacts"
+    },
+    "known_bug_fixes": {
+      "status": "PASS",
+      "evidence": "normalized utility gains/capture fixed; scalar metric logging hardened; checkpoint/runtime contracts reconciled"
+    },
+    "static_compile": {
+      "status": "PASS",
+      "evidence": "runs/p1_v83_dev/static_compile.log"
+    },
+    "no_data_tests": {
+      "status": "PASS",
+      "evidence": "runs/p1_v83_dev/no_data_tests.log; 28 passed"
+    },
+    "data_discovery": {
+      "status": "PASS",
+      "evidence": "runs/p1_v83_dev/data_verification.json; repository data symlinks point to existing /home/ai4/caohuy/data trees"
+    },
+    "data_integrity": {
+      "status": "PASS",
+      "evidence": "runs/p1_v83_dev/data_verification.json; VisA 2162 and six-medical 9005 images, zero missing images/masks/classes/count mismatches"
+    },
+    "clip_checkpoint": {
+      "status": "PASS",
+      "evidence": "runs/p1_v83_dev/preflight/clip_checkpoint.json"
+    },
+    "nvidia_preflight": {
+      "status": "PASS",
+      "evidence": "runs/p1_v83_dev/preflight/nvidia.txt"
+    },
+    "pytorch_preflight": {
+      "status": "PASS",
+      "evidence": "runs/p1_v83_dev/preflight/pytorch.json"
+    },
+    "model_preflight": {
+      "status": "PASS",
+      "evidence": "runs/p1_v83_dev/1batch_forward_retry3/model_preflight.json"
+    },
+    "forward_1": {
+      "status": "PASS",
+      "evidence": "runs/p1_v83_dev/1batch_forward_retry3/forward_probe.json"
+    },
+    "backward_1": {
+      "status": "PASS",
+      "evidence": "runs/p1_v83_dev/1batch_backward/backward_probe.json"
+    },
+    "smoke_8": {
+      "status": "PASS",
+      "evidence": "runs/p1_v83_dev/8batch_smoke_retry2/smoke_summary.json; 8 batches, 2 optimizer steps, all checks true"
+    },
+    "diagnostic_32_64": {
+      "status": "PASS",
+      "evidence": "runs/p1_v83_dev/32_64batch_diag/smoke_summary.json; 32 batches, 6 optimizer steps, all checks true"
+    },
+    "specialization_300": {
+      "status": "PASS",
+      "evidence": "runs/p1_v83_dev/300batch_specialization_probe/final_summary.json; 300 batches, 50 optimizer steps, six milestones complete"
+    },
+    "post300_semantic_audit": {
+      "status": "PASS",
+      "evidence": "runs/p1_v83_dev/post300_audit/semantic_polarity.json and anomaly_patch_trace.json; 12 fixed-state anomaly traces, no optimizer step, polarity formulas verified"
+    },
+    "epsilon_schedule_audit": {
+      "status": "FAIL",
+      "evidence": "runs/p1_v83_dev/post300_audit/epsilon_schedule_audit.json; historical diagnostic epoch1 used 0.05 instead of canonical 0.15; source plumbing repaired"
+    },
+    "grad_accum_remainder_audit": {
+      "status": "FAIL",
+      "evidence": "runs/p1_v83_dev/post300_audit/grad_accum_audit.json; future 2162-batch epoch remainder was underweighted; source rescaling repaired; completed 300-batch probe unaffected"
+    },
+    "gradient_weighting_audit": {
+      "status": "PASS",
+      "evidence": "runs/p1_v83_dev/post300_audit/gradient_weighting_audit.json; historical ratios proven lambda-weighted and diagnostics now expose both raw and weighted values"
+    },
+    "lambda_gradient_probe": {
+      "status": "PASS",
+      "evidence": "runs/p1_v83_dev/post300_lambda_probe/config.json, fixed_probe_samples.json, gradient_vectors_summary.json, lambda_grid.json/csv, and recommendation.json; fixed-state/no-step raw-gradient calibration with unchanged parameter hash"
+    },
+    "final_launcher_ready": {
+      "status": "PASS",
+      "evidence": "scripts/run_p1_v83_final20.sh; bash syntax and canonical runtime assertion path verified; NOT EXECUTED"
+    },
+    "medical_launcher_ready": {
+      "status": "PASS",
+      "evidence": "scripts/test_p1_v83_6medical_epoch20_exact.sh and tools/preflight_p1_v83_final_checkpoint.py; NOT EXECUTED"
+    }
+  },
+  "hard_stop_boundary": {
+    "final_20_epoch_training": "NOT_RUN",
+    "full_six_medical_evaluation": "NOT_RUN"
+  },
+  "diagnostic_findings": {
+    "classification_300_batch": "B. useful local branch but weak/low multi-mode evidence",
+    "factor_collapse_300_batch": false,
+    "local_value_300_batch": "positive: cumulative G_local 0.03644; final recent-window G_local 0.08325",
+    "multi_mode_evidence_300_batch": "weak: cumulative G_multi 0.00317; final recent-window G_multi 0.00333",
+    "router_utility_activity_300_batch": "active late; final recent-window supervised fraction 0.04436 and router utility gradient 0.01754",
+    "teacher_informativeness_300_batch": "emerged after batch 128, entropy-limited, and normal-region-only",
+    "utility_teacher_informative_fraction_32_batch": 0.0,
+    "router_utility_loss_32_batch": 0.0,
+    "lambda_auto_tuned": false,
+    "recommended_lambda_factor": 0.03,
+    "recommended_lambda_router": 0.01,
+    "lambda_recommendation_label": "INITIAL LAMBDA CANDIDATE; requires a fresh corrected 300-batch validation and is not an optimum or final-training recommendation",
+    "post300_audit_decision": "HARD_STOP",
+    "post300_anomaly_semantics": "PASS; anomaly targets and both margins use anomaly-positive / abnormal-minus-normal semantics",
+    "post300_anomaly_behavior": "all 36 group-patch traces were harmful on 12 selected anomaly patches",
+    "historical_gradient_ratio_basis": "lambda_weighted",
+    "lambda_gradient_probe": "PASS; raw gradients measured on three frozen real batches and all 30 preregistered lambda pairs evaluated by true analytical vector sums",
+    "lambda_gradient_probe_warning": "At 0.03/0.01 the aggregate shared-semantic factor/main ratio is still 0.6661 and per-batch factor/main ranges 0.0653-3.2740; treat this pair only as the least-dominant initial grid candidate",
+    "interpretation": "The anomaly sign/target path is correct and historical gradient ratios were lambda-weighted. Fixed-state raw-gradient calibration selects 0.03/0.01 as an initial corrected-300B candidate; no additional training or medical evaluation was run."
+  }
+}

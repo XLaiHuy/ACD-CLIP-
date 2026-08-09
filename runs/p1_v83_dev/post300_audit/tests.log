@@ -1,0 +1,12 @@
+..................................                                       [100%]
+=============================== warnings summary ===============================
+model/tokenizer.py:10
+  /home/ai4/caohuy/ACD-CLIP-phase4/model/tokenizer.py:10: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+    from pkg_resources import packaging
+
+../../ENTER/envs/torchhuy/lib/python3.11/site-packages/torch/jit/_script.py:1488: 43 warnings
+  /home/ai4/ENTER/envs/torchhuy/lib/python3.11/site-packages/torch/jit/_script.py:1488: DeprecationWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+34 passed, 44 warnings in 1.57s

@@ -1,0 +1,153 @@
+{
+  "base_margin_formula": "z0 = base_group_logits[..., 1] - base_group_logits[..., 0]",
+  "candidate_formula": "z_candidate = z0 + 0.05 * factor_logit",
+  "checkpoint": "runs/p1_v83_dev/300batch_specialization_probe/adapter_1.pth",
+  "checkpoint_epoch": 1,
+  "checkpoint_git_sha": "2019e5ada8f30166ab70c8a859de35c487ecc1c1",
+  "checkpoint_sha256": "3ad425decfbb0a36bdad4c4157dbc2f84ef555e2ba6e0d575e0ecbacbaa62cf7",
+  "checks": {
+    "anomaly_patch_targets_are_positive": true,
+    "base_margin_is_abnormal_minus_normal": true,
+    "factor_margin_is_temperature_times_abnormal_minus_normal": true,
+    "processed_masks_are_binary_zero_one": true,
+    "raw_masks_are_anomaly_positive": true,
+    "utility_candidate_is_z0_plus_rho_factor_evidence": true,
+    "utility_target_one_means_anomaly": true
+  },
+  "factor_margin_formula": "factor_logit = 10 * (sim_abnormal - sim_normal)",
+  "formula_max_absolute_error": {
+    "base_margin": 0.0,
+    "factor_margin": 6.198883056640625e-06
+  },
+  "mask_semantics": {
+    "bce_target_one": "anomaly",
+    "patch_target": "adaptive-average anomaly coverage",
+    "processed_one": "anomaly foreground",
+    "raw_nonzero": "anomaly foreground"
+  },
+  "optimizer_steps": 0,
+  "patch_grid": [
+    37,
+    37
+  ],
+  "probe_kind": "fixed_batch_forward_no_step",
+  "processed_mask_values_observed": [
+    0.0,
+    1.0
+  ],
+  "raw_mask_values_observed": [
+    0,
+    4,
+    7
+  ],
+  "samples": [
+    {
+      "augmentation_seed": 9751,
+      "class_name": "cashew",
+      "dataset_index": 1448,
+      "image_path": "cashew/Data/Images/Anomaly/094.JPG",
+      "mask_path": "cashew/Data/Masks/Anomaly/094.png",
+      "patch_targets": {
+        "anomaly_count": 434,
+        "max": 1.0,
+        "mean": 0.31961360573768616,
+        "min": 0.0,
+        "normal_count": 718,
+        "valid_count": 1152
+      },
+      "processed_mask": {
+        "max": 1.0,
+        "min": 0.0,
+        "positive_fraction": 0.31961360573768616,
+        "unique": [
+          0.0,
+          1.0
+        ]
+      },
+      "raw_mask": {
+        "max": 7,
+        "min": 0,
+        "nonzero_fraction": 0.31956569912109273,
+        "unique": [
+          0,
+          7
+        ]
+      },
+      "sample_rank": 0
+    },
+    {
+      "augmentation_seed": 8630,
+      "class_name": "pipe_fryum",
+      "dataset_index": 327,
+      "image_path": "pipe_fryum/Data/Images/Anomaly/098.JPG",
+      "mask_path": "pipe_fryum/Data/Masks/Anomaly/098.png",
+      "patch_targets": {
+        "anomaly_count": 378,
+        "max": 1.0,
+        "mean": 0.2732889950275421,
+        "min": 0.0,
+        "normal_count": 882,
+        "valid_count": 1260
+      },
+      "processed_mask": {
+        "max": 1.0,
+        "min": 0.0,
+        "positive_fraction": 0.2732890248298645,
+        "unique": [
+          0.0,
+          1.0
+        ]
+      },
+      "raw_mask": {
+        "max": 7,
+        "min": 0,
+        "nonzero_fraction": 0.2733388881482469,
+        "unique": [
+          0,
+          7
+        ]
+      },
+      "sample_rank": 1
+    },
+    {
+      "augmentation_seed": 8618,
+      "class_name": "fryum",
+      "dataset_index": 315,
+      "image_path": "fryum/Data/Images/Anomaly/050.JPG",
+      "mask_path": "fryum/Data/Masks/Anomaly/050.png",
+      "patch_targets": {
+        "anomaly_count": 285,
+        "max": 1.0,
+        "mean": 0.2062096744775772,
+        "min": 0.0,
+        "normal_count": 729,
+        "valid_count": 1014
+      },
+      "processed_mask": {
+        "max": 1.0,
+        "min": 0.0,
+        "positive_fraction": 0.20620965957641602,
+        "unique": [
+          0.0,
+          1.0
+        ]
+      },
+      "raw_mask": {
+        "max": 4,
+        "min": 0,
+        "nonzero_fraction": 0.20627,
+        "unique": [
+          0,
+          4
+        ]
+      },
+      "sample_rank": 2
+    }
+  ],
+  "seed": 8303,
+  "status": "PASS",
+  "text_channel_order": {
+    "0": "normal",
+    "1": "abnormal"
+  }
+}

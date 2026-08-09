@@ -1,0 +1,144 @@
+{
+  "batch": 1,
+  "checks": {
+    "base_adapter_gradient": true,
+    "dfg_gradient": true,
+    "factor_specific_gradient": true,
+    "finite_gradients": true,
+    "finite_loss": true,
+    "optimizer_step_not_executed": true,
+    "rho_fixed_005": true,
+    "rho_gradient_none": true,
+    "router_gradient_when_applicable": true,
+    "state_path_gradient": true,
+    "text_lora_gradient": true,
+    "vae_class_path_gradient": true
+  },
+  "epoch": 1,
+  "gpu_allocated_bytes": 2071189504,
+  "gpu_peak_allocated_bytes": 3799386624,
+  "gpu_peak_reserved_bytes": 4441767936,
+  "gpu_reserved_bytes": 4441767936,
+  "gradient_attribution": {
+    "components": {
+      "advantage": {
+        "active": false,
+        "raw": 0.0,
+        "weight": 0.0
+      },
+      "assigned_expert": {
+        "active": false,
+        "raw": 0.0,
+        "weight": 0.0
+      },
+      "center": {
+        "active": false,
+        "raw": 1.032312273979187,
+        "weight": 0.0
+      },
+      "dynamic_mean_anchor": {
+        "active": false,
+        "raw": 0.014021549373865128,
+        "weight": 0.0
+      },
+      "expert_anchor": {
+        "active": false,
+        "raw": 0.0,
+        "weight": 0.0
+      },
+      "main_task": {
+        "active": true,
+        "dynamic_context": 0.0,
+        "expert_B": 0.0,
+        "expert_state_projection": 0.0,
+        "prototype_state": 0.010308527387678623,
+        "raw": 2.2305617332458496,
+        "router": 0.00038609630428254604,
+        "router_query_key": 0.00038609630428254604,
+        "shared_semantic": 0.006973890122026205,
+        "state_path": 0.010308527387678623,
+        "text_adapter": 0.8627572059631348,
+        "text_lora": 0.8627572059631348,
+        "vae_class_path": 0.00508934585377574,
+        "weight": 1.0
+      },
+      "utility_factor": {
+        "active": true,
+        "dynamic_context": 0.0,
+        "expert_B": 0.0,
+        "expert_state_projection": 0.0,
+        "prototype_state": 0.0003197774931322783,
+        "raw": 0.7071883082389832,
+        "router": 0.0,
+        "router_query_key": 0.0,
+        "shared_semantic": 0.00020999973639845848,
+        "state_path": 0.0003197774931322783,
+        "text_adapter": 0.001440329127945006,
+        "text_lora": 0.001440329127945006,
+        "vae_class_path": 0.00015171869017649442,
+        "weight": 0.1
+      },
+      "utility_router": {
+        "active": true,
+        "dynamic_context": 0.0,
+        "expert_B": 0.0,
+        "expert_state_projection": 0.0,
+        "prototype_state": 0.0,
+        "raw": 0.0,
+        "router": 0.0,
+        "router_query_key": 0.0,
+        "shared_semantic": 0.0,
+        "state_path": 0.0,
+        "text_adapter": 0.0,
+        "text_lora": 0.0,
+        "vae_class_path": 0.0,
+        "weight": 0.1
+      }
+    },
+    "ratios": {
+      "anchor_to_task_shared_grad_ratio": 0.0,
+      "assigned_to_task_shared_grad_ratio": 0.0,
+      "center_to_task_shared_grad_ratio": 0.0,
+      "total_aux_to_task_shared_grad_ratio": 0.03011228062443932,
+      "utility_factor_to_task_shared_grad_ratio": 0.03011228062443932,
+      "utility_router_to_task_shared_grad_ratio": 0.0
+    }
+  },
+  "gradient_norms": {
+    "class_to_context_grad_norm": null,
+    "dfg_grad_norm": 8.827872079564258e-06,
+    "dynamic_prompt_shared_trunk_grad_norm": 0.0012969060335308313,
+    "dynamic_residual_grad_norms": [
+      0.01264149695634842,
+      0.01586122438311577,
+      0.021313315257430077,
+      0.011558188125491142
+    ],
+    "factor_generator_context_grad_norm": null,
+    "factor_generator_head_grad_norms": null,
+    "factor_generator_identity_grad_norm": null,
+    "factor_grad_cos_max": 0.744640588760376,
+    "factor_grad_cos_mean": -0.31590139865875244,
+    "factor_grad_l2_min": 0.0003967350930906832,
+    "factor_grad_norms": [
+      0.000388804153772071,
+      0.00031529669649899006,
+      0.0004282114969100803,
+      0.0002980052086059004
+    ],
+    "factor_id_projection_grad_norm": null,
+    "phase2b_image_adapter_grad_norm": 0.24513182044029236,
+    "phase2b_text_adapter_grad_norm": 0.14391474425792694,
+    "prototype_modules_grad_norm": 0.000933908682782203,
+    "rho_gate_grad_norm": null,
+    "router_grad_norm": 6.434938404709101e-05,
+    "vae_decoder_grad_norm": 0.002028111135587096,
+    "vae_logvar_grad_norm": 5.3859708714298904e-05,
+    "vae_mu_grad_norm": 0.0001558494259370491
+  },
+  "loss_task": 2.2305617332458496,
+  "loss_total": 2.3037424087524414,
+  "loss_utility_factor": 0.7071883082389832,
+  "loss_utility_router": 0.0,
+  "utility_informative": false
+}

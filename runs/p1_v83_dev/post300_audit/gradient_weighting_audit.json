@@ -1,0 +1,551 @@
+{
+  "checks": {
+    "diagnostic_does_not_populate_grad": true,
+    "historical_expression_is_weighted": true,
+    "new_report_exposes_raw_and_weighted": true,
+    "new_report_labels_ratio_basis": true
+  },
+  "current_diagnostic_contract": {
+    "components": {
+      "disabled": {
+        "active": false,
+        "differentiable": true,
+        "raw": 14.0,
+        "raw_gradient_norms": {
+          "router": 0.0,
+          "shared_semantic": 7.0
+        },
+        "router": 0.0,
+        "shared_semantic": 0.0,
+        "weight": 0.0,
+        "weighted_gradient_norms": {
+          "router": 0.0,
+          "shared_semantic": 0.0
+        }
+      },
+      "main_task": {
+        "active": true,
+        "differentiable": true,
+        "raw": 4.0,
+        "raw_gradient_norms": {
+          "router": 0.0,
+          "shared_semantic": 4.0
+        },
+        "router": 0.0,
+        "shared_semantic": 4.0,
+        "weight": 1.0,
+        "weighted_gradient_norms": {
+          "router": 0.0,
+          "shared_semantic": 4.0
+        }
+      },
+      "utility_factor": {
+        "active": true,
+        "differentiable": true,
+        "raw": 6.0,
+        "raw_gradient_norms": {
+          "router": 0.0,
+          "shared_semantic": 3.0
+        },
+        "router": 0.0,
+        "shared_semantic": 0.30000000000000004,
+        "weight": 0.1,
+        "weighted_gradient_norms": {
+          "router": 0.0,
+          "shared_semantic": 0.30000000000000004
+        }
+      },
+      "utility_router": {
+        "active": true,
+        "differentiable": true,
+        "raw": 15.0,
+        "raw_gradient_norms": {
+          "router": 5.0,
+          "shared_semantic": 0.0
+        },
+        "router": 0.5,
+        "shared_semantic": 0.0,
+        "weight": 0.1,
+        "weighted_gradient_norms": {
+          "router": 0.5,
+          "shared_semantic": 0.0
+        }
+      }
+    },
+    "ratio_basis": "lambda_weighted",
+    "ratios": {
+      "anchor_to_task_shared_grad_ratio": 0.0,
+      "assigned_to_task_shared_grad_ratio": 0.0,
+      "center_to_task_shared_grad_ratio": 0.0,
+      "total_aux_to_task_shared_grad_ratio": 0.07500000000000001,
+      "utility_factor_to_task_shared_grad_ratio": 0.07500000000000001,
+      "utility_router_to_task_shared_grad_ratio": 0.0
+    },
+    "raw_ratios": {
+      "anchor_to_task_shared_grad_ratio": 0.0,
+      "assigned_to_task_shared_grad_ratio": 0.0,
+      "center_to_task_shared_grad_ratio": 0.0,
+      "total_aux_to_task_shared_grad_ratio": 0.75,
+      "utility_factor_to_task_shared_grad_ratio": 0.75,
+      "utility_router_to_task_shared_grad_ratio": 0.0
+    },
+    "weighted_ratios": {
+      "anchor_to_task_shared_grad_ratio": 0.0,
+      "assigned_to_task_shared_grad_ratio": 0.0,
+      "center_to_task_shared_grad_ratio": 0.0,
+      "total_aux_to_task_shared_grad_ratio": 0.07500000000000001,
+      "utility_factor_to_task_shared_grad_ratio": 0.07500000000000001,
+      "utility_router_to_task_shared_grad_ratio": 0.0
+    }
+  },
+  "historical_milestones": [
+    {
+      "batch": 32,
+      "components": {
+        "advantage": {
+          "active": false,
+          "historically_reported_norms": {},
+          "inferred_raw_norms": {},
+          "lambda_weight": 0.0,
+          "loss_value_raw": 0.0
+        },
+        "assigned_expert": {
+          "active": false,
+          "historically_reported_norms": {},
+          "inferred_raw_norms": {},
+          "lambda_weight": 0.0,
+          "loss_value_raw": 0.0
+        },
+        "center": {
+          "active": false,
+          "historically_reported_norms": {},
+          "inferred_raw_norms": {},
+          "lambda_weight": 0.0,
+          "loss_value_raw": 1.0562005043029785
+        },
+        "dynamic_mean_anchor": {
+          "active": false,
+          "historically_reported_norms": {},
+          "inferred_raw_norms": {},
+          "lambda_weight": 0.0,
+          "loss_value_raw": 0.025966670364141464
+        },
+        "expert_anchor": {
+          "active": false,
+          "historically_reported_norms": {},
+          "inferred_raw_norms": {},
+          "lambda_weight": 0.0,
+          "loss_value_raw": 0.0
+        },
+        "main_task": {
+          "active": true,
+          "historically_reported_norms": {
+            "dynamic_context": 0.0,
+            "expert_B": 0.0,
+            "expert_state_projection": 0.0,
+            "prototype_state": 0.002278938889503479,
+            "router": 7.393453415716067e-05,
+            "router_query_key": 7.393453415716067e-05,
+            "shared_semantic": 0.0019219303503632545,
+            "state_path": 0.002278938889503479,
+            "text_adapter": 0.5214304327964783,
+            "text_lora": 0.5214304327964783,
+            "vae_class_path": 0.0016281617572531104
+          },
+          "inferred_raw_norms": {
+            "dynamic_context": 0.0,
+            "expert_B": 0.0,
+            "expert_state_projection": 0.0,
+            "prototype_state": 0.002278938889503479,
+            "router": 7.393453415716067e-05,
+            "router_query_key": 7.393453415716067e-05,
+            "shared_semantic": 0.0019219303503632545,
+            "state_path": 0.002278938889503479,
+            "text_adapter": 0.5214304327964783,
+            "text_lora": 0.5214304327964783,
+            "vae_class_path": 0.0016281617572531104
+          },
+          "lambda_weight": 1.0,
+          "loss_value_raw": 1.7149946689605713
+        },
+        "utility_factor": {
+          "active": true,
+          "historically_reported_norms": {
+            "dynamic_context": 0.0,
+            "expert_B": 0.0,
+            "expert_state_projection": 0.0,
+            "prototype_state": 0.0004338638100307435,
+            "router": 0.0,
+            "router_query_key": 0.0,
+            "shared_semantic": 0.0003682033275254071,
+            "state_path": 0.0004338638100307435,
+            "text_adapter": 0.002926432527601719,
+            "text_lora": 0.002926432527601719,
+            "vae_class_path": 0.0003079117741435766
+          },
+          "inferred_raw_norms": {
+            "dynamic_context": 0.0,
+            "expert_B": 0.0,
+            "expert_state_projection": 0.0,
+            "prototype_state": 0.004338638100307435,
+            "router": 0.0,
+            "router_query_key": 0.0,
+            "shared_semantic": 0.0036820332752540708,
+            "state_path": 0.004338638100307435,
+            "text_adapter": 0.02926432527601719,
+            "text_lora": 0.02926432527601719,
+            "vae_class_path": 0.0030791177414357662
+          },
+          "lambda_weight": 0.1,
+          "loss_value_raw": 0.09368516504764557
+        },
+        "utility_router": {
+          "active": true,
+          "historically_reported_norms": {
+            "dynamic_context": 0.0,
+            "expert_B": 0.0,
+            "expert_state_projection": 0.0,
+            "prototype_state": 0.0,
+            "router": 0.0,
+            "router_query_key": 0.0,
+            "shared_semantic": 0.0,
+            "state_path": 0.0,
+            "text_adapter": 0.0,
+            "text_lora": 0.0,
+            "vae_class_path": 0.0
+          },
+          "inferred_raw_norms": {
+            "dynamic_context": 0.0,
+            "expert_B": 0.0,
+            "expert_state_projection": 0.0,
+            "prototype_state": 0.0,
+            "router": 0.0,
+            "router_query_key": 0.0,
+            "shared_semantic": 0.0,
+            "state_path": 0.0,
+            "text_adapter": 0.0,
+            "text_lora": 0.0,
+            "vae_class_path": 0.0
+          },
+          "lambda_weight": 0.1,
+          "loss_value_raw": 0.0
+        }
+      },
+      "historically_reported_ratios": {
+        "anchor_to_task_shared_grad_ratio": 0.0,
+        "assigned_to_task_shared_grad_ratio": 0.0,
+        "center_to_task_shared_grad_ratio": 0.0,
+        "total_aux_to_task_shared_grad_ratio": 0.19157995369385514,
+        "utility_factor_to_task_shared_grad_ratio": 0.19157995369385514,
+        "utility_router_to_task_shared_grad_ratio": 0.0
+      },
+      "inferred_raw_ratios": {
+        "total_aux_to_task_shared_grad_ratio": 1.9157995369385514,
+        "utility_factor_to_task_shared_grad_ratio": 1.9157995369385514,
+        "utility_router_to_task_shared_grad_ratio": 0.0
+      }
+    },
+    {
+      "batch": 128,
+      "components": {
+        "advantage": {
+          "active": false,
+          "historically_reported_norms": {},
+          "inferred_raw_norms": {},
+          "lambda_weight": 0.0,
+          "loss_value_raw": 0.0
+        },
+        "assigned_expert": {
+          "active": false,
+          "historically_reported_norms": {},
+          "inferred_raw_norms": {},
+          "lambda_weight": 0.0,
+          "loss_value_raw": 0.0
+        },
+        "center": {
+          "active": false,
+          "historically_reported_norms": {},
+          "inferred_raw_norms": {},
+          "lambda_weight": 0.0,
+          "loss_value_raw": 1.024585485458374
+        },
+        "dynamic_mean_anchor": {
+          "active": false,
+          "historically_reported_norms": {},
+          "inferred_raw_norms": {},
+          "lambda_weight": 0.0,
+          "loss_value_raw": 0.08856716006994247
+        },
+        "expert_anchor": {
+          "active": false,
+          "historically_reported_norms": {},
+          "inferred_raw_norms": {},
+          "lambda_weight": 0.0,
+          "loss_value_raw": 0.0
+        },
+        "main_task": {
+          "active": true,
+          "historically_reported_norms": {
+            "dynamic_context": 0.0,
+            "expert_B": 0.0,
+            "expert_state_projection": 0.0,
+            "prototype_state": 0.00025852216640487313,
+            "router": 1.6743511878303252e-05,
+            "router_query_key": 1.6743511878303252e-05,
+            "shared_semantic": 0.0001387393567711115,
+            "state_path": 0.00025852216640487313,
+            "text_adapter": 0.2906782925128937,
+            "text_lora": 0.2906782925128937,
+            "vae_class_path": 0.00023425742983818054
+          },
+          "inferred_raw_norms": {
+            "dynamic_context": 0.0,
+            "expert_B": 0.0,
+            "expert_state_projection": 0.0,
+            "prototype_state": 0.00025852216640487313,
+            "router": 1.6743511878303252e-05,
+            "router_query_key": 1.6743511878303252e-05,
+            "shared_semantic": 0.0001387393567711115,
+            "state_path": 0.00025852216640487313,
+            "text_adapter": 0.2906782925128937,
+            "text_lora": 0.2906782925128937,
+            "vae_class_path": 0.00023425742983818054
+          },
+          "lambda_weight": 1.0,
+          "loss_value_raw": 1.6799249649047852
+        },
+        "utility_factor": {
+          "active": true,
+          "historically_reported_norms": {
+            "dynamic_context": 0.0,
+            "expert_B": 0.0,
+            "expert_state_projection": 0.0,
+            "prototype_state": 3.811174974543974e-05,
+            "router": 0.0,
+            "router_query_key": 0.0,
+            "shared_semantic": 2.0399198547238484e-05,
+            "state_path": 3.811174974543974e-05,
+            "text_adapter": 0.0002805124968290329,
+            "text_lora": 0.0002805124968290329,
+            "vae_class_path": 3.469884904916398e-05
+          },
+          "inferred_raw_norms": {
+            "dynamic_context": 0.0,
+            "expert_B": 0.0,
+            "expert_state_projection": 0.0,
+            "prototype_state": 0.0003811174974543974,
+            "router": 0.0,
+            "router_query_key": 0.0,
+            "shared_semantic": 0.00020399198547238484,
+            "state_path": 0.0003811174974543974,
+            "text_adapter": 0.002805124968290329,
+            "text_lora": 0.002805124968290329,
+            "vae_class_path": 0.0003469884904916398
+          },
+          "lambda_weight": 0.1,
+          "loss_value_raw": 0.005630968138575554
+        },
+        "utility_router": {
+          "active": true,
+          "historically_reported_norms": {
+            "dynamic_context": 0.0,
+            "expert_B": 0.0,
+            "expert_state_projection": 0.0,
+            "prototype_state": 0.0,
+            "router": 0.0,
+            "router_query_key": 0.0,
+            "shared_semantic": 0.0,
+            "state_path": 0.0,
+            "text_adapter": 0.0,
+            "text_lora": 0.0,
+            "vae_class_path": 0.0
+          },
+          "inferred_raw_norms": {
+            "dynamic_context": 0.0,
+            "expert_B": 0.0,
+            "expert_state_projection": 0.0,
+            "prototype_state": 0.0,
+            "router": 0.0,
+            "router_query_key": 0.0,
+            "shared_semantic": 0.0,
+            "state_path": 0.0,
+            "text_adapter": 0.0,
+            "text_lora": 0.0,
+            "vae_class_path": 0.0
+          },
+          "lambda_weight": 0.1,
+          "loss_value_raw": 0.0
+        }
+      },
+      "historically_reported_ratios": {
+        "anchor_to_task_shared_grad_ratio": 0.0,
+        "assigned_to_task_shared_grad_ratio": 0.0,
+        "center_to_task_shared_grad_ratio": 0.0,
+        "total_aux_to_task_shared_grad_ratio": 0.1470325293556935,
+        "utility_factor_to_task_shared_grad_ratio": 0.1470325293556935,
+        "utility_router_to_task_shared_grad_ratio": 0.0
+      },
+      "inferred_raw_ratios": {
+        "total_aux_to_task_shared_grad_ratio": 1.470325293556935,
+        "utility_factor_to_task_shared_grad_ratio": 1.470325293556935,
+        "utility_router_to_task_shared_grad_ratio": 0.0
+      }
+    },
+    {
+      "batch": 300,
+      "components": {
+        "advantage": {
+          "active": false,
+          "historically_reported_norms": {},
+          "inferred_raw_norms": {},
+          "lambda_weight": 0.0,
+          "loss_value_raw": 0.0
+        },
+        "assigned_expert": {
+          "active": false,
+          "historically_reported_norms": {},
+          "inferred_raw_norms": {},
+          "lambda_weight": 0.0,
+          "loss_value_raw": 0.0
+        },
+        "center": {
+          "active": false,
+          "historically_reported_norms": {},
+          "inferred_raw_norms": {},
+          "lambda_weight": 0.0,
+          "loss_value_raw": 1.030689001083374
+        },
+        "dynamic_mean_anchor": {
+          "active": false,
+          "historically_reported_norms": {},
+          "inferred_raw_norms": {},
+          "lambda_weight": 0.0,
+          "loss_value_raw": 0.024209454655647278
+        },
+        "expert_anchor": {
+          "active": false,
+          "historically_reported_norms": {},
+          "inferred_raw_norms": {},
+          "lambda_weight": 0.0,
+          "loss_value_raw": 0.0
+        },
+        "main_task": {
+          "active": true,
+          "historically_reported_norms": {
+            "dynamic_context": 0.0,
+            "expert_B": 0.0,
+            "expert_state_projection": 0.0,
+            "prototype_state": 0.0007676599780097604,
+            "router": 6.846192991361022e-05,
+            "router_query_key": 6.846192991361022e-05,
+            "shared_semantic": 0.0007259821286424994,
+            "state_path": 0.0007676599780097604,
+            "text_adapter": 0.4732520282268524,
+            "text_lora": 0.4732520282268524,
+            "vae_class_path": 0.0005170463700778782
+          },
+          "inferred_raw_norms": {
+            "dynamic_context": 0.0,
+            "expert_B": 0.0,
+            "expert_state_projection": 0.0,
+            "prototype_state": 0.0007676599780097604,
+            "router": 6.846192991361022e-05,
+            "router_query_key": 6.846192991361022e-05,
+            "shared_semantic": 0.0007259821286424994,
+            "state_path": 0.0007676599780097604,
+            "text_adapter": 0.4732520282268524,
+            "text_lora": 0.4732520282268524,
+            "vae_class_path": 0.0005170463700778782
+          },
+          "lambda_weight": 1.0,
+          "loss_value_raw": 1.8812131881713867
+        },
+        "utility_factor": {
+          "active": true,
+          "historically_reported_norms": {
+            "dynamic_context": 0.0,
+            "expert_B": 0.0,
+            "expert_state_projection": 0.0,
+            "prototype_state": 0.00017299249884672463,
+            "router": 0.0,
+            "router_query_key": 0.0,
+            "shared_semantic": 0.00016434954886790365,
+            "state_path": 0.00017299249884672463,
+            "text_adapter": 0.0005254031857475638,
+            "text_lora": 0.0005254031857475638,
+            "vae_class_path": 0.00011545326560735703
+          },
+          "inferred_raw_norms": {
+            "dynamic_context": 0.0,
+            "expert_B": 0.0,
+            "expert_state_projection": 0.0,
+            "prototype_state": 0.0017299249884672463,
+            "router": 0.0,
+            "router_query_key": 0.0,
+            "shared_semantic": 0.0016434954886790365,
+            "state_path": 0.0017299249884672463,
+            "text_adapter": 0.005254031857475638,
+            "text_lora": 0.005254031857475638,
+            "vae_class_path": 0.0011545326560735703
+          },
+          "lambda_weight": 0.1,
+          "loss_value_raw": 0.012890010140836239
+        },
+        "utility_router": {
+          "active": true,
+          "historically_reported_norms": {
+            "dynamic_context": 0.0,
+            "expert_B": 0.0,
+            "expert_state_projection": 0.0,
+            "prototype_state": 0.0019118946511298418,
+            "router": 0.01754172518849373,
+            "router_query_key": 0.01754172518849373,
+            "shared_semantic": 0.0006378573016263545,
+            "state_path": 0.0019118946511298418,
+            "text_adapter": 0.0,
+            "text_lora": 0.0,
+            "vae_class_path": 0.0
+          },
+          "inferred_raw_norms": {
+            "dynamic_context": 0.0,
+            "expert_B": 0.0,
+            "expert_state_projection": 0.0,
+            "prototype_state": 0.019118946511298418,
+            "router": 0.1754172518849373,
+            "router_query_key": 0.1754172518849373,
+            "shared_semantic": 0.0063785730162635446,
+            "state_path": 0.019118946511298418,
+            "text_adapter": 0.0,
+            "text_lora": 0.0,
+            "vae_class_path": 0.0
+          },
+          "lambda_weight": 0.1,
+          "loss_value_raw": 1.3648900985717773
+        }
+      },
+      "historically_reported_ratios": {
+        "anchor_to_task_shared_grad_ratio": 0.0,
+        "assigned_to_task_shared_grad_ratio": 0.0,
+        "center_to_task_shared_grad_ratio": 0.0,
+        "total_aux_to_task_shared_grad_ratio": 1.1049953144084825,
+        "utility_factor_to_task_shared_grad_ratio": 0.2263823617465871,
+        "utility_router_to_task_shared_grad_ratio": 0.8786129526618954
+      },
+      "inferred_raw_ratios": {
+        "total_aux_to_task_shared_grad_ratio": 11.049953144084826,
+        "utility_factor_to_task_shared_grad_ratio": 2.2638236174658712,
+        "utility_router_to_task_shared_grad_ratio": 8.786129526618954
+      }
+    }
+  ],
+  "historical_reported_ratio_basis": "lambda_weighted",
+  "lambda_interpretation": "Historical ratios already included lambda=0.1. Raw utility ratios are ten times the reported ratios when the main-task weight is 1.0.",
+  "proof": {
+    "baseline_autograd_used_loss_times_weight": true,
+    "baseline_commit": "2019e5ada8f30166ab70c8a859de35c487ecc1c1",
+    "baseline_train_py_sha256": "d42da20ad085d069bdcb992c02693b08d744ae0e2266c23c5675079da4c789f6",
+    "historical_component_group_fields": "lambda-weighted gradient L2 norms",
+    "historical_component_raw_field": "raw scalar loss value, not raw gradient norm"
+  },
+  "status": "PASS_CLARIFIED"
+}

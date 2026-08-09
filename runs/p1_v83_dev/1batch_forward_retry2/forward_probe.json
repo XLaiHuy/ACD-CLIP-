@@ -1,0 +1,133 @@
+{
+  "batch": 1,
+  "checks": {
+    "all_finite": true,
+    "class_deterministic": true,
+    "dynamic_adapted_differs_from_hard_frozen": true,
+    "factor_outputs_not_identical": true,
+    "hard_frozen_stable": true,
+    "optimizer_untouched": true,
+    "rho_fixed_005": true,
+    "router_probabilities_sum_to_one": true,
+    "state_factor_specific": true
+  },
+  "class_repeat_max_error": 0.0,
+  "dynamic_hard_max_difference": 0.209969624876976,
+  "epoch": 1,
+  "factor_max_difference": 0.29916760325431824,
+  "finite": {
+    "base_abnormal_minus_normal": true,
+    "base_group_logits": true,
+    "class_token": true,
+    "dense_probabilities": true,
+    "dynamic_text": true,
+    "factor_patch_logits": true,
+    "hard_frozen": true,
+    "state_tokens": true,
+    "total_loss": true
+  },
+  "gpu_allocated_bytes": 0,
+  "gpu_peak_allocated_bytes": 0,
+  "gpu_peak_reserved_bytes": 0,
+  "gpu_reserved_bytes": 0,
+  "hard_frozen_repeat_max_error": 0.0,
+  "rho": [
+    0.05000000074505806,
+    0.05000000074505806,
+    0.05000000074505806
+  ],
+  "router_sum_max_error": 1.1920928955078125e-07,
+  "shapes": {
+    "base_abnormal_minus_normal": [
+      3,
+      1,
+      1369
+    ],
+    "base_group_logits": [
+      3,
+      1,
+      1369,
+      2
+    ],
+    "class_token": [
+      1,
+      768
+    ],
+    "dense_probabilities": [
+      3,
+      1,
+      1369,
+      4
+    ],
+    "dynamic_text": [
+      3,
+      1,
+      4,
+      768,
+      2
+    ],
+    "factor_patch_logits": [
+      3,
+      1,
+      1369,
+      4
+    ],
+    "hard_frozen": [
+      3,
+      1,
+      768,
+      2
+    ],
+    "state_tokens": [
+      1,
+      4,
+      2,
+      768
+    ],
+    "total_loss": []
+  },
+  "state_max_difference": 0.020136110484600067,
+  "utility": {
+    "Base": 0.7242464423179626,
+    "BestSingle": 0.7247777581214905,
+    "G_local": 0.0005687673110514879,
+    "G_multi": 0.0013023791834712029,
+    "HardRouted": 0.7252881526947021,
+    "L_base": 0.7242464423179626,
+    "L_per_factor": [
+      0.7247777581214905,
+      0.7253615856170654,
+      0.7256322503089905,
+      0.7253316640853882
+    ],
+    "OracleMulti": 0.7238345146179199,
+    "SoftRouted": 0.7252794504165649,
+    "Uniform": 0.7252751588821411,
+    "all_harm_fraction": 0.4196622967720032,
+    "base_denominator_valid": true,
+    "best_second_utility_margin": 0.0014911484904587269,
+    "capture": -0.0029788995161652565,
+    "capture_denominator": 0.0014406442642211914,
+    "capture_valid": true,
+    "exploration_epsilon": 0.05000000074505806,
+    "gain_rel_mean": -0.0012859688140451908,
+    "informative_fraction": 0.0,
+    "router_entropy": 0.9989984631538391,
+    "router_top1_agreement": 0.0,
+    "router_usage": [
+      0.2465921938419342,
+      0.24722309410572052,
+      0.25203150510787964,
+      0.2541532516479492
+    ],
+    "teacher_entropy": 0.9996066689491272,
+    "teacher_max_probability": 0.2600838840007782,
+    "teacher_router_KL": 0.0,
+    "winner_shares": [
+      0.3472222089767456,
+      0.24809367954730988,
+      0.1993464082479477,
+      0.20533768832683563
+    ]
+  }
+}
