@@ -1665,6 +1665,30 @@ def train_h6_progress1(
             "phase2b_text_adapter_grad_norm": None,
             "dfg_grad_norm": None,
         }
+        act_diag: dict[str, torch.Tensor] = {}
+        act_runtime_diag: dict[str, object] = {}
+        if model.h6.progress_version == "P1-v8.4-A":
+            act_output = model.h6.act_head[-1]
+            act_runtime_diag = {
+                "act_output_weight_norm_initial": float(
+                    act_output.weight.detach().float().norm().item()
+                ),
+                "act_output_bias_norm_initial": float(
+                    act_output.bias.detach().float().norm().item()
+                ),
+                "act_probability_mean_before_first_update": None,
+                "act_head_gradient_norm_before_step1": None,
+                "act_output_weight_norm_before_step1": None,
+                "act_output_weight_norm_after_step1": None,
+                "act_probability_mean_after_step1": None,
+                "post_step_upstream_act_gradient_norm": None,
+                "post_step_upstream_act_weighted_gradient_norm": None,
+                "post_step_supervised_batch": None,
+                "post_step_support_count": 0,
+                "post_step_zero_support_batches": [],
+                "residual_definition_max_error": 0.0,
+                "local_correction_reconstruction_max_error": 0.0,
+            }
         optimizer.zero_grad(set_to_none=True)
         # Structural gates must describe the epoch, never just its final batch.
         epoch_diag_sum: dict[str, torch.Tensor] = {}
@@ -1757,6 +1781,33 @@ def train_h6_progress1(
                 h6_batch = model.h6.build_batch(
                     model, dataset_name, class_names, visual_output, hybrid_alpha=hybrid_alpha
                 )
+                if model.h6.progress_version == "P1-v8.4-A":
+                    if batch_idx == 1:
+                        act_runtime_diag["act_probability_mean_before_first_update"] = float(
+                            h6_batch["act_probability"].detach().float().mean().item()
+                        )
+                    residual_error = (
+                        h6_batch["factor_residual_logits"]
+                        - (
+                            h6_batch["factor_patch_logits"]
+                            - h6_batch["noop_reference_logit"].unsqueeze(-1)
+                        )
+                    ).detach().float().abs().max().item()
+                    reconstructed_local = h6_batch["act_probability"] * (
+                        h6_batch["dense_probabilities"]
+                        * h6_batch["factor_residual_logits"]
+                    ).sum(dim=-1)
+                    correction_error = (
+                        h6_batch["h6_logits"] - reconstructed_local
+                    ).detach().float().abs().max().item()
+                    act_runtime_diag["residual_definition_max_error"] = max(
+                        float(act_runtime_diag["residual_definition_max_error"]),
+                        float(residual_error),
+                    )
+                    act_runtime_diag["local_correction_reconstruction_max_error"] = max(
+                        float(act_runtime_diag["local_correction_reconstruction_max_error"]),
+                        float(correction_error),
+                    )
                 if args.h6_cluster_responsibility:
                     h6_cluster_resp, q_cluster, cluster_diag = cluster_responsibility_loss(
                         h6_batch["router_patch_features"],
@@ -2005,14 +2056,41 @@ def train_h6_progress1(
                             y_patch,
                             beta=args.h6_act_effective_beta,
                         )
-                        for diag_name, diag_value in act_diagnostics(
+                        act_diag = act_diagnostics(
                             h6_batch["act_probability"], act_payload, y_patch
-                        ).items():
+                        )
+                        for diag_name, diag_value in act_diag.items():
                             value = diag_value.detach().float()
                             epoch_diag_sum[diag_name] = epoch_diag_sum.get(
                                 diag_name, torch.zeros_like(value)
                             ) + value
                             epoch_diag_count[diag_name] = epoch_diag_count.get(diag_name, 0) + 1
+                        if (
+                            optimizer_step_count >= 1
+                            and act_runtime_diag["post_step_upstream_act_gradient_norm"] is None
+                        ):
+                            support_count = int(act_payload["support"].sum().item())
+                            if support_count == 0:
+                                act_runtime_diag["post_step_zero_support_batches"].append(batch_idx)
+                            else:
+                                upstream_gradient = torch.autograd.grad(
+                                    h6_utility_act,
+                                    h6_batch["router_patch_features"],
+                                    retain_graph=True,
+                                    allow_unused=True,
+                                )[0]
+                                upstream_norm = (
+                                    0.0 if upstream_gradient is None
+                                    else float(upstream_gradient.detach().float().norm().item())
+                                )
+                                act_runtime_diag.update({
+                                    "post_step_upstream_act_gradient_norm": upstream_norm,
+                                    "post_step_upstream_act_weighted_gradient_norm": (
+                                        upstream_norm * float(args.lambda_h6_act)
+                                    ),
+                                    "post_step_supervised_batch": batch_idx,
+                                    "post_step_support_count": support_count,
+                                })
                     if gradient_surgery_enabled:
                         physical_valid = utility_valid
                         physical_anomaly = physical_valid & (y_patch >= 0.5)
@@ -2487,6 +2565,16 @@ def train_h6_progress1(
             do_step = batch_idx % args.grad_accum_steps == 0 or batch_idx == epoch_batch_limit
             if do_step:
                 scaler.unscale_(optimizer)
+                if (
+                    model.h6.progress_version == "P1-v8.4-A"
+                    and optimizer_step_count == 0
+                ):
+                    act_runtime_diag["act_head_gradient_norm_before_step1"] = float(
+                        module_grad_norm(model.h6.act_head).detach().float().item()
+                    )
+                    act_runtime_diag["act_output_weight_norm_before_step1"] = float(
+                        model.h6.act_head[-1].weight.detach().float().norm().item()
+                    )
                 if gradient_surgery_enabled:
                     raw_geometry = _gradient_vector_geometry(
                         pcgrad_main_buffer, pcgrad_factor_buffer, pcgrad_router_buffer
@@ -2621,15 +2709,37 @@ def train_h6_progress1(
                 scaler.step(optimizer)
                 scaler.update()
                 optimizer_step_count += 1
-                optimizer.zero_grad(set_to_none=True)
-                if args.h6_drift_diagnostics and "batch_000_after_first_optimizer_step" not in drift_snapshots:
+                needs_v84_post_step = bool(
+                    model.h6.progress_version == "P1-v8.4-A"
+                    and optimizer_step_count == 1
+                    and act_runtime_diag["act_output_weight_norm_after_step1"] is None
+                )
+                if needs_v84_post_step:
+                    act_runtime_diag["act_output_weight_norm_after_step1"] = float(
+                        model.h6.act_head[-1].weight.detach().float().norm().item()
+                    )
+                if (
+                    needs_v84_post_step
+                    or (
+                        args.h6_drift_diagnostics
+                        and "batch_000_after_first_optimizer_step" not in drift_snapshots
+                    )
+                ):
                     with torch.no_grad(), _phase4_autocast(device, args.precision):
                         post_step_visual = model(image, return_phase4_features=True)
                         post_step_batch = model.h6.build_batch(
                             model, dataset_name, class_names, post_step_visual,
                             hybrid_alpha=hybrid_alpha, update_load_bias=False,
                         )
-                    _record_drift_snapshot("batch_000_after_first_optimizer_step", post_step_batch)
+                    if needs_v84_post_step:
+                        act_runtime_diag["act_probability_mean_after_step1"] = float(
+                            post_step_batch["act_probability"].detach().float().mean().item()
+                        )
+                    if args.h6_drift_diagnostics:
+                        _record_drift_snapshot(
+                            "batch_000_after_first_optimizer_step", post_step_batch
+                        )
+                optimizer.zero_grad(set_to_none=True)
             if trajectory_enabled and batch_idx in trajectory_milestones:
                 rho_values_now = model.h6.rho_values().detach().float()
                 if not torch.equal(rho_values_now, torch.full_like(rho_values_now, 0.05)):
@@ -2980,7 +3090,9 @@ def train_h6_progress1(
 
             rho_values = model.h6.rho_values().detach().float()
             utility_epoch = {
-                key: diagnostics.get(key) for key in utility_diag if key in diagnostics
+                key: diagnostics.get(key)
+                for key in set(utility_diag) | set(act_diag)
+                if key in diagnostics
             }
             structure_epoch = {
                 key: diagnostics.get(key) for key in structure_diag if key in diagnostics
@@ -3026,12 +3138,66 @@ def train_h6_progress1(
                     epoch_batch_limit // args.grad_accum_steps
                     + int(epoch_batch_limit % args.grad_accum_steps != 0)
                 )
+                surgery_decisions = [
+                    window.get("primary_anchored_factor_surgery", {})
+                    for window in pcgrad_window_records
+                ]
+                main_exact_change_max = max(
+                    (float(item.get("main_gradient_exact_change_norm", float("inf")))
+                     for item in surgery_decisions),
+                    default=float("inf"),
+                )
+                surgery_reconstruction_error_max = max(
+                    (float(item.get("correction_reconstruction_error_norm", float("inf")))
+                     for item in surgery_decisions),
+                    default=float("inf"),
+                )
+                act_mean = float(diagnostics["act_probability_mean"].item())
+                act_runtime_diag.update({
+                    "main_gradient_exact_change_max": main_exact_change_max,
+                    "surgery_correction_reconstruction_error_max": (
+                        surgery_reconstruction_error_max
+                    ),
+                })
                 checks.update({
                     "residual_semantics_enabled": model.h6.residual_act_enabled,
                     "act_head_present": model.h6.act_head is not None,
                     "act_forward_finite": bool(torch.isfinite(h6_batch["act_probability"]).all().item()),
-                    "act_loss_finite": np.isfinite(epoch_metric_means["utility_act"]),
-                    "act_gradient_alive": _positive_diagnostic("act_head_grad_norm"),
+                    "act_loss_finite": bool(np.isfinite(epoch_metric_means["utility_act"])),
+                    "act_gradient_alive": bool(
+                        act_runtime_diag["act_head_gradient_norm_before_step1"] is not None
+                        and act_runtime_diag["act_head_gradient_norm_before_step1"] > 0.0
+                    ),
+                    "act_initial_mean_half": bool(
+                        act_runtime_diag["act_probability_mean_before_first_update"] is not None
+                        and abs(
+                            act_runtime_diag["act_probability_mean_before_first_update"] - 0.5
+                        ) <= 1e-7
+                    ),
+                    "act_output_weight_initially_zero": bool(
+                        act_runtime_diag["act_output_weight_norm_initial"] == 0.0
+                        and act_runtime_diag["act_output_weight_norm_before_step1"] == 0.0
+                    ),
+                    "act_output_weight_left_zero_after_step1": bool(
+                        act_runtime_diag["act_output_weight_norm_after_step1"] is not None
+                        and act_runtime_diag["act_output_weight_norm_after_step1"] > 0.0
+                    ),
+                    "post_step_upstream_act_path_reachable": bool(
+                        act_runtime_diag["post_step_upstream_act_gradient_norm"] is not None
+                        and act_runtime_diag["post_step_upstream_act_gradient_norm"] > 0.0
+                    ),
+                    "act_not_saturated": 1e-4 < act_mean < 1.0 - 1e-4,
+                    "exact_noop_residual_invariant": (
+                        act_runtime_diag["residual_definition_max_error"] == 0.0
+                    ),
+                    "local_correction_reconstruction": (
+                        act_runtime_diag["local_correction_reconstruction_max_error"]
+                        <= 1e-7
+                    ),
+                    "main_gradient_exact_change_zero": main_exact_change_max == 0.0,
+                    "surgery_correction_reconstruction": (
+                        surgery_reconstruction_error_max <= 1e-12
+                    ),
                     "optimizer_window_count_exact": optimizer_step_count == expected_steps,
                 })
             smoke_payload = diagnostics_to_python({
@@ -3051,6 +3217,7 @@ def train_h6_progress1(
                 "utility": utility_epoch,
                 "structure": structure_epoch,
                 "gradients": factor_grad_diag,
+                "act_runtime": act_runtime_diag,
                 "gpu_allocated_bytes": (
                     torch.cuda.memory_allocated(device) if device.type == "cuda" else 0
                 ),
