@@ -57,6 +57,12 @@ from model.h6.utility_routing import (
     build_patch_targets, exploration_epsilon, utility_diagnostics,
     utility_factor_loss, utility_router_loss, utility_teacher,
 )
+from model.h6.specialization_trajectory import (
+    aggregate_utility_records,
+    capture_utility_record,
+    teacher_sensitivity_grid,
+    write_trajectory_artifacts,
+)
 from model.h6.losses import (
     build_semantic_roles,
     active_role_balanced_router_loss,
@@ -162,13 +168,19 @@ def p1_v83_structure_diagnostics(h6_batch):
     return {
         "factor_embedding_pairwise_cosine_mean": embedding_pair_cosine.mean(),
         "factor_embedding_pairwise_cosine_max": embedding_pair_cosine.max(),
+        "factor_embedding_pairwise_cosine_min": embedding_pair_cosine.min(),
+        "factor_embedding_pairwise_l2_mean": embedding_pair_l2.mean(),
         "factor_embedding_pairwise_l2_min": embedding_pair_l2.min(),
+        "factor_embedding_pairwise_l2_max": embedding_pair_l2.max(),
         "factor_embedding_effective_rank": embedding_effective_rank,
         "state_pairwise_l2_min": state_pair_l2.min(),
         "state_pairwise_l2_mean": state_pair_l2.mean(),
+        "state_pairwise_l2_max": state_pair_l2.max(),
         "factor_patch_pairwise_correlation_mean": logit_pair_correlation.mean(),
         "factor_patch_pairwise_correlation_max": logit_pair_correlation.max(),
+        "factor_patch_pairwise_correlation_min": logit_pair_correlation.min(),
         "factor_patch_pairwise_max_difference": logit_pair_max_difference.max(),
+        "factor_patch_std_across_factors": logits.std(dim=-1, unbiased=False).mean(),
         "factor_patch_outputs_exactly_collapsed": (
             logit_pair_max_difference.max() == 0
         ).float(),
@@ -338,6 +350,7 @@ def factor_gradient_diagnostics(gradient: torch.Tensor | None) -> dict[str, torc
             "factor_grad_norms": None,
             "factor_grad_cos_mean": None,
             "factor_grad_cos_max": None,
+            "factor_grad_cos_min": None,
             "factor_grad_l2_min": None,
         }
     grad = gradient.detach().float()
@@ -353,6 +366,7 @@ def factor_gradient_diagnostics(gradient: torch.Tensor | None) -> dict[str, torc
             "factor_grad_norms": norms.detach(),
             "factor_grad_cos_mean": zero.detach(),
             "factor_grad_cos_max": zero.detach(),
+            "factor_grad_cos_min": zero.detach(),
             "factor_grad_l2_min": zero.detach(),
         }
     normalized = F.normalize(grad, dim=-1)
@@ -363,8 +377,74 @@ def factor_gradient_diagnostics(gradient: torch.Tensor | None) -> dict[str, torc
         "factor_grad_norms": norms.detach(),
         "factor_grad_cos_mean": cosine[mask].mean().detach(),
         "factor_grad_cos_max": cosine[mask].abs().max().detach(),
+        "factor_grad_cos_min": cosine[mask].min().detach(),
         "factor_grad_l2_min": l2.min().detach(),
     }
+
+
+def p1_v83_model_gradient_diagnostics(model, h6_batch, device):
+    """Read current accumulated gradients for a diagnostics-only milestone."""
+    core = model.h6.semantic_core
+    result = factor_gradient_diagnostics(core.concept_slots.grad)
+    dynamic_grad = h6_batch["dynamic_text"].grad
+    result["dynamic_residual_grad_norms"] = (
+        None if dynamic_grad is None
+        else dynamic_grad.detach().float().norm(dim=3).mean(dim=(0, 1, 3)).detach()
+    )
+    factor_id_grad = core.factor_id_projection.weight.grad
+    result["factor_id_projection_grad_norm"] = (
+        None if factor_id_grad is None else factor_id_grad.detach().float().norm()
+    )
+    result["factor_generator_identity_grad_norm"] = None
+    result["factor_generator_context_grad_norm"] = None
+    result["factor_generator_head_grad_norms"] = None
+    if getattr(core, "factor_generator_specialization_enabled", False):
+        identity_grad = core.factor_id_embedding.grad
+        if identity_grad is not None:
+            result["factor_generator_identity_grad_norm"] = identity_grad.detach().float().norm()
+        context_grads = [
+            parameter.grad.detach().float().norm()
+            for parameter in core.factor_id_to_context.parameters() if parameter.grad is not None
+        ]
+        if context_grads:
+            result["factor_generator_context_grad_norm"] = torch.stack(context_grads).norm()
+        result["factor_generator_head_grad_norms"] = torch.stack([
+            head.weight.grad.detach().float().norm()
+            if head.weight.grad is not None else torch.zeros((), device=device)
+            for head in core.factor_output_heads
+        ])
+    shared_trunk_norms = [
+        module_grad_norm(getattr(core, name, None)) for name in (
+            "normal_state_update", "abnormal_state_update",
+            "state_to_context_normal", "state_to_context_abnormal",
+        )
+    ]
+    shared_trunk_norms = [value for value in shared_trunk_norms if value is not None]
+    result["dynamic_prompt_shared_trunk_grad_norm"] = (
+        torch.stack(shared_trunk_norms).norm() if shared_trunk_norms else None
+    )
+    vae = getattr(core, "class_vae", None)
+    result["vae_mu_grad_norm"] = module_grad_norm(getattr(vae, "mu", None))
+    result["vae_logvar_grad_norm"] = module_grad_norm(getattr(vae, "logvar", None))
+    result["vae_decoder_grad_norm"] = module_grad_norm(getattr(vae, "decoder", None))
+    result["class_to_context_grad_norm"] = module_grad_norm(getattr(core, "class_to_context", None))
+    prototype_norms = [module_grad_norm(getattr(core, "prototype_attention", None))]
+    prototype_norms = [value for value in prototype_norms if value is not None]
+    result["prototype_modules_grad_norm"] = (
+        torch.stack(prototype_norms).norm() if prototype_norms else None
+    )
+    result["router_grad_norm"] = module_grad_norm(model.h6.router)
+    result["rho_gate_grad_norm"] = module_grad_norm(getattr(model.h6, "rho", None))
+    result["phase2b_image_adapter_grad_norm"] = module_grad_norm(model.image_adapter)
+    result["phase2b_text_adapter_grad_norm"] = module_grad_norm(model.text_adapter)
+    dfg_module = (
+        model.image_adapter["vision_text_gate"]
+        if "vision_text_gate" in model.image_adapter
+        else model.image_adapter["vision_text_q"]
+        if "vision_text_q" in model.image_adapter else None
+    )
+    result["dfg_grad_norm"] = module_grad_norm(dfg_module)
+    return result
 
 
 def save_nonfinite_diagnostics(
@@ -1311,6 +1391,7 @@ def train_h6_progress1(
             "factor_grad_norms": None,
             "factor_grad_cos_mean": None,
             "factor_grad_cos_max": None,
+            "factor_grad_cos_min": None,
             "factor_grad_l2_min": None,
             "dynamic_residual_grad_norms": None,
             "factor_id_projection_grad_norm": None,
@@ -1335,6 +1416,15 @@ def train_h6_progress1(
         drift_snapshots: dict[str, dict] = {}
         drift_gradient_report = None
         optimizer_step_count = 0
+        trajectory_milestones = sorted(set(args.h6_trajectory_milestones))
+        trajectory_enabled = bool(trajectory_milestones)
+        trajectory_gradient_batches = {32, 128, 300} & set(trajectory_milestones)
+        trajectory_records: list[dict[str, torch.Tensor]] = []
+        trajectory_outputs: list[dict] = []
+        trajectory_structures: dict[int, dict] = {}
+        trajectory_attribution: dict[int, dict] = {}
+        trajectory_gradients: dict[int, dict] = {}
+        trajectory_previous_batch = 0
         epoch_probe_keys = {
             "expert_delta_norm_mean", "expert_delta_valid_fraction", "final_expert_direction_cos_max",
             "expert_patch_logit_std_across_experts", "final_expert_mean_hard_cos_mean", "unique_topk_pairs",
@@ -1406,7 +1496,9 @@ def train_h6_progress1(
                         epoch_diag_count[diag_name] = epoch_diag_count.get(diag_name, 0) + 1
                         if diag_name in epoch_probe_keys:
                             epoch_probe_values.setdefault(diag_name, []).append(value.mean().cpu())
-                if args.h6_factor_grad_diagnostics and batch_idx == 1:
+                if args.h6_factor_grad_diagnostics and (
+                    batch_idx == 1 or batch_idx in trajectory_gradient_batches
+                ):
                     h6_batch["dynamic_text"].retain_grad()
                 seg_features = torch.stack(visual_output["seg_tokens"], dim=0)
                 det_features = torch.stack(visual_output["det_tokens"], dim=0)
@@ -1596,13 +1688,21 @@ def train_h6_progress1(
                             diag_name, torch.zeros_like(value)
                         ) + value
                         epoch_diag_count[diag_name] = epoch_diag_count.get(diag_name, 0) + 1
-                    structure_diag = p1_v83_structure_diagnostics(h6_batch)
-                    for diag_name, diag_value in structure_diag.items():
-                        value = diag_value.detach().float()
-                        epoch_diag_sum[diag_name] = epoch_diag_sum.get(
-                            diag_name, torch.zeros_like(value)
-                        ) + value
-                        epoch_diag_count[diag_name] = epoch_diag_count.get(diag_name, 0) + 1
+                    if trajectory_enabled:
+                        trajectory_records.append(capture_utility_record(
+                            utility_payload, h6_batch["dense_probabilities"], y_patch,
+                            h6_utility_router,
+                        ))
+                    if not trajectory_enabled or batch_idx in trajectory_milestones:
+                        structure_diag = p1_v83_structure_diagnostics(h6_batch)
+                        if trajectory_enabled:
+                            trajectory_structures[batch_idx] = diagnostics_to_python(structure_diag)
+                        for diag_name, diag_value in structure_diag.items():
+                            value = diag_value.detach().float()
+                            epoch_diag_sum[diag_name] = epoch_diag_sum.get(
+                                diag_name, torch.zeros_like(value)
+                            ) + value
+                            epoch_diag_count[diag_name] = epoch_diag_count.get(diag_name, 0) + 1
 
                 if model.h6.expert_enabled:
                     h6_expert, expert_terms = assigned_expert_loss(h6_batch["expert_patch_logits"], h6_batch["prediction_probabilities"], mask)
@@ -1705,8 +1805,10 @@ def train_h6_progress1(
                         raise RuntimeError(
                             "factor outputs became exactly identical for two consecutive wiring probes"
                         )
-                if args.h6_drift_diagnostics and batch_idx == 1:
-                    drift_gradient_report = h6_drift_gradient_attribution(
+                if (args.h6_drift_diagnostics and batch_idx == 1) or (
+                    trajectory_enabled and batch_idx in trajectory_gradient_batches
+                ):
+                    attribution = h6_drift_gradient_attribution(
                         {
                             "main_task": (task_loss, 1.0),
                             "assigned_expert": (h6_expert, expert_weight),
@@ -1719,6 +1821,10 @@ def train_h6_progress1(
                         },
                         h6_drift_parameter_groups(model),
                     )
+                    if args.h6_drift_diagnostics and batch_idx == 1:
+                        drift_gradient_report = attribution
+                    if trajectory_enabled and batch_idx in trajectory_gradient_batches:
+                        trajectory_attribution[batch_idx] = attribution
             if args.h6_smoke_forward_only:
                 with torch.no_grad(), _phase4_autocast(device, args.precision):
                     repeated_h6_batch = model.h6.build_batch(
@@ -1897,6 +2003,10 @@ def train_h6_progress1(
                     if "vision_text_q" in model.image_adapter else None
                 )
                 factor_grad_diag["dfg_grad_norm"] = module_grad_norm(dfg_module)
+            if trajectory_enabled and batch_idx in trajectory_gradient_batches:
+                trajectory_gradients[batch_idx] = diagnostics_to_python(
+                    p1_v83_model_gradient_diagnostics(model, h6_batch, device)
+                )
             if args.h6_smoke_backward_only:
                 all_gradients_finite = all(
                     parameter.grad is None or torch.isfinite(parameter.grad.detach()).all().item()
@@ -2007,6 +2117,50 @@ def train_h6_progress1(
                             hybrid_alpha=hybrid_alpha, update_load_bias=False,
                         )
                     _record_drift_snapshot("batch_000_after_first_optimizer_step", post_step_batch)
+            if trajectory_enabled and batch_idx in trajectory_milestones:
+                rho_values_now = model.h6.rho_values().detach().float()
+                if not torch.equal(rho_values_now, torch.full_like(rho_values_now, 0.05)):
+                    raise RuntimeError(f"P1-v8.3 rho changed at trajectory batch {batch_idx}")
+                if model.h6.rho.raw.grad is not None:
+                    raise RuntimeError(f"P1-v8.3 rho unexpectedly received gradient at batch {batch_idx}")
+                cumulative = aggregate_utility_records(
+                    trajectory_records,
+                    gain_threshold=args.h6_utility_gain_threshold,
+                    entropy_threshold=args.h6_utility_entropy_threshold,
+                )
+                recent = aggregate_utility_records(
+                    trajectory_records[trajectory_previous_batch:batch_idx],
+                    gain_threshold=args.h6_utility_gain_threshold,
+                    entropy_threshold=args.h6_utility_entropy_threshold,
+                )
+                milestone_payload = {
+                    "batch": batch_idx,
+                    "optimizer_steps": optimizer_step_count,
+                    "cumulative_range": [1, batch_idx],
+                    "recent_window_range": [trajectory_previous_batch + 1, batch_idx],
+                    "cumulative": cumulative,
+                    "recent_window": recent,
+                    "structure": trajectory_structures[batch_idx],
+                    "gradients": trajectory_gradients.get(batch_idx),
+                    "gradient_attribution": diagnostics_to_python(
+                        trajectory_attribution.get(batch_idx)
+                    ),
+                    "rho": diagnostics_to_python(rho_values_now),
+                    "gpu": {
+                        "allocated_bytes": torch.cuda.memory_allocated(device) if device.type == "cuda" else 0,
+                        "reserved_bytes": torch.cuda.memory_reserved(device) if device.type == "cuda" else 0,
+                        "peak_allocated_bytes": torch.cuda.max_memory_allocated(device) if device.type == "cuda" else 0,
+                        "peak_reserved_bytes": torch.cuda.max_memory_reserved(device) if device.type == "cuda" else 0,
+                    },
+                    "elapsed_seconds": time.monotonic() - started,
+                }
+                trajectory_outputs.append(milestone_payload)
+                trajectory_previous_batch = batch_idx
+                write_json_atomic(
+                    Path(args.save_path) / "milestones" / f"batch_{batch_idx:03d}.json",
+                    milestone_payload,
+                )
+                write_trajectory_artifacts(args.save_path, trajectory_outputs)
             for key, value in {
                 "total": total_loss, "task": task_loss, "cls": cls_loss, "seg": seg_loss,
                 "center": h6_center,
@@ -2383,6 +2537,59 @@ def train_h6_progress1(
                 ),
             })
             write_json_atomic(Path(args.save_path) / "smoke_summary.json", smoke_payload)
+            if trajectory_enabled:
+                expected_steps = epoch_batch_limit // args.grad_accum_steps
+                if epoch_batch_limit % args.grad_accum_steps:
+                    expected_steps += 1
+                trajectory_ok = bool(
+                    not smoke_payload["failed"]
+                    and len(trajectory_outputs) == len(trajectory_milestones)
+                    and trajectory_outputs[-1]["batch"] == epoch_batch_limit
+                    and optimizer_step_count == expected_steps
+                )
+                final_cumulative = trajectory_outputs[-1]["cumulative"]
+                sensitivity = None
+                if final_cumulative["informative_fraction"] <= 0.001:
+                    sensitivity = teacher_sensitivity_grid(
+                        trajectory_records,
+                        gain_threshold=args.h6_utility_gain_threshold,
+                    )
+                    write_json_atomic(
+                        Path(args.save_path) / "teacher_sensitivity.json",
+                        {
+                            "mode": "offline_no_optimizer_step",
+                            "canonical_trajectory_unchanged": True,
+                            "grid": sensitivity,
+                        },
+                    )
+                final_summary = {
+                    "status": "PASS" if trajectory_ok else "FAIL",
+                    "git_sha": current_git_head(),
+                    "seed": args.seed,
+                    "batches_executed": epoch_batch_limit,
+                    "grad_accum_steps": args.grad_accum_steps,
+                    "expected_optimizer_steps": expected_steps,
+                    "optimizer_step_count": optimizer_step_count,
+                    "runtime_seconds": time.monotonic() - started,
+                    "peak_gpu_allocated_bytes": (
+                        torch.cuda.max_memory_allocated(device) if device.type == "cuda" else 0
+                    ),
+                    "peak_gpu_reserved_bytes": (
+                        torch.cuda.max_memory_reserved(device) if device.type == "cuda" else 0
+                    ),
+                    "milestones_requested": trajectory_milestones,
+                    "milestones_completed": [item["batch"] for item in trajectory_outputs],
+                    "final_cumulative": final_cumulative,
+                    "final_recent_window": trajectory_outputs[-1]["recent_window"],
+                    "final_structure": trajectory_outputs[-1]["structure"],
+                    "final_gradients": trajectory_outputs[-1]["gradients"],
+                    "final_gradient_attribution": trajectory_outputs[-1]["gradient_attribution"],
+                    "rho": diagnostics_to_python(rho_values),
+                    "teacher_sensitivity_audit": sensitivity,
+                    "canonical_training_configuration_unchanged_by_sensitivity": True,
+                    "scientific_interpretation": "PENDING_EVIDENCE_REVIEW",
+                }
+                write_trajectory_artifacts(args.save_path, trajectory_outputs, final_summary)
             if smoke_payload["failed"]:
                 raise RuntimeError(
                     f"P1-v8.3 bounded smoke failed: {smoke_payload['failed']}"
@@ -2762,6 +2969,10 @@ def main():
         help="Optional one-based batch indices for compact factor-specialization wiring probes.",
     )
     parser.add_argument(
+        "--h6_trajectory_milestones", type=int, nargs="*", default=[],
+        help="Opt-in diagnostics-only cumulative/window milestone reporting.",
+    )
+    parser.add_argument(
         "--h6_drift_diagnostics", action=argparse.BooleanOptionalAction, default=False,
         help="One-batch bank snapshots and autograd attribution for a diagnostic smoke only.",
     )
@@ -2971,6 +3182,17 @@ def main():
 
     args = parser.parse_args()
     configure_canonical_fp32()
+    if args.h6_trajectory_milestones:
+        if args.h6_trajectory_milestones != sorted(set(args.h6_trajectory_milestones)):
+            raise ValueError("--h6_trajectory_milestones must be unique and increasing")
+        if args.h6_smoke_max_batches <= 0:
+            raise ValueError("trajectory milestones require --h6_smoke_max_batches")
+        if args.h6_trajectory_milestones[-1] != args.h6_smoke_max_batches:
+            raise ValueError("final trajectory milestone must equal --h6_smoke_max_batches")
+        if args.epoch != 1 or args.h6_progress_version != "P1-v8.3":
+            raise ValueError("trajectory diagnostics are restricted to one-epoch P1-v8.3 probes")
+        if args.h6_smoke_forward_only or args.h6_smoke_backward_only:
+            raise ValueError("trajectory diagnostics require normal optimizer execution")
     if args.h6_dense_routing_epochs is not None:
         args.h6_router_soft_epochs = int(args.h6_dense_routing_epochs)
     if args.h6_sparse_start_epoch is not None:
@@ -3136,8 +3358,9 @@ def main():
     os.makedirs(args.save_path, exist_ok=True)
 
     logger = logging.getLogger(__name__)
+    log_name = "run.log" if args.h6_trajectory_milestones else "train.log"
     logging.basicConfig(
-        filename=os.path.join(args.save_path, "train.log"),
+        filename=os.path.join(args.save_path, log_name),
         encoding="utf-8",
         level=logging.INFO,
         format="%(asctime)s %(filename)s %(lineno)d: %(message)s",

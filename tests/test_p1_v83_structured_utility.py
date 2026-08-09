@@ -17,6 +17,12 @@ from model.h6.utility_routing import (
     utility_router_loss,
     utility_teacher,
 )
+from model.h6.specialization_trajectory import (
+    aggregate_utility_records,
+    capture_utility_record,
+    teacher_sensitivity_grid,
+    write_trajectory_artifacts,
+)
 from utils import get_structured_prompt_sentence
 
 
@@ -207,3 +213,54 @@ def test_rho_rejects_noncanonical_training_values():
     valid = torch.ones(1, 1, dtype=torch.bool)
     with pytest.raises(ValueError, match="canonical"):
         utility_teacher(base, factors, target, valid, rho=0.04)
+
+
+def test_specialization_trajectory_exact_aggregation_and_gate_causes(tmp_path):
+    payload, _, target = _payload(requires_grad=False)
+    router = payload["q_utility"].clone()
+    record = capture_utility_record(
+        payload, router, target, utility_router_loss(router, payload)
+    )
+    aggregate = aggregate_utility_records(
+        [record, record], gain_threshold=0.02, entropy_threshold=0.98
+    )
+    direct = utility_diagnostics(payload, router, target)
+    assert aggregate["Base"] == pytest.approx(direct["Base"].item())
+    assert aggregate["OracleMulti"] == pytest.approx(direct["OracleMulti"].item())
+    assert aggregate["gain_threshold_pass_fraction"] > 0
+    assert 0 <= aggregate["entropy_threshold_pass_fraction"] <= 1
+    assert aggregate["router_supervised_patch_count"] == int(payload["informative"].sum()) * 2
+    assert set(aggregate["normal_anomaly_breakdown"]) == {"normal", "anomaly"}
+    assert set(aggregate["best_gain_rel"]) >= {"mean", "std", "p50", "p99"}
+
+    structure = {
+        "factor_embedding_effective_rank": 1.1,
+        "factor_embedding_pairwise_cosine_mean": 0.9,
+        "factor_patch_pairwise_correlation_mean": 0.8,
+    }
+    milestone = {
+        "batch": 32, "optimizer_steps": 5, "cumulative": aggregate,
+        "recent_window": aggregate, "structure": structure,
+    }
+    write_trajectory_artifacts(tmp_path, [milestone], {"status": "PASS"})
+    assert (tmp_path / "trajectory.json").is_file()
+    assert (tmp_path / "trajectory.csv").is_file()
+    assert (tmp_path / "final_summary.json").is_file()
+
+
+def test_teacher_sensitivity_grid_is_offline_and_complete():
+    payload, evidence, target = _payload(requires_grad=True)
+    router = payload["q_utility"].clone()
+    record = capture_utility_record(
+        payload, router, target, utility_router_loss(router, payload)
+    )
+    evidence_before = evidence.detach().clone()
+    grid = teacher_sensitivity_grid([record], gain_threshold=0.02)
+    assert len(grid) == 9
+    assert {(row["tau_utility"], row["entropy_threshold"]) for row in grid} == {
+        (tau, threshold)
+        for tau in (0.05, 0.03, 0.02)
+        for threshold in (0.98, 0.99, 0.995)
+    }
+    assert torch.equal(evidence.detach(), evidence_before)
+    assert evidence.grad is None

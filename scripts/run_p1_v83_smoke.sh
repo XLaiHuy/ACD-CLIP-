@@ -5,6 +5,7 @@ MAX_BATCHES="${MAX_BATCHES:-8}"
 FORWARD_ONLY="${FORWARD_ONLY:-0}"
 BACKWARD_ONLY="${BACKWARD_ONLY:-0}"
 NUM_WORKERS="${NUM_WORKERS:-4}"
+TRAJECTORY_MILESTONES="${TRAJECTORY_MILESTONES:-}"
 SAVE_PATH="${SAVE_PATH:-${REPO_ROOT}/runs/p1_v83_smoke_${MAX_BATCHES}}"
 export ACDCLIP_DATA_ROOT="${ACDCLIP_DATA_ROOT:-${REPO_ROOT}/data}"
 : "${ACDCLIP_CLIP_VITL14_336:=${REPO_ROOT}/model/ViT-L-14-336px.pt}"
@@ -18,6 +19,10 @@ if [[ "${BACKWARD_ONLY}" == "1" ]]; then
 fi
 if [[ "${FORWARD_ONLY}" != "1" && "${BACKWARD_ONLY}" != "1" && "${MAX_BATCHES}" -ge 2 ]]; then
   EXTRA_ARGS+=(--h6_wiring_probe_batches 1 "${MAX_BATCHES}")
+fi
+if [[ -n "${TRAJECTORY_MILESTONES}" ]]; then
+  read -r -a TRAJECTORY_BATCHES <<< "${TRAJECTORY_MILESTONES}"
+  EXTRA_ARGS+=(--h6_trajectory_milestones "${TRAJECTORY_BATCHES[@]}")
 fi
 python "${REPO_ROOT}/train.py" \
   --dataset VisA --img_size 518 --epoch 1 --save_path "${SAVE_PATH}" \
