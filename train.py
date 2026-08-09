@@ -126,6 +126,14 @@ def scalar_metric_value(value):
     return float(value)
 
 
+def grad_accum_window_size(batch_index: int, total_batches: int, grad_accum_steps: int) -> int:
+    """Return the actual divisor for the accumulation window containing a batch."""
+    if batch_index < 1 or total_batches < batch_index or grad_accum_steps < 1:
+        raise ValueError("invalid gradient-accumulation geometry")
+    window_start = ((int(batch_index) - 1) // int(grad_accum_steps)) * int(grad_accum_steps) + 1
+    return min(int(grad_accum_steps), int(total_batches) - window_start + 1)
+
+
 def p1_v83_structure_diagnostics(h6_batch):
     """Measure factor/state separation without changing the training graph."""
     dynamic = h6_batch["dynamic_text"].detach().float()
@@ -205,17 +213,35 @@ def h6_drift_gradient_attribution(losses, parameter_groups):
     result = {}
     for name, payload in losses.items():
         loss, weight = payload
-        active = bool(float(weight) != 0.0 and torch.is_tensor(loss) and loss.requires_grad)
-        entry = {"raw": float(loss.detach().float().item()), "weight": float(weight), "active": active}
-        if active:
-            gradients = torch.autograd.grad(
-                loss * float(weight), unique_parameters, retain_graph=True, allow_unused=True,
+        differentiable = bool(torch.is_tensor(loss) and loss.requires_grad)
+        active = bool(float(weight) != 0.0 and differentiable)
+        entry = {
+            "raw": float(loss.detach().float().item()),
+            "weight": float(weight),
+            "differentiable": differentiable,
+            "active": active,
+            "raw_gradient_norms": {},
+            "weighted_gradient_norms": {},
+        }
+        if differentiable:
+            raw_gradients = torch.autograd.grad(
+                loss, unique_parameters, retain_graph=True, allow_unused=True,
             )
-            by_id = {id(parameter): gradient for parameter, gradient in zip(unique_parameters, gradients)}
+            raw_by_id = {
+                id(parameter): gradient
+                for parameter, gradient in zip(unique_parameters, raw_gradients)
+            }
             for group_name, parameters in grouped.items():
-                squared = [by_id[id(parameter)].detach().float().pow(2).sum()
-                           for parameter in parameters if by_id[id(parameter)] is not None]
-                entry[group_name] = float(torch.stack(squared).sum().sqrt().item()) if squared else 0.0
+                raw_squared = [
+                    raw_by_id[id(parameter)].detach().float().pow(2).sum()
+                    for parameter in parameters if raw_by_id[id(parameter)] is not None
+                ]
+                raw_norm = float(torch.stack(raw_squared).sum().sqrt().item()) if raw_squared else 0.0
+                weighted_norm = abs(float(weight)) * raw_norm
+                entry["raw_gradient_norms"][group_name] = raw_norm
+                entry["weighted_gradient_norms"][group_name] = weighted_norm
+                # Backward-compatible group fields have always been lambda-weighted.
+                entry[group_name] = weighted_norm
         result[name] = entry
     for parameter in unique_parameters:
         before = before_grads[id(parameter)]
@@ -224,19 +250,37 @@ def h6_drift_gradient_attribution(losses, parameter_groups):
             assert after is None, "drift attribution must not populate parameter.grad"
         else:
             assert after is not None and torch.equal(before, after), "drift attribution must not mutate parameter.grad"
-    task_shared = result.get("main_task", {}).get("shared_semantic", 0.0)
-    denominator = task_shared if task_shared > 1e-12 else None
-    ratios = {
-        "assigned_to_task_shared_grad_ratio": None if denominator is None else result.get("assigned_expert", {}).get("shared_semantic", 0.0) / denominator,
-        "anchor_to_task_shared_grad_ratio": None if denominator is None else result.get("expert_anchor", {}).get("shared_semantic", 0.0) / denominator,
-        "center_to_task_shared_grad_ratio": None if denominator is None else result.get("center", {}).get("shared_semantic", 0.0) / denominator,
-        "utility_factor_to_task_shared_grad_ratio": None if denominator is None else result.get("utility_factor", {}).get("shared_semantic", 0.0) / denominator,
-        "utility_router_to_task_shared_grad_ratio": None if denominator is None else result.get("utility_router", {}).get("shared_semantic", 0.0) / denominator,
-        "total_aux_to_task_shared_grad_ratio": None if denominator is None else sum(
-            entry.get("shared_semantic", 0.0) for key, entry in result.items() if key != "main_task" and entry["active"]
-        ) / denominator,
+    def _ratios(basis: str):
+        key = f"{basis}_gradient_norms"
+        task_shared = result.get("main_task", {}).get(key, {}).get("shared_semantic", 0.0)
+        denominator = task_shared if task_shared > 1e-12 else None
+
+        def _ratio(component: str):
+            numerator = result.get(component, {}).get(key, {}).get("shared_semantic", 0.0)
+            return None if denominator is None else numerator / denominator
+
+        return {
+            "assigned_to_task_shared_grad_ratio": _ratio("assigned_expert"),
+            "anchor_to_task_shared_grad_ratio": _ratio("expert_anchor"),
+            "center_to_task_shared_grad_ratio": _ratio("center"),
+            "utility_factor_to_task_shared_grad_ratio": _ratio("utility_factor"),
+            "utility_router_to_task_shared_grad_ratio": _ratio("utility_router"),
+            "total_aux_to_task_shared_grad_ratio": None if denominator is None else sum(
+                entry.get(key, {}).get("shared_semantic", 0.0)
+                for component, entry in result.items()
+                if component != "main_task" and entry["active"]
+            ) / denominator,
+        }
+
+    raw_ratios = _ratios("raw")
+    weighted_ratios = _ratios("weighted")
+    return {
+        "components": result,
+        "ratio_basis": "lambda_weighted",
+        "ratios": weighted_ratios,
+        "raw_ratios": raw_ratios,
+        "weighted_ratios": weighted_ratios,
     }
-    return {"components": result, "ratios": ratios}
 
 
 def h6_drift_parameter_groups(model):
@@ -1280,6 +1324,7 @@ def _phase2b_config_from_args(args) -> dict:
         "h6_utility_entropy_threshold": args.h6_utility_entropy_threshold,
         "h6_exploration_start": args.h6_exploration_start,
         "h6_exploration_end": args.h6_exploration_end,
+        "h6_exploration_total_epochs": args.h6_exploration_total_epochs,
         "h6_expert_enabled": args.h6_expert_enabled,
         "h6_expert_bottleneck": args.h6_expert_bottleneck,
         "h6_expert_fofs_seed_offset": args.h6_expert_fofs_seed_offset,
@@ -1663,8 +1708,14 @@ def train_h6_progress1(
                 if model.h6.progress_version == "P1-v8.3":
                     patch_count = h6_batch["factor_patch_logits"].shape[2]
                     y_patch, utility_valid = build_patch_targets(mask, patch_count, local_mask_valid)
+                    epsilon_total_epochs = (
+                        args.h6_exploration_total_epochs
+                        if args.h6_exploration_total_epochs is not None
+                        else args.epoch
+                    )
                     epsilon = exploration_epsilon(
-                        epoch, args.epoch, args.h6_exploration_start, args.h6_exploration_end
+                        epoch, epsilon_total_epochs,
+                        args.h6_exploration_start, args.h6_exploration_end,
                     )
                     utility_payload = utility_teacher(
                         base_abnormal_minus_normal, h6_batch["factor_patch_logits"],
@@ -1939,7 +1990,10 @@ def train_h6_progress1(
                     )
                     sys.exit(42)
                 raise RuntimeError(f"non-finite H6 loss at epoch={epoch}, batch={batch_idx}")
-            scaler.scale(total_loss / args.grad_accum_steps).backward()
+            accumulation_divisor = grad_accum_window_size(
+                batch_idx, epoch_batch_limit, args.grad_accum_steps
+            )
+            scaler.scale(total_loss / accumulation_divisor).backward()
             if args.h6_factor_grad_diagnostics and batch_idx == 1:
                 factor_grad_diag.update(
                     factor_gradient_diagnostics(model.h6.semantic_core.concept_slots.grad)
@@ -3120,6 +3174,15 @@ def main():
     parser.add_argument("--h6_utility_entropy_threshold", type=float, default=0.98)
     parser.add_argument("--h6_exploration_start", type=float, default=0.15)
     parser.add_argument("--h6_exploration_end", type=float, default=0.05)
+    parser.add_argument(
+        "--h6_exploration_total_epochs",
+        type=int,
+        default=None,
+        help=(
+            "Canonical horizon for the utility exploration schedule. "
+            "Diagnostic one-epoch runners must set this to the intended training horizon."
+        ),
+    )
     parser.add_argument("--h6_cluster_responsibility", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--h6_cluster_centroid_path", type=str, default=None)
     parser.add_argument("--h6_cluster_temperature", type=float, default=0.10)
@@ -3335,6 +3398,13 @@ def main():
                 raise ValueError(f"P1-v8.3 legacy auxiliary losses must be OFF: {enabled_legacy}")
             if args.h6_tau_utility <= 0 or args.h6_utility_denominator_floor <= 0:
                 raise ValueError("P1-v8.3 utility temperature and floor must be positive")
+            if (
+                args.h6_exploration_total_epochs is not None
+                and args.h6_exploration_total_epochs < args.epoch
+            ):
+                raise ValueError(
+                    "--h6_exploration_total_epochs must be at least --epoch"
+                )
         if args.h6_two_view:
             raise ValueError("--h6_two_view belongs to Progress 3 and is not implemented in Progress 1")
         if torch.cuda.is_available() and args.precision == "bf16" and not torch.cuda.is_bf16_supported():

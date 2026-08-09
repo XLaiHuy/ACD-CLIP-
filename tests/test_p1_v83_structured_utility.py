@@ -114,6 +114,31 @@ def test_patch_target_area_pool_and_invalid_area_exclusion():
     assert torch.equal(patch_valid, torch.tensor([[False, True, True, True]]))
 
 
+def test_factor_logit_channel_order_is_abnormal_minus_normal():
+    model = H6Progress1(
+        n_groups=1, num_factors=4, top_k=2, bank_dim=8, router_dim=4,
+        vae_hidden_dim=8, vae_latent_dim=4, text_dim=8, ctx_len=4,
+        progress_version="P1-v8.3", prediction_routing="dense",
+    )
+    patch = torch.tensor([[[[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]]])
+    local_text = torch.zeros(1, 1, 8, 2)
+    local_text[..., 0, 0] = -0.25
+    local_text[..., 0, 1] = 0.75
+    assert model.h6_logit(patch, local_text).item() == pytest.approx(10.0)
+
+
+def test_utility_factor_loss_balances_normal_and_anomaly_region_means():
+    per_factor = torch.tensor([[[[1.0], [2.0], [3.0], [10.0]]]])
+    responsibility = torch.ones_like(per_factor)
+    payload = {
+        "loss_per_factor": per_factor,
+        "responsibility": responsibility,
+        "valid": torch.ones(1, 1, 4, dtype=torch.bool),
+    }
+    target = torch.tensor([[0.0, 0.0, 0.0, 1.0]])
+    assert utility_factor_loss(payload, target).item() == pytest.approx(6.0)
+
+
 def _payload(requires_grad=True):
     base = torch.zeros(1, 1, 4)
     evidence = torch.tensor([[[[-8.0, 8.0, 0.0, 0.0],
@@ -138,6 +163,7 @@ def test_utility_equations_detach_and_exploration():
     assert torch.allclose(payload["responsibility"].sum(dim=-1), torch.ones(1, 1, 4))
     assert exploration_epsilon(1, 20) == pytest.approx(0.15)
     assert exploration_epsilon(20, 20) == pytest.approx(0.05)
+    assert exploration_epsilon(1, 1) == pytest.approx(0.05)
     loss = utility_factor_loss(payload, target)
     loss.backward()
     assert evidence.grad is not None

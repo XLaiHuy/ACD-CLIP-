@@ -6,6 +6,7 @@ FORWARD_ONLY="${FORWARD_ONLY:-0}"
 BACKWARD_ONLY="${BACKWARD_ONLY:-0}"
 NUM_WORKERS="${NUM_WORKERS:-4}"
 TRAJECTORY_MILESTONES="${TRAJECTORY_MILESTONES:-}"
+EXPLORATION_TOTAL_EPOCHS="${EXPLORATION_TOTAL_EPOCHS:-20}"
 SAVE_PATH="${SAVE_PATH:-${REPO_ROOT}/runs/p1_v83_smoke_${MAX_BATCHES}}"
 export ACDCLIP_DATA_ROOT="${ACDCLIP_DATA_ROOT:-${REPO_ROOT}/data}"
 : "${ACDCLIP_CLIP_VITL14_336:=${REPO_ROOT}/model/ViT-L-14-336px.pt}"
@@ -42,6 +43,7 @@ python "${REPO_ROOT}/train.py" \
   --h6_utility_denominator_floor 0.10 --h6_tau_utility 0.05 \
   --h6_utility_gain_threshold 0.02 --h6_utility_entropy_threshold 0.98 \
   --h6_exploration_start 0.15 --h6_exploration_end 0.05 \
+  --h6_exploration_total_epochs "${EXPLORATION_TOTAL_EPOCHS}" \
   --h6_drift_diagnostics --h6_factor_grad_diagnostics \
   --h6_smoke_max_batches "${MAX_BATCHES}" --num_workers "${NUM_WORKERS}" \
   --pin_memory "${EXTRA_ARGS[@]}"

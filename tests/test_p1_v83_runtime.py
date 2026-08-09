@@ -15,6 +15,7 @@ from model.h6.model import H6Progress1
 from test import combine_image_score, image_auc_ap_or_none
 from tools.preflight_p1_v83_final_checkpoint import validate_final_checkpoint_payload
 from train import (
+    grad_accum_window_size,
     h6_drift_gradient_attribution,
     p1_v83_structure_diagnostics,
     scalar_metric_value,
@@ -137,8 +138,49 @@ def test_utility_gradient_attribution_is_no_step_and_reports_ratios():
     assert router.grad is None
     assert report["components"]["utility_factor"]["shared_semantic"] == pytest.approx(0.3)
     assert report["components"]["utility_router"]["router"] == pytest.approx(0.5)
+    assert report["components"]["utility_factor"]["raw_gradient_norms"]["shared_semantic"] == pytest.approx(3.0)
+    assert report["components"]["utility_factor"]["weighted_gradient_norms"]["shared_semantic"] == pytest.approx(0.3)
+    assert report["ratio_basis"] == "lambda_weighted"
     assert report["ratios"]["utility_factor_to_task_shared_grad_ratio"] == pytest.approx(0.075)
+    assert report["raw_ratios"]["utility_factor_to_task_shared_grad_ratio"] == pytest.approx(0.75)
     assert report["ratios"]["utility_router_to_task_shared_grad_ratio"] == pytest.approx(0.0)
+
+
+def test_gradient_attribution_weight_scaling_and_zero_weight_are_explicit():
+    shared = nn.Parameter(torch.tensor(2.0))
+    report = h6_drift_gradient_attribution(
+        {
+            "main_task": (shared.square(), 1.0),
+            "weighted_aux": (3.0 * shared, 0.25),
+            "disabled_aux": (7.0 * shared, 0.0),
+        },
+        {"shared_semantic": [shared]},
+    )
+    weighted = report["components"]["weighted_aux"]
+    assert weighted["raw_gradient_norms"]["shared_semantic"] == pytest.approx(3.0)
+    assert weighted["weighted_gradient_norms"]["shared_semantic"] == pytest.approx(0.75)
+    disabled = report["components"]["disabled_aux"]
+    assert disabled["differentiable"] is True
+    assert disabled["active"] is False
+    assert disabled["raw_gradient_norms"]["shared_semantic"] == pytest.approx(7.0)
+    assert disabled["weighted_gradient_norms"]["shared_semantic"] == pytest.approx(0.0)
+    assert shared.grad is None
+
+
+def test_gradient_accumulation_remainder_uses_actual_window_size():
+    assert [grad_accum_window_size(i, 14, 6) for i in range(1, 15)] == [
+        6, 6, 6, 6, 6, 6,
+        6, 6, 6, 6, 6, 6,
+        2, 2,
+    ]
+    full = nn.Parameter(torch.tensor(0.0))
+    optimizer = torch.optim.SGD([full], lr=1.0)
+    for batch_index in range(1, 15):
+        (full / grad_accum_window_size(batch_index, 14, 6)).backward()
+        if batch_index % 6 == 0 or batch_index == 14:
+            optimizer.step()
+            optimizer.zero_grad(set_to_none=True)
+    assert full.item() == pytest.approx(-3.0)
 
 
 def test_fixed_rho_and_diagnostic_zero_override():
