@@ -111,6 +111,70 @@ def diagnostics_to_python(diagnostics):
     return diagnostics
 
 
+def scalar_metric_value(value):
+    """Convert tensor or Python-number metrics to a scalar float."""
+    if torch.is_tensor(value):
+        if value.numel() != 1:
+            raise ValueError("metric values must be scalar")
+        return float(value.detach().float().item())
+    return float(value)
+
+
+def p1_v83_structure_diagnostics(h6_batch):
+    """Measure factor/state separation without changing the training graph."""
+    dynamic = h6_batch["dynamic_text"].detach().float()
+    state = h6_batch["state_tokens"].detach().float()
+    logits = h6_batch["factor_patch_logits"].detach().float()
+    if dynamic.ndim != 5 or state.ndim != 4 or logits.ndim != 4:
+        raise ValueError("unexpected P1-v8.3 factor diagnostic tensor rank")
+
+    factor_count = logits.shape[-1]
+    if dynamic.shape[2] != factor_count or state.shape[1] != factor_count:
+        raise ValueError("inconsistent P1-v8.3 factor dimensions")
+
+    embedding_rows = dynamic.movedim(2, 0).reshape(factor_count, -1)
+    embedding_unit = F.normalize(embedding_rows, dim=-1)
+    embedding_cosine = embedding_unit @ embedding_unit.transpose(0, 1)
+    pair_mask = torch.triu(
+        torch.ones(factor_count, factor_count, dtype=torch.bool, device=logits.device),
+        diagonal=1,
+    )
+    embedding_pair_cosine = embedding_cosine[pair_mask]
+    embedding_pair_l2 = torch.pdist(embedding_rows)
+    singular_values = torch.linalg.svdvals(embedding_rows)
+    singular_energy = singular_values.square()
+    singular_prob = singular_energy / singular_energy.sum().clamp_min(1e-12)
+    embedding_effective_rank = torch.exp(
+        -(singular_prob * singular_prob.clamp_min(1e-12).log()).sum()
+    )
+
+    state_rows = state.movedim(1, 0).reshape(factor_count, -1)
+    state_pair_l2 = torch.pdist(state_rows)
+
+    logit_rows = logits.movedim(-1, 0).reshape(factor_count, -1)
+    centered_logits = logit_rows - logit_rows.mean(dim=-1, keepdim=True)
+    logit_unit = F.normalize(centered_logits, dim=-1)
+    logit_pair_correlation = (logit_unit @ logit_unit.transpose(0, 1))[pair_mask]
+    logit_pair_max_difference = (
+        logit_rows[:, None, :] - logit_rows[None, :, :]
+    ).abs().amax(dim=-1)[pair_mask]
+
+    return {
+        "factor_embedding_pairwise_cosine_mean": embedding_pair_cosine.mean(),
+        "factor_embedding_pairwise_cosine_max": embedding_pair_cosine.max(),
+        "factor_embedding_pairwise_l2_min": embedding_pair_l2.min(),
+        "factor_embedding_effective_rank": embedding_effective_rank,
+        "state_pairwise_l2_min": state_pair_l2.min(),
+        "state_pairwise_l2_mean": state_pair_l2.mean(),
+        "factor_patch_pairwise_correlation_mean": logit_pair_correlation.mean(),
+        "factor_patch_pairwise_correlation_max": logit_pair_correlation.max(),
+        "factor_patch_pairwise_max_difference": logit_pair_max_difference.max(),
+        "factor_patch_outputs_exactly_collapsed": (
+            logit_pair_max_difference.max() == 0
+        ).float(),
+    }
+
+
 def h6_drift_gradient_attribution(losses, parameter_groups):
     """Measure component gradients without writing ``.grad`` or mutating parameters."""
     grouped = {
@@ -154,6 +218,8 @@ def h6_drift_gradient_attribution(losses, parameter_groups):
         "assigned_to_task_shared_grad_ratio": None if denominator is None else result.get("assigned_expert", {}).get("shared_semantic", 0.0) / denominator,
         "anchor_to_task_shared_grad_ratio": None if denominator is None else result.get("expert_anchor", {}).get("shared_semantic", 0.0) / denominator,
         "center_to_task_shared_grad_ratio": None if denominator is None else result.get("center", {}).get("shared_semantic", 0.0) / denominator,
+        "utility_factor_to_task_shared_grad_ratio": None if denominator is None else result.get("utility_factor", {}).get("shared_semantic", 0.0) / denominator,
+        "utility_router_to_task_shared_grad_ratio": None if denominator is None else result.get("utility_router", {}).get("shared_semantic", 0.0) / denominator,
         "total_aux_to_task_shared_grad_ratio": None if denominator is None else sum(
             entry.get("shared_semantic", 0.0) for key, entry in result.items() if key != "main_task" and entry["active"]
         ) / denominator,
@@ -162,23 +228,33 @@ def h6_drift_gradient_attribution(losses, parameter_groups):
 
 
 def h6_drift_parameter_groups(model):
-    """Non-overlapping parameter groups for one-batch P1-v7 attribution."""
+    """Relevant parameter groups for a no-step P1 utility attribution probe."""
     semantic_state_prefixes = (
         "normal_query", "abnormal_query", "prototype_attention", "normal_state_update",
-        "abnormal_state_update", "state_to_context", "class_to_context",
+        "abnormal_state_update", "state_to_context", "factor_id", "concept_slots",
     )
-    shared_semantic, prototype_state = [], []
+    vae_class_prefixes = ("class_vae", "class_to_context", "gamma_class")
+    shared_semantic, prototype_state, vae_class_path = [], [], []
     for name, parameter in model.h6.semantic_core.named_parameters():
-        (prototype_state if name.startswith(semantic_state_prefixes) else shared_semantic).append(parameter)
+        if name.startswith(semantic_state_prefixes):
+            prototype_state.append(parameter)
+        elif name.startswith(vae_class_prefixes):
+            vae_class_path.append(parameter)
+        else:
+            shared_semantic.append(parameter)
     paired = model.h6.paired_experts
     return {
         "shared_semantic": shared_semantic,
         "dynamic_context": [model.soft_prompt.ctx_normal, model.soft_prompt.ctx_abnormal],
         "prototype_state": prototype_state,
+        "state_path": prototype_state,
+        "vae_class_path": vae_class_path,
         "text_adapter": list(model.text_adapter.parameters()),
+        "text_lora": list(model.text_adapter.parameters()),
         "expert_B": [] if paired is None else [paired.expert_B],
         "expert_state_projection": [] if paired is None else list(paired.state_projection.parameters()),
         "router_query_key": list(model.h6.router.parameters()),
+        "router": list(model.h6.router.parameters()),
     }
 
 
@@ -989,6 +1065,15 @@ def _h6_optimizer_groups(model: ACDCLIP, args) -> list[dict]:
 
 def _phase2b_config_from_args(args) -> dict:
     return {
+        "git_sha": current_git_head(),
+        "precision": args.precision,
+        "tf32_enabled": bool(
+            torch.backends.cuda.matmul.allow_tf32 or torch.backends.cudnn.allow_tf32
+        ),
+        "amp_enabled": bool(args.amp),
+        "img_size": args.img_size,
+        "batch_size": args.batch_size,
+        "grad_accum_steps": args.grad_accum_steps,
         "n_groups": args.n_groups,
         "image_levels": [8, 16, 24] if args.n_groups == 3 else None,
         "text_levels": [4, 8, 12] if args.n_groups == 3 else None,
@@ -1102,6 +1187,8 @@ def _phase2b_config_from_args(args) -> dict:
         "h6_gate_max_sparse_dead_factors": args.h6_gate_max_sparse_dead_factors,
         "h6_gate_min_unique_topk_pairs": args.h6_gate_min_unique_topk_pairs,
         "h6_progress_version": args.h6_progress_version,
+        "h6_global_text_mode": args.h6_global_text_mode,
+        "h6_prediction_routing": args.h6_prediction_routing,
         "h6_local_factor_mode": args.h6_local_factor_mode,
         "h6_local_center_mix": args.h6_local_center_mix,
         "h6_local_factor_spread": args.h6_local_factor_spread,
@@ -1247,6 +1334,7 @@ def train_h6_progress1(
         epoch_probe_values: dict[str, list[torch.Tensor]] = {}
         drift_snapshots: dict[str, dict] = {}
         drift_gradient_report = None
+        optimizer_step_count = 0
         epoch_probe_keys = {
             "expert_delta_norm_mean", "expert_delta_valid_fraction", "final_expert_direction_cos_max",
             "expert_patch_logit_std_across_experts", "final_expert_mean_hard_cos_mean", "unique_topk_pairs",
@@ -1508,6 +1596,13 @@ def train_h6_progress1(
                             diag_name, torch.zeros_like(value)
                         ) + value
                         epoch_diag_count[diag_name] = epoch_diag_count.get(diag_name, 0) + 1
+                    structure_diag = p1_v83_structure_diagnostics(h6_batch)
+                    for diag_name, diag_value in structure_diag.items():
+                        value = diag_value.detach().float()
+                        epoch_diag_sum[diag_name] = epoch_diag_sum.get(
+                            diag_name, torch.zeros_like(value)
+                        ) + value
+                        epoch_diag_count[diag_name] = epoch_diag_count.get(diag_name, 0) + 1
 
                 if model.h6.expert_enabled:
                     h6_expert, expert_terms = assigned_expert_loss(h6_batch["expert_patch_logits"], h6_batch["prediction_probabilities"], mask)
@@ -1619,9 +1714,99 @@ def train_h6_progress1(
                             "expert_anchor": (h6_expert_anchor, args.lambda_h6_expert_anchor),
                             "center": (h6_center, args.lambda_h6_center),
                             "dynamic_mean_anchor": (h6_batch["dynamic_mean_anchor_loss_raw"], dynamic_mean_anchor_weight),
+                            "utility_factor": (h6_utility_factor, args.lambda_h6_factor),
+                            "utility_router": (h6_utility_router, args.lambda_h6_router),
                         },
                         h6_drift_parameter_groups(model),
                     )
+            if args.h6_smoke_forward_only:
+                with torch.no_grad(), _phase4_autocast(device, args.precision):
+                    repeated_h6_batch = model.h6.build_batch(
+                        model, dataset_name, class_names, visual_output,
+                        hybrid_alpha=hybrid_alpha, update_load_bias=False,
+                    )
+                dense_probabilities = h6_batch["dense_probabilities"].detach().float()
+                factor_logits = h6_batch["factor_patch_logits"].detach().float()
+                state_tokens = h6_batch["state_tokens"].detach().float()
+                tensors = {
+                    "base_group_logits": base_group_logits,
+                    "base_abnormal_minus_normal": base_abnormal_minus_normal,
+                    "factor_patch_logits": factor_logits,
+                    "dense_probabilities": dense_probabilities,
+                    "state_tokens": state_tokens,
+                    "class_token": h6_batch["class_token"],
+                    "hard_frozen": h6_batch["hard_frozen"],
+                    "dynamic_text": h6_batch["dynamic_text"],
+                    "total_loss": total_loss,
+                }
+                finite = {
+                    name: bool(torch.isfinite(value.detach().float()).all().item())
+                    for name, value in tensors.items()
+                }
+                router_sum_error = (dense_probabilities.sum(dim=-1) - 1.0).abs().max()
+                factor_max_difference = (
+                    factor_logits.max(dim=-1).values - factor_logits.min(dim=-1).values
+                ).abs().max()
+                state_max_difference = (
+                    state_tokens.max(dim=1).values - state_tokens.min(dim=1).values
+                ).abs().max()
+                class_repeat_error = (
+                    h6_batch["class_token"].detach().float()
+                    - repeated_h6_batch["class_token"].detach().float()
+                ).abs().max()
+                hard_frozen_repeat_error = (
+                    h6_batch["hard_frozen"].detach().float()
+                    - repeated_h6_batch["hard_frozen"].detach().float()
+                ).abs().max()
+                dynamic_hard_difference = (
+                    h6_batch["dynamic_text"].detach().float()
+                    - h6_batch["hard_frozen"].detach().float().unsqueeze(2)
+                ).abs().max()
+                rho = h6_batch["rho"].detach().float()
+                checks = {
+                    "all_finite": all(finite.values()),
+                    "router_probabilities_sum_to_one": bool(router_sum_error.item() <= 1e-6),
+                    "state_factor_specific": bool(state_max_difference.item() > 1e-9),
+                    "class_deterministic": bool(class_repeat_error.item() <= 1e-7),
+                    "hard_frozen_stable": bool(hard_frozen_repeat_error.item() <= 1e-7),
+                    "dynamic_adapted_differs_from_hard_frozen": bool(dynamic_hard_difference.item() > 1e-9),
+                    "rho_fixed_005": bool(torch.equal(rho, torch.full_like(rho, 0.05))),
+                    "factor_outputs_not_identical": bool(factor_max_difference.item() > 1e-9),
+                    "optimizer_untouched": len(optimizer.state) == 0,
+                }
+                payload = diagnostics_to_python({
+                    "epoch": epoch,
+                    "batch": batch_idx,
+                    "checks": checks,
+                    "finite": finite,
+                    "shapes": {name: list(value.shape) for name, value in tensors.items()},
+                    "router_sum_max_error": router_sum_error,
+                    "factor_max_difference": factor_max_difference,
+                    "state_max_difference": state_max_difference,
+                    "class_repeat_max_error": class_repeat_error,
+                    "hard_frozen_repeat_max_error": hard_frozen_repeat_error,
+                    "dynamic_hard_max_difference": dynamic_hard_difference,
+                    "rho": rho,
+                    "utility": utility_diag,
+                    "gpu_allocated_bytes": (
+                        torch.cuda.memory_allocated(device) if device.type == "cuda" else 0
+                    ),
+                    "gpu_reserved_bytes": (
+                        torch.cuda.memory_reserved(device) if device.type == "cuda" else 0
+                    ),
+                    "gpu_peak_allocated_bytes": (
+                        torch.cuda.max_memory_allocated(device) if device.type == "cuda" else 0
+                    ),
+                    "gpu_peak_reserved_bytes": (
+                        torch.cuda.max_memory_reserved(device) if device.type == "cuda" else 0
+                    ),
+                })
+                write_json_atomic(Path(args.save_path) / "forward_probe.json", payload)
+                failed = [name for name, passed in checks.items() if not passed]
+                if failed:
+                    raise RuntimeError(f"P1-v8.3 forward-only probe failed: {failed}")
+                logger.info("P1-v8.3 forward-only probe PASS: %s", payload)
+                return model
             if not torch.isfinite(total_loss).all():
                 if structural_gate_config.enabled:
                     decision = GateDecision(
@@ -1689,6 +1874,10 @@ def train_h6_progress1(
                 vae = getattr(core, "class_vae", None)
                 factor_grad_diag["vae_mu_grad_norm"] = module_grad_norm(getattr(vae, "mu", None))
                 factor_grad_diag["vae_logvar_grad_norm"] = module_grad_norm(getattr(vae, "logvar", None))
+                factor_grad_diag["vae_decoder_grad_norm"] = module_grad_norm(getattr(vae, "decoder", None))
+                factor_grad_diag["class_to_context_grad_norm"] = module_grad_norm(
+                    getattr(core, "class_to_context", None)
+                )
                 prototype_norms = [module_grad_norm(getattr(core, "prototype_attention", None))]
                 prototype_norms = [value for value in prototype_norms if value is not None]
                 if prototype_norms:
@@ -1708,6 +1897,82 @@ def train_h6_progress1(
                     if "vision_text_q" in model.image_adapter else None
                 )
                 factor_grad_diag["dfg_grad_norm"] = module_grad_norm(dfg_module)
+            if args.h6_smoke_backward_only:
+                all_gradients_finite = all(
+                    parameter.grad is None or torch.isfinite(parameter.grad.detach()).all().item()
+                    for parameter in model.parameters()
+                )
+
+                def _positive_gradient(value) -> bool:
+                    return bool(
+                        torch.is_tensor(value)
+                        and value.numel() > 0
+                        and torch.isfinite(value.detach().float()).all().item()
+                        and value.detach().float().abs().max().item() > 0.0
+                    )
+
+                vae_class_alive = any(_positive_gradient(factor_grad_diag.get(name)) for name in (
+                    "vae_mu_grad_norm", "vae_decoder_grad_norm", "class_to_context_grad_norm",
+                ))
+                informative = bool(
+                    utility_payload is not None and utility_payload["informative"].any().item()
+                )
+                router_gradient_alive = _positive_gradient(factor_grad_diag.get("router_grad_norm"))
+                checks = {
+                    "finite_loss": bool(torch.isfinite(total_loss.detach()).all().item()),
+                    "finite_gradients": bool(all_gradients_finite),
+                    "state_path_gradient": _positive_gradient(
+                        factor_grad_diag.get("dynamic_prompt_shared_trunk_grad_norm")
+                    ),
+                    "vae_class_path_gradient": vae_class_alive,
+                    "text_lora_gradient": _positive_gradient(
+                        factor_grad_diag.get("phase2b_text_adapter_grad_norm")
+                    ),
+                    "factor_specific_gradient": _positive_gradient(
+                        factor_grad_diag.get("factor_grad_norms")
+                    ),
+                    "base_adapter_gradient": _positive_gradient(
+                        factor_grad_diag.get("phase2b_image_adapter_grad_norm")
+                    ),
+                    "dfg_gradient": _positive_gradient(factor_grad_diag.get("dfg_grad_norm")),
+                    "router_gradient_when_applicable": (not informative) or router_gradient_alive,
+                    "rho_gradient_none": model.h6.rho.raw.grad is None,
+                    "rho_fixed_005": bool(torch.equal(
+                        model.h6.rho_values().detach().cpu(),
+                        torch.full((model.n_groups,), 0.05),
+                    )),
+                    "optimizer_step_not_executed": len(optimizer.state) == 0,
+                }
+                payload = diagnostics_to_python({
+                    "epoch": epoch,
+                    "batch": batch_idx,
+                    "checks": checks,
+                    "loss_total": total_loss,
+                    "loss_task": task_loss,
+                    "loss_utility_factor": h6_utility_factor,
+                    "loss_utility_router": h6_utility_router,
+                    "utility_informative": informative,
+                    "gradient_norms": factor_grad_diag,
+                    "gradient_attribution": drift_gradient_report,
+                    "gpu_allocated_bytes": (
+                        torch.cuda.memory_allocated(device) if device.type == "cuda" else 0
+                    ),
+                    "gpu_reserved_bytes": (
+                        torch.cuda.memory_reserved(device) if device.type == "cuda" else 0
+                    ),
+                    "gpu_peak_allocated_bytes": (
+                        torch.cuda.max_memory_allocated(device) if device.type == "cuda" else 0
+                    ),
+                    "gpu_peak_reserved_bytes": (
+                        torch.cuda.max_memory_reserved(device) if device.type == "cuda" else 0
+                    ),
+                })
+                write_json_atomic(Path(args.save_path) / "backward_probe.json", payload)
+                failed = [name for name, passed in checks.items() if not passed]
+                if failed:
+                    raise RuntimeError(f"P1-v8.3 backward-only probe failed: {failed}")
+                logger.info("P1-v8.3 backward-only probe PASS: %s", payload)
+                return model
             do_step = batch_idx % args.grad_accum_steps == 0 or batch_idx == epoch_batch_limit
             if do_step:
                 scaler.unscale_(optimizer)
@@ -1732,6 +1997,7 @@ def train_h6_progress1(
                 nn.utils.clip_grad_norm_((p for p in model.parameters() if p.requires_grad), args.grad_clip_norm)
                 scaler.step(optimizer)
                 scaler.update()
+                optimizer_step_count += 1
                 optimizer.zero_grad(set_to_none=True)
                 if args.h6_drift_diagnostics and "batch_000_after_first_optimizer_step" not in drift_snapshots:
                     with torch.no_grad(), _phase4_autocast(device, args.precision):
@@ -1751,6 +2017,8 @@ def train_h6_progress1(
                 "vae_rec": h6_batch["reconstruction"],
                 "vae_kl_raw": h6_kl_raw,
                 "vae_kl_effective": h6_kl_effective,
+                "utility_factor": h6_utility_factor,
+                "utility_router": h6_utility_router,
                 "kg": h6_batch["kg_loss"], "orth": h6_orth, "balance": h6_balance,
                 "concept_key_diversity_raw": h6_concept_key_diversity,
                 "concept_key_diversity_weighted": concept_key_diversity_weight * h6_concept_key_diversity,
@@ -1813,7 +2081,7 @@ def train_h6_progress1(
                 "cluster_target_entropy": cluster_diag.get("cluster_target_entropy", h6_cluster_resp.detach() * 0.0),
                 "cluster_router_entropy": cluster_diag.get("cluster_router_entropy", h6_cluster_resp.detach() * 0.0),
             }.items():
-                metrics[key].append(float(value.detach().float().item()))
+                metrics[key].append(scalar_metric_value(value))
             if device.type == "cuda":
                 allocated = torch.cuda.memory_allocated(device) / 2**30
                 reserved = torch.cuda.memory_reserved(device) / 2**30
@@ -2030,6 +2298,94 @@ def train_h6_progress1(
                         "alpha_current": hybrid_alpha,
                         "expert_scale_current": model.h6.expert_scale(),
                     }),
+                )
+
+        if model.h6.progress_version == "P1-v8.3" and args.h6_smoke_max_batches > 0:
+            def _positive_diagnostic(name):
+                value = factor_grad_diag.get(name)
+                return bool(
+                    torch.is_tensor(value)
+                    and torch.isfinite(value.detach().float()).all().item()
+                    and value.detach().float().abs().max().item() > 0.0
+                )
+
+            rho_values = model.h6.rho_values().detach().float()
+            utility_epoch = {
+                key: diagnostics.get(key) for key in utility_diag if key in diagnostics
+            }
+            structure_epoch = {
+                key: diagnostics.get(key) for key in structure_diag if key in diagnostics
+            }
+            checks = {
+                "all_epoch_metrics_finite": all(
+                    np.isfinite(value) for value in epoch_metric_means.values()
+                ),
+                "utility_losses_finite": all(np.isfinite(epoch_metric_means[key]) for key in (
+                    "utility_factor", "utility_router",
+                )),
+                "optimizer_step_executed": optimizer_step_count >= 1,
+                "rho_fixed_005": bool(torch.equal(
+                    rho_values, torch.full_like(rho_values, 0.05)
+                )),
+                "rho_gradient_none": model.h6.rho.raw.grad is None,
+                "state_path_alive": _positive_diagnostic(
+                    "dynamic_prompt_shared_trunk_grad_norm"
+                ),
+                "class_vae_path_alive": any(_positive_diagnostic(name) for name in (
+                    "vae_mu_grad_norm", "vae_decoder_grad_norm", "class_to_context_grad_norm",
+                )),
+                "text_lora_alive": _positive_diagnostic(
+                    "phase2b_text_adapter_grad_norm"
+                ),
+                "factor_gradients_alive": _positive_diagnostic("factor_grad_norms"),
+                "router_gradient_alive": _positive_diagnostic("router_grad_norm"),
+                "factor_outputs_not_collapsed": bool(
+                    structure_epoch["factor_patch_outputs_exactly_collapsed"].item() == 0.0
+                    and wiring_factor_collapse_probes < 2
+                ),
+                "router_dense": routing_mode == "dense" and args.h6_prediction_routing == "dense",
+                "legacy_auxiliaries_off": all(value == 0.0 for value in (
+                    args.lambda_h6_balance, args.lambda_h6_center, args.lambda_h6_orth,
+                    args.lambda_h6_route, args.lambda_h6_factor_role,
+                    args.lambda_h6_actual_local, args.lambda_h6_func_div,
+                    args.lambda_h6_router_teacher, args.h6_lambda_cluster_resp,
+                )),
+                "experts_off": not model.h6.expert_enabled,
+            }
+            smoke_payload = diagnostics_to_python({
+                "status": "PASS" if all(checks.values()) else "FAIL",
+                "epoch": epoch,
+                "sample_count": epoch_batch_limit,
+                "grad_accum_steps": args.grad_accum_steps,
+                "optimizer_step_count": optimizer_step_count,
+                "checks": checks,
+                "failed": [name for name, passed in checks.items() if not passed],
+                "rho": rho_values,
+                "losses": {
+                    key: epoch_metric_means[key] for key in (
+                        "task", "utility_factor", "utility_router", "total"
+                    )
+                },
+                "utility": utility_epoch,
+                "structure": structure_epoch,
+                "gradients": factor_grad_diag,
+                "gpu_allocated_bytes": (
+                    torch.cuda.memory_allocated(device) if device.type == "cuda" else 0
+                ),
+                "gpu_reserved_bytes": (
+                    torch.cuda.memory_reserved(device) if device.type == "cuda" else 0
+                ),
+                "gpu_peak_allocated_bytes": (
+                    torch.cuda.max_memory_allocated(device) if device.type == "cuda" else 0
+                ),
+                "gpu_peak_reserved_bytes": (
+                    torch.cuda.max_memory_reserved(device) if device.type == "cuda" else 0
+                ),
+            })
+            write_json_atomic(Path(args.save_path) / "smoke_summary.json", smoke_payload)
+            if smoke_payload["failed"]:
+                raise RuntimeError(
+                    f"P1-v8.3 bounded smoke failed: {smoke_payload['failed']}"
                 )
 
         (logger.info if not is_v7 else (lambda *args, **kwargs: None))(
@@ -2394,6 +2750,14 @@ def main():
         help="Development-only cap per epoch for Phase4 runtime smoke checks; 0 means the full loader.",
     )
     parser.add_argument(
+        "--h6_smoke_forward_only", action="store_true",
+        help="Development-only one-batch forward probe; records diagnostics and performs no backward/step.",
+    )
+    parser.add_argument(
+        "--h6_smoke_backward_only", action="store_true",
+        help="Development-only one-batch backward probe; records gradients and performs no optimizer step.",
+    )
+    parser.add_argument(
         "--h6_wiring_probe_batches", type=int, nargs="*", default=[],
         help="Optional one-based batch indices for compact factor-specialization wiring probes.",
     )
@@ -2706,6 +3070,31 @@ def main():
                 raise ValueError("P1-v8.3 requires --precision fp32 with AMP disabled")
             if args.h6_local_factor_mode != "center_spread":
                 raise ValueError("P1-v8.3 requires --h6_local_factor_mode center_spread")
+            if abs(args.h6_local_center_mix - 0.05) > 1e-12 or abs(args.h6_local_factor_spread - 0.10) > 1e-12:
+                raise ValueError("P1-v8.3 requires center/spread geometry 0.05/0.10")
+            if args.img_size != 518 or not args.grad_checkpointing:
+                raise ValueError("P1-v8.3 requires --img_size 518 --grad_checkpointing")
+            if args.h6_smoke_forward_only and args.h6_smoke_max_batches != 1:
+                raise ValueError("--h6_smoke_forward_only requires --h6_smoke_max_batches 1")
+            if args.h6_smoke_backward_only and args.h6_smoke_max_batches != 1:
+                raise ValueError("--h6_smoke_backward_only requires --h6_smoke_max_batches 1")
+            if args.h6_smoke_forward_only and args.h6_smoke_backward_only:
+                raise ValueError("forward-only and backward-only probes are mutually exclusive")
+            if args.h6_global_text_mode != "phase2b_hybrid":
+                raise ValueError("P1-v8.3 requires --h6_global_text_mode phase2b_hybrid")
+            if not (
+                args.dfg_mode == "attn"
+                and args.dfg_attn_dim == 256
+                and abs(args.dfg_attn_tau - 8.0) <= 1e-12
+                and args.use_ss2d_dfg
+                and args.dfg_ss2d_fusion == "weight_residual"
+                and abs(args.dfg_beta - 0.10) <= 1e-12
+                and args.dfg_beta_schedule == "warmup010"
+                and abs(args.dfg_beta_target - 0.10) <= 1e-12
+            ):
+                raise ValueError("P1-v8.3 requires the canonical Phase2B-style DFG+SS2D base path")
+            if torch.backends.cuda.matmul.allow_tf32 or torch.backends.cudnn.allow_tf32:
+                raise ValueError("P1-v8.3 requires TF32 disabled")
             if args.batch_size != 1 or args.grad_accum_steps != 6:
                 raise ValueError("P1-v8.3 requires --batch_size 1 --grad_accum_steps 6")
             if args.h6_prediction_routing != "dense" or args.h6_load_bias_enabled:
@@ -2893,6 +3282,78 @@ def main():
         logger.info("phase4_progress=1 trainable parameters=%s frozen parameters=%s", f"{trainable_params:,}", f"{frozen_params:,}")
         optimizer = torch.optim.Adam(_h6_optimizer_groups(model, args))
         lr_scheduler = StepLR(optimizer, step_size=1, gamma=args.lr_gamma)
+        model.h6_global_text_mode = args.h6_global_text_mode
+        if args.h6_progress_version == "P1-v8.3":
+            optimizer_parameter_ids = {
+                id(parameter)
+                for group in optimizer.param_groups
+                for parameter in group["params"]
+            }
+            h6_config = model.h6.config_dict()
+            contract_checks = {
+                "openai_only_initialization": True,
+                "no_phase2b_checkpoint_load": True,
+                "fp32": args.precision == "fp32",
+                "tf32_off": not (
+                    torch.backends.cuda.matmul.allow_tf32 or torch.backends.cudnn.allow_tf32
+                ),
+                "amp_off": not args.amp,
+                "gradient_checkpointing_on": args.grad_checkpointing,
+                "batch1_accum6": args.batch_size == 1 and args.grad_accum_steps == 6,
+                "img_size_518": args.img_size == 518,
+                "phase2b_hybrid_global": args.h6_global_text_mode == "phase2b_hybrid",
+                "global_hybrid_soft_prompt_on": bool(model.use_hybrid_soft_prompt),
+                "dfg_ss2d_base": (
+                    args.dfg_mode == "attn" and args.use_ss2d_dfg
+                    and args.dfg_ss2d_fusion == "weight_residual"
+                ),
+                "center_spread_005_010": (
+                    model.h6.local_factor_mode == "center_spread"
+                    and abs(model.h6.local_center_mix - 0.05) <= 1e-12
+                    and abs(model.h6.local_factor_spread - 0.10) <= 1e-12
+                ),
+                "four_factors": model.h6.num_factors == 4,
+                "structured_state_class": (
+                    h6_config["structured_text_enabled"]
+                    and h6_config["state_token_factor_specific"]
+                    and h6_config["class_token_deterministic_decoder_mu"]
+                ),
+                "dynamic_text_lora": h6_config["dynamic_text_adapt_text"],
+                "dense_routing": model.h6.router.prediction_routing == "dense",
+                "rho_fixed_005": bool(torch.equal(
+                    model.h6.rho_values().detach().cpu(),
+                    torch.full((model.n_groups,), 0.05),
+                )),
+                "rho_no_grad": not model.h6.rho.raw.requires_grad,
+                "rho_absent_optimizer": id(model.h6.rho.raw) not in optimizer_parameter_ids,
+                "experts_off": model.h6.paired_experts is None,
+                "load_bias_off": not model.h6.load_bias_enabled,
+                "balance_off": args.lambda_h6_balance == 0.0,
+                "topk_prediction_off": model.h6.router.prediction_routing == "dense",
+                "cluster_responsibility_off": not model.h6.cluster_responsibility_enabled,
+                "functional_diversity_off": args.lambda_h6_func_div == 0.0,
+                "selective_use_gate_off": not hasattr(model.h6, "selective_use_gate"),
+                "text_lora_trainable": any(p.requires_grad for p in model.text_adapter.parameters()),
+            }
+            failed_contracts = [name for name, passed in contract_checks.items() if not passed]
+            model_preflight = {
+                "status": "PASS" if not failed_contracts else "FAIL",
+                "git_sha": current_git_head(),
+                "device": str(device),
+                "checks": contract_checks,
+                "failed": failed_contracts,
+                "h6_config": h6_config,
+                "dataloader": {
+                    "seed": args.seed,
+                    "num_workers": args.num_workers,
+                    "pin_memory": args.pin_memory,
+                    "persistent_workers": False,
+                    "prefetch_factor": 2 if args.num_workers > 0 else None,
+                },
+            }
+            write_json_atomic(Path(args.save_path) / "model_preflight.json", model_preflight)
+            if failed_contracts:
+                raise RuntimeError(f"P1-v8.3 model preflight failed: {failed_contracts}")
         dataset = get_text_and_image_dataset(args.dataset, args.img_size, "train")
         dataloader = torch.utils.data.DataLoader(
             dataset,

@@ -151,12 +151,18 @@ def test_router_teacher_filters_uninformative_and_only_router_receives_router_gr
 
 
 def test_utility_diagnostics_and_dense_routing_math():
-    payload, _, target = _payload(requires_grad=False)
+    base = torch.zeros(1, 1, 2)
+    evidence = torch.tensor([[[[-8.0, 8.0, 0.0, 0.0],
+                               [-8.0, 8.0, 0.0, 0.0]]]])
+    target = torch.tensor([[0.0, 1.0]])
+    valid = torch.ones_like(target, dtype=torch.bool)
+    payload = utility_teacher(base, evidence, target, valid, epsilon=0.0)
     router = payload["q_utility"].clone()
     diagnostics = utility_diagnostics(payload, router, target)
     required = {
         "Base", "BestSingle", "OracleMulti", "Uniform", "SoftRouted", "HardRouted",
-        "G_local", "G_multi", "capture", "L_base", "L_per_factor",
+        "G_local", "G_multi", "capture", "capture_denominator", "capture_valid",
+        "base_denominator_valid", "L_base", "L_per_factor",
         "teacher_entropy", "teacher_max_probability", "informative_fraction",
         "all_harm_fraction", "winner_shares", "router_top1_agreement",
         "teacher_router_KL", "router_entropy", "router_usage",
@@ -164,8 +170,34 @@ def test_utility_diagnostics_and_dense_routing_math():
     assert required <= diagnostics.keys()
     assert diagnostics["OracleMulti"] <= diagnostics["BestSingle"]
     assert diagnostics["BestSingle"] <= diagnostics["Base"]
+    assert diagnostics["Base"] != pytest.approx(1.0)
+    assert diagnostics["BestSingle"] > diagnostics["OracleMulti"]
+    assert diagnostics["G_local"] == pytest.approx(
+        ((diagnostics["Base"] - diagnostics["OracleMulti"]) / diagnostics["Base"]).item()
+    )
+    assert diagnostics["G_multi"] == pytest.approx(
+        ((diagnostics["BestSingle"] - diagnostics["OracleMulti"]) / diagnostics["Base"]).item()
+    )
+    assert diagnostics["capture_valid"].item() is True
+    assert diagnostics["capture"] == pytest.approx(
+        ((diagnostics["Uniform"] - diagnostics["SoftRouted"])
+         / (diagnostics["Uniform"] - diagnostics["OracleMulti"])).item()
+    )
     assert diagnostics["router_top1_agreement"] == pytest.approx(1.0)
     assert diagnostics["teacher_router_KL"] == pytest.approx(0.0, abs=1e-7)
+
+
+def test_capture_invalid_denominator_is_explicit_and_finite():
+    base = torch.zeros(1, 1, 2)
+    evidence = torch.zeros(1, 1, 2, 4)
+    target = torch.tensor([[0.0, 1.0]])
+    valid = torch.ones_like(target, dtype=torch.bool)
+    payload = utility_teacher(base, evidence, target, valid)
+    diagnostics = utility_diagnostics(payload, payload["q_utility"], target)
+    assert diagnostics["capture_denominator"] == pytest.approx(0.0, abs=1e-12)
+    assert diagnostics["capture_valid"].item() is False
+    assert diagnostics["capture"] == pytest.approx(0.0)
+    assert torch.isfinite(diagnostics["capture"])
 
 
 def test_rho_rejects_noncanonical_training_values():

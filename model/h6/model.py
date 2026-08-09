@@ -252,8 +252,13 @@ class H6Progress1(nn.Module):
         self.epoch_one_based = 1
 
     def config_dict(self) -> Dict[str, int | float | str]:
+        is_v83 = self.progress_version == "P1-v8.3"
         return {
-            "variant": "p1_v7_full_fofs_paired_semantic_moe" if self.expert_enabled else "p1_v6_structural_specialization",
+            "variant": (
+                "p1_v8_3_structured_utility_routing" if is_v83
+                else "p1_v7_full_fofs_paired_semantic_moe" if self.expert_enabled
+                else "p1_v6_structural_specialization"
+            ),
             "progress_version": self.progress_version,
             "progress": self.progress,
             "n_groups": self.n_groups,
@@ -267,8 +272,10 @@ class H6Progress1(nn.Module):
             "sparse_start_epoch": self.router_soft_epochs + 1,
             "sparse_transition_epochs": self.sparse_transition_epochs,
             "sparse_full_epoch": self.router_soft_epochs + self.sparse_transition_epochs,
-            "sparse_mode": "straight_through_topk",
-            "prediction_interpolation_enabled": True,
+            "sparse_mode": "diagnostic_only" if is_v83 else "straight_through_topk",
+            "prediction_interpolation_enabled": not is_v83,
+            "prediction_routing": self.router.prediction_routing,
+            "routing": "dense" if is_v83 else self.router.prediction_routing,
             "router_mode": "concept_key_dot",
             "router_scoring": "concept_key_dot",
             "load_bias_enabled": self.load_bias_enabled,
@@ -313,7 +320,7 @@ class H6Progress1(nn.Module):
             "utility_entropy_threshold": 0.98,
             "exploration_schedule": [0.15, 0.05],
             "utility_teacher_detached": True,
-            "dense_router_only": self.progress_version == "P1-v8.3",
+            "dense_router_only": is_v83,
             "class_token_deterministic_decoder_mu": True,
             "slot_init_enabled": self.slot_init_enabled,
             "slot_init_scale": self.slot_init_scale,

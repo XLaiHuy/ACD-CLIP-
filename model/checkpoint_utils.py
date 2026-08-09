@@ -10,6 +10,56 @@ import torch
 PHASE4_CHECKPOINT_VERSION = 8
 
 
+def validate_p1_v83_checkpoint_contract(checkpoint: Mapping[str, Any]) -> None:
+    """Hard-fail critical P1-v8.3 train/test semantic mismatches."""
+    config = h6_config_from_checkpoint(checkpoint)
+    if config is None or config.get("progress_version") != "P1-v8.3":
+        return
+    expected = {
+        "checkpoint_version": (checkpoint.get("checkpoint_version"), PHASE4_CHECKPOINT_VERSION),
+        "precision": (checkpoint.get("precision"), "fp32"),
+        "tf32_enabled": (checkpoint.get("tf32_enabled"), False),
+        "amp_enabled": (checkpoint.get("amp_enabled"), False),
+        "gradient_checkpointing": (checkpoint.get("gradient_checkpointing"), True),
+        "initialization": (checkpoint.get("initialization"), "openai_clip"),
+        "phase2b_checkpoint_loaded": (checkpoint.get("phase2b_checkpoint_loaded"), False),
+        "use_hybrid_soft_prompt": (checkpoint.get("use_hybrid_soft_prompt"), True),
+        "use_soft_prompt": (checkpoint.get("use_soft_prompt"), False),
+        "global_text_mode": (checkpoint.get("global_text_mode"), "phase2b_hybrid"),
+        "img_size": (checkpoint.get("img_size"), 518),
+        "batch_size": (checkpoint.get("batch_size"), 1),
+        "grad_accum_steps": (checkpoint.get("grad_accum_steps"), 6),
+        "variant": (config.get("variant"), "p1_v8_3_structured_utility_routing"),
+        "num_factors": (config.get("num_factors"), 4),
+        "prediction_routing": (config.get("prediction_routing"), "dense"),
+        "dense_router_only": (config.get("dense_router_only"), True),
+        "structured_text_enabled": (config.get("structured_text_enabled"), True),
+        "dynamic_text_adapt_text": (config.get("dynamic_text_adapt_text"), True),
+        "rho_fixed": (config.get("rho_fixed"), True),
+        "rho_trainable": (config.get("rho_trainable"), False),
+        "expert_enabled": (config.get("expert_enabled"), False),
+        "load_bias_enabled": (config.get("load_bias_enabled"), False),
+        "cluster_responsibility_enabled": (config.get("cluster_responsibility_enabled"), False),
+    }
+    mismatches = {name: values for name, values in expected.items() if values[0] != values[1]}
+    float_expected = {
+        "local_center_mix": (config.get("local_center_mix"), 0.05),
+        "local_factor_spread": (config.get("local_factor_spread"), 0.10),
+    }
+    mismatches.update({
+        name: values for name, values in float_expected.items()
+        if values[0] is None or abs(float(values[0]) - values[1]) > 1e-12
+    })
+    if config.get("local_factor_mode") != "center_spread":
+        mismatches["local_factor_mode"] = (config.get("local_factor_mode"), "center_spread")
+    if mismatches:
+        formatted = ", ".join(
+            f"{name}: checkpoint={actual!r}, required={required!r}"
+            for name, (actual, required) in mismatches.items()
+        )
+        raise ValueError(f"P1-v8.3 checkpoint contract mismatch: {formatted}")
+
+
 def is_phase4_checkpoint(checkpoint: Mapping[str, Any]) -> bool:
     return bool(checkpoint.get("h6_enabled", False) or checkpoint.get("phase4_progress", 0))
 
@@ -47,6 +97,7 @@ def validate_h6_configuration(model, checkpoint: Mapping[str, Any]) -> None:
             raise ValueError("P1-v8.3 checkpoint is missing explicit progress_version metadata")
         if config.get("rho_fixed") is not True or config.get("rho_trainable") is not False:
             raise ValueError("P1-v8.3 checkpoint must declare fixed, non-trainable rho")
+        validate_p1_v83_checkpoint_contract(checkpoint)
     if expected_version in {"P1-v3", "P1-v4", "P1-v5", "P1-v5-fix"} and config.get("progress_version") != expected_version:
         raise ValueError(
             f"{expected_version} model requires a {expected_version} checkpoint with explicit "
@@ -119,6 +170,34 @@ def build_phase4_checkpoint(
         return h6_config.get(config_key) if value is None else value
 
     h6_config.update({
+        "variant": (
+            "p1_v8_3_structured_utility_routing"
+            if h6_config.get("progress_version") == "P1-v8.3" else h6_config.get("variant")
+        ),
+        "global_text_mode": phase2b_config.get("h6_global_text_mode"),
+        "prediction_routing": phase2b_config.get(
+            "h6_prediction_routing", h6_config.get("prediction_routing")
+        ),
+        "utility_denominator_floor": _config_value(
+            "h6_utility_denominator_floor", "utility_denominator_floor"
+        ),
+        "tau_utility": _config_value("h6_tau_utility", "tau_utility"),
+        "utility_gain_threshold": _config_value(
+            "h6_utility_gain_threshold", "utility_gain_threshold"
+        ),
+        "utility_entropy_threshold": _config_value(
+            "h6_utility_entropy_threshold", "utility_entropy_threshold"
+        ),
+        "exploration_schedule": [
+            phase2b_config.get(
+                "h6_exploration_start", h6_config.get("exploration_schedule", [0.15, 0.05])[0]
+            ),
+            phase2b_config.get(
+                "h6_exploration_end", h6_config.get("exploration_schedule", [0.15, 0.05])[1]
+            ),
+        ],
+        "utility_factor_weight": phase2b_config.get("lambda_h6_factor"),
+        "utility_router_weight": phase2b_config.get("lambda_h6_router"),
         "router_teacher_enabled": float(loss_weights.get("router_teacher", 0.0)) > 0.0,
         "router_teacher_temperature": loss_weights.get("router_teacher_temperature"),
         "router_teacher_start_epoch": loss_weights.get("router_teacher_start_epoch"),
@@ -246,6 +325,7 @@ def build_phase4_checkpoint(
         ),
         "epoch": int(epoch),
         "seed": int(seed),
+        "git_sha": phase2b_config.get("git_sha"),
         "phase4_progress": 1,
         "h6_enabled": True,
         "h6_config": h6_config,
@@ -254,8 +334,8 @@ def build_phase4_checkpoint(
         "text_adapter": model.text_adapter.state_dict(),
         "soft_prompt": model.soft_prompt.state_dict(),
         "prompt_mode": "h6_dynamic",
-        "use_soft_prompt": False,
-        "use_hybrid_soft_prompt": True,
+        "use_soft_prompt": bool(getattr(model, "use_soft_prompt", False)),
+        "use_hybrid_soft_prompt": bool(getattr(model, "use_hybrid_soft_prompt", False)),
         "soft_prompt_ctx_len": model.soft_prompt_ctx_len,
         "soft_prompt_init": model.soft_prompt_init,
         "soft_prompt_init_phrase": model.soft_prompt_init_phrase,
@@ -263,6 +343,15 @@ def build_phase4_checkpoint(
         "hybrid_alpha_max": float(getattr(model, "hybrid_alpha_max", 0.2)),
         "soft_prompt_freeze_epochs": int(getattr(model, "soft_prompt_freeze_epochs", 3)),
         "precision": str(precision),
+        "tf32_enabled": bool(phase2b_config.get("tf32_enabled", False)),
+        "amp_enabled": bool(phase2b_config.get("amp_enabled", False)),
+        "gradient_checkpointing": bool(phase2b_config.get("grad_checkpointing", False)),
+        "initialization": "openai_clip",
+        "phase2b_checkpoint_loaded": False,
+        "global_text_mode": phase2b_config.get("h6_global_text_mode"),
+        "img_size": phase2b_config.get("img_size"),
+        "batch_size": phase2b_config.get("batch_size"),
+        "grad_accum_steps": phase2b_config.get("grad_accum_steps"),
         "loss_weights": dict(loss_weights),
         "gate_values": {
             "gamma_state": float(h6.semantic_core.gamma_state().detach().item()),

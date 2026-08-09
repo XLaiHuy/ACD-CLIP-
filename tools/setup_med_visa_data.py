@@ -6,6 +6,11 @@ from collections import Counter
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from dataset.info import CLASS_NAMES
+
 CANONICAL_PARTS = tuple(map(Path, (
     "VisA_20220922", "MedAD/Brain_AD", "MedAD/Liver_AD", "MedAD/Retina_RESC_AD",
     "Colon/CVC-ClinicDB", "Colon/CVC-ColonDB", "Colon/Kvasir")))
@@ -15,6 +20,14 @@ MANIFEST_ROOTS = {
     "Liver": Path("MedAD/Liver_AD/test"), "Retina": Path("MedAD/Retina_RESC_AD/test"),
     "Colon_clinicDB": Path("Colon/CVC-ClinicDB"),
     "Colon_colonDB": Path("Colon/CVC-ColonDB"), "Colon_Kvasir": Path("Colon/Kvasir")}
+EXPECTED_LABEL_COUNTS = {
+    "Brain": {0: 640, 1: 3075},
+    "Liver": {0: 833, 1: 660},
+    "Retina": {0: 1041, 1: 764},
+    "Colon_clinicDB": {0: 0, 1: 612},
+    "Colon_colonDB": {0: 0, 1: 380},
+    "Colon_Kvasir": {0: 0, 1: 1000},
+}
 
 
 def is_complete_root(path: Path) -> bool:
@@ -80,31 +93,69 @@ def materialize_layout(source: Path, data_root: Path, link_mode: str, force: boo
 def verify_manifests(data_root: Path, manifest_dir: Path | None = None) -> dict:
     data_root = data_root.resolve()
     manifest_dir = (manifest_dir or REPO_ROOT / "dataset" / "hub").resolve()
-    report = {"data_root": str(data_root), "datasets": {}, "missing": []}
+    report = {
+        "data_root": str(data_root),
+        "datasets": {},
+        "missing_images": [],
+        "missing_masks": [],
+        "invalid_class_names": [],
+        "count_mismatches": [],
+    }
     for dataset, relative_root in MANIFEST_ROOTS.items():
         manifest = manifest_dir / f"{dataset}.jsonl"
-        counts, classes, missing = Counter(), Counter(), []
+        counts, classes = Counter(), Counter()
+        missing_images, missing_masks, invalid_class_names = [], [], []
+        expected_classes = set(CLASS_NAMES.get(dataset, ()))
+        if not expected_classes:
+            raise ValueError(f"dataset/info.py has no authoritative CLASS_NAMES entry for {dataset}")
         with manifest.open(encoding="utf-8") as handle:
             for line_number, line in enumerate(handle, 1):
                 record = json.loads(line)
                 label, class_name = record.get("label"), record.get("class_name")
-                if label not in (0, 1):
+                if not isinstance(label, int) or isinstance(label, bool) or label not in (0, 1):
                     raise ValueError(f"{manifest}:{line_number}: label must be 0 or 1")
-                if not isinstance(class_name, str) or not class_name:
-                    raise ValueError(f"{manifest}:{line_number}: invalid class_name")
+                if class_name not in expected_classes:
+                    invalid_class_names.append(
+                        f"{manifest}:{line_number}: {class_name!r} not in {sorted(expected_classes)!r}"
+                    )
                 counts[int(label)] += 1; classes[class_name] += 1
                 sample_root = data_root / relative_root
                 image = sample_root / record["image_path"]
                 if not image.is_file():
-                    missing.append(str(image))
+                    missing_images.append(str(image))
                 mask_path = record.get("mask_path")
-                if label == 1 and mask_path and not (sample_root / mask_path).is_file():
-                    missing.append(str(sample_root / mask_path))
-        report["datasets"][dataset] = {"counts_by_label": dict(sorted(counts.items())),
-            "counts_by_class": dict(sorted(classes.items())), "missing_count": len(missing)}
-        report["missing"].extend(missing)
-    report["ok"] = not report["missing"]
+                if label == 1:
+                    if not isinstance(mask_path, str) or not mask_path.strip():
+                        missing_masks.append(f"{manifest}:{line_number}: anomaly mask_path missing")
+                    else:
+                        mask = sample_root / mask_path
+                        if not mask.is_file():
+                            missing_masks.append(str(mask))
+        actual_counts = {0: counts.get(0, 0), 1: counts.get(1, 0)}
+        expected_counts = EXPECTED_LABEL_COUNTS.get(dataset)
+        count_match = expected_counts is None or actual_counts == expected_counts
+        if not count_match:
+            report["count_mismatches"].append({
+                "dataset": dataset, "expected": expected_counts, "actual": actual_counts,
+            })
+        report["datasets"][dataset] = {
+            "total": sum(counts.values()),
+            "counts_by_label": dict(sorted(counts.items())),
+            "counts_by_class": dict(sorted(classes.items())),
+            "expected_counts_by_label": expected_counts,
+            "count_match": count_match,
+            "missing_image_count": len(missing_images),
+            "missing_mask_count": len(missing_masks),
+            "invalid_class_name_count": len(invalid_class_names),
+        }
+        report["missing_images"].extend(missing_images)
+        report["missing_masks"].extend(missing_masks)
+        report["invalid_class_names"].extend(invalid_class_names)
+    report["missing"] = report["missing_images"] + report["missing_masks"]
     report["missing_count"] = len(report["missing"])
+    report["ok"] = not any((
+        report["missing"], report["invalid_class_names"], report["count_mismatches"],
+    ))
     return report
 
 

@@ -32,6 +32,19 @@ def _natural_key(string_):
     return [int(s) if s.isdigit() else s for s in re.split(r'(\d+)', string_.lower())]
 
 
+def _is_usable_checkpoint_file(path: Path) -> bool:
+    if not path.is_file():
+        return False
+    if path.stat().st_size <= 1024:
+        try:
+            prefix = path.read_bytes()[:128]
+        except OSError:
+            return False
+        if prefix.startswith(b"version https://git-lfs.github.com/spec/v1"):
+            return False
+    return True
+
+
 def resolve_openai_checkpoint(model_name: str) -> Path:
     """Resolve the OpenAI checkpoint without relying on one machine's cache."""
     if model_name == "ViT-L-14-336":
@@ -40,12 +53,13 @@ def resolve_openai_checkpoint(model_name: str) -> Path:
         candidates = ([Path(override).expanduser()] if override else [])
         candidates.extend([
             repo_root / "model" / "ViT-L-14-336px.pt",
+            Path.home() / ".cache" / "clip" / "ViT-L-14-336px.pt",
         ])
     else:
         candidates = [_MODEL_CKPT_PATHS.get(model_name)]
     attempted = [str(path) for path in candidates if path is not None]
     for path in candidates:
-        if path is not None and path.is_file():
+        if path is not None and _is_usable_checkpoint_file(path):
             return path.resolve()
     raise FileNotFoundError(
         f"OpenAI CLIP checkpoint for {model_name!r} was not found. "

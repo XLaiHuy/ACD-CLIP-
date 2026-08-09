@@ -10,8 +10,15 @@ from torch import nn
 
 from dataset import info
 from model.checkpoint_utils import build_phase4_checkpoint, validate_h6_configuration
-from model.clip import resolve_openai_checkpoint
+from model.clip import _is_usable_checkpoint_file, resolve_openai_checkpoint
 from model.h6.model import H6Progress1
+from test import combine_image_score, image_auc_ap_or_none
+from tools.preflight_p1_v83_final_checkpoint import validate_final_checkpoint_payload
+from train import (
+    h6_drift_gradient_attribution,
+    p1_v83_structure_diagnostics,
+    scalar_metric_value,
+)
 from utils import (
     configure_canonical_fp32,
     make_dataloader_generator,
@@ -20,12 +27,38 @@ from utils import (
 )
 
 
-def _tiny_h6(**kwargs):
+def _tiny_h6(n_groups=1, **kwargs):
     return H6Progress1(
-        n_groups=1, num_factors=4, top_k=2, bank_dim=8, router_dim=4,
+        n_groups=n_groups, num_factors=4, top_k=2, bank_dim=8, router_dim=4,
         vae_hidden_dim=8, vae_latent_dim=4, text_dim=8, ctx_len=4,
         progress_version="P1-v8.3", prediction_routing="dense", **kwargs,
     )
+
+
+def test_scalar_metric_value_accepts_disabled_python_float_losses():
+    assert scalar_metric_value(0.0) == 0.0
+    assert scalar_metric_value(torch.tensor(1.25)) == pytest.approx(1.25)
+    with pytest.raises(ValueError, match="scalar"):
+        scalar_metric_value(torch.ones(2))
+
+
+def test_p1_v83_structure_diagnostics_detect_factor_separation():
+    dynamic = torch.zeros(1, 1, 4, 2, 4)
+    state = torch.zeros(1, 4, 2, 4)
+    logits = torch.zeros(1, 1, 3, 4)
+    for factor in range(4):
+        dynamic[:, :, factor, :, factor] = 1.0
+        state[:, factor, :, factor] = 1.0
+        logits[:, :, :, factor] = torch.tensor([factor, factor + 1, factor + 3])
+    diagnostics = p1_v83_structure_diagnostics({
+        "dynamic_text": dynamic,
+        "state_tokens": state,
+        "factor_patch_logits": logits,
+    })
+    assert diagnostics["factor_embedding_effective_rank"] == pytest.approx(4.0)
+    assert diagnostics["state_pairwise_l2_min"] > 0
+    assert diagnostics["factor_patch_pairwise_max_difference"] > 0
+    assert diagnostics["factor_patch_outputs_exactly_collapsed"] == 0
 
 
 def test_data_root_override_has_highest_priority(tmp_path, monkeypatch):
@@ -54,6 +87,17 @@ def test_clip_checkpoint_override_and_clear_attempts(tmp_path, monkeypatch):
     assert "Attempted paths" in str(exc.value)
 
 
+def test_clip_lfs_pointer_is_not_treated_as_pretrained_weight(tmp_path):
+    pointer = tmp_path / "ViT-L-14-336px.pt"
+    pointer.write_text(
+        "version https://git-lfs.github.com/spec/v1\n"
+        "oid sha256:3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02\n"
+        "size 934088680\n",
+        encoding="utf-8",
+    )
+    assert _is_usable_checkpoint_file(pointer) is False
+
+
 def test_fp32_tf32_contract_is_explicit():
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
@@ -76,6 +120,25 @@ def test_worker_seed_and_generator_are_deterministic(monkeypatch):
         torch.rand(5, generator=make_dataloader_generator(7)),
         torch.rand(5, generator=make_dataloader_generator(7)),
     )
+
+
+def test_utility_gradient_attribution_is_no_step_and_reports_ratios():
+    shared = nn.Parameter(torch.tensor(2.0))
+    router = nn.Parameter(torch.tensor(3.0))
+    report = h6_drift_gradient_attribution(
+        {
+            "main_task": (shared.square(), 1.0),
+            "utility_factor": (3.0 * shared, 0.1),
+            "utility_router": (5.0 * router, 0.1),
+        },
+        {"shared_semantic": [shared], "router": [router]},
+    )
+    assert shared.grad is None
+    assert router.grad is None
+    assert report["components"]["utility_factor"]["shared_semantic"] == pytest.approx(0.3)
+    assert report["components"]["utility_router"]["router"] == pytest.approx(0.5)
+    assert report["ratios"]["utility_factor_to_task_shared_grad_ratio"] == pytest.approx(0.075)
+    assert report["ratios"]["utility_router_to_task_shared_grad_ratio"] == pytest.approx(0.0)
 
 
 def test_fixed_rho_and_diagnostic_zero_override():
@@ -104,10 +167,17 @@ def test_one_class_image_metrics_report_na_but_pixel_metrics_remain():
     assert result["pixel AP"] == 100.0
 
 
+def test_frozen_medical_image_score_and_unsupported_metrics():
+    cls = torch.tensor([0.2, 0.8])
+    pmax = torch.tensor([0.6, 0.4])
+    assert torch.equal(combine_image_score(cls, pmax, "Medical"), torch.tensor([0.4, 0.6]))
+    assert image_auc_ap_or_none(torch.ones(2, dtype=torch.int64), cls) == (None, None)
+
+
 class _CheckpointModel:
     def __init__(self):
         self.h6_enabled = True
-        self.h6 = _tiny_h6()
+        self.h6 = _tiny_h6(n_groups=3)
         self.image_adapter = nn.Linear(2, 2)
         self.text_adapter = nn.Linear(2, 2)
         self.soft_prompt = nn.Linear(2, 2)
@@ -117,35 +187,60 @@ class _CheckpointModel:
         self.hybrid_alpha_current = 0.0
         self.hybrid_alpha_max = 0.2
         self.soft_prompt_freeze_epochs = 3
-        self.n_groups = 1
+        self.n_groups = 3
         self.dfg_mode = "attn"
-        self.dfg_attn_dim = 4
-        self.dfg_attn_tau = 4.0
+        self.dfg_attn_dim = 256
+        self.dfg_attn_tau = 8.0
         self.use_ss2d_dfg = True
         self.dfg_gamma_max = 0.2
         self.dfg_ss2d_fusion = "weight_residual"
         self.dfg_beta = 0.1
-        self.dfg_beta_schedule = "fixed"
+        self.dfg_beta_schedule = "warmup010"
         self.dfg_beta_target = 0.1
         self.dfg_weight_residual_fp32 = True
+        self.use_soft_prompt = False
+        self.use_hybrid_soft_prompt = True
 
 
 def test_v83_checkpoint_metadata_and_geometry_roundtrip():
     model = _CheckpointModel()
     payload = build_phase4_checkpoint(
-        model, epoch=2, seed=0, precision="fp32", phase2b_config={
+        model, epoch=20, seed=0, precision="fp32", phase2b_config={
+            "git_sha": "deadbeef",
+            "tf32_enabled": False,
+            "amp_enabled": False,
+            "grad_checkpointing": True,
+            "h6_global_text_mode": "phase2b_hybrid",
+            "h6_prediction_routing": "dense",
+            "img_size": 518,
+            "batch_size": 1,
+            "grad_accum_steps": 6,
             "h6_local_factor_mode": "center_spread",
             "h6_local_center_mix": 0.05,
             "h6_local_factor_spread": 0.10,
             "h6_tau_utility": 0.05,
-        }, loss_weights={},
+        }, loss_weights={
+            "balance": 0.0,
+            "center": 0.0,
+            "orth": 0.0,
+            "functional_factor_diversity": 0.0,
+            "router_teacher": 0.0,
+            "cluster_loss_weight": 0.0,
+        },
     )
     assert payload["checkpoint_version"] == 8
     assert payload["precision"] == "fp32"
     assert payload["h6_config"]["progress_version"] == "P1-v8.3"
+    assert payload["h6_config"]["variant"] == "p1_v8_3_structured_utility_routing"
+    assert payload["global_text_mode"] == "phase2b_hybrid"
+    assert payload["gradient_checkpointing"] is True
+    assert payload["initialization"] == "openai_clip"
+    assert payload["phase2b_checkpoint_loaded"] is False
+    assert payload["use_hybrid_soft_prompt"] is True
     assert payload["h6_config"]["rho_fixed"] is True
     assert payload["h6_config"]["rho_trainable"] is False
     assert payload["h6_config"]["local_factor_mode"] == "center_spread"
     assert payload["h6_config"]["local_center_mix"] == pytest.approx(0.05)
     assert payload["h6_config"]["local_factor_spread"] == pytest.approx(0.10)
     validate_h6_configuration(model, payload)
+    assert validate_final_checkpoint_payload(payload)["status"] == "PASS"

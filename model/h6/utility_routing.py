@@ -181,9 +181,30 @@ def utility_diagnostics(
     soft = valid_mean(F.binary_cross_entropy_with_logits(soft_logits, targets, reduction="none"))
     hard = valid_mean(F.binary_cross_entropy_with_logits(hard_logits, targets, reduction="none"))
     base_mean = valid_mean(base)
-    g_local = base_mean - best_single
-    g_multi = best_single - oracle
-    denominator = (base_mean - oracle).clamp_min(1e-12)
+    base_denominator_valid = base_mean > 1e-12
+    safe_base_denominator = torch.where(
+        base_denominator_valid, base_mean, torch.ones_like(base_mean)
+    )
+    g_local = torch.where(
+        base_denominator_valid,
+        (base_mean - oracle) / safe_base_denominator,
+        torch.zeros_like(base_mean),
+    )
+    g_multi = torch.where(
+        base_denominator_valid,
+        (best_single - oracle) / safe_base_denominator,
+        torch.zeros_like(base_mean),
+    )
+    capture_denominator = uniform - oracle
+    capture_valid = capture_denominator > 1e-12
+    safe_capture_denominator = torch.where(
+        capture_valid, capture_denominator, torch.ones_like(capture_denominator)
+    )
+    capture = torch.where(
+        capture_valid,
+        (uniform - soft) / safe_capture_denominator,
+        torch.zeros_like(capture_denominator),
+    )
     teacher = payload["q_utility"]
     router = dense_probabilities.float().clamp_min(1e-12)
     informative = payload["informative"]
@@ -209,7 +230,10 @@ def utility_diagnostics(
         "HardRouted": hard.detach(),
         "G_local": g_local.detach(),
         "G_multi": g_multi.detach(),
-        "capture": ((base_mean - soft) / denominator).detach(),
+        "base_denominator_valid": base_denominator_valid.detach(),
+        "capture": capture.detach(),
+        "capture_denominator": capture_denominator.detach(),
+        "capture_valid": capture_valid.detach(),
         "L_base": base_mean.detach(),
         "L_per_factor": factor_means.detach(),
         "gain_rel_mean": payload["gain_rel"][factor_valid].mean().detach(),

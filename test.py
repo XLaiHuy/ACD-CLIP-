@@ -24,7 +24,11 @@ from dataset.info import log_data_root
 from model.adapter import (
     ACDCLIP
 )
-from model.checkpoint_utils import h6_config_from_checkpoint, load_adapter_checkpoint
+from model.checkpoint_utils import (
+    h6_config_from_checkpoint,
+    load_adapter_checkpoint,
+    validate_p1_v83_checkpoint_contract,
+)
 from utils import get_phase2b_global_text_features
 from model.clip import create_model
 
@@ -45,6 +49,23 @@ def limit_dataset_by_label(dataset, max_samples_per_label: int):
     for label in sorted(indices_by_label):
         selected_indices.extend(indices_by_label[label])
     return torch.utils.data.Subset(dataset, selected_indices)
+
+
+def combine_image_score(cls_probability: torch.Tensor, pixel_max: torch.Tensor, domain: str):
+    """Apply the frozen image-score protocol for medical and industrial domains."""
+    if domain == "Medical":
+        return 0.5 * cls_probability + 0.5 * pixel_max
+    return 0.9 * cls_probability + 0.1 * pixel_max
+
+
+def image_auc_ap_or_none(image_label: torch.Tensor, image_pred: torch.Tensor):
+    """Return N/A sentinels for unsupported one-class image metrics."""
+    if image_label.max() == image_label.min():
+        return None, None
+    return (
+        auroc(image_pred, image_label, task="binary"),
+        average_precision(image_pred, image_label, task="binary"),
+    )
 
 
 def get_predictions(
@@ -185,10 +206,7 @@ def get_streaming_metrics(
 
         flat_seg = torch.flatten(seg_pred, start_dim=1)
         pmax_pred, _ = torch.max(flat_seg, dim=1)
-        if DOMAINS[dataset] == "Medical":
-            pred_image = pred_image * 0.5 + pmax_pred * 0.5
-        else:
-            pred_image = pred_image * 0.9 + pmax_pred * 0.1
+        pred_image = combine_image_score(pred_image, pmax_pred, DOMAINS[dataset])
 
         if pixel_stride > 1:
             seg_pred_eval = seg_pred[:, ::pixel_stride, ::pixel_stride]
@@ -206,12 +224,7 @@ def get_streaming_metrics(
 
     image_label = torch.concatenate(image_labels, dim=0).flatten()
     image_pred = torch.concatenate(image_preds, dim=0).flatten()
-    if image_label.max() != image_label.min():
-        image_auc = auroc(image_pred, image_label, task="binary")
-        image_ap = average_precision(image_pred, image_label, task="binary")
-    else:
-        image_auc = None
-        image_ap = None
+    image_auc, image_ap = image_auc_ap_or_none(image_label, image_pred)
 
     return {
         "class name": class_name,
@@ -343,10 +356,7 @@ def get_external_exact_metrics(
             )
             flat_seg = torch.flatten(seg_pred, start_dim=1)
             pmax_pred, _ = torch.max(flat_seg, dim=1)
-            if DOMAINS[dataset] == "Medical":
-                pred_image = pred_image * 0.5 + pmax_pred * 0.5
-            else:
-                pred_image = pred_image * 0.9 + pmax_pred * 0.1
+            pred_image = combine_image_score(pred_image, pmax_pred, DOMAINS[dataset])
 
             if pixel_stride > 1:
                 seg_pred = seg_pred[:, ::pixel_stride, ::pixel_stride]
@@ -375,12 +385,7 @@ def get_external_exact_metrics(
         pixel_auc, pixel_ap = _exact_auc_ap_from_sorted_chunks(chunks, total_pos, total_neg)
         image_label = torch.concatenate(image_labels, dim=0).flatten()
         image_pred = torch.concatenate(image_preds, dim=0).flatten()
-        if image_label.max() != image_label.min():
-            image_auc = auroc(image_pred, image_label, task="binary")
-            image_ap = average_precision(image_pred, image_label, task="binary")
-        else:
-            image_auc = None
-            image_ap = None
+        image_auc, image_ap = image_auc_ap_or_none(image_label, image_pred)
 
     return {
         "class name": class_name,
@@ -601,6 +606,7 @@ def main():
     preflight_checkpoint = torch.load(preflight_files[0], map_location="cpu")
     preflight_h6 = h6_config_from_checkpoint(preflight_checkpoint)
     if preflight_h6 is not None:
+        validate_p1_v83_checkpoint_contract(preflight_checkpoint)
         if args.h6_progress is not None and args.h6_progress != int(preflight_h6["progress"]):
             raise ValueError(
                 f"checkpoint phase4_progress is {preflight_h6['progress']}, but --h6_progress is {args.h6_progress}"
@@ -661,6 +667,9 @@ def main():
         args.h6_dynamic_mean_anchor_warmup_epochs = int(preflight_h6.get("dynamic_mean_anchor_warmup_epochs", 3))
         args.h6_router_teacher_mode = str(preflight_h6.get("router_teacher_mode", "raw_cosine"))
         args.h6_progress_version = str(preflight_h6.get("progress_version", "P1-v6"))
+        if args.h6_progress_version == "P1-v8.3":
+            args.h6_global_text_mode = str(preflight_checkpoint["global_text_mode"])
+            args.h6_prediction_routing = str(preflight_h6["prediction_routing"])
         args.h6_local_factor_mode = str(preflight_h6.get("local_factor_mode", "legacy_mix"))
         args.h6_local_center_mix = float(preflight_h6.get("local_center_mix", 0.05))
         args.h6_local_factor_spread = float(preflight_h6.get("local_factor_spread", 0.10))
