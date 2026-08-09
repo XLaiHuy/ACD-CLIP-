@@ -17,8 +17,10 @@ from tqdm import tqdm
 
 from dataset import DOMAINS, get_text_and_image_dataset
 from utils import (
-    get_multiple_adapted_text_embedding, metrics_eval_gpu,
+    configure_canonical_fp32, get_multiple_adapted_text_embedding, log_preflight,
+    metrics_eval_gpu,
 )
+from dataset.info import log_data_root
 from model.adapter import (
     ACDCLIP
 )
@@ -208,15 +210,15 @@ def get_streaming_metrics(
         image_auc = auroc(image_pred, image_label, task="binary")
         image_ap = average_precision(image_pred, image_label, task="binary")
     else:
-        image_auc = torch.tensor(0.0)
-        image_ap = torch.tensor(0.0)
+        image_auc = None
+        image_ap = None
 
     return {
         "class name": class_name,
         "pixel AUC": round(pixel_auc.compute().item(), 4) * 100,
         "pixel AP": round(pixel_ap.compute().item(), 4) * 100,
-        "image AUC": round(image_auc.item(), 4) * 100,
-        "image AP": round(image_ap.item(), 4) * 100,
+        "image AUC": "N/A" if image_auc is None else round(image_auc.item(), 4) * 100,
+        "image AP": "N/A" if image_ap is None else round(image_ap.item(), 4) * 100,
     }
 
 
@@ -377,15 +379,15 @@ def get_external_exact_metrics(
             image_auc = auroc(image_pred, image_label, task="binary")
             image_ap = average_precision(image_pred, image_label, task="binary")
         else:
-            image_auc = torch.tensor(0.0)
-            image_ap = torch.tensor(0.0)
+            image_auc = None
+            image_ap = None
 
     return {
         "class name": class_name,
         "pixel AUC": round(float(pixel_auc), 4),
         "pixel AP": round(float(pixel_ap), 4),
-        "image AUC": round(image_auc.item(), 4) * 100,
-        "image AP": round(image_ap.item(), 4) * 100,
+        "image AUC": "N/A" if image_auc is None else round(image_auc.item(), 4) * 100,
+        "image AP": "N/A" if image_ap is None else round(image_ap.item(), 4) * 100,
     }
 
 
@@ -471,8 +473,8 @@ def main():
     parser.add_argument("--h6_dynamic_mean_anchor_min_cosine", type=float, default=0.70)
     parser.add_argument("--h6_dynamic_mean_anchor_start_epoch", type=int, default=4)
     parser.add_argument("--h6_dynamic_mean_anchor_warmup_epochs", type=int, default=3)
-    parser.add_argument("--h6_progress_version", choices=["P1-v6", "P1-v7-full", "P1-v8-minimal"], default="P1-v6")
-    parser.add_argument("--h6_local_factor_mode", type=str, choices=["legacy_mix", "center_spread"], default="legacy_mix")
+    parser.add_argument("--h6_progress_version", choices=["P1-v6", "P1-v7-full", "P1-v8-minimal", "P1-v8.3"], default="P1-v8.3")
+    parser.add_argument("--h6_local_factor_mode", type=str, choices=["legacy_mix", "center_spread"], default="center_spread")
     parser.add_argument("--h6_local_center_mix", type=float, default=0.05)
     parser.add_argument("--h6_local_factor_spread", type=float, default=0.10)
     parser.add_argument("--h6_expert_enabled", action=argparse.BooleanOptionalAction, default=False)
@@ -579,6 +581,7 @@ def main():
 
 
     args = parser.parse_args()
+    configure_canonical_fp32()
     if args.h6_dense_routing_epochs is not None:
         args.h6_router_soft_epochs = int(args.h6_dense_routing_epochs)
     if args.h6_sparse_start_epoch is not None:
@@ -658,6 +661,9 @@ def main():
         args.h6_dynamic_mean_anchor_warmup_epochs = int(preflight_h6.get("dynamic_mean_anchor_warmup_epochs", 3))
         args.h6_router_teacher_mode = str(preflight_h6.get("router_teacher_mode", "raw_cosine"))
         args.h6_progress_version = str(preflight_h6.get("progress_version", "P1-v6"))
+        args.h6_local_factor_mode = str(preflight_h6.get("local_factor_mode", "legacy_mix"))
+        args.h6_local_center_mix = float(preflight_h6.get("local_center_mix", 0.05))
+        args.h6_local_factor_spread = float(preflight_h6.get("local_factor_spread", 0.10))
         args.h6_expert_enabled = bool(preflight_h6.get("expert_enabled", False))
         args.h6_expert_bottleneck = int(preflight_h6.get("expert_bottleneck", 64))
         args.h6_expert_fofs_seed_offset = int(preflight_h6.get("expert_fofs_seed_offset", 7500))
@@ -679,6 +685,8 @@ def main():
     )
     logger = logging.getLogger(__name__)
     logger.info("args: %s", vars(args))
+    log_data_root(logger)
+    log_preflight(logger)
     use_cuda = torch.cuda.is_available()
     device = torch.device(f"cuda:{args.cuda_device}" if use_cuda else "cpu")
     clip_model = create_model(
@@ -753,9 +761,9 @@ def main():
         h6_factor_context_adaptation_max_ratio=args.h6_factor_context_adaptation_max_ratio,
         h6_factor_identity_tangent_projection_enabled=args.h6_factor_identity_tangent_projection_enabled,
         h6_progress_version=args.h6_progress_version,
-        local_factor_mode=args.h6_local_factor_mode,
-        local_center_mix=args.h6_local_center_mix,
-        local_factor_spread=args.h6_local_factor_spread,
+        h6_local_factor_mode=args.h6_local_factor_mode,
+        h6_local_center_mix=args.h6_local_center_mix,
+        h6_local_factor_spread=args.h6_local_factor_spread,
         h6_expert_enabled=args.h6_expert_enabled,
         h6_expert_bottleneck=args.h6_expert_bottleneck,
         h6_expert_fofs_seed_offset=args.h6_expert_fofs_seed_offset,
@@ -990,7 +998,7 @@ def main():
             df.loc[len(df)] = Series(class_result_dict)
             if use_cuda:
                 torch.cuda.empty_cache()
-        mean_vals = df[df.columns[1:]].mean()
+        mean_vals = df[df.columns[1:]].replace("N/A", np.nan).astype(float).mean()
         df.loc[len(df), df.columns[1:]] = mean_vals
         df.loc[len(df) - 1, "class name"] = "Average"
         df.to_csv(

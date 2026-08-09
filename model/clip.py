@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import re
 from copy import deepcopy
 from pathlib import Path
@@ -23,12 +24,34 @@ _MODEL_CKPT_PATHS = {
     "ViT-B-32": Path(__file__).parent / "ViT-B-32.pt",
     "ViT-B-16": Path(__file__).parent / "ViT-B-16.pt",
     "ViT-L-14": Path(__file__).parent / "ViT-L-14.pt",
-    "ViT-L-14-336": Path("/home/ai4/.cache/clip/ViT-L-14-336px.pt"),
+    "ViT-L-14-336": None,
 }
 
 
 def _natural_key(string_):
     return [int(s) if s.isdigit() else s for s in re.split(r'(\d+)', string_.lower())]
+
+
+def resolve_openai_checkpoint(model_name: str) -> Path:
+    """Resolve the OpenAI checkpoint without relying on one machine's cache."""
+    if model_name == "ViT-L-14-336":
+        repo_root = Path(__file__).resolve().parents[1]
+        override = os.environ.get("ACDCLIP_CLIP_VITL14_336")
+        candidates = ([Path(override).expanduser()] if override else [])
+        candidates.extend([
+            repo_root / "model" / "ViT-L-14-336px.pt",
+        ])
+    else:
+        candidates = [_MODEL_CKPT_PATHS.get(model_name)]
+    attempted = [str(path) for path in candidates if path is not None]
+    for path in candidates:
+        if path is not None and path.is_file():
+            return path.resolve()
+    raise FileNotFoundError(
+        f"OpenAI CLIP checkpoint for {model_name!r} was not found. "
+        f"Attempted paths: {attempted}. Set ACDCLIP_CLIP_VITL14_336 or place "
+        "ViT-L-14-336px.pt under <repo>/model/."
+    )
 
 
 def _rescan_model_configs():
@@ -120,8 +143,10 @@ def create_model(
         model_cfg['vision_cfg']['image_size'] = img_size
         cast_dtype = get_cast_dtype(precision)
 
+        checkpoint_path = resolve_openai_checkpoint(model_name)
+        logging.info("OpenAI CLIP checkpoint=%s", checkpoint_path)
         model_pre = load_openai_model(
-            name=_MODEL_CKPT_PATHS[model_name],
+            name=checkpoint_path,
             precision=precision,
             device=device,
             jit=jit,
@@ -178,7 +203,7 @@ def create_model(
 
         pretrained_loaded = False
         if pretrained:
-            checkpoint_path = _MODEL_CKPT_PATHS[model_name]
+            checkpoint_path = resolve_openai_checkpoint(model_name)
             if checkpoint_path:
                 print(f'Loading pretrained {model_name} weights ({pretrained}).')
                 load_checkpoint(model, checkpoint_path)

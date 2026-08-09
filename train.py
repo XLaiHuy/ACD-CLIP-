@@ -23,11 +23,16 @@ from tqdm import tqdm
 from dataset import get_text_and_image_dataset
 from utils import (
     calculate_seg_loss,
+    configure_canonical_fp32,
     get_hybrid_soft_prompt_single_class_text_embedding,
     get_phase2b_global_text_features,
     get_multiple_adapted_single_class_text_embedding,
     get_soft_prompt_single_class_text_embedding,
+    log_preflight,
+    make_dataloader_generator,
+    seed_worker,
 )
+from dataset.info import log_data_root
 from model.adapter import (
     ACDCLIP
 )
@@ -48,6 +53,10 @@ from model.h6.losses import (
     delta_t_diversity_loss, functional_factor_diversity_loss,
 )
 from model.h6.cluster_responsibility import cluster_responsibility_loss
+from model.h6.utility_routing import (
+    build_patch_targets, exploration_epsilon, utility_diagnostics,
+    utility_factor_loss, utility_router_loss, utility_teacher,
+)
 from model.h6.losses import (
     build_semantic_roles,
     active_role_balanced_router_loss,
@@ -958,6 +967,8 @@ def _h6_optimizer_groups(model: ACDCLIP, args) -> list[dict]:
     named_h6 = dict(model.h6.named_parameters())
     grouped = {}
     for name, parameter in named_h6.items():
+        if not parameter.requires_grad:
+            continue
         partition = partition_by_id.get(id(parameter))
         if partition is None:
             raise RuntimeError(f"unpartitioned H6 parameter: {name}")
@@ -1091,6 +1102,17 @@ def _phase2b_config_from_args(args) -> dict:
         "h6_gate_max_sparse_dead_factors": args.h6_gate_max_sparse_dead_factors,
         "h6_gate_min_unique_topk_pairs": args.h6_gate_min_unique_topk_pairs,
         "h6_progress_version": args.h6_progress_version,
+        "h6_local_factor_mode": args.h6_local_factor_mode,
+        "h6_local_center_mix": args.h6_local_center_mix,
+        "h6_local_factor_spread": args.h6_local_factor_spread,
+        "lambda_h6_factor": args.lambda_h6_factor,
+        "lambda_h6_router": args.lambda_h6_router,
+        "h6_utility_denominator_floor": args.h6_utility_denominator_floor,
+        "h6_tau_utility": args.h6_tau_utility,
+        "h6_utility_gain_threshold": args.h6_utility_gain_threshold,
+        "h6_utility_entropy_threshold": args.h6_utility_entropy_threshold,
+        "h6_exploration_start": args.h6_exploration_start,
+        "h6_exploration_end": args.h6_exploration_end,
         "h6_expert_enabled": args.h6_expert_enabled,
         "h6_expert_bottleneck": args.h6_expert_bottleneck,
         "h6_expert_fofs_seed_offset": args.h6_expert_fofs_seed_offset,
@@ -1455,6 +1477,38 @@ def train_h6_progress1(
                     if getattr(args, "lambda_h6_actual_local", 0.0) > 0.0:
                         h6_actual_local = actual_local_residual_loss(h6_batch["rho_scaled_actual_correction"], q_role, hard_role, mask_coverage, local_valid_patch, base_abnormal_minus_normal)
 
+                h6_utility_factor = h6_orth * 0.0
+                h6_utility_router = h6_orth * 0.0
+                utility_payload = None
+                if model.h6.progress_version == "P1-v8.3":
+                    patch_count = h6_batch["factor_patch_logits"].shape[2]
+                    y_patch, utility_valid = build_patch_targets(mask, patch_count, local_mask_valid)
+                    epsilon = exploration_epsilon(
+                        epoch, args.epoch, args.h6_exploration_start, args.h6_exploration_end
+                    )
+                    utility_payload = utility_teacher(
+                        base_abnormal_minus_normal, h6_batch["factor_patch_logits"],
+                        y_patch, utility_valid, rho=0.05,
+                        denominator_floor=args.h6_utility_denominator_floor,
+                        tau_utility=args.h6_tau_utility, epsilon=epsilon,
+                        gain_threshold=args.h6_utility_gain_threshold,
+                        entropy_threshold=args.h6_utility_entropy_threshold,
+                    )
+                    h6_utility_factor = utility_factor_loss(utility_payload, y_patch)
+                    h6_utility_router = utility_router_loss(
+                        h6_batch["dense_probabilities"], utility_payload
+                    )
+                    utility_diag = utility_diagnostics(
+                        utility_payload, h6_batch["dense_probabilities"], y_patch, rho=0.05
+                    )
+                    utility_diag["exploration_epsilon"] = torch.tensor(epsilon, device=device)
+                    for diag_name, diag_value in utility_diag.items():
+                        value = diag_value.detach().float()
+                        epoch_diag_sum[diag_name] = epoch_diag_sum.get(
+                            diag_name, torch.zeros_like(value)
+                        ) + value
+                        epoch_diag_count[diag_name] = epoch_diag_count.get(diag_name, 0) + 1
+
                 if model.h6.expert_enabled:
                     h6_expert, expert_terms = assigned_expert_loss(h6_batch["expert_patch_logits"], h6_batch["prediction_probabilities"], mask)
                     h6_advantage = expert_advantage_loss(h6_batch["expert_patch_logits"], h6_batch["topk_indices"], mask, args.h6_advantage_margin)
@@ -1502,6 +1556,8 @@ def train_h6_progress1(
                     "route": getattr(args, "lambda_h6_route", 0.0) * h6_route,
                     "factor_role": getattr(args, "lambda_h6_factor_role", 0.0) * h6_factor_role,
                     "actual_local": getattr(args, "lambda_h6_actual_local", 0.0) * h6_actual_local,
+                    "utility_factor": args.lambda_h6_factor * h6_utility_factor,
+                    "utility_router": args.lambda_h6_router * h6_utility_router,
                     "balance": balance_weight * h6_balance,
                     "raw_key_diversity": concept_key_diversity_weight * h6_concept_key_diversity,
                     "dynamic_mean_anchor": dynamic_mean_anchor_weight * h6_batch["dynamic_mean_anchor_loss_raw"],
@@ -2299,7 +2355,7 @@ def main():
     parser.add_argument("--batch_size", type=int, default=6)
     parser.add_argument("--epoch", type=int, default=20, help="epochs for training")
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--precision", choices=["bf16", "fp16", "fp32"], default="bf16")
+    parser.add_argument("--precision", choices=["bf16", "fp16", "fp32"], default="fp32")
     parser.add_argument("--grad_accum_steps", type=int, default=1)
 
     parser.add_argument("--cuda_device", type=int, default=0, help="cuda device id")
@@ -2440,8 +2496,8 @@ def main():
     parser.add_argument("--h6_dynamic_mean_anchor_start_epoch", type=int, default=4)
     parser.add_argument("--h6_dynamic_mean_anchor_warmup_epochs", type=int, default=3)
     parser.add_argument("--h6_expert_bottleneck", type=int, default=64)
-    parser.add_argument("--h6_progress_version", choices=["P1-v6", "P1-v7-full", "P1-v8-minimal"], default="P1-v6")
-    parser.add_argument("--h6_local_factor_mode", type=str, choices=["legacy_mix", "center_spread"], default="legacy_mix")
+    parser.add_argument("--h6_progress_version", choices=["P1-v6", "P1-v7-full", "P1-v8-minimal", "P1-v8.3"], default="P1-v8.3")
+    parser.add_argument("--h6_local_factor_mode", type=str, choices=["legacy_mix", "center_spread"], default="center_spread")
     parser.add_argument("--h6_local_center_mix", type=float, default=0.05)
     parser.add_argument("--h6_local_factor_spread", type=float, default=0.10)
     parser.add_argument("--h6_expert_enabled", action=argparse.BooleanOptionalAction, default=False)
@@ -2466,7 +2522,7 @@ def main():
     parser.add_argument("--lambda_h6_expert_anchor", type=float, default=0.0)
     parser.add_argument("--h6_expert_anchor_min_cosine", type=float, default=0.70)
     parser.add_argument("--lambda_h6_expert_radius", type=float, default=0.0)
-    parser.add_argument("--lambda_h6_center", type=float, default=0.10)
+    parser.add_argument("--lambda_h6_center", type=float, default=0.0)
     parser.add_argument("--h6_center_factor_aware", action="store_true")
     parser.add_argument("--h6_center_detach_assignment", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--h6_center_margin", type=float, default=0.0)
@@ -2475,19 +2531,27 @@ def main():
     parser.add_argument("--h6_kl_zero_epochs", type=int, default=0)
     parser.add_argument("--h6_kl_warmup_epochs", type=int, default=4)
     parser.add_argument("--h6_kl_free_bits", type=float, default=0.0)
-    parser.add_argument("--lambda_h6_orth", type=float, default=1e-3)
+    parser.add_argument("--lambda_h6_orth", type=float, default=0.0)
     parser.add_argument("--lambda_h6_delta_div", type=float, default=0.0)
     parser.add_argument("--lambda_h6_func_div", type=float, default=0.0)
     parser.add_argument("--lambda_h6_route", type=float, default=0.0)
     parser.add_argument("--lambda_h6_factor_role", type=float, default=0.0)
     parser.add_argument("--lambda_h6_actual_local", type=float, default=0.0)
+    parser.add_argument("--lambda_h6_factor", type=float, default=0.10)
+    parser.add_argument("--lambda_h6_router", type=float, default=0.10)
+    parser.add_argument("--h6_utility_denominator_floor", type=float, default=0.10)
+    parser.add_argument("--h6_tau_utility", type=float, default=0.05)
+    parser.add_argument("--h6_utility_gain_threshold", type=float, default=0.02)
+    parser.add_argument("--h6_utility_entropy_threshold", type=float, default=0.98)
+    parser.add_argument("--h6_exploration_start", type=float, default=0.15)
+    parser.add_argument("--h6_exploration_end", type=float, default=0.05)
     parser.add_argument("--h6_cluster_responsibility", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--h6_cluster_centroid_path", type=str, default=None)
     parser.add_argument("--h6_cluster_temperature", type=float, default=0.10)
     parser.add_argument("--h6_lambda_cluster_resp", type=float, default=0.0)
     parser.add_argument("--h6_cluster_tie_factor_ids", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--h6_cluster_tie_router_keys", action=argparse.BooleanOptionalAction, default=False)
-    parser.add_argument("--lambda_h6_balance", type=float, default=1e-2)
+    parser.add_argument("--lambda_h6_balance", type=float, default=0.0)
     parser.add_argument("--lambda_h6_concept_key_diversity", type=float, default=0.0)
     parser.add_argument("--h6_concept_key_cosine_margin", type=float, default=0.5)
     parser.add_argument("--h6_concept_key_diversity_start_epoch", type=int, default=1)
@@ -2542,6 +2606,7 @@ def main():
     parser.add_argument("--h6_teacher_prob_std_threshold", type=float, default=0.0)
 
     args = parser.parse_args()
+    configure_canonical_fp32()
     if args.h6_dense_routing_epochs is not None:
         args.h6_router_soft_epochs = int(args.h6_dense_routing_epochs)
     if args.h6_sparse_start_epoch is not None:
@@ -2636,6 +2701,29 @@ def main():
             raise ValueError("P1-v7-full requires --h6_expert_enabled")
         if args.h6_progress_version != "P1-v7-full" and args.h6_expert_enabled:
             raise ValueError("paired experts are explicit P1-v7-full only")
+        if args.h6_progress_version == "P1-v8.3":
+            if args.precision != "fp32" or args.amp:
+                raise ValueError("P1-v8.3 requires --precision fp32 with AMP disabled")
+            if args.h6_local_factor_mode != "center_spread":
+                raise ValueError("P1-v8.3 requires --h6_local_factor_mode center_spread")
+            if args.batch_size != 1 or args.grad_accum_steps != 6:
+                raise ValueError("P1-v8.3 requires --batch_size 1 --grad_accum_steps 6")
+            if args.h6_prediction_routing != "dense" or args.h6_load_bias_enabled:
+                raise ValueError("P1-v8.3 requires dense routing with load bias disabled")
+            if args.h6_cluster_responsibility or args.h6_expert_enabled:
+                raise ValueError("P1-v8.3 disables cluster responsibility and paired experts")
+            legacy_weights = {
+                "balance": args.lambda_h6_balance, "center": args.lambda_h6_center,
+                "orth": args.lambda_h6_orth, "route": args.lambda_h6_route,
+                "factor_role": args.lambda_h6_factor_role, "actual_local": args.lambda_h6_actual_local,
+                "functional_diversity": args.lambda_h6_func_div,
+                "router_teacher": args.lambda_h6_router_teacher,
+            }
+            enabled_legacy = {name: value for name, value in legacy_weights.items() if float(value) != 0.0}
+            if enabled_legacy:
+                raise ValueError(f"P1-v8.3 legacy auxiliary losses must be OFF: {enabled_legacy}")
+            if args.h6_tau_utility <= 0 or args.h6_utility_denominator_floor <= 0:
+                raise ValueError("P1-v8.3 utility temperature and floor must be positive")
         if args.h6_two_view:
             raise ValueError("--h6_two_view belongs to Progress 3 and is not implemented in Progress 1")
         if torch.cuda.is_available() and args.precision == "bf16" and not torch.cuda.is_bf16_supported():
@@ -2667,6 +2755,8 @@ def main():
         datefmt="%Y-%m-%d %H:%M:%S",
     )
     logger.info("args: %s", vars(args))
+    log_data_root(logger)
+    log_preflight(logger)
     run_config_path = Path(args.save_path) / "config.json"
     if not run_config_path.exists():
         write_json_atomic(run_config_path, vars(args))
@@ -2752,9 +2842,9 @@ def main():
         h6_dynamic_mean_anchor_warmup_epochs=args.h6_dynamic_mean_anchor_warmup_epochs,
         h6_router_teacher_mode=args.h6_router_teacher_mode,
         h6_progress_version=args.h6_progress_version,
-        local_factor_mode=args.h6_local_factor_mode,
-        local_center_mix=args.h6_local_center_mix,
-        local_factor_spread=args.h6_local_factor_spread,
+        h6_local_factor_mode=args.h6_local_factor_mode,
+        h6_local_center_mix=args.h6_local_center_mix,
+        h6_local_factor_spread=args.h6_local_factor_spread,
         h6_expert_enabled=args.h6_expert_enabled,
         h6_expert_bottleneck=args.h6_expert_bottleneck,
         h6_expert_fofs_seed_offset=args.h6_expert_fofs_seed_offset,
@@ -2783,6 +2873,7 @@ def main():
         model.text_adapter.requires_grad_(True)
         model.soft_prompt.requires_grad_(False)
         model.h6.requires_grad_(True)
+        model.h6.rho.raw.requires_grad_(False)
         if args.h6_cluster_responsibility:
             if args.h6_lambda_cluster_resp <= 0.0:
                 raise ValueError("--h6_cluster_responsibility requires --h6_lambda_cluster_resp > 0")
@@ -2809,6 +2900,8 @@ def main():
             shuffle=True,
             num_workers=args.num_workers,
             pin_memory=args.pin_memory,
+            worker_init_fn=seed_worker,
+            generator=make_dataloader_generator(args.seed),
         )
         logger.info("phase4_progress=1 training from OpenAI CLIP only; no Phase2B checkpoint will be loaded")
         train_h6_progress1(model, args.dataset, dataloader, optimizer, lr_scheduler, device, args, logger)
@@ -2894,6 +2987,8 @@ def main():
         shuffle=True,
         num_workers=args.num_workers,
         pin_memory=torch.cuda.is_available(),
+        worker_init_fn=seed_worker,
+        generator=make_dataloader_generator(args.seed),
     )
     logger.info("training ...")
     model = train(

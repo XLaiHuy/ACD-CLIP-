@@ -1,29 +1,52 @@
+import logging
 import os
+from pathlib import Path
 
 
-BASE_PATH = "."
-candidate_paths = [
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")),
-]
-for p in candidate_paths:
-    if os.path.exists(os.path.join(p, "data")):
-        BASE_PATH = p.replace("\\", "/")
-        break
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def resolve_data_root() -> Path:
+    """Resolve one repository-facing dataset root for every dataset constant."""
+    override = os.environ.get("ACDCLIP_DATA_ROOT")
+    if override:
+        return Path(override).expanduser().resolve()
+    repository_data = REPO_ROOT / "data"
+    if repository_data.exists():
+        return repository_data.resolve()
+    legacy_data = REPO_ROOT.parent / "data"
+    if legacy_data.exists():
+        return legacy_data.resolve()
+    return repository_data.resolve()
+
+
+DATA_ROOT = resolve_data_root()
+BASE_PATH = str(REPO_ROOT).replace("\\", "/")
+
+
+def log_data_root(logger: logging.Logger | None = None) -> str:
+    """Log and return the resolved data root for startup/preflight reports."""
+    resolved = str(DATA_ROOT)
+    (logger or logging.getLogger(__name__)).info("ACDCLIP_DATA_ROOT=%s", resolved)
+    return resolved
+
+
+def _data_path(*parts: str) -> str:
+    return str(DATA_ROOT.joinpath(*parts))
 
 DATA_PATH = {
-    "Brain": f"{BASE_PATH}/data/MedAD/Brain_AD/test",
-    "Liver": f"{BASE_PATH}/data/MedAD/Liver_AD/test",
-    "Retina": f"{BASE_PATH}/data/MedAD/Retina_RESC_AD/test",
-    "Colon_clinicDB": f"{BASE_PATH}/data/Colon/CVC-ClinicDB",
-    "Colon_colonDB": f"{BASE_PATH}/data/Colon/CVC-ColonDB",
-    "Colon_cvc300": f"{BASE_PATH}/data/Colon/CVC-300",
-    "Colon_Kvasir": f"{BASE_PATH}/data/Colon/Kvasir",
-    "BTAD": f"{BASE_PATH}/data/BTech_Dataset_transformed",
-    "MPDD": f"{BASE_PATH}/data/MPDD",
-    "MVTec": f"{BASE_PATH}/data/mvtec_ad",
-    "VisA": f"{BASE_PATH}/data/VisA_20220922",
-    "RSDD": f"{BASE_PATH}/data/RSDD"
+    "Brain": _data_path("MedAD", "Brain_AD", "test"),
+    "Liver": _data_path("MedAD", "Liver_AD", "test"),
+    "Retina": _data_path("MedAD", "Retina_RESC_AD", "test"),
+    "Colon_clinicDB": _data_path("Colon", "CVC-ClinicDB"),
+    "Colon_colonDB": _data_path("Colon", "CVC-ColonDB"),
+    "Colon_cvc300": _data_path("Colon", "CVC-300"),
+    "Colon_Kvasir": _data_path("Colon", "Kvasir"),
+    "BTAD": _data_path("BTech_Dataset_transformed"),
+    "MPDD": _data_path("MPDD"),
+    "MVTec": _data_path("mvtec_ad"),
+    "VisA": _data_path("VisA_20220922"),
+    "RSDD": _data_path("RSDD")
 }
 
 # Medical validation is never used for training.  Brain/Liver/Retina have
@@ -32,15 +55,15 @@ DATA_PATH = {
 # tools/prepare_phase4_medical_splits.py.
 MEDICAL_EVAL_PATHS = {
     "Brain": {
-        "val": f"{BASE_PATH}/data/MedAD/Brain_AD/valid",
+        "val": _data_path("MedAD", "Brain_AD", "valid"),
         "test": DATA_PATH["Brain"],
     },
     "Liver": {
-        "val": f"{BASE_PATH}/data/MedAD/Liver_AD/valid",
+        "val": _data_path("MedAD", "Liver_AD", "valid"),
         "test": DATA_PATH["Liver"],
     },
     "Retina": {
-        "val": f"{BASE_PATH}/data/MedAD/Retina_RESC_AD/val",
+        "val": _data_path("MedAD", "Retina_RESC_AD", "val"),
         "test": DATA_PATH["Retina"],
     },
     "Colon_clinicDB": {"val": DATA_PATH["Colon_clinicDB"], "test": DATA_PATH["Colon_clinicDB"]},

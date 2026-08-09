@@ -1,4 +1,8 @@
+import logging
+import os
+import platform
 import random
+import subprocess
 
 import numpy as np
 import torch
@@ -9,6 +13,72 @@ from torchvision import transforms
 
 from dataset.info import CLASS_NAMES, REAL_NAMES, PROMPTS
 from model.tokenizer import tokenize
+
+
+def seed_worker(worker_id: int) -> None:
+    """Seed Python and NumPy RNGs from PyTorch's worker-specific seed."""
+    del worker_id
+    worker_seed = torch.initial_seed() % (2 ** 32)
+    random.seed(worker_seed)
+    np.random.seed(worker_seed)
+
+
+def make_dataloader_generator(seed: int) -> torch.Generator:
+    generator = torch.Generator()
+    generator.manual_seed(int(seed))
+    return generator
+
+
+def configure_canonical_fp32() -> None:
+    """Make the P1-v8.3 numerical policy explicit instead of relying on defaults."""
+    torch.set_float32_matmul_precision("highest")
+    torch.backends.cuda.matmul.allow_tf32 = False
+    torch.backends.cudnn.allow_tf32 = False
+
+
+def collect_preflight() -> dict:
+    """Collect portable machine/runtime facts for a reproducible run record."""
+    payload = {
+        "python": platform.python_version(),
+        "pytorch": torch.__version__,
+        "torchvision": __import__("torchvision").__version__,
+        "torch_cuda": torch.version.cuda,
+        "cuda_available": bool(torch.cuda.is_available()),
+        "tf32_matmul": bool(torch.backends.cuda.matmul.allow_tf32),
+        "tf32_cudnn": bool(torch.backends.cudnn.allow_tf32),
+        "git_sha": None,
+    }
+    try:
+        payload["git_sha"] = subprocess.run(
+            ["git", "rev-parse", "HEAD"], check=True, capture_output=True, text=True
+        ).stdout.strip()
+    except Exception:
+        pass
+    if payload["cuda_available"]:
+        device = torch.cuda.current_device()
+        props = torch.cuda.get_device_properties(device)
+        payload.update({
+            "gpu": torch.cuda.get_device_name(device),
+            "gpu_compute_capability": [props.major, props.minor],
+            "gpu_vram_bytes": props.total_memory,
+            "cuda_device": device,
+        })
+        try:
+            payload["cuda_driver"] = subprocess.run(
+                ["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"],
+                check=True, capture_output=True, text=True, timeout=5,
+            ).stdout.splitlines()[0].strip()
+        except Exception:
+            payload["cuda_driver"] = None
+    else:
+        payload.update({"gpu": None, "gpu_compute_capability": None, "gpu_vram_bytes": None, "cuda_driver": None})
+    return payload
+
+
+def log_preflight(logger: logging.Logger | None = None) -> dict:
+    payload = collect_preflight()
+    (logger or logging.getLogger(__name__)).info("P1-v8.3 preflight=%s", payload)
+    return payload
 
 
 class FocalLoss(nn.Module):
@@ -155,6 +225,13 @@ def get_soft_prompt_sentence(real_name, state_idx, ctx_len):
     ctx_prefix = " ".join(["X"] * ctx_len)
     state_word = "normal" if state_idx == 0 else "abnormal"
     return f"{ctx_prefix} {state_word} {real_name}."
+
+
+def get_structured_prompt_sentence(real_name, state_idx, ctx_len=4):
+    """[C1..C4][STATE][CLASS][literal state][REAL_NAME]."""
+    placeholders = " ".join(["X"] * (int(ctx_len) + 2))
+    state_word = "normal" if state_idx == 0 else "abnormal"
+    return f"{placeholders} {state_word} {real_name}."
 
 
 def aggregate_prompt_features(multi_features):
@@ -479,15 +556,15 @@ def metrics_eval_gpu(
         agg_image_auc = auroc(agg_image_preds, image_label, task="binary")
         agg_image_ap = average_precision(agg_image_preds, image_label, task="binary")
     else:
-        agg_image_auc = torch.tensor(0.0, device=pixel_preds.device)
-        agg_image_ap = torch.tensor(0.0, device=pixel_preds.device)
+        agg_image_auc = None
+        agg_image_ap = None
     # ================================================================================================
     result = {
         "class name": class_names,
         "pixel AUC": round(zero_pixel_auc.item(), 4) * 100,
         "pixel AP": round(zero_pixel_ap.item(), 4) * 100,
-        "image AUC": round(agg_image_auc.item(), 4) * 100,
-        "image AP": round(agg_image_ap.item(), 4) * 100,
+        "image AUC": "N/A" if agg_image_auc is None else round(agg_image_auc.item(), 4) * 100,
+        "image AP": "N/A" if agg_image_ap is None else round(agg_image_ap.item(), 4) * 100,
     }
     return result
 

@@ -538,6 +538,9 @@ class CoPSSemanticCore(nn.Module):
         state_delta = F.normalize(state_delta_with_identity.float(), dim=-1)
         class_delta_raw = self.class_to_context(vae["class_semantic"]).view(batch, self.ctx_len, self.text_dim)
         class_delta = F.normalize(class_delta_raw.float(), dim=-1).unsqueeze(1).unsqueeze(1)
+        state_tokens = F.normalize(state_delta_with_identity.float().mean(dim=3), dim=-1)
+        class_token = vae["decoded_semantic"]
+        structured_contexts = base_context.expand(batch, self.num_factors, 2, self.ctx_len, self.text_dim)
         dynamic_contexts = (
             base_context
             + self.gamma_state().view(1, 1, 1, 1, 1) * state_delta
@@ -549,6 +552,11 @@ class CoPSSemanticCore(nn.Module):
             "prototype_normal": prototype_normal,
             "prototype_abnormal": prototype_abnormal,
             "dynamic_contexts": dynamic_contexts,
+            "structured_contexts": structured_contexts,
+            "state_tokens": state_tokens,
+            "class_token": class_token,
+            "structured_state_position": torch.tensor(1 + self.ctx_len, device=state_delta.device),
+            "structured_class_position": torch.tensor(2 + self.ctx_len, device=state_delta.device),
             "concept_keys": self.concept_keys(),
             "concept_slots": self.concept_slots,
             "normal_queries": normal_queries,

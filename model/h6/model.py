@@ -84,6 +84,9 @@ class H6Progress1(nn.Module):
         dynamic_mean_anchor_warmup_epochs: int = 3,
         router_teacher_mode: str = "raw_cosine",
         progress_version: str = "P1-v6",
+        local_factor_mode: str = "center_spread",
+        local_center_mix: float = 0.05,
+        local_factor_spread: float = 0.10,
         expert_enabled: bool = False,
         expert_bottleneck: int = 64,
         expert_fofs_seed_offset: int = 7500,
@@ -145,12 +148,12 @@ class H6Progress1(nn.Module):
         if not 0.0 <= self.factor_local_dynamic_mix <= 1.0:
             raise ValueError("factor_local_dynamic_mix must be in [0, 1]")
             
-        # P1-v8.2 Geometry
-        self.local_factor_mode = kwargs.get("local_factor_mode", "legacy_mix")
+        # P1-v8.2 Geometry: explicit runtime contract fields.
+        self.local_factor_mode = str(local_factor_mode)
         if self.local_factor_mode not in ("legacy_mix", "center_spread"):
             raise ValueError("local_factor_mode must be legacy_mix or center_spread")
-        self.local_center_mix = float(kwargs.get("local_center_mix", 0.05))
-        self.local_factor_spread = float(kwargs.get("local_factor_spread", 0.10))
+        self.local_center_mix = float(local_center_mix)
+        self.local_factor_spread = float(local_factor_spread)
         
         self.lambda_dynamic_mean_anchor = float(lambda_dynamic_mean_anchor)
         self.dynamic_mean_anchor_min_cosine = float(dynamic_mean_anchor_min_cosine)
@@ -232,6 +235,11 @@ class H6Progress1(nn.Module):
             max_relative_ratio=expert_max_relative_ratio,
         ) if self.expert_enabled else None
         self.rho = BoundedPositiveGate(initial=0.05, maximum=0.50, count=n_groups)
+        # Keep the legacy raw state key for checkpoint compatibility, but make
+        # the canonical correction a fixed .05 residual from the first step.
+        self.rho.raw.requires_grad_(False)
+        with torch.no_grad():
+            self.rho.raw.fill_(float(torch.logit(torch.tensor(0.05 / 0.50))))
         # Persistent Tier-3 provenance.  Empty buffers preserve the Tier-2
         # path and are populated only by bind_cluster_centroids().
         self.register_buffer("cluster_centroids", torch.empty(0, text_dim))
@@ -276,7 +284,12 @@ class H6Progress1(nn.Module):
             "ctx_len": self.ctx_len,
             "h6_logit_temperature": self.h6_logit_temperature,
             "rho_init": 0.05,
-            "rho_max": 0.50,
+            "rho_max": 0.05,
+            "rho_fixed": True,
+            "rho_trainable": False,
+            "local_factor_mode": self.local_factor_mode,
+            "local_center_mix": self.local_center_mix,
+            "local_factor_spread": self.local_factor_spread,
             "dynamic_text_normalized": True,
             "text_fusion_norm": "pre_fusion_l2",
             "anchor_encoder_mode": "frozen",
@@ -290,6 +303,18 @@ class H6Progress1(nn.Module):
             "vae_sample_used_for_reconstruction_only": True,
             "vae_class_skip_enabled": True,
             "vae_prompt_path": "decoder_mu",
+            "structured_text_layout": "[C1][C2][C3][C4][STATE_m][CLASS][literal_state][REAL_NAME]",
+            "structured_text_enabled": self.progress_version == "P1-v8.3",
+            "dynamic_text_adapt_text": self.progress_version == "P1-v8.3",
+            "state_token_factor_specific": True,
+            "utility_denominator_floor": 0.10,
+            "tau_utility": 0.05,
+            "utility_gain_threshold": 0.02,
+            "utility_entropy_threshold": 0.98,
+            "exploration_schedule": [0.15, 0.05],
+            "utility_teacher_detached": True,
+            "dense_router_only": self.progress_version == "P1-v8.3",
+            "class_token_deterministic_decoder_mu": True,
             "slot_init_enabled": self.slot_init_enabled,
             "slot_init_scale": self.slot_init_scale,
             "slot_init_seed_offset": self.slot_init_seed_offset,
@@ -401,12 +426,12 @@ class H6Progress1(nn.Module):
         self.epoch_one_based = int(epoch_one_based)
 
     def rho_cap(self) -> float:
-        return min(0.50, 0.10 * max(1, self.epoch_one_based))
+        return 0.05
 
     def rho_values(self) -> torch.Tensor:
         if not self.training and self.test_rho_override is not None:
             return torch.full_like(self.rho.raw, float(self.test_rho_override))
-        return self.rho(cap=self.rho_cap())
+        return torch.full_like(self.rho.raw, 0.05)
 
     def expert_scale(self) -> float:
         if not self.expert_enabled or self.epoch_one_based < self.expert_scale_start_epoch:
@@ -452,9 +477,12 @@ class H6Progress1(nn.Module):
         dataset_name: str,
         class_names: Sequence[str],
         dynamic_contexts: torch.Tensor,
+        state_tokens: torch.Tensor | None = None,
+        class_token: torch.Tensor | None = None,
+        structured: bool = False,
         return_raw: bool = False,
     ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
-        from utils import get_real_name, get_soft_prompt_sentence
+        from utils import get_real_name, get_soft_prompt_sentence, get_structured_prompt_sentence
         from model.tokenizer import tokenize
 
         batch, factors, states, ctx_len, text_dim = dynamic_contexts.shape
@@ -465,10 +493,26 @@ class H6Progress1(nn.Module):
             real_name = get_real_name(dataset_name, class_name)
             for _ in range(self.num_factors):
                 for state in range(2):
-                    sentences.append(get_soft_prompt_sentence(real_name, state, self.ctx_len))
+                    sentence_builder = get_structured_prompt_sentence if structured else get_soft_prompt_sentence
+                    sentences.append(sentence_builder(real_name, state, self.ctx_len))
         token_ids = tokenize(sentences).to(dynamic_contexts.device)
         contexts = dynamic_contexts.reshape(batch * factors * states, ctx_len, text_dim)
-        text_levels = base_model.encode_dynamic_prompt_text(token_ids, contexts, adapt_text=False)
+        if structured:
+            if state_tokens is None or class_token is None:
+                raise ValueError("structured prompts require STATE and CLASS tensors")
+            if state_tokens.shape != (batch, factors, states, text_dim):
+                raise ValueError("state_tokens must be [B,M,2,D]")
+            if class_token.shape != (batch, text_dim):
+                raise ValueError("class_token must be [B,D]")
+            flat_state = state_tokens.reshape(batch * factors * states, text_dim)
+            flat_class = class_token[:, None, None, :].expand(
+                batch, factors, states, text_dim
+            ).reshape(batch * factors * states, text_dim)
+            text_levels = base_model.encode_dynamic_prompt_text(
+                token_ids, contexts, flat_state, flat_class, adapt_text=True
+            )
+        else:
+            text_levels = base_model.encode_dynamic_prompt_text(token_ids, contexts, adapt_text=False)
         dynamic = torch.stack(text_levels, dim=0).view(
             self.n_groups, batch, factors, states, self.text_dim
         )
@@ -552,8 +596,14 @@ class H6Progress1(nn.Module):
             base_model.soft_prompt.ctx_abnormal,
             debug=debug,
         )
+        structured_text = self.progress_version == "P1-v8.3"
+        prompt_contexts = core["structured_contexts"] if structured_text else core["dynamic_contexts"]
         dynamic, dynamic_raw = self._encode_dynamic_bank(
-            base_model, dataset_name, class_names, core["dynamic_contexts"], return_raw=True
+            base_model, dataset_name, class_names, prompt_contexts,
+            state_tokens=core["state_tokens"] if structured_text else None,
+            class_token=core["class_token"] if structured_text else None,
+            structured=structured_text,
+            return_raw=True,
         )
         hard_adapted, hard_frozen = self._batch_hard_embeddings(
             base_model, dataset_name, class_names, visual_output["cls24"].device
@@ -779,6 +829,7 @@ class H6Progress1(nn.Module):
                 **factor_stage_diagnostics(core["abnormal_queries"], "stage_abnormal_queries", factor_dim=1),
                 **factor_stage_diagnostics(core["prototype_normal"], "stage_prototype_normal", factor_dim=1),
                 **factor_stage_diagnostics(core["prototype_abnormal"], "stage_prototype_abnormal", factor_dim=1),
+                **factor_stage_diagnostics(core["state_tokens"], "structured_STATE", factor_dim=1),
                 **factor_stage_diagnostics(core["state_delta_raw"], "stage_state_to_context_raw", factor_dim=1),
                 **factor_stage_diagnostics(core["state_delta_with_identity"], "stage_state_to_context_with_identity", factor_dim=1),
                 **factor_stage_diagnostics(core["state_delta"], "stage_state_to_context_norm", factor_dim=1),
@@ -846,8 +897,7 @@ class H6Progress1(nn.Module):
             + list(self.semantic_core.state_to_context_abnormal.parameters())
             + list(self.semantic_core.class_to_context.parameters()),
             "h6_gates": list(self.semantic_core.gamma_state.parameters())
-            + list(self.semantic_core.gamma_class.parameters())
-            + list(self.rho.parameters()),
+            + list(self.semantic_core.gamma_class.parameters()),
             "h6_late_factor_identity": self.semantic_core.factor_id_projection.parameters(),
             "h6_factor_generator": (
                 [self.semantic_core.factor_id_embedding]

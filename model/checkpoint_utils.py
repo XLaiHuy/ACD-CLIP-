@@ -7,7 +7,7 @@ from typing import Any, Dict, Mapping
 import torch
 
 
-PHASE4_CHECKPOINT_VERSION = 7
+PHASE4_CHECKPOINT_VERSION = 8
 
 
 def is_phase4_checkpoint(checkpoint: Mapping[str, Any]) -> bool:
@@ -40,6 +40,13 @@ def validate_h6_configuration(model, checkpoint: Mapping[str, Any]) -> None:
     if expected_version == "P1-v7-full":
         if int(checkpoint.get("checkpoint_version", 0)) != 7 or config.get("progress_version") != "P1-v7-full":
             raise ValueError("P1-v7-full requires explicit checkpoint_version=7 and P1-v7-full metadata")
+    if expected_version == "P1-v8.3":
+        if int(checkpoint.get("checkpoint_version", 0)) != PHASE4_CHECKPOINT_VERSION:
+            raise ValueError("P1-v8.3 requires explicit checkpoint_version=8 metadata")
+        if config.get("progress_version") != "P1-v8.3":
+            raise ValueError("P1-v8.3 checkpoint is missing explicit progress_version metadata")
+        if config.get("rho_fixed") is not True or config.get("rho_trainable") is not False:
+            raise ValueError("P1-v8.3 checkpoint must declare fixed, non-trainable rho")
     if expected_version in {"P1-v3", "P1-v4", "P1-v5", "P1-v5-fix"} and config.get("progress_version") != expected_version:
         raise ValueError(
             f"{expected_version} model requires a {expected_version} checkpoint with explicit "
@@ -233,7 +240,10 @@ def build_phase4_checkpoint(
         if key in phase2b_config:
             h6_config[key] = phase2b_config[key]
     payload: Dict[str, Any] = {
-        "checkpoint_version": 7 if h6_config.get("progress_version") == "P1-v7-full" else 6,
+        "checkpoint_version": (
+            PHASE4_CHECKPOINT_VERSION if h6_config.get("progress_version") == "P1-v8.3"
+            else 7 if h6_config.get("progress_version") == "P1-v7-full" else 6
+        ),
         "epoch": int(epoch),
         "seed": int(seed),
         "phase4_progress": 1,

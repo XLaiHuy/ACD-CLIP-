@@ -100,6 +100,9 @@ class ACDCLIP(nn.Module):
             h6_dynamic_mean_anchor_warmup_epochs: int = 3,
             h6_router_teacher_mode: str = "raw_cosine",
             h6_progress_version: str = "P1-v6",
+            h6_local_factor_mode: str = "center_spread",
+            h6_local_center_mix: float = 0.05,
+            h6_local_factor_spread: float = 0.10,
             h6_expert_enabled: bool = False,
             h6_expert_bottleneck: int = 64,
             h6_expert_fofs_seed_offset: int = 7500,
@@ -297,6 +300,9 @@ class ACDCLIP(nn.Module):
                 dynamic_mean_anchor_warmup_epochs=h6_dynamic_mean_anchor_warmup_epochs,
                 router_teacher_mode=h6_router_teacher_mode,
                 progress_version=h6_progress_version,
+                local_factor_mode=h6_local_factor_mode,
+                local_center_mix=h6_local_center_mix,
+                local_factor_spread=h6_local_factor_spread,
                 expert_enabled=h6_expert_enabled,
                 expert_bottleneck=h6_expert_bottleneck,
                 expert_fofs_seed_offset=h6_expert_fofs_seed_offset,
@@ -737,7 +743,9 @@ class ACDCLIP(nn.Module):
         x[:, 1:1 + ctx.shape[0], :] = ctx.unsqueeze(0)
         return self._encode_text_from_embeddings(text, x, adapt_text=adapt_text)
 
-    def encode_dynamic_prompt_text(self, token_ids, dynamic_context, adapt_text=False):
+    def encode_dynamic_prompt_text(
+            self, token_ids, dynamic_context, state_token=None, class_token=None, adapt_text=True
+    ):
         """Encode per-sample dynamic contexts in one vectorized text forward.
 
         ``dynamic_context`` is [N, ctx_len, 768], so a Progress 1 batch only
@@ -758,4 +766,15 @@ class ACDCLIP(nn.Module):
             raise ValueError("dynamic context shape is incompatible with CLIP token embeddings")
         x = x.clone()
         x[:, 1:1 + dynamic_context.shape[1], :] = dynamic_context
+        if (state_token is None) != (class_token is None):
+            raise ValueError("STATE and CLASS tokens must be provided together")
+        if state_token is not None:
+            state_position = 1 + dynamic_context.shape[1]
+            class_position = state_position + 1
+            if token_ids.shape[1] <= class_position:
+                raise ValueError("structured prompt is too short for STATE and CLASS tokens")
+            if state_token.shape != (x.shape[0], x.shape[2]) or class_token.shape != state_token.shape:
+                raise ValueError("STATE and CLASS tokens must be [N, text_dim]")
+            x[:, state_position, :] = state_token.to(device=x.device, dtype=cast_dtype)
+            x[:, class_position, :] = class_token.to(device=x.device, dtype=cast_dtype)
         return self._encode_text_from_embeddings(token_ids, x, adapt_text=adapt_text)
