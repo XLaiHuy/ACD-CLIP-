@@ -1,0 +1,74 @@
+{
+  "amp": false,
+  "audit": "optimizer_step_matched_no_step_counterfactual",
+  "batch_size": 1,
+  "category_counts": {
+    "anomaly_containing": 63,
+    "normal_only": 3,
+    "router_informative": 65
+  },
+  "checkpoint": "/home/ai4/caohuy/ACD-CLIP-phase4/runs/p1_v83_dev/300batch_specialization_probe/adapter_1.pth",
+  "checkpoint_sha256": "3ad425decfbb0a36bdad4c4157dbc2f84ef555e2ba6e0d575e0ecbacbaa62cf7",
+  "factor_formulas": {
+    "F0_region_mean_50_50": {
+      "kind": "current_region_mean_50_50"
+    },
+    "F1_effective_beta_0.99": {
+      "beta": 0.99,
+      "kind": "inverse_effective_number_patch_weighted_valid_mean"
+    },
+    "F1_effective_beta_0.999": {
+      "beta": 0.999,
+      "kind": "inverse_effective_number_patch_weighted_valid_mean"
+    },
+    "F1_effective_beta_0.9999": {
+      "beta": 0.9999,
+      "kind": "inverse_effective_number_patch_weighted_valid_mean"
+    }
+  },
+  "grad_accum_steps": 6,
+  "optimizer_constructed": false,
+  "optimizer_steps": 0,
+  "ordering": "torch.randperm(len(dataset), generator=torch.Generator().manual_seed(0))",
+  "parameter_groups": {
+    "router": {
+      "parameter_count": 465920,
+      "tensor_count": 14
+    },
+    "shared_semantic": {
+      "parameter_count": 658433,
+      "tensor_count": 15
+    },
+    "state_path": {
+      "parameter_count": 2435072,
+      "tensor_count": 24
+    },
+    "text_lora": {
+      "parameter_count": 80640,
+      "tensor_count": 15
+    },
+    "vae_class": {
+      "parameter_count": 3544321,
+      "tensor_count": 13
+    }
+  },
+  "precision": "fp32",
+  "required_window_types_each": 3,
+  "router_formulas": {
+    "R0_informative_mean": "mean CE over informative group-patches",
+    "R1_valid_support_mean": "sum masked CE divided by all valid group-patches"
+  },
+  "runtime_seconds": 373.34709559590556,
+  "schema_version": 1,
+  "seed": 0,
+  "source_head": "d58b84bcecb9c4d22bdef321ea0ca28bd3b6745b",
+  "state_integrity": {
+    "parameter_grad_fields_clear": true,
+    "parameter_hash_after": "cbdf2189ecba4424fe68c7c30dc16fb2a952ffcd784560e01989368ecef93f1b",
+    "parameter_hash_before": "cbdf2189ecba4424fe68c7c30dc16fb2a952ffcd784560e01989368ecef93f1b",
+    "parameter_state_unchanged": true
+  },
+  "status": "PASS",
+  "tf32": false,
+  "windows_completed": 66
+}

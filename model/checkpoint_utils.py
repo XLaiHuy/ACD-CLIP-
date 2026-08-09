@@ -198,6 +198,13 @@ def build_phase4_checkpoint(
         ],
         "utility_factor_weight": phase2b_config.get("lambda_h6_factor"),
         "utility_router_weight": phase2b_config.get("lambda_h6_router"),
+        "utility_factor_effective_beta": phase2b_config.get(
+            "h6_utility_factor_effective_beta"
+        ),
+        "utility_router_support_normalized": phase2b_config.get(
+            "h6_router_support_normalized", False
+        ),
+        "pcgrad_main_factor": phase2b_config.get("h6_pcgrad_main_factor", False),
         "router_teacher_enabled": float(loss_weights.get("router_teacher", 0.0)) > 0.0,
         "router_teacher_temperature": loss_weights.get("router_teacher_temperature"),
         "router_teacher_start_epoch": loss_weights.get("router_teacher_start_epoch"),

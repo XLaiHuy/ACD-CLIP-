@@ -40,6 +40,13 @@ def validate_final_checkpoint_payload(checkpoint: Mapping[str, Any]) -> dict[str
         "dfg_beta_schedule": (checkpoint.get("dfg_beta_schedule"), "warmup010"),
         "dfg_beta_target": (checkpoint.get("dfg_beta_target"), 0.10),
         "h6_n_groups": (h6_config.get("n_groups"), 3),
+        "factor_effective_beta": (h6_config.get("utility_factor_effective_beta"), 0.999),
+        "router_support_normalized": (
+            h6_config.get("utility_router_support_normalized"), True
+        ),
+        "pcgrad_main_factor": (h6_config.get("pcgrad_main_factor"), True),
+        "lambda_factor": (h6_config.get("utility_factor_weight"), 0.03),
+        "lambda_router": (h6_config.get("utility_router_weight"), 0.10),
     }
     mismatches = {
         name: {"actual": actual, "required": required}

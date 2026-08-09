@@ -261,6 +261,11 @@ def test_v83_checkpoint_metadata_and_geometry_roundtrip():
             "h6_local_center_mix": 0.05,
             "h6_local_factor_spread": 0.10,
             "h6_tau_utility": 0.05,
+            "lambda_h6_factor": 0.03,
+            "lambda_h6_router": 0.10,
+            "h6_utility_factor_effective_beta": 0.999,
+            "h6_router_support_normalized": True,
+            "h6_pcgrad_main_factor": True,
         }, loss_weights={
             "balance": 0.0,
             "center": 0.0,

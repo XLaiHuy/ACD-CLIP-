@@ -55,6 +55,8 @@ from model.h6.losses import (
 from model.h6.cluster_responsibility import cluster_responsibility_loss
 from model.h6.utility_routing import (
     build_patch_targets, exploration_epsilon, utility_diagnostics,
+    effective_number_utility_factor_loss,
+    support_normalized_utility_router_loss,
     utility_factor_loss, utility_router_loss, utility_teacher,
 )
 from model.h6.specialization_trajectory import (
@@ -311,6 +313,76 @@ def h6_drift_parameter_groups(model):
         "expert_state_projection": [] if paired is None else list(paired.state_projection.parameters()),
         "router_query_key": list(model.h6.router.parameters()),
         "router": list(model.h6.router.parameters()),
+    }
+
+
+def pcgrad_project_two_task(main_gradients, factor_gradients):
+    """Paper-faithful two-objective PCGrad projection over one parameter group."""
+    if len(main_gradients) != len(factor_gradients):
+        raise ValueError("PCGrad gradient lists must have identical lengths")
+    dot = sum(
+        (main.float() * factor.float()).sum()
+        for main, factor in zip(main_gradients, factor_gradients)
+    )
+    main_norm_sq = sum(main.float().square().sum() for main in main_gradients)
+    factor_norm_sq = sum(factor.float().square().sum() for factor in factor_gradients)
+    conflict = bool(dot.detach().item() < 0.0 and main_norm_sq.detach().item() > 0.0 and factor_norm_sq.detach().item() > 0.0)
+    if conflict:
+        projected_main = [
+            main - (dot / factor_norm_sq).to(main) * factor
+            for main, factor in zip(main_gradients, factor_gradients)
+        ]
+        projected_factor = [
+            factor - (dot / main_norm_sq).to(factor) * main
+            for main, factor in zip(main_gradients, factor_gradients)
+        ]
+    else:
+        projected_main = [gradient.clone() for gradient in main_gradients]
+        projected_factor = [gradient.clone() for gradient in factor_gradients]
+    return projected_main, projected_factor, {
+        "conflict": conflict,
+        "dot_main_factor": float(dot.detach().item()),
+        "main_norm": float(main_norm_sq.detach().sqrt().item()),
+        "factor_norm": float(factor_norm_sq.detach().sqrt().item()),
+        "cos_main_factor": (
+            float((dot / (main_norm_sq.sqrt() * factor_norm_sq.sqrt())).detach().item())
+            if main_norm_sq.detach().item() > 0.0 and factor_norm_sq.detach().item() > 0.0
+            else None
+        ),
+    }
+
+
+def _gradient_vector_geometry(main_gradients, factor_gradients, router_gradients):
+    def dot(left, right):
+        return sum((a.float() * b.float()).sum() for a, b in zip(left, right))
+
+    main_sq = dot(main_gradients, main_gradients)
+    factor_sq = dot(factor_gradients, factor_gradients)
+    router_sq = dot(router_gradients, router_gradients)
+    mf = dot(main_gradients, factor_gradients)
+    mr = dot(main_gradients, router_gradients)
+    fr = dot(factor_gradients, router_gradients)
+    combined_sq = factor_sq + router_sq + 2.0 * fr
+    main_norm = main_sq.clamp_min(0.0).sqrt()
+    factor_norm = factor_sq.clamp_min(0.0).sqrt()
+    router_norm = router_sq.clamp_min(0.0).sqrt()
+    combined_norm = combined_sq.clamp_min(0.0).sqrt()
+
+    def cosine(numerator, left_norm, right_norm):
+        denominator = left_norm * right_norm
+        return None if denominator.detach().item() <= 1e-12 else float((numerator / denominator).detach().item())
+
+    return {
+        "main_norm": float(main_norm.detach().item()),
+        "factor_norm": float(factor_norm.detach().item()),
+        "router_norm": float(router_norm.detach().item()),
+        "factor_to_main": None if main_norm.detach().item() <= 1e-12 else float((factor_norm / main_norm).detach().item()),
+        "router_to_main": None if main_norm.detach().item() <= 1e-12 else float((router_norm / main_norm).detach().item()),
+        "combined_to_main": None if main_norm.detach().item() <= 1e-12 else float((combined_norm / main_norm).detach().item()),
+        "cos_main_factor": cosine(mf, main_norm, factor_norm),
+        "cos_main_router": cosine(mr, main_norm, router_norm),
+        "cos_factor_router": cosine(fr, factor_norm, router_norm),
+        "cos_main_combined": cosine(mf + mr, main_norm, combined_norm),
     }
 
 
@@ -1318,6 +1390,9 @@ def _phase2b_config_from_args(args) -> dict:
         "h6_local_factor_spread": args.h6_local_factor_spread,
         "lambda_h6_factor": args.lambda_h6_factor,
         "lambda_h6_router": args.lambda_h6_router,
+        "h6_utility_factor_effective_beta": args.h6_utility_factor_effective_beta,
+        "h6_router_support_normalized": bool(args.h6_router_support_normalized),
+        "h6_pcgrad_main_factor": bool(args.h6_pcgrad_main_factor),
         "h6_utility_denominator_floor": args.h6_utility_denominator_floor,
         "h6_tau_utility": args.h6_tau_utility,
         "h6_utility_gain_threshold": args.h6_utility_gain_threshold,
@@ -1475,6 +1550,28 @@ def train_h6_progress1(
             "expert_patch_logit_std_across_experts", "final_expert_mean_hard_cos_mean", "unique_topk_pairs",
         }
         gradient_samples: list[dict[str, torch.Tensor]] = []
+        pcgrad_shared_parameters = (
+            [
+                parameter
+                for parameter in h6_drift_parameter_groups(model)["shared_semantic"]
+                if parameter.requires_grad
+            ]
+            if args.h6_pcgrad_main_factor else []
+        )
+        pcgrad_main_buffer = [torch.zeros_like(parameter) for parameter in pcgrad_shared_parameters]
+        pcgrad_factor_buffer = [torch.zeros_like(parameter) for parameter in pcgrad_shared_parameters]
+        pcgrad_router_buffer = [torch.zeros_like(parameter) for parameter in pcgrad_shared_parameters]
+        pcgrad_window_records: list[dict] = []
+        pcgrad_window_counts = {
+            "normal_patch_count": 0,
+            "anomaly_patch_count": 0,
+            "valid_patch_count": 0,
+            "informative_group_patch_count": 0,
+            "valid_group_patch_count": 0,
+            "factor_loss_sum": 0.0,
+            "router_loss_sum": 0.0,
+            "microbatch_count": 0,
+        }
         epoch_batch_limit = min(len(train_loader), int(args.h6_smoke_max_batches)) if args.h6_smoke_max_batches > 0 else len(train_loader)
         progress = tqdm(train_loader, desc=f"[PHASE4-P1][TRAIN][epoch {epoch:02d}/{args.epoch:02d}]")
 
@@ -1725,10 +1822,47 @@ def train_h6_progress1(
                         gain_threshold=args.h6_utility_gain_threshold,
                         entropy_threshold=args.h6_utility_entropy_threshold,
                     )
-                    h6_utility_factor = utility_factor_loss(utility_payload, y_patch)
-                    h6_utility_router = utility_router_loss(
-                        h6_batch["dense_probabilities"], utility_payload
+                    h6_utility_factor = (
+                        effective_number_utility_factor_loss(
+                            utility_payload,
+                            y_patch,
+                            beta=args.h6_utility_factor_effective_beta,
+                        )
+                        if args.h6_utility_factor_effective_beta is not None
+                        else utility_factor_loss(utility_payload, y_patch)
                     )
+                    h6_utility_router = (
+                        support_normalized_utility_router_loss(
+                            h6_batch["dense_probabilities"], utility_payload
+                        )
+                        if args.h6_router_support_normalized
+                        else utility_router_loss(
+                            h6_batch["dense_probabilities"], utility_payload
+                        )
+                    )
+                    if args.h6_pcgrad_main_factor:
+                        physical_valid = utility_valid
+                        physical_anomaly = physical_valid & (y_patch >= 0.5)
+                        pcgrad_window_counts["normal_patch_count"] += int(
+                            (physical_valid & ~physical_anomaly).sum().item()
+                        )
+                        pcgrad_window_counts["anomaly_patch_count"] += int(
+                            physical_anomaly.sum().item()
+                        )
+                        pcgrad_window_counts["valid_patch_count"] += int(physical_valid.sum().item())
+                        pcgrad_window_counts["informative_group_patch_count"] += int(
+                            utility_payload["informative"].sum().item()
+                        )
+                        pcgrad_window_counts["valid_group_patch_count"] += int(
+                            utility_payload["valid"].sum().item()
+                        )
+                        pcgrad_window_counts["factor_loss_sum"] += float(
+                            h6_utility_factor.detach().item()
+                        )
+                        pcgrad_window_counts["router_loss_sum"] += float(
+                            h6_utility_router.detach().item()
+                        )
+                        pcgrad_window_counts["microbatch_count"] += 1
                     utility_diag = utility_diagnostics(
                         utility_payload, h6_batch["dense_probabilities"], y_patch, rho=0.05
                     )
@@ -1993,6 +2127,29 @@ def train_h6_progress1(
             accumulation_divisor = grad_accum_window_size(
                 batch_idx, epoch_batch_limit, args.grad_accum_steps
             )
+            if args.h6_pcgrad_main_factor:
+                component_losses = (
+                    task_loss,
+                    args.lambda_h6_factor * h6_utility_factor,
+                    args.lambda_h6_router * h6_utility_router,
+                )
+                component_buffers = (
+                    pcgrad_main_buffer,
+                    pcgrad_factor_buffer,
+                    pcgrad_router_buffer,
+                )
+                for component_loss, component_buffer in zip(component_losses, component_buffers):
+                    component_gradients = torch.autograd.grad(
+                        component_loss / accumulation_divisor,
+                        pcgrad_shared_parameters,
+                        retain_graph=True,
+                        allow_unused=True,
+                    )
+                    for index, (parameter, gradient) in enumerate(
+                        zip(pcgrad_shared_parameters, component_gradients)
+                    ):
+                        if gradient is not None:
+                            component_buffer[index].add_(gradient.detach().to(parameter))
             scaler.scale(total_loss / accumulation_divisor).backward()
             if args.h6_factor_grad_diagnostics and batch_idx == 1:
                 factor_grad_diag.update(
@@ -2140,6 +2297,75 @@ def train_h6_progress1(
             do_step = batch_idx % args.grad_accum_steps == 0 or batch_idx == epoch_batch_limit
             if do_step:
                 scaler.unscale_(optimizer)
+                if args.h6_pcgrad_main_factor:
+                    raw_geometry = _gradient_vector_geometry(
+                        pcgrad_main_buffer, pcgrad_factor_buffer, pcgrad_router_buffer
+                    )
+                    projected_main, projected_factor, pcgrad_decision = pcgrad_project_two_task(
+                        pcgrad_main_buffer, pcgrad_factor_buffer
+                    )
+                    projected_geometry = _gradient_vector_geometry(
+                        projected_main, projected_factor, pcgrad_router_buffer
+                    )
+                    for parameter, raw_main, raw_factor, new_main, new_factor in zip(
+                        pcgrad_shared_parameters,
+                        pcgrad_main_buffer,
+                        pcgrad_factor_buffer,
+                        projected_main,
+                        projected_factor,
+                    ):
+                        correction = (new_main + new_factor) - (raw_main + raw_factor)
+                        if parameter.grad is None:
+                            parameter.grad = correction.clone()
+                        else:
+                            parameter.grad.add_(correction.to(parameter.grad))
+                    valid_count = pcgrad_window_counts["valid_patch_count"]
+                    valid_group_count = pcgrad_window_counts["valid_group_patch_count"]
+                    microbatch_count = max(1, pcgrad_window_counts["microbatch_count"])
+                    pcgrad_window_records.append({
+                        "optimizer_step": optimizer_step_count + 1,
+                        "ending_batch": batch_idx,
+                        "microbatch_count": pcgrad_window_counts["microbatch_count"],
+                        "counts": {
+                            **{
+                                key: value for key, value in pcgrad_window_counts.items()
+                                if not key.endswith("_sum") and key != "microbatch_count"
+                            },
+                            "anomaly_fraction": (
+                                pcgrad_window_counts["anomaly_patch_count"] / valid_count
+                                if valid_count else 0.0
+                            ),
+                            "informative_fraction": (
+                                pcgrad_window_counts["informative_group_patch_count"] / valid_group_count
+                                if valid_group_count else 0.0
+                            ),
+                        },
+                        "losses": {
+                            "factor": pcgrad_window_counts["factor_loss_sum"] / microbatch_count,
+                            "router": pcgrad_window_counts["router_loss_sum"] / microbatch_count,
+                        },
+                        "raw_weighted_geometry": raw_geometry,
+                        "pcgrad": pcgrad_decision,
+                        "projected_weighted_geometry": projected_geometry,
+                    })
+                    write_json_atomic(
+                        Path(args.save_path) / "optimizer_windows" / "pcgrad_windows.json",
+                        {
+                            "formula": "two-objective symmetric PCGrad on accumulated main/factor shared-semantic gradients",
+                            "router": "support-normalized fixed-lambda gradient tracked but not projected",
+                            "lambda_factor": args.lambda_h6_factor,
+                            "lambda_router": args.lambda_h6_router,
+                            "factor_effective_beta": args.h6_utility_factor_effective_beta,
+                            "windows": pcgrad_window_records,
+                        },
+                    )
+                    for buffer in (
+                        pcgrad_main_buffer, pcgrad_factor_buffer, pcgrad_router_buffer
+                    ):
+                        for tensor in buffer:
+                            tensor.zero_()
+                    for key in pcgrad_window_counts:
+                        pcgrad_window_counts[key] = 0.0 if key.endswith("_sum") else 0
                 if has_non_finite_grad(optimizer):
                     optimizer.zero_grad(set_to_none=True)
                     raise RuntimeError(f"non-finite H6 gradient at epoch={epoch}, batch={batch_idx}")
@@ -3168,6 +3394,18 @@ def main():
     parser.add_argument("--lambda_h6_actual_local", type=float, default=0.0)
     parser.add_argument("--lambda_h6_factor", type=float, default=0.10)
     parser.add_argument("--lambda_h6_router", type=float, default=0.10)
+    parser.add_argument(
+        "--h6_utility_factor_effective_beta", type=float, default=None,
+        help="Use inverse-effective-number patch weighting for P1-v8.3 factor utility.",
+    )
+    parser.add_argument(
+        "--h6_router_support_normalized", action=argparse.BooleanOptionalAction, default=False,
+        help="Divide masked router CE by all valid patch support.",
+    )
+    parser.add_argument(
+        "--h6_pcgrad_main_factor", action=argparse.BooleanOptionalAction, default=False,
+        help="Apply two-objective PCGrad to accumulated main/factor shared-semantic gradients.",
+    )
     parser.add_argument("--h6_utility_denominator_floor", type=float, default=0.10)
     parser.add_argument("--h6_tau_utility", type=float, default=0.05)
     parser.add_argument("--h6_utility_gain_threshold", type=float, default=0.02)
@@ -3398,6 +3636,12 @@ def main():
                 raise ValueError(f"P1-v8.3 legacy auxiliary losses must be OFF: {enabled_legacy}")
             if args.h6_tau_utility <= 0 or args.h6_utility_denominator_floor <= 0:
                 raise ValueError("P1-v8.3 utility temperature and floor must be positive")
+            if args.h6_utility_factor_effective_beta is not None and not (
+                0.0 < args.h6_utility_factor_effective_beta < 1.0
+            ):
+                raise ValueError("--h6_utility_factor_effective_beta must be in (0, 1)")
+            if args.h6_pcgrad_main_factor and args.h6_utility_factor_effective_beta is None:
+                raise ValueError("P1-v8.3 PCGrad requires the audited effective-number factor loss")
             if (
                 args.h6_exploration_total_epochs is not None
                 and args.h6_exploration_total_epochs < args.epoch
@@ -3627,6 +3871,12 @@ def main():
                 "functional_diversity_off": args.lambda_h6_func_div == 0.0,
                 "selective_use_gate_off": not hasattr(model.h6, "selective_use_gate"),
                 "text_lora_trainable": any(p.requires_grad for p in model.text_adapter.parameters()),
+                "effective_number_factor_beta_0999": (
+                    args.h6_utility_factor_effective_beta is not None
+                    and abs(args.h6_utility_factor_effective_beta - 0.999) <= 1e-12
+                ),
+                "router_support_normalized": bool(args.h6_router_support_normalized),
+                "pcgrad_main_factor": bool(args.h6_pcgrad_main_factor),
             }
             failed_contracts = [name for name, passed in contract_checks.items() if not passed]
             model_preflight = {

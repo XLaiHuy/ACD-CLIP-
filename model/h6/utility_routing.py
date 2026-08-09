@@ -135,6 +135,39 @@ def utility_factor_loss(payload: Dict[str, torch.Tensor], y_patch: torch.Tensor)
     return _balanced_binary_mean(per_patch, targets, payload["valid"])
 
 
+def effective_number_utility_factor_loss(
+    payload: Dict[str, torch.Tensor],
+    y_patch: torch.Tensor,
+    *,
+    beta: float,
+) -> torch.Tensor:
+    """Patch-weighted factor BCE using inverse effective region counts.
+
+    This is the class-balanced effective-number construction applied to patch
+    classes, followed by one normalized weighted mean over all valid patches.
+    It deliberately does not reweight already-reduced region means.
+    """
+    if not 0.0 < float(beta) < 1.0:
+        raise ValueError("beta must be in (0, 1)")
+    per_patch = (
+        payload["responsibility"].detach() * payload["loss_per_factor"]
+    ).sum(dim=-1)
+    targets = y_patch.unsqueeze(0).expand_as(per_patch)
+    valid = payload["valid"]
+    weights = torch.zeros_like(per_patch)
+    for region in (valid & (targets < 0.5), valid & (targets >= 0.5)):
+        count = int(region.sum().item())
+        if count:
+            effective_n = -math.expm1(count * math.log(float(beta))) / (1.0 - float(beta))
+            weights[region] = 1.0 / effective_n
+    denominator = weights.sum()
+    return (
+        (per_patch * weights).sum() / denominator
+        if float(denominator.detach().item()) > 0.0
+        else per_patch.sum() * 0.0
+    )
+
+
 def utility_router_loss(
     dense_probabilities: torch.Tensor,
     payload: Dict[str, torch.Tensor],
@@ -146,6 +179,21 @@ def utility_router_loss(
     ce = -(teacher * dense_probabilities.float().clamp_min(1e-12).log()).sum(dim=-1)
     informative = payload["informative"]
     return ce[informative].mean() if informative.any() else ce.sum() * 0.0
+
+
+def support_normalized_utility_router_loss(
+    dense_probabilities: torch.Tensor,
+    payload: Dict[str, torch.Tensor],
+) -> torch.Tensor:
+    """Masked utility CE divided by all valid support, including masked zeros."""
+    if dense_probabilities.shape != payload["q_utility"].shape:
+        raise ValueError("dense_probabilities and q_utility must have identical [G,B,P,M] shape")
+    teacher = payload["q_utility"].detach()
+    ce = -(teacher * dense_probabilities.float().clamp_min(1e-12).log()).sum(dim=-1)
+    valid_count = int(payload["valid"].sum().item())
+    if not valid_count:
+        return ce.sum() * 0.0
+    return (ce * payload["informative"].float()).sum() / float(valid_count)
 
 
 def utility_diagnostics(

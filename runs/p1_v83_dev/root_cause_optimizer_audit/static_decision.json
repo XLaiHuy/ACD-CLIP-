@@ -1,0 +1,78 @@
+{
+  "status": "STATIC_OK_PCGRAD_REQUIRED",
+  "selected_factor_formula": "F1_effective_beta_0.999",
+  "selected_factor_beta": 0.999,
+  "selected_router_formula": "R1_valid_support_mean",
+  "selected_lambda_factor": 0.03,
+  "selected_lambda_router": 0.1,
+  "selection_logic": {
+    "factor": "beta=.999 reduces rarity-driven p90/p95 and spikes while retaining about one fifth of total effective patch weight for anomaly support; beta=.99 suppresses anomaly weight to only a few percent and beta=.9999 remains close to F0",
+    "router": "R1 removes informative-count amplification, remains nonzero on 65 natural support windows, and is not compensated beyond the preregistered grid",
+    "lambda": ".03/.10 is the largest grid pair with factor median in the engineering region, combined p90 below main, and zero windows above main; factor .05 causes four repeated >1x-main windows"
+  },
+  "effect_sizes": {
+    "factor_p95_reduction_fraction": 0.630094433238788,
+    "router_p95_reduction_fraction": 0.9474806186202963,
+    "selected_combined": {
+      "lambda_factor": 0.03,
+      "lambda_router": 0.1,
+      "factor_to_main": {
+        "count": 66,
+        "mean": 0.17797628680862487,
+        "min": 0.021952062110450005,
+        "median": 0.10265311037075558,
+        "p75": 0.24234267425916195,
+        "p90": 0.4222598545181274,
+        "p95": 0.5799492146153062,
+        "max": 0.8081873006275522
+      },
+      "router_to_main": {
+        "count": 66,
+        "mean": 0.022949131581777627,
+        "min": 0.0,
+        "median": 0.013912976845233696,
+        "p75": 0.03150450691235464,
+        "p90": 0.05079384658101026,
+        "p95": 0.06110587095121691,
+        "max": 0.12336991737694664
+      },
+      "combined_to_main": {
+        "count": 66,
+        "mean": 0.1823996298791255,
+        "min": 0.02608870249828083,
+        "median": 0.1027953382285913,
+        "p75": 0.2437235089926027,
+        "p90": 0.4222743626163089,
+        "p95": 0.5824472451153104,
+        "max": 0.8143442444642334
+      },
+      "cos_main_combined": {
+        "count": 66,
+        "mean": -0.148685220615973,
+        "min": -0.9637059363150681,
+        "median": -0.295836892094512,
+        "p75": 0.2961221099029301,
+        "p90": 0.9299701546364367,
+        "p95": 0.9474741239029139,
+        "max": 0.9962645915947437
+      },
+      "combined_over_main_window_count": 0
+    }
+  },
+  "magnitude_branch": "STATIC_OK; GradNorm is not eligible",
+  "conflict_evidence": {
+    "main_factor_cosine": {
+      "count": 66,
+      "mean": -0.1552173529187011,
+      "min": -0.970366900673266,
+      "median": -0.42585531363074225,
+      "p75": 0.29856633888571493,
+      "p90": 0.9394848839047151,
+      "p95": 0.9613116211965631,
+      "max": 0.998510615705685
+    },
+    "negative_window_fraction": 0.6363636363636364
+  },
+  "conflict_branch": "PCGrad is required for main+factor on shared-semantic parameters: negative cosine persists in a majority of natural windows with a materially negative median after loss normalization. Router remains fixed-lambda and unprojected because its cosine is numerically near zero and its supervision is sparse.",
+  "minimum_source_solution": "effective-number factor loss + support-normalized router + static .03/.10 + two-objective PCGrad on accumulated main/factor shared gradients"
+}
