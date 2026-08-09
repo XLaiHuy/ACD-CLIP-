@@ -1,0 +1,76 @@
+{
+  "decision": "EXIT_FOR_DISCUSSION",
+  "reason_codes": [
+    "S2_LOCAL_USEFUL_BUT_ORACLE_APPROX_BEST_SINGLE",
+    "S4_ANOMALY_ALL_HARM_PERSISTS"
+  ],
+  "source_sha": "4b57b2484927b08fe2cd08b2c3d8a04cbbe91ffa",
+  "source_branch": "autopilot/p1-v83-root-cause-d58b84bc",
+  "run_dir": "runs/p1_v83_dev/corrected_300b_primary_anchored_attempt1",
+  "training": {
+    "initialization": "openai_clip_only",
+    "openai_clip_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+    "batches": 300,
+    "optimizer_steps": 50,
+    "grad_accum_steps": 6,
+    "runtime_seconds": 294.04587951896247,
+    "status": "PASS"
+  },
+  "selected_optimization": {
+    "factor_loss": "inverse_effective_number_patch_weighted_valid_mean",
+    "factor_beta": 0.999,
+    "router_loss": "support_normalized_masked_ce",
+    "lambda_factor": 0.03,
+    "lambda_router": 0.1,
+    "primary_anchored_factor_surgery": true,
+    "symmetric_pcgrad": false,
+    "gradnorm": false
+  },
+  "optimizer_windows": {
+    "count": 50,
+    "anomaly_containing": 44,
+    "router_informative": 0,
+    "conflicts": 19,
+    "weighted_factor_to_main": {
+      "p50": 0.1672782376408577,
+      "p75": 0.3648294433951378,
+      "p90": 0.5825020194053651,
+      "p95": 0.7127255141735076,
+      "max": 1.3227558135986328
+    },
+    "safe_factor_to_main": {
+      "p50": 0.10527192428708076,
+      "p95": 0.7127255141735076,
+      "max": 1.3227558135986328
+    },
+    "main_exact_change_max": 0.0,
+    "correction_error_max": 0.0,
+    "conflicting_safe_dot_abs_max": 3.813464301283265e-15
+  },
+  "semantic_batch300": {
+    "g_local": 0.03427743539214134,
+    "g_multi": 0.003025419544428587,
+    "best_single_loss": 0.07566238939762115,
+    "oracle_multi_loss": 0.07542609423398972,
+    "factor_effective_rank": 1.0054999589920044,
+    "factor_patch_correlation_mean": 0.9986987113952637,
+    "anomaly_all_harm": 0.9990411996841431,
+    "anomaly_best_gain": -0.03194143623113632,
+    "normal_best_gain": 0.029378052800893784,
+    "router_informative_fraction": 0.0,
+    "winner_shares": [
+      0.35098695755004883,
+      0.14848987758159637,
+      0.030181918293237686,
+      0.4703412652015686
+    ]
+  },
+  "horizons": {
+    "corrected_300b_attempts_used": 1,
+    "one_epoch": "NOT_RUN_BY_DECISION",
+    "three_epoch": "NOT_RUN_BY_DECISION",
+    "final20": "NOT_RUN",
+    "medical": "NOT_RUN"
+  },
+  "not_pushed": true
+}

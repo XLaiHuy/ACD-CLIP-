@@ -137,15 +137,85 @@ Excluded are the raw `optimizer_windows.json`, temporary `progress.json`, the
 unstarted `root_fix_smoke8/` GPU-preflight folder, all checkpoints/weights,
 data/symlinks, caches, and unrelated historical run folders.
 
+## Corrected-300B attempt 1 decision
+
+**DECISION: EXIT_FOR_DISCUSSION**
+
+Fresh run:
+
+- directory: `runs/p1_v83_dev/corrected_300b_primary_anchored_attempt1`;
+- source: `4b57b2484927b08fe2cd08b2c3d8a04cbbe91ffa`;
+- OpenAI CLIP object SHA-256:
+  `3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02`;
+- exactly 300 batches / 50 optimizer steps;
+- all milestones `32,64,128,192,256,300` completed;
+- runtime 294.05 seconds; peak allocated/reserved GPU memory about
+  4.14/4.65 GiB;
+- model preflight and final runtime summary: **PASS**;
+- no NaN/Inf, rho remained fixed `.05`, and the effective-number/support-aware
+  configuration and primary-anchored provenance were exact.
+
+Optimizer-window behavior is healthy enough to reject scale/conflict as the
+remaining root cause:
+
+- 50 windows, 44 anomaly-containing, 0 router-informative;
+- weighted factor/main median `.167`, p75 `.365`, p90 `.583`, p95 `.713`, max
+  `1.323` (one window above main, not systematic domination);
+- raw main/factor conflicts in 19/50 windows;
+- safe factor/main median `.105`, p95 `.713`, max `1.323`;
+- MAIN exact-change max `0`;
+- correction reconstruction error max `0`;
+- conflicting-window `abs(dot(main,safe_factor))` max about `3.81e-15`.
+
+The semantic/specialization gate fails in two independent, architecture-level
+ways:
+
+1. **S2 — local useful but Oracle approximately BestSingle.** Cumulative
+   `G_local` is positive and rises from `2.52%` at batch 32 to `3.43%` at batch
+   300, but `G_multi` only rises from `.175%` to `.303%`, deeply below the 2%
+   meaningful multi-mode region. At batch 300 BestSingle/OracleMulti losses are
+   `.075662/.075426`, factor patch-function correlation is `.998699`, factor
+   effective rank is `1.0055`, and winner shares are
+   `[.351,.148,.030,.470]`. Current candidates therefore do not demonstrate
+   multiple useful modes.
+2. **S4 — anomaly all-harm persists.** Anomaly all-harm is `96.61%` at batch
+   32 and worsens monotonically to `99.90%` at batch 300. Cumulative anomaly
+   best gain remains negative (`-3.19%`) while normal best gain is positive
+   (`+2.94%`). With sign/target semantics, exploration, normalization,
+   magnitude, and gradient direction already validated, this means the local
+   candidate set lacks a beneficial anomaly correction rather than suffering
+   from an optimizer-scale bug.
+
+The router auxiliary is inactive because the canonical entropy gate accepts no
+patches. A no-training sensitivity audit shows that changing the temperature
+and entropy threshold could create support (up to about `16.1%` for
+`tau=.02`, threshold `.995`), but this does not resolve either the weak
+multi-mode evidence or anomaly all-harm. Increasing `lambda_router` cannot
+create a gradient when support is zero, and changing teacher semantics now
+would be a separate semantic intervention. No lambda change is recommended.
+
+Scientifically defensible discussion options include an explicit identity/no-op
+candidate or local abstention gate for harmful anomaly corrections, and stronger
+factor-specific conditional capacity for genuine multi-mode candidates. Both
+change architecture semantics and therefore require user discussion before any
+implementation. Load balancing, forced orthogonality, a larger router lambda,
+or a brute-force threshold sweep are not justified by this evidence.
+
+Per the decision tree, fresh 1e and 3e are **NOT RUN** after this S2/S4 failure.
+Final20 and all medical evaluation remain **NOT RUN**. No run directory was
+deleted on EXIT, and nothing was pushed.
+
 ### Evidence labels
 
 - **PROVEN:** sign/target path, F0/R0 imbalance behavior, Stage-B distributions,
   parameter immutability, and persistent normalized main-factor conflict.
 - **IMPLEMENTED:** effective-number factor loss, support-normalized router,
   static `.03/.10`, checkpoint metadata, and primary-anchored factor surgery.
-- **TRAINING-VALIDATED (SMOKE):** runtime accumulation, optimizer execution,
+- **TRAINING-VALIDATED (SMOKE + 300B):** runtime accumulation, optimizer execution,
   aligned-window no-projection behavior, MAIN preservation, factor/router
-  gradient liveness, and rho invariants.
-- **NOT YET VALIDATED BY DEVELOPMENT HORIZON:** whether the source improves a
-  fresh corrected 300B trajectory. Corrected 300B, one epoch, three epochs,
-  final20, and six-medical evaluation are all **NOT RUN**.
+  gradient handling, rho invariants, and stable primary-anchored conflict
+  removal.
+- **PROVEN DEVELOPMENT FAILURE:** S2 weak multi-mode evidence and S4 persistent
+  anomaly all-harm require architecture-semantic discussion.
+- **NOT RUN BY DECISION:** one epoch, three epochs, final20, and six-medical
+  evaluation.
