@@ -1,0 +1,17 @@
+{
+  "candidate": {
+    "router_confidence_mode": "margin_rel",
+    "router_margin_rel_threshold": 0.1
+  },
+  "frozen_audit": "runs/p1_v84a_gpu/post300_teacher_semantics_audit.json",
+  "required": "Router target q diagnostics at tau 0.05/0.03/0.02 restricted to the identical margin-rel eligible support, split overall/normal/anomaly and factor winner.",
+  "available_global_entropy_support_rows": [
+    {"tau": 0.05, "entropy_support_fraction": 0.0, "mean_entropy": 0.9994266629219055, "mean_q_max": 0.260928213596344},
+    {"tau": 0.03, "entropy_support_fraction": 0.014851177111268044, "mean_entropy": 0.9983595013618469, "mean_q_max": 0.268539160490036},
+    {"tau": 0.02, "entropy_support_fraction": 0.050229109823703766, "mean_entropy": 0.9962030053138733, "mean_q_max": 0.2783588171005249}
+  ],
+  "insufficiency": "These rows are global entropy-gated summaries, not q targets conditioned on margin-rel eligibility. The frozen audit retains no raw gain vectors or selected-set q distributions from which the required region/factor split can be reconstructed.",
+  "new_replay_performed": false,
+  "decision": "MISSING_ROUTER_TARGET_SHARPNESS_EVIDENCE",
+  "next_action": "EXIT_FOR_DISCUSSION"
+}

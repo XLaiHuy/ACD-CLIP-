@@ -1,0 +1,33 @@
+{
+  "base_commit": "e55cf7c6d77b022e5ebfe3d18a59138548463be1",
+  "candidate": {
+    "router_confidence_mode": "margin_rel",
+    "router_margin_rel_threshold": 0.1
+  },
+  "decision_after_phase_c2": "CONTINUE_TO_TARGET_SHARPNESS_GATE",
+  "frozen_audit": "runs/p1_v84a_gpu/post300_teacher_semantics_audit.json",
+  "formula_provenance": {
+    "audit_definition": "best_gain > 0 and margin_rel > threshold",
+    "implemented": "best_gain_rel > 0 and (best_gain_rel - second_gain_rel) / max(abs(best_gain_rel), 1e-12) > router_margin_rel_threshold and valid",
+    "match": true,
+    "second_gain_tie_behavior": "a tied maximum yields margin_rel = 0"
+  },
+  "margin_support_at_0_10": {
+    "overall": {
+      "count": 1071260,
+      "fraction": 0.9942798614501953,
+      "factor_coverage": {"F1": 1063212, "F2": 4139, "F3": 3155, "F4": 754}
+    },
+    "normal": {
+      "count": 1066750,
+      "fraction": 0.9959201812744141,
+      "factor_coverage": {"F1": 1063212, "F2": 1924, "F3": 1260, "F4": 354}
+    },
+    "anomaly": {
+      "count": 4510,
+      "fraction": 0.7155323028564453,
+      "factor_coverage": {"F1": 0, "F2": 2215, "F3": 1895, "F4": 400}
+    }
+  },
+  "coverage_interpretation": "Overall support is normal/F1 dominated, but anomaly support contains F2/F3/F4 evidence; count imbalance alone is not a scientific gate."
+}

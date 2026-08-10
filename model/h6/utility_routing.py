@@ -63,6 +63,8 @@ def utility_teacher(
     gain_threshold: float = 0.02,
     router_gain_threshold: float | None = None,
     entropy_threshold: float = 0.98,
+    router_confidence_mode: str = "entropy",
+    router_margin_rel_threshold: float = 0.10,
     routed_probabilities: torch.Tensor | None = None,
 ) -> Dict[str, torch.Tensor]:
     """Build detached factor and router utility teachers.
@@ -87,6 +89,10 @@ def utility_teacher(
     )
     if factor_tau <= 0 or router_tau <= 0 or denominator_floor <= 0:
         raise ValueError("factor/router utility temperatures and denominator_floor must be positive")
+    if router_confidence_mode not in {"entropy", "margin_rel"}:
+        raise ValueError("router_confidence_mode must be 'entropy' or 'margin_rel'")
+    if float(router_margin_rel_threshold) < 0.0:
+        raise ValueError("router_margin_rel_threshold must be non-negative")
     if not 0.0 <= float(epsilon) <= 1.0:
         raise ValueError("epsilon must be in [0,1]")
     if float(rho) not in (0.0, 0.05):
@@ -116,12 +122,31 @@ def utility_teacher(
     normalized_entropy = -(
         q_router * q_router.clamp_min(1e-12).log()
     ).sum(dim=-1) / math.log(factors)
-    best_gain_rel, winners = gain_rel.detach().max(dim=-1)
-    informative = (
-        (best_gain_rel > router_gain)
-        & (normalized_entropy < float(entropy_threshold))
-        & local_mask_valid.unsqueeze(0)
-    )
+    detached_gains = gain_rel.detach()
+    best_gain_rel, winners = detached_gains.max(dim=-1)
+    # Excluding the selected winner, rather than relying on topk's tie order,
+    # preserves the legacy argmax winner while making a tied best gain yield a
+    # zero margin as required by the margin-eligibility candidate.
+    winner_one_hot = F.one_hot(winners, num_classes=factors).bool()
+    second_gain_rel = detached_gains.masked_fill(winner_one_hot, float("-inf")).max(dim=-1).values
+    margin_abs = best_gain_rel - second_gain_rel
+    margin_rel = margin_abs / best_gain_rel.abs().clamp_min(1e-12)
+    valid = local_mask_valid.unsqueeze(0).expand(groups, -1, -1)
+    if router_confidence_mode == "entropy":
+        # Exact legacy formulation: gain threshold and q_router entropy gate.
+        informative = (
+            (best_gain_rel > router_gain)
+            & (normalized_entropy < float(entropy_threshold))
+            & valid
+        )
+    else:
+        # Margin mode only changes Router eligibility.  It keeps factor q,
+        # responsibility, Router q softness, ACT, and residual semantics intact.
+        informative = (
+            (best_gain_rel > 0.0)
+            & (margin_rel > float(router_margin_rel_threshold))
+            & valid
+        )
     payload = {
         "z0": z0,
         "candidate_logits": candidate_logits,
@@ -135,9 +160,12 @@ def utility_teacher(
         "responsibility": responsibility,
         "normalized_entropy": normalized_entropy.detach(),
         "best_gain_rel": best_gain_rel,
+        "second_gain_rel": second_gain_rel.detach(),
+        "margin_abs": margin_abs.detach(),
+        "margin_rel": margin_rel.detach(),
         "winner": winners.detach(),
         "informative": informative.detach(),
-        "valid": local_mask_valid.unsqueeze(0).expand(groups, -1, -1),
+        "valid": valid,
     }
     if routed_probabilities is not None:
         # The ACT target is a teacher: detach both the current forward mixture

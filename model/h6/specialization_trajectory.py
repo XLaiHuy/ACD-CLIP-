@@ -33,7 +33,7 @@ def capture_utility_record(
     keys = (
         "z0", "candidate_logits", "loss_base", "loss_per_factor", "gain_rel",
         "q_utility", "responsibility", "normalized_entropy", "best_gain_rel",
-        "winner", "informative", "valid",
+        "second_gain_rel", "margin_abs", "margin_rel", "winner", "informative", "valid",
     )
     record = {key: payload[key].detach().cpu() for key in keys}
     # P1-v8.4-A carries the routed ACT teacher object in the utility payload.
@@ -85,6 +85,81 @@ def _stats(values: torch.Tensor, quantiles: Iterable[float]) -> dict[str, float]
     return result
 
 
+def aggregate_trajectory_milestone(
+    records: list[dict[str, torch.Tensor]],
+    recent_records: list[dict[str, torch.Tensor]],
+    *,
+    gain_threshold: float,
+    entropy_threshold: float,
+    router_confidence_mode: str = "entropy",
+    router_margin_rel_threshold: float = 0.10,
+    aggregation_mode: str = "legacy",
+    is_final: bool,
+    rho: float = 0.05,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Aggregate one milestone without repeating expensive cumulative work.
+
+    ``legacy`` preserves historical cumulative evidence at every milestone.
+    ``fast`` reports exact recent-block evidence at intermediate milestones and
+    defers only cumulative quantiles/AUROC to the final milestone.  The final
+    cumulative result is always produced by the same exact aggregation path.
+    """
+    if aggregation_mode not in {"legacy", "fast"}:
+        raise ValueError("aggregation_mode must be 'legacy' or 'fast'")
+    kwargs = {
+        "gain_threshold": gain_threshold,
+        "entropy_threshold": entropy_threshold,
+        "router_confidence_mode": router_confidence_mode,
+        "router_margin_rel_threshold": router_margin_rel_threshold,
+        "rho": rho,
+    }
+    recent = aggregate_utility_records(recent_records, **kwargs)
+    if aggregation_mode == "legacy" or is_final:
+        cumulative = aggregate_utility_records(records, **kwargs)
+    else:
+        cumulative = {
+            "aggregation_mode": "deferred_final_only",
+            "cumulative_deferred": True,
+            "record_count": len(records),
+            "final_cumulative_exact": False,
+        }
+    return cumulative, recent
+
+
+def binary_auroc(scores: torch.Tensor, labels: torch.Tensor) -> float | None:
+    """Exact rank AUROC with vectorized average-tie ranks.
+
+    This deliberately uses rank statistics instead of an approximation.  The
+    sorted unique-consecutive formulation avoids the former Python loop over
+    every score value, while a constant predictor still evaluates to 0.5 when
+    both label classes are present.
+    """
+    scores = scores.flatten().float()
+    labels = labels.flatten().bool()
+    positive_count = int(labels.sum().item())
+    negative_count = int((~labels).sum().item())
+    if not positive_count or not negative_count:
+        return None
+    order = scores.argsort()
+    sorted_scores = scores[order]
+    sorted_ranks = torch.arange(1, scores.numel() + 1, dtype=torch.float32)
+    _, inverse, counts = torch.unique_consecutive(
+        sorted_scores, return_inverse=True, return_counts=True
+    )
+    ends = counts.cumsum(dim=0)
+    starts = torch.cat((torch.zeros(1, dtype=torch.long), ends[:-1]))
+    rank_prefix = torch.cat((torch.zeros(1), sorted_ranks.cumsum(dim=0)))
+    average_ranks = (rank_prefix[ends] - rank_prefix[starts]) / counts.float()
+    ranks_sorted = average_ranks[inverse]
+    ranks = torch.empty_like(ranks_sorted)
+    ranks[order] = ranks_sorted
+    rank_sum = ranks[labels].sum()
+    value = (
+        rank_sum - positive_count * (positive_count + 1) / 2.0
+    ) / float(positive_count * negative_count)
+    return float(value.item())
+
+
 def _python(value: Any) -> Any:
     if torch.is_tensor(value):
         value = value.detach().cpu()
@@ -101,35 +176,48 @@ def aggregate_utility_records(
     *,
     gain_threshold: float,
     entropy_threshold: float,
+    router_confidence_mode: str = "entropy",
+    router_margin_rel_threshold: float = 0.10,
     rho: float = 0.05,
 ) -> dict[str, Any]:
     """Compute exact loss-space and gate diagnostics over a batch interval."""
     if not records:
         raise ValueError("at least one trajectory record is required")
+    if router_confidence_mode not in {"entropy", "margin_rel"}:
+        raise ValueError("router_confidence_mode must be 'entropy' or 'margin_rel'")
+    concatenated: dict[str, torch.Tensor] = {}
+
+    def cat(key: str) -> torch.Tensor:
+        if key not in concatenated:
+            concatenated[key] = _cat(records, key)
+        return concatenated[key]
+
     payload = {
-        key: _cat(records, key)
+        key: cat(key)
         for key in (
             "z0", "candidate_logits", "loss_base", "loss_per_factor", "gain_rel",
             "q_utility", "responsibility", "normalized_entropy", "best_gain_rel",
-            "winner", "informative", "valid",
+            "second_gain_rel", "margin_abs", "margin_rel", "winner", "informative", "valid",
         )
     }
     routed_loss_full = (
-        _cat(records, "loss_routed").float()
+        cat("loss_routed").float()
         if all("loss_routed" in record for record in records) else None
     )
     actual_gated_loss_full = (
-        _cat(records, "actual_gated_loss").float()
+        cat("actual_gated_loss").float()
         if all("actual_gated_loss" in record for record in records) else None
     )
-    dense = _cat(records, "dense_probabilities")
-    y_patch = _cat(records, "y_patch")
+    dense = cat("dense_probabilities")
+    y_patch = cat("y_patch")
     exact = utility_diagnostics(payload, dense, y_patch, rho=rho)
     valid = payload["valid"].bool()
     best_gain = payload["best_gain_rel"][valid]
     entropy = payload["normalized_entropy"][valid]
     max_probability = payload["q_utility"].max(dim=-1).values[valid]
     margins = payload["gain_rel"].topk(2, dim=-1).values.diff(dim=-1).abs().squeeze(-1)[valid]
+    margin_abs = payload["margin_abs"][valid]
+    margin_rel = payload["margin_rel"][valid]
     gain_pass = (payload["best_gain_rel"] > float(gain_threshold)) & valid
     entropy_pass = (payload["normalized_entropy"] < float(entropy_threshold)) & valid
     informative = payload["informative"].bool()
@@ -152,6 +240,11 @@ def aggregate_utility_records(
             "best_gain_rel_mean": float(best_values.mean().item()) if count else 0.0,
             "teacher_entropy_mean": float(entropy_values.mean().item()) if count else 0.0,
             "informative_fraction": float(informative[region].float().mean().item()) if count else 0.0,
+            "margin_rel_pass_fraction": float(
+                ((payload["best_gain_rel"] > 0.0)
+                 & (payload["margin_rel"] > float(router_margin_rel_threshold))
+                 & region).float().sum().item() / max(count, 1)
+            ),
             "all_harm_fraction": float(all_harm[region].float().mean().item()) if count else 0.0,
         }
 
@@ -160,11 +253,20 @@ def aggregate_utility_records(
     result.update({
         "gain_threshold": float(gain_threshold),
         "entropy_threshold": float(entropy_threshold),
+        "router_confidence_mode": router_confidence_mode,
+        "router_margin_rel_threshold": float(router_margin_rel_threshold),
         "gain_threshold_pass_fraction": float(gain_pass.sum().item() / max(valid_count, 1)),
         "entropy_threshold_pass_fraction": float(entropy_pass.sum().item() / max(valid_count, 1)),
         "informative_fraction": float(supervised_count / max(valid_count, 1)),
         "best_gain_rel": _stats(best_gain, (0.50, 0.75, 0.90, 0.95, 0.99)),
         "best_second_utility_margin_distribution": _stats(margins, (0.50, 0.90, 0.95, 0.99)),
+        "router_margin_abs_distribution": _stats(margin_abs, (0.01, 0.05, 0.50, 0.90, 0.95, 0.99)),
+        "router_margin_rel_distribution": _stats(margin_rel, (0.01, 0.05, 0.50, 0.90, 0.95, 0.99)),
+        "router_margin_pass_fraction": float(
+            ((payload["best_gain_rel"] > 0.0)
+             & (payload["margin_rel"] > float(router_margin_rel_threshold))
+             & valid).sum().item() / max(valid_count, 1)
+        ),
         "normalized_teacher_entropy": _stats(entropy, (0.01, 0.05, 0.10, 0.50, 0.90)),
         "teacher_max_probability_distribution": _stats(max_probability, (0.50, 0.90, 0.95, 0.99)),
         "normal_anomaly_breakdown": breakdown,
@@ -178,7 +280,7 @@ def aggregate_utility_records(
     })
     routed_gain_full = None
     if all("routed_gain_rel" in record for record in records):
-        routed_gain_full = _cat(records, "routed_gain_rel").float()
+        routed_gain_full = cat("routed_gain_rel").float()
         routed_gain = routed_gain_full[valid]
         result["routed_gain_rel"] = _stats(
             routed_gain, (0.01, 0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95, 0.99)
@@ -235,14 +337,14 @@ def aggregate_utility_records(
         "anomaly": _region_utility(valid & (targets >= 0.5)),
     }
     if all("act_probability" in record for record in records):
-        act_probability = _cat(records, "act_probability").float()
-        act_logits = _cat(records, "act_logits").float() if all(
+        act_probability = cat("act_probability").float()
+        act_logits = cat("act_logits").float() if all(
             "act_logits" in record for record in records
         ) else torch.logit(act_probability.clamp(1e-6, 1.0 - 1e-6))
-        act_positive = _cat(records, "act_positive").bool()
-        act_negative = _cat(records, "act_negative").bool()
-        act_ambiguous = _cat(records, "act_ambiguous").bool()
-        act_support = _cat(records, "act_support").bool()
+        act_positive = cat("act_positive").bool()
+        act_negative = cat("act_negative").bool()
+        act_ambiguous = cat("act_ambiguous").bool()
+        act_support = cat("act_support").bool()
         region_targets = y_patch.unsqueeze(0).expand_as(act_probability)
 
         def safe_mean(values: torch.Tensor, mask: torch.Tensor) -> float:
@@ -250,39 +352,6 @@ def aggregate_utility_records(
 
         def safe_fraction(mask: torch.Tensor, region: torch.Tensor) -> float:
             return float(mask[region].float().mean().item()) if region.any() else 0.0
-
-        def binary_auroc(scores: torch.Tensor, labels: torch.Tensor) -> float | None:
-            scores = scores.flatten().float()
-            labels = labels.flatten().bool()
-            positive_count = int(labels.sum().item())
-            negative_count = int((~labels).sum().item())
-            if not positive_count or not negative_count:
-                return None
-            order = scores.argsort()
-            sorted_scores = scores[order]
-            sorted_ranks = torch.arange(
-                1, scores.numel() + 1, dtype=torch.float32
-            )
-            # Average tied ranks without a Python loop.  The previous
-            # implementation scanned the full trajectory once per unique
-            # probability, which became quadratic for 300B telemetry.
-            _, inverse, counts = torch.unique_consecutive(
-                sorted_scores, return_inverse=True, return_counts=True
-            )
-            ends = counts.cumsum(dim=0)
-            starts = torch.cat((torch.zeros(1, dtype=torch.long), ends[:-1]))
-            rank_prefix = torch.cat((torch.zeros(1), sorted_ranks.cumsum(dim=0)))
-            average_ranks = (
-                rank_prefix[ends] - rank_prefix[starts]
-            ) / counts.float()
-            ranks_sorted = average_ranks[inverse]
-            ranks = torch.empty_like(ranks_sorted)
-            ranks[order] = ranks_sorted
-            rank_sum = ranks[labels].sum()
-            value = (
-                rank_sum - positive_count * (positive_count + 1) / 2.0
-            ) / float(positive_count * negative_count)
-            return float(value.item())
 
         def safe_correlation(x: torch.Tensor, y: torch.Tensor, mask: torch.Tensor) -> float | None:
             x_values = x[mask].flatten().float()

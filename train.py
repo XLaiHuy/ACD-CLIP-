@@ -62,6 +62,7 @@ from model.h6.utility_routing import (
     utility_factor_loss, utility_router_loss, utility_teacher,
 )
 from model.h6.specialization_trajectory import (
+    aggregate_trajectory_milestone,
     aggregate_utility_records,
     capture_utility_record,
     teacher_sensitivity_grid,
@@ -2107,6 +2108,8 @@ def train_h6_progress1(
                         gain_threshold=args.h6_utility_gain_threshold,
                         router_gain_threshold=args.h6_router_gain_threshold,
                         entropy_threshold=args.h6_utility_entropy_threshold,
+                        router_confidence_mode=args.h6_router_confidence_mode,
+                        router_margin_rel_threshold=args.h6_router_margin_rel_threshold,
                         routed_probabilities=(
                             h6_batch["prediction_probabilities"]
                             if model.h6.progress_version == "P1-v8.4-A"
@@ -3117,15 +3120,15 @@ def train_h6_progress1(
                     raise RuntimeError(f"P1-v8.3 rho changed at trajectory batch {batch_idx}")
                 if model.h6.rho.raw.grad is not None:
                     raise RuntimeError(f"P1-v8.3 rho unexpectedly received gradient at batch {batch_idx}")
-                cumulative = aggregate_utility_records(
+                cumulative, recent = aggregate_trajectory_milestone(
                     trajectory_records,
-                    gain_threshold=args.h6_router_gain_threshold,
-                    entropy_threshold=args.h6_utility_entropy_threshold,
-                )
-                recent = aggregate_utility_records(
                     trajectory_records[trajectory_previous_batch:batch_idx],
                     gain_threshold=args.h6_router_gain_threshold,
                     entropy_threshold=args.h6_utility_entropy_threshold,
+                    router_confidence_mode=args.h6_router_confidence_mode,
+                    router_margin_rel_threshold=args.h6_router_margin_rel_threshold,
+                    aggregation_mode=args.h6_trajectory_aggregation_mode,
+                    is_final=(batch_idx == trajectory_milestones[-1]),
                 )
                 milestone_payload = {
                     "batch": batch_idx,
@@ -4043,6 +4046,16 @@ def main():
         help="Opt-in diagnostics-only cumulative/window milestone reporting.",
     )
     parser.add_argument(
+        "--h6_trajectory_aggregation_mode",
+        choices=["legacy", "fast"],
+        default="legacy",
+        help=(
+            "Trajectory aggregation policy: legacy computes cumulative evidence at every "
+            "milestone; fast computes recent blocks at intermediate milestones and exact "
+            "cumulative evidence only at the final milestone."
+        ),
+    )
+    parser.add_argument(
         "--h6_drift_diagnostics", action=argparse.BooleanOptionalAction, default=False,
         help="One-batch bank snapshots and autograd attribution for a diagnostic smoke only.",
     )
@@ -4229,6 +4242,16 @@ def main():
     parser.add_argument("--h6_factor_tau_utility", type=float, default=None)
     parser.add_argument("--h6_router_tau_utility", type=float, default=None)
     parser.add_argument("--h6_router_gain_threshold", type=float, default=None)
+    parser.add_argument(
+        "--h6_router_confidence_mode",
+        choices=["entropy", "margin_rel"],
+        default="entropy",
+        help="Router informative eligibility: legacy entropy gate or decoupled relative-margin gate.",
+    )
+    parser.add_argument(
+        "--h6_router_margin_rel_threshold", type=float, default=0.10,
+        help="Relative best-vs-second utility margin used only by --h6_router_confidence_mode margin_rel.",
+    )
     parser.add_argument("--h6_act_gain_threshold", type=float, default=None)
     parser.add_argument("--h6_utility_entropy_threshold", type=float, default=0.98)
     parser.add_argument("--h6_exploration_start", type=float, default=0.15)
@@ -4482,6 +4505,8 @@ def main():
                 or args.h6_utility_denominator_floor <= 0
             ):
                 raise ValueError(f"{contract_version} utility temperature and floor must be positive")
+            if args.h6_router_margin_rel_threshold < 0.0:
+                raise ValueError("--h6_router_margin_rel_threshold must be non-negative")
             if not 0.0 < args.h6_act_effective_beta < 1.0:
                 raise ValueError("--h6_act_effective_beta must be in (0, 1)")
             if args.lambda_h6_act < 0.0:
