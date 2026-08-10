@@ -8,6 +8,7 @@ only margin-selected q-router aggregates for the predeclared tau values.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import sys
@@ -53,11 +54,12 @@ def _stats(values: list[torch.Tensor]) -> dict[str, float | int]:
     tensor = torch.cat(values).float() if values else torch.empty(0, dtype=torch.float32)
     result: dict[str, float | int] = {"count": int(tensor.numel())}
     if not tensor.numel():
-        result.update({"mean": 0.0, "p50": 0.0, "p90": 0.0, "p95": 0.0})
+        result.update({"mean": 0.0, "std": 0.0, "p50": 0.0, "p90": 0.0, "p95": 0.0})
         return result
     return {
         **result,
         "mean": float(tensor.mean().item()),
+        "std": float(tensor.std(unbiased=False).item()),
         "p50": float(torch.quantile(tensor, 0.50).item()),
         "p90": float(torch.quantile(tensor, 0.90).item()),
         "p95": float(torch.quantile(tensor, 0.95).item()),
@@ -110,6 +112,15 @@ class _SharpnessAccumulator:
         }
         self.q_argmax_agreement = {tau: [0, 0] for tau in TAUS}
         self.finite = True
+        self.raw_values = {
+            region: {metric: [] for metric in ("best_gain", "second_gain", "margin_rel")}
+            for region in ("overall", "normal", "anomaly")
+        }
+        self.per_factor_gain = {f"F{factor + 1}": [] for factor in range(4)}
+        self.valid_winner_count = {
+            region: {f"F{factor + 1}": 0 for factor in range(4)}
+            for region in ("overall", "normal", "anomaly")
+        }
 
     def add(self, gain: torch.Tensor, targets: torch.Tensor, valid: torch.Tensor) -> None:
         """Add one [G,B,P,M] gain batch without retaining model tensors."""
@@ -138,9 +149,17 @@ class _SharpnessAccumulator:
             for condition_name, condition in conditions.items():
                 self.condition_count[name][condition_name] += int((condition & region).sum().item())
             for factor in range(4):
+                self.valid_winner_count[name][f"F{factor + 1}"] += int(
+                    ((winners == factor) & valid & region).sum().item()
+                )
                 self.winner_count[name][f"F{factor + 1}"] += int(
                     ((winners == factor) & selected & region).sum().item()
                 )
+            raw_mask = valid & region
+            for metric, tensor in (("best_gain", best), ("second_gain", second), ("margin_rel", margin_rel)):
+                self.raw_values[name][metric].append(tensor[raw_mask].detach().float().cpu())
+        for factor in range(4):
+            self.per_factor_gain[f"F{factor + 1}"].append(gain[..., factor][valid].detach().float().cpu())
 
         for tau in TAUS:
             q = F.softmax(gain / tau, dim=-1)
@@ -224,6 +243,16 @@ class _SharpnessAccumulator:
             "condition_counts": self.condition_count,
             "winner_shares": winner,
             "winner_counts_by_region": self.winner_count,
+            "valid_winner_counts_by_region": self.valid_winner_count,
+            "raw_gain_diagnostics": {
+                region: {
+                    metric: _stats(values) for metric, values in metrics.items()
+                }
+                for region, metrics in self.raw_values.items()
+            },
+            "per_factor_gain_rel": {
+                factor: _stats(values) for factor, values in self.per_factor_gain.items()
+            },
             "anomaly_non_f1_coverage": {
                 name: {"count": self.winner_count["anomaly"][name]}
                 for name in ("F2", "F3", "F4")
@@ -279,19 +308,47 @@ def _tau_usable(audit: dict[str, Any], tau: str) -> bool:
     )
 
 
+def _baseline_accepted(sharpness: dict[str, Any], invariants: dict[str, bool]) -> bool:
+    support = sharpness["support"]
+    anomaly_winners = sharpness["winner_counts_by_region"]["anomaly"]
+    return bool(
+        all(invariants.values())
+        and support["overall"]["selected_fraction"] >= 0.90
+        and support["normal"]["selected_fraction"] >= 0.90
+        and support["anomaly"]["selected_fraction"] >= 0.50
+        and sum(value > 0 for value in anomaly_winners.values()) >= 2
+        and sharpness["raw_gain_diagnostics"]["normal"]["best_gain"]["p50"] > 0.0
+        and sharpness["raw_gain_diagnostics"]["anomaly"]["best_gain"]["p50"] > 0.0
+    )
+
+
+def _manifest_digest(rows: list[dict[str, Any]]) -> str:
+    encoded = json.dumps(rows, sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", type=Path, default=Path("runs/p1_v84a_gpu/fresh_300b_seed0_attempt1/adapter_1.pth"))
     parser.add_argument("--provenance", type=Path, default=Path("runs/p1_v84a_gpu/regenerated_300b_checkpoint_provenance.json"))
     parser.add_argument("--openai-checkpoint", type=Path, default=Path("model/ViT-L-14-336px.pt"))
     parser.add_argument("--historical-audit", type=Path, default=Path("runs/p1_v84a_gpu/post300_teacher_semantics_audit.json"))
-    parser.add_argument("--output", type=Path, default=Path("runs/p1_v84a_gpu/router_margin_sharpness/frozen_q_sharpness_audit.json"))
+    parser.add_argument(
+        "--output-dir", type=Path,
+        default=Path("runs/p1_v84a_gpu/router_margin_fingerprinted_baseline"),
+    )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--max-batches", type=int, default=300)
     parser.add_argument("--progress-every", type=int, default=50)
     args = parser.parse_args()
-    if args.output.exists():
-        raise FileExistsError("refusing to overwrite a Router sharpness audit artifact")
+    output_paths = {
+        "manifest": args.output_dir / "input_manifest.json",
+        "fingerprint": args.output_dir / "fingerprint_summary.json",
+        "conditions": args.output_dir / "condition_counts.json",
+        "sharpness": args.output_dir / "q_sharpness.json",
+    }
+    if any(path.exists() for path in output_paths.values()):
+        raise FileExistsError("refusing to overwrite a fingerprinted Router baseline artifact")
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA is required for the bounded forward-only replay")
     if args.max_batches != 300 or args.progress_every != 50:
@@ -333,6 +390,7 @@ def main() -> None:
     )
     accumulator = _SharpnessAccumulator()
     batch_indices: list[int] = []
+    input_manifest: list[dict[str, Any]] = []
     residual_definition_max_error = 0.0
     routed_reconstruction_max_error = 0.0
     actual_reconstruction_max_error = 0.0
@@ -340,7 +398,21 @@ def main() -> None:
     for batch_number, sample in enumerate(loader, start=1):
         if batch_number > args.max_batches:
             break
-        batch_indices.append(int(sample["dataset_index"].item()))
+        dataset_index = int(sample["dataset_index"].item())
+        batch_indices.append(dataset_index)
+        meta = dataset.dataset.meta[dataset_index]
+        image_relative = str(meta["image_path"])
+        mask_relative = meta.get("mask_path")
+        data_root = Path(dataset.dataset.data_path)
+        manifest_row = {
+            "sample_index": dataset_index,
+            "category": str(meta["class_name"]),
+            "image_relative_path": image_relative,
+            "image_sha256": _sha256(data_root / image_relative),
+            "mask_relative_path": str(mask_relative) if mask_relative else None,
+            "mask_sha256": _sha256(data_root / mask_relative) if mask_relative else None,
+        }
+        input_manifest.append(manifest_row)
         image = sample["image"].to(device, non_blocking=True)
         mask = sample["mask"].to(device, non_blocking=True)
         local_valid = sample["local_mask_valid"].to(device, non_blocking=True)
@@ -386,8 +458,14 @@ def main() -> None:
         raise RuntimeError(f"replay ended after {len(batch_indices)} batches")
 
     sharpness = accumulator.result()
-    support_match = {
-        region: sharpness["support"][region]["selected_count"] == historical_margin["regions"][region]["count"]
+    historical_delta = {
+        region: {
+            "historical_selected_count": historical_margin["regions"][region]["count"],
+            "new_selected_count": sharpness["support"][region]["selected_count"],
+            "count_delta": sharpness["support"][region]["selected_count"] - historical_margin["regions"][region]["count"],
+            "historical_fraction": historical_margin["regions"][region]["fraction"],
+            "new_fraction": sharpness["support"][region]["selected_fraction"],
+        }
         for region in ("overall", "normal", "anomaly")
     }
     state_hash_after = _full_state_hash(model)
@@ -400,22 +478,22 @@ def main() -> None:
         "routed_correction_reconstruction_exact": routed_reconstruction_max_error == 0.0,
         "actual_gated_reconstruction_exact": actual_reconstruction_max_error == 0.0,
         "exactly_300_batches": len(batch_indices) == 300,
-        "reconstructs_historical_margin_support": all(support_match.values()),
     }
     invariants_ok = all(invariant_checks.values())
-    tau05_usable = _tau_usable(sharpness, "0.05") if invariants_ok else None
+    baseline_accepted = _baseline_accepted(sharpness, invariant_checks)
+    tau05_usable = _tau_usable(sharpness, "0.05") if baseline_accepted else None
     alternate_usable = (
         {tau: _tau_usable(sharpness, tau) for tau in ("0.03", "0.02")}
-        if invariants_ok else None
+        if baseline_accepted else None
     )
     decision = (
-        "FROZEN_ROUTER_AUDIT_REPLAY_INVALID" if not invariants_ok
+        "ROUTER_NEW_BASELINE_STRUCTURAL_DRIFT" if not baseline_accepted
         else "ROUTER_TAU_CANONICAL_USABLE" if tau05_usable
         else "ROUTER_TAU_RECALIBRATION_REQUIRED" if any(alternate_usable.values())
         else "ROUTER_TARGET_FORMULATION_UNRESOLVED"
     )
     output = {
-        "audit_kind": "FORWARD_ONLY_FROZEN_ROUTER_MARGIN_SHARPNESS_REPLAY",
+        "audit_kind": "FORWARD_ONLY_FINGERPRINTED_ROUTER_MARGIN_BASELINE",
         "status": "PASS" if decision == "ROUTER_TAU_CANONICAL_USABLE" else "EXIT_FOR_DISCUSSION",
         "decision": decision,
         "contract": {
@@ -435,6 +513,25 @@ def main() -> None:
             "precision": "fp32",
             "amp_enabled": False,
             "tf32_enabled": False,
+            "preprocessing": {
+                "image_size": 518,
+                "image_resize": "bicubic",
+                "mask_resize": "nearest",
+                "image_normalize_mean": [0.48145466, 0.4578275, 0.40821073],
+                "image_normalize_std": [0.26862954, 0.26130258, 0.27577711],
+                "train_augmentations": "seeded noise/color jitter plus geometric rotate/translate/hflip/vflip",
+                "local_mask_valid": "ones transformed with the geometric mask operations then thresholded > 0.5",
+            },
+            "dataloader": {
+                "batch_size": 1, "shuffle": True, "num_workers": 4,
+                "pin_memory": True, "generator": "make_dataloader_generator(seed)",
+                "worker_init": "seed_worker",
+            },
+            "model_switches": {
+                "progress_version": "P1-v8.4-A", "rho": 0.05,
+                "rho_trainable": False, "hybrid_text": True,
+                "soft_prompt": False, "update_load_bias": False,
+            },
             "optimizer_constructed": False,
             "optimizer_steps": 0,
             "scheduler_steps": 0,
@@ -446,12 +543,20 @@ def main() -> None:
             "residual_definition_max_abs_error": residual_definition_max_error,
             "routed_reconstruction_max_abs_error": routed_reconstruction_max_error,
             "actual_gated_reconstruction_max_abs_error": actual_reconstruction_max_error,
-            "historical_margin_support_counts": {
-                region: historical_margin["regions"][region]["count"]
-                for region in ("overall", "normal", "anomaly")
-            },
         },
         "sharpness": sharpness,
+        "historical_delta": historical_delta,
+        "baseline_acceptance": {
+            "accepted": baseline_accepted,
+            "criteria": {
+                "overall_selected_fraction_ge_0_90": sharpness["support"]["overall"]["selected_fraction"] >= 0.90,
+                "normal_selected_fraction_ge_0_90": sharpness["support"]["normal"]["selected_fraction"] >= 0.90,
+                "anomaly_selected_fraction_ge_0_50": sharpness["support"]["anomaly"]["selected_fraction"] >= 0.50,
+                "at_least_two_anomaly_winners": sum(value > 0 for value in sharpness["winner_counts_by_region"]["anomaly"].values()) >= 2,
+                "normal_best_gain_p50_positive": sharpness["raw_gain_diagnostics"]["normal"]["best_gain"]["p50"] > 0.0,
+                "anomaly_best_gain_p50_positive": sharpness["raw_gain_diagnostics"]["anomaly"]["best_gain"]["p50"] > 0.0,
+            },
+        },
         "tau_usable_contract": {
             "reference": "median normalized entropy < 0.98 overall and anomaly",
             "evaluated": invariants_ok,
@@ -460,11 +565,27 @@ def main() -> None:
         },
         "runtime_seconds": time.monotonic() - started,
     }
-    _write_json_atomic(args.output, output)
+    manifest = {
+        "dataset": "VisA/train", "seed": args.seed,
+        "ordered_manifest_sha256": _manifest_digest(input_manifest),
+        "samples": input_manifest,
+    }
+    _write_json_atomic(output_paths["manifest"], manifest)
+    _write_json_atomic(output_paths["fingerprint"], output)
+    _write_json_atomic(output_paths["conditions"], {
+        "condition_counts": sharpness["condition_counts"],
+        "valid_winner_counts_by_region": sharpness["valid_winner_counts_by_region"],
+        "eligible_winner_counts_by_region": sharpness["winner_counts_by_region"],
+        "raw_gain_diagnostics": sharpness["raw_gain_diagnostics"],
+        "per_factor_gain_rel": sharpness["per_factor_gain_rel"],
+    })
+    _write_json_atomic(output_paths["sharpness"], {
+        "sharpness": sharpness, "tau_usable_contract": output["tau_usable_contract"],
+    })
     print(json.dumps({
         "status": output["status"], "decision": decision, "batches": len(batch_indices),
         "support": sharpness["support"], "runtime_seconds": round(output["runtime_seconds"], 3),
-        "output": str(args.output),
+        "output_dir": str(args.output_dir),
     }), flush=True)
     if not invariants_ok:
         raise RuntimeError(

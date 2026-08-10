@@ -1,0 +1,32 @@
+{
+  "source_git_sha": "fcbfeacb3792488d0260c961e99f500c3c14a192",
+  "checkpoint": {
+    "path": "runs/p1_v84a_gpu/fresh_300b_seed0_attempt1/adapter_1.pth",
+    "sha256": "96f679b2e18f4e352157494f7198414b66f66024a5cc023f5ff046c39dcaa3a3"
+  },
+  "openai_clip": {
+    "path": "model/ViT-L-14-336px.pt",
+    "sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02"
+  },
+  "dataset": {
+    "root": "/workspace/data/med_visa/data",
+    "split": "VisA/train",
+    "seed": 0,
+    "image_size": 518,
+    "dataloader": "batch_size=1, shuffle=True, num_workers=4, pin_memory=True, seeded generator and worker init"
+  },
+  "precision": {"fp32": true, "amp": false, "tf32": false},
+  "preprocessing": {
+    "image": "seeded train augmentation; bicubic resize 518; CLIP normalization",
+    "mask": "nearest resize 518; thresholded binary mask",
+    "local_mask_valid": "ones subjected to the same geometric transforms and thresholded > 0.5"
+  },
+  "model_switches": {
+    "progress_version": "P1-v8.4-A",
+    "rho": 0.05,
+    "rho_trainable": false,
+    "hybrid_text": true,
+    "soft_prompt": false,
+    "update_load_bias": false
+  }
+}
