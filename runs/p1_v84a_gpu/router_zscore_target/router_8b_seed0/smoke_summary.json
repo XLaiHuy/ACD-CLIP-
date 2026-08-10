@@ -1,0 +1,1159 @@
+{
+  "act_runtime": {
+    "act_head_gradient_norm_before_step1": 0.0007813214906491339,
+    "act_output_bias_norm_initial": 0.0,
+    "act_output_weight_norm_after_step1": 0.0027643966022878885,
+    "act_output_weight_norm_before_step1": 0.0,
+    "act_output_weight_norm_initial": 0.0,
+    "act_probability_mean_after_step1": 0.5028887987136841,
+    "act_probability_mean_before_first_update": 0.5,
+    "local_correction_reconstruction_max_error": 0.0,
+    "main_gradient_exact_change_max": 0.0,
+    "post_step_supervised_batch": 7,
+    "post_step_support_count": 4107,
+    "post_step_upstream_act_gradient_norm": 0.0005606394843198359,
+    "post_step_upstream_act_weighted_gradient_norm": 4.1685905596404044e-08,
+    "post_step_zero_support_batches": [],
+    "residual_definition_max_error": 0.0,
+    "surgery_correction_reconstruction_error_max": 0.0
+  },
+  "checks": {
+    "act_forward_finite": true,
+    "act_gradient_alive": true,
+    "act_head_present": true,
+    "act_initial_mean_half": true,
+    "act_loss_finite": true,
+    "act_not_saturated": true,
+    "act_output_weight_initially_zero": true,
+    "act_output_weight_left_zero_after_step1": true,
+    "all_epoch_metrics_finite": true,
+    "class_vae_path_alive": true,
+    "exact_noop_residual_invariant": true,
+    "experts_off": true,
+    "factor_gradients_alive": true,
+    "factor_outputs_not_collapsed": true,
+    "legacy_auxiliaries_off": true,
+    "local_correction_reconstruction": true,
+    "main_gradient_exact_change_zero": true,
+    "optimizer_step_executed": true,
+    "optimizer_window_count_exact": true,
+    "post_step_upstream_act_path_reachable": true,
+    "residual_semantics_enabled": true,
+    "rho_fixed_005": true,
+    "rho_gradient_none": true,
+    "router_dense": true,
+    "router_gradient_alive": true,
+    "state_path_alive": true,
+    "surgery_correction_reconstruction": true,
+    "text_lora_alive": true,
+    "utility_losses_finite": true
+  },
+  "epoch": 1,
+  "failed": [],
+  "gpu_allocated_bytes": 2238446080,
+  "gpu_peak_allocated_bytes": 4039512064,
+  "gpu_peak_reserved_bytes": 4557111296,
+  "gpu_reserved_bytes": 4557111296,
+  "grad_accum_steps": 6,
+  "gradients": {
+    "act_head_grad_norm": 0.0001637788664083928,
+    "class_to_context_grad_norm": null,
+    "dfg_grad_norm": 8.959460501500871e-06,
+    "dynamic_prompt_shared_trunk_grad_norm": 0.00064890953944996,
+    "dynamic_residual_grad_norms": [
+      0.015852030366659164,
+      0.020789027214050293,
+      0.025799809023737907,
+      0.015941502526402473
+    ],
+    "factor_generator_context_grad_norm": null,
+    "factor_generator_head_grad_norms": null,
+    "factor_generator_identity_grad_norm": null,
+    "factor_grad_cos_max": 0.751401960849762,
+    "factor_grad_cos_mean": -0.3166714310646057,
+    "factor_grad_cos_min": -0.751401960849762,
+    "factor_grad_l2_min": 0.00020956824300810695,
+    "factor_grad_norms": [
+      0.00019993037858512253,
+      0.00016107101691886783,
+      0.0002177590358769521,
+      0.00015753139450680465
+    ],
+    "factor_id_projection_grad_norm": null,
+    "phase2b_image_adapter_grad_norm": 0.2369617074728012,
+    "phase2b_text_adapter_grad_norm": 0.1397852599620819,
+    "prototype_modules_grad_norm": 0.0004640552506316453,
+    "rho_gate_grad_norm": null,
+    "router_grad_norm": 4.47866550530307e-05,
+    "vae_decoder_grad_norm": 0.0018924534088000655,
+    "vae_logvar_grad_norm": 5.384005271480419e-05,
+    "vae_mu_grad_norm": 0.00010786472557811067
+  },
+  "losses": {
+    "task": 2.141704171895981,
+    "total": 2.1638263761997223,
+    "utility_act": 0.6945198029279709,
+    "utility_factor": 0.6349484175443649,
+    "utility_router": 1.2718975841999054
+  },
+  "optimizer_step_count": 2,
+  "rho": [
+    0.05000000074505806,
+    0.05000000074505806,
+    0.05000000074505806
+  ],
+  "runtime_telemetry": {
+    "batch_records": [
+      {
+        "act": {
+          "head_raw_gradient_norm": 0.0001637788664083928,
+          "head_weighted_gradient_norm": 1.217764812278452e-08,
+          "logits": {
+            "max": 0.0,
+            "mean": 0.0,
+            "min": 0.0,
+            "std": 0.0
+          },
+          "output_bias_norm": 0.0,
+          "output_weight_norm": 0.0,
+          "probability": {
+            "max": 0.5,
+            "mean": 0.5,
+            "min": 0.5,
+            "std": 0.0
+          },
+          "upstream_gradient_norm": null
+        },
+        "batch": 1,
+        "finite_gradients_after_backward": true,
+        "finite_parameters_after_step": true,
+        "finite_parameters_before": true,
+        "label_semantics": {
+          "ambiguous_mismatch_count": 0,
+          "negative_mismatch_count": 0,
+          "positive_mismatch_count": 0,
+          "routed_gain": {
+            "max": 0.0009404524462297559,
+            "mean": 0.00011340141645632684,
+            "min": -0.001067053759470582,
+            "std": 0.00029381609056144953
+          },
+          "threshold": 0.0
+        },
+        "optimizer_step": 1,
+        "optimizer_step_before": 0,
+        "reconstruction": {
+          "actual_gated_max_abs_error": 0.0,
+          "main_exact_change_max_abs_error": 0.0,
+          "residual_definition_max_abs_error": 0.0,
+          "routed_correction_max_abs_error": 0.0,
+          "surgery_max_abs_error": 0.0
+        },
+        "rho": [
+          0.05000000074505806,
+          0.05000000074505806,
+          0.05000000074505806
+        ],
+        "rho_trainable": false,
+        "support": {
+          "anomaly": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 3672,
+            "off": 3,
+            "off_fraction": 0.25,
+            "on": 9,
+            "on_fraction": 0.75,
+            "support_fraction": 1.0,
+            "valid": 12
+          },
+          "normal": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 3672,
+            "off": 1482,
+            "off_fraction": 0.40491804480552673,
+            "on": 2178,
+            "on_fraction": 0.5950819849967957,
+            "support_fraction": 1.0,
+            "valid": 3660
+          },
+          "overall": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 3672,
+            "off": 1485,
+            "off_fraction": 0.40441176295280457,
+            "on": 2187,
+            "on_fraction": 0.595588207244873,
+            "support_fraction": 1.0,
+            "valid": 3672
+          }
+        },
+        "utility": {
+          "ActualGated": {
+            "anomaly": 0.6830560564994812,
+            "normal": 0.7252320051193237,
+            "overall": 0.7250941395759583
+          },
+          "Base": {
+            "anomaly": 0.6830682754516602,
+            "normal": 0.7252739667892456,
+            "overall": 0.7251360416412354
+          },
+          "FullSoftRouted_ACT1": {
+            "anomaly": 0.6830438375473022,
+            "normal": 0.7251899838447571,
+            "overall": 0.7250522375106812
+          },
+          "g_route": {
+            "anomaly": 3.4579970815684646e-05,
+            "normal": 0.00011365985847078264,
+            "overall": 0.00011340141645632684
+          }
+        }
+      },
+      {
+        "act": {
+          "head_raw_gradient_norm": 0.0003907232894562185,
+          "head_weighted_gradient_norm": 2.9051921268707017e-08,
+          "logits": {
+            "max": 0.0,
+            "mean": 0.0,
+            "min": 0.0,
+            "std": 0.0
+          },
+          "output_bias_norm": 0.0,
+          "output_weight_norm": 0.0,
+          "probability": {
+            "max": 0.5,
+            "mean": 0.5,
+            "min": 0.5,
+            "std": 0.0
+          },
+          "upstream_gradient_norm": null
+        },
+        "batch": 2,
+        "finite_gradients_after_backward": true,
+        "finite_parameters_after_step": true,
+        "finite_parameters_before": true,
+        "label_semantics": {
+          "ambiguous_mismatch_count": 0,
+          "negative_mismatch_count": 0,
+          "positive_mismatch_count": 0,
+          "routed_gain": {
+            "max": 0.0012433197116479278,
+            "mean": 0.0002627651847433299,
+            "min": -0.0004250715719535947,
+            "std": 0.0003514676645863801
+          },
+          "threshold": 0.0
+        },
+        "optimizer_step": 1,
+        "optimizer_step_before": 0,
+        "reconstruction": {
+          "actual_gated_max_abs_error": 0.0,
+          "main_exact_change_max_abs_error": 0.0,
+          "residual_definition_max_abs_error": 0.0,
+          "routed_correction_max_abs_error": 0.0,
+          "surgery_max_abs_error": 0.0
+        },
+        "rho": [
+          0.05000000074505806,
+          0.05000000074505806,
+          0.05000000074505806
+        ],
+        "rho_trainable": false,
+        "support": {
+          "anomaly": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 3819,
+            "off": 0,
+            "off_fraction": 0.0,
+            "on": 0,
+            "on_fraction": 0.0,
+            "support_fraction": 0.0,
+            "valid": 0
+          },
+          "normal": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 3819,
+            "off": 1200,
+            "off_fraction": 0.3142183721065521,
+            "on": 2619,
+            "on_fraction": 0.6857815980911255,
+            "support_fraction": 1.0,
+            "valid": 3819
+          },
+          "overall": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 3819,
+            "off": 1200,
+            "off_fraction": 0.3142183721065521,
+            "on": 2619,
+            "on_fraction": 0.6857815980911255,
+            "support_fraction": 1.0,
+            "valid": 3819
+          }
+        },
+        "utility": {
+          "ActualGated": {
+            "anomaly": 0.0,
+            "normal": 0.7079312205314636,
+            "overall": 0.7079312205314636
+          },
+          "Base": {
+            "anomaly": 0.0,
+            "normal": 0.7080274820327759,
+            "overall": 0.7080274820327759
+          },
+          "FullSoftRouted_ACT1": {
+            "anomaly": 0.0,
+            "normal": 0.7078349590301514,
+            "overall": 0.7078349590301514
+          },
+          "g_route": {
+            "anomaly": 0.0,
+            "normal": 0.0002627651847433299,
+            "overall": 0.0002627651847433299
+          }
+        }
+      },
+      {
+        "act": {
+          "head_raw_gradient_norm": 0.000399891403503716,
+          "head_weighted_gradient_norm": 2.973360914009322e-08,
+          "logits": {
+            "max": 0.0,
+            "mean": 0.0,
+            "min": 0.0,
+            "std": 0.0
+          },
+          "output_bias_norm": 0.0,
+          "output_weight_norm": 0.0,
+          "probability": {
+            "max": 0.5,
+            "mean": 0.5,
+            "min": 0.5,
+            "std": 0.0
+          },
+          "upstream_gradient_norm": null
+        },
+        "batch": 3,
+        "finite_gradients_after_backward": true,
+        "finite_parameters_after_step": true,
+        "finite_parameters_before": true,
+        "label_semantics": {
+          "ambiguous_mismatch_count": 0,
+          "negative_mismatch_count": 0,
+          "positive_mismatch_count": 0,
+          "routed_gain": {
+            "max": 0.000749036087654531,
+            "mean": -8.256908768089488e-05,
+            "min": -0.000953042705077678,
+            "std": 0.00020786956883966923
+          },
+          "threshold": 0.0
+        },
+        "optimizer_step": 1,
+        "optimizer_step_before": 0,
+        "reconstruction": {
+          "actual_gated_max_abs_error": 0.0,
+          "main_exact_change_max_abs_error": 0.0,
+          "residual_definition_max_abs_error": 0.0,
+          "routed_correction_max_abs_error": 0.0,
+          "surgery_max_abs_error": 0.0
+        },
+        "rho": [
+          0.05000000074505806,
+          0.05000000074505806,
+          0.05000000074505806
+        ],
+        "rho_trainable": false,
+        "support": {
+          "anomaly": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 2976,
+            "off": 0,
+            "off_fraction": 0.0,
+            "on": 0,
+            "on_fraction": 0.0,
+            "support_fraction": 0.0,
+            "valid": 0
+          },
+          "normal": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 2976,
+            "off": 2066,
+            "off_fraction": 0.6942204236984253,
+            "on": 910,
+            "on_fraction": 0.3057795763015747,
+            "support_fraction": 1.0,
+            "valid": 2976
+          },
+          "overall": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 2976,
+            "off": 2066,
+            "off_fraction": 0.6942204236984253,
+            "on": 910,
+            "on_fraction": 0.3057795763015747,
+            "support_fraction": 1.0,
+            "valid": 2976
+          }
+        },
+        "utility": {
+          "ActualGated": {
+            "anomaly": 0.0,
+            "normal": 0.6991315484046936,
+            "overall": 0.6991315484046936
+          },
+          "Base": {
+            "anomaly": 0.0,
+            "normal": 0.6991031765937805,
+            "overall": 0.6991031765937805
+          },
+          "FullSoftRouted_ACT1": {
+            "anomaly": 0.0,
+            "normal": 0.6991598606109619,
+            "overall": 0.6991598606109619
+          },
+          "g_route": {
+            "anomaly": 0.0,
+            "normal": -8.256908768089488e-05,
+            "overall": -8.256908768089488e-05
+          }
+        }
+      },
+      {
+        "act": {
+          "head_raw_gradient_norm": 0.000527910771779716,
+          "head_weighted_gradient_norm": 3.925238805189061e-08,
+          "logits": {
+            "max": 0.0,
+            "mean": 0.0,
+            "min": 0.0,
+            "std": 0.0
+          },
+          "output_bias_norm": 0.0,
+          "output_weight_norm": 0.0,
+          "probability": {
+            "max": 0.5,
+            "mean": 0.5,
+            "min": 0.5,
+            "std": 0.0
+          },
+          "upstream_gradient_norm": null
+        },
+        "batch": 4,
+        "finite_gradients_after_backward": true,
+        "finite_parameters_after_step": true,
+        "finite_parameters_before": true,
+        "label_semantics": {
+          "ambiguous_mismatch_count": 0,
+          "negative_mismatch_count": 0,
+          "positive_mismatch_count": 0,
+          "routed_gain": {
+            "max": 0.0007884739898145199,
+            "mean": 7.724691386101767e-05,
+            "min": -0.0005318202311173081,
+            "std": 0.0002106163592543453
+          },
+          "threshold": 0.0
+        },
+        "optimizer_step": 1,
+        "optimizer_step_before": 0,
+        "reconstruction": {
+          "actual_gated_max_abs_error": 0.0,
+          "main_exact_change_max_abs_error": 0.0,
+          "residual_definition_max_abs_error": 0.0,
+          "routed_correction_max_abs_error": 0.0,
+          "surgery_max_abs_error": 0.0
+        },
+        "rho": [
+          0.05000000074505806,
+          0.05000000074505806,
+          0.05000000074505806
+        ],
+        "rho_trainable": false,
+        "support": {
+          "anomaly": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 4107,
+            "off": 0,
+            "off_fraction": 0.0,
+            "on": 0,
+            "on_fraction": 0.0,
+            "support_fraction": 0.0,
+            "valid": 0
+          },
+          "normal": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 4107,
+            "off": 1787,
+            "off_fraction": 0.43511080741882324,
+            "on": 2320,
+            "on_fraction": 0.5648892521858215,
+            "support_fraction": 1.0,
+            "valid": 4107
+          },
+          "overall": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 4107,
+            "off": 1787,
+            "off_fraction": 0.43511080741882324,
+            "on": 2320,
+            "on_fraction": 0.5648892521858215,
+            "support_fraction": 1.0,
+            "valid": 4107
+          }
+        },
+        "utility": {
+          "ActualGated": {
+            "anomaly": 0.0,
+            "normal": 0.7170066237449646,
+            "overall": 0.7170066237449646
+          },
+          "Base": {
+            "anomaly": 0.0,
+            "normal": 0.7170353531837463,
+            "overall": 0.7170353531837463
+          },
+          "FullSoftRouted_ACT1": {
+            "anomaly": 0.0,
+            "normal": 0.7169778347015381,
+            "overall": 0.7169778347015381
+          },
+          "g_route": {
+            "anomaly": 0.0,
+            "normal": 7.724691386101767e-05,
+            "overall": 7.724691386101767e-05
+          }
+        }
+      },
+      {
+        "act": {
+          "head_raw_gradient_norm": 0.0006449460051953793,
+          "head_weighted_gradient_norm": 4.7954450300569514e-08,
+          "logits": {
+            "max": 0.0,
+            "mean": 0.0,
+            "min": 0.0,
+            "std": 0.0
+          },
+          "output_bias_norm": 0.0,
+          "output_weight_norm": 0.0,
+          "probability": {
+            "max": 0.5,
+            "mean": 0.5,
+            "min": 0.5,
+            "std": 0.0
+          },
+          "upstream_gradient_norm": null
+        },
+        "batch": 5,
+        "finite_gradients_after_backward": true,
+        "finite_parameters_after_step": true,
+        "finite_parameters_before": true,
+        "label_semantics": {
+          "ambiguous_mismatch_count": 0,
+          "negative_mismatch_count": 0,
+          "positive_mismatch_count": 0,
+          "routed_gain": {
+            "max": 0.0009375230292789638,
+            "mean": 0.00018466041365172714,
+            "min": -0.0004778713046107441,
+            "std": 0.0001957592903636396
+          },
+          "threshold": 0.0
+        },
+        "optimizer_step": 1,
+        "optimizer_step_before": 0,
+        "reconstruction": {
+          "actual_gated_max_abs_error": 0.0,
+          "main_exact_change_max_abs_error": 0.0,
+          "residual_definition_max_abs_error": 0.0,
+          "routed_correction_max_abs_error": 0.0,
+          "surgery_max_abs_error": 0.0
+        },
+        "rho": [
+          0.05000000074505806,
+          0.05000000074505806,
+          0.05000000074505806
+        ],
+        "rho_trainable": false,
+        "support": {
+          "anomaly": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 3783,
+            "off": 0,
+            "off_fraction": 0.0,
+            "on": 0,
+            "on_fraction": 0.0,
+            "support_fraction": 0.0,
+            "valid": 0
+          },
+          "normal": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 3783,
+            "off": 729,
+            "off_fraction": 0.1927042007446289,
+            "on": 3054,
+            "on_fraction": 0.8072957396507263,
+            "support_fraction": 0.9999999403953552,
+            "valid": 3783
+          },
+          "overall": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 3783,
+            "off": 729,
+            "off_fraction": 0.1927042007446289,
+            "on": 3054,
+            "on_fraction": 0.8072957396507263,
+            "support_fraction": 0.9999999403953552,
+            "valid": 3783
+          }
+        },
+        "utility": {
+          "ActualGated": {
+            "anomaly": 0.0,
+            "normal": 0.7472236156463623,
+            "overall": 0.7472236156463623
+          },
+          "Base": {
+            "anomaly": 0.0,
+            "normal": 0.7472922801971436,
+            "overall": 0.7472922801971436
+          },
+          "FullSoftRouted_ACT1": {
+            "anomaly": 0.0,
+            "normal": 0.7471550107002258,
+            "overall": 0.7471550107002258
+          },
+          "g_route": {
+            "anomaly": 0.0,
+            "normal": 0.00018466041365172714,
+            "overall": 0.00018466041365172714
+          }
+        }
+      },
+      {
+        "act": {
+          "head_raw_gradient_norm": 0.0007813214906491339,
+          "head_weighted_gradient_norm": 5.8094541698495073e-08,
+          "logits": {
+            "max": 0.0,
+            "mean": 0.0,
+            "min": 0.0,
+            "std": 0.0
+          },
+          "output_bias_norm": 0.0,
+          "output_weight_norm": 0.0,
+          "probability": {
+            "max": 0.5,
+            "mean": 0.5,
+            "min": 0.5,
+            "std": 0.0
+          },
+          "upstream_gradient_norm": null
+        },
+        "batch": 6,
+        "finite_gradients_after_backward": true,
+        "finite_parameters_after_step": true,
+        "finite_parameters_before": true,
+        "label_semantics": {
+          "ambiguous_mismatch_count": 0,
+          "negative_mismatch_count": 0,
+          "positive_mismatch_count": 0,
+          "routed_gain": {
+            "max": 0.001015631714835763,
+            "mean": 0.00013136000779923052,
+            "min": -0.0005328196566551924,
+            "std": 0.0002512792416382581
+          },
+          "threshold": 0.0
+        },
+        "optimizer_step": 1,
+        "optimizer_step_before": 0,
+        "reconstruction": {
+          "actual_gated_max_abs_error": 0.0,
+          "main_exact_change_max_abs_error": 0.0,
+          "residual_definition_max_abs_error": 0.0,
+          "routed_correction_max_abs_error": 0.0,
+          "surgery_max_abs_error": 0.0
+        },
+        "rho": [
+          0.05000000074505806,
+          0.05000000074505806,
+          0.05000000074505806
+        ],
+        "rho_trainable": false,
+        "support": {
+          "anomaly": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 3495,
+            "off": 0,
+            "off_fraction": 0.0,
+            "on": 0,
+            "on_fraction": 0.0,
+            "support_fraction": 0.0,
+            "valid": 0
+          },
+          "normal": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 3495,
+            "off": 1243,
+            "off_fraction": 0.355650931596756,
+            "on": 2252,
+            "on_fraction": 0.6443490982055664,
+            "support_fraction": 1.0,
+            "valid": 3495
+          },
+          "overall": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 3495,
+            "off": 1243,
+            "off_fraction": 0.355650931596756,
+            "on": 2252,
+            "on_fraction": 0.6443490982055664,
+            "support_fraction": 1.0,
+            "valid": 3495
+          }
+        },
+        "utility": {
+          "ActualGated": {
+            "anomaly": 0.0,
+            "normal": 0.7057145237922668,
+            "overall": 0.7057145237922668
+          },
+          "Base": {
+            "anomaly": 0.0,
+            "normal": 0.7057603597640991,
+            "overall": 0.7057603597640991
+          },
+          "FullSoftRouted_ACT1": {
+            "anomaly": 0.0,
+            "normal": 0.7056686878204346,
+            "overall": 0.7056686878204346
+          },
+          "g_route": {
+            "anomaly": 0.0,
+            "normal": 0.00013136000779923052,
+            "overall": 0.00013136000779923052
+          }
+        }
+      },
+      {
+        "act": {
+          "head_raw_gradient_norm": 0.0009955634595826268,
+          "head_weighted_gradient_norm": 7.402433391172847e-08,
+          "logits": {
+            "max": 0.05278068408370018,
+            "mean": 0.01166123989969492,
+            "min": -0.012070024386048317,
+            "std": 0.023756491020321846
+          },
+          "output_bias_norm": 9.996681910706684e-05,
+          "output_weight_norm": 0.0027643966022878885,
+          "probability": {
+            "max": 0.5131921172142029,
+            "mean": 0.5029147267341614,
+            "min": 0.49698254466056824,
+            "std": 0.005938224960118532
+          },
+          "upstream_gradient_norm": 0.0005606394843198359
+        },
+        "batch": 7,
+        "finite_gradients_after_backward": true,
+        "finite_parameters_after_step": true,
+        "finite_parameters_before": true,
+        "label_semantics": {
+          "ambiguous_mismatch_count": 0,
+          "negative_mismatch_count": 0,
+          "positive_mismatch_count": 0,
+          "routed_gain": {
+            "max": 0.0002766058314591646,
+            "mean": -0.0009591859998181462,
+            "min": -0.0015897854464128613,
+            "std": 0.00027773246983997524
+          },
+          "threshold": 0.0
+        },
+        "optimizer_step": 2,
+        "optimizer_step_before": 1,
+        "reconstruction": {
+          "actual_gated_max_abs_error": 0.0,
+          "main_exact_change_max_abs_error": 0.0,
+          "residual_definition_max_abs_error": 0.0,
+          "routed_correction_max_abs_error": 0.0,
+          "surgery_max_abs_error": 0.0
+        },
+        "rho": [
+          0.05000000074505806,
+          0.05000000074505806,
+          0.05000000074505806
+        ],
+        "rho_trainable": false,
+        "support": {
+          "anomaly": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 4107,
+            "off": 0,
+            "off_fraction": 0.0,
+            "on": 0,
+            "on_fraction": 0.0,
+            "support_fraction": 0.0,
+            "valid": 0
+          },
+          "normal": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 4107,
+            "off": 4093,
+            "off_fraction": 0.9965912103652954,
+            "on": 14,
+            "on_fraction": 0.003408814314752817,
+            "support_fraction": 1.0,
+            "valid": 4107
+          },
+          "overall": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 4107,
+            "off": 4093,
+            "off_fraction": 0.9965912103652954,
+            "on": 14,
+            "on_fraction": 0.003408814314752817,
+            "support_fraction": 1.0,
+            "valid": 4107
+          }
+        },
+        "utility": {
+          "ActualGated": {
+            "anomaly": 0.0,
+            "normal": 0.43827947974205017,
+            "overall": 0.43827947974205017
+          },
+          "Base": {
+            "anomaly": 0.0,
+            "normal": 0.4380713403224945,
+            "overall": 0.4380713403224945
+          },
+          "FullSoftRouted_ACT1": {
+            "anomaly": 0.0,
+            "normal": 0.4384855329990387,
+            "overall": 0.4384855329990387
+          },
+          "g_route": {
+            "anomaly": 0.0,
+            "normal": -0.0009591859998181462,
+            "overall": -0.0009591859998181462
+          }
+        }
+      },
+      {
+        "act": {
+          "head_raw_gradient_norm": 0.001750302966684103,
+          "head_weighted_gradient_norm": 1.3014239324013654e-07,
+          "logits": {
+            "max": 0.051159173250198364,
+            "mean": 0.011510131880640984,
+            "min": -0.012659729458391666,
+            "std": 0.02339879237115383
+          },
+          "output_bias_norm": 9.996681910706684e-05,
+          "output_weight_norm": 0.0027643966022878885,
+          "probability": {
+            "max": 0.5127870440483093,
+            "mean": 0.5028769373893738,
+            "min": 0.4968351125717163,
+            "std": 0.005848838482052088
+          },
+          "upstream_gradient_norm": null
+        },
+        "batch": 8,
+        "finite_gradients_after_backward": true,
+        "finite_parameters_after_step": true,
+        "finite_parameters_before": true,
+        "label_semantics": {
+          "ambiguous_mismatch_count": 0,
+          "negative_mismatch_count": 0,
+          "positive_mismatch_count": 0,
+          "routed_gain": {
+            "max": 0.0002634343400131911,
+            "mean": -0.0009789642645046115,
+            "min": -0.0020196964032948017,
+            "std": 0.00046398508129641414
+          },
+          "threshold": 0.0
+        },
+        "optimizer_step": 2,
+        "optimizer_step_before": 1,
+        "reconstruction": {
+          "actual_gated_max_abs_error": 0.0,
+          "main_exact_change_max_abs_error": 0.0,
+          "residual_definition_max_abs_error": 0.0,
+          "routed_correction_max_abs_error": 0.0,
+          "surgery_max_abs_error": 0.0
+        },
+        "rho": [
+          0.05000000074505806,
+          0.05000000074505806,
+          0.05000000074505806
+        ],
+        "rho_trainable": false,
+        "support": {
+          "anomaly": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 3675,
+            "off": 0,
+            "off_fraction": 0.0,
+            "on": 0,
+            "on_fraction": 0.0,
+            "support_fraction": 0.0,
+            "valid": 0
+          },
+          "normal": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 3675,
+            "off": 3616,
+            "off_fraction": 0.9839456081390381,
+            "on": 59,
+            "on_fraction": 0.016054421663284302,
+            "support_fraction": 1.0,
+            "valid": 3675
+          },
+          "overall": {
+            "ambiguous": 0,
+            "ambiguous_fraction": 0.0,
+            "global_valid": 3675,
+            "off": 3616,
+            "off_fraction": 0.9839456081390381,
+            "on": 59,
+            "on_fraction": 0.016054421663284302,
+            "support_fraction": 1.0,
+            "valid": 3675
+          }
+        },
+        "utility": {
+          "ActualGated": {
+            "anomaly": 0.0,
+            "normal": 0.3481980264186859,
+            "overall": 0.3481980264186859
+          },
+          "Base": {
+            "anomaly": 0.0,
+            "normal": 0.3480398654937744,
+            "overall": 0.3480398654937744
+          },
+          "FullSoftRouted_ACT1": {
+            "anomaly": 0.0,
+            "normal": 0.34835541248321533,
+            "overall": 0.34835541248321533
+          },
+          "g_route": {
+            "anomaly": 0.0,
+            "normal": -0.0009789642645046115,
+            "overall": -0.0009789642645046115
+          }
+        }
+      }
+    ],
+    "optimizer_step_records": [
+      {
+        "act": {
+          "head_raw_gradient_norm_before_step": 0.0007813214906491339,
+          "head_weighted_gradient_norm_before_step": 5.8094541698495073e-08,
+          "output_bias_norm_after_step": 9.996681910706684e-05,
+          "output_bias_norm_before_step": 0.0,
+          "output_weight_norm_after_step": 0.0027643966022878885,
+          "output_weight_norm_before_step": 0.0,
+          "probability_mean_after_step": 0.5028887987136841,
+          "probability_mean_before_step": 0.5,
+          "upstream_gradient_norms_after_previous_step": []
+        },
+        "batch_range": [
+          1,
+          6
+        ],
+        "finite_gradients_before_step": true,
+        "finite_parameters_after_step": true,
+        "gradient_scale": {
+          "definition": "ACT head total raw gradient norm before step divided by primary-anchored shared MAIN gradient norm before step; weighted ratio multiplies raw ratio by lambda_act",
+          "main_gradient_norm_before_step": 0.0024698495399206877,
+          "raw_ratio": 0.31634376022525806,
+          "weighted_ratio": 2.3521490179665203e-05
+        },
+        "microbatch_count": 6,
+        "optimizer_step": 1,
+        "reconstruction": {
+          "actual_gated_max_abs_error": 0.0,
+          "main_exact_change_max_abs_error": 0.0,
+          "residual_definition_max_abs_error": 0.0,
+          "routed_correction_max_abs_error": 0.0,
+          "surgery_max_abs_error": 0.0
+        },
+        "rho": [
+          0.05000000074505806,
+          0.05000000074505806,
+          0.05000000074505806
+        ],
+        "rho_trainable": false
+      },
+      {
+        "act": {
+          "head_raw_gradient_norm_before_step": 0.001750302966684103,
+          "head_weighted_gradient_norm_before_step": 1.3014239324013654e-07,
+          "output_bias_norm_after_step": 4.627654925570823e-05,
+          "output_bias_norm_before_step": 9.996681910706684e-05,
+          "output_weight_norm_after_step": 0.003775080433115363,
+          "output_weight_norm_before_step": 0.0027643966022878885,
+          "probability_mean_after_step": null,
+          "probability_mean_before_step": 0.5028769373893738,
+          "upstream_gradient_norms_after_previous_step": [
+            0.0005606394843198359
+          ]
+        },
+        "batch_range": [
+          7,
+          8
+        ],
+        "finite_gradients_before_step": true,
+        "finite_parameters_after_step": true,
+        "gradient_scale": {
+          "definition": "ACT head total raw gradient norm before step divided by primary-anchored shared MAIN gradient norm before step; weighted ratio multiplies raw ratio by lambda_act",
+          "main_gradient_norm_before_step": 0.0016128643183037639,
+          "raw_ratio": 1.0852140175838736,
+          "weighted_ratio": 8.069023027120238e-05
+        },
+        "microbatch_count": 2,
+        "optimizer_step": 2,
+        "reconstruction": {
+          "actual_gated_max_abs_error": 0.0,
+          "main_exact_change_max_abs_error": 0.0,
+          "residual_definition_max_abs_error": 0.0,
+          "routed_correction_max_abs_error": 0.0,
+          "surgery_max_abs_error": 0.0
+        },
+        "rho": [
+          0.05000000074505806,
+          0.05000000074505806,
+          0.05000000074505806
+        ],
+        "rho_trainable": false
+      }
+    ]
+  },
+  "sample_count": 8,
+  "status": "PASS",
+  "structure": {
+    "absolute_factor_correlation_mean": 0.62728351354599,
+    "absolute_factor_effective_rank": 1.938968539237976,
+    "absolute_vs_residual_variance_ratio": 0.32759419083595276,
+    "factor_embedding_effective_rank": 1.0047193765640259,
+    "factor_embedding_pairwise_cosine_max": 0.9994701147079468,
+    "factor_embedding_pairwise_cosine_mean": 0.9993495941162109,
+    "factor_embedding_pairwise_cosine_min": 0.999237060546875,
+    "factor_embedding_pairwise_l2_max": 0.09453656524419785,
+    "factor_embedding_pairwise_l2_mean": 0.08700612932443619,
+    "factor_embedding_pairwise_l2_min": 0.07850781083106995,
+    "factor_patch_outputs_exactly_collapsed": 0.0,
+    "factor_patch_pairwise_correlation_max": 0.8408799767494202,
+    "factor_patch_pairwise_correlation_mean": 0.62728351354599,
+    "factor_patch_pairwise_correlation_min": 0.46127060055732727,
+    "factor_patch_pairwise_max_difference": 0.27005529403686523,
+    "factor_patch_std_across_factors": 0.049610719084739685,
+    "residual_factor_correlation_max": 0.3293040096759796,
+    "residual_factor_correlation_mean": -0.28735101222991943,
+    "residual_factor_correlation_min": -0.702018141746521,
+    "residual_factor_effective_rank": 2.5509133338928223,
+    "residual_negative_fraction": 0.4781775176525116,
+    "residual_positive_fraction": 0.5218225717544556,
+    "state_pairwise_l2_max": 0.20469771325588226,
+    "state_pairwise_l2_mean": 0.19163541495800018,
+    "state_pairwise_l2_min": 0.18243731558322906
+  },
+  "utility": {
+    "Base": 0.6360582113265991,
+    "BestSingle": 0.6354739665985107,
+    "G_local": 0.002156955888494849,
+    "G_multi": 0.0012159569887444377,
+    "HardRouted": 0.6361120343208313,
+    "L_base": 0.6360582113265991,
+    "L_per_factor": [
+      0.6355546116828918,
+      0.6358535885810852,
+      0.6362664103507996,
+      0.63665771484375
+    ],
+    "OracleMulti": 0.6346806287765503,
+    "OracleWithNoOp": 0.6346790790557861,
+    "SoftRouted": 0.6360861659049988,
+    "Uniform": 0.6360822319984436,
+    "act_probability_anomaly_mean": 0.0625,
+    "act_probability_mean": 0.500728964805603,
+    "act_probability_normal_mean": 0.500728964805603,
+    "act_support_fraction": 1.0,
+    "act_target_ambiguous_anomaly_fraction": 0.0,
+    "act_target_ambiguous_fraction": 0.0,
+    "act_target_ambiguous_normal_fraction": 0.0,
+    "act_target_negative_anomaly_fraction": 0.03125,
+    "act_target_negative_fraction": 0.5471066236495972,
+    "act_target_negative_normal_fraction": 0.5471699237823486,
+    "act_target_positive_anomaly_fraction": 0.09375,
+    "act_target_positive_fraction": 0.45289334654808044,
+    "act_target_positive_normal_fraction": 0.45283007621765137,
+    "all_harm_fraction": 0.022961998358368874,
+    "base_denominator_valid": 1.0,
+    "best_second_utility_margin": 0.0015177696477621794,
+    "capture": -0.003073491156101227,
+    "capture_denominator": 0.001401614397764206,
+    "capture_valid": 1.0,
+    "exploration_epsilon": 0.14999999105930328,
+    "gain_rel_mean": -0.00015157795860432088,
+    "informative_fraction": 0.915221631526947,
+    "noop_selected_fraction": 0.022961998358368874,
+    "noop_winner_shares": [
+      0.022961998358368874,
+      0.33116844296455383,
+      0.349111407995224,
+      0.18654361367225647,
+      0.11021456122398376
+    ],
+    "router_entropy": 0.9990249872207642,
+    "router_top1_agreement": 0.26135581731796265,
+    "router_usage": [
+      0.24762985110282898,
+      0.24656370282173157,
+      0.25227048993110657,
+      0.2535359561443329
+    ],
+    "teacher_entropy": 0.7383162975311279,
+    "teacher_max_probability": 0.5734166502952576,
+    "teacher_router_KL": 0.37367573380470276,
+    "winner_shares": [
+      0.3330795168876648,
+      0.34974515438079834,
+      0.20645585656166077,
+      0.11071944981813431
+    ]
+  }
+}

@@ -1,0 +1,635 @@
+{
+  "batches_executed": 8,
+  "canonical_training_configuration_unchanged_by_sensitivity": true,
+  "expected_optimizer_steps": 2,
+  "final_cumulative": {
+    "Base": 0.6331881284713745,
+    "BestSingle": 0.6326945424079895,
+    "G_local": 0.0021298800129443407,
+    "G_multi": 0.0013503547525033355,
+    "HardRouted": 0.6332481503486633,
+    "L_base": 0.6331881284713745,
+    "L_per_factor": [
+      0.6326945424079895,
+      0.6329746246337891,
+      0.633396565914154,
+      0.6337966322898865
+    ],
+    "OracleMulti": 0.6318395137786865,
+    "OracleWithNoOp": 0.631837785243988,
+    "SoftRouted": 0.6332188248634338,
+    "Uniform": 0.6332148313522339,
+    "act": {
+      "g_route_act_probability_correlation": {
+        "anomaly": null,
+        "normal": -0.1678835153579712,
+        "overall": -0.1679094433784485
+      },
+      "logit_anomaly_stats": {
+        "mean": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "std": 0.0
+      },
+      "logit_normal_stats": {
+        "mean": 0.0030647374223917723,
+        "p05": -0.008700086735188961,
+        "p50": 0.0,
+        "p95": 0.044424764811992645,
+        "std": 0.013161076232790947
+      },
+      "logit_stats": {
+        "mean": 0.003063496435061097,
+        "p01": -0.010217685252428055,
+        "p05": -0.008699484169483185,
+        "p50": 0.0,
+        "p95": 0.044422801584005356,
+        "p99": 0.04728057235479355,
+        "std": 0.013158555142581463
+      },
+      "probability_anomaly_mean": 0.5,
+      "probability_anomaly_stats": {
+        "mean": 0.5,
+        "p05": 0.5,
+        "p50": 0.5,
+        "p95": 0.5,
+        "std": 0.0
+      },
+      "probability_mean": 0.5007656812667847,
+      "probability_normal_mean": 0.5007659792900085,
+      "probability_normal_stats": {
+        "mean": 0.5007659792900085,
+        "p05": 0.4978249967098236,
+        "p50": 0.5,
+        "p95": 0.5111043453216553,
+        "std": 0.0032897440250962973
+      },
+      "probability_off_anomaly_mean": 0.5,
+      "probability_off_mean": 0.5013493299484253,
+      "probability_off_normal_mean": 0.5013496279716492,
+      "probability_on_anomaly_mean": 0.5,
+      "probability_on_mean": 0.5000600814819336,
+      "probability_on_normal_mean": 0.5000600814819336,
+      "probability_stats": {
+        "mean": 0.5007656812667847,
+        "p01": 0.49744555354118347,
+        "p05": 0.49782514572143555,
+        "p50": 0.5,
+        "p95": 0.5111038684844971,
+        "p99": 0.5118179321289062,
+        "std": 0.00328911398537457
+      },
+      "separation": -0.0012892484664916992,
+      "separation_anomaly": 0.0,
+      "separation_normal": -0.0012895464897155762,
+      "target_ambiguous_anomaly_fraction": 0.0,
+      "target_ambiguous_fraction": 0.0,
+      "target_ambiguous_normal_fraction": 0.0,
+      "target_negative_anomaly_fraction": 0.25,
+      "target_negative_fraction": 0.5473105311393738,
+      "target_negative_normal_fraction": 0.5474309921264648,
+      "target_positive_anomaly_fraction": 0.75,
+      "target_positive_fraction": 0.4526894688606262,
+      "target_positive_normal_fraction": 0.45256903767585754,
+      "teacher_act_cross_tab": {
+        "anomaly": {
+          "act_high_fraction": 1.0,
+          "teacher_off_act_high": 3,
+          "teacher_off_act_low": 0,
+          "teacher_on_act_high": 9,
+          "teacher_on_act_low": 0,
+          "valid_count": 12
+        },
+        "normal": {
+          "act_high_fraction": 0.8577408682735804,
+          "teacher_off_act_high": 12002,
+          "teacher_off_act_low": 4214,
+          "teacher_on_act_high": 13406,
+          "teacher_on_act_low": 0,
+          "valid_count": 29622
+        },
+        "overall": {
+          "act_high_fraction": 0.857798474724978,
+          "teacher_off_act_high": 12005,
+          "teacher_off_act_low": 4214,
+          "teacher_on_act_high": 13415,
+          "teacher_on_act_low": 0,
+          "valid_count": 29634
+        }
+      },
+      "teacher_auroc": 0.5243241190910339,
+      "utility_act_loss": 0.6945197582244873
+    },
+    "all_harm_fraction": 0.025376256555318832,
+    "base_denominator_valid": true,
+    "best_gain_rel": {
+      "mean": 0.002118761418387294,
+      "p50": 0.0020744390785694122,
+      "p75": 0.0028095990419387817,
+      "p90": 0.00359866744838655,
+      "p95": 0.004057100974023342,
+      "p99": 0.004911589901894331,
+      "std": 0.0011063212295994163
+    },
+    "best_second_utility_margin": 0.0015177694149315357,
+    "best_second_utility_margin_distribution": {
+      "mean": 0.0014929838944226503,
+      "p50": 0.0011393593158572912,
+      "p90": 0.0033281154464930296,
+      "p95": 0.004033595323562622,
+      "p99": 0.0052825044840574265,
+      "std": 0.001256207819096744
+    },
+    "capture": -0.002903701039031148,
+    "capture_denominator": 0.0013753175735473633,
+    "capture_valid": true,
+    "entropy_threshold": 0.98,
+    "entropy_threshold_pass_fraction": 1.0,
+    "gain_rel_mean": -0.00015993363922461867,
+    "gain_threshold": 0.02,
+    "gain_threshold_pass_fraction": 0.0,
+    "informative_fraction": 0.9121617061483431,
+    "noop_selected_fraction": 0.025376256555318832,
+    "noop_winner_shares": [
+      0.025376256555318832,
+      0.32685428857803345,
+      0.35452520847320557,
+      0.1830667406320572,
+      0.11017750203609467
+    ],
+    "normal_anomaly_breakdown": {
+      "anomaly": {
+        "all_harm_fraction": 0.0,
+        "best_gain_rel_mean": 0.0014061786932870746,
+        "gain_rel_mean": 3.767863745451905e-05,
+        "informative_fraction": 1.0,
+        "margin_rel_pass_fraction": 1.0,
+        "teacher_entropy_mean": 0.7124736309051514,
+        "valid_patch_count": 12
+      },
+      "normal": {
+        "all_harm_fraction": 0.025386536493897438,
+        "best_gain_rel_mean": 0.0021190503612160683,
+        "gain_rel_mean": -0.00016001371841412038,
+        "informative_fraction": 0.9121261239051819,
+        "margin_rel_pass_fraction": 0.9121261224765377,
+        "teacher_entropy_mean": 0.7398462891578674,
+        "valid_patch_count": 29622
+      }
+    },
+    "normalized_teacher_entropy": {
+      "mean": 0.7398351430892944,
+      "p01": 0.5753639340400696,
+      "p05": 0.5945523977279663,
+      "p10": 0.617883563041687,
+      "p50": 0.7579367160797119,
+      "p90": 0.8339349627494812,
+      "std": 0.07773518562316895
+    },
+    "routed_gain_nonpositive_fraction": 0.5473105311393738,
+    "routed_gain_positive_fraction": 0.4526894688606262,
+    "routed_gain_rel": {
+      "mean": -0.00016494427109137177,
+      "p01": -0.0016104999231174588,
+      "p05": -0.0012772097252309322,
+      "p10": -0.0010921800276264548,
+      "p25": -0.0004164842830505222,
+      "p50": -2.9944432753836736e-05,
+      "p75": 0.00020468341244850308,
+      "p90": 0.0004336551355663687,
+      "p95": 0.0005900896503590047,
+      "p99": 0.0008415365009568632,
+      "std": 0.0005695388535968959
+    },
+    "router_confidence_mode": "margin_rel",
+    "router_entropy": 0.9990298748016357,
+    "router_margin_abs_distribution": {
+      "mean": 0.0014929838944226503,
+      "p01": 2.1435052985907532e-05,
+      "p05": 0.00010026816016761586,
+      "p50": 0.0011393593158572912,
+      "p90": 0.0033281154464930296,
+      "p95": 0.004033595323562622,
+      "p99": 0.0052825044840574265,
+      "std": 0.001256207819096744
+    },
+    "router_margin_pass_fraction": 0.9121617061483431,
+    "router_margin_rel_distribution": {
+      "mean": 0.8938278555870056,
+      "p01": 0.017868082970380783,
+      "p05": 0.07885782420635223,
+      "p50": 0.6764237880706787,
+      "p90": 1.231642484664917,
+      "p95": 1.4265568256378174,
+      "p99": 3.7646822929382324,
+      "std": 8.611236572265625
+    },
+    "router_margin_rel_threshold": 0.1,
+    "router_supervised_patch_count": 27031,
+    "router_supervised_patch_fraction": 0.9121617061483431,
+    "router_top1_agreement": 0.2623654305934906,
+    "router_usage": [
+      0.24769611656665802,
+      0.24657730758190155,
+      0.2522543966770172,
+      0.2534722089767456
+    ],
+    "router_utility_activity": "active",
+    "teacher_entropy": 0.7398351430892944,
+    "teacher_max_probability": 0.5714720487594604,
+    "teacher_max_probability_distribution": {
+      "mean": 0.5714720487594604,
+      "p50": 0.5594825744628906,
+      "p90": 0.7323463559150696,
+      "p95": 0.7515770196914673,
+      "p99": 0.7667877078056335,
+      "std": 0.11110982298851013
+    },
+    "teacher_router_KL": 0.37292787432670593,
+    "utility_regions": {
+      "anomaly": {
+        "ActualGated": 0.6830560564994812,
+        "Base": 0.6830682754516602,
+        "FullSoftRouted_ACT1": 0.6830437779426575,
+        "HardRouted_ACT1": 0.6830629706382751,
+        "ResidualBestSingle": 0.6827447414398193,
+        "ResidualOracleMulti": 0.6821131110191345,
+        "Uniform_ACT1": 0.6830410957336426
+      },
+      "normal": {
+        "ActualGated": 0.633183479309082,
+        "Base": 0.6331679821014404,
+        "FullSoftRouted_ACT1": 0.6331987380981445,
+        "HardRouted_ACT1": 0.6332280039787292,
+        "ResidualBestSingle": 0.632673978805542,
+        "ResidualOracleMulti": 0.6318191289901733,
+        "Uniform_ACT1": 0.6331946849822998
+      },
+      "overall": {
+        "ActualGated": 0.6332036852836609,
+        "Base": 0.6331881284713745,
+        "FullSoftRouted_ACT1": 0.6332187652587891,
+        "HardRouted_ACT1": 0.6332481503486633,
+        "ResidualBestSingle": 0.6326945424079895,
+        "ResidualOracleMulti": 0.6318395137786865,
+        "Uniform_ACT1": 0.6332148313522339
+      }
+    },
+    "utility_router_loss": 1.271897554397583,
+    "valid_patch_count": 29634,
+    "winner_shares": [
+      0.32894647121429443,
+      0.3552001118659973,
+      0.2051359862089157,
+      0.11071741580963135
+    ]
+  },
+  "final_gradient_attribution": null,
+  "final_gradients": null,
+  "final_recent_window": {
+    "Base": 0.3480398952960968,
+    "BestSingle": 0.3474847078323364,
+    "G_local": 0.002603722270578146,
+    "G_multi": 0.0010085388785228133,
+    "HardRouted": 0.3483620882034302,
+    "L_base": 0.3480398952960968,
+    "L_per_factor": [
+      0.3475751280784607,
+      0.3474847078323364,
+      0.34894660115242004,
+      0.3493940234184265
+    ],
+    "OracleMulti": 0.34713369607925415,
+    "OracleWithNoOp": 0.34713321924209595,
+    "SoftRouted": 0.34835538268089294,
+    "Uniform": 0.34834882616996765,
+    "act": {
+      "g_route_act_probability_correlation": {
+        "anomaly": null,
+        "normal": 0.7308523654937744,
+        "overall": 0.7308523654937744
+      },
+      "logit_anomaly_stats": {
+        "mean": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "std": 0.0
+      },
+      "logit_normal_stats": {
+        "mean": 0.011671004816889763,
+        "p05": -0.010189767926931381,
+        "p50": -0.00014088250463828444,
+        "p95": 0.04665125161409378,
+        "std": 0.023515695706009865
+      },
+      "logit_stats": {
+        "mean": 0.011671004816889763,
+        "p01": -0.01111066434532404,
+        "p05": -0.010189767926931381,
+        "p50": -0.00014088250463828444,
+        "p95": 0.04665125161409378,
+        "p99": 0.048649635165929794,
+        "std": 0.023515695706009865
+      },
+      "probability_anomaly_mean": 0.0,
+      "probability_anomaly_stats": {
+        "mean": 0.0,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "std": 0.0
+      },
+      "probability_mean": 0.5029171705245972,
+      "probability_normal_mean": 0.5029171705245972,
+      "probability_normal_stats": {
+        "mean": 0.5029171705245972,
+        "p05": 0.49745261669158936,
+        "p50": 0.49996477365493774,
+        "p95": 0.5116606950759888,
+        "std": 0.005878052674233913
+      },
+      "probability_off_anomaly_mean": 0.0,
+      "probability_off_mean": 0.5027868747711182,
+      "probability_off_normal_mean": 0.5027868747711182,
+      "probability_on_anomaly_mean": 0.0,
+      "probability_on_mean": 0.5109009146690369,
+      "probability_on_normal_mean": 0.5109009146690369,
+      "probability_stats": {
+        "mean": 0.5029171705245972,
+        "p01": 0.497222363948822,
+        "p05": 0.49745261669158936,
+        "p50": 0.49996477365493774,
+        "p95": 0.5116606950759888,
+        "p99": 0.5121600031852722,
+        "std": 0.005878052674233913
+      },
+      "separation": 0.008114039897918701,
+      "separation_anomaly": 0.0,
+      "separation_normal": 0.008114039897918701,
+      "target_ambiguous_anomaly_fraction": 0.0,
+      "target_ambiguous_fraction": 0.0,
+      "target_ambiguous_normal_fraction": 0.0,
+      "target_negative_anomaly_fraction": 0.0,
+      "target_negative_fraction": 0.9839455485343933,
+      "target_negative_normal_fraction": 0.9839455485343933,
+      "target_positive_anomaly_fraction": 0.0,
+      "target_positive_fraction": 0.016054421663284302,
+      "target_positive_normal_fraction": 0.016054421663284302,
+      "teacher_act_cross_tab": {
+        "anomaly": {
+          "act_high_fraction": 0.0,
+          "teacher_off_act_high": 0,
+          "teacher_off_act_low": 0,
+          "teacher_on_act_high": 0,
+          "teacher_on_act_low": 0,
+          "valid_count": 0
+        },
+        "normal": {
+          "act_high_fraction": 0.487891156462585,
+          "teacher_off_act_high": 1734,
+          "teacher_off_act_low": 1882,
+          "teacher_on_act_high": 59,
+          "teacher_on_act_low": 0,
+          "valid_count": 3675
+        },
+        "overall": {
+          "act_high_fraction": 0.487891156462585,
+          "teacher_off_act_high": 1734,
+          "teacher_off_act_low": 1882,
+          "teacher_on_act_high": 59,
+          "teacher_on_act_low": 0,
+          "valid_count": 3675
+        }
+      },
+      "teacher_auroc": 0.8207636475563049,
+      "utility_act_loss": 0.6983687281608582
+    },
+    "all_harm_fraction": 0.004625850357115269,
+    "base_denominator_valid": true,
+    "best_gain_rel": {
+      "mean": 0.002595558064058423,
+      "p50": 0.002596864942461252,
+      "p75": 0.003250144887715578,
+      "p90": 0.0038407836109399796,
+      "p95": 0.004190964624285698,
+      "p99": 0.004893412347882986,
+      "std": 0.000988518469966948
+    },
+    "best_second_utility_margin": 0.0021341193933039904,
+    "best_second_utility_margin_distribution": {
+      "mean": 0.002116090850904584,
+      "p50": 0.0021935123950242996,
+      "p90": 0.003848529886454344,
+      "p95": 0.0043184212408959866,
+      "p99": 0.0052642193622887135,
+      "std": 0.0012876713881269097
+    },
+    "capture": -0.005395727697759867,
+    "capture_denominator": 0.001215130090713501,
+    "capture_valid": true,
+    "entropy_threshold": 0.98,
+    "entropy_threshold_pass_fraction": 1.0,
+    "gain_rel_mean": -0.0009654033929109573,
+    "gain_threshold": 0.02,
+    "gain_threshold_pass_fraction": 0.0,
+    "informative_fraction": 0.9368707482993197,
+    "noop_selected_fraction": 0.004625850357115269,
+    "noop_winner_shares": [
+      0.004625850357115269,
+      0.5447618961334229,
+      0.44272109866142273,
+      0.002721088472753763,
+      0.005170068237930536
+    ],
+    "normal_anomaly_breakdown": {
+      "anomaly": {
+        "all_harm_fraction": 0.0,
+        "best_gain_rel_mean": 0.0,
+        "gain_rel_mean": 0.0,
+        "informative_fraction": 0.0,
+        "margin_rel_pass_fraction": 0.0,
+        "teacher_entropy_mean": 0.0,
+        "valid_patch_count": 0
+      },
+      "normal": {
+        "all_harm_fraction": 0.004625850357115269,
+        "best_gain_rel_mean": 0.002595558064058423,
+        "gain_rel_mean": -0.0009654033929109573,
+        "informative_fraction": 0.9368707537651062,
+        "margin_rel_pass_fraction": 0.9368707482993197,
+        "teacher_entropy_mean": 0.7449347376823425,
+        "valid_patch_count": 3675
+      }
+    },
+    "normalized_teacher_entropy": {
+      "mean": 0.7449347376823425,
+      "p01": 0.5770878195762634,
+      "p05": 0.6018868088722229,
+      "p10": 0.6343562602996826,
+      "p50": 0.7641913890838623,
+      "p90": 0.8080669641494751,
+      "std": 0.06467073410749435
+    },
+    "routed_gain_nonpositive_fraction": 0.9839455485343933,
+    "routed_gain_positive_fraction": 0.016054421663284302,
+    "routed_gain_rel": {
+      "mean": -0.0009789643809199333,
+      "p01": -0.0017220763256773353,
+      "p05": -0.0016269840998575091,
+      "p10": -0.001600569812580943,
+      "p25": -0.0014218027936294675,
+      "p50": -0.0009275140473619103,
+      "p75": -0.0006740305107086897,
+      "p90": -0.0003582425997592509,
+      "p95": -0.00019948309636674821,
+      "p99": 5.888005762244575e-05,
+      "std": 0.00046398508129641414
+    },
+    "router_confidence_mode": "margin_rel",
+    "router_entropy": 0.9990314245223999,
+    "router_margin_abs_distribution": {
+      "mean": 0.002116090850904584,
+      "p01": 4.600859392667189e-05,
+      "p05": 0.0001906459656311199,
+      "p50": 0.0021935123950242996,
+      "p90": 0.003848529886454344,
+      "p95": 0.0043184212408959866,
+      "p99": 0.0052642193622887135,
+      "std": 0.0012876713881269097
+    },
+    "router_margin_pass_fraction": 0.9368707482993197,
+    "router_margin_rel_distribution": {
+      "mean": 0.9379782676696777,
+      "p01": 0.01787712424993515,
+      "p05": 0.08474022150039673,
+      "p50": 1.016635537147522,
+      "p90": 1.4526118040084839,
+      "p95": 1.6485036611557007,
+      "p99": 2.3872392177581787,
+      "std": 1.1755914688110352
+    },
+    "router_margin_rel_threshold": 0.1,
+    "router_supervised_patch_count": 3443,
+    "router_supervised_patch_fraction": 0.9368707482993197,
+    "router_top1_agreement": 0.3096137046813965,
+    "router_usage": [
+      0.25029629468917847,
+      0.2453765869140625,
+      0.25325170159339905,
+      0.25107547640800476
+    ],
+    "router_utility_activity": "active",
+    "teacher_entropy": 0.7449347376823425,
+    "teacher_max_probability": 0.5666631460189819,
+    "teacher_max_probability_distribution": {
+      "mean": 0.5666631460189819,
+      "p50": 0.551647424697876,
+      "p90": 0.7170323133468628,
+      "p95": 0.7454623579978943,
+      "p99": 0.7653952836990356,
+      "std": 0.09354518353939056
+    },
+    "teacher_router_KL": 0.3617481291294098,
+    "utility_regions": {
+      "anomaly": {
+        "ActualGated": null,
+        "Base": null,
+        "FullSoftRouted_ACT1": null,
+        "HardRouted_ACT1": null,
+        "ResidualBestSingle": null,
+        "ResidualOracleMulti": null,
+        "Uniform_ACT1": null
+      },
+      "normal": {
+        "ActualGated": 0.3481979966163635,
+        "Base": 0.3480398952960968,
+        "FullSoftRouted_ACT1": 0.34835538268089294,
+        "HardRouted_ACT1": 0.3483620882034302,
+        "ResidualBestSingle": 0.3474847078323364,
+        "ResidualOracleMulti": 0.34713369607925415,
+        "Uniform_ACT1": 0.34834882616996765
+      },
+      "overall": {
+        "ActualGated": 0.3481979966163635,
+        "Base": 0.3480398952960968,
+        "FullSoftRouted_ACT1": 0.34835538268089294,
+        "HardRouted_ACT1": 0.3483620882034302,
+        "ResidualBestSingle": 0.3474847078323364,
+        "ResidualOracleMulti": 0.34713369607925415,
+        "Uniform_ACT1": 0.34834882616996765
+      }
+    },
+    "utility_router_loss": 1.303322196006775,
+    "valid_patch_count": 3675,
+    "winner_shares": [
+      0.5463945865631104,
+      0.4446258544921875,
+      0.002721088472753763,
+      0.006258503533899784
+    ]
+  },
+  "final_structure": {
+    "absolute_factor_correlation_mean": 0.9845713376998901,
+    "absolute_factor_effective_rank": 1.0169517993927002,
+    "absolute_vs_residual_variance_ratio": 0.07126525044441223,
+    "factor_embedding_effective_rank": 1.007086992263794,
+    "factor_embedding_pairwise_cosine_max": 0.9991871118545532,
+    "factor_embedding_pairwise_cosine_mean": 0.9989835619926453,
+    "factor_embedding_pairwise_cosine_min": 0.9988555312156677,
+    "factor_embedding_pairwise_l2_max": 0.11719661951065063,
+    "factor_embedding_pairwise_l2_mean": 0.11027777194976807,
+    "factor_embedding_pairwise_l2_min": 0.09876319766044617,
+    "factor_patch_outputs_exactly_collapsed": 0.0,
+    "factor_patch_pairwise_correlation_max": 0.9879928231239319,
+    "factor_patch_pairwise_correlation_mean": 0.9845713376998901,
+    "factor_patch_pairwise_correlation_min": 0.9782634377479553,
+    "factor_patch_pairwise_max_difference": 0.30112767219543457,
+    "factor_patch_std_across_factors": 0.0694534033536911,
+    "residual_factor_correlation_max": 0.4168426990509033,
+    "residual_factor_correlation_mean": -0.26680803298950195,
+    "residual_factor_correlation_min": -0.7508194446563721,
+    "residual_factor_effective_rank": 1.9722778797149658,
+    "residual_negative_fraction": 0.3733869194984436,
+    "residual_positive_fraction": 0.6266131401062012,
+    "state_pairwise_l2_max": 0.2087455838918686,
+    "state_pairwise_l2_mean": 0.19513081014156342,
+    "state_pairwise_l2_min": 0.18564864993095398
+  },
+  "git_sha": "18b315f6dbb1430d24cb1e7b5c9549b2ea4b28a2",
+  "grad_accum_steps": 6,
+  "milestones_completed": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "milestones_requested": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "optimizer_step_count": 2,
+  "peak_gpu_allocated_bytes": 4039512064,
+  "peak_gpu_reserved_bytes": 4557111296,
+  "rho": [
+    0.05000000074505806,
+    0.05000000074505806,
+    0.05000000074505806
+  ],
+  "runtime_seconds": 18.592674243962392,
+  "scientific_interpretation": "PENDING_EVIDENCE_REVIEW",
+  "seed": 0,
+  "status": "PASS",
+  "teacher_sensitivity_audit": null
+}
