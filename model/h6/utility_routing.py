@@ -200,8 +200,8 @@ def act_teacher(
     the open interval in between is intentionally left ambiguous and receives
     no ACT loss.
     """
-    if float(gain_threshold) <= 0.0:
-        raise ValueError("gain_threshold must be positive")
+    if float(gain_threshold) < 0.0:
+        raise ValueError("gain_threshold must be non-negative")
     if "routed_gain_rel" not in utility_payload:
         raise ValueError(
             "ACT teacher requires routed_gain_rel from the current routed mixture"

@@ -187,7 +187,13 @@ def _accumulate(loss, parameters, locations, destination, *, retain_graph):
             destination[group][start:end].add_(flat)
 
 
-def _losses(model, sample: dict, device: torch.device):
+def _losses(
+    model,
+    sample: dict,
+    device: torch.device,
+    *,
+    act_gain_threshold: float,
+):
     image = sample["image"].unsqueeze(0).to(device)
     mask = sample["mask"].unsqueeze(0).to(device)
     label = sample["label"].reshape(1).to(device)
@@ -223,7 +229,7 @@ def _losses(model, sample: dict, device: torch.device):
         epsilon=0.15, gain_threshold=0.02, entropy_threshold=0.98,
         routed_probabilities=h6_batch["prediction_probabilities"],
     )
-    act = act_teacher(utility, gain_threshold=0.02)
+    act = act_teacher(utility, gain_threshold=act_gain_threshold)
     losses = {
         "main": main,
         "factor": effective_number_utility_factor_loss(utility, y_patch, beta=0.999),
@@ -364,9 +370,12 @@ def main() -> None:
     )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--windows", type=int, default=24)
+    parser.add_argument("--act-gain-threshold", type=float, default=0.0)
     args = parser.parse_args()
     if args.windows < 24 or args.windows > 50:
         raise ValueError("natural calibration requires 24..50 six-microbatch windows")
+    if args.act_gain_threshold < 0.0:
+        raise ValueError("--act-gain-threshold must be non-negative")
     if (args.output_dir / "calibration_summary.json").exists():
         raise FileExistsError("refusing to overwrite completed gradient calibration")
     if not torch.cuda.is_available():
@@ -401,7 +410,12 @@ def main() -> None:
             index = order[cursor]
             cursor += 1
             indices.append(index)
-            losses, stats = _losses(model, dataset[index], device)
+            losses, stats = _losses(
+                model,
+                dataset[index],
+                device,
+                act_gain_threshold=args.act_gain_threshold,
+            )
             for name in COMPONENTS:
                 losses_mean[name] += float(losses[name].detach().item()) / 6.0
             for key in counts:
@@ -429,6 +443,36 @@ def main() -> None:
         print(json.dumps(progress), flush=True)
     act_lambda, act_selection = _select_act_lambda(windows)
     gradient_summary = _summaries(windows, act_lambda)
+    label_totals = {
+        key: sum(window["counts"][key] for window in windows)
+        for key in (
+            "normal_patch_count", "anomaly_patch_count",
+            "act_positive_group_patch_count", "act_negative_group_patch_count",
+            "act_ambiguous_group_patch_count", "router_informative_group_patch_count",
+        )
+    }
+    label_totals["normal_group_patch_count"] = (
+        label_totals["normal_patch_count"] * int(model.n_groups)
+    )
+    label_totals["anomaly_group_patch_count"] = (
+        label_totals["anomaly_patch_count"] * int(model.n_groups)
+    )
+    label_totals["valid_group_patch_count"] = (
+        label_totals["normal_group_patch_count"]
+        + label_totals["anomaly_group_patch_count"]
+    )
+    label_totals["act_positive_fraction"] = (
+        label_totals["act_positive_group_patch_count"]
+        / max(label_totals["valid_group_patch_count"], 1)
+    )
+    label_totals["act_negative_fraction"] = (
+        label_totals["act_negative_group_patch_count"]
+        / max(label_totals["valid_group_patch_count"], 1)
+    )
+    label_totals["act_ambiguous_fraction"] = (
+        label_totals["act_ambiguous_group_patch_count"]
+        / max(label_totals["valid_group_patch_count"], 1)
+    )
     after_hash = _parameter_hash(parameters)
     integrity = before_hash == after_hash and all(p.grad is None for p in parameters)
     serializable_windows = [
@@ -445,19 +489,43 @@ def main() -> None:
         "protocol_checkpoint_sha256": _sha256(args.protocol_checkpoint),
         "initialization": "fresh_openai_clip_seed0_no_checkpoint_weights_loaded",
         "progress_version": "P1-v8.4-A",
+        "dataset": "VisA/train",
+        "seed": args.seed,
+        "image_size": 518,
+        "batch_size": 1,
+        "gradient_accumulation_steps": 6,
+        "gradient_checkpointing": True,
         "windows": args.windows,
         "microbatches_per_window": 6,
         "optimizer_constructed": False,
+        "backward_executed": False,
         "optimizer_steps": 0,
+        "scheduler_steps": 0,
+        "parameter_mutation": False,
         "precision": "fp32",
         "tf32": False,
         "amp": False,
+        "rho": 0.05,
+        "act_teacher_utility_object": "g_route",
         "parameter_groups": metadata,
         "selected_lambda_factor": 0.03,
         "selected_lambda_router": 0.10,
         "selected_lambda_act": act_lambda,
+        "act_gain_threshold": args.act_gain_threshold,
+        "act_label_statistics": label_totals,
         "act_lambda_calibration": act_selection,
         "gradient_summary": gradient_summary,
+        "gradient_safety_contract": {
+            "raw_gradient_ratios_finite": True,
+            "weighted_max_le_one": (
+                gradient_summary["groups"]["act_head"]["components"]["act"]
+                ["weighted_norm_to_main"]["max"] <= 1.0
+            ),
+            "weighted_p95_le_half": (
+                gradient_summary["groups"]["act_head"]["components"]["act"]
+                ["weighted_norm_to_main"]["p95"] <= 0.5
+            ),
+        },
         "state_integrity": {
             "parameter_hash_before": before_hash,
             "parameter_hash_after": after_hash,

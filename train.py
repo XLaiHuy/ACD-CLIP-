@@ -1562,6 +1562,19 @@ def _phase2b_config_from_args(args) -> dict:
     }
 
 
+def resolve_act_gain_threshold(
+    progress_version: str,
+    explicit_threshold: float | None,
+    legacy_threshold: float,
+) -> float:
+    """Resolve the ACT-only threshold without changing legacy/v8.3 routing."""
+    if explicit_threshold is not None:
+        return float(explicit_threshold)
+    if progress_version == "P1-v8.4-A":
+        return 0.0
+    return float(legacy_threshold)
+
+
 def train_h6_progress1(
         model: ACDCLIP,
         dataset_name: str,
@@ -3956,10 +3969,10 @@ def main():
         if args.h6_router_gain_threshold is None
         else args.h6_router_gain_threshold
     )
-    args.h6_act_gain_threshold = (
-        args.h6_utility_gain_threshold
-        if args.h6_act_gain_threshold is None
-        else args.h6_act_gain_threshold
+    args.h6_act_gain_threshold = resolve_act_gain_threshold(
+        args.h6_progress_version,
+        args.h6_act_gain_threshold,
+        args.h6_utility_gain_threshold,
     )
     configure_canonical_fp32()
     if args.h6_trajectory_milestones:

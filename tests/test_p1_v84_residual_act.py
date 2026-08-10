@@ -11,7 +11,11 @@ from model.h6.utility_routing import (
     support_normalized_utility_router_loss,
     utility_teacher,
 )
-from train import grad_accum_window_size, primary_anchored_factor_surgery
+from train import (
+    grad_accum_window_size,
+    primary_anchored_factor_surgery,
+    resolve_act_gain_threshold,
+)
 
 
 def _first_factor_router(residual):
@@ -207,6 +211,25 @@ def test_act_teacher_labels_small_positive_routed_gain_ambiguous():
     assert 0.0 < utility["routed_gain_rel"].item() <= 0.02
     assert act["target"].item() == 0.0
     assert act["ambiguous"].item() is True
+
+
+def test_zero_act_threshold_has_no_ambiguous_support_and_zero_is_off():
+    base = torch.zeros(1, 1, 2)
+    residual = torch.tensor([[[[0.0, 0.0, 0.0, 0.0],
+                               [0.4, 0.4, 0.4, 0.4]]]])
+    utility, act = _teacher(
+        base, residual, torch.ones(1, 2), gain_threshold=0.0
+    )
+    assert utility["routed_gain_rel"][0, 0, 0].item() == 0.0
+    assert act["negative"][0, 0, 0].item() is True
+    assert act["positive"][0, 0, 1].item() is True
+    assert int(act["ambiguous"].sum().item()) == 0
+
+
+def test_act_threshold_resolution_is_v84a_only():
+    assert resolve_act_gain_threshold("P1-v8.4-A", None, 0.02) == 0.0
+    assert resolve_act_gain_threshold("P1-v8.3", None, 0.02) == 0.02
+    assert resolve_act_gain_threshold("P1-v8.4-A", 0.02, 0.02) == 0.02
 
 
 def test_router_mixture_changes_only_routed_act_teacher_outputs():
