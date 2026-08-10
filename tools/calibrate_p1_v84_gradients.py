@@ -221,6 +221,7 @@ def _losses(model, sample: dict, device: torch.device):
         base_margin.detach(), h6_batch["factor_residual_logits"], y_patch, valid,
         rho=0.05, denominator_floor=0.10, tau_utility=0.05,
         epsilon=0.15, gain_threshold=0.02, entropy_threshold=0.98,
+        routed_probabilities=h6_batch["prediction_probabilities"],
     )
     act = act_teacher(utility, gain_threshold=0.02)
     losses = {

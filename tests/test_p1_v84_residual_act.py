@@ -14,11 +14,22 @@ from model.h6.utility_routing import (
 from train import grad_accum_window_size, primary_anchored_factor_surgery
 
 
-def _teacher(base, residual, target, *, gain_threshold=0.02):
+def _first_factor_router(residual):
+    probabilities = torch.zeros_like(residual)
+    probabilities[..., 0] = 1.0
+    return probabilities
+
+
+def _teacher(
+    base, residual, target, *, gain_threshold=0.02, routed_probabilities=None
+):
     valid = torch.ones_like(target, dtype=torch.bool)
+    if routed_probabilities is None:
+        routed_probabilities = _first_factor_router(residual)
     utility = utility_teacher(
         base, residual, target, valid,
         rho=0.05, epsilon=0.0, gain_threshold=gain_threshold,
+        routed_probabilities=routed_probabilities,
     )
     return utility, act_teacher(utility, gain_threshold=gain_threshold)
 
@@ -40,7 +51,8 @@ def _decoupled_teacher(**kwargs):
     act_gain_threshold = kwargs.pop("act_gain_threshold", 0.02)
     utility = utility_teacher(
         base, residual, target, valid,
-        rho=0.05, epsilon=0.0, entropy_threshold=1.01, **kwargs,
+        rho=0.05, epsilon=0.0, entropy_threshold=1.01,
+        routed_probabilities=_first_factor_router(residual), **kwargs,
     )
     act = act_teacher(utility, gain_threshold=act_gain_threshold)
     return utility, act
@@ -59,7 +71,7 @@ def test_legacy_and_explicit_decoupled_defaults_are_exactly_equivalent():
     )
     for key in (
         "candidate_logits", "gain_rel", "responsibility", "q_utility",
-        "normalized_entropy", "informative",
+        "normalized_entropy", "informative", "routed_gain_rel",
     ):
         assert torch.equal(legacy[key], explicit[key])
     for key in ("positive", "negative", "ambiguous"):
@@ -155,7 +167,7 @@ def test_residual_teacher_uses_residual_candidates_not_absolute_logits():
 
 def test_act_teacher_negative_positive_and_ambiguous_zones():
     payload = {
-        "best_gain_rel": torch.tensor([[[-0.1, 0.01, 0.021]]]),
+        "routed_gain_rel": torch.tensor([[[-0.1, 0.01, 0.021]]]),
         "valid": torch.ones(1, 1, 3, dtype=torch.bool),
     }
     teacher = act_teacher(payload, gain_threshold=0.02)
@@ -164,6 +176,62 @@ def test_act_teacher_negative_positive_and_ambiguous_zones():
     assert teacher["ambiguous"].tolist() == [[[False, True, False]]]
     assert teacher["positive"].tolist() == [[[False, False, True]]]
     assert teacher["support"].tolist() == [[[True, False, True]]]
+
+
+def test_act_teacher_uses_routed_gain_not_oracle_best_factor_gain():
+    base = torch.zeros(1, 1, 1)
+    residual = torch.tensor([[[[8.0, -8.0, -8.0, -8.0]]]])
+    uniform = torch.full_like(residual, 0.25)
+    utility, act = _teacher(
+        base, residual, torch.ones(1, 1), routed_probabilities=uniform
+    )
+    assert utility["best_gain_rel"].item() > 0.02
+    assert utility["routed_gain_rel"].item() <= 0.0
+    assert act["target"].item() == 0.0
+    assert act["negative"].item() is True
+
+
+def test_act_teacher_labels_routed_gain_above_threshold_on():
+    base = torch.zeros(1, 1, 1)
+    residual = torch.full((1, 1, 1, 4), 8.0)
+    utility, act = _teacher(base, residual, torch.ones(1, 1))
+    assert utility["routed_gain_rel"].item() > 0.02
+    assert act["target"].item() == 1.0
+    assert act["positive"].item() is True
+
+
+def test_act_teacher_labels_small_positive_routed_gain_ambiguous():
+    base = torch.zeros(1, 1, 1)
+    residual = torch.full((1, 1, 1, 4), 0.4)
+    utility, act = _teacher(base, residual, torch.ones(1, 1))
+    assert 0.0 < utility["routed_gain_rel"].item() <= 0.02
+    assert act["target"].item() == 0.0
+    assert act["ambiguous"].item() is True
+
+
+def test_router_mixture_changes_only_routed_act_teacher_outputs():
+    base = torch.zeros(1, 1, 1)
+    residual = torch.tensor([[[[8.0, -8.0, -8.0, -8.0]]]])
+    target = torch.ones(1, 1)
+    route_on = _first_factor_router(residual)
+    route_off = torch.full_like(residual, 0.25)
+    utility_on, act_on = _teacher(
+        base, residual, target, routed_probabilities=route_on
+    )
+    utility_off, act_off = _teacher(
+        base, residual, target, routed_probabilities=route_off
+    )
+    assert act_on["positive"].item() is True
+    assert act_off["negative"].item() is True
+    assert not torch.equal(
+        utility_on["routed_gain_rel"], utility_off["routed_gain_rel"]
+    )
+    assert utility_on["routed_gain_rel"].requires_grad is False
+    for key in (
+        "candidate_logits", "gain_rel", "responsibility", "q_utility",
+        "normalized_entropy", "informative",
+    ):
+        assert torch.equal(utility_on[key], utility_off[key])
 
 
 def test_router_supervision_requires_act_positive_and_informative_support():

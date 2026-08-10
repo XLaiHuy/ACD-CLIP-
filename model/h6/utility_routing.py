@@ -63,6 +63,7 @@ def utility_teacher(
     gain_threshold: float = 0.02,
     router_gain_threshold: float | None = None,
     entropy_threshold: float = 0.98,
+    routed_probabilities: torch.Tensor | None = None,
 ) -> Dict[str, torch.Tensor]:
     """Build detached factor and router utility teachers.
 
@@ -90,6 +91,11 @@ def utility_teacher(
         raise ValueError("epsilon must be in [0,1]")
     if float(rho) not in (0.0, 0.05):
         raise ValueError("rho may only be canonical 0.05 or diagnostic 0")
+    if (
+        routed_probabilities is not None
+        and routed_probabilities.shape != factor_local_evidence.shape
+    ):
+        raise ValueError("routed_probabilities must match factor_local_evidence [G,B,P,M]")
 
     targets = y_patch.unsqueeze(0).expand(groups, -1, -1).float()
     z0 = base_logits.detach().float()
@@ -116,7 +122,7 @@ def utility_teacher(
         & (normalized_entropy < float(entropy_threshold))
         & local_mask_valid.unsqueeze(0)
     )
-    return {
+    payload = {
         "z0": z0,
         "candidate_logits": candidate_logits,
         "loss_base": loss_base,
@@ -133,6 +139,29 @@ def utility_teacher(
         "informative": informative.detach(),
         "valid": local_mask_valid.unsqueeze(0).expand(groups, -1, -1),
     }
+    if routed_probabilities is not None:
+        # The ACT target is a teacher: detach both the current forward mixture
+        # and factor evidence so labels cannot create a gradient path through
+        # either Router or factors.  Factor responsibility and Router q above
+        # remain functions of factor-level gains only.
+        routed_delta = (
+            routed_probabilities.detach().float() * local.detach()
+        ).sum(dim=-1)
+        routed_logits = z0 + float(rho) * routed_delta
+        loss_routed = F.binary_cross_entropy_with_logits(
+            routed_logits, targets, reduction="none"
+        )
+        routed_gain_rel = (
+            (loss_base.detach() - loss_routed)
+            / loss_base.detach().clamp_min(float(denominator_floor))
+        )
+        payload.update({
+            "routed_delta": routed_delta.detach(),
+            "routed_logits": routed_logits.detach(),
+            "loss_routed": loss_routed.detach(),
+            "routed_gain_rel": routed_gain_rel.detach(),
+        })
+    return payload
 
 
 def routed_residual_correction(
@@ -163,21 +192,27 @@ def act_teacher(
     *,
     gain_threshold: float = 0.02,
 ) -> Dict[str, torch.Tensor]:
-    """Detached three-zone ACT teacher from residual-factor utility.
+    """Detached three-zone ACT teacher from routed residual utility.
 
-    Positive support is strictly above ``gain_threshold``; non-positive gain
-    is negative support; the open interval in between is intentionally left
-    ambiguous and receives no ACT loss.
+    The utility object is the ACT=1 correction made by the current routed
+    mixture, exactly matching the action ACT gates. Positive support is
+    strictly above ``gain_threshold``; non-positive gain is negative support;
+    the open interval in between is intentionally left ambiguous and receives
+    no ACT loss.
     """
     if float(gain_threshold) <= 0.0:
         raise ValueError("gain_threshold must be positive")
-    best_gain = utility_payload["best_gain_rel"].detach().float()
+    if "routed_gain_rel" not in utility_payload:
+        raise ValueError(
+            "ACT teacher requires routed_gain_rel from the current routed mixture"
+        )
+    routed_gain = utility_payload["routed_gain_rel"].detach().float()
     valid = utility_payload["valid"].detach().bool()
-    positive = valid & (best_gain > float(gain_threshold))
-    negative = valid & (best_gain <= 0.0)
-    ambiguous = valid & (best_gain > 0.0) & (best_gain <= float(gain_threshold))
+    positive = valid & (routed_gain > float(gain_threshold))
+    negative = valid & (routed_gain <= 0.0)
+    ambiguous = valid & (routed_gain > 0.0) & (routed_gain <= float(gain_threshold))
     support = positive | negative
-    target = positive.to(best_gain.dtype)
+    target = positive.to(routed_gain.dtype)
     return {
         "target": target.detach(),
         "positive": positive.detach(),
@@ -185,7 +220,7 @@ def act_teacher(
         "ambiguous": ambiguous.detach(),
         "support": support.detach(),
         "valid": valid.detach(),
-        "best_residual_gain": best_gain.detach(),
+        "routed_residual_gain": routed_gain.detach(),
     }
 
 

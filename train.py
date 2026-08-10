@@ -2034,6 +2034,11 @@ def train_h6_progress1(
                         gain_threshold=args.h6_utility_gain_threshold,
                         router_gain_threshold=args.h6_router_gain_threshold,
                         entropy_threshold=args.h6_utility_entropy_threshold,
+                        routed_probabilities=(
+                            h6_batch["prediction_probabilities"]
+                            if model.h6.progress_version == "P1-v8.4-A"
+                            else None
+                        ),
                     )
                     h6_utility_factor = (
                         effective_number_utility_factor_loss(
