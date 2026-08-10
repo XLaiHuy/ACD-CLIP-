@@ -1529,6 +1529,10 @@ def _phase2b_config_from_args(args) -> dict:
         "h6_utility_denominator_floor": args.h6_utility_denominator_floor,
         "h6_tau_utility": args.h6_tau_utility,
         "h6_utility_gain_threshold": args.h6_utility_gain_threshold,
+        "factor_tau_utility": args.h6_factor_tau_utility,
+        "router_tau_utility": args.h6_router_tau_utility,
+        "router_gain_threshold": args.h6_router_gain_threshold,
+        "act_gain_threshold": args.h6_act_gain_threshold,
         "h6_utility_entropy_threshold": args.h6_utility_entropy_threshold,
         "h6_exploration_start": args.h6_exploration_start,
         "h6_exploration_end": args.h6_exploration_end,
@@ -2023,8 +2027,12 @@ def train_h6_progress1(
                         ),
                         y_patch, utility_valid, rho=0.05,
                         denominator_floor=args.h6_utility_denominator_floor,
-                        tau_utility=args.h6_tau_utility, epsilon=epsilon,
+                        tau_utility=args.h6_tau_utility,
+                        factor_tau_utility=args.h6_factor_tau_utility,
+                        router_tau_utility=args.h6_router_tau_utility,
+                        epsilon=epsilon,
                         gain_threshold=args.h6_utility_gain_threshold,
+                        router_gain_threshold=args.h6_router_gain_threshold,
                         entropy_threshold=args.h6_utility_entropy_threshold,
                     )
                     h6_utility_factor = (
@@ -2048,7 +2056,7 @@ def train_h6_progress1(
                     if model.h6.progress_version == "P1-v8.4-A":
                         act_payload = act_teacher(
                             utility_payload,
-                            gain_threshold=args.h6_utility_gain_threshold,
+                            gain_threshold=args.h6_act_gain_threshold,
                         )
                         h6_utility_act = effective_number_act_loss(
                             h6_batch["act_logits"],
@@ -2748,12 +2756,12 @@ def train_h6_progress1(
                     raise RuntimeError(f"P1-v8.3 rho unexpectedly received gradient at batch {batch_idx}")
                 cumulative = aggregate_utility_records(
                     trajectory_records,
-                    gain_threshold=args.h6_utility_gain_threshold,
+                    gain_threshold=args.h6_router_gain_threshold,
                     entropy_threshold=args.h6_utility_entropy_threshold,
                 )
                 recent = aggregate_utility_records(
                     trajectory_records[trajectory_previous_batch:batch_idx],
-                    gain_threshold=args.h6_utility_gain_threshold,
+                    gain_threshold=args.h6_router_gain_threshold,
                     entropy_threshold=args.h6_utility_entropy_threshold,
                 )
                 milestone_payload = {
@@ -3247,7 +3255,7 @@ def train_h6_progress1(
                 if final_cumulative["informative_fraction"] <= 0.001:
                     sensitivity = teacher_sensitivity_grid(
                         trajectory_records,
-                        gain_threshold=args.h6_utility_gain_threshold,
+                        gain_threshold=args.h6_router_gain_threshold,
                     )
                     write_json_atomic(
                         Path(args.save_path) / "teacher_sensitivity.json",
@@ -3851,6 +3859,10 @@ def main():
     parser.add_argument("--h6_utility_denominator_floor", type=float, default=0.10)
     parser.add_argument("--h6_tau_utility", type=float, default=0.05)
     parser.add_argument("--h6_utility_gain_threshold", type=float, default=0.02)
+    parser.add_argument("--h6_factor_tau_utility", type=float, default=None)
+    parser.add_argument("--h6_router_tau_utility", type=float, default=None)
+    parser.add_argument("--h6_router_gain_threshold", type=float, default=None)
+    parser.add_argument("--h6_act_gain_threshold", type=float, default=None)
     parser.add_argument("--h6_utility_entropy_threshold", type=float, default=0.98)
     parser.add_argument("--h6_exploration_start", type=float, default=0.15)
     parser.add_argument("--h6_exploration_end", type=float, default=0.05)
@@ -3924,6 +3936,26 @@ def main():
     parser.add_argument("--h6_teacher_prob_std_threshold", type=float, default=0.0)
 
     args = parser.parse_args()
+    args.h6_factor_tau_utility = (
+        args.h6_tau_utility
+        if args.h6_factor_tau_utility is None
+        else args.h6_factor_tau_utility
+    )
+    args.h6_router_tau_utility = (
+        args.h6_tau_utility
+        if args.h6_router_tau_utility is None
+        else args.h6_router_tau_utility
+    )
+    args.h6_router_gain_threshold = (
+        args.h6_utility_gain_threshold
+        if args.h6_router_gain_threshold is None
+        else args.h6_router_gain_threshold
+    )
+    args.h6_act_gain_threshold = (
+        args.h6_utility_gain_threshold
+        if args.h6_act_gain_threshold is None
+        else args.h6_act_gain_threshold
+    )
     configure_canonical_fp32()
     if args.h6_trajectory_milestones:
         if args.h6_trajectory_milestones != sorted(set(args.h6_trajectory_milestones)):
@@ -4077,7 +4109,11 @@ def main():
             enabled_legacy = {name: value for name, value in legacy_weights.items() if float(value) != 0.0}
             if enabled_legacy:
                 raise ValueError(f"{contract_version} legacy auxiliary losses must be OFF: {enabled_legacy}")
-            if args.h6_tau_utility <= 0 or args.h6_utility_denominator_floor <= 0:
+            if (
+                args.h6_factor_tau_utility <= 0
+                or args.h6_router_tau_utility <= 0
+                or args.h6_utility_denominator_floor <= 0
+            ):
                 raise ValueError(f"{contract_version} utility temperature and floor must be positive")
             if not 0.0 < args.h6_act_effective_beta < 1.0:
                 raise ValueError("--h6_act_effective_beta must be in (0, 1)")

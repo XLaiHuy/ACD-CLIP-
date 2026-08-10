@@ -57,11 +57,19 @@ def utility_teacher(
     rho: float = 0.05,
     denominator_floor: float = 0.1,
     tau_utility: float = 0.05,
+    factor_tau_utility: float | None = None,
+    router_tau_utility: float | None = None,
     epsilon: float = 0.15,
     gain_threshold: float = 0.02,
+    router_gain_threshold: float | None = None,
     entropy_threshold: float = 0.98,
 ) -> Dict[str, torch.Tensor]:
-    """Build a detached utility responsibility from relative BCE improvement."""
+    """Build detached factor and router utility teachers.
+
+    The legacy ``tau_utility`` and ``gain_threshold`` remain the defaults for
+    both consumers.  Supplying a decoupled control changes only its named
+    consumer, preserving existing P1-v8.3/v8.4-A behavior when unset.
+    """
     if factor_local_evidence.ndim != 4:
         raise ValueError("factor_local_evidence must be [G,B,P,M]")
     groups, batch, patches, factors = factor_local_evidence.shape
@@ -71,8 +79,13 @@ def utility_teacher(
         raise ValueError("base_logits must be [G,B,P]")
     if y_patch.shape != (batch, patches) or local_mask_valid.shape != (batch, patches):
         raise ValueError("patch targets/validity must be [B,P]")
-    if tau_utility <= 0 or denominator_floor <= 0:
-        raise ValueError("tau_utility and denominator_floor must be positive")
+    factor_tau = float(tau_utility if factor_tau_utility is None else factor_tau_utility)
+    router_tau = float(tau_utility if router_tau_utility is None else router_tau_utility)
+    router_gain = float(
+        gain_threshold if router_gain_threshold is None else router_gain_threshold
+    )
+    if factor_tau <= 0 or router_tau <= 0 or denominator_floor <= 0:
+        raise ValueError("factor/router utility temperatures and denominator_floor must be positive")
     if not 0.0 <= float(epsilon) <= 1.0:
         raise ValueError("epsilon must be in [0,1]")
     if float(rho) not in (0.0, 0.05):
@@ -89,14 +102,17 @@ def utility_teacher(
     gain_rel = (loss_base.unsqueeze(-1) - loss_per_factor) / loss_base.unsqueeze(-1).clamp_min(
         float(denominator_floor)
     )
-    q = F.softmax(gain_rel.detach() / float(tau_utility), dim=-1)
-    responsibility = ((1.0 - float(epsilon)) * q + float(epsilon) / factors).detach()
+    q_factor = F.softmax(gain_rel.detach() / factor_tau, dim=-1)
+    q_router = F.softmax(gain_rel.detach() / router_tau, dim=-1)
+    responsibility = (
+        (1.0 - float(epsilon)) * q_factor + float(epsilon) / factors
+    ).detach()
     normalized_entropy = -(
-        q * q.clamp_min(1e-12).log()
+        q_router * q_router.clamp_min(1e-12).log()
     ).sum(dim=-1) / math.log(factors)
     best_gain_rel, winners = gain_rel.detach().max(dim=-1)
     informative = (
-        (best_gain_rel > float(gain_threshold))
+        (best_gain_rel > router_gain)
         & (normalized_entropy < float(entropy_threshold))
         & local_mask_valid.unsqueeze(0)
     )
@@ -106,7 +122,10 @@ def utility_teacher(
         "loss_base": loss_base,
         "loss_per_factor": loss_per_factor,
         "gain_rel": gain_rel,
-        "q_utility": q.detach(),
+        "q_factor_utility": q_factor.detach(),
+        "q_router_utility": q_router.detach(),
+        # Backward-compatible public alias used by router losses/diagnostics.
+        "q_utility": q_router.detach(),
         "responsibility": responsibility,
         "normalized_entropy": normalized_entropy.detach(),
         "best_gain_rel": best_gain_rel,

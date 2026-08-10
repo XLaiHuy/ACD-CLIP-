@@ -1,0 +1,2812 @@
+{
+  "act": {
+    "actual_gated_reconstruction_exact": true,
+    "cross_tabs": {
+      "old_best_positive_p90": 0.00240325927734375,
+      "oracle_nonpositive_routed_positive": {
+        "anomaly": {
+          "count": 0,
+          "fraction": 0.0
+        },
+        "normal": {
+          "count": 0,
+          "fraction": 0.0
+        },
+        "overall": {
+          "count": 0,
+          "fraction": 0.0
+        }
+      },
+      "oracle_positive_routed_harm": {
+        "anomaly": {
+          "count": 0,
+          "fraction": 0.0
+        },
+        "normal": {
+          "count": 1066021,
+          "fraction": 0.9952395558357239
+        },
+        "overall": {
+          "count": 1066021,
+          "fraction": 0.989417314529419
+        }
+      },
+      "routed_nonpositive_actual_positive": {
+        "anomaly": {
+          "count": 0,
+          "fraction": 0.0
+        },
+        "normal": {
+          "count": 4,
+          "fraction": 3.7344088923418894e-06
+        },
+        "overall": {
+          "count": 4,
+          "fraction": 3.712562374857953e-06
+        }
+      },
+      "routed_positive_actual_nonpositive": {
+        "anomaly": {
+          "count": 0,
+          "fraction": 0.0
+        },
+        "normal": {
+          "count": 2,
+          "fraction": 1.8672044461709447e-06
+        },
+        "overall": {
+          "count": 2,
+          "fraction": 1.8562811874289764e-06
+        }
+      },
+      "strong_oracle_positive_routed_harm": {
+        "anomaly": {
+          "count": 0,
+          "fraction": 0.0
+        },
+        "normal": {
+          "count": 98891,
+          "fraction": 0.09232485294342041
+        },
+        "overall": {
+          "count": 98891,
+          "fraction": 0.0917847529053688
+        }
+      }
+    },
+    "decision": "ACT_TEACHER_OBJECTIVE_MISMATCH",
+    "g_actual": {
+      "anomaly": {
+        "count": 6303,
+        "max": 0.0015091551467776299,
+        "mean": 0.0007617760566063225,
+        "min": 0.00010401305189589038,
+        "negative_fraction": 0.0,
+        "p01": 0.00012883328599855304,
+        "p05": 0.00015372819325421005,
+        "p10": 0.00020901222887914628,
+        "p25": 0.00032559921965003014,
+        "p50": 0.0008343830704689026,
+        "p75": 0.0010551044251769781,
+        "p90": 0.0013310783542692661,
+        "p95": 0.0014095889637246728,
+        "p99": 0.0014570620842278004,
+        "positive_fraction": 1.0,
+        "std": 0.0004045067180413753
+      },
+      "normal": {
+        "count": 1071120,
+        "max": 0.0013215570943430066,
+        "mean": -0.0003570977714844048,
+        "min": -0.0033712387084960938,
+        "negative_fraction": 0.9952479600906372,
+        "p01": -0.002067089080810547,
+        "p05": -0.0011730194091796875,
+        "p10": -0.0008058547973632812,
+        "p25": -0.00044345855712890625,
+        "p50": -0.00024318695068359375,
+        "p75": -9.059906005859375e-05,
+        "p90": -5.245208740234375e-05,
+        "p95": -4.291534423828125e-05,
+        "p99": -3.337860107421875e-05,
+        "positive_fraction": 0.00475203525274992,
+        "std": 0.0004161828546784818
+      },
+      "overall": {
+        "count": 1077423,
+        "max": 0.0015091551467776299,
+        "mean": -0.0003505522618070245,
+        "min": -0.0033712387084960938,
+        "negative_fraction": 0.9894257187843323,
+        "p01": -0.0020647048950195312,
+        "p05": -0.0011706352233886719,
+        "p10": -0.00080108642578125,
+        "p25": -0.00044345855712890625,
+        "p50": -0.00024318695068359375,
+        "p75": -9.059906005859375e-05,
+        "p90": -5.245208740234375e-05,
+        "p95": -4.291534423828125e-05,
+        "p99": 0.0001287486229557544,
+        "positive_fraction": 0.010574305430054665,
+        "std": 0.00042477386887185276
+      }
+    },
+    "g_best": {
+      "anomaly": {
+        "count": 6303,
+        "max": 0.008058927953243256,
+        "mean": 0.004565554205328226,
+        "min": 0.001440701656974852,
+        "negative_fraction": 0.0,
+        "p01": 0.001675409497693181,
+        "p05": 0.0019851205870509148,
+        "p10": 0.0023288531228899956,
+        "p25": 0.003052258398383856,
+        "p50": 0.004565684124827385,
+        "p75": 0.006012123078107834,
+        "p90": 0.007361283525824547,
+        "p95": 0.007484963163733482,
+        "p99": 0.007529017981141806,
+        "positive_fraction": 1.0,
+        "std": 0.0018150818068534136
+      },
+      "normal": {
+        "count": 1071120,
+        "max": 0.01096487045288086,
+        "mean": 0.001100572175346315,
+        "min": -1.9073486328125e-05,
+        "negative_fraction": 1.0269623999192845e-05,
+        "p01": 0.00010013580322265625,
+        "p05": 0.00014781951904296875,
+        "p10": 0.0002193450927734375,
+        "p25": 0.000362396240234375,
+        "p50": 0.0006341934204101562,
+        "p75": 0.0012302398681640625,
+        "p90": 0.0023651123046875,
+        "p95": 0.004093647003173828,
+        "p99": 0.007459819316864014,
+        "positive_fraction": 0.9999897480010986,
+        "std": 0.0013452458661049604
+      },
+      "overall": {
+        "count": 1077423,
+        "max": 0.01096487045288086,
+        "mean": 0.0011208425275981426,
+        "min": -1.9073486328125e-05,
+        "negative_fraction": 1.0209546417172533e-05,
+        "p01": 0.00010013580322265625,
+        "p05": 0.00014781951904296875,
+        "p10": 0.0002193450927734375,
+        "p25": 0.000362396240234375,
+        "p50": 0.0006389617919921875,
+        "p75": 0.0012540817260742188,
+        "p90": 0.0023984909057617188,
+        "p95": 0.004131793975830078,
+        "p99": 0.007494352757930756,
+        "positive_fraction": 0.9999898076057434,
+        "std": 0.0013741173315793276
+      }
+    },
+    "g_route": {
+      "anomaly": {
+        "count": 6303,
+        "max": 0.004175810609012842,
+        "mean": 0.002073839772492647,
+        "min": 0.0002942834107670933,
+        "negative_fraction": 0.0,
+        "p01": 0.0003589671105146408,
+        "p05": 0.00042121525621041656,
+        "p10": 0.0005786169786006212,
+        "p25": 0.0008975438540801406,
+        "p50": 0.0022511815186589956,
+        "p75": 0.0028901156038045883,
+        "p90": 0.003570188069716096,
+        "p95": 0.003809308400377631,
+        "p99": 0.003977356478571892,
+        "positive_fraction": 1.0,
+        "std": 0.0010921175125986338
+      },
+      "normal": {
+        "count": 1071120,
+        "max": 0.0036591750103980303,
+        "mean": -0.0009997758315876126,
+        "min": -0.008955001831054688,
+        "negative_fraction": 0.9952498078346252,
+        "p01": -0.005707740783691406,
+        "p05": -0.0032329559326171875,
+        "p10": -0.0022268295288085938,
+        "p25": -0.0012683868408203125,
+        "p50": -0.0006914138793945312,
+        "p75": -0.0002574920654296875,
+        "p90": -0.0001430511474609375,
+        "p95": -0.00011920928955078125,
+        "p99": -9.5367431640625e-05,
+        "positive_fraction": 0.004750167950987816,
+        "std": 0.0011505765141919255
+      },
+      "overall": {
+        "count": 1077423,
+        "max": 0.004175810609012842,
+        "mean": -0.0009817949030548334,
+        "min": -0.008955001831054688,
+        "negative_fraction": 0.9894275665283203,
+        "p01": -0.005702972412109375,
+        "p05": -0.003223419189453125,
+        "p10": -0.0022144243121147156,
+        "p25": -0.0012683868408203125,
+        "p50": -0.0006914138793945312,
+        "p75": -0.00025272369384765625,
+        "p90": -0.0001430511474609375,
+        "p95": -0.00011920928955078125,
+        "p99": 0.0003566612140275538,
+        "positive_fraction": 0.010572449304163456,
+        "std": 0.001173883443698287
+      }
+    },
+    "loss_balance_conclusion": "NO_CHANGE_BEFORE_SEMANTIC_ALIGNMENT",
+    "pairwise_correlations": {
+      "anomaly": {
+        "g_best_g_actual": 0.9021915197372437,
+        "g_best_g_route": 0.9078898429870605,
+        "g_route_g_actual": 0.9994146823883057
+      },
+      "normal": {
+        "g_best_g_actual": -0.8729283213615417,
+        "g_best_g_route": -0.8764273524284363,
+        "g_route_g_actual": 0.9995706081390381
+      },
+      "overall": {
+        "g_best_g_actual": -0.7871400117874146,
+        "g_best_g_route": -0.7911341190338135,
+        "g_route_g_actual": 0.9995853304862976
+      }
+    },
+    "regional_utility": {
+      "anomaly": {
+        "ActualGated": {
+          "gain_vs_Base": 0.0007283946615643799,
+          "loss": 3.173351287841797
+        },
+        "Base": {
+          "gain_vs_Base": 0.0,
+          "loss": 3.1756644248962402
+        },
+        "FullSoftRouted_ACT1": {
+          "gain_vs_Base": 0.0019860805477946997,
+          "loss": 3.1693572998046875
+        },
+        "HardRouted_ACT1": {
+          "gain_vs_Base": 0.0028829474467784166,
+          "loss": 3.1665091514587402
+        },
+        "ResidualBestSingle": {
+          "gain_vs_Base": 0.003809394547715783,
+          "loss": 3.163567066192627
+        },
+        "ResidualOracleMulti": {
+          "gain_vs_Base": 0.004368416033685207,
+          "loss": 3.1617918014526367
+        },
+        "Uniform_ACT1": {
+          "gain_vs_Base": 0.001912880688905716,
+          "loss": 3.1695897579193115
+        },
+        "patch_count": 6303
+      },
+      "normal": {
+        "ActualGated": {
+          "gain_vs_Base": -0.0021583905909210443,
+          "loss": 0.015619035810232162
+        },
+        "Base": {
+          "gain_vs_Base": 0.0,
+          "loss": 0.015585396438837051
+        },
+        "FullSoftRouted_ACT1": {
+          "gain_vs_Base": -0.006052815355360508,
+          "loss": 0.015679731965065002
+        },
+        "HardRouted_ACT1": {
+          "gain_vs_Base": -0.002905819797888398,
+          "loss": 0.015630684792995453
+        },
+        "ResidualBestSingle": {
+          "gain_vs_Base": 0.006553451996296644,
+          "loss": 0.015483258292078972
+        },
+        "ResidualOracleMulti": {
+          "gain_vs_Base": 0.007822014391422272,
+          "loss": 0.01546348724514246
+        },
+        "Uniform_ACT1": {
+          "gain_vs_Base": -0.006137071643024683,
+          "loss": 0.01568104512989521
+        },
+        "patch_count": 1071120
+      },
+      "overall": {
+        "ActualGated": {
+          "gain_vs_Base": -0.0005843986291438341,
+          "loss": 0.03409199044108391
+        },
+        "Base": {
+          "gain_vs_Base": 0.0,
+          "loss": 0.03407207876443863
+        },
+        "FullSoftRouted_ACT1": {
+          "gain_vs_Base": -0.001669663586653769,
+          "loss": 0.03412896767258644
+        },
+        "HardRouted_ACT1": {
+          "gain_vs_Base": 0.0002504877920728177,
+          "loss": 0.03406354412436485
+        },
+        "ResidualBestSingle": {
+          "gain_vs_Base": 0.0017609588103368878,
+          "loss": 0.0340120792388916
+        },
+        "ResidualOracleMulti": {
+          "gain_vs_Base": 0.005938889924436808,
+          "loss": 0.033869728446006775
+        },
+        "Uniform_ACT1": {
+          "gain_vs_Base": -0.0017478384543210268,
+          "loss": 0.03413163125514984
+        },
+        "patch_count": 1077423
+      }
+    },
+    "risk_coverage": {
+      "positive_g_route": {
+        "count": 11391,
+        "max": 0.004175810609012842,
+        "mean": 0.0018073287792503834,
+        "min": 4.014741989522008e-06,
+        "p01": 0.00012935479753650725,
+        "p05": 0.0003486171190161258,
+        "p10": 0.0004145648272242397,
+        "p25": 0.0007460805936716497,
+        "p50": 0.0019944568630307913,
+        "p75": 0.002651029732078314,
+        "p90": 0.003021989017724991,
+        "p95": 0.0036714801099151373,
+        "p99": 0.003920202609151602,
+        "std": 0.0010574297048151493
+      },
+      "production_T_off_created": false,
+      "rows": [
+        {
+          "label": "zero",
+          "regions": {
+            "anomaly": {
+              "ambiguous_fraction": 0.0,
+              "off_fraction": 0.0,
+              "on_coverage": {
+                "categories": [
+                  "candle",
+                  "capsules",
+                  "cashew",
+                  "chewinggum",
+                  "fryum",
+                  "macaroni1",
+                  "macaroni2",
+                  "pcb1",
+                  "pcb2",
+                  "pcb3",
+                  "pcb4",
+                  "pipe_fryum"
+                ],
+                "category_count": 12,
+                "category_denominator": 12,
+                "category_fraction": 1.0,
+                "image_count": 117,
+                "image_denominator": 117,
+                "image_fraction": 1.0
+              },
+              "on_fraction": 1.0,
+              "on_harmful_fraction": 0.0,
+              "on_mean_g_route": 0.002073839772492647,
+              "on_median_g_route": 0.0022511815186589956,
+              "patch_count": 6303
+            },
+            "normal": {
+              "ambiguous_fraction": 0.0,
+              "off_fraction": 0.9952498078346252,
+              "on_coverage": {
+                "categories": [
+                  "candle",
+                  "capsules",
+                  "cashew",
+                  "chewinggum",
+                  "fryum",
+                  "macaroni1",
+                  "macaroni2",
+                  "pcb1",
+                  "pcb2",
+                  "pcb3",
+                  "pcb4",
+                  "pipe_fryum"
+                ],
+                "category_count": 12,
+                "category_denominator": 12,
+                "category_fraction": 1.0,
+                "image_count": 166,
+                "image_denominator": 300,
+                "image_fraction": 0.5533333333333333
+              },
+              "on_fraction": 0.004750167950987816,
+              "on_harmful_fraction": 0.0,
+              "on_mean_g_route": 0.0014771749265491962,
+              "on_median_g_route": 0.0016137737547978759,
+              "patch_count": 1071120
+            },
+            "overall": {
+              "ambiguous_fraction": 0.0,
+              "off_fraction": 0.9894275665283203,
+              "on_coverage": {
+                "categories": [
+                  "candle",
+                  "capsules",
+                  "cashew",
+                  "chewinggum",
+                  "fryum",
+                  "macaroni1",
+                  "macaroni2",
+                  "pcb1",
+                  "pcb2",
+                  "pcb3",
+                  "pcb4",
+                  "pipe_fryum"
+                ],
+                "category_count": 12,
+                "category_denominator": 12,
+                "category_fraction": 1.0,
+                "image_count": 166,
+                "image_denominator": 300,
+                "image_fraction": 0.5533333333333333
+              },
+              "on_fraction": 0.010572449304163456,
+              "on_harmful_fraction": 0.0,
+              "on_mean_g_route": 0.0018073287792503834,
+              "on_median_g_route": 0.0019944568630307913,
+              "patch_count": 1077423
+            }
+          },
+          "threshold": 0.0
+        },
+        {
+          "label": "positive_p25",
+          "regions": {
+            "anomaly": {
+              "ambiguous_fraction": 0.171346977353096,
+              "off_fraction": 0.0,
+              "on_coverage": {
+                "categories": [
+                  "candle",
+                  "capsules",
+                  "cashew",
+                  "chewinggum",
+                  "fryum",
+                  "macaroni1",
+                  "macaroni2",
+                  "pcb1",
+                  "pcb2",
+                  "pcb3",
+                  "pcb4",
+                  "pipe_fryum"
+                ],
+                "category_count": 12,
+                "category_denominator": 12,
+                "category_fraction": 1.0,
+                "image_count": 117,
+                "image_denominator": 117,
+                "image_fraction": 1.0
+              },
+              "on_fraction": 0.8286530375480652,
+              "on_harmful_fraction": 0.0,
+              "on_mean_g_route": 0.0023929739836603403,
+              "on_median_g_route": 0.0025962782092392445,
+              "patch_count": 6303
+            },
+            "normal": {
+              "ambiguous_fraction": 0.0016506087267771363,
+              "off_fraction": 0.9952498078346252,
+              "on_coverage": {
+                "categories": [
+                  "candle",
+                  "capsules",
+                  "cashew",
+                  "chewinggum",
+                  "fryum",
+                  "macaroni1",
+                  "macaroni2",
+                  "pcb1",
+                  "pcb2",
+                  "pcb3",
+                  "pcb4",
+                  "pipe_fryum"
+                ],
+                "category_count": 12,
+                "category_denominator": 12,
+                "category_fraction": 1.0,
+                "image_count": 166,
+                "image_denominator": 300,
+                "image_fraction": 0.5533333333333333
+              },
+              "on_fraction": 0.0030995593406260014,
+              "on_harmful_fraction": 0.0,
+              "on_mean_g_route": 0.002032016171142459,
+              "on_median_g_route": 0.002125667640939355,
+              "patch_count": 1071120
+            },
+            "overall": {
+              "ambiguous_fraction": 0.002643344458192587,
+              "off_fraction": 0.9894275665283203,
+              "on_coverage": {
+                "categories": [
+                  "candle",
+                  "capsules",
+                  "cashew",
+                  "chewinggum",
+                  "fryum",
+                  "macaroni1",
+                  "macaroni2",
+                  "pcb1",
+                  "pcb2",
+                  "pcb3",
+                  "pcb4",
+                  "pipe_fryum"
+                ],
+                "category_count": 12,
+                "category_denominator": 12,
+                "category_fraction": 1.0,
+                "image_count": 166,
+                "image_denominator": 300,
+                "image_fraction": 0.5533333333333333
+              },
+              "on_fraction": 0.007929105311632156,
+              "on_harmful_fraction": 0.0,
+              "on_mean_g_route": 0.0022526977118104696,
+              "on_median_g_route": 0.002369462978094816,
+              "patch_count": 1077423
+            }
+          },
+          "threshold": 0.0007460805936716497
+        },
+        {
+          "label": "positive_p50",
+          "regions": {
+            "anomaly": {
+              "ambiguous_fraction": 0.3986990451812744,
+              "off_fraction": 0.0,
+              "on_coverage": {
+                "categories": [
+                  "candle",
+                  "capsules",
+                  "cashew",
+                  "chewinggum",
+                  "fryum",
+                  "macaroni1",
+                  "macaroni2",
+                  "pcb1",
+                  "pcb2",
+                  "pcb3",
+                  "pcb4",
+                  "pipe_fryum"
+                ],
+                "category_count": 12,
+                "category_denominator": 12,
+                "category_fraction": 1.0,
+                "image_count": 117,
+                "image_denominator": 117,
+                "image_fraction": 1.0
+              },
+              "on_fraction": 0.6013009548187256,
+              "on_harmful_fraction": 0.0,
+              "on_mean_g_route": 0.002861364744603634,
+              "on_median_g_route": 0.002822843147441745,
+              "patch_count": 6303
+            },
+            "normal": {
+              "ambiguous_fraction": 0.002971655922010541,
+              "off_fraction": 0.9952498078346252,
+              "on_coverage": {
+                "categories": [
+                  "candle",
+                  "capsules",
+                  "cashew",
+                  "chewinggum",
+                  "fryum",
+                  "macaroni1",
+                  "macaroni2",
+                  "pcb1",
+                  "pcb2",
+                  "pcb3",
+                  "pcb4",
+                  "pipe_fryum"
+                ],
+                "category_count": 12,
+                "category_denominator": 12,
+                "category_fraction": 1.0,
+                "image_count": 152,
+                "image_denominator": 300,
+                "image_fraction": 0.5066666666666667
+              },
+              "on_fraction": 0.0017785122618079185,
+              "on_harmful_fraction": 0.0,
+              "on_mean_g_route": 0.0024637423921376467,
+              "on_median_g_route": 0.0024541555903851986,
+              "patch_count": 1071120
+            },
+            "overall": {
+              "ambiguous_fraction": 0.005286688916385174,
+              "off_fraction": 0.9894275665283203,
+              "on_coverage": {
+                "categories": [
+                  "candle",
+                  "capsules",
+                  "cashew",
+                  "chewinggum",
+                  "fryum",
+                  "macaroni1",
+                  "macaroni2",
+                  "pcb1",
+                  "pcb2",
+                  "pcb3",
+                  "pcb4",
+                  "pipe_fryum"
+                ],
+                "category_count": 12,
+                "category_denominator": 12,
+                "category_fraction": 1.0,
+                "image_count": 154,
+                "image_denominator": 300,
+                "image_fraction": 0.5133333333333333
+              },
+              "on_fraction": 0.005285760387778282,
+              "on_harmful_fraction": 0.0,
+              "on_mean_g_route": 0.0027283586096018553,
+              "on_median_g_route": 0.0026511114556342363,
+              "patch_count": 1077423
+            }
+          },
+          "threshold": 0.0019944568630307913
+        },
+        {
+          "label": "positive_p75",
+          "regions": {
+            "anomaly": {
+              "ambiguous_fraction": 0.6209741234779358,
+              "off_fraction": 0.0,
+              "on_coverage": {
+                "categories": [
+                  "cashew",
+                  "chewinggum",
+                  "fryum",
+                  "macaroni1",
+                  "macaroni2",
+                  "pcb1",
+                  "pcb2",
+                  "pcb3",
+                  "pcb4",
+                  "pipe_fryum"
+                ],
+                "category_count": 10,
+                "category_denominator": 12,
+                "category_fraction": 0.8333333333333334,
+                "image_count": 65,
+                "image_denominator": 117,
+                "image_fraction": 0.5555555555555556
+              },
+              "on_fraction": 0.3790258467197418,
+              "on_harmful_fraction": 0.0,
+              "on_mean_g_route": 0.00316529325209558,
+              "on_median_g_route": 0.002998641226440668,
+              "patch_count": 6303
+            },
+            "normal": {
+              "ambiguous_fraction": 0.004321644548326731,
+              "off_fraction": 0.9952498078346252,
+              "on_coverage": {
+                "categories": [
+                  "chewinggum",
+                  "fryum",
+                  "macaroni1",
+                  "macaroni2",
+                  "pcb1",
+                  "pcb2",
+                  "pcb3",
+                  "pcb4",
+                  "pipe_fryum"
+                ],
+                "category_count": 9,
+                "category_denominator": 12,
+                "category_fraction": 0.75,
+                "image_count": 68,
+                "image_denominator": 300,
+                "image_fraction": 0.22666666666666666
+              },
+              "on_fraction": 0.00042852340266108513,
+              "on_harmful_fraction": 0.0,
+              "on_mean_g_route": 0.002849830314517021,
+              "on_median_g_route": 0.0028108437545597553,
+              "patch_count": 1071120
+            },
+            "overall": {
+              "ambiguous_fraction": 0.007929105311632156,
+              "off_fraction": 0.9894275665283203,
+              "on_coverage": {
+                "categories": [
+                  "cashew",
+                  "chewinggum",
+                  "fryum",
+                  "macaroni1",
+                  "macaroni2",
+                  "pcb1",
+                  "pcb2",
+                  "pcb3",
+                  "pcb4",
+                  "pipe_fryum"
+                ],
+                "category_count": 10,
+                "category_denominator": 12,
+                "category_fraction": 0.8333333333333334,
+                "image_count": 85,
+                "image_denominator": 300,
+                "image_fraction": 0.2833333333333333
+              },
+              "on_fraction": 0.002643344458192587,
+              "on_harmful_fraction": 0.0,
+              "on_mean_g_route": 0.0031144514214247465,
+              "on_median_g_route": 0.0029489349108189344,
+              "patch_count": 1077423
+            }
+          },
+          "threshold": 0.002651029732078314
+        },
+        {
+          "label": "positive_p90",
+          "regions": {
+            "anomaly": {
+              "ambiguous_fraction": 0.8275424242019653,
+              "off_fraction": 0.0,
+              "on_coverage": {
+                "categories": [
+                  "fryum",
+                  "pcb1",
+                  "pcb2",
+                  "pipe_fryum"
+                ],
+                "category_count": 4,
+                "category_denominator": 12,
+                "category_fraction": 0.3333333333333333,
+                "image_count": 21,
+                "image_denominator": 117,
+                "image_fraction": 0.1794871794871795
+              },
+              "on_fraction": 0.17245756089687347,
+              "on_harmful_fraction": 0.0,
+              "on_mean_g_route": 0.0035448295529931784,
+              "on_median_g_route": 0.0036927643232047558,
+              "patch_count": 6303
+            },
+            "normal": {
+              "ambiguous_fraction": 0.004701620899140835,
+              "off_fraction": 0.9952498078346252,
+              "on_coverage": {
+                "categories": [
+                  "fryum",
+                  "pcb1",
+                  "pcb2",
+                  "pipe_fryum"
+                ],
+                "category_count": 4,
+                "category_denominator": 12,
+                "category_fraction": 0.3333333333333333,
+                "image_count": 14,
+                "image_denominator": 300,
+                "image_fraction": 0.04666666666666667
+              },
+              "on_fraction": 4.854731378145516e-05,
+              "on_harmful_fraction": 0.0,
+              "on_mean_g_route": 0.0032396886963397264,
+              "on_median_g_route": 0.0031503497157245874,
+              "patch_count": 1071120
+            },
+            "overall": {
+              "ambiguous_fraction": 0.00951529759913683,
+              "off_fraction": 0.9894275665283203,
+              "on_coverage": {
+                "categories": [
+                  "fryum",
+                  "pcb1",
+                  "pcb2",
+                  "pipe_fryum"
+                ],
+                "category_count": 4,
+                "category_denominator": 12,
+                "category_fraction": 0.3333333333333333,
+                "image_count": 24,
+                "image_denominator": 300,
+                "image_fraction": 0.08
+              },
+              "on_fraction": 0.001057152054272592,
+              "on_harmful_fraction": 0.0,
+              "on_mean_g_route": 0.00353089882992208,
+              "on_median_g_route": 0.0036718673072755337,
+              "patch_count": 1077423
+            }
+          },
+          "threshold": 0.003021989017724991
+        },
+        {
+          "label": "positive_p95",
+          "regions": {
+            "anomaly": {
+              "ambiguous_fraction": 0.9095668792724609,
+              "off_fraction": 0.0,
+              "on_coverage": {
+                "categories": [
+                  "fryum"
+                ],
+                "category_count": 1,
+                "category_denominator": 12,
+                "category_fraction": 0.08333333333333333,
+                "image_count": 6,
+                "image_denominator": 117,
+                "image_fraction": 0.05128205128205128
+              },
+              "on_fraction": 0.09043312817811966,
+              "on_harmful_fraction": 0.0,
+              "on_mean_g_route": 0.003837697207927704,
+              "on_median_g_route": 0.0038250519428402185,
+              "patch_count": 6303
+            },
+            "normal": {
+              "ambiguous_fraction": 0.004750167950987816,
+              "off_fraction": 0.9952498078346252,
+              "on_coverage": {
+                "categories": [],
+                "category_count": 0,
+                "category_denominator": 12,
+                "category_fraction": 0.0,
+                "image_count": 0,
+                "image_denominator": 300,
+                "image_fraction": 0.0
+              },
+              "on_fraction": 0.0,
+              "on_harmful_fraction": 0.0,
+              "on_mean_g_route": 0.0,
+              "on_median_g_route": 0.0,
+              "patch_count": 1071120
+            },
+            "overall": {
+              "ambiguous_fraction": 0.01004340872168541,
+              "off_fraction": 0.9894275665283203,
+              "on_coverage": {
+                "categories": [
+                  "fryum"
+                ],
+                "category_count": 1,
+                "category_denominator": 12,
+                "category_fraction": 0.08333333333333333,
+                "image_count": 6,
+                "image_denominator": 300,
+                "image_fraction": 0.02
+              },
+              "on_fraction": 0.0005290401168167591,
+              "on_harmful_fraction": 0.0,
+              "on_mean_g_route": 0.003837697207927704,
+              "on_median_g_route": 0.0038250519428402185,
+              "patch_count": 1077423
+            }
+          },
+          "threshold": 0.0036714801099151373
+        }
+      ],
+      "thresholds_are_diagnostic_only": true
+    },
+    "sign_agreement": {
+      "anomaly": {
+        "g_best_g_actual": 1.0,
+        "g_best_g_route": 1.0,
+        "g_route_g_actual": 1.0
+      },
+      "normal": {
+        "g_best_g_actual": 0.004754836205393076,
+        "g_best_g_route": 0.004760437645018101,
+        "g_route_g_actual": 0.9999943971633911
+      },
+      "overall": {
+        "g_best_g_actual": 0.010577090084552765,
+        "g_best_g_route": 0.01058265846222639,
+        "g_route_g_actual": 0.9999944567680359
+      }
+    }
+  },
+  "audit_kind": "FORWARD_ONLY_COMBINED_TEACHER_AUDIT",
+  "contract": {
+    "actual_gated_reconstruction_max_abs_error": 0.0,
+    "amp_enabled": false,
+    "any_model_parameter_requires_grad": false,
+    "backward_executed": false,
+    "batch_size": 1,
+    "batches": 300,
+    "checkpoint_git_sha": "1b88c1e45896a2eb25b2b84264152c7cffff4004",
+    "checkpoint_origin": "REGENERATED_FROM_HISTORICAL_P1_V84A_300B_PROTOCOL",
+    "checkpoint_sha256": "96f679b2e18f4e352157494f7198414b66f66024a5cc023f5ff046c39dcaa3a3",
+    "checks": {
+      "actual_gated_reconstruction_exact": true,
+      "all_grads_none_after": true,
+      "all_grads_none_before": true,
+      "amp_off": true,
+      "batch_size": true,
+      "checkpoint_git_sha": true,
+      "checkpoint_origin": true,
+      "checkpoint_sha256": true,
+      "checkpoint_version": true,
+      "exactly_300_batches": true,
+      "grad_accum_steps": true,
+      "historical_original_checkpoint_lost": true,
+      "img_size": true,
+      "model_state_unchanged": true,
+      "precision_fp32": true,
+      "progress_version": true,
+      "provenance_checkpoint_sha256": true,
+      "residual_act_semantics": true,
+      "residual_definition_exact": true,
+      "rho_fixed": true,
+      "routed_correction_reconstruction_exact": true,
+      "safe_for_forward_only_teacher_audit": true,
+      "seed": true,
+      "tf32_off": true,
+      "tier_a_protocol_pass": true,
+      "tier_b_numerical_pass": true,
+      "tier_c_scientific_pass": true
+    },
+    "clipmodel_eval": true,
+    "current_git_head": "f74d46a684f07ad5140dbcb8155d70bc8a9e1314",
+    "dataset": "VisA/train",
+    "dataset_indices": [
+      1545,
+      591,
+      405,
+      1040,
+      1541,
+      1269,
+      1431,
+      1255,
+      589,
+      1546,
+      1542,
+      914,
+      1190,
+      1984,
+      494,
+      938,
+      512,
+      830,
+      1976,
+      2033,
+      1837,
+      874,
+      166,
+      649,
+      4,
+      1674,
+      2015,
+      2012,
+      1403,
+      623,
+      1033,
+      1942,
+      987,
+      148,
+      1920,
+      1726,
+      1265,
+      1075,
+      1192,
+      1985,
+      1594,
+      1068,
+      2053,
+      1107,
+      225,
+      170,
+      940,
+      603,
+      1006,
+      950,
+      1147,
+      1972,
+      1053,
+      1489,
+      1097,
+      66,
+      1678,
+      1099,
+      973,
+      1044,
+      1177,
+      691,
+      2037,
+      1467,
+      446,
+      1935,
+      1442,
+      53,
+      1171,
+      508,
+      552,
+      1728,
+      1060,
+      592,
+      1697,
+      1360,
+      319,
+      787,
+      1648,
+      626,
+      514,
+      1121,
+      851,
+      967,
+      1209,
+      1515,
+      1029,
+      1915,
+      771,
+      1872,
+      1616,
+      131,
+      1047,
+      153,
+      1536,
+      198,
+      647,
+      1344,
+      1387,
+      171,
+      2040,
+      1958,
+      1686,
+      1091,
+      1358,
+      1606,
+      1857,
+      925,
+      875,
+      2063,
+      1150,
+      1666,
+      1656,
+      1766,
+      1281,
+      422,
+      85,
+      9,
+      1753,
+      498,
+      1307,
+      927,
+      1455,
+      1159,
+      1317,
+      963,
+      2007,
+      678,
+      426,
+      217,
+      1479,
+      189,
+      102,
+      1148,
+      520,
+      338,
+      880,
+      1446,
+      2047,
+      1694,
+      1370,
+      353,
+      883,
+      92,
+      283,
+      467,
+      1755,
+      1501,
+      440,
+      378,
+      380,
+      1593,
+      2116,
+      2,
+      1249,
+      403,
+      588,
+      1430,
+      1488,
+      1400,
+      679,
+      577,
+      1581,
+      1988,
+      392,
+      530,
+      1677,
+      1632,
+      1157,
+      1098,
+      877,
+      1203,
+      1063,
+      212,
+      50,
+      1037,
+      978,
+      106,
+      1629,
+      1412,
+      761,
+      898,
+      1529,
+      1346,
+      1092,
+      1372,
+      11,
+      2060,
+      235,
+      1415,
+      94,
+      1004,
+      604,
+      1350,
+      1066,
+      712,
+      1876,
+      1651,
+      2147,
+      1791,
+      2141,
+      287,
+      1956,
+      2029,
+      1989,
+      101,
+      2002,
+      1264,
+      259,
+      355,
+      794,
+      984,
+      1964,
+      2082,
+      826,
+      1286,
+      192,
+      437,
+      920,
+      1538,
+      1932,
+      1514,
+      1463,
+      538,
+      1054,
+      815,
+      2143,
+      71,
+      1511,
+      566,
+      798,
+      1532,
+      584,
+      1274,
+      895,
+      1363,
+      1933,
+      2075,
+      1126,
+      531,
+      1598,
+      793,
+      1967,
+      960,
+      1883,
+      2128,
+      466,
+      1304,
+      109,
+      1513,
+      451,
+      1805,
+      1095,
+      1507,
+      543,
+      1486,
+      202,
+      1657,
+      1329,
+      1199,
+      966,
+      1389,
+      956,
+      276,
+      1067,
+      713,
+      337,
+      997,
+      1285,
+      824,
+      2109,
+      1388,
+      1992,
+      1580,
+      1359,
+      547,
+      1239,
+      52,
+      705,
+      809,
+      1612,
+      78,
+      816,
+      439,
+      1856,
+      881,
+      767,
+      686,
+      715,
+      955,
+      183,
+      1139,
+      1634,
+      656,
+      636,
+      444,
+      5,
+      526,
+      1887,
+      961
+    ],
+    "grad_accumulation_metadata": 6,
+    "historical_original_checkpoint_lost": true,
+    "model_eval": true,
+    "model_state_hash_after": "95034c11f50d006d818f26fa2cf5d77c93168582923300e31b71bcf8c726e95b",
+    "model_state_hash_before": "95034c11f50d006d818f26fa2cf5d77c93168582923300e31b71bcf8c726e95b",
+    "openai_checkpoint_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+    "optimizer_constructed": false,
+    "optimizer_steps": 0,
+    "precision": "fp32",
+    "regeneration_provenance_path": "runs/p1_v84a_gpu/regenerated_300b_checkpoint_provenance.json",
+    "residual_definition_max_abs_error": 0.0,
+    "resolved_teacher_controls": {
+      "act_gain_threshold": 0.02,
+      "factor_tau_utility": 0.05,
+      "router_gain_threshold": 0.02,
+      "router_tau_utility": 0.05
+    },
+    "rho": 0.05,
+    "routed_reconstruction_max_abs_error": 0.0,
+    "seed": 0,
+    "source_decoupling_equivalence": "PASS_56_TESTS",
+    "tf32_enabled": false,
+    "update_load_bias": false
+  },
+  "historical_context": {
+    "new_decisions_use_only_this_replay": true,
+    "original_run_artifacts_are_comparison_only": true,
+    "paths": [
+      "runs/p1_v84a_gpu/fresh_300b_seed0_attempt1/final_summary.json",
+      "runs/p1_v84a_gpu/fresh_300b_seed0_attempt1/smoke_summary.json",
+      "runs/p1_v84a_gpu/post300_root_cause_audit.json"
+    ]
+  },
+  "next_authorized_action": "EXIT_FOR_DISCUSSION: review a routed-utility-based ACT teacher candidate while holding thresholds, losses, Router controls, capacity, rho, and the training protocol fixed; implementation and training are not authorized",
+  "root_cause": {
+    "all_triggered": [
+      "ACT_TEACHER_OBJECTIVE_MISMATCH",
+      "ROUTER_GATE_FORMULATION_CHANGE"
+    ],
+    "primary": "ACT_TEACHER_OBJECTIVE_MISMATCH",
+    "semantic_changes_applied": []
+  },
+  "router": {
+    "decision": "ROUTER_GATE_FORMULATION_CHANGE",
+    "entropy_support": {
+      "legacy_router_gain_threshold": 0.02,
+      "positive_utility_boundary": 0.0,
+      "rows": [
+        {
+          "entropy_threshold": 0.98,
+          "regions": {
+            "anomaly": {
+              "count": 0,
+              "factor_coverage": {
+                "F1": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F2": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F3": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.0,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9988039135932922,
+              "teacher_max_probability_mean": 0.26281431317329407
+            },
+            "normal": {
+              "count": 0,
+              "factor_coverage": {
+                "F1": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F2": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F3": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.0,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9994301795959473,
+              "teacher_max_probability_mean": 0.26091712713241577
+            },
+            "overall": {
+              "count": 0,
+              "factor_coverage": {
+                "F1": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F2": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F3": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.0,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9994266629219055,
+              "teacher_max_probability_mean": 0.260928213596344
+            }
+          },
+          "router_tau_utility": 0.05,
+          "teacher_entropy": {
+            "max": 1.0000001192092896,
+            "mean": 0.9994266629219055,
+            "min": 0.9818385243415833,
+            "p01": 0.9893638491630554,
+            "p05": 0.9969910383224487,
+            "p10": 0.9989769458770752,
+            "p25": 0.9996272921562195,
+            "p50": 0.9998994469642639,
+            "p75": 0.9999693036079407,
+            "p90": 0.9999867677688599,
+            "p95": 0.9999943375587463,
+            "p99": 0.999997079372406,
+            "std": 0.0016198419034481049
+          },
+          "teacher_max_probability": {
+            "max": 0.34552299976348877,
+            "mean": 0.260928213596344,
+            "min": 0.25000596046447754,
+            "p01": 0.25108617544174194,
+            "p05": 0.2515285313129425,
+            "p10": 0.2520676851272583,
+            "p25": 0.2535240650177002,
+            "p50": 0.2566729485988617,
+            "p75": 0.2625994384288788,
+            "p90": 0.27200278639793396,
+            "p95": 0.2894307076931,
+            "p99": 0.32291120290756226,
+            "std": 0.012845439836382866
+          }
+        },
+        {
+          "entropy_threshold": 0.99,
+          "regions": {
+            "anomaly": {
+              "count": 0,
+              "factor_coverage": {
+                "F1": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F2": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F3": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.0,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9988039135932922,
+              "teacher_max_probability_mean": 0.26281431317329407
+            },
+            "normal": {
+              "count": 11844,
+              "factor_coverage": {
+                "F1": {
+                  "count": 11844,
+                  "share": 1.0
+                },
+                "F2": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F3": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.011057584546506405,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9994301795959473,
+              "teacher_max_probability_mean": 0.26091712713241577
+            },
+            "overall": {
+              "count": 11844,
+              "factor_coverage": {
+                "F1": {
+                  "count": 11844,
+                  "share": 1.0
+                },
+                "F2": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F3": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.010992896743118763,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9994266629219055,
+              "teacher_max_probability_mean": 0.260928213596344
+            }
+          },
+          "router_tau_utility": 0.05,
+          "teacher_entropy": {
+            "max": 1.0000001192092896,
+            "mean": 0.9994266629219055,
+            "min": 0.9818385243415833,
+            "p01": 0.9893638491630554,
+            "p05": 0.9969910383224487,
+            "p10": 0.9989769458770752,
+            "p25": 0.9996272921562195,
+            "p50": 0.9998994469642639,
+            "p75": 0.9999693036079407,
+            "p90": 0.9999867677688599,
+            "p95": 0.9999943375587463,
+            "p99": 0.999997079372406,
+            "std": 0.0016198419034481049
+          },
+          "teacher_max_probability": {
+            "max": 0.34552299976348877,
+            "mean": 0.260928213596344,
+            "min": 0.25000596046447754,
+            "p01": 0.25108617544174194,
+            "p05": 0.2515285313129425,
+            "p10": 0.2520676851272583,
+            "p25": 0.2535240650177002,
+            "p50": 0.2566729485988617,
+            "p75": 0.2625994384288788,
+            "p90": 0.27200278639793396,
+            "p95": 0.2894307076931,
+            "p99": 0.32291120290756226,
+            "std": 0.012845439836382866
+          }
+        },
+        {
+          "entropy_threshold": 0.995,
+          "regions": {
+            "anomaly": {
+              "count": 0,
+              "factor_coverage": {
+                "F1": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F2": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F3": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.0,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9988039135932922,
+              "teacher_max_probability_mean": 0.26281431317329407
+            },
+            "normal": {
+              "count": 21925,
+              "factor_coverage": {
+                "F1": {
+                  "count": 21925,
+                  "share": 1.0
+                },
+                "F2": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F3": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.02046922780573368,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9994301795959473,
+              "teacher_max_probability_mean": 0.26091712713241577
+            },
+            "overall": {
+              "count": 21925,
+              "factor_coverage": {
+                "F1": {
+                  "count": 21925,
+                  "share": 1.0
+                },
+                "F2": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F3": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.02034948207437992,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9994266629219055,
+              "teacher_max_probability_mean": 0.260928213596344
+            }
+          },
+          "router_tau_utility": 0.05,
+          "teacher_entropy": {
+            "max": 1.0000001192092896,
+            "mean": 0.9994266629219055,
+            "min": 0.9818385243415833,
+            "p01": 0.9893638491630554,
+            "p05": 0.9969910383224487,
+            "p10": 0.9989769458770752,
+            "p25": 0.9996272921562195,
+            "p50": 0.9998994469642639,
+            "p75": 0.9999693036079407,
+            "p90": 0.9999867677688599,
+            "p95": 0.9999943375587463,
+            "p99": 0.999997079372406,
+            "std": 0.0016198419034481049
+          },
+          "teacher_max_probability": {
+            "max": 0.34552299976348877,
+            "mean": 0.260928213596344,
+            "min": 0.25000596046447754,
+            "p01": 0.25108617544174194,
+            "p05": 0.2515285313129425,
+            "p10": 0.2520676851272583,
+            "p25": 0.2535240650177002,
+            "p50": 0.2566729485988617,
+            "p75": 0.2625994384288788,
+            "p90": 0.27200278639793396,
+            "p95": 0.2894307076931,
+            "p99": 0.32291120290756226,
+            "std": 0.012845439836382866
+          }
+        },
+        {
+          "entropy_threshold": 0.98,
+          "regions": {
+            "anomaly": {
+              "count": 0,
+              "factor_coverage": {
+                "F1": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F2": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F3": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.0,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9967800378799438,
+              "teacher_max_probability_mean": 0.27127209305763245
+            },
+            "normal": {
+              "count": 16001,
+              "factor_coverage": {
+                "F1": {
+                  "count": 16001,
+                  "share": 1.0
+                },
+                "F2": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F3": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.014938568696379662,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9983687400817871,
+              "teacher_max_probability_mean": 0.26852309703826904
+            },
+            "overall": {
+              "count": 16001,
+              "factor_coverage": {
+                "F1": {
+                  "count": 16001,
+                  "share": 1.0
+                },
+                "F2": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F3": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.014851177111268044,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9983595013618469,
+              "teacher_max_probability_mean": 0.268539160490036
+            }
+          },
+          "router_tau_utility": 0.03,
+          "teacher_entropy": {
+            "max": 1.0,
+            "mean": 0.9983595013618469,
+            "min": 0.9481949806213379,
+            "p01": 0.9692485928535461,
+            "p05": 0.9913649559020996,
+            "p10": 0.997100830078125,
+            "p25": 0.9989575147628784,
+            "p50": 0.9997193217277527,
+            "p75": 0.9999145269393921,
+            "p90": 0.9999630451202393,
+            "p95": 0.9999842047691345,
+            "p99": 0.9999920129776001,
+            "std": 0.004685802850872278
+          },
+          "teacher_max_probability": {
+            "max": 0.4174840748310089,
+            "mean": 0.268539160490036,
+            "min": 0.2500099241733551,
+            "p01": 0.2518117427825928,
+            "p05": 0.2525504529476166,
+            "p10": 0.2534520924091339,
+            "p25": 0.25588560104370117,
+            "p50": 0.2611822187900543,
+            "p75": 0.27120041847229004,
+            "p90": 0.2872846722602844,
+            "p95": 0.31761404871940613,
+            "p99": 0.37657007575035095,
+            "std": 0.022214893251657486
+          }
+        },
+        {
+          "entropy_threshold": 0.99,
+          "regions": {
+            "anomaly": {
+              "count": 0,
+              "factor_coverage": {
+                "F1": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F2": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F3": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.0,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9967800378799438,
+              "teacher_max_probability_mean": 0.27127209305763245
+            },
+            "normal": {
+              "count": 51323,
+              "factor_coverage": {
+                "F1": {
+                  "count": 51323,
+                  "share": 1.0
+                },
+                "F2": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F3": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.0479152649641037,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9983687400817871,
+              "teacher_max_probability_mean": 0.26852309703826904
+            },
+            "overall": {
+              "count": 51323,
+              "factor_coverage": {
+                "F1": {
+                  "count": 51323,
+                  "share": 1.0
+                },
+                "F2": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F3": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.04763495922088623,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9983595013618469,
+              "teacher_max_probability_mean": 0.268539160490036
+            }
+          },
+          "router_tau_utility": 0.03,
+          "teacher_entropy": {
+            "max": 1.0,
+            "mean": 0.9983595013618469,
+            "min": 0.9481949806213379,
+            "p01": 0.9692485928535461,
+            "p05": 0.9913649559020996,
+            "p10": 0.997100830078125,
+            "p25": 0.9989575147628784,
+            "p50": 0.9997193217277527,
+            "p75": 0.9999145269393921,
+            "p90": 0.9999630451202393,
+            "p95": 0.9999842047691345,
+            "p99": 0.9999920129776001,
+            "std": 0.004685802850872278
+          },
+          "teacher_max_probability": {
+            "max": 0.4174840748310089,
+            "mean": 0.268539160490036,
+            "min": 0.2500099241733551,
+            "p01": 0.2518117427825928,
+            "p05": 0.2525504529476166,
+            "p10": 0.2534520924091339,
+            "p25": 0.25588560104370117,
+            "p50": 0.2611822187900543,
+            "p75": 0.27120041847229004,
+            "p90": 0.2872846722602844,
+            "p95": 0.31761404871940613,
+            "p99": 0.37657007575035095,
+            "std": 0.022214893251657486
+          }
+        },
+        {
+          "entropy_threshold": 0.995,
+          "regions": {
+            "anomaly": {
+              "count": 1824,
+              "factor_coverage": {
+                "F1": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F2": {
+                  "count": 63,
+                  "share": 0.03453947368421053
+                },
+                "F3": {
+                  "count": 1011,
+                  "share": 0.5542763157894737
+                },
+                "F4": {
+                  "count": 750,
+                  "share": 0.41118421052631576
+                }
+              },
+              "fraction": 0.28938600420951843,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9967800378799438,
+              "teacher_max_probability_mean": 0.27127209305763245
+            },
+            "normal": {
+              "count": 77046,
+              "factor_coverage": {
+                "F1": {
+                  "count": 76944,
+                  "share": 0.9986761155673234
+                },
+                "F2": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F3": {
+                  "count": 80,
+                  "share": 0.0010383407315110453
+                },
+                "F4": {
+                  "count": 22,
+                  "share": 0.0002855437011655375
+                }
+              },
+              "fraction": 0.07193031907081604,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9983687400817871,
+              "teacher_max_probability_mean": 0.26852309703826904
+            },
+            "overall": {
+              "count": 78870,
+              "factor_coverage": {
+                "F1": {
+                  "count": 76944,
+                  "share": 0.9755800684670978
+                },
+                "F2": {
+                  "count": 63,
+                  "share": 0.000798782807151008
+                },
+                "F3": {
+                  "count": 1091,
+                  "share": 0.01383288956510714
+                },
+                "F4": {
+                  "count": 772,
+                  "share": 0.009788259160644098
+                }
+              },
+              "fraction": 0.07320244610309601,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9983595013618469,
+              "teacher_max_probability_mean": 0.268539160490036
+            }
+          },
+          "router_tau_utility": 0.03,
+          "teacher_entropy": {
+            "max": 1.0,
+            "mean": 0.9983595013618469,
+            "min": 0.9481949806213379,
+            "p01": 0.9692485928535461,
+            "p05": 0.9913649559020996,
+            "p10": 0.997100830078125,
+            "p25": 0.9989575147628784,
+            "p50": 0.9997193217277527,
+            "p75": 0.9999145269393921,
+            "p90": 0.9999630451202393,
+            "p95": 0.9999842047691345,
+            "p99": 0.9999920129776001,
+            "std": 0.004685802850872278
+          },
+          "teacher_max_probability": {
+            "max": 0.4174840748310089,
+            "mean": 0.268539160490036,
+            "min": 0.2500099241733551,
+            "p01": 0.2518117427825928,
+            "p05": 0.2525504529476166,
+            "p10": 0.2534520924091339,
+            "p25": 0.25588560104370117,
+            "p50": 0.2611822187900543,
+            "p75": 0.27120041847229004,
+            "p90": 0.2872846722602844,
+            "p95": 0.31761404871940613,
+            "p99": 0.37657007575035095,
+            "std": 0.022214893251657486
+          }
+        },
+        {
+          "entropy_threshold": 0.98,
+          "regions": {
+            "anomaly": {
+              "count": 0,
+              "factor_coverage": {
+                "F1": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F2": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F3": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.0,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9930469989776611,
+              "teacher_max_probability_mean": 0.2817239761352539
+            },
+            "normal": {
+              "count": 54118,
+              "factor_coverage": {
+                "F1": {
+                  "count": 54118,
+                  "share": 1.0
+                },
+                "F2": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F3": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.05052468553185463,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9962214827537537,
+              "teacher_max_probability_mean": 0.2783389985561371
+            },
+            "overall": {
+              "count": 54118,
+              "factor_coverage": {
+                "F1": {
+                  "count": 54118,
+                  "share": 1.0
+                },
+                "F2": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F3": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.050229109823703766,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9962030053138733,
+              "teacher_max_probability_mean": 0.2783588171005249
+            }
+          },
+          "router_tau_utility": 0.02,
+          "teacher_entropy": {
+            "max": 1.0,
+            "mean": 0.9962030053138733,
+            "min": 0.8825860619544983,
+            "p01": 0.9287149906158447,
+            "p05": 0.9798411130905151,
+            "p10": 0.9933303594589233,
+            "p25": 0.9976342916488647,
+            "p50": 0.9993646144866943,
+            "p75": 0.9998071789741516,
+            "p90": 0.9999167323112488,
+            "p95": 0.9999642968177795,
+            "p99": 0.9999819397926331,
+            "std": 0.01091040950268507
+          },
+          "teacher_max_probability": {
+            "max": 0.511986255645752,
+            "mean": 0.2783588171005249,
+            "min": 0.25001490116119385,
+            "p01": 0.252720445394516,
+            "p05": 0.253831148147583,
+            "p10": 0.2551889419555664,
+            "p25": 0.25885897874832153,
+            "p50": 0.26688772439956665,
+            "p75": 0.28217941522598267,
+            "p90": 0.3070337176322937,
+            "p95": 0.35473889112472534,
+            "p99": 0.4472801387310028,
+            "std": 0.03459271043539047
+          }
+        },
+        {
+          "entropy_threshold": 0.99,
+          "regions": {
+            "anomaly": {
+              "count": 1966,
+              "factor_coverage": {
+                "F1": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F2": {
+                  "count": 141,
+                  "share": 0.07171922685656154
+                },
+                "F3": {
+                  "count": 1073,
+                  "share": 0.5457782299084435
+                },
+                "F4": {
+                  "count": 752,
+                  "share": 0.38250254323499494
+                }
+              },
+              "fraction": 0.31191495060920715,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9930469989776611,
+              "teacher_max_probability_mean": 0.2817239761352539
+            },
+            "normal": {
+              "count": 84724,
+              "factor_coverage": {
+                "F1": {
+                  "count": 84566,
+                  "share": 0.9981351210990983
+                },
+                "F2": {
+                  "count": 3,
+                  "share": 3.5409093055096546e-05
+                },
+                "F3": {
+                  "count": 123,
+                  "share": 0.0014517728152589585
+                },
+                "F4": {
+                  "count": 32,
+                  "share": 0.0003776969925876965
+                }
+              },
+              "fraction": 0.07909851521253586,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9962214827537537,
+              "teacher_max_probability_mean": 0.2783389985561371
+            },
+            "overall": {
+              "count": 86690,
+              "factor_coverage": {
+                "F1": {
+                  "count": 84566,
+                  "share": 0.9754989041411928
+                },
+                "F2": {
+                  "count": 144,
+                  "share": 0.0016610912446648979
+                },
+                "F3": {
+                  "count": 1196,
+                  "share": 0.013796285615411236
+                },
+                "F4": {
+                  "count": 784,
+                  "share": 0.009043718998731111
+                }
+              },
+              "fraction": 0.08046050369739532,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9962030053138733,
+              "teacher_max_probability_mean": 0.2783588171005249
+            }
+          },
+          "router_tau_utility": 0.02,
+          "teacher_entropy": {
+            "max": 1.0,
+            "mean": 0.9962030053138733,
+            "min": 0.8825860619544983,
+            "p01": 0.9287149906158447,
+            "p05": 0.9798411130905151,
+            "p10": 0.9933303594589233,
+            "p25": 0.9976342916488647,
+            "p50": 0.9993646144866943,
+            "p75": 0.9998071789741516,
+            "p90": 0.9999167323112488,
+            "p95": 0.9999642968177795,
+            "p99": 0.9999819397926331,
+            "std": 0.01091040950268507
+          },
+          "teacher_max_probability": {
+            "max": 0.511986255645752,
+            "mean": 0.2783588171005249,
+            "min": 0.25001490116119385,
+            "p01": 0.252720445394516,
+            "p05": 0.253831148147583,
+            "p10": 0.2551889419555664,
+            "p25": 0.25885897874832153,
+            "p50": 0.26688772439956665,
+            "p75": 0.28217941522598267,
+            "p90": 0.3070337176322937,
+            "p95": 0.35473889112472534,
+            "p99": 0.4472801387310028,
+            "std": 0.03459271043539047
+          }
+        },
+        {
+          "entropy_threshold": 0.995,
+          "regions": {
+            "anomaly": {
+              "count": 3018,
+              "factor_coverage": {
+                "F1": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F2": {
+                  "count": 509,
+                  "share": 0.1686547382372432
+                },
+                "F3": {
+                  "count": 1707,
+                  "share": 0.5656063618290258
+                },
+                "F4": {
+                  "count": 802,
+                  "share": 0.26573889993373095
+                }
+              },
+              "fraction": 0.4788196086883545,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9930469989776611,
+              "teacher_max_probability_mean": 0.2817239761352539
+            },
+            "normal": {
+              "count": 143690,
+              "factor_coverage": {
+                "F1": {
+                  "count": 142476,
+                  "share": 0.9915512561764911
+                },
+                "F2": {
+                  "count": 359,
+                  "share": 0.002498434129027768
+                },
+                "F3": {
+                  "count": 729,
+                  "share": 0.005073421950031317
+                },
+                "F4": {
+                  "count": 126,
+                  "share": 0.0008768877444498574
+                }
+              },
+              "fraction": 0.13414929807186127,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9962214827537537,
+              "teacher_max_probability_mean": 0.2783389985561371
+            },
+            "overall": {
+              "count": 146708,
+              "factor_coverage": {
+                "F1": {
+                  "count": 142476,
+                  "share": 0.9711535839899664
+                },
+                "F2": {
+                  "count": 868,
+                  "share": 0.005916514436840527
+                },
+                "F3": {
+                  "count": 2436,
+                  "share": 0.016604411484036317
+                },
+                "F4": {
+                  "count": 928,
+                  "share": 0.006325490089156692
+                }
+              },
+              "fraction": 0.13616564869880676,
+              "legacy_gain_threshold_count": 0,
+              "legacy_gain_threshold_fraction": 0.0,
+              "teacher_entropy_mean": 0.9962030053138733,
+              "teacher_max_probability_mean": 0.2783588171005249
+            }
+          },
+          "router_tau_utility": 0.02,
+          "teacher_entropy": {
+            "max": 1.0,
+            "mean": 0.9962030053138733,
+            "min": 0.8825860619544983,
+            "p01": 0.9287149906158447,
+            "p05": 0.9798411130905151,
+            "p10": 0.9933303594589233,
+            "p25": 0.9976342916488647,
+            "p50": 0.9993646144866943,
+            "p75": 0.9998071789741516,
+            "p90": 0.9999167323112488,
+            "p95": 0.9999642968177795,
+            "p99": 0.9999819397926331,
+            "std": 0.01091040950268507
+          },
+          "teacher_max_probability": {
+            "max": 0.511986255645752,
+            "mean": 0.2783588171005249,
+            "min": 0.25001490116119385,
+            "p01": 0.252720445394516,
+            "p05": 0.253831148147583,
+            "p10": 0.2551889419555664,
+            "p25": 0.25885897874832153,
+            "p50": 0.26688772439956665,
+            "p75": 0.28217941522598267,
+            "p90": 0.3070337176322937,
+            "p95": 0.35473889112472534,
+            "p99": 0.4472801387310028,
+            "std": 0.03459271043539047
+          }
+        }
+      ]
+    },
+    "factor_coverage": {
+      "anomaly": {
+        "F1": {
+          "count": 0,
+          "share": 0.0
+        },
+        "F2": {
+          "count": 3027,
+          "share": 0.48024750118990955
+        },
+        "F3": {
+          "count": 2210,
+          "share": 0.3506266857052197
+        },
+        "F4": {
+          "count": 1066,
+          "share": 0.1691258131048707
+        }
+      },
+      "normal": {
+        "F1": {
+          "count": 1065533,
+          "share": 0.9947839644484278
+        },
+        "F2": {
+          "count": 2851,
+          "share": 0.0026616999029053703
+        },
+        "F3": {
+          "count": 1758,
+          "share": 0.0016412726865337216
+        },
+        "F4": {
+          "count": 978,
+          "share": 0.0009130629621330943
+        }
+      },
+      "overall": {
+        "F1": {
+          "count": 1065533,
+          "share": 0.9889644085934679
+        },
+        "F2": {
+          "count": 5878,
+          "share": 0.005455610284911311
+        },
+        "F3": {
+          "count": 3968,
+          "share": 0.003682861791515496
+        },
+        "F4": {
+          "count": 2044,
+          "share": 0.0018971193301052605
+        }
+      }
+    },
+    "margin_abs": {
+      "anomaly": {
+        "count": 6303,
+        "max": 0.0029115863144397736,
+        "mean": 0.0010877534514293075,
+        "min": 6.216578185558319e-08,
+        "p01": 2.1478477719938383e-05,
+        "p05": 8.75477198860608e-05,
+        "p10": 0.0001649930200073868,
+        "p25": 0.0005004248232580721,
+        "p50": 0.0008388892747461796,
+        "p75": 0.001737562590278685,
+        "p90": 0.0022869964595884085,
+        "p95": 0.0023800586350262165,
+        "p99": 0.002540387911722064,
+        "std": 0.0007511012372560799
+      },
+      "normal": {
+        "count": 1071120,
+        "max": 0.020248889923095703,
+        "mean": 0.0023492092732340097,
+        "min": 0.0,
+        "p01": 0.00017642974853515625,
+        "p05": 0.0002384185791015625,
+        "p10": 0.00029087066650390625,
+        "p25": 0.0005865097045898438,
+        "p50": 0.0014591217041015625,
+        "p75": 0.0029802322387695312,
+        "p90": 0.005180835723876953,
+        "p95": 0.008690357208251953,
+        "p99": 0.01394033432006836,
+        "std": 0.002782833529636264
+      },
+      "overall": {
+        "count": 1077423,
+        "max": 0.020248889923095703,
+        "mean": 0.0023418297059834003,
+        "min": 0.0,
+        "p01": 0.00017642974853515625,
+        "p05": 0.0002384185791015625,
+        "p10": 0.00029087066650390625,
+        "p25": 0.0005865097045898438,
+        "p50": 0.0014591217041015625,
+        "p75": 0.0029754638671875,
+        "p90": 0.0051593780517578125,
+        "p95": 0.008647441864013672,
+        "p99": 0.013930797576904297,
+        "std": 0.0027769431471824646
+      }
+    },
+    "margin_rel": {
+      "anomaly": {
+        "count": 6303,
+        "max": 0.6678298711776733,
+        "mean": 0.27178362011909485,
+        "min": 2.1392726921476424e-05,
+        "p01": 0.005065362434834242,
+        "p05": 0.02205791138112545,
+        "p10": 0.03984780237078667,
+        "p25": 0.0915161669254303,
+        "p50": 0.2301969975233078,
+        "p75": 0.4607658386230469,
+        "p90": 0.564264178276062,
+        "p95": 0.582653284072876,
+        "p99": 0.6074780821800232,
+        "std": 0.1962926834821701
+      },
+      "normal": {
+        "count": 1071120,
+        "max": 40232480.0,
+        "mean": 44.23866653442383,
+        "min": 0.0,
+        "p01": 0.21212121844291687,
+        "p05": 0.4956521689891815,
+        "p10": 0.663551390171051,
+        "p25": 1.75,
+        "p50": 2.3541667461395264,
+        "p75": 2.7986576557159424,
+        "p90": 3.1637930870056152,
+        "p95": 3.436363697052002,
+        "p99": 4.133333206176758,
+        "std": 39145.921875
+      },
+      "overall": {
+        "count": 1077423,
+        "max": 40232480.0,
+        "mean": 43.9814567565918,
+        "min": 0.0,
+        "p01": 0.1717025488615036,
+        "p05": 0.4645669162273407,
+        "p10": 0.6451612710952759,
+        "p25": 1.7428570985794067,
+        "p50": 2.350515365600586,
+        "p75": 2.7912087440490723,
+        "p90": 3.1636364459991455,
+        "p95": 3.4343433380126953,
+        "p99": 4.132352828979492,
+        "std": 39031.25
+      }
+    },
+    "margin_support": {
+      "definition": "best_gain > 0 and margin_rel > threshold",
+      "rows": [
+        {
+          "margin_rel_threshold": 0.1,
+          "regions": {
+            "anomaly": {
+              "count": 4510,
+              "factor_coverage": {
+                "F1": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F2": {
+                  "count": 2215,
+                  "share": 0.4911308203991131
+                },
+                "F3": {
+                  "count": 1895,
+                  "share": 0.42017738359201773
+                },
+                "F4": {
+                  "count": 400,
+                  "share": 0.08869179600886919
+                }
+              },
+              "fraction": 0.7155323028564453
+            },
+            "normal": {
+              "count": 1066750,
+              "factor_coverage": {
+                "F1": {
+                  "count": 1063212,
+                  "share": 0.9966833841106164
+                },
+                "F2": {
+                  "count": 1924,
+                  "share": 0.0018036090930396063
+                },
+                "F3": {
+                  "count": 1260,
+                  "share": 0.0011811577220529647
+                },
+                "F4": {
+                  "count": 354,
+                  "share": 0.000331849074291071
+                }
+              },
+              "fraction": 0.9959201812744141
+            },
+            "overall": {
+              "count": 1071260,
+              "factor_coverage": {
+                "F1": {
+                  "count": 1063212,
+                  "share": 0.992487351343278
+                },
+                "F2": {
+                  "count": 4139,
+                  "share": 0.0038636745514627636
+                },
+                "F3": {
+                  "count": 3155,
+                  "share": 0.0029451300337919833
+                },
+                "F4": {
+                  "count": 754,
+                  "share": 0.0007038440714672441
+                }
+              },
+              "fraction": 0.9942798614501953
+            }
+          }
+        },
+        {
+          "margin_rel_threshold": 0.25,
+          "regions": {
+            "anomaly": {
+              "count": 3024,
+              "factor_coverage": {
+                "F1": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F2": {
+                  "count": 1772,
+                  "share": 0.5859788359788359
+                },
+                "F3": {
+                  "count": 1236,
+                  "share": 0.4087301587301587
+                },
+                "F4": {
+                  "count": 16,
+                  "share": 0.005291005291005291
+                }
+              },
+              "fraction": 0.47977152466773987
+            },
+            "normal": {
+              "count": 1057999,
+              "factor_coverage": {
+                "F1": {
+                  "count": 1055882,
+                  "share": 0.9979990529291616
+                },
+                "F2": {
+                  "count": 1447,
+                  "share": 0.0013676761509226378
+                },
+                "F3": {
+                  "count": 653,
+                  "share": 0.0006172028517985367
+                },
+                "F4": {
+                  "count": 17,
+                  "share": 1.6068068117266652e-05
+                }
+              },
+              "fraction": 0.987750232219696
+            },
+            "overall": {
+              "count": 1061023,
+              "factor_coverage": {
+                "F1": {
+                  "count": 1055882,
+                  "share": 0.9951546761945782
+                },
+                "F2": {
+                  "count": 3219,
+                  "share": 0.00303386448738623
+                },
+                "F3": {
+                  "count": 1889,
+                  "share": 0.0017803572589849606
+                },
+                "F4": {
+                  "count": 33,
+                  "share": 3.1102059050557814e-05
+                }
+              },
+              "fraction": 0.9847785234451294
+            }
+          }
+        },
+        {
+          "margin_rel_threshold": 0.5,
+          "regions": {
+            "anomaly": {
+              "count": 1452,
+              "factor_coverage": {
+                "F1": {
+                  "count": 0,
+                  "share": 0.0
+                },
+                "F2": {
+                  "count": 1437,
+                  "share": 0.9896694214876033
+                },
+                "F3": {
+                  "count": 15,
+                  "share": 0.010330578512396695
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.23036649823188782
+            },
+            "normal": {
+              "count": 1016481,
+              "factor_coverage": {
+                "F1": {
+                  "count": 1015598,
+                  "share": 0.999131316768341
+                },
+                "F2": {
+                  "count": 862,
+                  "share": 0.0008480237210533202
+                },
+                "F3": {
+                  "count": 21,
+                  "share": 2.0659510605707336e-05
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.9489889144897461
+            },
+            "overall": {
+              "count": 1017933,
+              "factor_coverage": {
+                "F1": {
+                  "count": 1015598,
+                  "share": 0.9977061358655236
+                },
+                "F2": {
+                  "count": 2299,
+                  "share": 0.0022584983491054913
+                },
+                "F3": {
+                  "count": 36,
+                  "share": 3.536578537094288e-05
+                },
+                "F4": {
+                  "count": 0,
+                  "share": 0.0
+                }
+              },
+              "fraction": 0.944784939289093
+            }
+          }
+        }
+      ]
+    },
+    "temperature_coupling": {
+      "entropy_threshold": 0.98,
+      "finding": "ENTROPY_CONFIDENCE_TEMPERATURE_COUPLED",
+      "raw_winner_tau_invariant": true,
+      "transitions": [
+        {
+          "from_tau": 0.05,
+          "reject_to_accept_count": 16001,
+          "reject_to_accept_fraction": 0.014851177111268044,
+          "strong_raw_margin_flip_count": 16001,
+          "strong_raw_margin_flip_fraction": 0.014851177111268044,
+          "to_tau": 0.03
+        },
+        {
+          "from_tau": 0.03,
+          "reject_to_accept_count": 38117,
+          "reject_to_accept_fraction": 0.03537793457508087,
+          "strong_raw_margin_flip_count": 38117,
+          "strong_raw_margin_flip_fraction": 0.03537793457508087,
+          "to_tau": 0.02
+        },
+        {
+          "from_tau": 0.05,
+          "reject_to_accept_count": 54118,
+          "reject_to_accept_fraction": 0.050229109823703766,
+          "strong_raw_margin_flip_count": 54118,
+          "strong_raw_margin_flip_fraction": 0.050229109823703766,
+          "to_tau": 0.02
+        }
+      ]
+    },
+    "winner_counts_and_shares": {
+      "anomaly": {
+        "F1": {
+          "count": 0,
+          "share": 0.0
+        },
+        "F2": {
+          "count": 3027,
+          "share": 0.48024750118990955
+        },
+        "F3": {
+          "count": 2210,
+          "share": 0.3506266857052197
+        },
+        "F4": {
+          "count": 1066,
+          "share": 0.1691258131048707
+        }
+      },
+      "normal": {
+        "F1": {
+          "count": 1065533,
+          "share": 0.9947839644484278
+        },
+        "F2": {
+          "count": 2851,
+          "share": 0.0026616999029053703
+        },
+        "F3": {
+          "count": 1758,
+          "share": 0.0016412726865337216
+        },
+        "F4": {
+          "count": 978,
+          "share": 0.0009130629621330943
+        }
+      },
+      "overall": {
+        "F1": {
+          "count": 1065533,
+          "share": 0.9889644085934679
+        },
+        "F2": {
+          "count": 5878,
+          "share": 0.005455610284911311
+        },
+        "F3": {
+          "count": 3968,
+          "share": 0.003682861791515496
+        },
+        "F4": {
+          "count": 2044,
+          "share": 0.0018971193301052605
+        }
+      }
+    }
+  },
+  "runtime_seconds": 358.0958700599731,
+  "status": "EXIT_FOR_DISCUSSION"
+}

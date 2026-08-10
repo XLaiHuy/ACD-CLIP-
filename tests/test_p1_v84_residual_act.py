@@ -23,6 +23,92 @@ def _teacher(base, residual, target, *, gain_threshold=0.02):
     return utility, act_teacher(utility, gain_threshold=gain_threshold)
 
 
+def _decoupling_inputs():
+    base = torch.zeros(1, 1, 3)
+    residual = torch.tensor(
+        [[[[8.0, 4.0, 0.0, -4.0],
+           [4.0, 2.0, 0.0, -2.0],
+           [-8.0, -4.0, -2.0, -1.0]]]]
+    )
+    target = torch.ones(1, 3)
+    valid = torch.ones_like(target, dtype=torch.bool)
+    return base, residual, target, valid
+
+
+def _decoupled_teacher(**kwargs):
+    base, residual, target, valid = _decoupling_inputs()
+    act_gain_threshold = kwargs.pop("act_gain_threshold", 0.02)
+    utility = utility_teacher(
+        base, residual, target, valid,
+        rho=0.05, epsilon=0.0, entropy_threshold=1.01, **kwargs,
+    )
+    act = act_teacher(utility, gain_threshold=act_gain_threshold)
+    return utility, act
+
+
+def test_legacy_and_explicit_decoupled_defaults_are_exactly_equivalent():
+    legacy, legacy_act = _decoupled_teacher(
+        tau_utility=0.05, gain_threshold=0.02
+    )
+    explicit, explicit_act = _decoupled_teacher(
+        tau_utility=0.05,
+        factor_tau_utility=0.05,
+        router_tau_utility=0.05,
+        gain_threshold=0.02,
+        router_gain_threshold=0.02,
+    )
+    for key in (
+        "candidate_logits", "gain_rel", "responsibility", "q_utility",
+        "normalized_entropy", "informative",
+    ):
+        assert torch.equal(legacy[key], explicit[key])
+    for key in ("positive", "negative", "ambiguous"):
+        assert torch.equal(legacy_act[key], explicit_act[key])
+
+
+def test_factor_tau_changes_only_factor_responsibility():
+    baseline, baseline_act = _decoupled_teacher()
+    changed, changed_act = _decoupled_teacher(factor_tau_utility=0.01)
+    assert not torch.equal(baseline["responsibility"], changed["responsibility"])
+    for key in (
+        "candidate_logits", "gain_rel", "q_utility", "normalized_entropy",
+        "informative",
+    ):
+        assert torch.equal(baseline[key], changed[key])
+    for key in ("positive", "negative", "ambiguous"):
+        assert torch.equal(baseline_act[key], changed_act[key])
+
+
+def test_router_tau_changes_only_router_teacher_confidence():
+    baseline, baseline_act = _decoupled_teacher()
+    changed, changed_act = _decoupled_teacher(router_tau_utility=0.01)
+    assert not torch.equal(baseline["q_utility"], changed["q_utility"])
+    assert not torch.equal(baseline["normalized_entropy"], changed["normalized_entropy"])
+    for key in ("candidate_logits", "gain_rel", "responsibility"):
+        assert torch.equal(baseline[key], changed[key])
+    for key in ("positive", "negative", "ambiguous"):
+        assert torch.equal(baseline_act[key], changed_act[key])
+
+
+def test_router_gain_threshold_changes_only_informative_mask():
+    baseline, baseline_act = _decoupled_teacher(router_gain_threshold=0.0)
+    changed, changed_act = _decoupled_teacher(router_gain_threshold=0.30)
+    assert not torch.equal(baseline["informative"], changed["informative"])
+    for key in ("responsibility", "q_utility"):
+        assert torch.equal(baseline[key], changed[key])
+    for key in ("positive", "negative", "ambiguous"):
+        assert torch.equal(baseline_act[key], changed_act[key])
+
+
+def test_act_gain_threshold_changes_only_act_positive_and_ambiguous_masks():
+    baseline, baseline_act = _decoupled_teacher(act_gain_threshold=0.02)
+    changed, changed_act = _decoupled_teacher(act_gain_threshold=0.30)
+    assert not torch.equal(baseline_act["positive"], changed_act["positive"])
+    assert not torch.equal(baseline_act["ambiguous"], changed_act["ambiguous"])
+    for key in ("q_utility", "informative", "responsibility"):
+        assert torch.equal(baseline[key], changed[key])
+
+
 def test_noop_and_identical_reference_residual_are_exact_zero():
     reference = torch.randn(3, 2, 5)
     factors = reference.unsqueeze(-1).expand(-1, -1, -1, 4).clone()
@@ -133,6 +219,9 @@ def test_v84a_metadata_and_minimum_act_capacity_contract():
     assert config["noop_reference"] == "expected_noop_pre_expert_bank"
     assert config["act_probability_mode"] == "continuous_sigmoid"
     assert config["act_parameter_count"] == 49
+    act_logits = model.act_head(torch.randn(3, 2, 7, 16)).squeeze(-1)
+    assert torch.equal(act_logits, torch.zeros_like(act_logits))
+    assert torch.equal(torch.sigmoid(act_logits), torch.full_like(act_logits, 0.5))
     assert torch.equal(model.rho_values(), torch.full((3,), 0.05))
     patches = F.normalize(torch.randn(3, 1, 7, 16), dim=-1)
     noop_text = F.normalize(torch.randn(3, 1, 16, 2), dim=2)

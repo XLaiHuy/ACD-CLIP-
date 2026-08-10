@@ -37,8 +37,10 @@ Status: **PASS** (8/8 batches, 2 optimizer steps).
 - Residual definition, local reconstruction, and surgery reconstruction
   maximum errors: `0`
 
-This proves that ACT is initialized as an exact no-op, leaves zero after an
-optimizer step, and has a reachable upstream gradient path.
+This proves that the zero-initialized ACT linear head starts with logits exactly
+zero and probability exactly `0.5`, departs zero after an optimizer step, and
+has a reachable upstream gradient path. It is not an initial exact no-op; ACT
+probability exactly `0` is the condition that preserves the Base local branch.
 
 ### Fresh 300-batch P1-v8.4-A attempt 1
 
@@ -161,7 +163,8 @@ contains checkpoint provenance and hashes needed to understand the evidence.
 - Residual Oracle improves Base in normal and anomaly regions.
 - The ACT positive gate 0.02 is out of scale.
 - The canonical Router teacher has zero informative support.
-- The ACT runtime gradient path is alive and its initial no-op is exact.
+- The ACT runtime gradient path is alive. Zero-logit initialization gives ACT
+  probability `0.5`; ACT probability `0` gives the exact local no-op.
 
 ### LIKELY
 
