@@ -1750,6 +1750,13 @@ def train_h6_progress1(
             torch.zeros_like(parameter) for parameter in pcgrad_shared_parameters
         ]
         pcgrad_window_records: list[dict] = []
+        # Compact, diagnostics-only telemetry for the bounded P1-v8.4-A
+        # smoke.  These records deliberately contain scalars only so the
+        # required per-batch/per-step invariants remain auditable without
+        # retaining model tensors or changing the training graph.
+        batch_runtime_records: list[dict] = []
+        optimizer_step_runtime_records: list[dict] = []
+        current_window_batch_records: list[dict] = []
         pcgrad_window_counts = {
             "normal_patch_count": 0,
             "anomaly_patch_count": 0,
@@ -1762,6 +1769,42 @@ def train_h6_progress1(
         }
         epoch_batch_limit = min(len(train_loader), int(args.h6_smoke_max_batches)) if args.h6_smoke_max_batches > 0 else len(train_loader)
         progress = tqdm(train_loader, desc=f"[PHASE4-P1][TRAIN][epoch {epoch:02d}/{args.epoch:02d}]")
+
+        def _runtime_stats(value):
+            tensor = value.detach().float()
+            return {
+                "mean": float(tensor.mean().item()),
+                "std": float(tensor.std(unbiased=False).item()),
+                "min": float(tensor.min().item()),
+                "max": float(tensor.max().item()),
+            }
+
+        def _runtime_finite_gradients():
+            return bool(all(
+                parameter.grad is None
+                or bool(torch.isfinite(parameter.grad.detach()).all().item())
+                for parameter in model.parameters()
+            ))
+
+        def _runtime_finite_parameters():
+            return bool(all(
+                bool(torch.isfinite(parameter.detach()).all().item())
+                for parameter in model.parameters()
+                if parameter.requires_grad
+            ))
+
+        def _runtime_region_means(value, valid, y_patch):
+            targets = y_patch.unsqueeze(0).expand_as(valid)
+            regions = {
+                "overall": valid,
+                "normal": valid & (targets < 0.5),
+                "anomaly": valid & (targets >= 0.5),
+            }
+            return {
+                name: float(value.detach().float()[region].mean().item())
+                if bool(region.any().item()) else 0.0
+                for name, region in regions.items()
+            }
 
         def _record_drift_snapshot(name: str, batch_payload: dict):
             router_diag = batch_payload.get("router_diagnostics", {})
@@ -1783,6 +1826,11 @@ def train_h6_progress1(
         for batch_idx, input_data in enumerate(progress, start=1):
             if batch_idx > epoch_batch_limit:
                 break
+            batch_runtime_record = None
+            residual_definition_error = None
+            routed_correction_error = None
+            actual_gated_reconstruction_error = None
+            upstream_act_gradient_norm = None
             image = input_data["image"].to(device, non_blocking=args.pin_memory)
             mask = input_data["mask"].to(device, non_blocking=args.pin_memory)
 
@@ -1817,6 +1865,18 @@ def train_h6_progress1(
                     correction_error = (
                         h6_batch["h6_logits"] - reconstructed_local
                     ).detach().float().abs().max().item()
+                    residual_definition_error = float(residual_error)
+                    routed_correction_error = float(correction_error)
+                    actual_expected_correction = (
+                        h6_batch["rho"].view(-1, 1, 1).to(h6_batch["h6_logits"].dtype)
+                        * h6_batch["h6_logits"]
+                    )
+                    actual_gated_reconstruction_error = float(
+                        (
+                            h6_batch["rho_scaled_actual_correction"]
+                            - actual_expected_correction
+                        ).detach().float().abs().max().item()
+                    )
                     act_runtime_diag["residual_definition_max_error"] = max(
                         float(act_runtime_diag["residual_definition_max_error"]),
                         float(residual_error),
@@ -2109,6 +2169,7 @@ def train_h6_progress1(
                                     0.0 if upstream_gradient is None
                                     else float(upstream_gradient.detach().float().norm().item())
                                 )
+                                upstream_act_gradient_norm = upstream_norm
                                 act_runtime_diag.update({
                                     "post_step_upstream_act_gradient_norm": upstream_norm,
                                     "post_step_upstream_act_weighted_gradient_norm": (
@@ -2117,6 +2178,120 @@ def train_h6_progress1(
                                     "post_step_supervised_batch": batch_idx,
                                     "post_step_support_count": support_count,
                                 })
+                    if model.h6.progress_version == "P1-v8.4-A":
+                        runtime_valid = act_payload["valid"].bool()
+                        runtime_targets = y_patch.unsqueeze(0).expand_as(runtime_valid)
+                        routed_gain = utility_payload["routed_gain_rel"].detach().float()
+                        expected_positive = runtime_valid & (
+                            routed_gain > float(args.h6_act_gain_threshold)
+                        )
+                        expected_negative = runtime_valid & (routed_gain <= 0.0)
+                        expected_ambiguous = runtime_valid & (
+                            (routed_gain > 0.0)
+                            & (routed_gain <= float(args.h6_act_gain_threshold))
+                        )
+                        actual_logits = utility_payload["z0"].detach().float() + (
+                            h6_batch["rho"].detach().float().view(-1, 1, 1)
+                            * h6_batch["h6_logits"].detach().float()
+                        )
+                        actual_loss = F.binary_cross_entropy_with_logits(
+                            actual_logits,
+                            runtime_targets.float(),
+                            reduction="none",
+                        )
+
+                        def _support_counts(mask):
+                            count = int(mask.sum().item())
+                            denominator = int(runtime_valid.sum().item())
+                            return {
+                                "on": int(act_payload["positive"][mask].sum().item()),
+                                "off": int(act_payload["negative"][mask].sum().item()),
+                                "ambiguous": int(act_payload["ambiguous"][mask].sum().item()),
+                                "valid": count,
+                                "on_fraction": float(
+                                    act_payload["positive"][mask].float().mean().item()
+                                ) if count else 0.0,
+                                "off_fraction": float(
+                                    act_payload["negative"][mask].float().mean().item()
+                                ) if count else 0.0,
+                                "ambiguous_fraction": float(
+                                    act_payload["ambiguous"][mask].float().mean().item()
+                                ) if count else 0.0,
+                                "support_fraction": float(
+                                    act_payload["support"][mask].float().mean().item()
+                                ) if count else 0.0,
+                                "global_valid": denominator,
+                            }
+
+                        normal_runtime = runtime_valid & (runtime_targets < 0.5)
+                        anomaly_runtime = runtime_valid & (runtime_targets >= 0.5)
+                        batch_runtime_record = {
+                            "batch": int(batch_idx),
+                            "optimizer_step_before": int(optimizer_step_count),
+                            "optimizer_step": None,
+                            "rho": [
+                                float(value)
+                                for value in h6_batch["rho"].detach().float().tolist()
+                            ],
+                            "rho_trainable": bool(model.h6.rho.raw.requires_grad),
+                            "finite_parameters_before": _runtime_finite_parameters(),
+                            "finite_gradients_after_backward": None,
+                            "finite_parameters_after_step": None,
+                            "reconstruction": {
+                                "residual_definition_max_abs_error": residual_definition_error,
+                                "routed_correction_max_abs_error": routed_correction_error,
+                                "actual_gated_max_abs_error": actual_gated_reconstruction_error,
+                                "surgery_max_abs_error": None,
+                                "main_exact_change_max_abs_error": None,
+                            },
+                            "act": {
+                                "probability": _runtime_stats(h6_batch["act_probability"]),
+                                "logits": _runtime_stats(h6_batch["act_logits"]),
+                                "head_raw_gradient_norm": None,
+                                "head_weighted_gradient_norm": None,
+                                "upstream_gradient_norm": upstream_act_gradient_norm,
+                                "output_weight_norm": float(
+                                    model.h6.act_head[-1].weight.detach().float().norm().item()
+                                ),
+                                "output_bias_norm": float(
+                                    model.h6.act_head[-1].bias.detach().float().norm().item()
+                                ),
+                            },
+                            "support": {
+                                "overall": _support_counts(runtime_valid),
+                                "normal": _support_counts(normal_runtime),
+                                "anomaly": _support_counts(anomaly_runtime),
+                            },
+                            "label_semantics": {
+                                "threshold": float(args.h6_act_gain_threshold),
+                                "routed_gain": _runtime_stats(routed_gain[runtime_valid]),
+                                "positive_mismatch_count": int(
+                                    (act_payload["positive"] != expected_positive).sum().item()
+                                ),
+                                "negative_mismatch_count": int(
+                                    (act_payload["negative"] != expected_negative).sum().item()
+                                ),
+                                "ambiguous_mismatch_count": int(
+                                    (act_payload["ambiguous"] != expected_ambiguous).sum().item()
+                                ),
+                            },
+                            "utility": {
+                                "Base": _runtime_region_means(
+                                    utility_payload["loss_base"], runtime_valid, y_patch
+                                ),
+                                "FullSoftRouted_ACT1": _runtime_region_means(
+                                    utility_payload["loss_routed"], runtime_valid, y_patch
+                                ),
+                                "ActualGated": _runtime_region_means(
+                                    actual_loss, runtime_valid, y_patch
+                                ),
+                                "g_route": _runtime_region_means(
+                                    routed_gain, runtime_valid, y_patch
+                                ),
+                            },
+                        }
+                        batch_runtime_records.append(batch_runtime_record)
+                        current_window_batch_records.append(batch_runtime_record)
                     if gradient_surgery_enabled:
                         physical_valid = utility_valid
                         physical_anomaly = physical_valid & (y_patch >= 0.5)
@@ -2438,6 +2613,20 @@ def train_h6_progress1(
                         if gradient is not None:
                             component_buffer[index].add_(gradient.detach().to(parameter))
             scaler.scale(total_loss / accumulation_divisor).backward()
+            if batch_runtime_record is not None:
+                raw_act_grad = module_grad_norm(model.h6.act_head)
+                raw_act_grad_value = (
+                    None if raw_act_grad is None
+                    else float(raw_act_grad.detach().float().item())
+                )
+                batch_runtime_record["finite_gradients_after_backward"] = (
+                    _runtime_finite_gradients()
+                )
+                batch_runtime_record["act"]["head_raw_gradient_norm"] = raw_act_grad_value
+                batch_runtime_record["act"]["head_weighted_gradient_norm"] = (
+                    None if raw_act_grad_value is None
+                    else raw_act_grad_value * float(args.lambda_h6_act)
+                )
             if args.h6_factor_grad_diagnostics and batch_idx == 1:
                 factor_grad_diag.update(
                     factor_gradient_diagnostics(model.h6.semantic_core.concept_slots.grad)
@@ -2591,6 +2780,17 @@ def train_h6_progress1(
             do_step = batch_idx % args.grad_accum_steps == 0 or batch_idx == epoch_batch_limit
             if do_step:
                 scaler.unscale_(optimizer)
+                step_act_head_grad_norm = module_grad_norm(model.h6.act_head)
+                step_act_head_grad_value = (
+                    None if step_act_head_grad_norm is None
+                    else float(step_act_head_grad_norm.detach().float().item())
+                )
+                step_output_weight_before = float(
+                    model.h6.act_head[-1].weight.detach().float().norm().item()
+                ) if model.h6.progress_version == "P1-v8.4-A" else None
+                step_output_bias_before = float(
+                    model.h6.act_head[-1].bias.detach().float().norm().item()
+                ) if model.h6.progress_version == "P1-v8.4-A" else None
                 if (
                     model.h6.progress_version == "P1-v8.4-A"
                     and optimizer_step_count == 0
@@ -2714,6 +2914,8 @@ def train_h6_progress1(
                     for key in pcgrad_window_counts:
                         pcgrad_window_counts[key] = 0.0 if key.endswith("_sum") else 0
                 if has_non_finite_grad(optimizer):
+                    if batch_runtime_record is not None:
+                        batch_runtime_record["finite_gradients_after_backward"] = False
                     optimizer.zero_grad(set_to_none=True)
                     raise RuntimeError(f"non-finite H6 gradient at epoch={epoch}, batch={batch_idx}")
                 def _grad_norm(parameter):
@@ -2765,6 +2967,122 @@ def train_h6_progress1(
                         _record_drift_snapshot(
                             "batch_000_after_first_optimizer_step", post_step_batch
                         )
+                if model.h6.progress_version == "P1-v8.4-A":
+                    surgery_record = (
+                        pcgrad_window_records[-1]
+                        if pcgrad_window_records else {}
+                    )
+                    surgery_decision = surgery_record.get(
+                        "primary_anchored_factor_surgery", {}
+                    )
+                    step_surgery_error = float(
+                        surgery_decision.get(
+                            "correction_reconstruction_error_norm", float("inf")
+                        )
+                    )
+                    step_main_exact_change = float(
+                        surgery_decision.get(
+                            "main_gradient_exact_change_norm", float("inf")
+                        )
+                    )
+                    step_finite_parameters = _runtime_finite_parameters()
+                    step_finite_gradients = _runtime_finite_gradients()
+                    step_weight_after = float(
+                        model.h6.act_head[-1].weight.detach().float().norm().item()
+                    )
+                    step_bias_after = float(
+                        model.h6.act_head[-1].bias.detach().float().norm().item()
+                    )
+                    step_upstream_values = [
+                        record["act"]["upstream_gradient_norm"]
+                        for record in current_window_batch_records
+                        if record["act"]["upstream_gradient_norm"] is not None
+                    ]
+                    step_batch_start = (
+                        current_window_batch_records[0]["batch"]
+                        if current_window_batch_records else batch_idx
+                    )
+                    step_reconstruction = {
+                        "residual_definition_max_abs_error": max(
+                            (
+                                record["reconstruction"][
+                                    "residual_definition_max_abs_error"
+                                ]
+                                for record in current_window_batch_records
+                                if record["reconstruction"][
+                                    "residual_definition_max_abs_error"
+                                ] is not None
+                            ),
+                            default=float("inf"),
+                        ),
+                        "routed_correction_max_abs_error": max(
+                            (
+                                record["reconstruction"][
+                                    "routed_correction_max_abs_error"
+                                ]
+                                for record in current_window_batch_records
+                                if record["reconstruction"][
+                                    "routed_correction_max_abs_error"
+                                ] is not None
+                            ),
+                            default=float("inf"),
+                        ),
+                        "actual_gated_max_abs_error": max(
+                            (
+                                record["reconstruction"][
+                                    "actual_gated_max_abs_error"
+                                ]
+                                for record in current_window_batch_records
+                                if record["reconstruction"][
+                                    "actual_gated_max_abs_error"
+                                ] is not None
+                            ),
+                            default=float("inf"),
+                        ),
+                        "surgery_max_abs_error": step_surgery_error,
+                        "main_exact_change_max_abs_error": step_main_exact_change,
+                    }
+                    for record in current_window_batch_records:
+                        record["optimizer_step"] = int(optimizer_step_count)
+                        record["finite_parameters_after_step"] = step_finite_parameters
+                        record["reconstruction"]["surgery_max_abs_error"] = step_surgery_error
+                        record["reconstruction"][
+                            "main_exact_change_max_abs_error"
+                        ] = step_main_exact_change
+                    optimizer_step_runtime_records.append({
+                        "optimizer_step": int(optimizer_step_count),
+                        "batch_range": [int(step_batch_start), int(batch_idx)],
+                        "microbatch_count": len(current_window_batch_records),
+                        "rho": [
+                            float(value)
+                            for value in model.h6.rho_values().detach().float().tolist()
+                        ],
+                        "rho_trainable": bool(model.h6.rho.raw.requires_grad),
+                        "finite_gradients_before_step": step_finite_gradients,
+                        "finite_parameters_after_step": step_finite_parameters,
+                        "reconstruction": step_reconstruction,
+                        "act": {
+                            "head_raw_gradient_norm_before_step": step_act_head_grad_value,
+                            "head_weighted_gradient_norm_before_step": (
+                                None if step_act_head_grad_value is None
+                                else step_act_head_grad_value * float(args.lambda_h6_act)
+                            ),
+                            "upstream_gradient_norms_after_previous_step": step_upstream_values,
+                            "output_weight_norm_before_step": step_output_weight_before,
+                            "output_weight_norm_after_step": step_weight_after,
+                            "output_bias_norm_before_step": step_output_bias_before,
+                            "output_bias_norm_after_step": step_bias_after,
+                            "probability_mean_before_step": (
+                                current_window_batch_records[-1]["act"]["probability"]["mean"]
+                                if current_window_batch_records else None
+                            ),
+                            "probability_mean_after_step": (
+                                float(post_step_batch["act_probability"].detach().float().mean().item())
+                                if needs_v84_post_step else None
+                            ),
+                        },
+                    })
+                    current_window_batch_records.clear()
                 optimizer.zero_grad(set_to_none=True)
             if trajectory_enabled and batch_idx in trajectory_milestones:
                 rho_values_now = model.h6.rho_values().detach().float()
@@ -3244,6 +3562,10 @@ def train_h6_progress1(
                 "structure": structure_epoch,
                 "gradients": factor_grad_diag,
                 "act_runtime": act_runtime_diag,
+                "runtime_telemetry": {
+                    "batch_records": batch_runtime_records,
+                    "optimizer_step_records": optimizer_step_runtime_records,
+                },
                 "gpu_allocated_bytes": (
                     torch.cuda.memory_allocated(device) if device.type == "cuda" else 0
                 ),

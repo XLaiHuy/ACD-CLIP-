@@ -34,6 +34,12 @@ def capture_utility_record(
         "winner", "informative", "valid",
     )
     record = {key: payload[key].detach().cpu() for key in keys}
+    # P1-v8.4-A carries the routed ACT teacher object in the utility payload.
+    # Keep it in the diagnostics-only trajectory so each milestone can report
+    # the actual routed gain without changing any training computation.
+    for key in ("routed_delta", "routed_logits", "loss_routed", "routed_gain_rel"):
+        if key in payload:
+            record[key] = payload[key].detach().cpu()
     record["dense_probabilities"] = dense_probabilities.detach().cpu()
     record["y_patch"] = y_patch.detach().cpu()
     record["utility_router_loss"] = _cpu(utility_router_loss)
@@ -153,6 +159,17 @@ def aggregate_utility_records(
             "active" if supervised_count else "inactive_due_to_teacher_gate"
         ),
     })
+    if all("routed_gain_rel" in record for record in records):
+        routed_gain = _cat(records, "routed_gain_rel").float()[valid]
+        result["routed_gain_rel"] = _stats(
+            routed_gain, (0.01, 0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95, 0.99)
+        )
+        result["routed_gain_nonpositive_fraction"] = float(
+            (routed_gain <= 0.0).float().mean().item()
+        ) if routed_gain.numel() else 0.0
+        result["routed_gain_positive_fraction"] = float(
+            (routed_gain > 0.0).float().mean().item()
+        ) if routed_gain.numel() else 0.0
     if all("act_probability" in record for record in records):
         act_probability = _cat(records, "act_probability").float()
         act_positive = _cat(records, "act_positive").bool()
