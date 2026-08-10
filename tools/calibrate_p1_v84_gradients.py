@@ -193,6 +193,9 @@ def _losses(
     device: torch.device,
     *,
     act_gain_threshold: float,
+    router_confidence_mode: str,
+    router_margin_rel_threshold: float,
+    router_target_mode: str,
 ):
     image = sample["image"].unsqueeze(0).to(device)
     mask = sample["mask"].unsqueeze(0).to(device)
@@ -228,6 +231,9 @@ def _losses(
         rho=0.05, denominator_floor=0.10, tau_utility=0.05,
         epsilon=0.15, gain_threshold=0.02, entropy_threshold=0.98,
         routed_probabilities=h6_batch["prediction_probabilities"],
+        router_confidence_mode=router_confidence_mode,
+        router_margin_rel_threshold=router_margin_rel_threshold,
+        router_target_mode=router_target_mode,
     )
     act = act_teacher(utility, gain_threshold=act_gain_threshold)
     losses = {
@@ -287,39 +293,48 @@ def _quantiles(values: list[float]) -> dict:
     }
 
 
-def _select_act_lambda(windows: list[dict]) -> tuple[float, dict]:
+def _select_component_lambda(
+    windows: list[dict], *, component: str, group: str
+) -> tuple[float, dict]:
     ratios = []
     for window in windows:
-        # At the preregistered zero initialization the ACT linear weights
-        # intentionally block ACT-loss gradients into patch features. The ACT
-        # head itself is the nonzero common main/ACT parameter group at step 0.
-        ratio = window["geometry"]["act_head"]["components"]["act"]["raw_norm_to_main"]
+        ratio = window["geometry"][group]["components"][component]["raw_norm_to_main"]
         if ratio is not None and ratio > 0.0 and math.isfinite(ratio):
             ratios.append(ratio)
     if not ratios:
-        raise RuntimeError("ACT has no nonzero common-window gradient on the image adapter")
+        raise RuntimeError(f"{component} has no nonzero common-window gradient in {group}")
     raw = _quantiles(ratios)
     # Analytic stability envelope, not a training sweep: never exceed main in
     # an observed window, keep p95 at or below half of main, and cap at 1.
     selected = min(1.0, 1.0 / raw["max"], 0.5 / raw["p95"])
     if not math.isfinite(selected) or selected <= 0.0:
-        raise RuntimeError("ACT lambda cannot be calibrated to a positive stable value")
+        raise RuntimeError(f"{component} lambda cannot be calibrated to a positive stable value")
     weighted = _quantiles([selected * value for value in ratios])
     return selected, {
-        "group": "act_head",
+        "group": group,
         "raw_norm_to_main": raw,
         "selected_weighted_norm_to_main": weighted,
         "selection_formula": "min(1, 1/raw_max, 0.5/raw_p95)",
         "stability_contract": "observed max<=1 and p95<=0.5 of main",
-        "initial_feature_path_note": (
-            "ACT-to-image-adapter raw gradient is exactly zero at zero-initialized "
-            "linear weights; it becomes reachable after the head leaves zero"
-        ),
     }
 
 
-def _summaries(windows: list[dict], act_lambda: float) -> dict:
-    weights = {"factor": 0.03, "router": 0.10, "act": act_lambda}
+def _select_act_lambda(windows: list[dict]) -> tuple[float, dict]:
+    # At the preregistered zero initialization the ACT linear weights
+    # intentionally block ACT-loss gradients into patch features. The ACT
+    # head itself is the nonzero common main/ACT parameter group at step 0.
+    selected, summary = _select_component_lambda(
+        windows, component="act", group="act_head"
+    )
+    summary["initial_feature_path_note"] = (
+        "ACT-to-image-adapter raw gradient is exactly zero at zero-initialized "
+        "linear weights; it becomes reachable after the head leaves zero"
+    )
+    return selected, summary
+
+
+def _summaries(windows: list[dict], act_lambda: float, router_lambda: float) -> dict:
+    weights = {"factor": 0.03, "router": router_lambda, "act": act_lambda}
     output = {"weights": weights, "groups": {}}
     for group in GROUPS:
         component_summary = {}
@@ -371,6 +386,16 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--windows", type=int, default=24)
     parser.add_argument("--act-gain-threshold", type=float, default=0.0)
+    parser.add_argument("--lambda-act", type=float, default=7.435420936678605e-05)
+    parser.add_argument(
+        "--router-confidence-mode", choices=("entropy", "margin_rel"), default="entropy"
+    )
+    parser.add_argument("--router-margin-rel-threshold", type=float, default=0.10)
+    parser.add_argument(
+        "--router-target-mode",
+        choices=("legacy_raw_softmax", "patch_zscore_softmax"),
+        default="legacy_raw_softmax",
+    )
     args = parser.parse_args()
     if args.windows < 24 or args.windows > 50:
         raise ValueError("natural calibration requires 24..50 six-microbatch windows")
@@ -415,6 +440,9 @@ def main() -> None:
                 dataset[index],
                 device,
                 act_gain_threshold=args.act_gain_threshold,
+                router_confidence_mode=args.router_confidence_mode,
+                router_margin_rel_threshold=args.router_margin_rel_threshold,
+                router_target_mode=args.router_target_mode,
             )
             for name in COMPONENTS:
                 losses_mean[name] += float(losses[name].detach().item()) / 6.0
@@ -441,8 +469,10 @@ def main() -> None:
         }
         _write_json(args.output_dir / "progress.json", progress)
         print(json.dumps(progress), flush=True)
-    act_lambda, act_selection = _select_act_lambda(windows)
-    gradient_summary = _summaries(windows, act_lambda)
+    router_lambda, router_selection = _select_component_lambda(
+        windows, component="router", group="router"
+    )
+    gradient_summary = _summaries(windows, args.lambda_act, router_lambda)
     label_totals = {
         key: sum(window["counts"][key] for window in windows)
         for key in (
@@ -509,11 +539,18 @@ def main() -> None:
         "act_teacher_utility_object": "g_route",
         "parameter_groups": metadata,
         "selected_lambda_factor": 0.03,
-        "selected_lambda_router": 0.10,
-        "selected_lambda_act": act_lambda,
+        "selected_lambda_router": router_lambda,
+        "selected_lambda_act": args.lambda_act,
         "act_gain_threshold": args.act_gain_threshold,
+        "router_confidence_mode": args.router_confidence_mode,
+        "router_margin_rel_threshold": args.router_margin_rel_threshold,
+        "router_target_mode": args.router_target_mode,
         "act_label_statistics": label_totals,
-        "act_lambda_calibration": act_selection,
+        "act_lambda": {
+            "status": "fixed_from_routed_act_zero_boundary_calibration",
+            "value": args.lambda_act,
+        },
+        "router_lambda_calibration": router_selection,
         "gradient_summary": gradient_summary,
         "gradient_safety_contract": {
             "raw_gradient_ratios_finite": True,
@@ -523,6 +560,14 @@ def main() -> None:
             ),
             "weighted_p95_le_half": (
                 gradient_summary["groups"]["act_head"]["components"]["act"]
+                ["weighted_norm_to_main"]["p95"] <= 0.5
+            ),
+            "router_weighted_max_le_one": (
+                gradient_summary["groups"]["router"]["components"]["router"]
+                ["weighted_norm_to_main"]["max"] <= 1.0
+            ),
+            "router_weighted_p95_le_half": (
+                gradient_summary["groups"]["router"]["components"]["router"]
                 ["weighted_norm_to_main"]["p95"] <= 0.5
             ),
         },
