@@ -1,0 +1,54 @@
+{
+  "audit_kind": "FORWARD_ONLY_FROZEN_ROUTER_MARGIN_SHARPNESS_REPLAY",
+  "attempt_scope": "one actual 300-batch forward-only replay",
+  "base_source_commit": "f839398f56b3cb19936112d88e8f305670f6de31",
+  "checkpoint": {
+    "path": "runs/p1_v84a_gpu/fresh_300b_seed0_attempt1/adapter_1.pth",
+    "origin": "REGENERATED_FROM_HISTORICAL_P1_V84A_300B_PROTOCOL",
+    "sha256_before_and_after": "96f679b2e18f4e352157494f7198414b66f66024a5cc023f5ff046c39dcaa3a3"
+  },
+  "protocol": {
+    "dataset": "VisA/train",
+    "data_root": "/workspace/data/med_visa/data",
+    "seed": 0,
+    "image_size": 518,
+    "batches_completed": 300,
+    "precision": "fp32",
+    "amp_enabled": false,
+    "tf32_enabled": false,
+    "optimizer_constructed": false,
+    "optimizer_steps": 0,
+    "scheduler_steps": 0,
+    "backward_executed": false
+  },
+  "input_preflight": {
+    "manifest_rows": 2162,
+    "missing_required_files_at_canonical_root": 0,
+    "initial_repository_fallback_root_failed_before_first_batch": true,
+    "initial_failure": "repository fallback /workspace/data lacks candle/Data/Images/Anomaly/092.JPG",
+    "actual_replay_used_historical_canonical_root": true
+  },
+  "replay_result": {
+    "runtime_seconds_to_300_batches": 333.736,
+    "only_failed_invariant": "reconstructs_historical_margin_support",
+    "passed_invariants_as_reported_by_the_audit": [
+      "all_grads_none_before",
+      "all_grads_none_after",
+      "model_state_unchanged",
+      "residual_definition_exact",
+      "routed_correction_reconstruction_exact",
+      "actual_gated_reconstruction_exact",
+      "exactly_300_batches"
+    ],
+    "q_sharpness_aggregates_persisted": false,
+    "reason": "The audit correctly rejected unproven q-sharpness evidence before writing a success artifact."
+  },
+  "decision": "FROZEN_ROUTER_AUDIT_REPLAY_INVALID",
+  "next_action": "EXIT_FOR_DISCUSSION",
+  "not_run": [
+    "router_tau_decision",
+    "fresh_init_no_step_router_lambda_calibration",
+    "fresh_router_8b_smoke",
+    "router_300b"
+  ]
+}
