@@ -25,7 +25,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 from dataset import get_text_and_image_dataset
-from model.h6.utility_routing import build_patch_targets
+from model.h6.utility_routing import build_patch_targets, router_target_distribution
 from tools.audit_p1_v83_semantics import _model_from_checkpoint
 from tools.audit_p1_v84a_post300 import (
     _IndexedDataset,
@@ -74,7 +74,8 @@ def _winner_stats(values: list[torch.Tensor]) -> dict[str, float | int]:
 class _SharpnessAccumulator:
     """CPU aggregate that retains only scalar target diagnostics for quantiles."""
 
-    def __init__(self) -> None:
+    def __init__(self, router_target_mode: str = "legacy_raw_softmax") -> None:
+        self.router_target_mode = router_target_mode
         self.valid_count = {name: 0 for name in ("overall", "normal", "anomaly")}
         self.selected_count = {name: 0 for name in ("overall", "normal", "anomaly")}
         self.condition_count = {
@@ -162,11 +163,15 @@ class _SharpnessAccumulator:
             self.per_factor_gain[f"F{factor + 1}"].append(gain[..., factor][valid].detach().float().cpu())
 
         for tau in TAUS:
-            q = F.softmax(gain / tau, dim=-1)
+            q, zero_spread = router_target_distribution(
+                gain, tau_utility=tau, mode=self.router_target_mode
+            )
             entropy = -(q * q.clamp_min(EPSILON).log()).sum(dim=-1) / math.log(4.0)
             max_probability = q.max(dim=-1).values
             kl_uniform = (q * (q.clamp_min(EPSILON).log() + math.log(4.0))).sum(dim=-1)
             self.finite = self.finite and bool(torch.isfinite(q[selected]).all().item())
+            if bool((zero_spread & selected).any().item()):
+                self.finite = False
             q_winners = q.argmax(dim=-1)
             self.q_argmax_agreement[tau][0] += int(((q_winners == winners) & selected).sum().item())
             self.q_argmax_agreement[tau][1] += int(selected.sum().item())
@@ -239,6 +244,7 @@ class _SharpnessAccumulator:
             "definition": "valid and best_gain > 0 and margin_rel > 0.10",
             "margin_rel": "(best_gain - second_gain) / max(abs(best_gain), 1e-12)",
             "margin_rel_threshold": MARGIN_REL_THRESHOLD,
+            "router_target_mode": self.router_target_mode,
             "support": support,
             "condition_counts": self.condition_count,
             "winner_shares": winner,
@@ -334,6 +340,15 @@ def main() -> None:
     parser.add_argument("--openai-checkpoint", type=Path, default=Path("model/ViT-L-14-336px.pt"))
     parser.add_argument("--historical-audit", type=Path, default=Path("runs/p1_v84a_gpu/post300_teacher_semantics_audit.json"))
     parser.add_argument(
+        "--baseline-reference", type=Path,
+        default=Path("runs/p1_v84a_gpu/router_margin_fingerprinted_baseline"),
+    )
+    parser.add_argument(
+        "--router-target-mode",
+        choices=["legacy_raw_softmax", "patch_zscore_softmax"],
+        default="legacy_raw_softmax",
+    )
+    parser.add_argument(
         "--output-dir", type=Path,
         default=Path("runs/p1_v84a_gpu/router_margin_fingerprinted_baseline"),
     )
@@ -372,6 +387,8 @@ def main() -> None:
         row for row in historical["router"]["margin_support"]["rows"]
         if row["margin_rel_threshold"] == MARGIN_REL_THRESHOLD
     )
+    reference_manifest = json.loads((args.baseline_reference / "input_manifest.json").read_text())
+    reference_fingerprint = json.loads((args.baseline_reference / "fingerprint_summary.json").read_text())
     torch.set_float32_matmul_precision("highest")
     torch.backends.cuda.matmul.allow_tf32 = False
     torch.backends.cudnn.allow_tf32 = False
@@ -388,7 +405,7 @@ def main() -> None:
         dataset, batch_size=1, shuffle=True, num_workers=4, pin_memory=True,
         worker_init_fn=seed_worker, generator=make_dataloader_generator(args.seed),
     )
-    accumulator = _SharpnessAccumulator()
+    accumulator = _SharpnessAccumulator(args.router_target_mode)
     batch_indices: list[int] = []
     input_manifest: list[dict[str, Any]] = []
     residual_definition_max_error = 0.0
@@ -458,6 +475,7 @@ def main() -> None:
         raise RuntimeError(f"replay ended after {len(batch_indices)} batches")
 
     sharpness = accumulator.result()
+    manifest_digest = _manifest_digest(input_manifest)
     historical_delta = {
         region: {
             "historical_selected_count": historical_margin["regions"][region]["count"],
@@ -478,6 +496,17 @@ def main() -> None:
         "routed_correction_reconstruction_exact": routed_reconstruction_max_error == 0.0,
         "actual_gated_reconstruction_exact": actual_reconstruction_max_error == 0.0,
         "exactly_300_batches": len(batch_indices) == 300,
+        "baseline_manifest_reconstructed": manifest_digest == reference_manifest["ordered_manifest_sha256"],
+        "baseline_margin_support_reconstructed": all(
+            sharpness["support"][region]["selected_count"]
+            == reference_fingerprint["sharpness"]["support"][region]["selected_count"]
+            for region in ("overall", "normal", "anomaly")
+        ),
+        "baseline_anomaly_winners_reconstructed": all(
+            sharpness["winner_counts_by_region"]["anomaly"][factor]
+            == reference_fingerprint["sharpness"]["winner_counts_by_region"]["anomaly"][factor]
+            for factor in ("F2", "F3", "F4")
+        ),
     }
     invariants_ok = all(invariant_checks.values())
     baseline_accepted = _baseline_accepted(sharpness, invariant_checks)
@@ -486,15 +515,33 @@ def main() -> None:
         {tau: _tau_usable(sharpness, tau) for tau in ("0.03", "0.02")}
         if baseline_accepted else None
     )
-    decision = (
-        "ROUTER_NEW_BASELINE_STRUCTURAL_DRIFT" if not baseline_accepted
-        else "ROUTER_TAU_CANONICAL_USABLE" if tau05_usable
-        else "ROUTER_TAU_RECALIBRATION_REQUIRED" if any(alternate_usable.values())
-        else "ROUTER_TARGET_FORMULATION_UNRESOLVED"
-    )
+    baseline_keys = {
+        "baseline_manifest_reconstructed", "baseline_margin_support_reconstructed",
+        "baseline_anomaly_winners_reconstructed",
+    }
+    if not invariants_ok:
+        decision = (
+            "ROUTER_TARGET_AUDIT_BASELINE_MISMATCH"
+            if any(not invariant_checks[key] for key in baseline_keys)
+            else "ROUTER_ZSCORE_TARGET_SEMANTICS_FAIL"
+        )
+    elif args.router_target_mode == "patch_zscore_softmax":
+        if tau05_usable:
+            decision = "ROUTER_ZSCORE_TARGET_USABLE"
+        elif sharpness["finite_q_router"] and sharpness["tau"]["0.05"]["q_argmax_matches_raw_winner"]:
+            decision = "ROUTER_ZSCORE_TARGET_TOO_UNIFORM"
+        else:
+            decision = "ROUTER_ZSCORE_TARGET_SEMANTICS_FAIL"
+    else:
+        decision = (
+            "ROUTER_NEW_BASELINE_STRUCTURAL_DRIFT" if not baseline_accepted
+            else "ROUTER_TAU_CANONICAL_USABLE" if tau05_usable
+            else "ROUTER_TAU_RECALIBRATION_REQUIRED" if any(alternate_usable.values())
+            else "ROUTER_TARGET_FORMULATION_UNRESOLVED"
+        )
     output = {
         "audit_kind": "FORWARD_ONLY_FINGERPRINTED_ROUTER_MARGIN_BASELINE",
-        "status": "PASS" if decision == "ROUTER_TAU_CANONICAL_USABLE" else "EXIT_FOR_DISCUSSION",
+        "status": "PASS" if decision in {"ROUTER_TAU_CANONICAL_USABLE", "ROUTER_ZSCORE_TARGET_USABLE"} else "EXIT_FOR_DISCUSSION",
         "decision": decision,
         "contract": {
             "checks": {**provenance_checks, **checkpoint_checks, **invariant_checks},
@@ -567,7 +614,7 @@ def main() -> None:
     }
     manifest = {
         "dataset": "VisA/train", "seed": args.seed,
-        "ordered_manifest_sha256": _manifest_digest(input_manifest),
+        "ordered_manifest_sha256": manifest_digest,
         "samples": input_manifest,
     }
     _write_json_atomic(output_paths["manifest"], manifest)

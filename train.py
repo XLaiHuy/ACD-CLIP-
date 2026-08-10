@@ -2110,6 +2110,7 @@ def train_h6_progress1(
                         entropy_threshold=args.h6_utility_entropy_threshold,
                         router_confidence_mode=args.h6_router_confidence_mode,
                         router_margin_rel_threshold=args.h6_router_margin_rel_threshold,
+                        router_target_mode=args.h6_router_target_mode,
                         routed_probabilities=(
                             h6_batch["prediction_probabilities"]
                             if model.h6.progress_version == "P1-v8.4-A"
@@ -4251,6 +4252,12 @@ def main():
     parser.add_argument(
         "--h6_router_margin_rel_threshold", type=float, default=0.10,
         help="Relative best-vs-second utility margin used only by --h6_router_confidence_mode margin_rel.",
+    )
+    parser.add_argument(
+        "--h6_router_target_mode",
+        choices=["legacy_raw_softmax", "patch_zscore_softmax"],
+        default="legacy_raw_softmax",
+        help="Router q target scale; legacy raw softmax remains the default.",
     )
     parser.add_argument("--h6_act_gain_threshold", type=float, default=None)
     parser.add_argument("--h6_utility_entropy_threshold", type=float, default=0.98)

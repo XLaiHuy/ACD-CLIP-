@@ -13,6 +13,7 @@ from model.h6.specialization_trajectory import (
 )
 from model.h6.utility_routing import (
     act_teacher,
+    router_target_distribution,
     routed_residual_correction,
     utility_router_loss,
     utility_teacher,
@@ -137,6 +138,32 @@ def test_margin_router_change_preserves_exact_act_noop_and_zero_logit_probabilit
     correction = routed_residual_correction(torch.zeros_like(payload["best_gain_rel"]), probabilities, residual)
     assert torch.equal(correction, torch.zeros_like(correction))
     assert torch.equal(torch.sigmoid(torch.zeros_like(payload["best_gain_rel"])), torch.full_like(payload["best_gain_rel"], 0.5))
+
+
+def test_patch_zscore_router_target_preserves_order_scale_translation_and_all_nonrouter_state():
+    baseline = _teacher(router_confidence_mode="margin_rel")
+    zscore = _teacher(router_confidence_mode="margin_rel", router_target_mode="patch_zscore_softmax")
+    for key in ("candidate_logits", "gain_rel", "q_factor_utility", "responsibility", "winner", "margin_rel", "informative"):
+        assert torch.equal(baseline[key], zscore[key])
+    for key in ("positive", "negative", "ambiguous", "support"):
+        assert torch.equal(act_teacher(baseline, gain_threshold=0.0)[key], act_teacher(zscore, gain_threshold=0.0)[key])
+    gain = torch.tensor([[0.4, 0.1, -0.1, -0.4]])
+    q, zero = router_target_distribution(gain, tau_utility=0.05, mode="patch_zscore_softmax")
+    scaled, _ = router_target_distribution(7.0 * gain, tau_utility=0.05, mode="patch_zscore_softmax")
+    shifted, _ = router_target_distribution(gain + 9.0, tau_utility=0.05, mode="patch_zscore_softmax")
+    assert torch.isfinite(q).all() and not zero.any()
+    assert torch.equal(q.argmax(dim=-1), gain.argmax(dim=-1))
+    assert torch.equal(q.argsort(dim=-1), gain.argsort(dim=-1))
+    assert torch.allclose(q, scaled) and torch.allclose(q, shifted)
+
+
+def test_patch_zscore_zero_spread_is_finite_and_legacy_mode_is_exact():
+    gain = torch.zeros(2, 4)
+    q, zero = router_target_distribution(gain, tau_utility=0.05, mode="patch_zscore_softmax")
+    legacy, legacy_zero = router_target_distribution(gain, tau_utility=0.05)
+    assert torch.isfinite(q).all() and zero.all()
+    assert torch.equal(q, torch.full_like(q, 0.25))
+    assert torch.equal(legacy, torch.full_like(legacy, 0.25)) and not legacy_zero.any()
 
 
 def test_fast_trajectory_defers_only_intermediate_cumulative_and_final_is_legacy_exact():

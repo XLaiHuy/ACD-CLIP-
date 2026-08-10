@@ -8,6 +8,30 @@ import torch
 import torch.nn.functional as F
 
 
+def router_target_distribution(
+    gain_rel: torch.Tensor,
+    *,
+    tau_utility: float,
+    mode: str = "legacy_raw_softmax",
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Return detached Router target q and its per-patch zero-spread mask.
+
+    ``patch_zscore_softmax`` standardizes only within a patch.  It therefore
+    changes target scale, never gain ordering or Router eligibility.
+    """
+    if mode == "legacy_raw_softmax":
+        return F.softmax(gain_rel.detach() / float(tau_utility), dim=-1), torch.zeros(
+            gain_rel.shape[:-1], dtype=torch.bool, device=gain_rel.device
+        )
+    if mode != "patch_zscore_softmax":
+        raise ValueError("router_target_mode must be 'legacy_raw_softmax' or 'patch_zscore_softmax'")
+    detached = gain_rel.detach()
+    centered = detached - detached.mean(dim=-1, keepdim=True)
+    sigma = centered.square().mean(dim=-1, keepdim=True).sqrt()
+    zero_spread = sigma.squeeze(-1) <= 1e-12
+    return F.softmax(centered / sigma.clamp_min(1e-12), dim=-1), zero_spread
+
+
 def build_patch_targets(
     masks: torch.Tensor,
     patch_count: int,
@@ -65,6 +89,7 @@ def utility_teacher(
     entropy_threshold: float = 0.98,
     router_confidence_mode: str = "entropy",
     router_margin_rel_threshold: float = 0.10,
+    router_target_mode: str = "legacy_raw_softmax",
     routed_probabilities: torch.Tensor | None = None,
 ) -> Dict[str, torch.Tensor]:
     """Build detached factor and router utility teachers.
@@ -115,7 +140,9 @@ def utility_teacher(
         float(denominator_floor)
     )
     q_factor = F.softmax(gain_rel.detach() / factor_tau, dim=-1)
-    q_router = F.softmax(gain_rel.detach() / router_tau, dim=-1)
+    q_router, router_target_zero_spread = router_target_distribution(
+        gain_rel, tau_utility=router_tau, mode=router_target_mode
+    )
     responsibility = (
         (1.0 - float(epsilon)) * q_factor + float(epsilon) / factors
     ).detach()
@@ -155,6 +182,7 @@ def utility_teacher(
         "gain_rel": gain_rel,
         "q_factor_utility": q_factor.detach(),
         "q_router_utility": q_router.detach(),
+        "router_target_zero_spread": router_target_zero_spread.detach(),
         # Backward-compatible public alias used by router losses/diagnostics.
         "q_utility": q_router.detach(),
         "responsibility": responsibility,
