@@ -166,6 +166,13 @@ def test_patch_zscore_zero_spread_is_finite_and_legacy_mode_is_exact():
     assert torch.equal(legacy, torch.full_like(legacy, 0.25)) and not legacy_zero.any()
 
 
+def test_margin_eligible_router_patch_cannot_use_zero_spread_fallback():
+    payload = _teacher(
+        router_confidence_mode="margin_rel", router_target_mode="patch_zscore_softmax"
+    )
+    assert not (payload["informative"] & payload["router_target_zero_spread"]).any()
+
+
 def test_fast_trajectory_defers_only_intermediate_cumulative_and_final_is_legacy_exact():
     payload = _teacher(router_confidence_mode="margin_rel")
     router = payload["q_utility"]

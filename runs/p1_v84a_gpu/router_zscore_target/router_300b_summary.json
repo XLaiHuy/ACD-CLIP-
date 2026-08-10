@@ -1,0 +1,15 @@
+{
+  "artifact": "compact_router_zscore_300b_summary",
+  "source_commit": "8abd135be16a4cf8576924c4782fd5fb0f7e9ab9",
+  "status": "PASS",
+  "decision": "ROUTER_300B_EVIDENCE_READY_FOR_REVIEW",
+  "protocol": {"initialization": "fresh_openai_clip_seed0", "dataset": "VisA/train", "image_size": 518, "batches": 300, "optimizer_steps": 50, "runtime_seconds": 546.802389372, "fp32": true, "amp": false, "tf32": false, "grad_accumulation": 6, "target_mode": "patch_zscore_softmax", "margin_rel_threshold": 0.1, "lambda_router": 0.00044262806523447237, "rho": 0.05, "rho_trainable": false},
+  "eligibility": {"cumulative_fraction": 0.896655007, "normal_fraction": 0.89648515, "anomaly_fraction": 0.925535321, "winner_shares": [0.607952714, 0.063758902, 0.029169189, 0.299119174]},
+  "target": {"finite": true, "cumulative_entropy_mean": 0.696048081, "cumulative_entropy_p50": 0.700447023, "cumulative_max_q_mean": 0.632311046, "normal_entropy_mean": 0.695584536, "anomaly_entropy_mean": 0.774874151},
+  "prediction": {"entropy_batch_50": 0.99903208, "entropy_final_cumulative": 0.998773217, "top1_agreement_batch_50": 0.313636601, "top1_agreement_final_cumulative": 0.471380293, "top1_agreement_final_block": 0.531586766, "prediction_to_q_kl_final_cumulative": 0.414746881, "prediction_to_q_kl_final_block": 0.46262455, "router_target_cross_entropy_final_cumulative": 1.227637887, "router_target_cross_entropy_final_block": 1.34196651, "usage_final": [0.25807935, 0.243297607, 0.246885329, 0.251737803]},
+  "gradient": {"router_parameter_delta_l2": 2.083107233, "router_parameter_delta_relative_to_initial": 0.0433408991, "router_parameter_delta_nonzero": true, "router_effective_gradient_final": 0.000287293631, "router_to_main_ratio_raw": {"median": 115.645523071, "p95": 288.270721436, "max": 368.509277344}, "router_to_main_ratio_weighted": {"median": 0.051187955, "p95": 0.127596721, "max": 0.163112551}, "ratio_basis": "per-optimizer-window router shared-gradient norm divided by MAIN shared-gradient norm; raw is weighted divided by lambda_router"},
+  "act_regression": {"ambiguous_fraction": 0.0, "finite": true, "teacher_auroc": 0.773539126},
+  "utility": {"overall": {"Base": 0.076796539, "FullSoftRouted_ACT1": 0.076884545, "ActualGated": 0.076828785, "ResidualBestSingle": 0.076760009, "ResidualOracleMulti": 0.076553307}, "normal": {"Base": 0.05828443, "FullSoftRouted_ACT1": 0.05839553, "ActualGated": 0.05832373, "damage_suppression": 0.0000718}, "anomaly": {"Base": 3.2246182, "FullSoftRouted_ACT1": 3.22077918, "ActualGated": 3.22345281, "act1_benefit_retained_fraction": 0.3036}},
+  "invariants": {"main_exact_change": 0.0, "surgery_reconstruction": 0.0, "residual_reconstruction": 0.0, "routed_reconstruction": 0.0, "actual_gated_reconstruction": 0.0, "all_finite": true, "oom": false},
+  "block_detail": "runs/p1_v84a_gpu/router_zscore_target/router_300b_blocks.json"
+}

@@ -1,0 +1,17 @@
+{
+  "artifact": "compact_fresh_init_router_lambda_calibration",
+  "source_commit": "18b315f6dbb1430d24cb1e7b5c9549b2ea4b28a2",
+  "status": "PASS",
+  "target_mode": "patch_zscore_softmax",
+  "router_confidence_mode": "margin_rel",
+  "router_margin_rel_threshold": 0.1,
+  "protocol": {"initialization": "fresh_openai_clip_seed0_no_checkpoint_weights_loaded", "dataset": "VisA/train", "image_size": 518, "batch_size": 1, "grad_accumulation": 6, "windows": 24, "fp32": true, "amp": false, "tf32": false, "gradient_checkpointing": true},
+  "historical_lambda": 0.1,
+  "raw_ratio": {"median": 981.9548950195312, "p95": 1129.6165771484375, "max": 1210.36279296875},
+  "historical_weighted_ratio": {"median": 98.19548950195312, "p95": 112.96165771484375, "max": 121.036279296875, "safe": false},
+  "deterministic_scale": 0.004426280652344724,
+  "selected_lambda_router": 0.00044262806523447237,
+  "candidate_weighted_ratio": {"median": 0.4346407651901245, "p95": 0.5, "max": 0.5357405543327332, "p95_le_0_5": true, "max_le_1": true},
+  "router_support_group_patches": 480247,
+  "integrity": {"optimizer_steps": 0, "scheduler_steps": 0, "parameter_mutation": false, "state_hash_unchanged": true, "grad_fields_clear": true}
+}

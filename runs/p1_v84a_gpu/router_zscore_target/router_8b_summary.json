@@ -1,0 +1,13 @@
+{
+  "artifact": "compact_router_zscore_8b_summary",
+  "source_commit": "18b315f6dbb1430d24cb1e7b5c9549b2ea4b28a2",
+  "status": "PASS",
+  "decision": "ROUTER_8B_MECHANICALLY_HEALTHY",
+  "protocol": {"initialization": "fresh_openai_clip_seed0", "dataset": "VisA/train", "image_size": 518, "batches": 8, "optimizer_steps": 2, "fp32": true, "amp": false, "tf32": false, "grad_accumulation": 6, "rho": 0.05, "rho_trainable": false, "target_mode": "patch_zscore_softmax", "margin_rel_threshold": 0.1, "lambda_router": 0.00044262806523447237},
+  "target_support": {"overall_fraction": 0.912161706, "normal_fraction": 0.912126124, "anomaly_fraction": 1.0, "winner_shares": [0.333079517, 0.349745154, 0.206455857, 0.11071945]},
+  "target": {"normalized_entropy": 0.739835143, "max_probability": 0.5714720488, "finite": true},
+  "prediction": {"normalized_entropy_before_first_update": 0.998992026, "normalized_entropy_final": 0.999029875, "top1_agreement_before_first_update": 0.281686127, "top1_agreement_final_recent": 0.309613705, "prediction_to_q_kl_final_recent": 0.361748129, "target_loss_final_recent": 1.303322196},
+  "learning": {"router_effective_gradient_final": 0.0000447866551, "router_to_main_ratio_raw": {"median": 4.529399872, "p95": 6.249825478, "max": 6.440983772}, "router_to_main_ratio_weighted": {"median": 0.002004839, "p95": 0.002766348, "max": 0.00285096}, "ratio_basis": "per-optimizer-window router shared-gradient norm divided by MAIN shared-gradient norm; raw is weighted divided by lambda_router", "router_parameter_delta_l2": 0.0889501274, "router_parameter_delta_relative_to_initial": 0.0018506866, "router_parameter_delta_nonzero": true},
+  "act_regression": {"ambiguous_fraction": 0.0, "finite": true},
+  "invariants": {"main_exact_change": 0.0, "surgery_reconstruction": 0.0, "residual_reconstruction": 0.0, "routed_reconstruction": 0.0, "actual_gated_reconstruction": 0.0, "all_finite": true}
+}

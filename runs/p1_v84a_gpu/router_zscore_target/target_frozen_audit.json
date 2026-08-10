@@ -1,0 +1,18 @@
+{
+  "artifact": "compact_patch_zscore_frozen_target_audit",
+  "source_commit": "93f6418e9e01a62c718b606049710426684a631e",
+  "decision": "ROUTER_ZSCORE_TARGET_USABLE",
+  "checkpoint_sha256": "96f679b2e18f4e352157494f7198414b66f66024a5cc023f5ff046c39dcaa3a3",
+  "input_manifest_sha256": "20575581d04b90b1221130d9870e5a6b50466d942c88eeb8bf18c39c474cc25b",
+  "protocol": {"dataset": "VisA/train", "seed": 0, "image_size": 518, "batches": 300, "fp32": true, "amp": false, "tf32": false, "backward": false, "optimizer_steps": 0, "scheduler_steps": 0},
+  "state_hash": {"before": "95034c11f50d006d818f26fa2cf5d77c93168582923300e31b71bcf8c726e95b", "after": "95034c11f50d006d818f26fa2cf5d77c93168582923300e31b71bcf8c726e95b", "unchanged": true},
+  "margin_eligibility": {"overall": 1071261, "normal": 1066751, "anomaly": 4510, "anomaly_winners": {"F2": 2215, "F3": 1895, "F4": 400}},
+  "q_contract": {"mode": "patch_zscore_softmax", "finite": true, "argmax_matches_raw_winner": true, "argmax_agreement_count": 1071261, "zero_spread_eligible_count": 0, "not_one_hot": true},
+  "q_statistics": {
+    "overall": {"entropy": {"mean": 0.625607789, "p50": 0.602347016, "p90": 0.740609407, "p95": 0.753370762}, "max_q": {"mean": 0.715090454, "p50": 0.745402932, "p90": 0.766894221, "p95": 0.768390715}, "kl_to_uniform": {"mean": 0.519017696, "p50": 0.551264226, "p90": 0.588879943, "p95": 0.591606319}},
+    "normal": {"entropy_p50": 0.602169394, "max_q_p95": 0.76839292, "kl_p95": 0.591613472},
+    "anomaly": {"entropy_p50": 0.795366526, "max_q_p95": 0.621915996, "kl_p95": 0.373689294},
+    "by_raw_winner": {"F1": {"count": 1063213, "entropy_p50": 0.602012932, "max_q_p50": 0.745721638}, "F2": {"count": 4139, "entropy_p50": 0.755743682, "max_q_p50": 0.565640628}, "F3": {"count": 3155, "entropy_p50": 0.814187467, "max_q_p50": 0.495659232}, "F4": {"count": 754, "entropy_p50": 0.84367305, "max_q_p50": 0.440243542}}
+  },
+  "invariance": {"positive_scale_and_translation": "proved by focused helper test; the frozen audit intentionally retained no per-patch q arrays"}
+}
