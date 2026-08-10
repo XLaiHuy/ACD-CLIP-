@@ -1,0 +1,73 @@
+{
+  "decision": "HISTORICAL_ROUTER_MARGIN_PROVENANCE_UNRESOLVED",
+  "scope": "read-only comparison of existing source, historical artifacts, failed-replay evidence, logs, and provenance; no replay or training launched",
+  "data_scope": {
+    "split": "VisA/train in both audits",
+    "historical_dataset_root": "/workspace/data/med_visa/data",
+    "new_actual_replay_dataset_root": "/workspace/data/med_visa/data",
+    "seed": 0,
+    "dataloader": "DataLoader(batch_size=1, shuffle=True, num_workers=4, seed_worker, make_dataloader_generator(0)) in both audits",
+    "batch_count": 300,
+    "sample_order": {
+      "historical_indices_recorded": true,
+      "recovered_indices_match": true,
+      "first_ten": [1545, 591, 405, 1040, 1541, 1269, 1431, 1255, 589, 1546],
+      "last_ten": [183, 1139, 1634, 656, 636, 444, 5, 526, 1887, 961]
+    },
+    "preprocessing_and_local_mask_valid": "dataset source and build_patch_targets source are unchanged from the historical audit source state",
+    "remaining_data_limit": "Neither historical provenance nor audit output records a content hash of the 2,162 input image/mask files."
+  },
+  "raw_utility_semantics": {
+    "z0": "vision_text_fusion_gate_seg output in both sources",
+    "candidate_logits": "z0 + 0.05 * factor_residual_logits in both sources",
+    "gain_rel": "(BCE(z0,target) - BCE(candidate_logits,target)) / max(BCE(z0,target), 0.1) in both sources",
+    "valid_mask": "build_patch_targets(mask, patch_count, local_mask_valid) expanded over groups in both sources",
+    "winner": "argmax(gain_rel) in both sources",
+    "best_gain": "max(gain_rel) in both sources",
+    "second_gain": "second value of topk(gain_rel, 2) along factor dimension in both sources",
+    "source_comparison": "No executable raw-utility semantic difference found."
+  },
+  "historical_margin_formula": {
+    "executable_source": "tools/audit_p1_v84a_teacher_semantics.py at committed audit source 948bc3d",
+    "pre_filter": "gain, target, and residual records are first boolean-indexed by valid",
+    "formula": "best = gain.max(-1); second = gain.topk(2, -1).values[:, 1]; margin_rel = (best - second) / max(abs(best), 1e-12); selected = best > 0 and margin_rel > 0.10",
+    "expected_condition_counts": {
+      "overall": {"valid": 1077423, "best_gain_gt_0": 1077412, "final_eligible": 1071260},
+      "normal": {"valid": 1071120, "best_gain_gt_0": 1071109, "final_eligible": 1066750},
+      "anomaly": {"valid": 6303, "best_gain_gt_0": 6303, "final_eligible": 4510}
+    },
+    "expected_final_winners": {
+      "overall": {"F1": 1063212, "F2": 4139, "F3": 3155, "F4": 754},
+      "normal": {"F1": 1063212, "F2": 1924, "F3": 1260, "F4": 354},
+      "anomaly": {"F1": 0, "F2": 2215, "F3": 1895, "F4": 400}
+    },
+    "not_recorded_historically": ["margin_rel_gt_0_10 before best-gain conjunction", "valid_and_margin_rel_gt_0_10"]
+  },
+  "new_margin_formula": {
+    "formula": "valid and best > 0 and (best - second) / max(abs(best), 1e-12) > 0.10",
+    "equivalence": "The new in-place valid predicate is exactly equivalent to the historical valid-patch prefilter; focused regression test proves identical eligible and winner counts.",
+    "scientific_formulation_changed": false
+  },
+  "failed_replay": {
+    "batches_completed": 300,
+    "only_failed_invariant": "reconstructs_historical_margin_support",
+    "observed_condition_counts_persisted": false,
+    "observed_winner_counts_persisted": false,
+    "first_evidence_divergence": "The final combined-eligibility assertion failed, but the previous audit implementation raised before serializing the actual condition/winner counts. The first semantic layer that differs cannot be recovered from existing artifacts."
+  },
+  "root_cause_classification": {
+    "code": "HISTORICAL_ROUTER_MARGIN_PROVENANCE_UNRESOLVED",
+    "why_not_formula_mismatch": "Historical and new executable formulas and all thresholds/floors match.",
+    "why_not_data_semantics_mismatch": "Split, root, seed, ordering, dataset/preprocessing source, and local-valid source match; byte-level historical data provenance is absent.",
+    "why_not_raw_utility_mismatch_identified": "The failed replay discarded the observed raw-condition and winner aggregates, and the historical audit persisted no raw gain vectors."
+  },
+  "minimal_audit_only_correction": {
+    "implemented": [
+      "persist compact condition counts and winner counts by region",
+      "persist the compact audit payload before raising an invariant failure",
+      "use anomaly-region F2/F3/F4 coverage, rather than overall coverage, in the tau-usability check"
+    ],
+    "model_or_training_semantics_changed": false,
+    "another_replay_scientifically_justified_without_user_authorization": false
+  }
+}

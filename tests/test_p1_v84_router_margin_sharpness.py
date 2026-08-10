@@ -29,6 +29,17 @@ def test_sharpness_accumulator_uses_only_margin_eligible_patches_and_is_tau_inva
     assert result["support"]["anomaly"]["selected_count"] == 1
     assert result["winner_shares"]["F1"]["count"] == 1
     assert result["winner_shares"]["F3"]["count"] == 1
+    assert result["condition_counts"]["overall"] == {
+        "valid": 4,
+        "best_gain_gt_0": 3,
+        "margin_rel_gt_0_10": 3,
+        "valid_and_best_gain_gt_0": 3,
+        "valid_and_margin_rel_gt_0_10": 3,
+        "eligible": 2,
+    }
+    assert result["winner_counts_by_region"]["anomaly"] == {
+        "F1": 0, "F2": 0, "F3": 1, "F4": 0,
+    }
     for tau in ("0.05", "0.03", "0.02"):
         assert result["tau"][tau]["q_argmax_matches_raw_winner"] is True
         assert result["tau"][tau]["regions"]["overall"]["normalized_entropy"]["count"] == 2
@@ -47,3 +58,23 @@ def test_tau_usable_requires_both_selected_regions_anomaly_multifactor_and_entro
     result["tau"]["0.05"]["regions"]["overall"]["normalized_entropy"]["p50"] = 0.97
     result["tau"]["0.05"]["regions"]["anomaly"]["normalized_entropy"]["p50"] = 0.97
     assert _tau_usable(result, "0.05") is True
+
+
+def test_historical_valid_prefilter_and_new_valid_mask_are_exactly_equivalent():
+    gain, targets, valid = _gain()
+    accumulator = _SharpnessAccumulator()
+    accumulator.add(gain, targets, valid)
+    result = accumulator.result()
+    filtered_gain = gain[valid]
+    filtered_targets = targets[valid]
+    best, winners = filtered_gain.max(dim=-1)
+    second = filtered_gain.topk(2, dim=-1).values[:, 1]
+    selected = (best > 0.0) & ((best - second) / best.abs().clamp_min(1e-12) > 0.10)
+    assert int(selected.sum()) == result["condition_counts"]["overall"]["eligible"]
+    assert {
+        f"F{factor + 1}": int(((winners == factor) & selected).sum())
+        for factor in range(4)
+    } == {
+        name: values["count"] for name, values in result["winner_shares"].items()
+    }
+    assert int((filtered_targets[selected] >= 0.5).sum()) == result["support"]["anomaly"]["selected_count"]

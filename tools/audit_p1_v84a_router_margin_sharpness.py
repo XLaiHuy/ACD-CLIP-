@@ -75,7 +75,21 @@ class _SharpnessAccumulator:
     def __init__(self) -> None:
         self.valid_count = {name: 0 for name in ("overall", "normal", "anomaly")}
         self.selected_count = {name: 0 for name in ("overall", "normal", "anomaly")}
-        self.winner_count = {f"F{factor + 1}": 0 for factor in range(4)}
+        self.condition_count = {
+            region: {
+                name: 0
+                for name in (
+                    "valid", "best_gain_gt_0", "margin_rel_gt_0_10",
+                    "valid_and_best_gain_gt_0", "valid_and_margin_rel_gt_0_10",
+                    "eligible",
+                )
+            }
+            for region in ("overall", "normal", "anomaly")
+        }
+        self.winner_count = {
+            region: {f"F{factor + 1}": 0 for factor in range(4)}
+            for region in ("overall", "normal", "anomaly")
+        }
         self.values: dict[float, dict[str, dict[str, list[torch.Tensor]]]] = {
             tau: {
                 region: {metric: [] for metric in ("entropy", "max_probability", "kl_uniform")}
@@ -105,6 +119,14 @@ class _SharpnessAccumulator:
         second = gain.topk(2, dim=-1).values[..., 1]
         margin_rel = (best - second) / best.abs().clamp_min(EPSILON)
         selected = valid & (best > 0.0) & (margin_rel > MARGIN_REL_THRESHOLD)
+        conditions = {
+            "valid": valid,
+            "best_gain_gt_0": best > 0.0,
+            "margin_rel_gt_0_10": margin_rel > MARGIN_REL_THRESHOLD,
+            "valid_and_best_gain_gt_0": valid & (best > 0.0),
+            "valid_and_margin_rel_gt_0_10": valid & (margin_rel > MARGIN_REL_THRESHOLD),
+            "eligible": selected,
+        }
         regions = {
             "overall": torch.ones_like(valid, dtype=torch.bool),
             "normal": targets < 0.5,
@@ -113,8 +135,12 @@ class _SharpnessAccumulator:
         for name, region in regions.items():
             self.valid_count[name] += int((valid & region).sum().item())
             self.selected_count[name] += int((selected & region).sum().item())
-        for factor in range(4):
-            self.winner_count[f"F{factor + 1}"] += int(((winners == factor) & selected).sum().item())
+            for condition_name, condition in conditions.items():
+                self.condition_count[name][condition_name] += int((condition & region).sum().item())
+            for factor in range(4):
+                self.winner_count[name][f"F{factor + 1}"] += int(
+                    ((winners == factor) & selected & region).sum().item()
+                )
 
         for tau in TAUS:
             q = F.softmax(gain / tau, dim=-1)
@@ -158,7 +184,7 @@ class _SharpnessAccumulator:
                 "count": count,
                 "share": count / max(self.selected_count["overall"], 1),
             }
-            for name, count in self.winner_count.items()
+            for name, count in self.winner_count["overall"].items()
         }
         tau_results: dict[str, Any] = {}
         for tau in TAUS:
@@ -179,7 +205,7 @@ class _SharpnessAccumulator:
                 "regions": regions,
                 "by_winner": {
                     winner_name: {
-                        "selected_count": self.winner_count[winner_name],
+                        "selected_count": self.winner_count["overall"][winner_name],
                         "normalized_entropy": _winner_stats(metrics["entropy"]),
                         "max_q_probability": _winner_stats(metrics["max_probability"]),
                     }
@@ -195,9 +221,12 @@ class _SharpnessAccumulator:
             "margin_rel": "(best_gain - second_gain) / max(abs(best_gain), 1e-12)",
             "margin_rel_threshold": MARGIN_REL_THRESHOLD,
             "support": support,
+            "condition_counts": self.condition_count,
             "winner_shares": winner,
+            "winner_counts_by_region": self.winner_count,
             "anomaly_non_f1_coverage": {
-                name: winner[name] for name in ("F2", "F3", "F4")
+                name: {"count": self.winner_count["anomaly"][name]}
+                for name in ("F2", "F3", "F4")
             },
             "finite_q_router": self.finite,
             "tau": tau_results,
@@ -373,13 +402,16 @@ def main() -> None:
         "exactly_300_batches": len(batch_indices) == 300,
         "reconstructs_historical_margin_support": all(support_match.values()),
     }
-    if not all(invariant_checks.values()):
-        raise RuntimeError(f"forward-only invariant failure: {[k for k, v in invariant_checks.items() if not v]}")
-    tau05_usable = _tau_usable(sharpness, "0.05")
-    alternate_usable = any(_tau_usable(sharpness, tau) for tau in ("0.03", "0.02"))
+    invariants_ok = all(invariant_checks.values())
+    tau05_usable = _tau_usable(sharpness, "0.05") if invariants_ok else None
+    alternate_usable = (
+        {tau: _tau_usable(sharpness, tau) for tau in ("0.03", "0.02")}
+        if invariants_ok else None
+    )
     decision = (
-        "ROUTER_TAU_CANONICAL_USABLE" if tau05_usable
-        else "ROUTER_TAU_RECALIBRATION_REQUIRED" if alternate_usable
+        "FROZEN_ROUTER_AUDIT_REPLAY_INVALID" if not invariants_ok
+        else "ROUTER_TAU_CANONICAL_USABLE" if tau05_usable
+        else "ROUTER_TAU_RECALIBRATION_REQUIRED" if any(alternate_usable.values())
         else "ROUTER_TARGET_FORMULATION_UNRESOLVED"
     )
     output = {
@@ -422,10 +454,9 @@ def main() -> None:
         "sharpness": sharpness,
         "tau_usable_contract": {
             "reference": "median normalized entropy < 0.98 overall and anomaly",
+            "evaluated": invariants_ok,
             "canonical_tau_0_05_usable": tau05_usable,
-            "alternate_tau_usable": {
-                tau: _tau_usable(sharpness, tau) for tau in ("0.03", "0.02")
-            },
+            "alternate_tau_usable": alternate_usable,
         },
         "runtime_seconds": time.monotonic() - started,
     }
@@ -435,6 +466,10 @@ def main() -> None:
         "support": sharpness["support"], "runtime_seconds": round(output["runtime_seconds"], 3),
         "output": str(args.output),
     }), flush=True)
+    if not invariants_ok:
+        raise RuntimeError(
+            f"forward-only invariant failure: {[k for k, v in invariant_checks.items() if not v]}"
+        )
 
 
 if __name__ == "__main__":
