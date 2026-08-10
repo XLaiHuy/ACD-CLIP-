@@ -24,8 +24,10 @@ def capture_utility_record(
     utility_router_loss: torch.Tensor,
     *,
     act_probability: torch.Tensor | None = None,
+    act_logits: torch.Tensor | None = None,
     act_payload: dict[str, torch.Tensor] | None = None,
     utility_act_loss: torch.Tensor | None = None,
+    actual_gated_loss: torch.Tensor | None = None,
 ) -> dict[str, torch.Tensor]:
     """Detach the sufficient utility evidence for exact later aggregation."""
     keys = (
@@ -47,11 +49,18 @@ def capture_utility_record(
         if act_probability is None or act_payload is None:
             raise ValueError("ACT probability and payload must be supplied together")
         record["act_probability"] = _cpu(act_probability)
+        record["act_logits"] = _cpu(
+            act_logits
+            if act_logits is not None
+            else torch.logit(act_probability.float().clamp(1e-6, 1.0 - 1e-6))
+        )
         for key in ("target", "positive", "negative", "ambiguous", "support"):
             record[f"act_{key}"] = act_payload[key].detach().cpu()
         record["utility_act_loss"] = _cpu(
             utility_act_loss if utility_act_loss is not None else utility_router_loss * 0.0
         )
+        if actual_gated_loss is not None:
+            record["actual_gated_loss"] = _cpu(actual_gated_loss)
     return record
 
 
@@ -105,6 +114,14 @@ def aggregate_utility_records(
             "winner", "informative", "valid",
         )
     }
+    routed_loss_full = (
+        _cat(records, "loss_routed").float()
+        if all("loss_routed" in record for record in records) else None
+    )
+    actual_gated_loss_full = (
+        _cat(records, "actual_gated_loss").float()
+        if all("actual_gated_loss" in record for record in records) else None
+    )
     dense = _cat(records, "dense_probabilities")
     y_patch = _cat(records, "y_patch")
     exact = utility_diagnostics(payload, dense, y_patch, rho=rho)
@@ -159,8 +176,10 @@ def aggregate_utility_records(
             "active" if supervised_count else "inactive_due_to_teacher_gate"
         ),
     })
+    routed_gain_full = None
     if all("routed_gain_rel" in record for record in records):
-        routed_gain = _cat(records, "routed_gain_rel").float()[valid]
+        routed_gain_full = _cat(records, "routed_gain_rel").float()
+        routed_gain = routed_gain_full[valid]
         result["routed_gain_rel"] = _stats(
             routed_gain, (0.01, 0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95, 0.99)
         )
@@ -170,8 +189,56 @@ def aggregate_utility_records(
         result["routed_gain_positive_fraction"] = float(
             (routed_gain > 0.0).float().mean().item()
         ) if routed_gain.numel() else 0.0
+
+    # Region-split loss-space comparisons are diagnostics only.  They use
+    # the same tensors as the training operation order, so FullSoft is the
+    # current routed correction and ActualGated is the actual ACT gate.
+    targets = y_patch.unsqueeze(0).expand_as(valid)
+    local = (payload["candidate_logits"] - payload["z0"].unsqueeze(-1)) / max(float(rho), 1e-12)
+    uniform_logits = payload["z0"] + float(rho) * local.mean(dim=-1)
+    hard_index = dense.float().argmax(dim=-1, keepdim=True)
+    hard_logits = payload["z0"] + float(rho) * local.gather(-1, hard_index).squeeze(-1)
+    uniform_loss_full = F.binary_cross_entropy_with_logits(
+        uniform_logits, targets.float(), reduction="none"
+    )
+    hard_loss_full = F.binary_cross_entropy_with_logits(
+        hard_logits, targets.float(), reduction="none"
+    )
+
+    def _region_mean(values: torch.Tensor | None, mask: torch.Tensor) -> float | None:
+        if values is None or not bool(mask.any().item()):
+            return None
+        return float(values[mask].mean().item())
+
+    def _region_utility(mask: torch.Tensor) -> dict[str, float | None]:
+        factor_means = [
+            _region_mean(payload["loss_per_factor"][..., factor], mask)
+            for factor in range(payload["loss_per_factor"].shape[-1])
+        ]
+        factor_means_valid = [value for value in factor_means if value is not None]
+        oracle_value = _region_mean(payload["loss_per_factor"].min(dim=-1).values, mask)
+        return {
+            "Base": _region_mean(payload["loss_base"], mask),
+            "ResidualBestSingle": (
+                min(factor_means_valid) if factor_means_valid else None
+            ),
+            "ResidualOracleMulti": oracle_value,
+            "FullSoftRouted_ACT1": _region_mean(routed_loss_full, mask),
+            "ActualGated": _region_mean(actual_gated_loss_full, mask),
+            "HardRouted_ACT1": _region_mean(hard_loss_full, mask),
+            "Uniform_ACT1": _region_mean(uniform_loss_full, mask),
+        }
+
+    result["utility_regions"] = {
+        "overall": _region_utility(valid),
+        "normal": _region_utility(valid & (targets < 0.5)),
+        "anomaly": _region_utility(valid & (targets >= 0.5)),
+    }
     if all("act_probability" in record for record in records):
         act_probability = _cat(records, "act_probability").float()
+        act_logits = _cat(records, "act_logits").float() if all(
+            "act_logits" in record for record in records
+        ) else torch.logit(act_probability.clamp(1e-6, 1.0 - 1e-6))
         act_positive = _cat(records, "act_positive").bool()
         act_negative = _cat(records, "act_negative").bool()
         act_ambiguous = _cat(records, "act_ambiguous").bool()
@@ -192,29 +259,90 @@ def aggregate_utility_records(
             if not positive_count or not negative_count:
                 return None
             order = scores.argsort()
-            ranks = torch.empty_like(order, dtype=torch.float32)
-            ranks[order] = torch.arange(1, scores.numel() + 1, dtype=torch.float32)
-            # Average tied ranks so a constant predictor has AUROC=.5.
-            unique, inverse, counts = torch.unique(scores, return_inverse=True, return_counts=True)
-            if (counts > 1).any():
-                for index in range(unique.numel()):
-                    tie = inverse == index
-                    if int(tie.sum().item()) > 1:
-                        ranks[tie] = ranks[tie].mean()
+            sorted_scores = scores[order]
+            sorted_ranks = torch.arange(
+                1, scores.numel() + 1, dtype=torch.float32
+            )
+            # Average tied ranks without a Python loop.  The previous
+            # implementation scanned the full trajectory once per unique
+            # probability, which became quadratic for 300B telemetry.
+            _, inverse, counts = torch.unique_consecutive(
+                sorted_scores, return_inverse=True, return_counts=True
+            )
+            ends = counts.cumsum(dim=0)
+            starts = torch.cat((torch.zeros(1, dtype=torch.long), ends[:-1]))
+            rank_prefix = torch.cat((torch.zeros(1), sorted_ranks.cumsum(dim=0)))
+            average_ranks = (
+                rank_prefix[ends] - rank_prefix[starts]
+            ) / counts.float()
+            ranks_sorted = average_ranks[inverse]
+            ranks = torch.empty_like(ranks_sorted)
+            ranks[order] = ranks_sorted
             rank_sum = ranks[labels].sum()
             value = (
                 rank_sum - positive_count * (positive_count + 1) / 2.0
             ) / float(positive_count * negative_count)
             return float(value.item())
 
+        def safe_correlation(x: torch.Tensor, y: torch.Tensor, mask: torch.Tensor) -> float | None:
+            x_values = x[mask].flatten().float()
+            y_values = y[mask].flatten().float()
+            if x_values.numel() < 2:
+                return None
+            x_centered = x_values - x_values.mean()
+            y_centered = y_values - y_values.mean()
+            denominator = x_centered.norm() * y_centered.norm()
+            if float(denominator.item()) <= 0.0:
+                return None
+            return float((x_centered * y_centered).sum().div(denominator).item())
+
+        def cross_tab(region: torch.Tensor) -> dict[str, int | float]:
+            region_valid = valid & region
+            count = int(region_valid.sum().item())
+            high = act_probability >= 0.5
+            cells = {
+                "teacher_on_act_high": int((act_positive & high & region_valid).sum().item()),
+                "teacher_on_act_low": int((act_positive & ~high & region_valid).sum().item()),
+                "teacher_off_act_high": int((act_negative & high & region_valid).sum().item()),
+                "teacher_off_act_low": int((act_negative & ~high & region_valid).sum().item()),
+            }
+            cells["valid_count"] = count
+            cells["act_high_fraction"] = float(
+                (high & region_valid).float().sum().item() / max(count, 1)
+            )
+            return cells
+
         normal = valid & (region_targets < 0.5)
         anomaly = valid & (region_targets >= 0.5)
+        on = valid & act_positive
+        off = valid & act_negative
         supported_scores = act_probability[act_support]
         supported_labels = act_positive[act_support]
         result["act"] = {
             "probability_mean": safe_mean(act_probability, valid),
             "probability_normal_mean": safe_mean(act_probability, normal),
             "probability_anomaly_mean": safe_mean(act_probability, anomaly),
+            "probability_stats": _stats(act_probability[valid], (0.01, 0.05, 0.50, 0.95, 0.99)),
+            "probability_normal_stats": _stats(act_probability[normal], (0.05, 0.50, 0.95)),
+            "probability_anomaly_stats": _stats(act_probability[anomaly], (0.05, 0.50, 0.95)),
+            "logit_stats": _stats(act_logits[valid], (0.01, 0.05, 0.50, 0.95, 0.99)),
+            "logit_normal_stats": _stats(act_logits[normal], (0.05, 0.50, 0.95)),
+            "logit_anomaly_stats": _stats(act_logits[anomaly], (0.05, 0.50, 0.95)),
+            "probability_on_mean": safe_mean(act_probability, on),
+            "probability_off_mean": safe_mean(act_probability, off),
+            "separation": safe_mean(act_probability, on) - safe_mean(act_probability, off),
+            "probability_on_normal_mean": safe_mean(act_probability, on & normal),
+            "probability_off_normal_mean": safe_mean(act_probability, off & normal),
+            "separation_normal": (
+                safe_mean(act_probability, on & normal)
+                - safe_mean(act_probability, off & normal)
+            ),
+            "probability_on_anomaly_mean": safe_mean(act_probability, on & anomaly),
+            "probability_off_anomaly_mean": safe_mean(act_probability, off & anomaly),
+            "separation_anomaly": (
+                safe_mean(act_probability, on & anomaly)
+                - safe_mean(act_probability, off & anomaly)
+            ),
             "target_positive_fraction": safe_fraction(act_positive, valid),
             "target_negative_fraction": safe_fraction(act_negative, valid),
             "target_ambiguous_fraction": safe_fraction(act_ambiguous, valid),
@@ -225,6 +353,22 @@ def aggregate_utility_records(
             "target_negative_anomaly_fraction": safe_fraction(act_negative, anomaly),
             "target_ambiguous_anomaly_fraction": safe_fraction(act_ambiguous, anomaly),
             "teacher_auroc": binary_auroc(supported_scores, supported_labels),
+            "teacher_act_cross_tab": {
+                "overall": cross_tab(torch.ones_like(valid, dtype=torch.bool)),
+                "normal": cross_tab(region_targets < 0.5),
+                "anomaly": cross_tab(region_targets >= 0.5),
+            },
+            "g_route_act_probability_correlation": {
+                "overall": safe_correlation(
+                    routed_gain_full, act_probability, valid
+                ) if routed_gain_full is not None else None,
+                "normal": safe_correlation(
+                    routed_gain_full, act_probability, normal
+                ) if routed_gain_full is not None else None,
+                "anomaly": safe_correlation(
+                    routed_gain_full, act_probability, anomaly
+                ) if routed_gain_full is not None else None,
+            },
             "utility_act_loss": float(torch.stack([
                 record["utility_act_loss"] for record in records
             ]).mean().item()),

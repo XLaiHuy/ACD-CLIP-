@@ -2330,8 +2330,10 @@ def train_h6_progress1(
                             utility_payload, h6_batch["dense_probabilities"], y_patch,
                             h6_utility_router,
                             act_probability=h6_batch.get("act_probability"),
+                            act_logits=h6_batch.get("act_logits"),
                             act_payload=act_payload,
                             utility_act_loss=h6_utility_act,
+                            actual_gated_loss=actual_loss,
                         ))
                     if not trajectory_enabled or batch_idx in trajectory_milestones:
                         structure_diag = p1_v83_structure_diagnostics(h6_batch)
@@ -3061,6 +3063,31 @@ def train_h6_progress1(
                         "finite_gradients_before_step": step_finite_gradients,
                         "finite_parameters_after_step": step_finite_parameters,
                         "reconstruction": step_reconstruction,
+                        "gradient_scale": {
+                            "definition": (
+                                "ACT head total raw gradient norm before step divided by "
+                                "primary-anchored shared MAIN gradient norm before step; "
+                                "weighted ratio multiplies raw ratio by lambda_act"
+                            ),
+                            "main_gradient_norm_before_step": surgery_decision.get(
+                                "main_norm"
+                            ),
+                            "raw_ratio": (
+                                None
+                                if step_act_head_grad_value is None
+                                or surgery_decision.get("main_norm") in (None, 0.0)
+                                else float(step_act_head_grad_value)
+                                / float(surgery_decision["main_norm"])
+                            ),
+                            "weighted_ratio": (
+                                None
+                                if step_act_head_grad_value is None
+                                or surgery_decision.get("main_norm") in (None, 0.0)
+                                else float(step_act_head_grad_value)
+                                / float(surgery_decision["main_norm"])
+                                * float(args.lambda_h6_act)
+                            ),
+                        },
                         "act": {
                             "head_raw_gradient_norm_before_step": step_act_head_grad_value,
                             "head_weighted_gradient_norm_before_step": (
