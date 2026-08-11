@@ -1,0 +1,55 @@
+{
+  "handoff_date": "2026-08-12",
+  "repository": "/workspace/ACD-CLIP-p1v84a",
+  "branch": "autopilot/p1-v84a-factor-necessity-autopsy",
+  "head_before_commit": "c8f597f1fcf2711330bd502543d64c4632ed5291",
+  "scientific_source_lineage": "c8f597f1fcf2711330bd502543d64c4632ed5291",
+  "machine_path_script": "tools/p1_v84a_fresh3e_protocol.py",
+  "baseline_config": "runs/p1_v84a_gpu/functional_specialization_fresh_3e_seed0/config.json",
+  "latest_run_directory": "runs/p1_v84a_gpu/factor_generator_specialization_fresh_3e_seed0",
+  "latest_config": {
+    "path": "runs/p1_v84a_gpu/factor_generator_specialization_fresh_3e_seed0/config.json",
+    "sha256": "81b2c61199bd305a32618d86895813087fb49ddfc6817f9b97d7e0ecc3b5dfe8"
+  },
+  "checkpoints": [
+    {
+      "path": "runs/p1_v84a_gpu/factor_generator_specialization_fresh_3e_seed0/adapter_1.pth",
+      "sha256": "10c358db24626df2e703a5361f7f0fa3b20b9c1b08129f98fa27b4375df80a78"
+    },
+    {
+      "path": "runs/p1_v84a_gpu/factor_generator_specialization_fresh_3e_seed0/adapter_2.pth",
+      "sha256": "1fabd3566748b91522d32e21caecfbc4d632441e018b5a8c17742fc6e1f77d95"
+    },
+    {
+      "path": "runs/p1_v84a_gpu/factor_generator_specialization_fresh_3e_seed0/adapter_3.pth",
+      "sha256": "08d9da7939d6b4ff18ef582446e89ac6a67eb3365f1c2fd580cc3580ee1a52b6"
+    }
+  ],
+  "key_report_paths": [
+    "runs/p1_v84a_gpu/factor_generator_specialization_fresh_3e_seed0/model_preflight.json",
+    "runs/p1_v84a_gpu/factor_generator_specialization_fresh_3e_seed0/losses.csv",
+    "runs/p1_v84a_gpu/factor_generator_specialization_fresh_3e_seed0/gradient_norms.csv",
+    "runs/p1_v84a_gpu/specialization_root_cause/factor_generator_zero_step_proof.json",
+    "runs/p1_v84a_gpu/specialization_root_cause/h2_zero_step_proof.json",
+    "runs/p1_v84a_gpu/specialization_root_cause/h3_zero_step_proof.json",
+    "runs/p1_v84a_gpu/functional_specialization_fresh_3e_seed0/e3_architecture_audit.json",
+    "runs/p1_v84a_gpu/factor_generator_specialization_8b_seed0/smoke_summary.json",
+    "runs/p1_v84a_gpu/factor_generator_specialization_300b_seed0/smoke_summary.json"
+  ],
+  "latest_known_scientific_decision": "FACTOR_GENERATOR_OPERATIONAL_GATES_PASS; FINAL_FACTOR_HEALTH_NOT_YET_DETERMINED",
+  "previous_phase_f_decision": "FACTOR_STILL_REDUNDANT",
+  "pending_decision": "Run one cached-forward E3 architecture/complementarity audit, then decide factor health before Router/ACT gates.",
+  "prohibited_until_decision": [
+    "new architecture changes",
+    "Router/ACT tuning",
+    "20e training",
+    "final VisA test",
+    "medical evaluation",
+    "push"
+  ],
+  "lfs_paths": [
+    "runs/p1_v84a_gpu/factor_generator_specialization_fresh_3e_seed0/adapter_1.pth",
+    "runs/p1_v84a_gpu/factor_generator_specialization_fresh_3e_seed0/adapter_2.pth",
+    "runs/p1_v84a_gpu/factor_generator_specialization_fresh_3e_seed0/adapter_3.pth"
+  ]
+}

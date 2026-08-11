@@ -1,3 +1,6 @@
 phase1_best_checkpoints/**/*.pth filter=lfs diff=lfs merge=lfs -text
 model/ViT-L-14-336px.pt filter=lfs diff=lfs merge=lfs -text
 runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/adapter_10.pth filter=lfs diff=lfs merge=lfs -text
+runs/p1_v84a_gpu/factor_generator_specialization_fresh_3e_seed0/adapter_1.pth filter=lfs diff=lfs merge=lfs -text
+runs/p1_v84a_gpu/factor_generator_specialization_fresh_3e_seed0/adapter_2.pth filter=lfs diff=lfs merge=lfs -text
+runs/p1_v84a_gpu/factor_generator_specialization_fresh_3e_seed0/adapter_3.pth filter=lfs diff=lfs merge=lfs -text
