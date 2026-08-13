@@ -21,6 +21,8 @@ from utils import get_phase2b_global_text_features
 
 PASS_LABEL = "PHASE4_INTERFACE_CLEANUP_PASS"
 FAIL_LABEL = "PHASE4_INTERFACE_CLEANUP_FAIL"
+K1_PASS_LABEL = "K1_ZERO_STEP_PASS"
+K1_FAIL_LABEL = "K1_ZERO_STEP_FAIL"
 
 
 def _historical_attention_dfg(model, image, text, group_index):
@@ -231,8 +233,16 @@ def _run(args):
         and not checks["tf32_cudnn"]
         and checks["dtype"] == "torch.float32"
     )
+    telemetry = {
+        "state_delta_l2_mean": float(batch["state_delta_raw"].float().norm(dim=-1).mean().item()),
+        "class_delta_l2_mean": float(batch["class_delta_raw"].float().norm(dim=-1).mean().item()),
+        "dynamic_text_base_cosine": float(F.cosine_similarity(batch["dynamic_text"].float(), base_text.permute(1, 0, 2, 3).float(), dim=2).mean().item()),
+        "delta_mean": float(batch["predictor_residual_logits"].float().mean().item()),
+        "delta_std": float(batch["predictor_residual_logits"].float().std(unbiased=False).item()),
+        "delta_abs_max": float(batch["predictor_residual_logits"].float().abs().max().item()),
+    }
     return {
-        "decision": PASS_LABEL if passed else FAIL_LABEL,
+        "decision": (K1_PASS_LABEL if passed else K1_FAIL_LABEL) if args.k1 else (PASS_LABEL if passed else FAIL_LABEL),
         "fresh_initialization": "OpenAI CLIP only",
         "dataset": "VisA",
         "split": "train",
@@ -240,11 +250,13 @@ def _run(args):
         "class_names": class_names,
         "optimizer_steps": 0,
         "checks": checks,
+        "telemetry": telemetry,
     }
 
 
-def main():
+def main(default_k1: bool = False):
     parser = argparse.ArgumentParser()
+    parser.add_argument("--k1", action="store_true", default=default_k1)
     parser.add_argument(
         "--output",
         type=Path,
@@ -256,15 +268,16 @@ def main():
     try:
         report = _run(args)
     except Exception as error:
+        failure_label = K1_FAIL_LABEL if args.k1 else FAIL_LABEL
         report = {
-            "decision": FAIL_LABEL,
+            "decision": failure_label,
             "error": f"{type(error).__name__}: {error}",
             "traceback": traceback.format_exc(),
         }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
     print(json.dumps(report, indent=2, sort_keys=True))
-    raise SystemExit(0 if report["decision"] == PASS_LABEL else 1)
+    raise SystemExit(0 if report["decision"] in {PASS_LABEL, K1_PASS_LABEL} else 1)
 
 
 if __name__ == "__main__":

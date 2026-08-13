@@ -1289,6 +1289,23 @@ class H6Progress1(nn.Module):
             "legacy_router_executed": torch.tensor(False, device=residual.device),
             "legacy_factor_core_executed": torch.tensor(False, device=residual.device),
             "conditioning_path_count": torch.tensor(1, device=residual.device),
+            "dense_probabilities": torch.ones_like(dynamic_abnormal.unsqueeze(-1)),
+            "prediction_probabilities": torch.ones_like(dynamic_abnormal.unsqueeze(-1)),
+            "probabilities": torch.ones_like(dynamic_abnormal.unsqueeze(-1)),
+            "topk_indices": torch.zeros_like(dynamic_abnormal.unsqueeze(-1), dtype=torch.long),
+            "hard_frozen": base_text_features,
+            "factor_bank": dynamic_text.unsqueeze(2),
+            "text_global": base_text_features,
+            "residual_diversity": residual.sum() * 0.0,
+            "raw_semantic_keys": core["prototype_abnormal"].reshape(-1, self.bank_dim)[:1],
+            "dynamic_mean_anchor_loss_raw": residual.sum() * 0.0,
+            "kg_loss": residual.sum() * 0.0,
+            "sparse_ratio": residual.sum() * 0.0,
+            "router_diagnostics": {
+                "dense_factor_usage": torch.ones(self.n_groups, 1, device=residual.device),
+                "sparse_factor_usage": torch.ones(self.n_groups, 1, device=residual.device),
+                "unique_topk_pairs": torch.ones(self.n_groups, device=residual.device),
+            },
         }
 
     def h6_logit(self, normalized_patches: torch.Tensor, local_text: torch.Tensor) -> torch.Tensor:

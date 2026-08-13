@@ -2158,6 +2158,26 @@ def train_h6_progress1(
 
                 seg_loss = calculate_seg_loss(seg_pred.float(), mask.float())
                 task_loss = cls_loss + seg_loss
+                if model.h6.semantic_factorization_enabled:
+                    probe_batches = set(args.h6_wiring_probe_batches)
+                    if batch_idx in probe_batches:
+                        probe_dir = Path(args.save_path) / "k1_fixed_train_probes"
+                        probe_dir.mkdir(parents=True, exist_ok=True)
+                        torch.save(
+                            {
+                                "base_group_logits": h6_batch["base_group_logits"].detach().cpu(),
+                                "dynamic_abnormal_logits": h6_batch["dynamic_abnormal_logits"].detach().cpu(),
+                                "final_group_logits": h6_batch["final_group_logits"].detach().cpu(),
+                                "state_delta_raw": h6_batch["state_delta_raw"].detach().cpu(),
+                                "class_delta_raw": h6_batch["class_delta_raw"].detach().cpu(),
+                                "dynamic_text": h6_batch["dynamic_text"].detach().cpu(),
+                                "base_text_features": h6_batch["base_text_features"].detach().cpu(),
+                                "mask": mask.detach().cpu(),
+                                "local_mask_valid": local_mask_valid.detach().cpu(),
+                                "label": label.detach().cpu(),
+                            },
+                            probe_dir / f"batch_{batch_idx:03d}.pt",
+                        )
                 if args.h6_center_factor_aware:
                     h6_center = factor_aware_center_loss(
                         h6_batch["projected_levels"],
@@ -2697,7 +2717,7 @@ def train_h6_progress1(
                 loss_component_sum = sum_loss_components(loss_components)
                 total_loss = loss_component_sum
                 loss_component_residual = total_loss - loss_component_sum
-                if batch_idx in set(args.h6_wiring_probe_batches):
+                if not model.h6.semantic_factorization_enabled and batch_idx in set(args.h6_wiring_probe_batches):
                     factor_patch_logits = h6_batch["factor_patch_logits"]
                     delta_t = (
                         h6_batch["dynamic_text"].float()
@@ -3105,6 +3125,26 @@ def train_h6_progress1(
                     or (forensic_root is not None and not forensic_gradient_saved)
                 )
             )
+            if model.h6.semantic_factorization_enabled and batch_idx in set(args.h6_wiring_probe_batches):
+                core = model.h6.conditional_semantic_core
+                def _combined_grad_norm(*modules):
+                    norms = [module_grad_norm(module) for module in modules]
+                    norms = [norm for norm in norms if norm is not None]
+                    return torch.stack(norms).sum() if norms else None
+                probe_gradients = {
+                    "level_projectors": _combined_grad_norm(core.level_projectors),
+                    "prototype_attention": _combined_grad_norm(core.prototype_attention),
+                    "state_updates": _combined_grad_norm(core.normal_state_update, core.abnormal_state_update),
+                    "state_to_context": _combined_grad_norm(core.state_to_context_normal, core.state_to_context_abnormal),
+                    "class_vae": _combined_grad_norm(core.class_vae),
+                    "class_to_context": _combined_grad_norm(core.class_to_context),
+                    "image_adapter": _combined_grad_norm(model.image_adapter),
+                    "text_adapter": _combined_grad_norm(model.text_adapter),
+                }
+                write_json_atomic(
+                    Path(args.save_path) / "k1_fixed_train_probes" / f"grad_batch_{batch_idx:03d}.json",
+                    {key: None if value is None else float(value.detach().cpu().item()) for key, value in probe_gradients.items()},
+                )
             if router_region_pcgrad_enabled:
                 params = [
                     parameter for parameter in model.h6.router.direct_decision_head.parameters()
@@ -3937,6 +3977,9 @@ def train_h6_progress1(
             key: value / float(epoch_diag_count[key])
             for key, value in epoch_diag_sum.items()
         }
+        diagnostics.setdefault("sparse_ratio", h6_batch["sparse_ratio"].detach().float())
+        if model.h6.semantic_factorization_enabled:
+            diagnostics = collections.defaultdict(lambda: torch.zeros((), device=device), diagnostics)
         for key, values in epoch_probe_values.items():
             stacked = torch.stack(values)
             diagnostics[f"{key}_min"] = stacked.min().to(device)
@@ -3947,10 +3990,12 @@ def train_h6_progress1(
                 float(args.h6_expert_anchor_min_cosine), device=device
             )
         proto_diag = prototype_diagnostics(h6_batch["prototype_normal"], h6_batch["prototype_abnormal"])
+        dynamic_text = h6_batch["dynamic_text"].float()
+        hard_frozen = h6_batch["hard_frozen"].float()
+        if hard_frozen.ndim < dynamic_text.ndim:
+            hard_frozen = hard_frozen.unsqueeze(2)
         dynamic_hard_cosine = F.cosine_similarity(
-            h6_batch["dynamic_text"].float(),
-            h6_batch["hard_frozen"].unsqueeze(2).expand_as(h6_batch["dynamic_text"]).float(),
-            dim=3,
+            dynamic_text, hard_frozen.expand_as(dynamic_text), dim=dynamic_text.ndim - 2
         ).mean()
         center_distance = (h6_batch["prototype_normal"].float() - h6_batch["prototype_abnormal"].float()).norm(dim=-1).mean()
         sparse_ratio = float(diagnostics["sparse_ratio"].detach().item())
@@ -4347,7 +4392,7 @@ def train_h6_progress1(
                     f"{model.h6.progress_version} bounded smoke failed: {smoke_payload['failed']}"
                 )
 
-        (logger.info if not is_v7 else (lambda *args, **kwargs: None))(
+        (logger.info if not is_v7 and not model.h6.semantic_factorization_enabled else (lambda *args, **kwargs: None))(
             "%s progress_version=%s epoch=%d total=%s task=%s cls=%s seg=%s center=%s router_teacher=%s "
             "router_teacher_weighted=%s vae_rec=%s vae_kl_raw=%s vae_kl_effective=%s beta_vae_kl=%s "
             "kg=%s orth=%s balance=%s alpha=%s sparse_ratio=%s routing_mode=%s gamma_state=%s gamma_class=%s rho=%s lr=%s "
@@ -4873,7 +4918,7 @@ def main():
     parser.add_argument("--h6_expert_bottleneck", type=int, default=64)
     parser.add_argument(
         "--h6_progress_version",
-        choices=["P1-v6", "P1-v7-full", "P1-v8-minimal", "P1-v8.3", "P1-v8.4-A"],
+        choices=["P1-v6", "P1-v7-full", "P1-v8-minimal", "P1-v8.3", "P1-v8.4-A", "P4-CSF-K1"],
         default="P1-v8.3",
     )
     parser.add_argument("--h6_local_factor_mode", type=str, choices=["legacy_mix", "center_spread"], default="center_spread")
@@ -5219,12 +5264,26 @@ def main():
             raise ValueError("affine_bounded_residual requires positive --h6_router_boundary_trust_scale")
         if args.h6_router_boundary_mode != "affine_bounded_residual" and args.h6_router_boundary_trust_scale is not None:
             raise ValueError("--h6_router_boundary_trust_scale is only valid for affine_bounded_residual")
-        if args.h6_role_topology == "flat" and (args.h6_num_factors != 4 or args.h6_top_k != 2):
+        if args.h6_progress_version != "P4-CSF-K1" and args.h6_role_topology == "flat" and (args.h6_num_factors != 4 or args.h6_top_k != 2):
             raise ValueError("flat Progress 1 requires --h6_num_factors 4 and --h6_top_k 2")
         if args.h6_progress_version == "P1-v7-full" and not args.h6_expert_enabled:
             raise ValueError("P1-v7-full requires --h6_expert_enabled")
         if args.h6_progress_version != "P1-v7-full" and args.h6_expert_enabled:
             raise ValueError("paired experts are explicit P1-v7-full only")
+        if args.h6_progress_version == "P4-CSF-K1":
+            if args.precision != "fp32" or args.amp or torch.backends.cuda.matmul.allow_tf32 or torch.backends.cudnn.allow_tf32:
+                raise ValueError("P4-CSF-K1 requires strict FP32 with TF32 and AMP disabled")
+            if args.h6_role_topology != "flat" or args.h6_num_factors != 1 or args.h6_top_k != 1:
+                raise ValueError("P4-CSF-K1 requires flat K=1 semantics")
+            if args.h6_global_text_mode != "phase2b_hybrid" or args.h6_prediction_routing != "dense" or args.h6_local_factor_mode != "legacy_mix":
+                raise ValueError("P4-CSF-K1 requires the current Phase2B DFG frame without Center-Spread")
+            legacy = (args.lambda_h6_router, args.lambda_h6_factor, args.lambda_h6_act, args.lambda_h6_balance, args.lambda_h6_center, args.lambda_h6_orth, args.lambda_h6_delta_div, args.lambda_h6_func_div, args.lambda_h6_router_teacher, args.lambda_h6_route, args.lambda_h6_factor_role, args.lambda_h6_actual_local, args.lambda_h6_concept_key_diversity, args.lambda_h6_dynamic_mean_anchor, args.lambda_h6_expert, args.lambda_h6_advantage, args.lambda_h6_etf)
+            if any(float(value) != 0.0 for value in legacy) or args.h6_cluster_responsibility or args.h6_intrinsic_factor_responsibility:
+                raise ValueError("P4-CSF-K1 forbids legacy Router/factor/ACT objectives")
+            if args.h6_router_boundary_mode != "none" or args.h6_late_factor_identity_enabled or args.h6_factor_generator_specialization_enabled:
+                raise ValueError("P4-CSF-K1 forbids Router boundaries and factor specialization")
+            if args.h6_smoke_max_batches and not 1 <= args.h6_smoke_max_batches <= 64:
+                raise ValueError("P4-CSF-K1 scientific smoke is limited to 1..64 microbatches")
         if args.h6_progress_version in {"P1-v8.3", "P1-v8.4-A"}:
             contract_version = args.h6_progress_version
             if args.precision != "fp32" or args.amp:
@@ -5525,6 +5584,10 @@ def main():
         model.soft_prompt.requires_grad_(False)
         model.h6.requires_grad_(True)
         model.h6.rho.raw.requires_grad_(False)
+        if model.h6.semantic_factorization_enabled:
+            model.h6.router.requires_grad_(False)
+            model.h6.semantic_core.requires_grad_(False)
+            model.h6.conditional_semantic_core.requires_grad_(True)
         if args.h6_router_frozen_head_path:
             if args.h6_router_boundary_mode != "direct_normalized_linear":
                 raise ValueError("frozen Router head requires --h6_router_boundary_mode direct_normalized_linear")

@@ -372,6 +372,10 @@ def build_phase4_checkpoint(
     ):
         if key in phase2b_config:
             h6_config[key] = phase2b_config[key]
+    gate_core = (
+        h6.conditional_semantic_core if getattr(h6, "semantic_factorization_enabled", False)
+        else h6.semantic_core
+    )
     payload: Dict[str, Any] = {
         "checkpoint_version": (
             P1_V84A_CHECKPOINT_VERSION if h6_config.get("progress_version") == "P1-v8.4-A"
@@ -409,8 +413,8 @@ def build_phase4_checkpoint(
         "grad_accum_steps": phase2b_config.get("grad_accum_steps"),
         "loss_weights": dict(loss_weights),
         "gate_values": {
-            "gamma_state": float(h6.semantic_core.gamma_state().detach().item()),
-            "gamma_class": float(h6.semantic_core.gamma_class().detach().item()),
+            "gamma_state": float(gate_core.gamma_state().detach().item()),
+            "gamma_class": float(gate_core.gamma_class().detach().item()),
             "rho": h6.rho_values().detach().float().cpu().tolist(),
         },
         # Epoch is the authoritative router warm-up state; the runtime counter
