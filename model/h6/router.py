@@ -40,6 +40,8 @@ class PatchRouter(nn.Module):
         router_key_anchor_seed_offset: int = 7300,
         router_key_adaptation_initial_ratio: float = 0.10,
         router_key_adaptation_max_ratio: float = 0.25,
+        boundary_mode: str = "none",
+        boundary_trust_scale: float | None = None,
     ):
         super().__init__()
         if not 0 < top_k <= num_factors:
@@ -48,6 +50,10 @@ class PatchRouter(nn.Module):
             raise ValueError("router temperature must be positive")
         if router_query_mode not in {"raw", "local_residual", "local_global_bypass"}:
             raise ValueError("router_query_mode must be raw, local_residual, or local_global_bypass")
+        if boundary_mode not in {"none", "affine_residual", "affine_bounded_residual", "direct_normalized_linear", "frozen_reference_direct_router"}:
+            raise ValueError("unsupported router boundary_mode")
+        if boundary_mode == "affine_bounded_residual" and (boundary_trust_scale is None or boundary_trust_scale <= 0.0):
+            raise ValueError("affine_bounded_residual requires positive boundary_trust_scale")
         self.n_groups = int(n_groups)
         self.num_factors = int(num_factors)
         self.text_dim = int(text_dim)
@@ -73,6 +79,8 @@ class PatchRouter(nn.Module):
         self.router_key_anchor_seed_offset = int(router_key_anchor_seed_offset)
         self.router_key_adaptation_initial_ratio = float(router_key_adaptation_initial_ratio)
         self.router_key_adaptation_max_ratio = float(router_key_adaptation_max_ratio)
+        self.boundary_mode = str(boundary_mode)
+        self.boundary_trust_scale = None if boundary_trust_scale is None else float(boundary_trust_scale)
         self.level_embedding = nn.Parameter(torch.empty(n_groups, text_dim))
         self.query_projector = nn.Sequential(
             nn.Linear(3 * text_dim, hidden_dim), nn.GELU(), nn.Linear(hidden_dim, bank_dim)
@@ -83,6 +91,19 @@ class PatchRouter(nn.Module):
         self.local_norm = nn.LayerNorm(text_dim)
         self.global_norm = nn.LayerNorm(text_dim)
         self.fallback_concept_keys = nn.Parameter(torch.empty(num_factors, bank_dim))
+        self.boundary_residual = None
+        self.direct_decision_head = None
+        self.frozen_reference_direct_head = None
+        if self.boundary_mode in {"affine_residual", "affine_bounded_residual"}:
+            # A zero-output residual preserves exact initial Q/K routing while
+            # allowing the trained boundary to move in Q-space only.
+            self.boundary_residual = nn.Linear(bank_dim, num_factors)
+            nn.init.zeros_(self.boundary_residual.weight)
+            nn.init.zeros_(self.boundary_residual.bias)
+        if self.boundary_mode == "affine_bounded_residual":
+            self.register_buffer("boundary_trust_scale_tensor", torch.tensor(self.boundary_trust_scale, dtype=torch.float32))
+        else:
+            self.register_buffer("boundary_trust_scale_tensor", torch.tensor(float("nan"), dtype=torch.float32), persistent=False)
         self.register_buffer(
             "frozen_local_projection",
             deterministic_slot_directions(
@@ -103,6 +124,12 @@ class PatchRouter(nn.Module):
         self.register_buffer("load_bias", torch.zeros(n_groups, num_factors))
         nn.init.normal_(self.level_embedding, std=0.02)
         nn.init.normal_(self.fallback_concept_keys, std=0.02)
+        if self.boundary_mode == "direct_normalized_linear":
+            self.direct_decision_head = nn.Linear(bank_dim, num_factors)
+            nn.init.zeros_(self.direct_decision_head.bias)
+        if self.boundary_mode == "frozen_reference_direct_router":
+            self.frozen_reference_direct_head = nn.Linear(text_dim, num_factors)
+            nn.init.zeros_(self.frozen_reference_direct_head.bias)
         self.slot_init_applied_components: list[str] = []
         if self.slot_init_enabled:
             apply_relative_slot_offsets_(
@@ -123,6 +150,7 @@ class PatchRouter(nn.Module):
         concept_keys: torch.Tensor | None = None,
         update_load_bias: bool = False,
         valid_patch_mask: torch.Tensor | None = None,
+        frozen_reference_features: torch.Tensor | None = None,
     ) -> Dict[str, torch.Tensor]:
         input_alias = False
         if not torch.is_tensor(level_tokens):
@@ -132,8 +160,39 @@ class PatchRouter(nn.Module):
         stacked = self._stack(level_tokens)
         with torch.autocast(device_type=stacked.device.type, enabled=False):
             output = self._forward_fp32(stacked, epoch_one_based, concept_keys, update_load_bias, valid_patch_mask)
+            if frozen_reference_features is not None:
+                output = self._replace_routing_with_frozen_reference(output, frozen_reference_features)
         output["level_input_alias"] = torch.tensor(input_alias, device=stacked.device)
         return output
+
+    def _replace_routing_with_frozen_reference(self, output: Dict[str, torch.Tensor], reference: torch.Tensor) -> Dict[str, torch.Tensor]:
+        if self.boundary_mode != "frozen_reference_direct_router" or self.frozen_reference_direct_head is None:
+            raise ValueError("frozen reference features require frozen_reference_direct_router mode")
+        if reference.ndim != 3 or reference.shape[-1] != self.text_dim:
+            raise ValueError("frozen Router reference must be [B,P,768]")
+        main_tokens = output["router_input_features"]
+        if tuple(reference.shape[:2]) != tuple(main_tokens.shape[1:3]):
+            raise ValueError("frozen Router reference geometry does not match main patch geometry")
+        reference = F.normalize(reference.detach().float(), dim=-1)
+        groups = main_tokens.shape[0]
+        routed_reference = reference.unsqueeze(0).expand(groups, -1, -1, -1)
+        weight = F.normalize(self.frozen_reference_direct_head.weight.float(), dim=-1)
+        logits = F.linear(routed_reference, weight, self.frozen_reference_direct_head.bias.float())
+        dense = F.softmax(logits, dim=-1)
+        _, topk_indices = torch.topk(logits, k=self.top_k, dim=-1)
+        output.update({
+            "logits": logits,
+            "selection_logits": logits,
+            "dense_probabilities": dense,
+            "prediction_probabilities": dense,
+            "probabilities": dense,
+            "topk_indices": topk_indices,
+            "topk_frequency": self.topk_frequency(topk_indices, self.num_factors).detach(),
+            "frozen_router_reference": routed_reference,
+            "router_uses_frozen_reference": torch.tensor(True, device=logits.device),
+        })
+        return output
+
 
     def sparse_ratio(self, epoch_one_based: int) -> float:
         """Deterministic dense-to-sparse interpolation; cannot stay dense forever."""
@@ -142,7 +201,6 @@ class PatchRouter(nn.Module):
             return 0.0
         step = epoch - self.soft_routing_epochs
         return min(1.0, float(step) / float(self.sparse_transition_epochs))
-
     def _forward_fp32(
         self,
         tokens: torch.Tensor,
@@ -192,7 +250,25 @@ class PatchRouter(nn.Module):
             query_pre_norm = learned_query + local_bypass_residual.to(learned_query.dtype)
         query = F.normalize(query_pre_norm.float(), dim=-1)
         keys, key_diagnostics = self.final_router_keys(concept_keys)
-        logits = torch.einsum("gbpd,md->gbpm", query, keys) / self.temperature
+        qk_logits = torch.einsum("gbpd,md->gbpm", query, keys) / self.temperature
+        if self.direct_decision_head is not None:
+            direct_weight = F.normalize(self.direct_decision_head.weight.float(), dim=-1)
+            logits = F.linear(query, direct_weight, self.direct_decision_head.bias.float())
+            boundary_raw_residual_logits = torch.zeros_like(qk_logits)
+            boundary_residual_logits = torch.zeros_like(qk_logits)
+        elif self.boundary_residual is None:
+            logits = qk_logits
+            boundary_raw_residual_logits = torch.zeros_like(qk_logits)
+            boundary_residual_logits = torch.zeros_like(qk_logits)
+        else:
+            boundary_raw_residual_logits = self.boundary_residual(query)
+            if self.boundary_mode == "affine_bounded_residual":
+                centered_raw = boundary_raw_residual_logits - boundary_raw_residual_logits.mean(dim=-1, keepdim=True)
+                trust_scale = self.boundary_trust_scale_tensor.to(dtype=centered_raw.dtype)
+                boundary_residual_logits = trust_scale * torch.tanh(centered_raw / trust_scale)
+            else:
+                boundary_residual_logits = boundary_raw_residual_logits
+            logits = qk_logits + boundary_residual_logits
         dense_probabilities = F.softmax(logits, dim=-1)
         ratio = self.sparse_ratio(epoch_one_based)
         bias_active = self.load_bias_enabled and ratio > 0.0
@@ -231,6 +307,11 @@ class PatchRouter(nn.Module):
             # Tier-3 patch-bank contract: this is the FP32/L2 tensor consumed
             # by the dense router before any local/global query transform.
             "router_input_features": tokens,
+            "qk_logits": qk_logits,
+            "boundary_raw_residual_logits": boundary_raw_residual_logits,
+            "boundary_residual_logits": boundary_residual_logits,
+            "boundary_trust_scale": self.boundary_trust_scale_tensor,
+            "boundary_mode": self.boundary_mode,
             "logits": logits,
             "selection_logits": selection_logits,
             "queries": query,

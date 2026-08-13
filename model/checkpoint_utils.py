@@ -16,6 +16,8 @@ def validate_p1_v83_checkpoint_contract(checkpoint: Mapping[str, Any]) -> None:
     config = h6_config_from_checkpoint(checkpoint)
     if config is None or config.get("progress_version") != "P1-v8.3":
         return
+    role_topology = str(config.get("role_topology", "flat"))
+    expected_num_factors = 2 if role_topology == "r2_normal_anomaly" else 4
     expected = {
         "checkpoint_version": (checkpoint.get("checkpoint_version"), PHASE4_CHECKPOINT_VERSION),
         "precision": (checkpoint.get("precision"), "fp32"),
@@ -31,7 +33,7 @@ def validate_p1_v83_checkpoint_contract(checkpoint: Mapping[str, Any]) -> None:
         "batch_size": (checkpoint.get("batch_size"), 1),
         "grad_accum_steps": (checkpoint.get("grad_accum_steps"), 6),
         "variant": (config.get("variant"), "p1_v8_3_structured_utility_routing"),
-        "num_factors": (config.get("num_factors"), 4),
+        "num_factors": (config.get("num_factors"), expected_num_factors),
         "prediction_routing": (config.get("prediction_routing"), "dense"),
         "dense_router_only": (config.get("dense_router_only"), True),
         "structured_text_enabled": (config.get("structured_text_enabled"), True),
@@ -228,6 +230,15 @@ def build_phase4_checkpoint(
         "utility_router_support_normalized": phase2b_config.get(
             "h6_router_support_normalized", False
         ),
+        "utility_router_r2_responsibility_balanced": phase2b_config.get(
+            "h6_router_r2_responsibility_balanced", False
+        ),
+        "utility_router_r2_region_normalized": phase2b_config.get(
+            "h6_router_r2_region_normalized", False
+        ),
+        "utility_router_r2_role_weights": phase2b_config.get(
+            "h6_router_r2_role_weights"
+        ),
         "pcgrad_main_factor": phase2b_config.get("h6_pcgrad_main_factor", False),
         "primary_anchored_factor_surgery": phase2b_config.get(
             "h6_primary_anchored_factor_surgery", False
@@ -303,6 +314,12 @@ def build_phase4_checkpoint(
         ),
         "router_key_adaptation_max_ratio": _config_value(
             "h6_router_key_adaptation_max_ratio", "router_key_adaptation_max_ratio"
+        ),
+        "router_boundary_mode": _config_value(
+            "h6_router_boundary_mode", "router_boundary_mode"
+        ),
+        "router_boundary_trust_scale": _config_value(
+            "h6_router_boundary_trust_scale", "router_boundary_trust_scale"
         ),
         "factor_context_anchor_enabled": _config_value(
             "h6_factor_context_anchor_enabled", "factor_context_anchor_enabled"

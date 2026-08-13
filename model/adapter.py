@@ -252,6 +252,9 @@ class ACDCLIP(nn.Module):
                 n_groups=n_groups,
                 num_factors=h6_num_factors,
                 top_k=h6_top_k,
+                role_topology=kwargs.get("h6_role_topology", "flat"),
+                role_teacher_scale=kwargs.get("h6_role_teacher_scale", None),
+                intrinsic_factor_responsibility=kwargs.get("h6_intrinsic_factor_responsibility", False),
                 prediction_routing=kwargs.get("h6_prediction_routing", "dense"),
                 bank_dim=h6_bank_dim,
                 router_dim=h6_router_dim,
@@ -289,6 +292,8 @@ class ACDCLIP(nn.Module):
                 router_key_anchor_seed_offset=h6_router_key_anchor_seed_offset,
                 router_key_adaptation_initial_ratio=h6_router_key_adaptation_initial_ratio,
                 router_key_adaptation_max_ratio=h6_router_key_adaptation_max_ratio,
+                router_boundary_mode=kwargs.get("h6_router_boundary_mode", "none"),
+                router_boundary_trust_scale=kwargs.get("h6_router_boundary_trust_scale", None),
                 factor_context_anchor_enabled=h6_factor_context_anchor_enabled,
                 factor_context_anchor_seed_offset=h6_factor_context_anchor_seed_offset,
                 factor_context_adaptation_initial_ratio=h6_factor_context_adaptation_initial_ratio,
@@ -348,7 +353,23 @@ class ACDCLIP(nn.Module):
         else:
             raise ValueError("modality must be visual")
 
+
+    def frozen_router_reference(self, image: torch.Tensor) -> torch.Tensor:
+        """Frozen adapter-independent final CLIP patches for Router-only routing."""
+        with torch.no_grad():
+            tokens = self.image_encoder.conv1(image)
+            tokens = tokens.reshape(tokens.shape[0], tokens.shape[1], -1).permute(0, 2, 1)
+            tokens = torch.cat([self.image_encoder.class_embedding.to(tokens.dtype) + torch.zeros(tokens.shape[0], 1, tokens.shape[-1], dtype=tokens.dtype, device=tokens.device), tokens], dim=1)
+            tokens = self.image_encoder.ln_pre(self.image_encoder.patch_dropout(tokens + self.image_encoder.positional_embedding.to(tokens.dtype))).permute(1, 0, 2)
+            for resblock in self.image_encoder.transformer.resblocks:
+                tokens, _ = resblock(tokens, attn_mask=None)
+            patches = self.image_encoder.ln_post(tokens[1:].permute(1, 0, 2))
+            if self.image_encoder.proj is not None:
+                patches = patches @ self.image_encoder.proj
+        return F.normalize(patches.float(), dim=-1).detach()
+
     def forward(self, x, return_phase4_features: bool = False):
+        input_image = x
         x = self.image_encoder.conv1(x)
         x = x.reshape(x.shape[0], x.shape[1], -1)
         x = x.permute(0, 2, 1)
@@ -434,12 +455,15 @@ class ACDCLIP(nn.Module):
         if return_phase4_features:
             if cls24 is None:
                 raise RuntimeError("failed to capture the final visual CLS token")
-            return {
+            output = {
                 "seg_tokens": seg_tokens,
                 "seg_tokens_pre_l2": seg_tokens_norm,
                 "det_tokens": det_tokens,
                 "cls24": cls24,
             }
+            if self.h6_enabled and self.h6 is not None and self.h6.router.boundary_mode == "frozen_reference_direct_router":
+                output["frozen_router_reference"] = self.frozen_router_reference(input_image)
+            return output
         return seg_tokens, det_tokens
 
     def vision_text_fusion_gate_seg(

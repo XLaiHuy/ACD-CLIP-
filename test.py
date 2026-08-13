@@ -425,9 +425,23 @@ def main():
     parser.add_argument("--h6_progress", type=int, choices=[0, 1], default=None)
     parser.add_argument("--h6_num_factors", type=int, default=4)
     parser.add_argument("--h6_top_k", type=int, default=2)
+    parser.add_argument("--h6_role_topology", choices=["flat", "r2_normal_anomaly"], default="flat")
+    parser.add_argument("--h6_role_teacher_scale", type=float, default=None)
     parser.add_argument("--h6_bank_dim", type=int, default=256)
     parser.add_argument("--h6_router_dim", type=int, default=128)
     parser.add_argument("--h6_router_temperature", type=float, default=1.0)
+    parser.add_argument(
+        "--h6_router_boundary_mode",
+        choices=["none", "affine_residual", "affine_bounded_residual"],
+        default="none",
+        help="Checkpoint-restored Router boundary residual mode.",
+    )
+    parser.add_argument(
+        "--h6_router_boundary_trust_scale",
+        type=float,
+        default=None,
+        help="Checkpoint-restored positive trust scale for affine_bounded_residual.",
+    )
     parser.add_argument("--h6_router_soft_epochs", type=int, default=2)
     parser.add_argument("--h6_dense_routing_epochs", type=int, default=None)
     parser.add_argument("--h6_sparse_start_epoch", type=int, default=None)
@@ -618,9 +632,17 @@ def main():
         args.h6_progress = int(preflight_h6["progress"])
         args.h6_num_factors = int(preflight_h6["num_factors"])
         args.h6_top_k = int(preflight_h6["top_k"])
+        args.h6_role_topology = str(preflight_h6.get("role_topology", "flat"))
+        scale = preflight_h6.get("role_teacher_scale")
+        args.h6_role_teacher_scale = None if scale is None else float(scale)
         args.h6_bank_dim = int(preflight_h6["bank_dim"])
         args.h6_router_dim = int(preflight_h6["router_dim"])
         args.h6_router_temperature = float(preflight_h6["router_temperature"])
+        args.h6_router_boundary_mode = str(preflight_h6.get("router_boundary_mode", "none"))
+        boundary_trust_scale = preflight_h6.get("router_boundary_trust_scale")
+        args.h6_router_boundary_trust_scale = (
+            None if boundary_trust_scale is None else float(boundary_trust_scale)
+        )
         args.h6_router_soft_epochs = int(preflight_h6["router_soft_epochs"])
         args.h6_sparse_transition_epochs = int(preflight_h6.get("sparse_transition_epochs", 1))
         args.h6_load_bias_enabled = bool(preflight_h6.get("load_bias_enabled", False))
@@ -735,9 +757,13 @@ def main():
         h6_progress=args.h6_progress,
         h6_num_factors=args.h6_num_factors,
         h6_top_k=args.h6_top_k,
+        h6_role_topology=args.h6_role_topology,
+        h6_role_teacher_scale=args.h6_role_teacher_scale,
         h6_bank_dim=args.h6_bank_dim,
         h6_router_dim=args.h6_router_dim,
         h6_router_temperature=args.h6_router_temperature,
+        h6_router_boundary_mode=args.h6_router_boundary_mode,
+        h6_router_boundary_trust_scale=args.h6_router_boundary_trust_scale,
         h6_router_soft_epochs=args.h6_router_soft_epochs,
         h6_sparse_transition_epochs=args.h6_sparse_transition_epochs,
         h6_load_bias_enabled=args.h6_load_bias_enabled,

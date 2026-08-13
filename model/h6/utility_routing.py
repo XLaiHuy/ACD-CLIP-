@@ -91,6 +91,8 @@ def utility_teacher(
     router_margin_rel_threshold: float = 0.10,
     router_target_mode: str = "legacy_raw_softmax",
     routed_probabilities: torch.Tensor | None = None,
+    role_topology: str = "flat",
+    role_teacher_scale: float | None = None,
 ) -> Dict[str, torch.Tensor]:
     """Build detached factor and router utility teachers.
 
@@ -101,8 +103,13 @@ def utility_teacher(
     if factor_local_evidence.ndim != 4:
         raise ValueError("factor_local_evidence must be [G,B,P,M]")
     groups, batch, patches, factors = factor_local_evidence.shape
-    if factors != 4:
-        raise ValueError("P1-v8.3 is locked to M=4")
+    if role_topology not in {"flat", "r2_normal_anomaly"}:
+        raise ValueError("role_topology must be 'flat' or 'r2_normal_anomaly'")
+    if role_topology == "r2_normal_anomaly":
+        if factors != 2:
+            raise ValueError("r2_normal_anomaly requires exactly two role outputs")
+        if role_teacher_scale is None or float(role_teacher_scale) <= 0.0:
+            raise ValueError("r2_normal_anomaly requires a positive global role_teacher_scale")
     if base_logits.shape != (groups, batch, patches):
         raise ValueError("base_logits must be [G,B,P]")
     if y_patch.shape != (batch, patches) or local_mask_valid.shape != (batch, patches):
@@ -139,13 +146,27 @@ def utility_teacher(
     gain_rel = (loss_base.unsqueeze(-1) - loss_per_factor) / loss_base.unsqueeze(-1).clamp_min(
         float(denominator_floor)
     )
-    q_factor = F.softmax(gain_rel.detach() / factor_tau, dim=-1)
-    q_router, router_target_zero_spread = router_target_distribution(
-        gain_rel, tau_utility=router_tau, mode=router_target_mode
-    )
-    responsibility = (
-        (1.0 - float(epsilon)) * q_factor + float(epsilon) / factors
-    ).detach()
+    role_gap = None
+    role_probability = None
+    if role_topology == "r2_normal_anomaly":
+        # Role 0 is normal/background and role 1 is anomaly. The scale is a
+        # frozen, global TRAIN statistic; no per-patch normalization is used.
+        role_gap = gain_rel[..., 0] - gain_rel[..., 1]
+        role_probability = torch.sigmoid(role_gap / float(role_teacher_scale)).detach()
+        q_factor = torch.stack((role_probability, 1.0 - role_probability), dim=-1)
+        q_router = q_factor
+        router_target_zero_spread = torch.zeros(
+            gain_rel.shape[:-1], dtype=torch.bool, device=gain_rel.device
+        )
+        responsibility = q_factor.detach()
+    else:
+        q_factor = F.softmax(gain_rel.detach() / factor_tau, dim=-1)
+        q_router, router_target_zero_spread = router_target_distribution(
+            gain_rel, tau_utility=router_tau, mode=router_target_mode
+        )
+        responsibility = (
+            (1.0 - float(epsilon)) * q_factor + float(epsilon) / factors
+        ).detach()
     normalized_entropy = -(
         q_router * q_router.clamp_min(1e-12).log()
     ).sum(dim=-1) / math.log(factors)
@@ -194,7 +215,18 @@ def utility_teacher(
         "winner": winners.detach(),
         "informative": informative.detach(),
         "valid": valid,
+        "role_topology": role_topology,
     }
+    if role_topology == "r2_normal_anomaly":
+        role_entropy = -(
+            q_router * q_router.clamp_min(1e-12).log()
+        ).sum(dim=-1)
+        payload.update({
+            "role_gap": role_gap.detach(),
+            "role_scale": torch.full_like(role_gap, float(role_teacher_scale)).detach(),
+            "role_probability": role_probability.detach(),
+            "role_entropy": role_entropy.detach(),
+        })
     if routed_probabilities is not None:
         # The ACT target is a teacher: detach both the current forward mixture
         # and factor evidence so labels cannot create a gradient path through
@@ -434,6 +466,173 @@ def support_normalized_utility_router_loss(
         return ce.sum() * 0.0
     return (ce * payload["informative"].float()).sum() / float(valid_count)
 
+
+def r2_responsibility_balanced_utility_router_loss(
+    dense_probabilities: torch.Tensor,
+    payload: Dict[str, torch.Tensor],
+    *,
+    role_weights: tuple[float, float],
+) -> torch.Tensor:
+    """Fixed R2 teacher CE balanced by TRAIN responsibility mass.
+
+    The weights are frozen before training from TRAIN-only informative teacher
+    mass. Unlike the legacy support-normalized form, this denominator is the
+    weighted informative support itself, so inactive patches do not attenuate
+    the Router gradient.
+    """
+    if payload.get("role_topology") != "r2_normal_anomaly":
+        raise ValueError("R2 responsibility balancing requires r2_normal_anomaly")
+    if dense_probabilities.shape != payload["q_utility"].shape or dense_probabilities.shape[-1] != 2:
+        raise ValueError("R2 Router probabilities/teacher must match [G,B,P,2]")
+    weights = torch.as_tensor(
+        role_weights, dtype=dense_probabilities.dtype, device=dense_probabilities.device,
+    )
+    if weights.shape != (2,) or not torch.isfinite(weights).all() or (weights <= 0).any():
+        raise ValueError("R2 Router role_weights must be two finite positive values")
+    teacher = payload["q_utility"].detach()
+    per_role_ce = -teacher * dense_probabilities.float().clamp_min(1e-12).log()
+    informative = payload["informative"].float().unsqueeze(-1)
+    weighted_target = informative * teacher * weights.view(1, 1, 1, 2)
+    denominator = weighted_target.sum()
+    if float(denominator.detach().item()) == 0.0:
+        return dense_probabilities.sum() * 0.0
+    return (informative * per_role_ce * weights.view(1, 1, 1, 2)).sum() / denominator
+
+
+def r2_region_normalized_utility_router_loss(
+    dense_probabilities: torch.Tensor,
+    payload: Dict[str, torch.Tensor],
+    patch_targets: torch.Tensor,
+    *,
+    return_components: bool = False,
+) -> torch.Tensor | tuple[torch.Tensor, Dict[str, torch.Tensor]]:
+    """R2 Router CE normalized independently on normal and anomaly support."""
+    if payload.get("role_topology") != "r2_normal_anomaly":
+        raise ValueError("R2 region normalization requires r2_normal_anomaly")
+    if dense_probabilities.shape != payload["q_utility"].shape or dense_probabilities.shape[-1] != 2:
+        raise ValueError("R2 Router probabilities/teacher must match [G,B,P,2]")
+    if patch_targets.shape != dense_probabilities.shape[1:3]:
+        raise ValueError("patch_targets must match Router [B,P] support")
+    if "role_gap" not in payload or "role_scale" not in payload:
+        raise ValueError("R2 region normalization requires frozen R2 role gap and scale")
+
+    teacher = payload["q_utility"].detach()
+    ce = -(teacher * dense_probabilities.float().clamp_min(1e-12).log()).sum(dim=-1)
+    targets = patch_targets.detach().to(device=ce.device).unsqueeze(0).expand_as(ce)
+    support = payload["informative"].bool() & payload["valid"].bool()
+    normal_support = support & (targets < 0.5)
+    anomaly_support = support & (targets >= 0.5)
+    gap = payload["role_gap"].detach().abs().to(dtype=ce.dtype)
+    scale = payload["role_scale"].detach().to(dtype=ce.dtype)
+    if not torch.isfinite(gap).all() or not torch.isfinite(scale).all() or (scale <= 0).any():
+        raise ValueError("R2 region normalization requires finite positive frozen role scale")
+    utility_weight = 1.0 + gap / (gap + scale)
+    if not torch.isfinite(utility_weight).all() or (utility_weight < 1.0).any() or (utility_weight > 2.0).any():
+        raise ValueError("R2 region utility weights must be finite and bounded in [1, 2]")
+
+    def _region_mean(region: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        weighted_support = utility_weight * region.to(dtype=ce.dtype)
+        denominator = weighted_support.sum()
+        numerator = (weighted_support * ce).sum()
+        loss = numerator / denominator if float(denominator.detach().item()) > 0.0 else ce.sum() * 0.0
+        return loss, numerator, denominator
+
+    normal_loss, normal_numerator, normal_denominator = _region_mean(normal_support)
+    anomaly_loss, anomaly_numerator, anomaly_denominator = _region_mean(anomaly_support)
+    normal_present = normal_support.any()
+    anomaly_present = anomaly_support.any()
+    if normal_present and anomaly_present:
+        loss = 0.5 * (normal_loss + anomaly_loss)
+        normal_contribution = 0.5 * normal_loss
+        anomaly_contribution = 0.5 * anomaly_loss
+    elif normal_present:
+        loss, normal_contribution, anomaly_contribution = normal_loss, normal_loss, anomaly_loss
+    elif anomaly_present:
+        loss, normal_contribution, anomaly_contribution = anomaly_loss, normal_loss, anomaly_loss
+    else:
+        loss = ce.sum() * 0.0
+        normal_contribution = loss
+        anomaly_contribution = loss
+    if not return_components:
+        return loss
+    return loss, {
+        "normal_support_count": normal_support.sum().detach(),
+        "anomaly_support_count": anomaly_support.sum().detach(),
+        "normal_present": normal_present.detach(),
+        "anomaly_present": anomaly_present.detach(),
+        "utility_weight_min": utility_weight.min().detach(),
+        "utility_weight_max": utility_weight.max().detach(),
+        "normal_numerator": normal_numerator.detach(),
+        "anomaly_numerator": anomaly_numerator.detach(),
+        "normal_denominator": normal_denominator.detach(),
+        "anomaly_denominator": anomaly_denominator.detach(),
+        "normal_loss": normal_loss,
+        "anomaly_loss": anomaly_loss,
+        "normal_contribution": normal_contribution,
+        "anomaly_contribution": anomaly_contribution,
+    }
+
+
+def r2_region_grounded_router_loss(dense_probabilities: torch.Tensor, patch_targets: torch.Tensor, valid_patch: torch.Tensor, *, return_components: bool = False):
+    """Immutable TRAIN-region CE for R2 roles, independent of model utility."""
+    if dense_probabilities.ndim != 4 or dense_probabilities.shape[-1] != 2:
+        raise ValueError("R2 grounded Router probabilities must be [G,B,P,2]")
+    if patch_targets.shape != dense_probabilities.shape[1:3] or valid_patch.shape != patch_targets.shape:
+        raise ValueError("grounded Router target/valid support must be [B,P]")
+    targets = patch_targets.detach().to(device=dense_probabilities.device)
+    valid = valid_patch.detach().bool().to(device=dense_probabilities.device)
+    target = targets.unsqueeze(0).expand(dense_probabilities.shape[:-1])
+    ce = -dense_probabilities.float().clamp_min(1e-12).log()
+    normal = valid.unsqueeze(0).expand_as(target) & (target < 0.5)
+    anomaly = valid.unsqueeze(0).expand_as(target) & (target >= 0.5)
+    normal_loss = ce[..., 0][normal].mean() if bool(normal.any()) else ce.sum() * 0.0
+    anomaly_loss = ce[..., 1][anomaly].mean() if bool(anomaly.any()) else ce.sum() * 0.0
+    normal_present, anomaly_present = normal.any(), anomaly.any()
+    if normal_present and anomaly_present:
+        loss = 0.5 * (normal_loss + anomaly_loss)
+        normal_contribution, anomaly_contribution = 0.5 * normal_loss, 0.5 * anomaly_loss
+    elif normal_present:
+        loss, normal_contribution, anomaly_contribution = normal_loss, normal_loss, anomaly_loss
+    elif anomaly_present:
+        loss, normal_contribution, anomaly_contribution = anomaly_loss, normal_loss, anomaly_loss
+    else:
+        loss = ce.sum() * 0.0
+        normal_contribution = anomaly_contribution = loss
+    if not return_components:
+        return loss
+    return loss, {
+        "normal_support_count": normal.sum().detach(), "anomaly_support_count": anomaly.sum().detach(),
+        "normal_present": normal_present.detach(), "anomaly_present": anomaly_present.detach(),
+        "normal_loss": normal_loss, "anomaly_loss": anomaly_loss,
+        "normal_contribution": normal_contribution, "anomaly_contribution": anomaly_contribution,
+    }
+
+
+
+def r2_intrinsic_responsibility_loss(logits: torch.Tensor, patch_targets: torch.Tensor, valid_patch: torch.Tensor, *, return_components: bool = False):
+    """Balanced immutable-region CE on intrinsic factor compatibility logits."""
+    if logits.ndim != 4 or logits.shape[-1] != 2:
+        raise ValueError("intrinsic responsibility logits must be [G,B,P,2]")
+    target = patch_targets.detach().to(logits.device).unsqueeze(0).expand(logits.shape[:-1])
+    valid = valid_patch.detach().bool().to(logits.device).unsqueeze(0).expand_as(target)
+    normal, anomaly = valid & (target < .5), valid & (target >= .5)
+    ce = F.cross_entropy(logits.float().movedim(-1, 1), target.long(), reduction="none")
+    normal_loss = ce[normal].mean() if normal.any() else ce.sum() * 0.0
+    anomaly_loss = ce[anomaly].mean() if anomaly.any() else ce.sum() * 0.0
+    if normal.any() and anomaly.any():
+        loss, nc, ac = .5 * (normal_loss + anomaly_loss), .5 * normal_loss, .5 * anomaly_loss
+    elif normal.any():
+        loss, nc, ac = normal_loss, normal_loss, anomaly_loss
+    elif anomaly.any():
+        loss, nc, ac = anomaly_loss, normal_loss, anomaly_loss
+    else:
+        loss = ce.sum() * 0.0; nc = ac = loss
+    if not return_components:
+        return loss
+    return loss, {"normal_support_count": normal.sum().detach(), "anomaly_support_count": anomaly.sum().detach(),
+                  "normal_present": normal.any().detach(), "anomaly_present": anomaly.any().detach(),
+                  "normal_loss": normal_loss, "anomaly_loss": anomaly_loss,
+                  "normal_contribution": nc, "anomaly_contribution": ac}
 
 def utility_diagnostics(
     payload: Dict[str, torch.Tensor],

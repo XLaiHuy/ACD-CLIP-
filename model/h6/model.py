@@ -37,6 +37,8 @@ class H6Progress1(nn.Module):
         n_groups: int,
         num_factors: int = 4,
         top_k: int = 2,
+        role_topology: str = "flat",
+        role_teacher_scale: float | None = None,
         prediction_routing: str = "dense",
         bank_dim: int = 256,
         router_dim: int = 128,
@@ -70,6 +72,8 @@ class H6Progress1(nn.Module):
         router_key_anchor_seed_offset: int = 7300,
         router_key_adaptation_initial_ratio: float = 0.10,
         router_key_adaptation_max_ratio: float = 0.25,
+        router_boundary_mode: str = "none",
+        router_boundary_trust_scale: float | None = None,
         factor_context_anchor_enabled: bool = True,
         factor_context_anchor_seed_offset: int = 7400,
         factor_context_adaptation_initial_ratio: float = 0.10,
@@ -95,6 +99,7 @@ class H6Progress1(nn.Module):
         expert_scale_start_epoch: int = 1,
         expert_scale_warmup_epochs: int = 6,
         expert_max_relative_ratio: float = 0.10,
+        intrinsic_factor_responsibility: bool = False,
         text_dim: int = 768,
         ctx_len: int = 4,
         h6_logit_temperature: float = 10.0,
@@ -106,6 +111,18 @@ class H6Progress1(nn.Module):
         self.n_groups = int(n_groups)
         self.num_factors = int(num_factors)
         self.top_k = int(top_k)
+        self.role_topology = str(role_topology)
+        if self.role_topology not in {"flat", "r2_normal_anomaly"}:
+            raise ValueError("role_topology must be 'flat' or 'r2_normal_anomaly'")
+        if self.role_topology == "r2_normal_anomaly" and self.num_factors != 2:
+            raise ValueError("r2_normal_anomaly requires num_factors=2")
+        self.role_teacher_scale = (
+            None if role_teacher_scale is None else float(role_teacher_scale)
+        )
+        if self.role_topology == "r2_normal_anomaly" and (
+            self.role_teacher_scale is None or self.role_teacher_scale <= 0.0
+        ):
+            raise ValueError("r2_normal_anomaly requires a positive role_teacher_scale")
         self.bank_dim = int(bank_dim)
         self.router_dim = int(router_dim)
         self.router_temperature = float(router_temperature)
@@ -137,6 +154,8 @@ class H6Progress1(nn.Module):
         self.router_key_anchor_seed_offset = int(router_key_anchor_seed_offset)
         self.router_key_adaptation_initial_ratio = float(router_key_adaptation_initial_ratio)
         self.router_key_adaptation_max_ratio = float(router_key_adaptation_max_ratio)
+        self.router_boundary_mode = str(router_boundary_mode)
+        self.router_boundary_trust_scale = None if router_boundary_trust_scale is None else float(router_boundary_trust_scale)
         self.factor_context_anchor_enabled = bool(factor_context_anchor_enabled)
         self.factor_context_anchor_seed_offset = int(factor_context_anchor_seed_offset)
         self.factor_context_adaptation_initial_ratio = float(factor_context_adaptation_initial_ratio)
@@ -160,6 +179,9 @@ class H6Progress1(nn.Module):
         self.dynamic_mean_anchor_start_epoch = int(dynamic_mean_anchor_start_epoch)
         self.dynamic_mean_anchor_warmup_epochs = int(dynamic_mean_anchor_warmup_epochs)
         self.router_teacher_mode = str(router_teacher_mode)
+        self.intrinsic_factor_responsibility = bool(intrinsic_factor_responsibility)
+        if self.intrinsic_factor_responsibility and self.num_factors != 2:
+            raise ValueError("intrinsic factor responsibility currently requires R2")
         self.progress_version = str(progress_version)
         self.expert_enabled = bool(expert_enabled)
         self.expert_bottleneck = int(expert_bottleneck)
@@ -227,7 +249,13 @@ class H6Progress1(nn.Module):
             router_key_anchor_seed_offset=router_key_anchor_seed_offset,
             router_key_adaptation_initial_ratio=router_key_adaptation_initial_ratio,
             router_key_adaptation_max_ratio=router_key_adaptation_max_ratio,
+            boundary_mode=router_boundary_mode,
+            boundary_trust_scale=router_boundary_trust_scale,
         )
+        if self.intrinsic_factor_responsibility:
+            # Retained solely for legacy checkpoint load compatibility; it is
+            # neither executed nor optimized by the intrinsic production path.
+            self.router.requires_grad_(False)
         self.residual_act_enabled = self.progress_version == "P1-v8.4-A"
         self.act_head = None
         if self.residual_act_enabled:
@@ -277,6 +305,9 @@ class H6Progress1(nn.Module):
             "n_groups": self.n_groups,
             "num_factors": self.num_factors,
             "top_k": self.top_k,
+            "role_topology": self.role_topology,
+            "role_teacher_scale": self.role_teacher_scale,
+            "intrinsic_factor_responsibility": self.intrinsic_factor_responsibility,
             "bank_dim": self.bank_dim,
             "router_dim": self.router_dim,
             "router_temperature": self.router_temperature,
@@ -323,7 +354,15 @@ class H6Progress1(nn.Module):
             "vae_sample_used_for_reconstruction_only": True,
             "vae_class_skip_enabled": True,
             "vae_prompt_path": "decoder_mu",
-            "structured_text_layout": "[C1][C2][C3][C4][STATE_m][CLASS][literal_state][REAL_NAME]",
+            "structured_text_layout": (
+                "[R_NORMAL][R_ANOMALY][STATE_r][CLASS][literal_state][REAL_NAME]"
+                if self.role_topology == "r2_normal_anomaly"
+                else (
+                    "[C1][C2][C3][C4][STATE_m][CLASS][literal_state][REAL_NAME]"
+                    if self.num_factors == 4
+                    else f"[C1..C{self.num_factors}][STATE_m][CLASS][literal_state][REAL_NAME]"
+                )
+            ),
             "structured_text_enabled": is_structured_utility,
             "dynamic_text_adapt_text": is_structured_utility,
             "state_token_factor_specific": True,
@@ -378,6 +417,9 @@ class H6Progress1(nn.Module):
             "router_key_anchor_seed_offset": self.router_key_anchor_seed_offset,
             "router_key_adaptation_initial_ratio": self.router_key_adaptation_initial_ratio,
             "router_key_adaptation_max_ratio": self.router_key_adaptation_max_ratio,
+            "router_boundary_mode": self.router_boundary_mode,
+            "router_boundary_trust_scale": self.router_boundary_trust_scale,
+            "router_boundary_residual": self.router.boundary_residual is not None,
             "factor_context_anchor_enabled": self.factor_context_anchor_enabled,
             "factor_context_anchor_method": "qr_orthonormal_rows_buffer",
             "factor_context_anchor_seed_offset": self.factor_context_anchor_seed_offset,
@@ -598,6 +640,36 @@ class H6Progress1(nn.Module):
         final_factor = local_center_norm + float(factor_spread) * normalized_tangent
         return F.normalize(final_factor, dim=3)
 
+
+    @staticmethod
+    def _responsibility_factor_view_center_spread(
+        hard_adapted: torch.Tensor,
+        dynamic_text: torch.Tensor,
+        center_mix: float,
+        factor_spread: float,
+    ) -> torch.Tensor:
+        """Exact center/spread values with responsibility gradients only through factor deviations.
+
+        This is deliberately not a second factor bank. Its forward values are
+        identical to ``_fuse_factor_bank_center_spread``; the stop-gradients
+        prevent the auxiliary role CE from moving shared hard/center semantics.
+        """
+        if hard_adapted.ndim != 4 or dynamic_text.ndim != 5:
+            raise ValueError("responsibility view expects hard [G,B,D,2] and dynamic [G,B,M,D,2]")
+        raw_mean = dynamic_text.float().mean(dim=2, keepdim=True).detach()
+        deviations = dynamic_text.float() - dynamic_text.float().mean(dim=2, keepdim=True)
+        dynamic_view = dynamic_text.detach().float() + deviations - deviations.detach()
+        semantic_center = F.normalize(raw_mean, dim=3).detach()
+        hard_center = F.normalize(hard_adapted.float(), dim=2).unsqueeze(2).detach()
+        center = F.normalize(
+            (1.0 - float(center_mix)) * hard_center + float(center_mix) * semantic_center,
+            dim=3,
+        ).detach()
+        residual = dynamic_view - raw_mean
+        tangent = residual - (residual * center).sum(dim=3, keepdim=True) * center
+        tangent = tangent / tangent.norm(dim=3, keepdim=True).clamp_min(1e-8)
+        return F.normalize(center + float(factor_spread) * tangent, dim=3)
+
     def dynamic_mean_anchor_loss(
         self,
         dynamic_text: torch.Tensor,
@@ -663,12 +735,98 @@ class H6Progress1(nn.Module):
         anchor = hard_frozen.unsqueeze(2).expand_as(dynamic)
         kg_loss = (1.0 - F.cosine_similarity(dynamic.float(), anchor, dim=3)).mean()
         residual_diversity = dynamic_residual_diversity_loss(dynamic, hard_frozen)
-        routing = self.router(
+        routing = None if self.intrinsic_factor_responsibility else self.router(
             visual_output["seg_tokens"],
             epoch_one_based=self.epoch_one_based,
             concept_keys=core["concept_keys"],
             update_load_bias=self.training if update_load_bias is None else bool(update_load_bias),
+            frozen_reference_features=visual_output.get("frozen_router_reference"),
         )
+
+        if self.intrinsic_factor_responsibility:
+            if self.paired_experts is not None:
+                raise RuntimeError("intrinsic factor responsibility requires the frozen non-expert Factor Bank")
+            patches_for_responsibility = F.normalize(
+                torch.stack(visual_output["seg_tokens"], dim=0).float(), dim=-1
+            )
+            responsibility_bank = (
+                self._responsibility_factor_view_center_spread(
+                    hard_adapted, dynamic, self.local_center_mix, self.local_factor_spread
+                )
+                if self.local_factor_mode == "center_spread"
+                else factor_bank
+            )
+            intrinsic_state_similarity = self.h6_logit_temperature * torch.einsum(
+                "gbpd,gbmds->gbpms",
+                patches_for_responsibility.detach(), responsibility_bank,
+            )
+            intrinsic_responsibility_logits = torch.logsumexp(
+                intrinsic_state_similarity, dim=-1
+            )
+            intrinsic_responsibility_probabilities = F.softmax(
+                intrinsic_responsibility_logits, dim=-1
+            )
+            # The task correction receives the detached responsibility decision;
+            # its selected residual values remain fully differentiable.
+            prediction_probabilities = intrinsic_responsibility_probabilities.detach()
+            topk_indices = prediction_probabilities.topk(self.top_k, dim=-1).indices
+            routing = {
+                "router_input_features": patches_for_responsibility,
+                "qk_logits": intrinsic_responsibility_logits,
+                "logits": intrinsic_responsibility_logits,
+                "selection_logits": intrinsic_responsibility_logits,
+                "prediction_probabilities": prediction_probabilities,
+                "dense_probabilities": prediction_probabilities,
+                "sparse_probabilities": prediction_probabilities,
+                "topk_indices": topk_indices,
+                "final_router_keys": core["concept_keys"].detach(),
+                "intrinsic_responsibility_logits": intrinsic_responsibility_logits,
+                "intrinsic_responsibility_probabilities": intrinsic_responsibility_probabilities,
+                "intrinsic_state_similarity": intrinsic_state_similarity,
+                "responsibility_factor_bank": responsibility_bank,
+            }
+            diag_zero = intrinsic_responsibility_logits.new_zeros(
+                intrinsic_responsibility_logits.shape[0]
+            )
+            diag_usage = prediction_probabilities.mean(dim=(1, 2)).detach()
+            routing.update({
+                "raw_concept_key_cos_mean": diag_zero,
+                "raw_concept_key_cos_max": diag_zero,
+                "raw_concept_key_l2_min": diag_zero,
+                "final_router_key_cos_mean": diag_zero,
+                "final_router_key_cos_max": diag_zero,
+                "final_router_key_l2_min": diag_zero,
+                "router_key_adaptation_ratio_mean": diag_zero,
+                "router_key_adaptation_ratio_max": diag_zero,
+                "queries": patches_for_responsibility.detach(),
+                "sparse_ratio": intrinsic_responsibility_logits.sum() * 0.0,
+                "load_bias": torch.zeros_like(diag_usage),
+                "ema_topk_usage": diag_usage,
+                "level_input_alias": diag_zero,
+                "level_input_difference": diag_zero,
+                "level_query_difference": diag_zero,
+                "level_logit_difference": diag_zero,
+                "router_patch_count": torch.full_like(diag_zero, intrinsic_responsibility_logits.shape[2]),
+                "router_softmax_dim": torch.full_like(diag_zero, -1),
+                "router_topk_dim": torch.full_like(diag_zero, -1),
+                "query_pairwise_cos_mean_across_patches": diag_zero,
+                "query_pairwise_cos_max_across_patches": diag_zero,
+                "query_variance_across_patches": diag_zero,
+                "query_effective_rank": diag_zero,
+                "query_singular_value_ratio": diag_zero,
+                "per_factor_logit_std_across_patches": intrinsic_responsibility_logits.float().std(dim=2, unbiased=False).mean(dim=1).detach(),
+                "raw_query_pairwise_cos_mean": diag_zero,
+                "local_query_pairwise_cos_mean": diag_zero,
+                "final_query_pairwise_cos_mean": diag_zero,
+                "raw_query_variance_across_patches": diag_zero,
+                "local_query_variance_across_patches": diag_zero,
+                "final_query_variance_across_patches": diag_zero,
+                "final_query_effective_rank": diag_zero,
+                "final_query_top1_energy_ratio": diag_zero,
+                "local_bypass_norm_mean": diag_zero,
+                "local_bypass_to_learned_ratio_mean": diag_zero,
+                "local_bypass_to_learned_ratio_max": diag_zero,
+            })
         prediction_probabilities = routing["prediction_probabilities"]
         raw_semantic_keys = core["concept_keys"]
         final_router_keys = routing["final_router_keys"]
@@ -679,7 +837,7 @@ class H6Progress1(nn.Module):
                 factor_bank, core["prototype_normal"], core["prototype_abnormal"], self.expert_scale()
             )
             active_factor_bank = expert_payload["expert_factor_bank"]
-        local_text = self.router.local_text(prediction_probabilities, active_factor_bank)
+        local_text = PatchRouter.local_text(prediction_probabilities, active_factor_bank)
         patches = torch.stack(visual_output["seg_tokens"], dim=0).float()
         patches = F.normalize(patches, dim=-1)
         absolute_h6_logits = self.h6_logit(patches, local_text)
@@ -693,6 +851,7 @@ class H6Progress1(nn.Module):
         factor_residual_logits = (
             factor_patch_logits - noop_reference_patch_logit.unsqueeze(-1)
         )
+        qk_probabilities = F.softmax(routing["qk_logits"], dim=-1)
         if self.residual_act_enabled:
             from .utility_routing import routed_residual_correction
 
@@ -701,10 +860,17 @@ class H6Progress1(nn.Module):
             h6_logits = routed_residual_correction(
                 act_probability, prediction_probabilities, factor_residual_logits
             )
+            # Instrumentation-only legacy branch on the identical tensors.  It
+            # exposes the exact Q/K-only downstream correction for zero-init
+            # boundary parity without a second model or altered production path.
+            qk_routed_residual = (qk_probabilities * factor_residual_logits).sum(dim=-1)
+            qk_h6_logits = act_probability * qk_routed_residual
         else:
             act_logits = None
             act_probability = None
             h6_logits = absolute_h6_logits
+            qk_routed_residual = None
+            qk_h6_logits = None
         expert_patch_logits = factor_patch_logits if self.paired_experts is not None else None
         expert_diagnostics = {}
         if self.paired_experts is not None:
@@ -810,10 +976,13 @@ class H6Progress1(nn.Module):
             "residual_diversity": residual_diversity,
             "dynamic_mean_anchor_loss_raw": dynamic_mean_anchor_loss_raw,
             "dynamic_mean_hard_cos": dynamic_mean_hard_cos,
-            "text_global": self.router.aggregate_global(prediction_probabilities, global_factor_bank),
+            "text_global": PatchRouter.aggregate_global(prediction_probabilities, global_factor_bank),
             "topk_indices": routing.get("topk_indices", None),
             "prediction_logits": routing.get("logits", None),
             "prediction_probabilities": routing["prediction_probabilities"],
+            "qk_probabilities": qk_probabilities,
+            "qk_routed_residual": qk_routed_residual,
+            "qk_h6_logits": qk_h6_logits,
             "h6_logits": h6_logits,
             "rho": self.rho_values(),
             "expert_scale": torch.tensor(self.expert_scale(), device=patches.device),
@@ -953,7 +1122,7 @@ class H6Progress1(nn.Module):
             + list(self.semantic_core.normal_state_update.parameters())
             + list(self.semantic_core.abnormal_state_update.parameters()),
             "h6_vae": self.semantic_core.class_vae.parameters(),
-            "h6_router": self.router.parameters(),
+            "h6_router": [] if self.intrinsic_factor_responsibility else self.router.parameters(),
             "h6_dynamic_prompt": list(self.semantic_core.state_to_context_normal.parameters())
             + list(self.semantic_core.state_to_context_abnormal.parameters())
             + list(self.semantic_core.class_to_context.parameters()),

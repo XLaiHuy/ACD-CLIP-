@@ -58,7 +58,11 @@ from model.h6.utility_routing import (
     build_patch_targets, exploration_epsilon, utility_diagnostics,
     effective_number_act_loss,
     effective_number_utility_factor_loss,
+    r2_region_grounded_router_loss,
+    r2_intrinsic_responsibility_loss,
+    r2_region_normalized_utility_router_loss,
     support_normalized_utility_router_loss,
+    r2_responsibility_balanced_utility_router_loss,
     utility_factor_loss, utility_router_loss, utility_teacher,
 )
 from model.h6.specialization_trajectory import (
@@ -1367,6 +1371,11 @@ def _h6_optimizer_groups(model: ACDCLIP, args) -> list[dict]:
     for name, parameter in named_h6.items():
         if not parameter.requires_grad:
             continue
+        if bool(getattr(args, "h6_intrinsic_factor_responsibility", False)) and name.startswith("router."):
+            # Legacy checkpoint-compatibility tensors are never optimized by
+            # the intrinsic production path.
+            parameter.requires_grad_(False)
+            continue
         partition = partition_by_id.get(id(parameter))
         if partition is None:
             raise RuntimeError(f"unpartitioned H6 parameter: {name}")
@@ -1465,6 +1474,15 @@ def _phase2b_config_from_args(args) -> dict:
         "h6_router_key_anchor_seed_offset": args.h6_router_key_anchor_seed_offset,
         "h6_router_key_adaptation_initial_ratio": args.h6_router_key_adaptation_initial_ratio,
         "h6_router_key_adaptation_max_ratio": args.h6_router_key_adaptation_max_ratio,
+        "h6_router_boundary_mode": args.h6_router_boundary_mode,
+        "h6_router_boundary_trust_scale": args.h6_router_boundary_trust_scale,
+        "h6_router_boundary_support_gate": bool(args.h6_router_boundary_support_gate),
+        "h6_router_supervision": args.h6_router_supervision,
+        "h6_region_router_support_gate": bool(args.h6_region_router_support_gate),
+        "h6_router_frozen_head_path": args.h6_router_frozen_head_path,
+        "h6_router_frozen_head_drift_gate": bool(args.h6_router_frozen_head_drift_gate),
+        "h6_router_frozen_head_artifact_sha256": getattr(args, "h6_router_frozen_head_artifact_sha256", None),
+        "h6_router_frozen_head_tensor_sha256": getattr(args, "h6_router_frozen_head_tensor_sha256", None),
         "h6_factor_context_anchor_enabled": args.h6_factor_context_anchor_enabled,
         "h6_factor_context_anchor_seed_offset": args.h6_factor_context_anchor_seed_offset,
         "h6_factor_context_adaptation_initial_ratio": args.h6_factor_context_adaptation_initial_ratio,
@@ -1520,6 +1538,10 @@ def _phase2b_config_from_args(args) -> dict:
         "h6_act_effective_beta": args.h6_act_effective_beta,
         "h6_utility_factor_effective_beta": args.h6_utility_factor_effective_beta,
         "h6_router_support_normalized": bool(args.h6_router_support_normalized),
+        "h6_router_r2_responsibility_balanced": bool(args.h6_router_r2_responsibility_balanced),
+        "h6_router_r2_region_normalized": bool(args.h6_router_r2_region_normalized),
+        "h6_router_r2_role_weights": args.h6_router_r2_role_weights,
+        "h6_router_region_pcgrad": bool(args.h6_router_region_pcgrad),
         "h6_pcgrad_main_factor": bool(args.h6_pcgrad_main_factor),
         "h6_primary_anchored_factor_surgery": bool(
             args.h6_primary_anchored_factor_surgery
@@ -1730,7 +1752,8 @@ def train_h6_progress1(
         }
         gradient_samples: list[dict[str, torch.Tensor]] = []
         gradient_surgery_enabled = bool(
-            args.h6_pcgrad_main_factor or args.h6_primary_anchored_factor_surgery
+            not args.h6_intrinsic_factor_responsibility
+            and (args.h6_pcgrad_main_factor or args.h6_primary_anchored_factor_surgery)
         )
         collect_router_gradient_geometry = bool(
             args.h6_pcgrad_main_factor or args.h6_collect_router_gradient_geometry
@@ -1758,6 +1781,10 @@ def train_h6_progress1(
         batch_runtime_records: list[dict] = []
         optimizer_step_runtime_records: list[dict] = []
         current_window_batch_records: list[dict] = []
+        support_gate_probe = None
+        support_gate_metrics: dict[str, dict] = {}
+        support_gate_normal_update = False
+        support_gate_anomaly_update = False
         pcgrad_window_counts = {
             "normal_patch_count": 0,
             "anomaly_patch_count": 0,
@@ -1769,6 +1796,14 @@ def train_h6_progress1(
             "microbatch_count": 0,
         }
         epoch_batch_limit = min(len(train_loader), int(args.h6_smoke_max_batches)) if args.h6_smoke_max_batches > 0 else len(train_loader)
+        forensic_root = Path(args.h6_forensic_dir).resolve() if args.h6_forensic_dir else None
+        forensic_gradient_saved = False
+        if forensic_root is not None:
+            forensic_root.mkdir(parents=True, exist_ok=False)
+            (forensic_root / "checkpoints").mkdir()
+            (forensic_root / "telemetry").mkdir()
+            (forensic_root / "captures").mkdir()
+            (forensic_root / "gradients").mkdir()
         progress = tqdm(train_loader, desc=f"[PHASE4-P1][TRAIN][epoch {epoch:02d}/{args.epoch:02d}]")
 
         def _runtime_stats(value):
@@ -1793,6 +1828,14 @@ def train_h6_progress1(
                 for parameter in model.parameters()
                 if parameter.requires_grad
             ))
+        def _direct_head_tensor_sha256():
+            head = model.h6.router.direct_decision_head or model.h6.router.frozen_reference_direct_head
+            if head is None:
+                return None
+            digest = hashlib.sha256()
+            for tensor in (head.weight.detach().float().cpu(), head.bias.detach().float().cpu()):
+                digest.update(tensor.contiguous().numpy().tobytes())
+            return digest.hexdigest()
 
         def _runtime_region_means(value, valid, y_patch):
             targets = y_patch.unsqueeze(0).expand_as(valid)
@@ -1806,6 +1849,162 @@ def train_h6_progress1(
                 if bool(region.any().item()) else 0.0
                 for name, region in regions.items()
             }
+
+        def _forensic_checkpoint(step: int, batch_number: int, telemetry: dict):
+            if forensic_root is None:
+                return
+            direct_head = model.h6.router.direct_decision_head
+            if direct_head is None:
+                raise RuntimeError("forensic direct-head run lost direct_decision_head")
+            checkpoint = build_phase4_checkpoint(
+                model, epoch=epoch, seed=args.seed, precision=args.precision,
+                phase2b_config=_phase2b_config_from_args(args),
+                loss_weights={**loss_weights, "vae_kl_current": beta_vae_kl},
+                structural_gate_config=structural_gate_config.to_dict(),
+                structural_gate_state=structural_gate.state_dict(), optimizer=optimizer, scheduler=scheduler,
+            )
+            checkpoint["forensic"] = {
+                "optimizer_step": int(step), "microbatch": int(batch_number),
+                "rng_cpu": torch.get_rng_state(),
+                "rng_cuda": torch.cuda.get_rng_state(device) if device.type == "cuda" else None,
+                "python_random_state": random.getstate(),
+                "direct_head_state": {name: value.detach().cpu() for name, value in direct_head.state_dict().items()},
+            }
+            path = forensic_root / "checkpoints" / f"step_{step:03d}.pth"
+            torch.save(checkpoint, path)
+            loaded = torch.load(path, map_location="cpu", weights_only=False)
+            if "h6_state_dict" not in loaded or "optimizer_state" not in loaded or loaded.get("forensic", {}).get("optimizer_step") != step:
+                raise RuntimeError(f"forensic checkpoint reload verification failed: {path}")
+            record = {
+                "checkpoint": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest(), "bytes": path.stat().st_size,
+                "optimizer_step": int(step), "microbatch": int(batch_number),
+                "direct_head_weight_norm": float(direct_head.weight.detach().float().norm().item()),
+                "direct_head_bias_norm": float(direct_head.bias.detach().float().norm().item()), "telemetry": telemetry,
+            }
+            write_json_atomic(forensic_root / "telemetry" / f"step_{step:03d}.json", diagnostics_to_python(record))
+
+            # Fixed first image of the exact seed-0 production order; this is
+        def _forensic_capture(tag: str, h6_payload: dict, utility: dict, targets: torch.Tensor, batch_number: int):
+            if forensic_root is None:
+                return
+            valid = utility["informative"].bool() & utility["valid"].bool()
+            expanded = targets.unsqueeze(0).expand_as(valid)
+            normal = torch.nonzero(valid & (expanded < 0.5), as_tuple=False)[:128]
+            anomaly = torch.nonzero(valid & (expanded >= 0.5), as_tuple=False)[:128]
+            rows = torch.cat([normal, anomaly], dim=0)
+            if rows.numel() == 0:
+                return
+            g, b, p = rows.unbind(dim=1)
+            payload = {
+                "batch": int(batch_number),
+                "region": (expanded[g, b, p] >= 0.5).detach().to(torch.uint8).cpu(),
+                "teacher_probability": utility["q_utility"][g, b, p].detach().float().cpu(),
+                "utility_gap": utility["role_gap"][g, b, p].detach().float().cpu(),
+                "raw_router_input": h6_payload["router_patch_features"][g, b, p].detach().to(torch.float16).cpu(),
+                "production_q": h6_payload["queries"][g, b, p].detach().to(torch.float16).cpu(),
+                "logits": h6_payload["prediction_logits"][g, b, p].detach().float().cpu(),
+                "probabilities": h6_payload["dense_probabilities"][g, b, p].detach().float().cpu(),
+                "delta": h6_payload["factor_residual_logits"][g, b, p].detach().float().cpu(),
+                "act_probability": h6_payload["act_probability"][g, b, p].detach().float().cpu(),
+                "group_index": g.detach().cpu(),
+                "patch_index": p.detach().cpu(),
+            }
+            torch.save(payload, forensic_root / "captures" / f"{tag}.pth")
+
+        def _boundary_probe_metrics(probe: dict) -> dict:
+            # evaluation-only and never changes the sampler or training graph.
+            with torch.random.fork_rng(devices=[device] if device.type == "cuda" else []):
+                torch.manual_seed(int(args.seed) + 9107)
+                if device.type == "cuda":
+                    torch.cuda.manual_seed_all(int(args.seed) + 9107)
+                with torch.no_grad(), _phase4_autocast(device, args.precision):
+                    probe_image = probe["image"].to(device)
+                    probe_mask = probe["mask"].to(device)
+                    probe_valid = probe["local_mask_valid"].to(device)
+                    classes = probe["class_names"]
+                    visual = model(probe_image, return_phase4_features=True)
+                    batch = model.h6.build_batch(model, dataset_name, classes, visual, hybrid_alpha=hybrid_alpha, update_load_bias=False)
+                    seg_features = torch.stack(visual["seg_tokens"], dim=0)
+                    text_global = get_phase2b_global_text_features(
+                        model, dataset_name, classes, device,
+                        use_hybrid_soft_prompt=True, use_soft_prompt=args.use_soft_prompt,
+                    ).to(dtype=seg_features.dtype)
+                    _, _, base = model.vision_text_fusion_gate_seg(
+                        seg_features, text_global, img_size=args.img_size,
+                        h6_patch_logits=batch["h6_logits"], return_details=True,
+                    )
+                    patch_count = batch["factor_patch_logits"].shape[2]
+                    y_patch, utility_valid = build_patch_targets(probe_mask, patch_count, probe_valid)
+                    utility = utility_teacher(
+                        base.detach(), batch["factor_residual_logits"], y_patch, utility_valid,
+                        rho=0.05, denominator_floor=args.h6_utility_denominator_floor,
+                        tau_utility=args.h6_tau_utility, factor_tau_utility=args.h6_factor_tau_utility,
+                        router_tau_utility=args.h6_router_tau_utility, epsilon=0.15,
+                        gain_threshold=args.h6_utility_gain_threshold,
+                        router_gain_threshold=args.h6_router_gain_threshold,
+                        entropy_threshold=args.h6_utility_entropy_threshold,
+                        router_confidence_mode=args.h6_router_confidence_mode,
+                        router_margin_rel_threshold=args.h6_router_margin_rel_threshold,
+                        router_target_mode=args.h6_router_target_mode,
+                        role_topology=args.h6_role_topology,
+                        role_teacher_scale=args.h6_role_teacher_scale,
+                        routed_probabilities=batch["dense_probabilities"],
+                    )
+                    q = utility["q_utility"].detach().float()
+                    probs = batch["dense_probabilities"].detach().float()
+                    logits = batch["prediction_logits"].detach().float()
+                    valid = utility["valid"].bool()
+                    targets = y_patch.unsqueeze(0).expand_as(valid)
+                    hard_teacher, hard_router = q.argmax(dim=-1), probs.argmax(dim=-1)
+                    kl = (q * (q.clamp_min(1e-12).log() - probs.clamp_min(1e-12).log())).sum(dim=-1)
+                    base_loss = F.binary_cross_entropy_with_logits(base.detach(), targets.float(), reduction="none")
+                    correction = (probs * batch["factor_residual_logits"].detach().float()).sum(dim=-1)
+                    corrected_loss = F.binary_cross_entropy_with_logits(base.detach() + 0.05 * correction, targets.float(), reduction="none")
+                    gain = (base_loss - corrected_loss) / base_loss.clamp_min(0.1)
+                    anomaly = valid & (targets >= 0.5)
+                    confidence = q.max(dim=-1).values
+                    high = anomaly & (confidence >= torch.quantile(confidence[anomaly], 2.0 / 3.0))
+                    def region(mask, desired_role):
+                        count = int(mask.sum().item())
+                        return {
+                            "count": count,
+                            "mean_p_role0": float(probs[..., 0][mask].mean().item()) if count else 0.0,
+                            "mean_p_role1": float(probs[..., 1][mask].mean().item()) if count else 0.0,
+                            "margin_role1_minus_role0": float((logits[..., 1] - logits[..., 0])[mask].mean().item()) if count else 0.0,
+                            "hard_agreement": float((hard_teacher[mask] == hard_router[mask]).float().mean().item()) if count else 0.0,
+                            "region_target_agreement": float((hard_router[mask] == desired_role).float().mean().item()) if count else 0.0,
+                            "teacher_to_router_kl": float(kl[mask].mean().item()) if count else 0.0,
+                            "act1_rho_gain": float(gain[mask].mean().item()) if count else 0.0,
+                            "desired_role": desired_role,
+                        }
+                    head = model.h6.router.direct_decision_head or model.h6.router.frozen_reference_direct_head
+                    if args.h6_intrinsic_factor_responsibility:
+                        router_head = {
+                            "kind": "intrinsic_factor_responsibility",
+                            "parameters": 0,
+                            "decision_detached_for_task": True,
+                        }
+                    elif head is not None:
+                        router_head = {
+                            "kind": model.h6.router.boundary_mode, "tensor_sha256": _direct_head_tensor_sha256(),
+                            "weight_norm": float(head.weight.detach().float().norm().item()),
+                            "bias_norm": float(head.bias.detach().float().norm().item()),
+                            "frozen": not any(parameter.requires_grad for parameter in head.parameters()),
+                        }
+                    else:
+                        router_head = {"kind": "boundary_residual", "weight_norm": float(model.h6.router.boundary_residual.weight.detach().float().norm().item()), "bias": model.h6.router.boundary_residual.bias.detach().float()}
+                    out = {
+                        "normal": region(valid & (targets < 0.5), 0),
+                        "anomaly": region(anomaly, 1),
+                        "high_confidence_anomaly": region(high, 1),
+                        "router_head": router_head,
+                        "invariants": {
+                            "true_residual": float((batch["factor_residual_logits"] - (batch["factor_patch_logits"] - batch["noop_reference_logit"].unsqueeze(-1))).abs().max().item()),
+                            "dense": float((batch["h6_logits"] - batch["act_probability"] * (batch["dense_probabilities"] * batch["factor_residual_logits"]).sum(-1)).abs().max().item()),
+                            "rho": batch["rho"].detach().float(),
+                        },
+                    }
+            return diagnostics_to_python(out)
 
         def _record_drift_snapshot(name: str, batch_payload: dict):
             router_diag = batch_payload.get("router_diagnostics", {})
@@ -1842,6 +2041,20 @@ def train_h6_progress1(
                 local_mask_valid = torch.ones_like(mask)
             label = input_data["label"].to(device, non_blocking=args.pin_memory)
             class_names = list(input_data["class_name"])
+            if (args.h6_router_boundary_support_gate or args.h6_router_frozen_head_drift_gate or args.h6_region_router_support_gate) and batch_idx == 1:
+                support_gate_probe = {
+                    "image": image.detach().cpu().clone(),
+                    "mask": mask.detach().cpu().clone(),
+                    "local_mask_valid": local_mask_valid.detach().cpu().clone(),
+                    "class_names": list(class_names),
+                    "selection_rule": "first image of exact seed-0 production sampler order",
+                }
+                support_gate_metrics["T0"] = _boundary_probe_metrics(support_gate_probe)
+                if not (
+                    support_gate_metrics["T0"]["normal"]["count"] > 0
+                    and support_gate_metrics["T0"]["anomaly"]["count"] > 0
+                ):
+                    raise RuntimeError("fixed support-gate probe lacks required normal/anomaly support")
             with _phase4_autocast(device, args.precision):
                 visual_output = model(image, return_phase4_features=True)
                 h6_batch = model.h6.build_batch(
@@ -2064,7 +2277,15 @@ def train_h6_progress1(
                 h6_actual_local = 0.0
                 if any(getattr(args, k, 0.0) > 0.0 for k in ["lambda_h6_route", "lambda_h6_factor_role", "lambda_h6_actual_local"]):
                     B, P = base_abnormal_minus_normal.shape[1:3]
-                    q_role, hard_role, mask_coverage, local_valid_patch, local_valid_image = build_semantic_roles(mask, label, P, local_mask_valid)
+                    q_role, hard_role, mask_coverage, local_valid_patch, local_valid_image = build_semantic_roles(
+                        mask, label, P, local_mask_valid,
+                        num_roles=model.h6.num_factors,
+                        role_topology=(
+                            "r2_normal_anomaly"
+                            if args.h6_role_topology == "r2_normal_anomaly"
+                            else "legacy_m4"
+                        ),
+                    )
 
                     if getattr(args, "lambda_h6_route", 0.0) > 0.0:
                         h6_route = active_role_balanced_router_loss(h6_batch["dense_probabilities"], q_role, hard_role, local_valid_patch)
@@ -2078,6 +2299,9 @@ def train_h6_progress1(
                 h6_utility_factor = h6_orth * 0.0
                 h6_utility_router = h6_orth * 0.0
                 h6_utility_act = h6_orth * 0.0
+                router_region_components = None
+                router_region_gradients = None
+                router_region_pcgrad = None
                 utility_payload = None
                 act_payload = None
                 if model.h6.progress_version in {"P1-v8.3", "P1-v8.4-A"}:
@@ -2111,6 +2335,8 @@ def train_h6_progress1(
                         router_confidence_mode=args.h6_router_confidence_mode,
                         router_margin_rel_threshold=args.h6_router_margin_rel_threshold,
                         router_target_mode=args.h6_router_target_mode,
+                        role_topology=args.h6_role_topology,
+                        role_teacher_scale=args.h6_role_teacher_scale,
                         routed_probabilities=(
                             h6_batch["prediction_probabilities"]
                             if model.h6.progress_version == "P1-v8.4-A"
@@ -2126,15 +2352,31 @@ def train_h6_progress1(
                         if args.h6_utility_factor_effective_beta is not None
                         else utility_factor_loss(utility_payload, y_patch)
                     )
-                    h6_utility_router = (
-                        support_normalized_utility_router_loss(
+                    if args.h6_intrinsic_factor_responsibility:
+                        h6_utility_router, router_region_components = r2_intrinsic_responsibility_loss(
+                            h6_batch["intrinsic_responsibility_logits"], y_patch, utility_valid, return_components=True,
+                        )
+                    elif args.h6_router_r2_region_normalized:
+                        h6_utility_router, router_region_components = (
+                            r2_region_normalized_utility_router_loss(
+                                h6_batch["dense_probabilities"], utility_payload, y_patch,
+                                return_components=True,
+                            )
+                        )
+                    elif args.h6_router_r2_responsibility_balanced:
+                        h6_utility_router = r2_responsibility_balanced_utility_router_loss(
+                            h6_batch["dense_probabilities"],
+                            utility_payload,
+                            role_weights=tuple(args.h6_router_r2_role_weights),
+                        )
+                    elif args.h6_router_support_normalized:
+                        h6_utility_router = support_normalized_utility_router_loss(
                             h6_batch["dense_probabilities"], utility_payload
                         )
-                        if args.h6_router_support_normalized
-                        else utility_router_loss(
+                    else:
+                        h6_utility_router = utility_router_loss(
                             h6_batch["dense_probabilities"], utility_payload
                         )
-                    )
                     if model.h6.progress_version == "P1-v8.4-A":
                         act_payload = act_teacher(
                             utility_payload,
@@ -2229,6 +2471,30 @@ def train_h6_progress1(
 
                         normal_runtime = runtime_valid & (runtime_targets < 0.5)
                         anomaly_runtime = runtime_valid & (runtime_targets >= 0.5)
+                        router_teacher = utility_payload["q_utility"].detach().float()
+                        router_probabilities = h6_batch["dense_probabilities"].detach().float()
+                        router_kl = (
+                            router_teacher
+                            * (
+                                router_teacher.clamp_min(1e-12).log()
+                                - router_probabilities.clamp_min(1e-12).log()
+                            )
+                        ).sum(dim=-1)
+                        router_teacher_hard = router_teacher.argmax(dim=-1)
+                        router_hard = router_probabilities.argmax(dim=-1)
+
+                        def _router_region_stats(region):
+                            count = int(region.sum().item())
+                            return {
+                                "count": count,
+                                "mean_p_role0": float(router_probabilities[..., 0][region].mean().item()) if count else 0.0,
+                                "mean_p_role1": float(router_probabilities[..., 1][region].mean().item()) if count else 0.0,
+                                "hard_agreement": float(
+                                    (router_teacher_hard[region] == router_hard[region]).float().mean().item()
+                                ) if count else 0.0,
+                                "teacher_to_router_kl": float(router_kl[region].mean().item()) if count else 0.0,
+                            }
+
                         batch_runtime_record = {
                             "batch": int(batch_idx),
                             "optimizer_step_before": int(optimizer_step_count),
@@ -2266,6 +2532,27 @@ def train_h6_progress1(
                                 "normal": _support_counts(normal_runtime),
                                 "anomaly": _support_counts(anomaly_runtime),
                             },
+                            "router_region_loss": (
+                                None if router_region_components is None else {
+                                    key: float(value.detach().float().item())
+                                    for key, value in router_region_components.items()
+                                }
+                            ),
+                            "router": {
+                                "overall": _router_region_stats(runtime_valid),
+                                "normal": _router_region_stats(normal_runtime),
+                                "anomaly": _router_region_stats(anomaly_runtime),
+                            },
+                            "boundary": (
+                                None if getattr(model.h6.router, "boundary_residual", None) is None
+                                else {
+                                    "weight_norm": float(model.h6.router.boundary_residual.weight.detach().float().norm().item()),
+                                    "bias": model.h6.router.boundary_residual.bias.detach().float(),
+                                    "raw_residual_logit": _runtime_stats(h6_batch["boundary_raw_residual_logits"]),
+                                    "residual_logit": _runtime_stats(h6_batch["boundary_residual_logits"]),
+                                    "trust_scale": diagnostics_to_python(h6_batch["boundary_trust_scale"]),
+                                }
+                            ),
                             "label_semantics": {
                                 "threshold": float(args.h6_act_gain_threshold),
                                 "routed_gain": _runtime_stats(routed_gain[runtime_valid]),
@@ -2473,6 +2760,78 @@ def train_h6_progress1(
                         drift_gradient_report = attribution
                     if trajectory_enabled and batch_idx in trajectory_gradient_batches:
                         trajectory_attribution[batch_idx] = attribution
+            boundary_zero_init_parity = None
+            if (
+                (args.h6_smoke_forward_only or args.h6_smoke_backward_only)
+                and getattr(model.h6.router, "boundary_residual", None) is not None
+            ):
+                # Same real forward, no second model: compare the original Q/K
+                # branch against the zero-initialized residual branch and their
+                # downstream ACT/rho corrections.
+                qk_logits = h6_batch["qk_logits"].detach().float()
+                raw_delta_s = h6_batch["boundary_raw_residual_logits"].detach().float()
+                delta_s = h6_batch["boundary_residual_logits"].detach().float()
+                new_logits = h6_batch["prediction_logits"].detach().float()
+                p_qk = h6_batch["qk_probabilities"].detach().float()
+                p_new = h6_batch["dense_probabilities"].detach().float()
+                role_residuals = h6_batch["factor_residual_logits"].detach().float()
+                routed_qk = h6_batch["qk_routed_residual"].detach().float()
+                routed_new = (p_new * role_residuals).sum(dim=-1)
+                act_qk = h6_batch["act_probability"].detach().float()
+                act_new = h6_batch["act_probability"].detach().float()
+                correction_qk = h6_batch["qk_h6_logits"].detach().float()
+                correction_new = h6_batch["h6_logits"].detach().float()
+                rho = h6_batch["rho"].detach().float()
+                rho_qk = rho.view(model.n_groups, 1, 1) * correction_qk
+                rho_new = h6_batch["rho_scaled_actual_correction"].detach().float()
+                valid_router = (
+                    utility_payload["valid"].detach().bool()
+                    if utility_payload is not None else torch.ones_like(routed_new, dtype=torch.bool)
+                )
+                def _parity(new_value, old_value):
+                    absolute = (new_value - old_value).abs().max()
+                    relative = absolute / old_value.abs().max().clamp_min(1e-12)
+                    return {"max_abs_delta": absolute, "max_rel_delta": relative}
+                router_logit_parity = _parity(new_logits, qk_logits)
+                router_probability_parity = _parity(p_new, p_qk)
+                routed_parity = _parity(routed_new, routed_qk)
+                act_parity = _parity(act_new, act_qk)
+                correction_parity = _parity(correction_new, correction_qk)
+                rho_parity = _parity(rho_new, rho_qk)
+                hard_equal = torch.equal(
+                    p_new.argmax(dim=-1)[valid_router],
+                    p_qk.argmax(dim=-1)[valid_router],
+                )
+                digest_before = hashlib.sha256()
+                for name, parameter in model.named_parameters():
+                    digest_before.update(name.encode())
+                    digest_before.update(parameter.detach().contiguous().cpu().numpy().tobytes())
+                digest_after = hashlib.sha256()
+                for name, parameter in model.named_parameters():
+                    digest_after.update(name.encode())
+                    digest_after.update(parameter.detach().contiguous().cpu().numpy().tobytes())
+                boundary_zero_init_parity = {
+                    "boundary_raw_residual_max_abs": raw_delta_s.abs().max(),
+                    "boundary_residual_max_abs": delta_s.abs().max(),
+                    "boundary_trust_scale": h6_batch["boundary_trust_scale"].detach().float(),
+                    "router_logits": router_logit_parity,
+                    "router_probabilities": router_probability_parity,
+                    "hard_routing_equal_on_valid": hard_equal,
+                    # The role residual tensor is calculated upstream of the
+                    # Router; both downstream branches consume this exact tensor.
+                    "role_residuals_shared_upstream_tensor": True,
+                    "role_residual_max_abs_delta": role_residuals.sub(role_residuals).abs().max(),
+                    "routed_residual": routed_parity,
+                    "act_probability": act_parity,
+                    "act_gated_correction": correction_parity,
+                    "rho_scaled_correction": rho_parity,
+                    "final_abnormal_logit_equivalent": correction_parity,
+                    "rho": rho,
+                    "optimizer_steps": len(optimizer.state),
+                    "backward_steps_before_comparison": 0,
+                    "checkpoint_mutation": False,
+                    "parameter_hash_unchanged_during_proof": digest_before.hexdigest() == digest_after.hexdigest(),
+                }
             if args.h6_smoke_forward_only:
                 with torch.no_grad(), _phase4_autocast(device, args.precision):
                     repeated_h6_batch = model.h6.build_batch(
@@ -2534,6 +2893,17 @@ def train_h6_progress1(
                     "rho_fixed_005": bool(torch.equal(rho, torch.full_like(rho, 0.05))),
                     "factor_outputs_not_identical": bool(factor_max_difference.item() > 1e-9),
                     "optimizer_untouched": len(optimizer.state) == 0,
+                    "boundary_zero_init_exact": (
+                        boundary_zero_init_parity is not None
+                        and float(boundary_zero_init_parity["boundary_residual_max_abs"].item()) == 0.0
+                        and float(boundary_zero_init_parity["router_logits"]["max_abs_delta"].item()) == 0.0
+                        and float(boundary_zero_init_parity["router_probabilities"]["max_abs_delta"].item()) == 0.0
+                        and bool(boundary_zero_init_parity["hard_routing_equal_on_valid"])
+                        and float(boundary_zero_init_parity["routed_residual"]["max_abs_delta"].item()) == 0.0
+                        and float(boundary_zero_init_parity["act_gated_correction"]["max_abs_delta"].item()) == 0.0
+                        and float(boundary_zero_init_parity["rho_scaled_correction"]["max_abs_delta"].item()) == 0.0
+                        and bool(boundary_zero_init_parity["parameter_hash_unchanged_during_proof"])
+                    ),
                 }
                 payload = diagnostics_to_python({
                     "epoch": epoch,
@@ -2548,6 +2918,7 @@ def train_h6_progress1(
                     "hard_frozen_repeat_max_error": hard_frozen_repeat_error,
                     "dynamic_hard_max_difference": dynamic_hard_difference,
                     "rho": rho,
+                    "boundary_zero_init_parity": boundary_zero_init_parity,
                     "utility": utility_diag,
                     "gpu_allocated_bytes": (
                         torch.cuda.memory_allocated(device) if device.type == "cuda" else 0
@@ -2618,7 +2989,206 @@ def train_h6_progress1(
                     ):
                         if gradient is not None:
                             component_buffer[index].add_(gradient.detach().to(parameter))
-            scaler.scale(total_loss / accumulation_divisor).backward()
+            if args.h6_smoke_backward_only and router_region_components is not None:
+                if args.h6_intrinsic_factor_responsibility:
+                    core = model.h6.semantic_core
+                    router_parameters = [
+                        parameter for module in (core.factor_id_to_context, core.factor_output_heads)
+                        for parameter in module.parameters() if parameter.requires_grad
+                    ]
+                    if core.factor_id_embedding.requires_grad:
+                        router_parameters.append(core.factor_id_embedding)
+                else:
+                    router_parameters = [
+                        parameter for parameter in model.h6.router.parameters() if parameter.requires_grad
+                    ]
+                def _router_component_gradient_norm(component):
+                    if not router_parameters:
+                        return torch.zeros((), device=device)
+                    gradients = torch.autograd.grad(
+                        args.lambda_h6_router * component,
+                        router_parameters,
+                        retain_graph=True,
+                        allow_unused=True,
+                    )
+                    return torch.stack([
+                        gradient.detach().float().norm()
+                        for gradient in gradients if gradient is not None
+                    ]).norm() if any(gradient is not None for gradient in gradients) else torch.zeros((), device=device)
+                router_region_gradients = {
+                    "normal": _router_component_gradient_norm(
+                        router_region_components["normal_contribution"]
+                    ),
+                    "anomaly": _router_component_gradient_norm(
+                        router_region_components["anomaly_contribution"]
+                    ),
+                }
+                boundary_region_gradients = None
+                boundary_teacher_direction_gradients = None
+                boundary_module = getattr(model.h6.router, "boundary_residual", None)
+                if boundary_module is not None:
+                    def _boundary_component_gradient(component):
+                        weight_gradient, bias_gradient = torch.autograd.grad(
+                            args.lambda_h6_router * component,
+                            [boundary_module.weight, boundary_module.bias],
+                            retain_graph=True,
+                            allow_unused=True,
+                        )
+                        weight_norm = (
+                            torch.zeros((), device=device) if weight_gradient is None
+                            else weight_gradient.detach().float().norm()
+                        )
+                        bias_norm = (
+                            torch.zeros((), device=device) if bias_gradient is None
+                            else bias_gradient.detach().float().norm()
+                        )
+                        # Under gradient descent this is the signed update of
+                        # the role1-role0 residual margin from the bias term.
+                        margin_update = (
+                            torch.zeros((), device=device) if bias_gradient is None
+                            else -(bias_gradient[1] - bias_gradient[0]).detach().float()
+                        )
+                        return {
+                            "weight_norm": weight_norm,
+                            "bias_norm": bias_norm,
+                            "margin_update_role1_minus_role0": margin_update,
+                        }
+                    boundary_region_gradients = {
+                        "normal": _boundary_component_gradient(
+                            router_region_components["normal_contribution"]
+                        ),
+                        "anomaly": _boundary_component_gradient(
+                            router_region_components["anomaly_contribution"]
+                        ),
+                    }
+                    # Physical region is not a hard role label.  Verify the
+                    # required margin sign directly on existing strong R2
+                    # teacher supports, with the same detached utility weights.
+                    teacher = utility_payload["q_utility"].detach()
+                    support = utility_payload["informative"].bool() & utility_payload["valid"].bool()
+                    role_gap = utility_payload["role_gap"].detach().abs().to(dtype=teacher.dtype)
+                    role_scale = utility_payload["role_scale"].detach().to(dtype=teacher.dtype)
+                    utility_weight = 1.0 + role_gap / (role_gap + role_scale)
+                    teacher_ce = -(
+                        teacher * h6_batch["dense_probabilities"].float().clamp_min(1e-12).log()
+                    ).sum(dim=-1)
+                    boundary_teacher_direction_gradients = {}
+                    for role in range(2):
+                        strong = support & (teacher[..., role] >= 0.90)
+                        if strong.any():
+                            isolated = (
+                                utility_weight[strong] * teacher_ce[strong]
+                            ).sum() / utility_weight[strong].sum().clamp_min(1e-12)
+                            result = _boundary_component_gradient(isolated)
+                        else:
+                            result = {
+                                "weight_norm": torch.zeros((), device=device),
+                                "bias_norm": torch.zeros((), device=device),
+                                "margin_update_role1_minus_role0": torch.zeros((), device=device),
+                            }
+                        result["support_count"] = strong.sum().detach()
+                        boundary_teacher_direction_gradients[f"strong_role{role}"] = result
+                if batch_runtime_record is not None:
+                    batch_runtime_record["router_region_loss"]["router_gradient_norm"] = {
+                        key: float(value.detach().float().item())
+                        for key, value in router_region_gradients.items()
+                    }
+            router_region_pcgrad_enabled = (
+                bool(args.h6_router_region_pcgrad)
+                and router_region_components is not None
+                and bool(router_region_components["normal_present"])
+                and bool(router_region_components["anomaly_present"])
+            )
+            scaler.scale(total_loss / accumulation_divisor).backward(
+                retain_graph=bool(
+                    router_region_pcgrad_enabled
+                    or (forensic_root is not None and not forensic_gradient_saved)
+                )
+            )
+            if router_region_pcgrad_enabled:
+                params = [
+                    parameter for parameter in model.h6.router.direct_decision_head.parameters()
+                    if parameter.requires_grad
+                ]
+                if not params:
+                    raise RuntimeError("Router region PCGrad requires a trainable direct decision head")
+                def _router_region_gradients(component):
+                    return torch.autograd.grad(
+                        args.lambda_h6_router * component / accumulation_divisor,
+                        params,
+                        retain_graph=True,
+                        allow_unused=True,
+                    )
+                normal_gradients = _router_region_gradients(
+                    router_region_components["normal_contribution"]
+                )
+                anomaly_gradients = _router_region_gradients(
+                    router_region_components["anomaly_contribution"]
+                )
+                raw_normal = [
+                    torch.zeros_like(parameter) if gradient is None else gradient.detach()
+                    for parameter, gradient in zip(params, normal_gradients)
+                ]
+                raw_anomaly = [
+                    torch.zeros_like(parameter) if gradient is None else gradient.detach()
+                    for parameter, gradient in zip(params, anomaly_gradients)
+                ]
+                dot = sum((left.float() * right.float()).sum() for left, right in zip(raw_normal, raw_anomaly))
+                normal_squared = sum(left.float().square().sum() for left in raw_normal)
+                anomaly_squared = sum(right.float().square().sum() for right in raw_anomaly)
+                if dot.item() < 0.0 and normal_squared.item() > 0.0 and anomaly_squared.item() > 0.0:
+                    projected_normal = [
+                        left - dot.to(left) * right / anomaly_squared.to(right)
+                        for left, right in zip(raw_normal, raw_anomaly)
+                    ]
+                    projected_anomaly = [
+                        right - dot.to(right) * left / normal_squared.to(left)
+                        for left, right in zip(raw_normal, raw_anomaly)
+                    ]
+                else:
+                    projected_normal, projected_anomaly = raw_normal, raw_anomaly
+                adjustment_squared = torch.zeros((), device=device)
+                for parameter, left, right, projected_left, projected_right in zip(
+                    params, raw_normal, raw_anomaly, projected_normal, projected_anomaly
+                ):
+                    correction = (projected_left + projected_right) - (left + right)
+                    if parameter.grad is None:
+                        parameter.grad = correction.clone()
+                    else:
+                        parameter.grad.add_(correction.to(parameter.grad))
+                    adjustment_squared.add_(correction.detach().float().square().sum())
+                denominator = (normal_squared.sqrt() * anomaly_squared.sqrt()).clamp_min(1e-12)
+                router_region_pcgrad = {
+                    "applied": True,
+                    "normal_norm": float(normal_squared.sqrt().item()),
+                    "anomaly_norm": float(anomaly_squared.sqrt().item()),
+                    "cosine": float((dot / denominator).item()),
+                    "adjustment_norm": float(adjustment_squared.sqrt().item()),
+                }
+            if forensic_root is not None and not forensic_gradient_saved and router_region_components is not None and bool(router_region_components["normal_present"]) and bool(router_region_components["anomaly_present"]):
+                params = [p for p in model.h6.router.direct_decision_head.parameters() if p.requires_grad]
+                def _forensic_flat(loss):
+                    gradients = torch.autograd.grad(loss, params, retain_graph=True, allow_unused=True)
+                    pieces = []
+                    for parameter, gradient in zip(params, gradients):
+                        pieces.append(torch.zeros_like(parameter).flatten() if gradient is None else gradient.detach().float().flatten())
+                    return torch.cat(pieces)
+                g_normal = _forensic_flat(args.lambda_h6_router * router_region_components["normal_contribution"])
+                g_anomaly = _forensic_flat(args.lambda_h6_router * router_region_components["anomaly_contribution"])
+                g_teacher = _forensic_flat(args.lambda_h6_router * h6_utility_router)
+                g_main = _forensic_flat(task_loss)
+                vectors = {"normal": g_normal.cpu(), "anomaly": g_anomaly.cpu(), "teacher": g_teacher.cpu(), "main": g_main.cpu()}
+                torch.save(vectors, forensic_root / "gradients" / f"batch_{batch_idx:03d}.pth")
+                write_json_atomic(forensic_root / "gradients" / f"batch_{batch_idx:03d}.json", {
+                    "normal_norm": float(g_normal.norm().item()), "anomaly_norm": float(g_anomaly.norm().item()),
+                    "normal_anomaly_cosine": float(F.cosine_similarity(g_normal, g_anomaly, dim=0).item()),
+                    "teacher_norm": float(g_teacher.norm().item()), "main_norm": float(g_main.norm().item()),
+                    "teacher_main_cosine": float(F.cosine_similarity(g_teacher, g_main, dim=0).item()),
+                    "optimizer_steps": 0, "microbatch": int(batch_idx),
+                })
+                forensic_gradient_saved = True
+            if forensic_root is not None and batch_idx == 1:
+                _forensic_capture("initial_batch_001", h6_batch, utility_payload, y_patch, batch_idx)
             if batch_runtime_record is not None:
                 raw_act_grad = module_grad_norm(model.h6.act_head)
                 raw_act_grad_value = (
@@ -2633,6 +3203,7 @@ def train_h6_progress1(
                     None if raw_act_grad_value is None
                     else raw_act_grad_value * float(args.lambda_h6_act)
                 )
+                batch_runtime_record["router_region_pcgrad"] = router_region_pcgrad
             if args.h6_factor_grad_diagnostics and batch_idx == 1:
                 factor_grad_diag.update(
                     factor_gradient_diagnostics(model.h6.semantic_core.concept_slots.grad)
@@ -2681,7 +3252,28 @@ def train_h6_progress1(
                 prototype_norms = [value for value in prototype_norms if value is not None]
                 if prototype_norms:
                     factor_grad_diag["prototype_modules_grad_norm"] = torch.stack(prototype_norms).norm()
-                factor_grad_diag["router_grad_norm"] = module_grad_norm(model.h6.router)
+                if args.h6_intrinsic_factor_responsibility:
+                    intrinsic_modules = (core.factor_id_to_context, core.factor_output_heads)
+                    intrinsic_norms = [module_grad_norm(module) for module in intrinsic_modules]
+                    intrinsic_norms = [value for value in intrinsic_norms if value is not None]
+                    intrinsic_value = (
+                        torch.stack(intrinsic_norms).norm() if intrinsic_norms
+                        else torch.zeros((), device=device)
+                    )
+                    factor_grad_diag["intrinsic_responsibility_factor_grad_norm"] = intrinsic_value
+                    factor_grad_diag["router_grad_norm"] = intrinsic_value
+                else:
+                    factor_grad_diag["router_grad_norm"] = module_grad_norm(model.h6.router)
+                boundary_module = getattr(model.h6.router, "boundary_residual", None)
+                if boundary_module is not None:
+                    factor_grad_diag["boundary_residual_weight_grad_norm"] = (
+                        torch.zeros((), device=device) if boundary_module.weight.grad is None
+                        else boundary_module.weight.grad.detach().float().norm()
+                    )
+                    factor_grad_diag["boundary_residual_bias_grad_norm"] = (
+                        torch.zeros((), device=device) if boundary_module.bias.grad is None
+                        else boundary_module.bias.grad.detach().float().norm()
+                    )
                 factor_grad_diag["act_head_grad_norm"] = module_grad_norm(
                     getattr(model.h6, "act_head", None)
                 )
@@ -2724,24 +3316,33 @@ def train_h6_progress1(
                     utility_payload is not None and utility_payload["informative"].any().item()
                 )
                 router_gradient_alive = _positive_gradient(factor_grad_diag.get("router_grad_norm"))
+                intrinsic_factor_gradient_alive = _positive_gradient(
+                    factor_grad_diag.get("intrinsic_responsibility_factor_grad_norm")
+                )
                 checks = {
                     "finite_loss": bool(torch.isfinite(total_loss.detach()).all().item()),
                     "finite_gradients": bool(all_gradients_finite),
-                    "state_path_gradient": _positive_gradient(
-                        factor_grad_diag.get("dynamic_prompt_shared_trunk_grad_norm")
+                    "state_path_gradient": (
+                        bool(args.h6_intrinsic_factor_responsibility)
+                        or _positive_gradient(factor_grad_diag.get("dynamic_prompt_shared_trunk_grad_norm"))
                     ),
                     "vae_class_path_gradient": vae_class_alive,
                     "text_lora_gradient": _positive_gradient(
                         factor_grad_diag.get("phase2b_text_adapter_grad_norm")
                     ),
-                    "factor_specific_gradient": _positive_gradient(
-                        factor_grad_diag.get("factor_grad_norms")
-                    ),
+                    "factor_specific_gradient": intrinsic_factor_gradient_alive if args.h6_intrinsic_factor_responsibility else _positive_gradient(factor_grad_diag.get("factor_grad_norms")),
                     "base_adapter_gradient": _positive_gradient(
                         factor_grad_diag.get("phase2b_image_adapter_grad_norm")
                     ),
                     "dfg_gradient": _positive_gradient(factor_grad_diag.get("dfg_grad_norm")),
                     "router_gradient_when_applicable": (not informative) or router_gradient_alive,
+                    "boundary_gradient_when_enabled": (
+                        getattr(model.h6.router, "boundary_residual", None) is None
+                        or (
+                            _positive_gradient(factor_grad_diag.get("boundary_residual_weight_grad_norm"))
+                            or _positive_gradient(factor_grad_diag.get("boundary_residual_bias_grad_norm"))
+                        )
+                    ),
                     "act_gradient_when_enabled": (
                         not model.h6.residual_act_enabled
                         or _positive_gradient(factor_grad_diag.get("act_head_grad_norm"))
@@ -2764,6 +3365,11 @@ def train_h6_progress1(
                     "utility_informative": informative,
                     "gradient_norms": factor_grad_diag,
                     "gradient_attribution": drift_gradient_report,
+                    "boundary_zero_init_parity": boundary_zero_init_parity,
+                    "router_region_gradients": router_region_gradients,
+                    "boundary_region_gradients": boundary_region_gradients,
+                    "boundary_teacher_direction_gradients": boundary_teacher_direction_gradients,
+                    "router_region_loss": router_region_components,
                     "gpu_allocated_bytes": (
                         torch.cuda.memory_allocated(device) if device.type == "cuda" else 0
                     ),
@@ -2786,6 +3392,8 @@ def train_h6_progress1(
             do_step = batch_idx % args.grad_accum_steps == 0 or batch_idx == epoch_batch_limit
             if do_step:
                 scaler.unscale_(optimizer)
+                if forensic_root is not None:
+                    _forensic_capture(f"window_{optimizer_step_count + 1:03d}_pre", h6_batch, utility_payload, y_patch, batch_idx)
                 step_act_head_grad_norm = module_grad_norm(model.h6.act_head)
                 step_act_head_grad_value = (
                     None if step_act_head_grad_norm is None
@@ -3113,7 +3721,70 @@ def train_h6_progress1(
                             ),
                         },
                     })
+                    if args.h6_router_boundary_support_gate or args.h6_router_frozen_head_drift_gate or args.h6_region_router_support_gate:
+                        window_normal = sum(
+                            int(record.get("router_region_loss", {}).get("normal_support_count", 0))
+                            for record in current_window_batch_records
+                            if record.get("router_region_loss") is not None
+                        )
+                        window_anomaly = sum(
+                            int(record.get("router_region_loss", {}).get("anomaly_support_count", 0))
+                            for record in current_window_batch_records
+                            if record.get("router_region_loss") is not None
+                        )
+                        support_gate_normal_update = support_gate_normal_update or window_normal > 0
+                        support_gate_anomaly_update = support_gate_anomaly_update or window_anomaly > 0
+                        if (
+                            support_gate_normal_update
+                            and support_gate_anomaly_update
+                            and "T1" not in support_gate_metrics
+                        ):
+                            support_gate_metrics["T1"] = _boundary_probe_metrics(support_gate_probe)
+                        complete = support_gate_normal_update and support_gate_anomaly_update
+                        capped = batch_idx == epoch_batch_limit
+                        if (args.h6_router_boundary_support_gate and complete) or capped:
+                            support_gate_metrics["Tend"] = _boundary_probe_metrics(support_gate_probe)
+                            gate_payload = {
+                                "status": ("FROZEN_HEAD_DRIFT_COMPLETED" if complete else "SUPPORT_INSUFFICIENT") if args.h6_router_frozen_head_drift_gate else ("SUPPORT_COMPLETE" if complete else "SUPPORT_INSUFFICIENT"),
+                                "audit": "FROZEN_DYNAMIC_ROUTER_SHORT_DRIFT_GATE" if args.h6_router_frozen_head_drift_gate else ("REGION_GROUNDED_DIRECT_ROUTER_SHORT_GATE" if args.h6_region_router_support_gate else "ROUTER_BOUNDARY_SUPPORT_COMPLETE_GATE"),
+                                "cap_microbatches": int(epoch_batch_limit),
+                                "completed_microbatches": int(batch_idx),
+                                "optimizer_steps": int(optimizer_step_count),
+                                "normal_supported_optimizer_update": bool(support_gate_normal_update),
+                                "anomaly_supported_optimizer_update": bool(support_gate_anomaly_update),
+                                "last_window_normal_support": int(window_normal),
+                                "last_window_anomaly_support": int(window_anomaly),
+                                "probe": {
+                                    "selection_rule": support_gate_probe["selection_rule"],
+                                    "metrics": support_gate_metrics,
+                                },
+                                "router_head": support_gate_metrics["Tend"]["router_head"],
+                                "runtime_windows": optimizer_step_runtime_records,
+                                "invariants": {
+                                    "rho": model.h6.rho_values().detach().float(),
+                                    "finite_parameters": _runtime_finite_parameters(),
+                                    "frozen_head_tensor_sha256_expected": getattr(args, "h6_router_frozen_head_tensor_sha256", None),
+                                    "frozen_head_tensor_sha256_actual": _direct_head_tensor_sha256(),
+                                    "frozen_head_unchanged": (not args.h6_router_frozen_head_drift_gate) or (_direct_head_tensor_sha256() == getattr(args, "h6_router_frozen_head_tensor_sha256", None)),
+                                    "frozen_head_parameters_frozen": (not args.h6_router_frozen_head_drift_gate) or not any(parameter.requires_grad for parameter in model.h6.router.direct_decision_head.parameters()),
+                                    "true_residual_error_max": max(
+                                        record["reconstruction"]["residual_definition_max_abs_error"]
+                                        for record in current_window_batch_records
+                                    ),
+                                    "dense_reconstruction_error_max": max(
+                                        record["reconstruction"]["routed_correction_max_abs_error"]
+                                        for record in current_window_batch_records
+                                    ),
+                                },
+                            }
+                            write_json_atomic(
+                                Path(args.save_path) / ("frozen_router_drift_gate.json" if args.h6_router_frozen_head_drift_gate else ("region_router_short_gate.json" if args.h6_region_router_support_gate else "support_complete_gate.json")),
+                                diagnostics_to_python(gate_payload),
+                            )
+                            return model
                     current_window_batch_records.clear()
+                    if forensic_root is not None:
+                        _forensic_checkpoint(optimizer_step_count, batch_idx, optimizer_step_runtime_records[-1])
                 optimizer.zero_grad(set_to_none=True)
             if trajectory_enabled and batch_idx in trajectory_milestones:
                 rho_values_now = model.h6.rho_values().detach().float()
@@ -3593,6 +4264,13 @@ def train_h6_progress1(
                 "structure": structure_epoch,
                 "gradients": factor_grad_diag,
                 "act_runtime": act_runtime_diag,
+                "boundary": (
+                    None if getattr(model.h6.router, "boundary_residual", None) is None
+                    else {
+                        "weight_norm": model.h6.router.boundary_residual.weight.detach().float().norm(),
+                        "bias": model.h6.router.boundary_residual.bias.detach().float(),
+                    }
+                ),
                 "runtime_telemetry": {
                     "batch_records": batch_runtime_records,
                     "optimizer_step_records": optimizer_step_runtime_records,
@@ -4039,6 +4717,34 @@ def main():
         help="Development-only one-batch backward probe; records gradients and performs no optimizer step.",
     )
     parser.add_argument(
+        "--h6_router_boundary_support_gate", action="store_true",
+        help="Bounded production-order support-complete Router boundary gate.",
+    )
+    parser.add_argument(
+        "--h6_router_supervision", choices=["utility_region", "region_grounded"], default="utility_region",
+        help="Router supervision: dynamic utility teacher or immutable TRAIN region target.",
+    )
+    parser.add_argument(
+        "--h6_region_router_support_gate", action="store_true",
+        help="Bounded production-order Stage-A region-grounded Router short gate.",
+    )
+    parser.add_argument(
+        "--h6_forensic_dir", type=str, default=None,
+        help="Forensic-only: save a verified checkpoint and compact Router evidence at every optimizer window.",
+    )
+    parser.add_argument(
+        "--h6_router_region_pcgrad", action="store_true",
+        help="Apply symmetric Normal/Anomaly PCGrad only to the direct R2 Router head.",
+    )
+    parser.add_argument(
+        "--h6_router_frozen_head_path", type=str, default=None,
+        help="TRAIN-only offline-calibrated direct Router-head artifact to inject and freeze.",
+    )
+    parser.add_argument(
+        "--h6_router_frozen_head_drift_gate", action="store_true",
+        help="Bounded fixed-TRAIN-probe drift gate for an injected frozen direct Router head.",
+    )
+    parser.add_argument(
         "--h6_wiring_probe_batches", type=int, nargs="*", default=[],
         help="Optional one-based batch indices for compact factor-specialization wiring probes.",
     )
@@ -4062,9 +4768,19 @@ def main():
     )
     parser.add_argument("--h6_num_factors", type=int, default=4)
     parser.add_argument("--h6_top_k", type=int, default=2)
+    parser.add_argument("--h6_role_topology", choices=["flat", "r2_normal_anomaly"], default="flat")
+    parser.add_argument("--h6_role_teacher_scale", type=float, default=None)
     parser.add_argument("--h6_bank_dim", type=int, default=256)
     parser.add_argument("--h6_router_dim", type=int, default=128)
     parser.add_argument("--h6_router_temperature", type=float, default=1.0)
+    parser.add_argument(
+        "--h6_router_boundary_mode", choices=["none", "affine_residual", "affine_bounded_residual", "direct_normalized_linear", "frozen_reference_direct_router"], default="none",
+        help="Optional zero-initialized residual over existing Router Q/K logits.",
+    )
+    parser.add_argument(
+        "--h6_router_boundary_trust_scale", type=float, default=None,
+        help="Frozen positive Q/K-margin scale for affine_bounded_residual only.",
+    )
     parser.add_argument("--h6_router_soft_epochs", type=int, default=2)
     parser.add_argument("--h6_dense_routing_epochs", type=int, default=None)
     parser.add_argument("--h6_sparse_start_epoch", type=int, default=None)
@@ -4202,6 +4918,7 @@ def main():
     parser.add_argument("--lambda_h6_actual_local", type=float, default=0.0)
     parser.add_argument("--lambda_h6_factor", type=float, default=0.10)
     parser.add_argument("--lambda_h6_router", type=float, default=0.10)
+    parser.add_argument("--h6_intrinsic_factor_responsibility", action="store_true", help="Use Factor-Bank intrinsic logsumexp responsibility; no independent Router forward.")
     parser.add_argument(
         "--lambda_h6_act", type=float, default=0.0,
         help="P1-v8.4-A ACT utility weight; choose by no-step gradient calibration.",
@@ -4217,6 +4934,26 @@ def main():
     parser.add_argument(
         "--h6_router_support_normalized", action=argparse.BooleanOptionalAction, default=False,
         help="Divide masked router CE by all valid patch support.",
+    )
+    parser.add_argument(
+        "--h6_router_r2_responsibility_balanced",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Use fixed TRAIN-mass-balanced CE on informative R2 Router support.",
+    )
+    parser.add_argument(
+        "--h6_router_r2_region_normalized",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Use R2 normal/anomaly-region-normalized utility Router CE.",
+    )
+    parser.add_argument(
+        "--h6_router_r2_role_weights",
+        type=float,
+        nargs=2,
+        default=None,
+        metavar=("W_NORMAL", "W_ANOMALY"),
+        help="Frozen positive R2 Router responsibility weights in role order.",
     )
     parser.add_argument(
         "--h6_pcgrad_main_factor", action=argparse.BooleanOptionalAction, default=False,
@@ -4453,8 +5190,37 @@ def main():
     if args.grad_accum_steps < 1:
         raise ValueError("--grad_accum_steps must be >= 1")
     if args.h6_progress == 1:
-        if args.h6_num_factors != 4 or args.h6_top_k != 2:
-            raise ValueError("Phase4 Progress 1 is locked to --h6_num_factors 4 and --h6_top_k 2")
+        if args.h6_role_topology == "r2_normal_anomaly":
+            if args.h6_num_factors != 2 or args.h6_top_k != 2:
+                raise ValueError("r2_normal_anomaly requires --h6_num_factors 2 and --h6_top_k 2")
+            if args.h6_role_teacher_scale is None or args.h6_role_teacher_scale <= 0.0:
+                raise ValueError("r2_normal_anomaly requires a positive --h6_role_teacher_scale")
+            if args.h6_router_r2_region_normalized:
+                if args.h6_router_support_normalized or args.h6_router_r2_responsibility_balanced:
+                    raise ValueError(
+                        "R2 region normalization replaces support normalization and responsibility balancing"
+                    )
+                if args.h6_router_r2_role_weights is not None:
+                    raise ValueError("R2 region normalization must not receive static role weights")
+            elif args.h6_router_r2_responsibility_balanced:
+                weights = args.h6_router_r2_role_weights
+                if weights is None or len(weights) != 2 or any(weight <= 0.0 for weight in weights):
+                    raise ValueError("R2 responsibility balancing requires two positive --h6_router_r2_role_weights")
+                if args.h6_router_support_normalized:
+                    raise ValueError(
+                        "R2 responsibility balancing replaces --h6_router_support_normalized; "
+                        "pass --no-h6_router_support_normalized"
+                    )
+        elif args.h6_router_r2_responsibility_balanced or args.h6_router_r2_region_normalized:
+            raise ValueError("R2 Router balancing requires --h6_role_topology r2_normal_anomaly")
+        if args.h6_router_boundary_mode != "none" and args.h6_role_topology != "r2_normal_anomaly":
+            raise ValueError("Router boundary residual is authorized only for r2_normal_anomaly")
+        if args.h6_router_boundary_mode == "affine_bounded_residual" and (args.h6_router_boundary_trust_scale is None or args.h6_router_boundary_trust_scale <= 0.0):
+            raise ValueError("affine_bounded_residual requires positive --h6_router_boundary_trust_scale")
+        if args.h6_router_boundary_mode != "affine_bounded_residual" and args.h6_router_boundary_trust_scale is not None:
+            raise ValueError("--h6_router_boundary_trust_scale is only valid for affine_bounded_residual")
+        if args.h6_role_topology == "flat" and (args.h6_num_factors != 4 or args.h6_top_k != 2):
+            raise ValueError("flat Progress 1 requires --h6_num_factors 4 and --h6_top_k 2")
         if args.h6_progress_version == "P1-v7-full" and not args.h6_expert_enabled:
             raise ValueError("P1-v7-full requires --h6_expert_enabled")
         if args.h6_progress_version != "P1-v7-full" and args.h6_expert_enabled:
@@ -4475,6 +5241,56 @@ def main():
                 raise ValueError("--h6_smoke_backward_only requires --h6_smoke_max_batches 1")
             if args.h6_smoke_forward_only and args.h6_smoke_backward_only:
                 raise ValueError("forward-only and backward-only probes are mutually exclusive")
+            if args.h6_router_boundary_support_gate:
+                if not (1 <= args.h6_smoke_max_batches <= 64):
+                    raise ValueError("Router boundary support gate requires --h6_smoke_max_batches in [1,64]")
+                if args.h6_smoke_forward_only or args.h6_smoke_backward_only:
+                    raise ValueError("Router boundary support gate requires optimizer execution")
+                if args.h6_router_boundary_mode not in {"affine_residual", "affine_bounded_residual"}:
+                    raise ValueError("Router boundary support gate requires an affine boundary residual")
+                if not args.h6_router_r2_region_normalized:
+                    raise ValueError("Router boundary support gate requires R2 region-normalized Router CE")
+            if args.h6_region_router_support_gate:
+                if not (1 <= args.h6_smoke_max_batches <= 64):
+                    raise ValueError("region Router short gate requires --h6_smoke_max_batches in [1,64]")
+                if args.h6_smoke_forward_only or args.h6_smoke_backward_only:
+                    raise ValueError("region Router short gate requires optimizer execution")
+                if not args.h6_intrinsic_factor_responsibility and args.h6_router_boundary_mode not in {"direct_normalized_linear", "frozen_reference_direct_router"}:
+                    raise ValueError("region Router short gate requires a direct two-way Router")
+                if not args.h6_intrinsic_factor_responsibility and args.h6_router_supervision != "region_grounded":
+                    raise ValueError("region Router short gate requires immutable region supervision")
+                if args.h6_router_region_pcgrad:
+                    raise ValueError("region Router short gate forbids Router PCGrad")
+            if args.h6_intrinsic_factor_responsibility:
+                if args.h6_role_topology != "r2_normal_anomaly" or args.h6_num_factors != 2 or args.h6_top_k != 2:
+                    raise ValueError("intrinsic factor responsibility requires R2 topology with M=2/top_k=2")
+                if args.h6_router_boundary_mode != "none":
+                    raise ValueError("intrinsic factor responsibility forbids independent Router boundary heads")
+                if args.h6_router_region_pcgrad or args.h6_router_frozen_head_path or args.h6_router_frozen_head_drift_gate:
+                    raise ValueError("intrinsic factor responsibility forbids PCGrad and frozen Router-head paths")
+                if args.lambda_h6_router <= 0.0:
+                    raise ValueError("intrinsic factor responsibility requires positive authoritative --lambda_h6_router")
+            if args.h6_router_region_pcgrad:
+                if args.h6_router_boundary_mode != "direct_normalized_linear":
+                    raise ValueError("Router region PCGrad requires --h6_router_boundary_mode direct_normalized_linear")
+                if not args.h6_router_r2_region_normalized:
+                    raise ValueError("Router region PCGrad requires R2 region-normalized Router CE")
+                if args.h6_smoke_forward_only:
+                    raise ValueError("Router region PCGrad requires a backward-capable run")
+            if args.h6_router_frozen_head_path:
+                if args.h6_router_boundary_mode != "direct_normalized_linear":
+                    raise ValueError("frozen Router head requires direct_normalized_linear")
+                if args.h6_router_region_pcgrad:
+                    raise ValueError("frozen Router head forbids Router PCGrad")
+            if args.h6_router_frozen_head_drift_gate and not args.h6_router_frozen_head_path:
+                raise ValueError("frozen-head drift gate requires --h6_router_frozen_head_path")
+            if args.h6_router_frozen_head_drift_gate:
+                if not (1 <= args.h6_smoke_max_batches <= 64):
+                    raise ValueError("frozen-head drift gate requires --h6_smoke_max_batches in [1,64]")
+                if args.h6_smoke_forward_only or args.h6_smoke_backward_only:
+                    raise ValueError("frozen-head drift gate requires optimizer execution")
+                if not args.h6_router_r2_region_normalized:
+                    raise ValueError("frozen-head drift gate requires R2 region-normalized Router CE")
             if args.h6_global_text_mode != "phase2b_hybrid":
                 raise ValueError(f"{contract_version} requires --h6_global_text_mode phase2b_hybrid")
             if not (
@@ -4628,9 +5444,14 @@ def main():
         h6_progress=args.h6_progress,
         h6_num_factors=args.h6_num_factors,
         h6_top_k=args.h6_top_k,
+        h6_role_topology=args.h6_role_topology,
+        h6_role_teacher_scale=args.h6_role_teacher_scale,
+        h6_intrinsic_factor_responsibility=args.h6_intrinsic_factor_responsibility,
         h6_bank_dim=args.h6_bank_dim,
         h6_router_dim=args.h6_router_dim,
         h6_router_temperature=args.h6_router_temperature,
+        h6_router_boundary_mode=args.h6_router_boundary_mode,
+        h6_router_boundary_trust_scale=args.h6_router_boundary_trust_scale,
         h6_router_soft_epochs=args.h6_router_soft_epochs,
         h6_sparse_transition_epochs=args.h6_sparse_transition_epochs,
         h6_load_bias_enabled=args.h6_load_bias_enabled,
@@ -4704,6 +5525,40 @@ def main():
         model.soft_prompt.requires_grad_(False)
         model.h6.requires_grad_(True)
         model.h6.rho.raw.requires_grad_(False)
+        if args.h6_router_frozen_head_path:
+            if args.h6_router_boundary_mode != "direct_normalized_linear":
+                raise ValueError("frozen Router head requires --h6_router_boundary_mode direct_normalized_linear")
+            if args.h6_router_region_pcgrad:
+                raise ValueError("frozen Router head is incompatible with --h6_router_region_pcgrad")
+            artifact_path = Path(args.h6_router_frozen_head_path)
+            if not artifact_path.is_file():
+                raise FileNotFoundError(f"frozen Router-head artifact does not exist: {artifact_path}")
+            artifact = torch.load(artifact_path, map_location="cpu", weights_only=False)
+            head = model.h6.router.direct_decision_head
+            if head is None or "weight" not in artifact or "bias" not in artifact:
+                raise RuntimeError("frozen Router-head artifact/model contract is invalid")
+            weight = artifact["weight"].detach().float()
+            bias = artifact["bias"].detach().float()
+            if tuple(weight.shape) != tuple(head.weight.shape) or tuple(bias.shape) != tuple(head.bias.shape):
+                raise RuntimeError(
+                    f"frozen Router-head shape mismatch artifact={tuple(weight.shape)}/{tuple(bias.shape)} "
+                    f"model={tuple(head.weight.shape)}/{tuple(head.bias.shape)}"
+                )
+            with torch.no_grad():
+                head.weight.copy_(weight.to(device=head.weight.device, dtype=head.weight.dtype))
+                head.bias.copy_(bias.to(device=head.bias.device, dtype=head.bias.dtype))
+            head.requires_grad_(False)
+            tensor_hasher = hashlib.sha256()
+            for tensor in (head.weight.detach().float().cpu(), head.bias.detach().float().cpu()):
+                tensor_hasher.update(tensor.contiguous().numpy().tobytes())
+            args.h6_router_frozen_head_artifact_sha256 = hashlib.sha256(artifact_path.read_bytes()).hexdigest()
+            args.h6_router_frozen_head_tensor_sha256 = tensor_hasher.hexdigest()
+            model.h6.router.frozen_direct_head_tensor_sha256 = args.h6_router_frozen_head_tensor_sha256
+            logger.info(
+                "offline_frozen_router_head artifact=%s artifact_sha256=%s tensor_sha256=%s",
+                artifact_path, args.h6_router_frozen_head_artifact_sha256,
+                args.h6_router_frozen_head_tensor_sha256,
+            )
         if args.h6_cluster_responsibility:
             if args.h6_lambda_cluster_resp <= 0.0:
                 raise ValueError("--h6_cluster_responsibility requires --h6_lambda_cluster_resp > 0")
@@ -4753,7 +5608,18 @@ def main():
                     and abs(model.h6.local_center_mix - 0.05) <= 1e-12
                     and abs(model.h6.local_factor_spread - 0.10) <= 1e-12
                 ),
-                "four_factors": model.h6.num_factors == 4,
+                "factor_count_contract": (
+                    (model.h6.role_topology == "flat" and model.h6.num_factors == 4)
+                    or (model.h6.role_topology == "r2_normal_anomaly" and model.h6.num_factors == 2)
+                ),
+                "role_teacher_contract": (
+                    model.h6.role_topology == "flat"
+                    or (
+                        model.h6.role_topology == "r2_normal_anomaly"
+                        and model.h6.role_teacher_scale is not None
+                        and model.h6.role_teacher_scale > 0.0
+                    )
+                ),
                 "structured_state_class": (
                     h6_config["structured_text_enabled"]
                     and h6_config["state_token_factor_specific"]
@@ -4787,9 +5653,62 @@ def main():
                     args.h6_utility_factor_effective_beta is not None
                     and abs(args.h6_utility_factor_effective_beta - 0.999) <= 1e-12
                 ),
-                "router_support_normalized": bool(args.h6_router_support_normalized),
+                "router_supervision_contract": (
+                    bool(args.h6_intrinsic_factor_responsibility)
+                    or sum((
+                        bool(args.h6_router_support_normalized),
+                        bool(args.h6_router_r2_responsibility_balanced),
+                        bool(args.h6_router_r2_region_normalized),
+                    )) == 1
+                ),
+                "r2_router_responsibility_balanced": (
+                    not args.h6_router_r2_responsibility_balanced
+                    or (
+                        model.h6.role_topology == "r2_normal_anomaly"
+                        and args.h6_router_r2_role_weights is not None
+                        and len(args.h6_router_r2_role_weights) == 2
+                        and all(weight > 0.0 for weight in args.h6_router_r2_role_weights)
+                    )
+                ),
+                "r2_router_region_normalized": (
+                    not args.h6_router_r2_region_normalized
+                    or (
+                        model.h6.role_topology == "r2_normal_anomaly"
+                        and not args.h6_router_support_normalized
+                        and not args.h6_router_r2_responsibility_balanced
+                        and args.h6_router_r2_role_weights is None
+                    )
+                ),
+                "router_boundary_component": (
+                    (args.h6_router_boundary_mode == "none" and model.h6.router.boundary_residual is None and model.h6.router.direct_decision_head is None)
+                    or (
+                        args.h6_router_boundary_mode in {"affine_residual", "affine_bounded_residual"}
+                        and model.h6.router.boundary_residual is not None
+                    )
+                    or (
+                        args.h6_router_boundary_mode == "direct_normalized_linear"
+                        and model.h6.router.boundary_residual is None
+                        and model.h6.router.direct_decision_head is not None
+                    )
+                    or (
+                        args.h6_router_boundary_mode == "frozen_reference_direct_router"
+                        and model.h6.router.boundary_residual is None
+                        and model.h6.router.direct_decision_head is None
+                        and model.h6.router.frozen_reference_direct_head is not None
+                    )
+                ),
+                "offline_frozen_direct_router_head": (
+                    not args.h6_router_frozen_head_path or (
+                        model.h6.router.direct_decision_head is not None
+                        and not any(parameter.requires_grad for parameter in model.h6.router.direct_decision_head.parameters())
+                        and getattr(model.h6.router, "frozen_direct_head_tensor_sha256", None) == args.h6_router_frozen_head_tensor_sha256
+                        and all(id(parameter) not in optimizer_parameter_ids for parameter in model.h6.router.direct_decision_head.parameters())
+                        and not args.h6_router_region_pcgrad
+                    )
+                ),
                 "primary_anchored_factor_surgery": bool(
-                    args.h6_primary_anchored_factor_surgery
+                    args.h6_intrinsic_factor_responsibility
+                    or args.h6_primary_anchored_factor_surgery
                 ),
                 "pcgrad_main_factor_off": not bool(args.h6_pcgrad_main_factor),
             }

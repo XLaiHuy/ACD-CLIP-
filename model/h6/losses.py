@@ -717,7 +717,16 @@ def h6_loss_diagnostics(
         "routing_finite": torch.isfinite(probabilities).all().detach(),
     }
 
-def build_semantic_roles(masks: torch.Tensor, labels: torch.Tensor, patch_count: int, local_mask_valid: torch.Tensor, core_threshold: float = 0.99, boundary_threshold: float = 0.01) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+def build_semantic_roles(
+    masks: torch.Tensor,
+    labels: torch.Tensor,
+    patch_count: int,
+    local_mask_valid: torch.Tensor,
+    core_threshold: float = 0.99,
+    boundary_threshold: float = 0.01,
+    num_roles: int = 4,
+    role_topology: str = "legacy_m4",
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Returns:
       q_role: [B, P, 4] soft indexed targets (one-hot of hard_role for now, or bounded distribution)
@@ -726,6 +735,12 @@ def build_semantic_roles(masks: torch.Tensor, labels: torch.Tensor, patch_count:
       local_valid_patch: [B, P] boolean mask of patches that should contribute to local losses
       local_valid_image: [B] boolean mask of images that have valid positive masks
     """
+    if role_topology not in {"legacy_m4", "r2_normal_anomaly"}:
+        raise ValueError("role_topology must be 'legacy_m4' or 'r2_normal_anomaly'")
+    if role_topology == "r2_normal_anomaly" and int(num_roles) != 2:
+        raise ValueError("r2_normal_anomaly requires num_roles=2")
+    if role_topology == "legacy_m4" and int(num_roles) != 4:
+        raise ValueError("legacy_m4 semantic roles require num_roles=4")
     B = masks.shape[0]
     grid = int(math.isqrt(int(patch_count)))
     mask_coverage = F.adaptive_avg_pool2d(masks.float(), output_size=(grid, grid)).view(B, patch_count)
@@ -737,17 +752,22 @@ def build_semantic_roles(masks: torch.Tensor, labels: torch.Tensor, patch_count:
     local_valid_patch = local_valid_patch & (valid_coverage >= 0.5)
     
     hard_role = torch.zeros(B, patch_count, dtype=torch.long, device=masks.device)
-    # Role 0 remains 0 on normal images. On valid anomaly images, initialize to 1.
-    hard_role[local_valid_image] = 1
-    # Overwrite boundary
-    boundary_mask = local_valid_image.unsqueeze(1) & (mask_coverage > boundary_threshold) & (mask_coverage < core_threshold)
-    hard_role[boundary_mask] = 2
-    # Overwrite core
-    core_mask = local_valid_image.unsqueeze(1) & (mask_coverage >= core_threshold)
-    hard_role[core_mask] = 3
-    
-    # Soft target one-hot for now. Role 0 never receives probability on anomaly images.
-    q_role = F.one_hot(hard_role, num_classes=4).float()
+    if role_topology == "r2_normal_anomaly":
+        # Physical region supplies only the normal/anomaly prior. Utility
+        # teacher probabilities remain the actual training supervision. A
+        # normal/background role is assigned per patch, including background
+        # patches inside an anomalous image; the anomaly role is reserved for
+        # patches with positive mask coverage.
+        anomaly_patch = local_valid_image.unsqueeze(1) & (mask_coverage > boundary_threshold)
+        hard_role[anomaly_patch] = 1
+    else:
+        # Legacy M4 normal/outside/boundary/core semantics.
+        hard_role[local_valid_image] = 1
+        boundary_mask = local_valid_image.unsqueeze(1) & (mask_coverage > boundary_threshold) & (mask_coverage < core_threshold)
+        hard_role[boundary_mask] = 2
+        core_mask = local_valid_image.unsqueeze(1) & (mask_coverage >= core_threshold)
+        hard_role[core_mask] = 3
+    q_role = F.one_hot(hard_role, num_classes=int(num_roles)).float()
     
     return q_role, hard_role, mask_coverage, local_valid_patch, local_valid_image
 
@@ -844,15 +864,17 @@ def factor_specific_residual_role_loss(
     
     for m in range(M):
         actual = rho_factor_patch_logits[..., m]
-        if m == 0:
+        if M == 2:
+            target_desired = torch.zeros_like(desired) if m == 0 else desired
+        elif m == 0:
             target_desired = torch.zeros_like(desired)
         elif m == 1:
             target_desired = torch.minimum(desired, torch.zeros_like(desired))
         elif m == 2:
             target_desired = desired
-        elif m == 3:
+        else:
             target_desired = torch.maximum(desired, torch.zeros_like(desired))
-        
+
         role_loss = _role_balanced_smooth_l1(actual, target_desired, q_role, hard_role, local_valid_patch, m)
         if role_loss.requires_grad or role_loss.item() != 0.0:
             losses.append(role_loss)
@@ -878,17 +900,20 @@ def actual_local_residual_loss(
     desired = get_desired_correction(mask_coverage, base_abnormal_minus_normal, correction_max, epsilon)
     
     losses = []
-    for m in range(4):
+    num_roles = int(q_role.shape[-1])
+    for m in range(num_roles):
         actual = rho_h6_logits
-        if m == 0:
+        if num_roles == 2:
+            target_desired = torch.zeros_like(desired) if m == 0 else desired
+        elif m == 0:
             target_desired = torch.zeros_like(desired)
         elif m == 1:
             target_desired = torch.minimum(desired, torch.zeros_like(desired))
         elif m == 2:
             target_desired = desired
-        elif m == 3:
+        else:
             target_desired = torch.maximum(desired, torch.zeros_like(desired))
-            
+
         role_loss = _role_balanced_smooth_l1(actual, target_desired, q_role, hard_role, local_valid_patch, m)
         if role_loss.requires_grad or role_loss.item() != 0.0:
             losses.append(role_loss)
