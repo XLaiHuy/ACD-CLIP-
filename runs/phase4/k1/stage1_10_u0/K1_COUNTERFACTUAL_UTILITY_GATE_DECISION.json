@@ -1,0 +1,46 @@
+{
+  "decision": "UTILITY_GATE_SIGNAL_NOT_GENERALIZABLE",
+  "root_cause": "The permitted two-input downstream-utility signal does not transfer across held-out classes. Both the linear model and the one fixed 17-parameter nonlinear check are materially weaker than the existing mature Phase2B score, and the selected utility gate violates Normal non-inferiority.",
+  "scope": {
+    "dataset": "VisA",
+    "split": "train",
+    "manifest": "runs/phase4/k1/stage1_7r/visa_train_audit_manifest.json",
+    "class_held_out_folds": 4,
+    "optimizer_steps_main_model": 0,
+    "main_model_training": false
+  },
+  "models": {
+    "phase2b_score_baseline_anomaly_utility_auroc": 0.7110591900311527,
+    "linear_logistic_anomaly_utility_auroc": 0.49512568482114083,
+    "tiny_mlp_2_4_1_anomaly_utility_auroc": 0.5079134887384968,
+    "selected_for_counterfactual": "tiny_mlp_2_4_1",
+    "features": [
+      "base_predictive_logit",
+      "dynamic_minus_base_logit"
+    ]
+  },
+  "safety": {
+    "base_normal_bce": 0.02610679529607296,
+    "pre_registered_noninferiority_margin": 2.6106795296072962e-05,
+    "utility_gate_normal_gain": -0.0006779785035178065,
+    "utility_gate_anomaly_gain": 0.0029248858336359262,
+    "normal_noninferiority_pass": false
+  },
+  "interpretation": {
+    "positive_anomaly_utility_retained": 0.09366422146558762,
+    "harmful_anomaly_utility_rejected": 0.7858538031578064,
+    "per_class_utility_auroc_range": [0.40522875816993464, 0.646639231824417],
+    "no_single_class_explains_success": false
+  },
+  "prohibited_next_steps": [
+    "main-model utility-gate training",
+    "additional selector features",
+    "K2/MoE",
+    "Router",
+    "OT",
+    "ACT",
+    "E20",
+    "medical evaluation"
+  ],
+  "recommendation": "Keep the text-semantic line stopped. The next research direction remains the previously identified visual-side pivot; do not implement or train it without a new authorization."
+}
