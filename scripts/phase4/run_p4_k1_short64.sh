@@ -3,6 +3,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 MAX_BATCHES="${MAX_BATCHES:-64}"
+H6_PROGRESS_VERSION="${H6_PROGRESS_VERSION:-P4-CSF-K1}"
 NUM_WORKERS="${NUM_WORKERS:-4}"
 SAVE_PATH="${SAVE_PATH:-${REPO_ROOT}/runs/phase4/k1/short64_seed0}"
 if [[ -z "${ACDCLIP_DATA_ROOT:-}" ]]; then
@@ -26,7 +27,7 @@ exec conda run --no-capture-output -n torchhuy python "${REPO_ROOT}/train.py" \
   --n_groups 3 --dfg_mode attn --dfg_attn_dim 256 --dfg_attn_tau 8.0 \
   --use_ss2d_dfg --dfg_gamma_max 0.2 --dfg_ss2d_fusion weight_residual \
   --dfg_beta 0.10 --dfg_beta_schedule warmup010 --dfg_beta_target 0.10 \
-  --h6_progress 1 --h6_progress_version P4-CSF-K1 \
+  --h6_progress 1 --h6_progress_version "${H6_PROGRESS_VERSION}" \
   --h6_num_factors 1 --h6_top_k 1 --h6_prediction_routing dense \
   --h6_global_text_mode phase2b_hybrid --use_hybrid_soft_prompt \
   --h6_local_factor_mode legacy_mix \

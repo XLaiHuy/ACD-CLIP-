@@ -2172,6 +2172,11 @@ def train_h6_progress1(
                                 "class_delta_raw": h6_batch["class_delta_raw"].detach().cpu(),
                                 "dynamic_text": h6_batch["dynamic_text"].detach().cpu(),
                                 "base_text_features": h6_batch["base_text_features"].detach().cpu(),
+                                "noop_alpha": None if h6_batch.get("noop_alpha") is None else h6_batch["noop_alpha"].detach().cpu(),
+                                "noop_scores": None if h6_batch.get("noop_scores") is None else h6_batch["noop_scores"].detach().cpu(),
+                                "noop_base_abnormal_semantic": None if h6_batch.get("noop_base_abnormal_semantic") is None else h6_batch["noop_base_abnormal_semantic"].detach().cpu(),
+                                "noop_dynamic_abnormal_semantic": None if h6_batch.get("noop_dynamic_abnormal_semantic") is None else h6_batch["noop_dynamic_abnormal_semantic"].detach().cpu(),
+                                "noop_original_k1_dynamic_abnormal_logits": None if h6_batch.get("noop_original_k1_dynamic_abnormal_logits") is None else h6_batch["noop_original_k1_dynamic_abnormal_logits"].detach().cpu(),
                                 "mask": mask.detach().cpu(),
                                 "local_mask_valid": local_mask_valid.detach().cpu(),
                                 "label": label.detach().cpu(),
@@ -4918,7 +4923,7 @@ def main():
     parser.add_argument("--h6_expert_bottleneck", type=int, default=64)
     parser.add_argument(
         "--h6_progress_version",
-        choices=["P1-v6", "P1-v7-full", "P1-v8-minimal", "P1-v8.3", "P1-v8.4-A", "P4-CSF-K1"],
+        choices=["P1-v6", "P1-v7-full", "P1-v8-minimal", "P1-v8.3", "P1-v8.4-A", "P4-CSF-K1", "P4-CSF-K1-NOOP"],
         default="P1-v8.3",
     )
     parser.add_argument("--h6_local_factor_mode", type=str, choices=["legacy_mix", "center_spread"], default="center_spread")
@@ -5264,13 +5269,13 @@ def main():
             raise ValueError("affine_bounded_residual requires positive --h6_router_boundary_trust_scale")
         if args.h6_router_boundary_mode != "affine_bounded_residual" and args.h6_router_boundary_trust_scale is not None:
             raise ValueError("--h6_router_boundary_trust_scale is only valid for affine_bounded_residual")
-        if args.h6_progress_version != "P4-CSF-K1" and args.h6_role_topology == "flat" and (args.h6_num_factors != 4 or args.h6_top_k != 2):
+        if args.h6_progress_version not in {"P4-CSF-K1", "P4-CSF-K1-NOOP"} and args.h6_role_topology == "flat" and (args.h6_num_factors != 4 or args.h6_top_k != 2):
             raise ValueError("flat Progress 1 requires --h6_num_factors 4 and --h6_top_k 2")
         if args.h6_progress_version == "P1-v7-full" and not args.h6_expert_enabled:
             raise ValueError("P1-v7-full requires --h6_expert_enabled")
         if args.h6_progress_version != "P1-v7-full" and args.h6_expert_enabled:
             raise ValueError("paired experts are explicit P1-v7-full only")
-        if args.h6_progress_version == "P4-CSF-K1":
+        if args.h6_progress_version in {"P4-CSF-K1", "P4-CSF-K1-NOOP"}:
             if args.precision != "fp32" or args.amp or torch.backends.cuda.matmul.allow_tf32 or torch.backends.cudnn.allow_tf32:
                 raise ValueError("P4-CSF-K1 requires strict FP32 with TF32 and AMP disabled")
             if args.h6_role_topology != "flat" or args.h6_num_factors != 1 or args.h6_top_k != 1:

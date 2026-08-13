@@ -23,6 +23,8 @@ PASS_LABEL = "PHASE4_INTERFACE_CLEANUP_PASS"
 FAIL_LABEL = "PHASE4_INTERFACE_CLEANUP_FAIL"
 K1_PASS_LABEL = "K1_ZERO_STEP_PASS"
 K1_FAIL_LABEL = "K1_ZERO_STEP_FAIL"
+K1_NOOP_PASS_LABEL = "K1_NOOP_ZERO_STEP_PASS"
+K1_NOOP_FAIL_LABEL = "K1_NOOP_ZERO_STEP_FAIL"
 
 
 def _historical_attention_dfg(model, image, text, group_index):
@@ -99,7 +101,7 @@ def _run(args):
         h6_progress=1,
         h6_num_factors=1,
         h6_top_k=1,
-        h6_progress_version="P4-CSF-K1",
+        h6_progress_version="P4-CSF-K1-NOOP" if args.noop else "P4-CSF-K1",
         h6_local_factor_mode="legacy_mix",
         h6_expert_enabled=False,
         h6_late_factor_identity_enabled=False,
@@ -169,6 +171,37 @@ def _run(args):
         model.h6.rho_values(),
     )
     core = model.h6.conditional_semantic_core
+    noop_checks = {}
+    if args.noop:
+        alpha = batch["noop_alpha"]
+        base_abnormal = batch["noop_base_abnormal_semantic"]
+        base_semantic_logits = torch.stack(
+            [
+                torch.einsum("bpd,bd->bp", 10.0 * patches.float(), semantic)
+                for patches, semantic in zip(visual["seg_tokens"], base_abnormal)
+            ],
+            dim=0,
+        )
+        forced_noop = predictor_aligned_abnormal_residual(
+            batch["base_group_logits"], base_semantic_logits, model.h6.rho_values()
+        )
+        identical_semantic = F.normalize(0.5 * base_abnormal + 0.5 * base_abnormal, dim=-1)
+        identical_logits = torch.stack(
+            [
+                torch.einsum("bpd,bd->bp", 10.0 * patches.float(), semantic)
+                for patches, semantic in zip(visual["seg_tokens"], identical_semantic)
+            ],
+            dim=0,
+        )
+        identical = predictor_aligned_abnormal_residual(
+            batch["base_group_logits"], identical_logits, model.h6.rho_values()
+        )
+        noop_checks = {
+            "noop_alpha_sum_max_abs_error": float((alpha.sum(dim=-1) - 1.0).abs().max().item()),
+            "noop_a0_exact_base_max_abs_error": float((base_semantic_logits - batch["base_group_logits"][..., 1]).abs().max().item()),
+            "noop_alpha0_forced_final_base_max_abs_error": float((forced_noop["final_group_logits"] - batch["base_group_logits"]).abs().max().item()),
+            "noop_a1_equals_a0_delta_max_abs": float(identical["predictor_residual_logits"].abs().max().item()),
+        }
     checks = {
         "phase2b_logit_max_abs_error": float(
             (historical_logits - batch["base_group_logits"]).abs().max().item()
@@ -213,6 +246,7 @@ def _run(args):
         "amp_enabled": False,
         "dtype": str(image.dtype),
     }
+    checks.update(noop_checks)
     passed = (
         checks["phase2b_logit_max_abs_error"] <= 1e-6
         and checks["dfg_text_reconstruction_max_abs_error"] <= 1e-6
@@ -233,6 +267,14 @@ def _run(args):
         and not checks["tf32_cudnn"]
         and checks["dtype"] == "torch.float32"
     )
+    if args.noop:
+        passed = passed and (
+            bool(batch["noop_selectivity_enabled"].item())
+            and checks["noop_alpha_sum_max_abs_error"] <= 1e-6
+            and checks["noop_a0_exact_base_max_abs_error"] <= 1e-6
+            and checks["noop_alpha0_forced_final_base_max_abs_error"] <= 1e-6
+            and checks["noop_a1_equals_a0_delta_max_abs"] <= 1e-6
+        )
     telemetry = {
         "state_delta_l2_mean": float(batch["state_delta_raw"].float().norm(dim=-1).mean().item()),
         "class_delta_l2_mean": float(batch["class_delta_raw"].float().norm(dim=-1).mean().item()),
@@ -241,8 +283,16 @@ def _run(args):
         "delta_std": float(batch["predictor_residual_logits"].float().std(unbiased=False).item()),
         "delta_abs_max": float(batch["predictor_residual_logits"].float().abs().max().item()),
     }
+    if args.noop:
+        telemetry["alpha_noop_mean"] = float(batch["noop_alpha"][..., 0].float().mean().item())
+        telemetry["alpha_dynamic_mean"] = float(batch["noop_alpha"][..., 1].float().mean().item())
+        telemetry["alpha_entropy_mean"] = float((-(batch["noop_alpha"].float() * batch["noop_alpha"].float().clamp_min(1e-12).log()).sum(dim=-1)).mean().item())
     return {
-        "decision": (K1_PASS_LABEL if passed else K1_FAIL_LABEL) if args.k1 else (PASS_LABEL if passed else FAIL_LABEL),
+        "decision": (
+            (K1_NOOP_PASS_LABEL if passed else K1_NOOP_FAIL_LABEL)
+            if args.noop
+            else ((K1_PASS_LABEL if passed else K1_FAIL_LABEL) if args.k1 else (PASS_LABEL if passed else FAIL_LABEL))
+        ),
         "fresh_initialization": "OpenAI CLIP only",
         "dataset": "VisA",
         "split": "train",
@@ -254,9 +304,10 @@ def _run(args):
     }
 
 
-def main(default_k1: bool = False):
+def main(default_k1: bool = False, default_noop: bool = False):
     parser = argparse.ArgumentParser()
     parser.add_argument("--k1", action="store_true", default=default_k1)
+    parser.add_argument("--noop", action="store_true", default=default_noop)
     parser.add_argument(
         "--output",
         type=Path,
@@ -268,7 +319,7 @@ def main(default_k1: bool = False):
     try:
         report = _run(args)
     except Exception as error:
-        failure_label = K1_FAIL_LABEL if args.k1 else FAIL_LABEL
+        failure_label = K1_NOOP_FAIL_LABEL if args.noop else (K1_FAIL_LABEL if args.k1 else FAIL_LABEL)
         report = {
             "decision": failure_label,
             "error": f"{type(error).__name__}: {error}",
@@ -277,7 +328,7 @@ def main(default_k1: bool = False):
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
     print(json.dumps(report, indent=2, sort_keys=True))
-    raise SystemExit(0 if report["decision"] in {PASS_LABEL, K1_PASS_LABEL} else 1)
+    raise SystemExit(0 if report["decision"] in {PASS_LABEL, K1_PASS_LABEL, K1_NOOP_PASS_LABEL} else 1)
 
 
 if __name__ == "__main__":

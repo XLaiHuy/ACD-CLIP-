@@ -187,7 +187,10 @@ class H6Progress1(nn.Module):
         if self.intrinsic_factor_responsibility and self.num_factors != 2:
             raise ValueError("intrinsic factor responsibility currently requires R2")
         self.progress_version = str(progress_version)
-        self.semantic_factorization_enabled = self.progress_version == "P4-CSF-K1"
+        self.semantic_factorization_enabled = self.progress_version in {
+            "P4-CSF-K1", "P4-CSF-K1-NOOP"
+        }
+        self.k1_noop_selectivity_enabled = self.progress_version == "P4-CSF-K1-NOOP"
         self.expert_enabled = bool(expert_enabled)
         self.expert_bottleneck = int(expert_bottleneck)
         self.expert_fofs_seed_offset = int(expert_fofs_seed_offset)
@@ -346,6 +349,7 @@ class H6Progress1(nn.Module):
             ),
             "progress_version": self.progress_version,
             "semantic_factorization_enabled": is_p4_csf,
+            "k1_noop_selectivity_enabled": self.k1_noop_selectivity_enabled,
             "conditioning_path": "context_only" if is_p4_csf else "legacy",
             "semantic_bank_count": 1 if is_p4_csf else self.num_factors,
             "legacy_router_active": False if is_p4_csf else not self.intrinsic_factor_responsibility,
@@ -1240,6 +1244,11 @@ class H6Progress1(nn.Module):
 
         base_logits = []
         dynamic_abnormal_logits = []
+        noop_alpha = []
+        noop_scores = []
+        noop_base_abnormal_semantic = []
+        noop_dynamic_abnormal_semantic = []
+        noop_original_k1_dynamic_abnormal_logits = []
         normal_weights = []
         abnormal_weights = []
         for group_index, group_patches in enumerate(visual_output["seg_tokens"]):
@@ -1258,11 +1267,36 @@ class H6Progress1(nn.Module):
             )
             scaled_patches = 10.0 * group_patches.float()
             base_logits.append(torch.matmul(scaled_patches, base_dfg_text.float()))
-            dynamic_abnormal_logits.append(
-                torch.einsum(
-                    "bpd,bd->bp", scaled_patches, dynamic_dfg_text[..., 1].float()
+            base_abnormal_semantic = base_dfg_text[..., 1].float()
+            dynamic_abnormal_semantic = dynamic_dfg_text[..., 1].float()
+            if self.k1_noop_selectivity_enabled:
+                noop_original_k1_dynamic_abnormal_logits.append(
+                    torch.einsum("bpd,bd->bp", scaled_patches, dynamic_abnormal_semantic)
                 )
-            )
+                scores = torch.stack(
+                    [
+                        torch.einsum("bpd,bd->bp", group_patches.float(), base_abnormal_semantic),
+                        torch.einsum("bpd,bd->bp", group_patches.float(), dynamic_abnormal_semantic),
+                    ],
+                    dim=-1,
+                )
+                alpha = F.softmax(scores, dim=-1)
+                patch_semantic = F.normalize(
+                    alpha[..., 0:1] * base_abnormal_semantic.unsqueeze(1)
+                    + alpha[..., 1:2] * dynamic_abnormal_semantic.unsqueeze(1),
+                    dim=-1,
+                )
+                dynamic_abnormal_logits.append(
+                    torch.einsum("bpd,bpd->bp", scaled_patches, patch_semantic)
+                )
+                noop_alpha.append(alpha)
+                noop_scores.append(scores)
+                noop_base_abnormal_semantic.append(base_abnormal_semantic)
+                noop_dynamic_abnormal_semantic.append(dynamic_abnormal_semantic)
+            else:
+                dynamic_abnormal_logits.append(
+                    torch.einsum("bpd,bd->bp", scaled_patches, dynamic_abnormal_semantic)
+                )
 
         base_group_logits = torch.stack(base_logits, dim=0)
         dynamic_abnormal = torch.stack(dynamic_abnormal_logits, dim=0)
@@ -1306,6 +1340,23 @@ class H6Progress1(nn.Module):
                 "sparse_factor_usage": torch.ones(self.n_groups, 1, device=residual.device),
                 "unique_topk_pairs": torch.ones(self.n_groups, device=residual.device),
             },
+            "noop_selectivity_enabled": torch.tensor(
+                self.k1_noop_selectivity_enabled, device=residual.device
+            ),
+            "noop_alpha": torch.stack(noop_alpha, dim=0) if noop_alpha else None,
+            "noop_scores": torch.stack(noop_scores, dim=0) if noop_scores else None,
+            "noop_base_abnormal_semantic": (
+                torch.stack(noop_base_abnormal_semantic, dim=0)
+                if noop_base_abnormal_semantic else None
+            ),
+            "noop_dynamic_abnormal_semantic": (
+                torch.stack(noop_dynamic_abnormal_semantic, dim=0)
+                if noop_dynamic_abnormal_semantic else None
+            ),
+            "noop_original_k1_dynamic_abnormal_logits": (
+                torch.stack(noop_original_k1_dynamic_abnormal_logits, dim=0)
+                if noop_original_k1_dynamic_abnormal_logits else None
+            ),
         }
 
     def h6_logit(self, normalized_patches: torch.Tensor, local_text: torch.Tensor) -> torch.Tensor:
