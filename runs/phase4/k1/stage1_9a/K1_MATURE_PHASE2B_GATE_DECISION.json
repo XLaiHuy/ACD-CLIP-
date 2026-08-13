@@ -1,0 +1,44 @@
+{
+  "decision": "CALIBRATED_P2B_GATE_FAIL",
+  "terminal_text_semantic_state": "PHASE4_TEXT_SEMANTIC_LINE_STOPPED",
+  "root_cause": "Mature Phase2B localization and K1 anomaly utility align strongly, but a K1 text-semantic residual remains strictly harmful on Normal patches even after the one permitted parameter-free centered calibration.",
+  "audit_scope": {
+    "dataset": "VisA",
+    "split": "train",
+    "manifest": "runs/phase4/k1/stage1_7r/visa_train_audit_manifest.json",
+    "images": 48,
+    "classes": 12,
+    "optimizer_steps": 0,
+    "no_training": true
+  },
+  "mature_phase2b": {
+    "checkpoint": "runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/adapter_10.pth",
+    "checkpoint_sha256": "ae27443f99020588298a9ecc6dfc833a83ebe7a752f00e8524042d5a84a2c0cb",
+    "prompt": "current_shared / hybrid alpha=.20 segmentation branch",
+    "patch_anomaly_auroc": 0.9845450524958952,
+    "per_image_anomaly_auroc_mean": 0.9867449132306535,
+    "utility_anomaly_auroc": 0.7110681419414903,
+    "utility_anomaly_pearson": 0.656153678894043,
+    "failed_raw_semantic_affinity_utility_anomaly_auroc": 0.5799987467325527
+  },
+  "counterfactual": {
+    "original_k1": {
+      "normal_gain": -0.00279848650097847,
+      "anomaly_gain": 0.0298004150390625
+    },
+    "mature_p2b_raw_gate": {
+      "normal_gain": -5.21540641784668e-08,
+      "anomaly_gain": 0.009113550186157227,
+      "anomaly_image_gain_ci95": [0.0001223739527631551, 0.006877991836518049]
+    },
+    "one_allowed_image_centered_calibration": {
+      "formula": "clamp((p2b - mean_image(p2b)) / (1 - mean_image(p2b)), 0, 1)",
+      "normal_gain": -4.6566128730773926e-08,
+      "anomaly_gain": 0.009052753448486328,
+      "anomaly_image_gain_ci95": [0.0001219054393004626, 0.006841926835477352]
+    },
+    "normal_safety_rule": "normal_gain_must_be_nonnegative",
+    "normal_safety_pass": false
+  },
+  "conclusion": "Do not implement the Stage 1.9B warmup-gated K1 candidate. Run only the terminal offline visual-only pivot attribution and stop before training a visual candidate."
+}

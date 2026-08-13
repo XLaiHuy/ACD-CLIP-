@@ -1,0 +1,101 @@
+{
+  "decision": "PHASE4_VISUAL_PIVOT_CANDIDATE_IDENTIFIED",
+  "evidence": {
+    "mature_phase2b_patch_anomaly_auroc": 0.9845450524958952,
+    "mature_phase2b_per_class_auc": {
+      "candle": 0.9923738737747154,
+      "capsules": 0.9963011859747003,
+      "cashew": 0.999413758284726,
+      "chewinggum": 0.9947678374373288,
+      "fryum": 0.9976679877611198,
+      "macaroni1": 0.9987160674981659,
+      "macaroni2": 0.9989464901790235,
+      "pcb1": 0.9768144716064164,
+      "pcb2": 0.930950880367297,
+      "pcb3": 0.9934940259819075,
+      "pcb4": 0.9646555688767096,
+      "pipe_fryum": 0.996836811025728
+    },
+    "mature_phase2b_per_class_auc_min": 0.930950880367297,
+    "mature_phase2b_per_image_auc": {
+      "eligible_images": 24,
+      "mean": 0.9867449132306535,
+      "median": 0.9974981546401978
+    },
+    "mature_phase2b_vs_k1_utility_anomaly": {
+      "auroc_a1_better": 0.7110681419414903,
+      "count": 1017,
+      "fraction_a1_better": 0.6843658089637756,
+      "mean_score_a0_better": 0.0019214979838579893,
+      "mean_score_a1_better": 0.1577678769826889,
+      "pearson": 0.656153678894043,
+      "spearman": 0.4975704550743103,
+      "utility_mean": 0.484354704618454
+    },
+    "one_allowed_centered_calibration": {
+      "anomaly_gain": 0.009052753448486328,
+      "anomaly_gate_mean": 0.10745009034872055,
+      "anomaly_image_bootstrap": {
+        "ci95": [
+          0.0001219054393004626,
+          0.006841926835477352
+        ],
+        "mean": 0.002863294677808881,
+        "n_images": 24
+      },
+      "normal_gain": -4.6566128730773926e-08,
+      "normal_gate_mean": 1.3636207768286113e-05,
+      "normal_image_bootstrap": {
+        "ci95": [
+          -1.0892787827287975e-07,
+          -1.1636677177406796e-09
+        ],
+        "mean": -4.912726581096649e-08,
+        "n_images": 48
+      }
+    },
+    "raw_soft_gate": {
+      "anomaly_gain": 0.009113550186157227,
+      "anomaly_gate_mean": 0.1085774302482605,
+      "anomaly_image_bootstrap": {
+        "ci95": [
+          0.0001223739527631551,
+          0.006877991836518049
+        ],
+        "mean": 0.0028798996936529875,
+        "n_images": 24
+      },
+      "normal_gain": -5.21540641784668e-08,
+      "normal_gate_mean": 1.4291569641500246e-05,
+      "normal_image_bootstrap": {
+        "ci95": [
+          -1.1371109565061488e-07,
+          -1.5502621408813866e-09
+        ],
+        "mean": -5.141676595599165e-08,
+        "n_images": 48
+      }
+    }
+  },
+  "excluded_without_evidence": {
+    "additional_dynamic_text_capacity": "Disallowed after strict Normal-safety failure; K2/OT/Router/ACT are not authorized.",
+    "foreground_background_separation": "No foreground/background annotations or audit evidence were available.",
+    "frequency_texture_adaptation": "No frequency or texture failure evidence was measured."
+  },
+  "next_action": "Stop. Do not train the visual candidate without a new explicit authorization.",
+  "provenance": {
+    "centered_audit_path": "runs/phase4/k1/stage1_9a/K1_MATURE_PHASE2B_CENTERED_GATE_AUDIT.json",
+    "centered_audit_sha256": "e920c22f33e17e7d09b412d67d1e814f3cd1b64305493c3be6d863588ed5bcb8",
+    "optimizer_steps": 0,
+    "raw_audit_path": "runs/phase4/k1/stage1_9a/K1_MATURE_PHASE2B_DIRECT_GATE_AUDIT.json",
+    "raw_audit_sha256": "876eb43ae6e8b0a05df4a35faa017fd83f9e80bd52e1f653f09cec120143459d",
+    "repo_sha": "bf355649b77324110649f86b7918127a37904ce7",
+    "script_sha256": "5d97388558e4e476a0bd16ba33b4a3453ac03a0e8b1a8b403be9d1f869b346fa"
+  },
+  "selected_future_candidate": {
+    "name": "VisualAD-style visual-only adaptation",
+    "not_implemented": true,
+    "why_this_one": "The mature Phase2B visual localization is strong and consistent, yet every permitted text-semantic residual gate remains strictly unsafe on Normal patches. The supported next question is therefore whether a visual-side adaptation can retain local evidence without a dynamic-text correction."
+  },
+  "terminal_text_semantic_state": "CALIBRATED_P2B_GATE_FAIL; PHASE4_TEXT_SEMANTIC_LINE_STOPPED"
+}
