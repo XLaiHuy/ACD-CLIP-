@@ -318,6 +318,8 @@ class ACDCLIP(nn.Module):
                 expert_max_relative_ratio=h6_expert_max_relative_ratio,
                 text_dim=768,
                 ctx_len=soft_prompt_ctx_len,
+                phase4v_bottleneck=kwargs.get("phase4v_bottleneck", 64),
+                phase4v_lambda=kwargs.get("phase4v_lambda", 0.05),
             )
 
     def _init_dfg_attention(self):

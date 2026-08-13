@@ -21,6 +21,7 @@ from .losses import (
     factor_stage_diagnostics,
 )
 from .router import PatchRouter
+from .visual_adaptation import ConditionalVisualAdapter
 from .semantic_bank import BoundedPositiveGate, CoPSSemanticCore, deterministic_slot_directions
 from .paired_experts import FOFSPairedSemanticExperts
 
@@ -103,6 +104,8 @@ class H6Progress1(nn.Module):
         expert_scale_start_epoch: int = 1,
         expert_scale_warmup_epochs: int = 6,
         expert_max_relative_ratio: float = 0.10,
+        phase4v_bottleneck: int = 64,
+        phase4v_lambda: float = 0.05,
         intrinsic_factor_responsibility: bool = False,
         text_dim: int = 768,
         ctx_len: int = 4,
@@ -187,8 +190,9 @@ class H6Progress1(nn.Module):
         if self.intrinsic_factor_responsibility and self.num_factors != 2:
             raise ValueError("intrinsic factor responsibility currently requires R2")
         self.progress_version = str(progress_version)
+        self.phase4v_enabled = self.progress_version == "P4V-K1"
         self.semantic_factorization_enabled = self.progress_version in {
-            "P4-CSF-K1", "P4-CSF-K1-NOOP"
+            "P4-CSF-K1", "P4-CSF-K1-NOOP", "P4V-K1"
         }
         self.k1_noop_selectivity_enabled = self.progress_version == "P4-CSF-K1-NOOP"
         self.expert_enabled = bool(expert_enabled)
@@ -290,6 +294,11 @@ class H6Progress1(nn.Module):
                 vae_class_ratio=vae_class_ratio,
             )
             if self.semantic_factorization_enabled
+            else None
+        )
+        self.visual_adapter = (
+            ConditionalVisualAdapter(text_dim, bank_dim, phase4v_bottleneck, phase4v_lambda)
+            if self.phase4v_enabled
             else None
         )
         if self.semantic_factorization_enabled:
@@ -580,6 +589,27 @@ class H6Progress1(nn.Module):
             debug=debug,
         )
 
+
+    def phase4v_state_code(self, base_model, visual_output: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        """Return controller-only CoPS contrast; never encode dynamic text."""
+        if not self.phase4v_enabled or self.conditional_semantic_core is None:
+            raise RuntimeError("Phase4-V visual controller is unavailable")
+        core = self.conditional_semantic_core(
+            visual_output["seg_tokens_pre_l2"],
+            visual_output["cls24"],
+            base_model.soft_prompt.ctx_normal,
+            base_model.soft_prompt.ctx_abnormal,
+        )
+        return {
+            "semantic_code": (core["prototype_abnormal"] - core["prototype_normal"]).squeeze(1),
+            "core": core,
+        }
+
+    def phase4v_adapt(self, patches: torch.Tensor, semantic_code: torch.Tensor, gate: torch.Tensor, **kwargs) -> Dict[str, torch.Tensor]:
+        if not self.phase4v_enabled or self.visual_adapter is None:
+            raise RuntimeError("Phase4-V visual adapter is unavailable")
+        return self.visual_adapter(patches, semantic_code, gate, **kwargs)
+
     @staticmethod
     def _batch_hard_embeddings(base_model, dataset_name: str, class_names: Sequence[str], device: torch.device):
         # Local import avoids an adapter -> h6 -> utils import cycle during module import.
@@ -755,6 +785,8 @@ class H6Progress1(nn.Module):
         """Create the unique dynamic factor bank and route every patch through it."""
         if len(class_names) != visual_output["cls24"].shape[0]:
             raise ValueError("class_names must have one entry per image")
+        if self.phase4v_enabled:
+            raise RuntimeError("P4V-K1 forbids dynamic-text batch construction; use phase4v_state_code only")
         if self.semantic_factorization_enabled:
             return self._build_conditional_semantic_batch(
                 base_model=base_model,
