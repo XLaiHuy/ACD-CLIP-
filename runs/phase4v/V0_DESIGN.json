@@ -1,0 +1,117 @@
+{
+  "decision": "PHASE4V_INTERFACE_DESIGN_PASS",
+  "exact_noop": {
+    "conditions": [
+      "Phase4V_OFF -> v_prime=v",
+      "lambda=0 -> v_prime=v",
+      "g=0 -> v_prime=v",
+      "delta_v=0 -> v_prime=v"
+    ],
+    "equation": "correction=lambda*g*delta_v; v_prime = v exactly if Phase4V is off or correction is exactly zero, else normalize(v+correction)",
+    "implementation_rule": "Use an explicit identity branch/torch.where for exact-zero correction; never renormalize v in a no-op case, so lambda=0, g=0, and delta_v=0 reproduce the bit-identical Phase2B feature."
+  },
+  "gradient_ownership": {
+    "dynamic_text": "not constructed or consumed by the Phase4V path",
+    "legacy_router_factor_act": "frozen/not executed/absent in the Phase4V path",
+    "main_task_to_conditional_core": "allowed after activation through c_I -> FiLM controller -> delta_v",
+    "main_task_to_phase2b": "allowed through unchanged predictor and v_prime",
+    "main_task_to_visual_adapter": "allowed after activation through delta_v",
+    "spatial_gate": "detached before multiplication; Phase4V cannot alter g"
+  },
+  "how": {
+    "controller_output_shape": [
+      2,
+      2,
+      64
+    ],
+    "input_shape": [
+      2,
+      1369,
+      768
+    ],
+    "lambda_fixed": 0.05,
+    "planned_bottleneck": 64,
+    "role": "one shared lightweight visual residual; no attention, patch classifier, Router, or experts",
+    "tensor": "delta_v = W_up(GELU((1 + gamma(c_I))*W_down(v) + beta(c_I)))"
+  },
+  "predictor_contract": {
+    "base_group_logits_shape": [
+      3,
+      2,
+      1369,
+      2
+    ],
+    "base_text_shape": [
+      3,
+      2,
+      768,
+      2
+    ],
+    "forbidden": [
+      "dynamic text logits",
+      "A0/A1 text selection",
+      "Router",
+      "Factor Bank",
+      "responsibility",
+      "ACT",
+      "OT"
+    ],
+    "unchanged": "Phase2B text features, DFG weights/logic, normal-vs-abnormal predictor, and loss remain unchanged; only its visual-token input may become v_prime after activation."
+  },
+  "provenance": {
+    "config_sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4",
+    "k1_checkpoint_path": "runs/phase4/k1/short64_seed0_attempt5/adapter_1.pth",
+    "k1_checkpoint_sha256": "1484047ed8bd4b4adc0d375654fd9caf60d34fd7c1dd423f18a26eaee4487839",
+    "main_model_optimizer_steps": 0,
+    "manifest_sha256": "32e47c21256447ca8a94cb647ccb8dad833b30a777ebdd3d50c06240d9e63ac1",
+    "precision": "strict FP32; TF32 off; AMP off",
+    "repo_sha": "882ff8ff5044d11245db5fd68b70440e1901b82f",
+    "script_sha256": "c4f7d7092144fa8a1ad89167f8fa5bc07fd2114618169d97b595c087a6bcd465",
+    "source_sha256": {
+      "model/adapter.py": "4bb2aa44a7443db4259a3657abb27c7d250da76c477371aebd9232e67f3f6ca7",
+      "model/h6/conditional_semantics.py": "2e57c613ca9c0b7453de5e395f15182847e427b4f7e1eb45e91a698b7e2b3baa",
+      "model/h6/model.py": "4f216c7b897ed4bf48cabd4e8dfff4305b51843b4916518de04ed4f2c434f0f5",
+      "tools/audit_p4v_interface.py": "c4f7d7092144fa8a1ad89167f8fa5bc07fd2114618169d97b595c087a6bcd465"
+    }
+  },
+  "residual_monitoring": {
+    "required": [
+      "mean_norm_delta_v",
+      "mean_norm_lambda_g_delta_v",
+      "mean_relative_correction_to_base"
+    ],
+    "safety_rule": "Stop before training if correction norm becomes comparable to base feature norm; no lambda sweep is permitted."
+  },
+  "runtime_probe": {
+    "batch_size": 2,
+    "class_names": [
+      "candle",
+      "candle"
+    ]
+  },
+  "what": {
+    "requires_grad": true,
+    "role": "one image-level CoPS normal-vs-abnormal state contrast; no base posterior or patch gate enters this code",
+    "shape": [
+      2,
+      256
+    ],
+    "source": "ConditionalSemanticCore over multi-level seg_tokens_pre_l2 with separate normal/abnormal prototype queries",
+    "tensor": "prototype_abnormal - prototype_normal"
+  },
+  "where": {
+    "range": [
+      0.012762864120304585,
+      0.028755679726600647
+    ],
+    "requires_grad": false,
+    "role": "per-patch local anomaly probability; WHERE only",
+    "shape": [
+      3,
+      2,
+      1369
+    ],
+    "source": "ACDCLIP.vision_text_fusion_gate_seg on original seg_tokens with unchanged Phase2B text and DFG",
+    "tensor": "stopgrad(softmax(base_group_logits, dim=-1)[..., abnormal])"
+  }
+}
