@@ -1,0 +1,39 @@
+{
+  "decision": "PHASE4_TEXT_SEMANTIC_LINE_STOPPED",
+  "basis": {
+    "conditional_anomaly_utility": {
+      "patch_mean": 0.484354704618454,
+      "fraction_a1_better": 0.6843658089637756
+    },
+    "normal_utility": {
+      "patch_mean": -0.1654464453458786,
+      "fraction_a1_better": 0.0
+    },
+    "selector_audit": {
+      "raw_affinity_all_patch_auroc": 0.5233355670591705,
+      "tangent_residual_all_patch_auroc": 0.4695941933075409,
+      "contrastive_local_anomaly_patch_auroc": 0.4983618004082071,
+      "raw_state_magnitude_image_utility_pearson": 0.043842896819114685,
+      "raw_class_magnitude_image_utility_pearson": 0.044539015740156174
+    },
+    "direct_gate": {
+      "normal_gain": -0.0015095621347427368,
+      "anomaly_gain": 0.016537189483642578,
+      "normal_gate_mean": 0.5528937578201294,
+      "anomaly_gate_mean": 0.5526671409606934
+    },
+    "base_local_visual_evidence": {
+      "patch_anomaly_auroc": 0.5164123132894306,
+      "posterior_normal_mean": 0.025715414434671402,
+      "posterior_anomaly_mean": 0.026243604719638824
+    }
+  },
+  "next_action": "Do not implement another K1 selector. The one future pivot is an inference-only visual-only adaptation audit; it is not implemented by this decision.",
+  "prohibited_next_actions": ["Stage1.8", "K2", "OT", "Router", "ACT", "E20", "medical_evaluation"],
+  "source_artifacts": [
+    "visa_train_audit_manifest.json",
+    "K1_ORACLE_UTILITY_AUDIT.json",
+    "K1_DIRECT_RESIDUAL_GATE_AUDIT.json",
+    "K1_VISUAL_TEXT_PIVOT_AUDIT.json"
+  ]
+}
