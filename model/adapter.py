@@ -491,20 +491,14 @@ class ACDCLIP(nn.Module):
             img_feat = 10 * img_feat
             # [n_groups, bs, 768, 2] -> [bs, n_groups, 768, 2]
             group_text_features = text_features.permute(1, 0, 2, 3)
-            if self.dfg_mode == "mlp":
-                gate_weights = self.image_adapter["vision_text_gate"][i](
-                    vision_tokens[i].mean(dim=1, keepdim=True)
-                ).squeeze(1)  # [bs, 2 * n_groups]
-                gate_weights = gate_weights.view(B, self.n_groups, 2)  # [bs, n_groups, 2]
-                gate_weights = F.softmax(gate_weights, dim=1)
-                group_text_features = group_text_features * gate_weights.unsqueeze(2)  # [bs, n_groups, 768, 2]
-                group_text_features = group_text_features.sum(dim=1)  # [bs, 768, 2]
-            else:
-                group_text_features = self._vision_text_attention_fusion(
-                    vision_tokens[i],
-                    group_text_features,
-                    i,
-                )
+            dfg_weights = self.compute_dfg_weights(
+                vision_tokens[i], group_text_features, i
+            )
+            group_text_features = self.apply_dfg_weights(
+                group_text_features,
+                dfg_weights["normal"],
+                dfg_weights["abnormal"],
+            )
             fused_feature = torch.matmul(img_feat, group_text_features)  # [bs, patch_num, 2]
             if return_details:
                 base_group_logits_list.append(fused_feature.clone())
@@ -560,12 +554,31 @@ class ACDCLIP(nn.Module):
             
         return final_seg_pred
 
-    def _vision_text_attention_fusion(
+    def compute_dfg_weights(
             self,
             img_feat: torch.Tensor,
             group_text_features: torch.Tensor,
             group_index: int,
     ):
+        """Compute auditable base DFG weights without applying them to text.
+
+        Returned weights have shape ``[B, n_groups]`` for Normal and
+        Abnormal independently. The method preserves the historical Phase2B
+        computation for both MLP and attention DFG modes.
+        """
+        if group_text_features.ndim != 4 or group_text_features.shape[-1] != 2:
+            raise ValueError("group_text_features must be [B,G,D,2]")
+        if self.dfg_mode == "mlp":
+            gate_weights = self.image_adapter["vision_text_gate"][group_index](
+                img_feat.mean(dim=1, keepdim=True)
+            ).squeeze(1)
+            gate_weights = gate_weights.view(img_feat.shape[0], self.n_groups, 2)
+            gate_weights = F.softmax(gate_weights, dim=1)
+            return {
+                "normal": gate_weights[..., 0],
+                "abnormal": gate_weights[..., 1],
+            }
+
         v_gap = img_feat.mean(dim=1)  # [bs, 768]
         v_global = v_gap
         gamma = None
@@ -669,11 +682,47 @@ class ACDCLIP(nn.Module):
             "scores_ss2d_abnormal_finite": None if scores_ss2d_abnormal is None else torch.isfinite(scores_ss2d_abnormal).all().detach().cpu(),
             "scores_ss2d_abnormal_absmax": None if scores_ss2d_abnormal is None else scores_ss2d_abnormal.detach().float().abs().max().cpu(),
         }
-        text_normal = torch.einsum("bn,bnd->bd", weights_normal, text_normal)
-        text_abnormal = torch.einsum("bn,bnd->bd", weights_abnormal, text_abnormal)
-        text_normal = F.normalize(text_normal, dim=-1)
-        text_abnormal = F.normalize(text_abnormal, dim=-1)
+        return {"normal": weights_normal, "abnormal": weights_abnormal}
+
+    def apply_dfg_weights(
+            self,
+            group_text_features: torch.Tensor,
+            weights_normal: torch.Tensor,
+            weights_abnormal: torch.Tensor,
+    ) -> torch.Tensor:
+        """Apply precomputed cross-level DFG weights and normalize the result."""
+        if group_text_features.ndim != 4 or group_text_features.shape[-1] != 2:
+            raise ValueError("group_text_features must be [B,G,D,2]")
+        expected = group_text_features.shape[:2]
+        if weights_normal.shape != expected or weights_abnormal.shape != expected:
+            raise ValueError(
+                f"DFG weights must be {expected}, got "
+                f"{tuple(weights_normal.shape)} and {tuple(weights_abnormal.shape)}"
+            )
+        text_normal = torch.einsum(
+            "bn,bnd->bd", weights_normal, group_text_features[..., 0]
+        )
+        text_abnormal = torch.einsum(
+            "bn,bnd->bd", weights_abnormal, group_text_features[..., 1]
+        )
+        # Historical Phase2B normalized attention-DFG values, while the
+        # original MLP-DFG path used the weighted sum directly.
+        if self.dfg_mode != "mlp":
+            text_normal = F.normalize(text_normal, dim=-1)
+            text_abnormal = F.normalize(text_abnormal, dim=-1)
         return torch.stack([text_normal, text_abnormal], dim=-1)  # [bs, 768, 2]
+
+    def _vision_text_attention_fusion(
+            self,
+            img_feat: torch.Tensor,
+            group_text_features: torch.Tensor,
+            group_index: int,
+    ):
+        """Backward-compatible wrapper around the explicit DFG interface."""
+        weights = self.compute_dfg_weights(img_feat, group_text_features, group_index)
+        return self.apply_dfg_weights(
+            group_text_features, weights["normal"], weights["abnormal"]
+        )
 
     @staticmethod
     def _attention_scores(query: torch.Tensor, key: torch.Tensor, scale: float):

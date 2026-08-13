@@ -8,6 +8,10 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
+from .conditional_semantics import (
+    ConditionalSemanticCore,
+    predictor_aligned_abnormal_residual,
+)
 from .losses import (
     compute_final_expert_hard_cosine,
     dynamic_residual_diagnostics,
@@ -183,6 +187,7 @@ class H6Progress1(nn.Module):
         if self.intrinsic_factor_responsibility and self.num_factors != 2:
             raise ValueError("intrinsic factor responsibility currently requires R2")
         self.progress_version = str(progress_version)
+        self.semantic_factorization_enabled = self.progress_version == "P4-CSF-K1"
         self.expert_enabled = bool(expert_enabled)
         self.expert_bottleneck = int(expert_bottleneck)
         self.expert_fofs_seed_offset = int(expert_fofs_seed_offset)
@@ -198,6 +203,25 @@ class H6Progress1(nn.Module):
         self.cluster_temperature = float(cluster_temperature)
         if self.cluster_temperature <= 0:
             raise ValueError("cluster_temperature must be positive")
+        if self.semantic_factorization_enabled:
+            forbidden = {
+                "num_factors": self.num_factors != 1,
+                "top_k": self.top_k != 1,
+                "role_topology": self.role_topology != "flat",
+                "expert_enabled": self.expert_enabled,
+                "intrinsic_factor_responsibility": self.intrinsic_factor_responsibility,
+                "cluster_responsibility_enabled": self.cluster_responsibility_enabled,
+                "late_factor_identity_enabled": self.late_factor_identity_enabled,
+                "factor_generator_specialization_enabled": self.factor_generator_specialization_enabled,
+                "router_boundary_mode": self.router_boundary_mode != "none",
+                "local_factor_mode": self.local_factor_mode != "legacy_mix",
+            }
+            active = [name for name, enabled in forbidden.items() if enabled]
+            if active:
+                raise ValueError(
+                    "P4-CSF-K1 forbids legacy factor/router/expert paths: "
+                    + ", ".join(active)
+                )
         self.semantic_core = CoPSSemanticCore(
             n_groups=n_groups,
             num_factors=num_factors,
@@ -252,6 +276,24 @@ class H6Progress1(nn.Module):
             boundary_mode=router_boundary_mode,
             boundary_trust_scale=router_boundary_trust_scale,
         )
+        self.conditional_semantic_core = (
+            ConditionalSemanticCore(
+                n_groups=n_groups,
+                bank_dim=bank_dim,
+                text_dim=text_dim,
+                ctx_len=ctx_len,
+                vae_hidden_dim=vae_hidden_dim,
+                vae_latent_dim=vae_latent_dim,
+                vae_class_ratio=vae_class_ratio,
+            )
+            if self.semantic_factorization_enabled
+            else None
+        )
+        if self.semantic_factorization_enabled:
+            # Retain legacy modules only so old state-dict layouts remain
+            # loadable. They are neither trainable nor executed in P4-CSF-K1.
+            self.semantic_core.requires_grad_(False)
+            self.router.requires_grad_(False)
         if self.intrinsic_factor_responsibility:
             # Retained solely for legacy checkpoint load compatibility; it is
             # neither executed nor optimized by the intrinsic production path.
@@ -291,16 +333,26 @@ class H6Progress1(nn.Module):
     def config_dict(self) -> Dict[str, int | float | str]:
         is_v83 = self.progress_version == "P1-v8.3"
         is_v84a = self.progress_version == "P1-v8.4-A"
+        is_p4_csf = self.semantic_factorization_enabled
         is_structured_utility = is_v83 or is_v84a
         return {
             "variant": (
-                "p1_v8_4_a_true_residual_act" if is_v84a
+                "p4_conditional_semantic_k1" if is_p4_csf
+                else "p1_v8_4_a_true_residual_act" if is_v84a
                 else
                 "p1_v8_3_structured_utility_routing" if is_v83
                 else "p1_v7_full_fofs_paired_semantic_moe" if self.expert_enabled
                 else "p1_v6_structural_specialization"
             ),
             "progress_version": self.progress_version,
+            "semantic_factorization_enabled": is_p4_csf,
+            "conditioning_path": "context_only" if is_p4_csf else "legacy",
+            "semantic_bank_count": 1 if is_p4_csf else self.num_factors,
+            "legacy_router_active": False if is_p4_csf else not self.intrinsic_factor_responsibility,
+            "legacy_factor_roles_active": False if is_p4_csf else self.role_topology != "flat",
+            "predictor_residual": (
+                "dynamic_abnormal_minus_stopgrad_base_abnormal" if is_p4_csf else None
+            ),
             "progress": self.progress,
             "n_groups": self.n_groups,
             "num_factors": self.num_factors,
@@ -692,10 +744,24 @@ class H6Progress1(nn.Module):
         hybrid_alpha: float,
         debug: bool = False,
         update_load_bias: bool | None = None,
+        base_text_features: torch.Tensor | None = None,
+        state_scale: float = 1.0,
+        class_scale: float = 1.0,
     ) -> Dict[str, torch.Tensor]:
         """Create the unique dynamic factor bank and route every patch through it."""
         if len(class_names) != visual_output["cls24"].shape[0]:
             raise ValueError("class_names must have one entry per image")
+        if self.semantic_factorization_enabled:
+            return self._build_conditional_semantic_batch(
+                base_model=base_model,
+                dataset_name=dataset_name,
+                class_names=class_names,
+                visual_output=visual_output,
+                base_text_features=base_text_features,
+                state_scale=state_scale,
+                class_scale=class_scale,
+                debug=debug,
+            )
         core = self.forward_core(
             visual_output,
             base_model.soft_prompt.ctx_normal,
@@ -1103,6 +1169,128 @@ class H6Progress1(nn.Module):
             },
         }
 
+    def _build_conditional_semantic_batch(
+        self,
+        *,
+        base_model,
+        dataset_name: str,
+        class_names: Sequence[str],
+        visual_output: Dict[str, torch.Tensor],
+        base_text_features: torch.Tensor | None,
+        state_scale: float,
+        class_scale: float,
+        debug: bool,
+    ) -> Dict[str, torch.Tensor]:
+        """Build the Stage-0 K1 context path in the frozen base DFG frame."""
+        if self.conditional_semantic_core is None:
+            raise RuntimeError("conditional semantic core is unavailable")
+        if self.num_factors != 1 or self.residual_act_enabled:
+            raise RuntimeError("P4-CSF-K1 requires K=1 and ACT disabled")
+        if self.paired_experts is not None or self.intrinsic_factor_responsibility:
+            raise RuntimeError("P4-CSF-K1 cannot execute legacy experts or responsibility")
+        if any(parameter.requires_grad for parameter in self.router.parameters()):
+            raise RuntimeError("legacy Router must remain frozen in P4-CSF-K1")
+        if any(parameter.requires_grad for parameter in self.semantic_core.parameters()):
+            raise RuntimeError("legacy semantic factor core must remain frozen in P4-CSF-K1")
+
+        if base_text_features is None:
+            from utils import get_phase2b_global_text_features
+
+            base_text_features = get_phase2b_global_text_features(
+                base_model,
+                dataset_name,
+                class_names,
+                visual_output["cls24"].device,
+                use_hybrid_soft_prompt=getattr(base_model, "use_hybrid_soft_prompt", False),
+                use_soft_prompt=getattr(base_model, "use_soft_prompt", False),
+            )
+        expected_base_shape = (
+            self.n_groups,
+            len(class_names),
+            self.text_dim,
+            2,
+        )
+        if tuple(base_text_features.shape) != expected_base_shape:
+            raise ValueError(
+                f"base_text_features must be {expected_base_shape}, "
+                f"got {tuple(base_text_features.shape)}"
+            )
+
+        core = self.conditional_semantic_core(
+            visual_output["seg_tokens_pre_l2"],
+            visual_output["cls24"],
+            base_model.soft_prompt.ctx_normal,
+            base_model.soft_prompt.ctx_abnormal,
+            state_scale=state_scale,
+            class_scale=class_scale,
+            debug=debug,
+        )
+        dynamic_text, dynamic_text_raw = self._encode_dynamic_bank(
+            base_model,
+            dataset_name,
+            class_names,
+            core["dynamic_contexts"],
+            structured=False,
+            return_raw=True,
+        )
+        dynamic_text = dynamic_text.squeeze(2)
+        dynamic_text_raw = dynamic_text_raw.squeeze(2)
+        base_cross_level = base_text_features.permute(1, 0, 2, 3).float()
+        dynamic_cross_level = dynamic_text.permute(1, 0, 2, 3).float()
+
+        base_logits = []
+        dynamic_abnormal_logits = []
+        normal_weights = []
+        abnormal_weights = []
+        for group_index, group_patches in enumerate(visual_output["seg_tokens"]):
+            weights = base_model.compute_dfg_weights(
+                group_patches, base_cross_level, group_index
+            )
+            weight_normal = weights["normal"].detach()
+            weight_abnormal = weights["abnormal"].detach()
+            normal_weights.append(weight_normal)
+            abnormal_weights.append(weight_abnormal)
+            base_dfg_text = base_model.apply_dfg_weights(
+                base_cross_level, weight_normal, weight_abnormal
+            )
+            dynamic_dfg_text = base_model.apply_dfg_weights(
+                dynamic_cross_level, weight_normal, weight_abnormal
+            )
+            scaled_patches = 10.0 * group_patches.float()
+            base_logits.append(torch.matmul(scaled_patches, base_dfg_text.float()))
+            dynamic_abnormal_logits.append(
+                torch.einsum(
+                    "bpd,bd->bp", scaled_patches, dynamic_dfg_text[..., 1].float()
+                )
+            )
+
+        base_group_logits = torch.stack(base_logits, dim=0)
+        dynamic_abnormal = torch.stack(dynamic_abnormal_logits, dim=0)
+        predictor = predictor_aligned_abnormal_residual(
+            base_group_logits,
+            dynamic_abnormal,
+            self.rho_values(),
+        )
+        residual = predictor["predictor_residual_logits"]
+        return {
+            **core,
+            **predictor,
+            "base_text_features": base_text_features,
+            "dynamic_text": dynamic_text,
+            "dynamic_text_raw": dynamic_text_raw,
+            "base_group_logits": base_group_logits,
+            "dynamic_abnormal_logits": dynamic_abnormal,
+            "base_dfg_weights_normal": torch.stack(normal_weights, dim=0),
+            "base_dfg_weights_abnormal": torch.stack(abnormal_weights, dim=0),
+            "h6_logits": residual,
+            "factor_patch_logits": dynamic_abnormal.unsqueeze(-1),
+            "rho": self.rho_values(),
+            "residual_act_enabled": torch.tensor(False, device=residual.device),
+            "legacy_router_executed": torch.tensor(False, device=residual.device),
+            "legacy_factor_core_executed": torch.tensor(False, device=residual.device),
+            "conditioning_path_count": torch.tensor(1, device=residual.device),
+        }
+
     def h6_logit(self, normalized_patches: torch.Tensor, local_text: torch.Tensor) -> torch.Tensor:
         normal = local_text[..., 0]
         abnormal = local_text[..., 1]
@@ -1112,6 +1300,26 @@ class H6Progress1(nn.Module):
 
     def parameter_partitions(self) -> Dict[str, Iterable[nn.Parameter]]:
         """Named optimizer partitions matching the Progress 1 protocol."""
+        if self.semantic_factorization_enabled:
+            core = self.conditional_semantic_core
+            if core is None:
+                raise RuntimeError("conditional semantic core is unavailable")
+            return {
+                "h6_projectors": core.level_projectors.parameters(),
+                "h6_concepts": [core.level_embedding, core.normal_query, core.abnormal_query],
+                "h6_prototype": list(core.prototype_attention.parameters())
+                + list(core.normal_state_update.parameters())
+                + list(core.abnormal_state_update.parameters()),
+                "h6_vae": core.class_vae.parameters(),
+                "h6_dynamic_prompt": list(core.state_to_context_normal.parameters())
+                + list(core.state_to_context_abnormal.parameters())
+                + list(core.class_to_context.parameters()),
+                "h6_gates": list(core.gamma_state.parameters())
+                + list(core.gamma_class.parameters()),
+                "h6_router": [],
+                "h6_late_factor_identity": [],
+                "h6_factor_generator": [],
+            }
         partitions = {
             "h6_projectors": self.semantic_core.level_projectors.parameters(),
             "h6_concepts": list(self.semantic_core.normal_query.parameters())
