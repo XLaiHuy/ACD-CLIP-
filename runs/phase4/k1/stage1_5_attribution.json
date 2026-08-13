@@ -1,0 +1,386 @@
+{
+  "checkpoint": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase4/k1/short64_seed0_attempt5/adapter_1.pth",
+  "checkpoint_git_sha": "5b28204f998e7ebb5f5067f59c9eb74b3ad4fd75",
+  "conditions": {
+    "BASE": {
+      "bce": {
+        "base": {
+          "all": {
+            "count": 11208,
+            "mean": 0.022914744913578033,
+            "std": 0.11178067326545715
+          },
+          "anomaly": {
+            "count": 15,
+            "mean": 2.900567054748535,
+            "std": 0.6802176833152771
+          },
+          "normal": {
+            "count": 11193,
+            "mean": 0.019058337435126305,
+            "std": 0.027916211634874344
+          }
+        },
+        "dynamic": {
+          "all": {
+            "count": 11208,
+            "mean": 0.022914744913578033,
+            "std": 0.11178067326545715
+          },
+          "anomaly": {
+            "count": 15,
+            "mean": 2.900567054748535,
+            "std": 0.6802176833152771
+          },
+          "normal": {
+            "count": 11193,
+            "mean": 0.019058337435126305,
+            "std": 0.027916211634874344
+          }
+        },
+        "final": {
+          "all": {
+            "count": 11208,
+            "mean": 0.022914744913578033,
+            "std": 0.11178067326545715
+          },
+          "anomaly": {
+            "count": 15,
+            "mean": 2.900567054748535,
+            "std": 0.6802176833152771
+          },
+          "normal": {
+            "count": 11193,
+            "mean": 0.019058337435126305,
+            "std": 0.027916211634874344
+          }
+        }
+      },
+      "confidence_correlation": {
+        "abs_delta_vs_base_anomaly_probability_anomaly": null,
+        "abs_delta_vs_base_anomaly_probability_normal": null
+      },
+      "gain_base_minus_final": {
+        "all": 0.0,
+        "anomaly": 0.0,
+        "normal": 0.0
+      },
+      "residual": {
+        "max_abs_delta": 0.0,
+        "mean": 0.0,
+        "mean_abs_delta_anomaly": 0.0,
+        "mean_abs_delta_normal": 0.0,
+        "mean_signed_delta_anomaly": 0.0,
+        "mean_signed_delta_normal": 0.0,
+        "negative_fraction": 0.0,
+        "positive_fraction": 0.0,
+        "selectivity_ratio": 0.0,
+        "std": 0.0
+      }
+    },
+    "CLASS_ONLY": {
+      "bce": {
+        "base": {
+          "all": {
+            "count": 11208,
+            "mean": 0.022914744913578033,
+            "std": 0.11178067326545715
+          },
+          "anomaly": {
+            "count": 15,
+            "mean": 2.900567054748535,
+            "std": 0.6802176833152771
+          },
+          "normal": {
+            "count": 11193,
+            "mean": 0.019058337435126305,
+            "std": 0.027916211634874344
+          }
+        },
+        "dynamic": {
+          "all": {
+            "count": 11208,
+            "mean": 0.1709091067314148,
+            "std": 0.06629332900047302
+          },
+          "anomaly": {
+            "count": 15,
+            "mean": 1.5051345825195312,
+            "std": 0.323798805475235
+          },
+          "normal": {
+            "count": 11193,
+            "mean": 0.16912108659744263,
+            "std": 0.04325922951102257
+          }
+        },
+        "final": {
+          "all": {
+            "count": 11208,
+            "mean": 0.025006018579006195,
+            "std": 0.10885651409626007
+          },
+          "anomaly": {
+            "count": 15,
+            "mean": 2.826939105987549,
+            "std": 0.6621977686882019
+          },
+          "normal": {
+            "count": 11193,
+            "mean": 0.02125108428299427,
+            "std": 0.02725421078503132
+          }
+        }
+      },
+      "confidence_correlation": {
+        "abs_delta_vs_base_anomaly_probability_anomaly": -0.25101131200790405,
+        "abs_delta_vs_base_anomaly_probability_normal": 0.5698643326759338
+      },
+      "gain_base_minus_final": {
+        "all": -0.0020912736654281616,
+        "anomaly": 0.07362794876098633,
+        "normal": -0.0021927468478679657
+      },
+      "residual": {
+        "max_abs_delta": 0.12595605850219727,
+        "mean": 0.1141924187541008,
+        "mean_abs_delta_anomaly": 0.10948999971151352,
+        "mean_abs_delta_normal": 0.1141987219452858,
+        "mean_signed_delta_anomaly": 0.10948999971151352,
+        "mean_signed_delta_normal": 0.1141987219452858,
+        "negative_fraction": 0.0,
+        "positive_fraction": 1.0,
+        "selectivity_ratio": 0.9587672948211426,
+        "std": 0.004655351396650076
+      }
+    },
+    "FULL": {
+      "bce": {
+        "base": {
+          "all": {
+            "count": 11208,
+            "mean": 0.022914744913578033,
+            "std": 0.11178067326545715
+          },
+          "anomaly": {
+            "count": 15,
+            "mean": 2.900567054748535,
+            "std": 0.6802176833152771
+          },
+          "normal": {
+            "count": 11193,
+            "mean": 0.019058337435126305,
+            "std": 0.027916211634874344
+          }
+        },
+        "dynamic": {
+          "all": {
+            "count": 11208,
+            "mean": 0.16424240171909332,
+            "std": 0.06697172671556473
+          },
+          "anomaly": {
+            "count": 15,
+            "mean": 1.5359675884246826,
+            "std": 0.33225688338279724
+          },
+          "normal": {
+            "count": 11193,
+            "mean": 0.1624041348695755,
+            "std": 0.042641352862119675
+          }
+        },
+        "final": {
+          "all": {
+            "count": 11208,
+            "mean": 0.0249637458473444,
+            "std": 0.10892827808856964
+          },
+          "anomaly": {
+            "count": 15,
+            "mean": 2.828749418258667,
+            "std": 0.6626327037811279
+          },
+          "normal": {
+            "count": 11193,
+            "mean": 0.02120632864534855,
+            "std": 0.027271458879113197
+          }
+        }
+      },
+      "confidence_correlation": {
+        "abs_delta_vs_base_anomaly_probability_anomaly": -0.2511066794395447,
+        "abs_delta_vs_base_anomaly_probability_normal": 0.6130009889602661
+      },
+      "gain_base_minus_final": {
+        "all": -0.002049000933766365,
+        "anomaly": 0.07181763648986816,
+        "normal": -0.0021479912102222443
+      },
+      "residual": {
+        "max_abs_delta": 0.12386655807495117,
+        "mean": 0.11190296709537506,
+        "mean_abs_delta_anomaly": 0.10679100453853607,
+        "mean_abs_delta_normal": 0.11190982908010483,
+        "mean_signed_delta_anomaly": 0.10679100453853607,
+        "mean_signed_delta_normal": 0.11190982908010483,
+        "negative_fraction": 0.0,
+        "positive_fraction": 1.0,
+        "selectivity_ratio": 0.9542593837945663,
+        "std": 0.004858918953686953
+      }
+    },
+    "STATE_ONLY": {
+      "bce": {
+        "base": {
+          "all": {
+            "count": 11208,
+            "mean": 0.022914744913578033,
+            "std": 0.11178067326545715
+          },
+          "anomaly": {
+            "count": 15,
+            "mean": 2.900567054748535,
+            "std": 0.6802176833152771
+          },
+          "normal": {
+            "count": 11193,
+            "mean": 0.019058337435126305,
+            "std": 0.027916211634874344
+          }
+        },
+        "dynamic": {
+          "all": {
+            "count": 11208,
+            "mean": 0.16395197808742523,
+            "std": 0.06709770858287811
+          },
+          "anomaly": {
+            "count": 15,
+            "mean": 1.5392143726348877,
+            "std": 0.3332315981388092
+          },
+          "normal": {
+            "count": 11193,
+            "mean": 0.16210894286632538,
+            "std": 0.042676571756601334
+          }
+        },
+        "final": {
+          "all": {
+            "count": 11208,
+            "mean": 0.02496194653213024,
+            "std": 0.10893569886684418
+          },
+          "anomaly": {
+            "count": 15,
+            "mean": 2.8289384841918945,
+            "std": 0.6626793146133423
+          },
+          "normal": {
+            "count": 11193,
+            "mean": 0.02120427042245865,
+            "std": 0.02727326564490795
+          }
+        }
+      },
+      "confidence_correlation": {
+        "abs_delta_vs_base_anomaly_probability_anomaly": -0.2498149275779724,
+        "abs_delta_vs_base_anomaly_probability_normal": 0.6145053505897522
+      },
+      "gain_base_minus_final": {
+        "all": -0.002047201618552208,
+        "anomaly": 0.07162857055664062,
+        "normal": -0.002145932987332344
+      },
+      "residual": {
+        "max_abs_delta": 0.12366247177124023,
+        "mean": 0.11178798228502274,
+        "mean_abs_delta_anomaly": 0.1065092533826828,
+        "mean_abs_delta_normal": 0.11179506033658981,
+        "mean_signed_delta_anomaly": 0.1065092533826828,
+        "mean_signed_delta_normal": 0.11179506033658981,
+        "negative_fraction": 0.0,
+        "positive_fraction": 1.0,
+        "selectivity_ratio": 0.9527187790051489,
+        "std": 0.004936470650136471
+      }
+    }
+  },
+  "decision": "K1_SELECTIVITY_BOTTLENECK",
+  "geometry_replay": {
+    "1": {
+      "class_names": [
+        "candle"
+      ],
+      "mask_max_abs_error_vs_saved_probe": 0.0,
+      "valid_mask_max_abs_error_vs_saved_probe": 0.0
+    },
+    "32": {
+      "class_names": [
+        "pcb3"
+      ],
+      "mask_max_abs_error_vs_saved_probe": 0.0,
+      "valid_mask_max_abs_error_vs_saved_probe": 0.0
+    },
+    "64": {
+      "class_names": [
+        "pcb4"
+      ],
+      "mask_max_abs_error_vs_saved_probe": 0.0,
+      "valid_mask_max_abs_error_vs_saved_probe": 0.0
+    }
+  },
+  "inference_only": true,
+  "invariants": {
+    "amp": false,
+    "fp32": true,
+    "legacy_factor_core_trainable": false,
+    "legacy_router_trainable": false,
+    "rho": [
+      0.05000000074505806,
+      0.05000000074505806,
+      0.05000000074505806
+    ],
+    "tf32_cudnn": false,
+    "tf32_matmul": false
+  },
+  "next_authorized_hypothesis": "Stage 1.6 K1 plus exact-base NO-OP selectivity gate",
+  "probe_batches": [
+    1,
+    32,
+    64
+  ],
+  "semantic_geometry": {
+    "class_applied_l2": {
+      "count": 12,
+      "mean": 0.02000245451927185,
+      "std": 5.376993295058696e-10
+    },
+    "class_delta_raw_l2": {
+      "count": 24,
+      "mean": 0.8149991035461426,
+      "std": 0.01087594497948885
+    },
+    "dynamic_base_cosine": {
+      "count": 54,
+      "mean": 0.5043798089027405,
+      "std": 0.2582807242870331
+    },
+    "state_applied_l2": {
+      "count": 24,
+      "mean": 0.04999019205570221,
+      "std": 1.7003546348703935e-09
+    },
+    "state_class_cosine": {
+      "count": 24,
+      "mean": -0.005152745638042688,
+      "std": 0.04369354620575905
+    },
+    "state_delta_raw_l2": {
+      "count": 24,
+      "mean": 3.2378931045532227,
+      "std": 0.14035895466804504
+    }
+  }
+}

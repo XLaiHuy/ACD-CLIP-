@@ -1,0 +1,51 @@
+{
+  "batch_size": 1,
+  "checks": {
+    "all_outputs_finite": true,
+    "amp_enabled": false,
+    "dfg_logit_reconstruction_max_abs_error": 0.0,
+    "dfg_text_reconstruction_max_abs_error": 0.0,
+    "dtype": "torch.float32",
+    "grad_class_to_context": 14.600516378879547,
+    "grad_cops_state": 21.08325333893299,
+    "grad_dynamic_text": 57.56184768676758,
+    "grad_legacy_factor_core": 0.0,
+    "grad_legacy_router": 0.0,
+    "grad_state_to_context": 21.208244621753693,
+    "grad_vae": 1.2855380326509476,
+    "noop_a0_exact_base_max_abs_error": 4.172325134277344e-07,
+    "noop_a1_equals_a0_delta_max_abs": 4.172325134277344e-07,
+    "noop_alpha0_forced_final_base_max_abs_error": 2.9802322387695312e-08,
+    "noop_alpha_sum_max_abs_error": 5.960464477539063e-08,
+    "normal_invariant_max_abs_error": 0.0,
+    "phase2b_logit_max_abs_error": 0.0,
+    "rho": [
+      0.05000000074505806,
+      0.05000000074505806,
+      0.05000000074505806
+    ],
+    "tf32_cudnn": false,
+    "tf32_matmul": false,
+    "zero_final_base_max_abs_error": 0.0,
+    "zero_residual_max_abs": 0.0
+  },
+  "class_names": [
+    "fryum"
+  ],
+  "dataset": "VisA",
+  "decision": "K1_NOOP_ZERO_STEP_PASS",
+  "fresh_initialization": "OpenAI CLIP only",
+  "optimizer_steps": 0,
+  "split": "train",
+  "telemetry": {
+    "alpha_dynamic_mean": 0.4998962879180908,
+    "alpha_entropy_mean": 0.6931470632553101,
+    "alpha_noop_mean": 0.5001037120819092,
+    "class_delta_l2_mean": 0.827208936214447,
+    "delta_abs_max": 0.012213084846735,
+    "delta_mean": -0.0020750786643475294,
+    "delta_std": 0.004233682062476873,
+    "dynamic_text_base_cosine": 0.7306098937988281,
+    "state_delta_l2_mean": 3.517393112182617
+  }
+}
