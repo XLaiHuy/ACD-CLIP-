@@ -1,0 +1,392 @@
+{
+  "ablation": {
+    "BASE": {
+      "all_finite": true,
+      "anomaly_bce": 7.319950103759766,
+      "geometry": {
+        "anomaly_sim_anomaly": -0.3259311616420746,
+        "anomaly_sim_normal": 0.12181806564331055,
+        "normal_sim_anomaly": -0.3313541114330292,
+        "normal_sim_normal": 0.15257848799228668
+      },
+      "max_relative_correction": 0.0,
+      "mean_relative_correction": 0.0,
+      "normal_bce": 0.0015593672869727015,
+      "per_class": {
+        "candle": {
+          "anomaly_bce": 8.803564071655273,
+          "normal_bce": 8.894078200682998e-05,
+          "pixel_ap_macro": 0.13098928332328796,
+          "pixel_auc_macro": 0.9931291341781616
+        },
+        "capsules": {
+          "anomaly_bce": 8.909339904785156,
+          "normal_bce": 0.00010902794019784778,
+          "pixel_ap_macro": 0.24523913860321045,
+          "pixel_auc_macro": 0.9940286874771118
+        },
+        "cashew": {
+          "anomaly_bce": 8.991256713867188,
+          "normal_bce": 8.010250894585624e-05,
+          "pixel_ap_macro": 0.1887398660182953,
+          "pixel_auc_macro": 0.9980566501617432
+        },
+        "chewinggum": {
+          "anomaly_bce": 7.60103702545166,
+          "normal_bce": 0.00030503550078719854,
+          "pixel_ap_macro": 0.7513623237609863,
+          "pixel_auc_macro": 0.9987674951553345
+        },
+        "fryum": {
+          "anomaly_bce": 7.586467266082764,
+          "normal_bce": 0.0004056316684000194,
+          "pixel_ap_macro": 0.16698428988456726,
+          "pixel_auc_macro": 0.9516557455062866
+        },
+        "macaroni1": {
+          "anomaly_bce": 8.53668212890625,
+          "normal_bce": 0.00015429159975610673,
+          "pixel_ap_macro": 0.10667239874601364,
+          "pixel_auc_macro": 0.9877625107765198
+        },
+        "macaroni2": {
+          "anomaly_bce": 7.0235819816589355,
+          "normal_bce": 0.0006462474702857435,
+          "pixel_ap_macro": 0.27474215626716614,
+          "pixel_auc_macro": 0.9924736022949219
+        },
+        "pcb1": {
+          "anomaly_bce": 5.778645038604736,
+          "normal_bce": 0.0024708714336156845,
+          "pixel_ap_macro": 0.2684677243232727,
+          "pixel_auc_macro": 0.8527330160140991
+        },
+        "pcb2": {
+          "anomaly_bce": 6.73632287979126,
+          "normal_bce": 0.0008341411594301462,
+          "pixel_ap_macro": 0.03009132668375969,
+          "pixel_auc_macro": 0.9528000950813293
+        },
+        "pcb3": {
+          "anomaly_bce": 5.835082530975342,
+          "normal_bce": 0.002130570588633418,
+          "pixel_ap_macro": 0.11631770431995392,
+          "pixel_auc_macro": 0.9596867561340332
+        },
+        "pcb4": {
+          "anomaly_bce": 4.134028434753418,
+          "normal_bce": 0.01125280000269413,
+          "pixel_ap_macro": 0.37259018421173096,
+          "pixel_auc_macro": 0.9873916506767273
+        },
+        "pipe_fryum": {
+          "anomaly_bce": 7.903397560119629,
+          "normal_bce": 0.0002347480767639354,
+          "pixel_ap_macro": 0.4630613327026367,
+          "pixel_auc_macro": 0.9958912134170532
+        }
+      },
+      "pixel_ap_macro": 0.259604811668396,
+      "pixel_auc_macro": 0.9720314145088196
+    },
+    "FACTORIZED": {
+      "all_finite": true,
+      "anomaly_bce": 7.312195301055908,
+      "geometry": {
+        "anomaly_sim_anomaly": -0.3262976109981537,
+        "anomaly_sim_normal": 0.12144392728805542,
+        "normal_sim_anomaly": -0.33129432797431946,
+        "normal_sim_normal": 0.15307247638702393
+      },
+      "max_relative_correction": 5.348164791030285e-07,
+      "mean_relative_correction": 9.052068321580009e-07,
+      "normal_bce": 0.0015505197225138545,
+      "per_class": {
+        "candle": {
+          "anomaly_bce": 8.806357383728027,
+          "normal_bce": 8.846507989801466e-05,
+          "pixel_ap_macro": 0.1312883347272873,
+          "pixel_auc_macro": 0.9931203126907349
+        },
+        "capsules": {
+          "anomaly_bce": 8.906692504882812,
+          "normal_bce": 0.00010845089127542451,
+          "pixel_ap_macro": 0.2613484263420105,
+          "pixel_auc_macro": 0.9943422079086304
+        },
+        "cashew": {
+          "anomaly_bce": 8.99533748626709,
+          "normal_bce": 7.961224036989734e-05,
+          "pixel_ap_macro": 0.18638518452644348,
+          "pixel_auc_macro": 0.9980814456939697
+        },
+        "chewinggum": {
+          "anomaly_bce": 7.606638431549072,
+          "normal_bce": 0.0003020242729689926,
+          "pixel_ap_macro": 0.7538352608680725,
+          "pixel_auc_macro": 0.9987720251083374
+        },
+        "fryum": {
+          "anomaly_bce": 7.592257022857666,
+          "normal_bce": 0.0004019418265670538,
+          "pixel_ap_macro": 0.17485694587230682,
+          "pixel_auc_macro": 0.9531925916671753
+        },
+        "macaroni1": {
+          "anomaly_bce": 8.54258918762207,
+          "normal_bce": 0.00015322084072977304,
+          "pixel_ap_macro": 0.105748750269413,
+          "pixel_auc_macro": 0.9878277778625488
+        },
+        "macaroni2": {
+          "anomaly_bce": 7.032583236694336,
+          "normal_bce": 0.0006395803648047149,
+          "pixel_ap_macro": 0.27502524852752686,
+          "pixel_auc_macro": 0.9924962520599365
+        },
+        "pcb1": {
+          "anomaly_bce": 5.77853536605835,
+          "normal_bce": 0.002453969558700919,
+          "pixel_ap_macro": 0.28449591994285583,
+          "pixel_auc_macro": 0.851591944694519
+        },
+        "pcb2": {
+          "anomaly_bce": 6.619816780090332,
+          "normal_bce": 0.000850748154334724,
+          "pixel_ap_macro": 0.026280710473656654,
+          "pixel_auc_macro": 0.9470541477203369
+        },
+        "pcb3": {
+          "anomaly_bce": 5.835970878601074,
+          "normal_bce": 0.0021155555732548237,
+          "pixel_ap_macro": 0.05071389675140381,
+          "pixel_auc_macro": 0.9560478925704956
+        },
+        "pcb4": {
+          "anomaly_bce": 4.119925498962402,
+          "normal_bce": 0.011179693974554539,
+          "pixel_ap_macro": 0.2730482220649719,
+          "pixel_auc_macro": 0.9816299080848694
+        },
+        "pipe_fryum": {
+          "anomaly_bce": 7.909634590148926,
+          "normal_bce": 0.0002329732960788533,
+          "pixel_ap_macro": 0.46314895153045654,
+          "pixel_auc_macro": 0.9958504438400269
+        }
+      },
+      "pixel_ap_macro": 0.24884800612926483,
+      "pixel_auc_macro": 0.970833957195282
+    },
+    "SEMANTIC_VISUAL": {
+      "all_finite": true,
+      "anomaly_bce": 7.2254509925842285,
+      "geometry": {
+        "anomaly_sim_anomaly": -0.32849350571632385,
+        "anomaly_sim_normal": 0.11918903142213821,
+        "normal_sim_anomaly": -0.3312455713748932,
+        "normal_sim_normal": 0.15394005179405212
+      },
+      "max_relative_correction": 0.0016686957096680999,
+      "mean_relative_correction": 0.001657511224038899,
+      "normal_bce": 0.0015989585081115365,
+      "per_class": {
+        "candle": {
+          "anomaly_bce": 8.811731338500977,
+          "normal_bce": 8.747474930714816e-05,
+          "pixel_ap_macro": 0.1318088173866272,
+          "pixel_auc_macro": 0.9931341409683228
+        },
+        "capsules": {
+          "anomaly_bce": 8.73442268371582,
+          "normal_bce": 0.00010746056796051562,
+          "pixel_ap_macro": 0.26310575008392334,
+          "pixel_auc_macro": 0.994843602180481
+        },
+        "cashew": {
+          "anomaly_bce": 9.006404876708984,
+          "normal_bce": 7.842371996957809e-05,
+          "pixel_ap_macro": 0.18309101462364197,
+          "pixel_auc_macro": 0.9980572462081909
+        },
+        "chewinggum": {
+          "anomaly_bce": 7.617812156677246,
+          "normal_bce": 0.00029556668596342206,
+          "pixel_ap_macro": 0.7654718160629272,
+          "pixel_auc_macro": 0.998822808265686
+        },
+        "fryum": {
+          "anomaly_bce": 7.607487678527832,
+          "normal_bce": 0.0003953029809053987,
+          "pixel_ap_macro": 0.1693428009748459,
+          "pixel_auc_macro": 0.9519240260124207
+        },
+        "macaroni1": {
+          "anomaly_bce": 8.54959487915039,
+          "normal_bce": 0.00015103048644959927,
+          "pixel_ap_macro": 0.11518067121505737,
+          "pixel_auc_macro": 0.9878535270690918
+        },
+        "macaroni2": {
+          "anomaly_bce": 7.055361747741699,
+          "normal_bce": 0.0006257758941501379,
+          "pixel_ap_macro": 0.2742685079574585,
+          "pixel_auc_macro": 0.9919829964637756
+        },
+        "pcb1": {
+          "anomaly_bce": 5.619793891906738,
+          "normal_bce": 0.002495399210602045,
+          "pixel_ap_macro": 0.07082578539848328,
+          "pixel_auc_macro": 0.8452808260917664
+        },
+        "pcb2": {
+          "anomaly_bce": 6.241758346557617,
+          "normal_bce": 0.0009793394710868597,
+          "pixel_ap_macro": 0.04505500942468643,
+          "pixel_auc_macro": 0.9273009300231934
+        },
+        "pcb3": {
+          "anomaly_bce": 5.710484504699707,
+          "normal_bce": 0.0021946777123957872,
+          "pixel_ap_macro": 0.014347264543175697,
+          "pixel_auc_macro": 0.9124985933303833
+        },
+        "pcb4": {
+          "anomaly_bce": 3.828876256942749,
+          "normal_bce": 0.011547365225851536,
+          "pixel_ap_macro": 0.40223628282546997,
+          "pixel_auc_macro": 0.9625296592712402
+        },
+        "pipe_fryum": {
+          "anomaly_bce": 7.921696186065674,
+          "normal_bce": 0.00022968498524278402,
+          "pixel_ap_macro": 0.46517491340637207,
+          "pixel_auc_macro": 0.9955710768699646
+        }
+      },
+      "pixel_ap_macro": 0.2416590452194214,
+      "pixel_auc_macro": 0.9633166193962097
+    },
+    "VISUAL_RESIDUAL": {
+      "all_finite": true,
+      "anomaly_bce": 7.2476677894592285,
+      "geometry": {
+        "anomaly_sim_anomaly": -0.3283346891403198,
+        "anomaly_sim_normal": 0.11956197023391724,
+        "normal_sim_anomaly": -0.33123284578323364,
+        "normal_sim_normal": 0.15410608053207397
+      },
+      "max_relative_correction": 0.0016280942363664508,
+      "mean_relative_correction": 0.0016249482287093997,
+      "normal_bce": 0.001578876399435103,
+      "per_class": {
+        "candle": {
+          "anomaly_bce": 8.815435409545898,
+          "normal_bce": 8.732678543310612e-05,
+          "pixel_ap_macro": 0.1313173472881317,
+          "pixel_auc_macro": 0.9930064678192139
+        },
+        "capsules": {
+          "anomaly_bce": 8.851602554321289,
+          "normal_bce": 0.00010706426837714389,
+          "pixel_ap_macro": 0.3180997669696808,
+          "pixel_auc_macro": 0.9953773021697998
+        },
+        "cashew": {
+          "anomaly_bce": 9.010590553283691,
+          "normal_bce": 7.827181252650917e-05,
+          "pixel_ap_macro": 0.1802767813205719,
+          "pixel_auc_macro": 0.9980709552764893
+        },
+        "chewinggum": {
+          "anomaly_bce": 7.626573085784912,
+          "normal_bce": 0.0002947228495031595,
+          "pixel_ap_macro": 0.7570620775222778,
+          "pixel_auc_macro": 0.9987903833389282
+        },
+        "fryum": {
+          "anomaly_bce": 7.607149600982666,
+          "normal_bce": 0.00039420436951331794,
+          "pixel_ap_macro": 0.17369233071804047,
+          "pixel_auc_macro": 0.9547362327575684
+        },
+        "macaroni1": {
+          "anomaly_bce": 8.55355453491211,
+          "normal_bce": 0.00015069660730659962,
+          "pixel_ap_macro": 0.10742172598838806,
+          "pixel_auc_macro": 0.9880478382110596
+        },
+        "macaroni2": {
+          "anomaly_bce": 7.058170318603516,
+          "normal_bce": 0.0006241665687412024,
+          "pixel_ap_macro": 0.27279630303382874,
+          "pixel_auc_macro": 0.9920806884765625
+        },
+        "pcb1": {
+          "anomaly_bce": 5.668981075286865,
+          "normal_bce": 0.00246954383328557,
+          "pixel_ap_macro": 0.06311322003602982,
+          "pixel_auc_macro": 0.846422553062439
+        },
+        "pcb2": {
+          "anomaly_bce": 6.271615505218506,
+          "normal_bce": 0.0009619852062314749,
+          "pixel_ap_macro": 0.030165236443281174,
+          "pixel_auc_macro": 0.9302388429641724
+        },
+        "pcb3": {
+          "anomaly_bce": 5.671966552734375,
+          "normal_bce": 0.002176844049245119,
+          "pixel_ap_macro": 0.09033994376659393,
+          "pixel_auc_macro": 0.920768141746521
+        },
+        "pcb4": {
+          "anomaly_bce": 3.914099931716919,
+          "normal_bce": 0.011372379027307034,
+          "pixel_ap_macro": 0.21220558881759644,
+          "pixel_auc_macro": 0.9580708742141724
+        },
+        "pipe_fryum": {
+          "anomaly_bce": 7.9222731590271,
+          "normal_bce": 0.00022931322746444494,
+          "pixel_ap_macro": 0.46359479427337646,
+          "pixel_auc_macro": 0.9957222938537598
+        }
+      },
+      "pixel_ap_macro": 0.23334042727947235,
+      "pixel_auc_macro": 0.9642777442932129
+    }
+  },
+  "attribution": {
+    "evidence": "VISUAL_RESIDUAL lowers anomaly BCE but harms Normal BCE beyond tolerance and lowers AP/AUROC; FACTORIZED suppresses correction by approximately 1.8e3x relative to VISUAL_RESIDUAL and remains base-like rather than rescuing a safe gain.",
+    "root_cause": "b: visual adapter cannot improve separation under the preregistered Normal-safety constraint"
+  },
+  "decision": "VISUAL_RESIDUAL_NOT_SUPPORTED",
+  "next": "STOP: do not add semantic conditioning capacity, Router, MoE, OT, ACT, E20, or medical evaluation.",
+  "primary_failure_gate": {
+    "anomaly_bce_delta": -0.07228231430053711,
+    "comparison": "VISUAL_RESIDUAL vs BASE",
+    "normal_bce_delta": 1.950911246240139e-05,
+    "normal_safety_pass": false,
+    "pixel_ap_delta": -0.026264384388923645,
+    "pixel_auc_delta": -0.0077536702156066895,
+    "result": "FAIL"
+  },
+  "protocol": {
+    "initialization": "fresh OpenAI CLIP only",
+    "precision": "strict FP32",
+    "probe": "VisA TRAIN deterministic 48-image manifest",
+    "schedule": "8 epochs x 8 microbatches; Phase4-V exactly off through warmup epoch 7; 8 post-activation microbatches",
+    "variants": [
+      "BASE",
+      "VISUAL_RESIDUAL",
+      "SEMANTIC_VISUAL",
+      "FACTORIZED"
+    ],
+    "warmup_evidence": "runs/phase4v/WARMUP_EVIDENCE.json"
+  },
+  "safety": {
+    "normal_bce_tolerance": 1.5593672869727015e-06,
+    "rule": "max(1e-6, 0.1% of BASE Normal BCE)"
+  }
+}

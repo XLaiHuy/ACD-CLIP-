@@ -1,0 +1,14 @@
+{
+  "initialization": "fresh OpenAI CLIP only",
+  "precision": "strict FP32",
+  "variants": [
+    "BASE",
+    "VISUAL_RESIDUAL",
+    "SEMANTIC_VISUAL",
+    "FACTORIZED"
+  ],
+  "warmup_evidence_epoch": 7,
+  "schedule": "8 epochs x 8 deterministic train microbatches; activation only epoch 8",
+  "config_sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4",
+  "audit_manifest_sha256": "32e47c21256447ca8a94cb647ccb8dad833b30a777ebdd3d50c06240d9e63ac1"
+}

@@ -1,0 +1,42 @@
+{
+  "checks": {
+    "act_absent": true,
+    "all_finite": true,
+    "base_main_grad_norm": 1.2935240268707275,
+    "cops_grad_norm": 6.946259873075178e-06,
+    "delta_zero_exact": 0.0,
+    "dynamic_text_blocked": true,
+    "gate_detached": true,
+    "gate_zero_exact": 0.0,
+    "lambda_zero_exact": 0.0,
+    "legacy_factor_grad_norm": 0.0,
+    "phase4v_off_exact": 0.0,
+    "router_grad_norm": 0.0,
+    "visual_adapter_grad_norm": 0.0456559956073761
+  },
+  "contract": {
+    "act": false,
+    "experts": false,
+    "how": "shared 2->64->768 FiLM residual",
+    "router": false,
+    "text_intervention": false,
+    "what": "ConditionalSemanticCore prototype_abnormal - prototype_normal",
+    "where": "detached pre-adaptation Phase2B group anomaly probability"
+  },
+  "decision": "PHASE4V_K1_ZERO_STEP_PASS",
+  "provenance": {
+    "config_sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4",
+    "initialization": "fresh OpenAI CLIP; no Phase2B checkpoint",
+    "manifest_sha256": "32e47c21256447ca8a94cb647ccb8dad833b30a777ebdd3d50c06240d9e63ac1",
+    "optimizer_steps": 0,
+    "precision": "strict FP32; TF32 off; AMP off",
+    "script_sha256": "0f2d1c780f1a50415f7c72bbf569825d3fa3c4c3c383189fba8d4ece0230fbc8"
+  },
+  "residual": {
+    "bottleneck": 64,
+    "delta_v_mean_norm": 0.005371627863496542,
+    "lambda": 0.05,
+    "lambda_gate_delta_mean_norm": 0.00013672605564352125,
+    "relative_correction_to_base": 0.00013672605564352125
+  }
+}
