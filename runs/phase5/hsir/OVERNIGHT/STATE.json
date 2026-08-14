@@ -11,13 +11,12 @@
   "input_integrity": "PASS: VisA TEST provenance, predictor parity, evaluator parity, and three-stage runtime semantics verified",
   "current_terminal": "CONSENSUS_DILUTION_SUPPORTED",
   "running_task": {
-    "name": "BRANCH_A_INTERNAL_STAGE_RESCUE",
-    "start_time": "2026-08-15T01:48:27+07:00",
-    "estimated_total_sec": 720,
+    "name": "BRANCH_B1_GT_FREE_STAGE_ARBITRATION",
+    "start_time": "2026-08-15T02:15:00+07:00",
+    "estimated_total_sec": 1800,
     "progress_source": "attached process completion; exact image progress unavailable",
-    "last_progress": "completed: 2162 forwards; INPUT_CHECK PASS; OUTPUT_CHECK PASS",
-    "implementation_retry": "two failed first-image attempts due to stage-score shape handling; targeted helper and buffer-assignment tests passed",
-    "decision": "CONSENSUS_DILUTION_SUPPORTED"
+    "last_progress": "not_started",
+    "decision": "pending"
   },
-  "next_action": "Run exactly one downstream B1 GT-free stage-arbitration feasibility audit; do not run Branch C unless explicitly triggered and MVTec is already available."
+  "next_action": "Run exactly one B1 GT-free stage-arbitration feasibility audit; Branch C remains unavailable without MVTec."
 }

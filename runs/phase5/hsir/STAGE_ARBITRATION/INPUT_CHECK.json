@@ -1,0 +1,74 @@
+{
+  "anomaly_image_count": 1200,
+  "branch": "B1_GT_FREE_STAGE_ARBITRATION",
+  "checkpoint": {
+    "path": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+    "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34"
+  },
+  "class_count": 12,
+  "config": {
+    "path": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase4/k1/short64_seed0_attempt5/config.json",
+    "sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4"
+  },
+  "counterfactuals": [
+    "P0 original final consensus",
+    "P1 each fixed stage",
+    "P2 global max-stage evidence",
+    "P3 D_rank-selective max-stage evidence"
+  ],
+  "image_count": 2162,
+  "inference_authorization": "one class-streamed VisA TEST pass because Branch-A stage outputs were compacted and not persisted",
+  "normal_image_count": 962,
+  "required_upstream_artifact_sha256": {
+    "actionability_protocol": "c4c2ec498981c8e76931d726c9949f7a36e4fa57a32a00c69e58e7337873a1bf",
+    "phase5_summary": "0e3c5204dfa7c4b4e0107e29a21975c7b97f8bc552e20da9fe14720acafb793e",
+    "stage_rescue_decision": "6f9a15b8fc8faa652f315fa43abcef54484b7d24b587120bc927b2fd5d981ebf",
+    "stage_rescue_output_check": "18d370a1671a7a022bc030bdb9005c9d51c2f4226a74848e18d85093e70c6cab",
+    "stage_rescue_summary": "069f56a2b1f6263e895d930e742a18f4242fd0aa693593340b370690126f6680"
+  },
+  "runtime_architecture": {
+    "dfg_attn_dim": 256,
+    "dfg_attn_tau": 8.0,
+    "dfg_beta_runtime": 0.1,
+    "dfg_beta_target_runtime": 0.1,
+    "dfg_mode": "attn",
+    "dfg_ss2d_fusion": "weight_residual",
+    "expected": {
+      "dfg_beta_target": 0.1,
+      "dfg_mode": "attn",
+      "dfg_ss2d_fusion": "weight_residual",
+      "image_levels": [
+        8,
+        16,
+        24
+      ],
+      "n_groups": 3,
+      "text_levels": [
+        4,
+        8,
+        12
+      ],
+      "use_ss2d_dfg": true
+    },
+    "h6_enabled_but_not_supplied_to_phase2b_predictor": true,
+    "hybrid_alpha_current": 0.1,
+    "hybrid_prompt_mode": "hybrid",
+    "image_levels": [
+      8,
+      16,
+      24
+    ],
+    "image_size": 518,
+    "mismatches": {},
+    "n_groups": 3,
+    "text_levels": [
+      4,
+      8,
+      12
+    ],
+    "use_ss2d_dfg": true
+  },
+  "scientific_ancestor": "fcbff12059a0cb29698c14f443a0396acbef8c55",
+  "split": "test",
+  "status": "PASS"
+}

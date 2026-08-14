@@ -1,0 +1,60 @@
+{
+  "branch": "B1_GT_FREE_STAGE_ARBITRATION",
+  "counterfactuals": {
+    "P0": "original final consensus",
+    "P1": "each fixed singleton stage",
+    "P2": "global max-stage deployed anomaly probability for every pixel",
+    "P3": "top ceil(0.20*N) D_rank pixels use max-stage evidence; unselected pixels retain final consensus"
+  },
+  "inference_only": true,
+  "metrics": "exact class-pooled AP/AUROC; class primary; score shifts reported separately for anomaly and Normal pixels",
+  "no_new_selector_learning": true,
+  "no_training": true,
+  "pixel_data_source": "one new class-streamed Branch-B1 inference pass; Branch-A dense stage outputs were not persisted",
+  "predictor_semantics": "exact Phase5 predictor, canonical VisA TEST loader, strict FP32, exact Industrial deployment reconstruction",
+  "provenance": {
+    "anomaly_image_count": 1200,
+    "branch_a_commit": "06d72e37b9a7b2ce0db381e1d3b6edfc59de9c91",
+    "checkpoint": {
+      "path": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+      "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34"
+    },
+    "checks": {
+      "branch": true,
+      "branch_a_commit_ancestor": true,
+      "branch_a_input_pass": true,
+      "branch_a_output_pass": true,
+      "branch_a_terminal": true,
+      "checkpoint_sha": true,
+      "config_sha": true,
+      "counts": true,
+      "dataset_split": true,
+      "no_stage_cache": true,
+      "no_train_paths": true,
+      "phase5_parity": true,
+      "scientific_ancestor": true,
+      "visa_metadata_sha": true
+    },
+    "class_count": 12,
+    "config": {
+      "path": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase4/k1/short64_seed0_attempt5/config.json",
+      "sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4"
+    },
+    "dataset": "VisA",
+    "image_count": 2162,
+    "normal_image_count": 962,
+    "pixel_data_source": "one new class-streamed Branch-B1 inference pass; Branch-A dense stage outputs were not persisted",
+    "required_upstream_sha256": {
+      "actionability_protocol": "c4c2ec498981c8e76931d726c9949f7a36e4fa57a32a00c69e58e7337873a1bf",
+      "phase5_summary": "0e3c5204dfa7c4b4e0107e29a21975c7b97f8bc552e20da9fe14720acafb793e",
+      "stage_rescue_decision": "6f9a15b8fc8faa652f315fa43abcef54484b7d24b587120bc927b2fd5d981ebf",
+      "stage_rescue_output_check": "18d370a1671a7a022bc030bdb9005c9d51c2f4226a74848e18d85093e70c6cab",
+      "stage_rescue_summary": "069f56a2b1f6263e895d930e742a18f4242fd0aa693593340b370690126f6680"
+    },
+    "scientific_ancestor": "fcbff12059a0cb29698c14f443a0396acbef8c55",
+    "split": "test"
+  },
+  "purpose": "Test whether simple GT-free internal-stage evidence use preserves Branch-A rescue without broad Normal harm.",
+  "selection": "P3 uses frozen GT-free D_rank descending selector; diagnostic budget is not a deployable threshold",
+  "training_steps": 0
+}
