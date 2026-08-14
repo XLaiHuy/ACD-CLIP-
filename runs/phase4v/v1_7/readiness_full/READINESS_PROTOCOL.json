@@ -1,0 +1,37 @@
+{
+  "decision": "PHASE2B_READINESS_TRAJECTORY_PREREGISTERED",
+  "purpose": "Select the earliest healthy full epoch before creating the separate fresh V1.7 common warmup.",
+  "initialization": "fresh OpenAI CLIP only; historical adapter_10 is readiness reference only",
+  "dataset": {
+    "name": "VisA",
+    "split": "train",
+    "metadata_path": "dataset/hub/VisA.jsonl",
+    "metadata_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+    "size": 2162,
+    "batch_size": 6,
+    "steps_per_epoch": 361
+  },
+  "data_order": {
+    "shuffle": true,
+    "generator_seed": 1707,
+    "num_workers": 0,
+    "persistent_workers": false
+  },
+  "training": {
+    "epochs": 10,
+    "precision": "strict FP32; TF32 off; AMP off",
+    "n_groups": 3,
+    "dfg": "attn/256/tau8/SS2D weight_residual with beta warmup010 to 0.10",
+    "hybrid_prompt": "alpha_max 0.2; ctx_len 4; freeze epochs 3",
+    "lambda_kg": 0.01,
+    "lambda_k": 0.002,
+    "grad_clip_norm": 1.0
+  },
+  "evaluation": {
+    "probe": "runs/phase4/k1/stage1_7r/visa_train_audit_manifest.json",
+    "probe_samples": 48,
+    "probe_manifest_sha256": "32e47c21256447ca8a94cb647ccb8dad833b30a777ebdd3d50c06240d9e63ac1",
+    "timing": "post-training inference at saved epoch boundaries only"
+  },
+  "selection_rule": "earliest full epoch that is non-floor-degenerate and near the epoch-10 historical readiness reference; candidate outcomes are not consulted"
+}

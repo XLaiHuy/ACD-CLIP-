@@ -1,0 +1,38 @@
+{
+  "decision": "V1_7_HOW_PAIRED_TRAIN_COMPLETE",
+  "finite": {
+    "base": true,
+    "how": true
+  },
+  "local_checkpoints": [
+    "runs/phase4v/v1_7/how_e5/common_warmup/common_state.pth",
+    "runs/phase4v/v1_7/how_e5/base_adapter_state.pth",
+    "runs/phase4v/v1_7/how_e5/how_adapter_state.pth"
+  ],
+  "loss_scale": {
+    "first_how_to_base": 0.5666204690933228,
+    "mean_how_to_base": 0.4095268369928817,
+    "preflight": {
+      "base_loss": 1.259657621383667,
+      "common_state": "runs/phase4v/v1_7/how_e5/common_warmup/common_state.pth",
+      "decision": "V1_7_HOW_LOSS_SCALE_RECORDED",
+      "eta": 1.0,
+      "finite": true,
+      "how_loss": 0.586223304271698,
+      "how_to_base": 0.46538305282592773,
+      "optimizer_steps": 0
+    }
+  },
+  "protocol": {
+    "active_updates": 32,
+    "config_sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4",
+    "eta": 1.0,
+    "g_train": 1,
+    "initialization": "fresh OpenAI CLIP only",
+    "precision": "strict FP32",
+    "seed": 1707,
+    "steps_per_epoch": 361,
+    "train_dataset_size": 2162,
+    "warmup_epochs": 5
+  }
+}

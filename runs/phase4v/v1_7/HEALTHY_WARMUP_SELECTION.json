@@ -1,0 +1,41 @@
+{
+  "decision": "HEALTHY_WARMUP_EPOCH_E5",
+  "selection_timing": "completed before fresh V1.7 common warmup or any Phase4V candidate training",
+  "selection_reason": "Epoch 5 is the earliest fresh full-epoch state with non-floor-collapsed anomaly predictions and localization already near the independent historical Phase2B epoch-10 readiness reference. Earlier epochs 1-4 retain materially higher anomaly-floor fractions and lower AP. Later fresh epochs were not consulted for candidate design.",
+  "selected_checkpoint": "runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+  "selected_epoch_metrics": {
+    "pixel_ap_macro": 0.458199143409729,
+    "pixel_auc_macro": 0.9756514430046082,
+    "anomaly_probability_floor_fraction": 0.05186385661363602,
+    "stable_anomaly_logistic_loss": 2.7646710872650146,
+    "stable_normal_logistic_loss": 0.0031313931103795767
+  },
+  "historical_readiness_reference": {
+    "checkpoint": "runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/adapter_10.pth",
+    "epoch": 10,
+    "pixel_ap_macro": 0.4659336507320404,
+    "pixel_auc_macro": 0.9759880900382996,
+    "anomaly_probability_floor_fraction": 0.11192966997623444,
+    "role": "readiness reference only; never candidate initialization"
+  },
+  "fresh_epoch_sweep": {
+    "1": {"ap": 0.3022313117980957, "auc": 0.9455857276916504, "anomaly_floor": 0.3802858293056488, "stable_anomaly_loss": 8.500670433044434},
+    "2": {"ap": 0.3555888235569, "auc": 0.9711225628852844, "anomaly_floor": 0.36555179953575134, "stable_anomaly_loss": 8.207418441772461},
+    "3": {"ap": 0.38763269782066345, "auc": 0.9776506423950195, "anomaly_floor": 0.23584303259849548, "stable_anomaly_loss": 6.204585552215576},
+    "4": {"ap": 0.40391114354133606, "auc": 0.972403347492218, "anomaly_floor": 0.18098324537277222, "stable_anomaly_loss": 5.041494846343994},
+    "5": {"ap": 0.458199143409729, "auc": 0.9756514430046082, "anomaly_floor": 0.05186385661363602, "stable_anomaly_loss": 2.7646710872650146},
+    "6": {"ap": 0.45150279998779297, "auc": 0.9807626605033875, "anomaly_floor": 0.04046952351927757, "stable_anomaly_loss": 2.076871395111084},
+    "7": {"ap": 0.44733884930610657, "auc": 0.9773871302604675, "anomaly_floor": 0.12273463606834412, "stable_anomaly_loss": 3.46637225151062},
+    "8": {"ap": 0.4856001138687134, "auc": 0.9784767627716064, "anomaly_floor": 0.0009331565233878791, "stable_anomaly_loss": 1.194604516029358},
+    "9": {"ap": 0.4932228624820709, "auc": 0.9813708662986755, "anomaly_floor": 0.022641323506832123, "stable_anomaly_loss": 1.8433831930160522},
+    "10": {"ap": 0.48111557960510254, "auc": 0.9780105948448181, "anomaly_floor": 0.02303423173725605, "stable_anomaly_loss": 1.7728912830352783}
+  },
+  "probe": {
+    "manifest": "runs/phase4/k1/stage1_7r/visa_train_audit_manifest.json",
+    "samples": 48,
+    "manifest_sha256": "32e47c21256447ca8a94cb647ccb8dad833b30a777ebdd3d50c06240d9e63ac1",
+    "inference_only": true,
+    "precision": "strict FP32"
+  },
+  "candidate_initialization_rule": "A separate fresh OpenAI-CLIP common warmup to epoch 5 must be generated; this readiness trajectory and all historical checkpoints are audit references only."
+}

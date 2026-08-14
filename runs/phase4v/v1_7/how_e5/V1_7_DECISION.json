@@ -1,0 +1,38 @@
+{
+  "decision": "PHASE4V_VISUAL_INTERVENTION_LINE_FALSIFIED",
+  "base_health": "PHASE2B_BASE_HEALTHY",
+  "protocol": {
+    "fresh_initialization": "OpenAI CLIP only",
+    "selected_fresh_epoch": 5,
+    "train_dataset_size": 2162,
+    "steps_per_epoch": 361,
+    "active_updates": 32,
+    "eta": 1.0,
+    "g_train": 1,
+    "precision": "strict FP32",
+    "optimizer_steps_in_audit": 0
+  },
+  "base": {
+    "pixel_ap_macro": 0.4648,
+    "pixel_auc_macro": 0.9758,
+    "normal_stable_logistic_loss": 0.002483,
+    "anomaly_stable_logistic_loss": 3.6898
+  },
+  "how_counterfactual": {
+    "OFF": {"pixel_ap_macro": 0.4434, "pixel_auc_macro": 0.9777, "normal_stable_logistic_loss": 0.001924, "anomaly_stable_logistic_loss": 4.2677},
+    "NO_GATE": {"pixel_ap_macro": 0.4433, "pixel_auc_macro": 0.9777, "normal_stable_logistic_loss": 0.001924, "anomaly_stable_logistic_loss": 4.2676, "mean_gate": 1.0},
+    "CURRENT_GATE": {"pixel_ap_macro": 0.4434, "pixel_auc_macro": 0.9777, "normal_stable_logistic_loss": 0.001924, "anomaly_stable_logistic_loss": 4.2674, "mean_gate": 0.00586632},
+    "ORACLE_REGION": {"pixel_ap_macro": 0.4434, "pixel_auc_macro": 0.9777, "normal_stable_logistic_loss": 0.001924, "anomaly_stable_logistic_loss": 4.2676, "mean_gate": 0.00158088},
+    "ORACLE_UTILITY": {"pixel_ap_macro": 0.4434, "pixel_auc_macro": 0.9777, "normal_stable_logistic_loss": 0.001923, "anomaly_stable_logistic_loss": 4.2675, "mean_gate": 0.0035407}
+  },
+  "direction_attribution": {
+    "RAW": {"pixel_ap_macro": 0.4433557, "pixel_auc_macro": 0.9776843, "normal_stable_logistic_loss": 0.0019241, "anomaly_stable_logistic_loss": 4.2684541},
+    "TANGENT_RAW": {"pixel_ap_macro": 0.4433456, "pixel_auc_macro": 0.9776842, "normal_stable_logistic_loss": 0.0019239, "anomaly_stable_logistic_loss": 4.2675452},
+    "PREDICTOR_ALIGNED_TANGENT": {"pixel_ap_macro": 0.4433616, "pixel_auc_macro": 0.9776850, "normal_stable_logistic_loss": 0.0019278, "anomaly_stable_logistic_loss": 4.2646184},
+    "EXISTING_BASE_RESIDUAL": {"pixel_ap_macro": 0.4433422, "pixel_auc_macro": 0.9776831, "normal_stable_logistic_loss": 0.0019217, "anomaly_stable_logistic_loss": 4.2694573}
+  },
+  "root_cause": "The fresh base is functionally healthy, but the learned K1 visual intervention worsens anomaly stable loss and materially lowers AP. Removing spatial gating or substituting oracle region/utility gates does not recover the operating point, and no tested residual direction provides useful utility.",
+  "novelty_status": "unsupported",
+  "forbidden_experiments_started": false,
+  "next": "Stop Phase4V visual residual research; do not add a selector, gate family, Router, OT, ACT, K2, E20, or medical evaluation."
+}

@@ -1,0 +1,33 @@
+{
+  "checks": {
+    "act_absent": true,
+    "base_main_grad_positive": true,
+    "cops_grad_positive": true,
+    "corr_base_grad_exact_zero": true,
+    "delta_zero_exact": 0.0,
+    "factor_grad_zero": true,
+    "finite": true,
+    "how_off_exact": 0.0,
+    "lambda_zero_exact": 0.0,
+    "router_grad_zero": true,
+    "visual_grad_positive": true
+  },
+  "decision": "V1_7_HOW_ZERO_STEP_PASS",
+  "geometry": {
+    "correction_to_base": 0.0002556003746576607,
+    "raw_delta_norm": 0.005112007260322571,
+    "ungated_correction_norm": 0.0002556003746576607
+  },
+  "gradients": {
+    "base_main": 5.474114961922169,
+    "correction_base": 0.0,
+    "correction_cops": 7.012823175500671e-07,
+    "correction_visual": 0.00683882599696517
+  },
+  "provenance": {
+    "optimizer_steps": 0,
+    "precision": "strict FP32",
+    "seed": 1707,
+    "train_dataset": "full VisA TRAIN"
+  }
+}
