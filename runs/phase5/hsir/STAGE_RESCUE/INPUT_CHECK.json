@@ -1,0 +1,84 @@
+{
+  "anomaly_image_count": 1200,
+  "branch": "A_INTERNAL_STAGE_RESCUE",
+  "checkpoint": {
+    "path": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+    "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34"
+  },
+  "class_count": 12,
+  "config": {
+    "path": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase4/k1/short64_seed0_attempt5/config.json",
+    "sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4"
+  },
+  "dataset": "VisA",
+  "expected_outputs": [
+    "PROTOCOL.json",
+    "PER_CLASS.csv",
+    "SUMMARY.json",
+    "DECISION.json",
+    "DECISION.md",
+    "OUTPUT_CHECK.json"
+  ],
+  "image_count": 2162,
+  "inference_authorization": "one class-streamed VisA TEST pass because no authoritative stage cache exists",
+  "normal_image_count": 962,
+  "predictor_semantics": {
+    "deployment": "Industrial Gaussian blur kernel=7 sigma=1; bilinear align_corners=True; mean group logits; softmax",
+    "loader": "canonical get_text_and_image_dataset('VisA', img_size, stage='test')",
+    "precision": "strict FP32; TF32 off; AMP off",
+    "source": "audit_phase5_hsir.predict_one"
+  },
+  "required_upstream_artifact_sha256": {
+    "actionability_decision": "9ac9fa2a122d12a5edc12d4e0e15310fa060ddf3aa49cb1baacd4954485541e3",
+    "actionability_protocol": "c4c2ec498981c8e76931d726c9949f7a36e4fa57a32a00c69e58e7337873a1bf",
+    "actionability_summary": "b252356d728578ea91cefa5f7a97bf061eaa8f047110cf8e432dd4ffca784946",
+    "phase5_per_class": "9924d6f3393be53720484a205f291f3a6c8d8d826bae813b5b02701490921cc8",
+    "phase5_per_image": "bc0ffa48e8a317545f50872032de85ff95ba231c36a23859b79c4f89f5a36a7f",
+    "phase5_summary": "0e3c5204dfa7c4b4e0107e29a21975c7b97f8bc552e20da9fe14720acafb793e"
+  },
+  "runtime_architecture": {
+    "dfg_attn_dim": 256,
+    "dfg_attn_tau": 8.0,
+    "dfg_beta_runtime": 0.1,
+    "dfg_beta_target_runtime": 0.1,
+    "dfg_mode": "attn",
+    "dfg_ss2d_fusion": "weight_residual",
+    "expected": {
+      "dfg_beta_target": 0.1,
+      "dfg_mode": "attn",
+      "dfg_ss2d_fusion": "weight_residual",
+      "image_levels": [
+        8,
+        16,
+        24
+      ],
+      "n_groups": 3,
+      "text_levels": [
+        4,
+        8,
+        12
+      ],
+      "use_ss2d_dfg": true
+    },
+    "h6_enabled_but_not_supplied_to_phase2b_predictor": true,
+    "hybrid_alpha_current": 0.1,
+    "hybrid_prompt_mode": "hybrid",
+    "image_levels": [
+      8,
+      16,
+      24
+    ],
+    "image_size": 518,
+    "mismatches": {},
+    "n_groups": 3,
+    "text_levels": [
+      4,
+      8,
+      12
+    ],
+    "use_ss2d_dfg": true
+  },
+  "scientific_ancestor": "fcbff12059a0cb29698c14f443a0396acbef8c55",
+  "split": "test",
+  "status": "PASS"
+}

@@ -1,0 +1,28 @@
+{
+  "decision_rule": "class-consistent rescue, fixed-stage dominance, stage-identity diversity, and signed G_rescue associations; no post-hoc threshold tuning",
+  "evidence": {
+    "G_rescue_vs_C_AP_class_median": 0.21617881628955735,
+    "G_rescue_vs_R_pos_class_median": 0.2980228359886886,
+    "best_fixed_stage_delta_AP_class_macro_mean": 0.001082867131859461,
+    "dominant_fixed_stage": "stage8",
+    "dominant_fixed_stage_class_winner_count": 8,
+    "internal_rescue_delta_AP_class_macro_mean": 0.009175163606964402,
+    "rescue_opposed_classes": 0,
+    "rescue_positive_classes": 12
+  },
+  "input_integrity": "PASS",
+  "next_action": "Follow Branch B1 only if this Branch-A output check passes.",
+  "next_branch": "B1",
+  "no_training": true,
+  "output_check": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase5/hsir/STAGE_RESCUE/OUTPUT_CHECK.json",
+  "output_integrity": "PASS",
+  "output_integrity_pending": true,
+  "pixel_data_source": "one fresh class-streamed inference exposure pass; no authoritative stage cache existed",
+  "target_parity": {
+    "max_final_AP_evaluator_error": 1.554312234475219e-14,
+    "max_final_AUROC_evaluator_error": 1.1102230246251565e-16,
+    "max_predictor_exposure_probability_error": 0.0,
+    "status": "PASS"
+  },
+  "terminal": "CONSENSUS_DILUTION_SUPPORTED"
+}

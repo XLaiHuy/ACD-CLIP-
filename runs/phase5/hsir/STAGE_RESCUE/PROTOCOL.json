@@ -1,0 +1,134 @@
+{
+  "architecture": {
+    "dfg_attn_dim": 256,
+    "dfg_attn_tau": 8.0,
+    "dfg_beta_runtime": 0.1,
+    "dfg_beta_target_runtime": 0.1,
+    "dfg_mode": "attn",
+    "dfg_ss2d_fusion": "weight_residual",
+    "expected": {
+      "dfg_beta_target": 0.1,
+      "dfg_mode": "attn",
+      "dfg_ss2d_fusion": "weight_residual",
+      "image_levels": [
+        8,
+        16,
+        24
+      ],
+      "n_groups": 3,
+      "text_levels": [
+        4,
+        8,
+        12
+      ],
+      "use_ss2d_dfg": true
+    },
+    "h6_enabled_but_not_supplied_to_phase2b_predictor": true,
+    "hybrid_alpha_current": 0.1,
+    "hybrid_prompt_mode": "hybrid",
+    "image_levels": [
+      8,
+      16,
+      24
+    ],
+    "image_size": 518,
+    "mismatches": {},
+    "n_groups": 3,
+    "text_levels": [
+      4,
+      8,
+      12
+    ],
+    "use_ss2d_dfg": true
+  },
+  "branch": "A_INTERNAL_STAGE_RESCUE",
+  "fixed_stage_counterfactual": "each singleton stage deployed with the exact test reconstruction; AP and AUROC class-pooled",
+  "inference_only": true,
+  "internal_stage_rescue_upper_bound": "ORACLE/non-deployable: selected positive pixels only use max singleton-stage deployed anomaly probability; selected Normal pixels remain final scores",
+  "measures": {
+    "G_rescue": "r_best - r_final",
+    "G_spread": "r_best - r_worst",
+    "damage": "frozen C_AP and R_pos from Phase5-A class-pooled final scores",
+    "r_best": "max stage rank",
+    "r_worst": "min stage rank"
+  },
+  "no_new_selector_learning": true,
+  "no_training": true,
+  "pixel_data_source": {
+    "authoritative_stage_cache_found": false,
+    "dense_cache_persisted": false,
+    "forward_count_expected": 2162,
+    "source": "exactly one class-streamed VisA TEST inference pass"
+  },
+  "predictor_semantics": {
+    "final_rank": "average-tie percentile rank of final deployed score within each image",
+    "final_score": "mean deployed group logits followed by softmax anomaly probability",
+    "source": "audit_phase5_hsir.predict_one",
+    "stage_levels": "runtime verified image levels [8,16,24]",
+    "stage_margin": "native anomaly logit minus native normal logit before deployment",
+    "stage_rank": "average-tie percentile rank of each native stage margin within each image, then bilinear upsample",
+    "stage_score": "each singleton native stage deployed with the exact Industrial reconstruction"
+  },
+  "provenance": {
+    "actionability_commit": "fcbff12059a0cb29698c14f443a0396acbef8c55",
+    "actionability_terminal": "RANK_RISK_POSITIVE_SIDE_ONLY",
+    "checkpoint": {
+      "path": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+      "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34"
+    },
+    "config": {
+      "path": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase4/k1/short64_seed0_attempt5/config.json",
+      "sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4"
+    },
+    "dataset": "VisA",
+    "dataset_root": [
+      "/home/ai4/caohuy/data/VisA_20220922"
+    ],
+    "metadata_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+    "metadata_source": "/home/ai4/caohuy/ACD-CLIP-p1v84a/dataset/hub/VisA.jsonl",
+    "number_anomaly_images": 1200,
+    "number_classes": 12,
+    "number_images": 2162,
+    "number_normal_images": 962,
+    "phase5_commit": "29a8ffc934448b34424c77805a2c5c289bd9ddac",
+    "phase5_terminal": "STAGE_RANK_RISK_VISA_HELDOUT_PARTIAL",
+    "provenance_checks": {
+      "actionability_terminal": true,
+      "anomaly_images": true,
+      "checkpoint_sha": true,
+      "classes": true,
+      "config_sha": true,
+      "current_branch": true,
+      "dataset": true,
+      "images": true,
+      "no_train_paths": true,
+      "normal_images": true,
+      "phase5_terminal": true,
+      "predictor_parity": true,
+      "prior_cache_absent": true,
+      "scientific_ancestor": true,
+      "split": true,
+      "visa_metadata_sha": true
+    },
+    "required_upstream_sha256": {
+      "actionability_decision": "9ac9fa2a122d12a5edc12d4e0e15310fa060ddf3aa49cb1baacd4954485541e3",
+      "actionability_protocol": "c4c2ec498981c8e76931d726c9949f7a36e4fa57a32a00c69e58e7337873a1bf",
+      "actionability_summary": "b252356d728578ea91cefa5f7a97bf061eaa8f047110cf8e432dd4ffca784946",
+      "phase5_per_class": "9924d6f3393be53720484a205f291f3a6c8d8d826bae813b5b02701490921cc8",
+      "phase5_per_image": "bc0ffa48e8a317545f50872032de85ff95ba231c36a23859b79c4f89f5a36a7f",
+      "phase5_summary": "0e3c5204dfa7c4b4e0107e29a21975c7b97f8bc552e20da9fe14720acafb793e"
+    },
+    "scientific_ancestor": "fcbff12059a0cb29698c14f443a0396acbef8c55",
+    "split": "test"
+  },
+  "purpose": "Determine whether D_rank-selected held-out weak-positive failures contain useful evidence in an internal Phase2B stage suppressed by final consensus.",
+  "score_matched_control": "same selected-positive count from low-D_rank positives within ten final-score quantile bins; offline diagnostic only",
+  "selector": {
+    "definition": "top ceil(0.20*N) D_rank descending per class",
+    "gt_free": true,
+    "name": "S_RANK",
+    "tie_handling": "stable mergesort over canonical source-index then row-major pixel order"
+  },
+  "statistics": "class primary; class mean, median, bootstrap 95% CI; pixels are not independent replicates",
+  "training_steps": 0
+}
