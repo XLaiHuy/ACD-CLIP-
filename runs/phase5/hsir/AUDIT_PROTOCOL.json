@@ -1,0 +1,124 @@
+{
+  "architecture": {
+    "dfg_attn_dim": 256,
+    "dfg_attn_tau": 8.0,
+    "dfg_beta_runtime": 0.1,
+    "dfg_beta_target_runtime": 0.1,
+    "dfg_mode": "attn",
+    "dfg_ss2d_fusion": "weight_residual",
+    "expected": {
+      "dfg_beta_target": 0.1,
+      "dfg_mode": "attn",
+      "dfg_ss2d_fusion": "weight_residual",
+      "image_levels": [
+        8,
+        16,
+        24
+      ],
+      "n_groups": 3,
+      "text_levels": [
+        4,
+        8,
+        12
+      ],
+      "use_ss2d_dfg": true
+    },
+    "h6_enabled_but_not_supplied_to_phase2b_predictor": true,
+    "hybrid_alpha_current": 0.1,
+    "hybrid_prompt_mode": "hybrid",
+    "image_levels": [
+      8,
+      16,
+      24
+    ],
+    "image_size": 518,
+    "mismatches": {},
+    "n_groups": 3,
+    "text_levels": [
+      4,
+      8,
+      12
+    ],
+    "use_ss2d_dfg": true
+  },
+  "checkpoint_epoch": 5,
+  "datasets": {
+    "MVTec": "get_text_and_image_dataset('MVTec', img_size, stage='test'); up to 2 normal + 2 anomaly per class by SHA256 ordering",
+    "VisA": "existing deterministic 48-image audit manifest and deterministic test preprocessing"
+  },
+  "decision_rules": {
+    "dataset_status": "inconclusive if stage or ranking-error dynamic range is absent; supported requires both co-primary signals to show coherent association, above-random damage capture, multi-class direction, aligned-vs-shifted control, score-matched residual, and oracle gain over confidence; weak if only simple co-primary support; otherwise null",
+    "final_terminals": [
+      "PROTOCOL_ASSUMPTION_INVALID",
+      "AUDIT_IMPLEMENTATION_INVALID",
+      "STAGE_INCONSISTENCY_NO_DYNAMIC_RANGE",
+      "STAGE_RANK_RISK_INCONCLUSIVE",
+      "STAGE_RANK_RISK_NOT_SUPPORTED",
+      "STAGE_INCONSISTENCY_CONFIDENCE_REDUNDANT",
+      "STAGE_RANK_RISK_AUXILIARY_ONLY",
+      "STAGE_RANK_RISK_DOMAIN_SHIFT_EMERGENT",
+      "STAGE_RANK_RISK_ZERO_SHOT_SUPPORTED"
+    ]
+  },
+  "frozen_formulas": {
+    "C_AP": "1 - precision after complete equal-score group",
+    "D_jack": "population std across leave-one-stage-out consensus percentile ranks; diagnostic only",
+    "D_logit": "population std across groups of native margins",
+    "D_rank": "population std across groups of within-image average-tie percentile ranks",
+    "R_neg": "fraction anomaly scores strictly lower plus half tied fraction",
+    "R_pos": "fraction normal scores strictly greater plus half tied fraction",
+    "U_conf": "-abs(deployed final margin)",
+    "bootstrap": "classes, 2000 resamples, deterministic seeds",
+    "coverage": 0.2,
+    "margin_bins": 10,
+    "spatial_shift": [
+      "vertical=floor(H/3)",
+      "horizontal=floor(W/3)",
+      "wraparound"
+    ]
+  },
+  "inference_only": true,
+  "inputs": {
+    "checkpoint": {
+      "path": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+      "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34"
+    },
+    "config": {
+      "path": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase4/k1/short64_seed0_attempt5/config.json",
+      "sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4"
+    },
+    "mvtec_metadata": {
+      "path": "/home/ai4/caohuy/ACD-CLIP-p1v84a/dataset/hub/MVTec.jsonl",
+      "sha256": "3a5e304ea16bba82e6e525d188698e91ca92b718696f8c257ed435d235b4cc2c"
+    },
+    "visa_manifest": {
+      "path": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase4/k1/stage1_7r/visa_train_audit_manifest.json",
+      "sha256": "32e47c21256447ca8a94cb647ccb8dad833b30a777ebdd3d50c06240d9e63ac1"
+    }
+  },
+  "loader": {
+    "functions": [
+      "build",
+      "load_model",
+      "get_phase2b_global_text_features"
+    ],
+    "precision": "strict FP32; TF32 off; AMP off",
+    "source": "tools/audit_p4v_phase2b_readiness.py"
+  },
+  "metric_reference": {
+    "source": "test.py::_exact_auc_ap_from_sorted_chunks",
+    "tie_semantics": "equal-score groups together; AUROC ties receive 0.5 pair credit"
+  },
+  "predictor_semantics": {
+    "authoritative_call": "model.vision_text_fusion_gate_seg(features, text, img_size, test_mode=True, domain='Industrial', return_details=True)",
+    "deployed_margin": "final_logits abnormal - normal after deployment",
+    "deployment": "Industrial Gaussian blur kernel=7 sigma=1; bilinear align_corners=True; mean group logits; softmax class dimension",
+    "features": "stack(model(image, return_phase4_features=True)['seg_tokens'])",
+    "native_logits": "returned base_group_logits [G,B,P,2]",
+    "native_margin": "z_abnormal - z_normal before deployment"
+  },
+  "protocol": "PHASE5-A v2 HSIR",
+  "question": "Does hierarchical stage inconsistency predict ranking-critical error beyond final confidence?",
+  "repo_head": "db1e97e4ed52e1c0e572f97a5ed02dd4b322627f",
+  "training_steps": 0
+}

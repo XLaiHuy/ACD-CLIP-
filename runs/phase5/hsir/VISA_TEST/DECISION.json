@@ -1,0 +1,38 @@
+{
+  "confidence_redundant": false,
+  "decision_rule": "co-primary signals are reported separately; strong requires both coherent support, aligned-vs-shifted control, score-matched residual, and oracle gain over confidence",
+  "evidence": {
+    "D_logit": {
+      "aligned_beats_shifted": false,
+      "association_direction_positive": false,
+      "coherent_support": false,
+      "confidence_oracle_gain": 0.4231063831014956,
+      "confidence_score_matched_residual": -0.2767428175676844,
+      "damage_capture_above_random": false,
+      "multiple_class_direction": false,
+      "oracle_gain": 0.40845127124686287,
+      "oracle_gain_beats_confidence": false,
+      "score_matched_residual": -0.08251017729468349,
+      "score_matched_residual_positive": false
+    },
+    "D_rank": {
+      "aligned_beats_shifted": true,
+      "association_direction_positive": true,
+      "coherent_support": true,
+      "confidence_oracle_gain": 0.4231063831014956,
+      "confidence_score_matched_residual": -0.2767428175676844,
+      "damage_capture_above_random": true,
+      "multiple_class_direction": true,
+      "oracle_gain": 0.07889873718728413,
+      "oracle_gain_beats_confidence": false,
+      "score_matched_residual": 0.3499042392774835,
+      "score_matched_residual_positive": true
+    }
+  },
+  "external_replication": "NOT_AVAILABLE",
+  "random_capture_at_20": 0.2,
+  "random_damage_capture_auc": 0.5,
+  "scope": "VisA held-out TEST image evidence; not unseen-dataset or cross-domain evidence",
+  "status": "weak",
+  "terminal": "STAGE_RANK_RISK_VISA_HELDOUT_PARTIAL"
+}

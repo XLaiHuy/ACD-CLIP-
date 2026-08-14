@@ -1,0 +1,44 @@
+{
+  "checks": {
+    "ap_identity": true,
+    "deployment_operator": true,
+    "identical_group_margins": true,
+    "identical_order_scaled_values": true,
+    "pairwise_auc_identity": true,
+    "reversed_order": true,
+    "spatial_shift_control": true
+  },
+  "formulas": {
+    "percentile_rank": "average ties, ascending, divide by n-1",
+    "std": "unbiased=False"
+  },
+  "status": "PASS",
+  "tests": {
+    "ap_identity": {
+      "error": 5.551115123125783e-17
+    },
+    "deployment_operator": {
+      "max_abs_logit_error": 0.0,
+      "max_abs_probability_error": 0.0
+    },
+    "identical_group_margins": {
+      "D_logit": 0.0,
+      "D_rank": 0.0
+    },
+    "identical_order_scaled_values": {
+      "D_logit": 18.0,
+      "D_rank": 0.0
+    },
+    "pairwise_auc_identity": {
+      "error_negative": 4.163336342344337e-17,
+      "error_positive": 4.163336342344337e-17
+    },
+    "reversed_order": {
+      "D_rank_max": 0.5
+    },
+    "spatial_shift_control": {
+      "alignment_changed": true,
+      "distribution_error": 0.0
+    }
+  }
+}

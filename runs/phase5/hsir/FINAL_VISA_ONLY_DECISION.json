@@ -1,0 +1,155 @@
+{
+  "architecture": {
+    "dfg_attn_dim": 256,
+    "dfg_attn_tau": 8.0,
+    "dfg_beta_runtime": 0.1,
+    "dfg_beta_target_runtime": 0.1,
+    "dfg_mode": "attn",
+    "dfg_ss2d_fusion": "weight_residual",
+    "expected": {
+      "dfg_beta_target": 0.1,
+      "dfg_mode": "attn",
+      "dfg_ss2d_fusion": "weight_residual",
+      "image_levels": [
+        8,
+        16,
+        24
+      ],
+      "n_groups": 3,
+      "text_levels": [
+        4,
+        8,
+        12
+      ],
+      "use_ss2d_dfg": true
+    },
+    "h6_enabled_but_not_supplied_to_phase2b_predictor": true,
+    "hybrid_alpha_current": 0.1,
+    "hybrid_prompt_mode": "hybrid",
+    "image_levels": [
+      8,
+      16,
+      24
+    ],
+    "image_size": 518,
+    "mismatches": {},
+    "n_groups": 3,
+    "text_levels": [
+      4,
+      8,
+      12
+    ],
+    "use_ss2d_dfg": true
+  },
+  "class_consistency": {
+    "D_logit": {
+      "neutral_classes": 0,
+      "opposed_classes": 10,
+      "supported_classes": 2,
+      "total_classes": 12
+    },
+    "D_rank": {
+      "neutral_classes": 0,
+      "opposed_classes": 0,
+      "supported_classes": 12,
+      "total_classes": 12
+    }
+  },
+  "commit": "LOCAL_ONLY",
+  "damage_capture": {
+    "auc": {
+      "D_logit": 0.4312950579409697,
+      "D_rank": 0.6031695516794864,
+      "confidence": 0.3761896067484448
+    },
+    "capture_at_20": {
+      "D_logit": 0.1372907617895843,
+      "D_rank": 0.3096558649180646,
+      "confidence": 0.10305437851899216
+    }
+  },
+  "decision": "STAGE_RANK_RISK_VISA_HELDOUT_PARTIAL",
+  "external_replication": "NOT_AVAILABLE",
+  "integrity": {
+    "pilot": {
+      "ap_reconstruction_error": 1.7319479184152442e-14,
+      "auroc_reconstruction_error": 1.1102230246251565e-16,
+      "predictor_max_abs_probability_error": 0.0
+    },
+    "status": "PASS",
+    "visa_test": {
+      "ap_reconstruction_error": 1.554312234475219e-14,
+      "auroc_reconstruction_error": 1.1102230246251565e-16,
+      "predictor_max_abs_probability_error": 0.0
+    }
+  },
+  "next": "Audit candidate second-evidence sources on held-out high-risk inconsistent pixels.",
+  "orthogonal_to_confidence": "partial",
+  "q1_potential": "provisional medium",
+  "q2_potential": "medium",
+  "remote_head": "LOCAL_ONLY",
+  "scope": "VisA held-out TEST image evidence; not unseen-dataset or cross-domain evidence",
+  "selective_oracle_potential": {
+    "D_logit": 0.40845127124686287,
+    "D_rank": 0.07889873718728413,
+    "confidence": 0.4231063831014956
+  },
+  "train_pilot_signal": {
+    "D_logit": {
+      "capture_at_20_median": 0.19585267889354396,
+      "damage_capture_auc_median": 0.48997535998103436,
+      "negative_r_neg_hard_spearman_median": 0.4473722991518106,
+      "oracle_ap_gain_at_20_median": 0.5796108270896118,
+      "positive_c_ap_spearman_median": -0.1256235864935533,
+      "positive_r_pos_spearman_median": -0.2234640537857373,
+      "score_matched_residual_median": -0.001374397395387833
+    },
+    "D_rank": {
+      "capture_at_20_median": 0.24152818888528216,
+      "damage_capture_auc_median": 0.5435147792290032,
+      "negative_r_neg_hard_spearman_median": -0.39433408576443607,
+      "oracle_ap_gain_at_20_median": 0.0011102076982427989,
+      "positive_c_ap_spearman_median": 0.5628573850823588,
+      "positive_r_pos_spearman_median": 0.6128542139579128,
+      "score_matched_residual_median": 0.2589114224538216
+    },
+    "U_conf": {
+      "capture_at_20_median": 0.13775424870799602,
+      "damage_capture_auc_median": 0.4323778153028989,
+      "negative_r_neg_hard_spearman_median": 0.9987468963491171,
+      "oracle_ap_gain_at_20_median": 0.655981778865121,
+      "positive_c_ap_spearman_median": -0.9731482249779683,
+      "positive_r_pos_spearman_median": -0.9999426727082064,
+      "score_matched_residual_median": -0.32763898391807345
+    }
+  },
+  "visa_test_signal": {
+    "D_logit": {
+      "capture_at_20_median": 0.1372907617895843,
+      "damage_capture_auc_median": 0.4312950579409697,
+      "negative_r_neg_hard_spearman_median": 0.8995235818004494,
+      "oracle_ap_gain_at_20_median": 0.40845127124686287,
+      "positive_c_ap_spearman_median": -0.6735616076864424,
+      "positive_r_pos_spearman_median": -0.6733845377721864,
+      "score_matched_residual_median": -0.08251017729468349
+    },
+    "D_rank": {
+      "capture_at_20_median": 0.3096558649180646,
+      "damage_capture_auc_median": 0.6031695516794864,
+      "negative_r_neg_hard_spearman_median": -0.07475131703784478,
+      "oracle_ap_gain_at_20_median": 0.07889873718728413,
+      "positive_c_ap_spearman_median": 0.7470174356919626,
+      "positive_r_pos_spearman_median": 0.7471329925904802,
+      "score_matched_residual_median": 0.3499042392774835
+    },
+    "U_conf": {
+      "capture_at_20_median": 0.10305437851899216,
+      "damage_capture_auc_median": 0.3761896067484448,
+      "negative_r_neg_hard_spearman_median": 0.999999134181486,
+      "oracle_ap_gain_at_20_median": 0.4231063831014956,
+      "positive_c_ap_spearman_median": -0.9396854994325614,
+      "positive_r_pos_spearman_median": -0.9647461611694675,
+      "score_matched_residual_median": -0.2767428175676844
+    }
+  }
+}

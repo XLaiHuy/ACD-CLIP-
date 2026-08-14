@@ -1,0 +1,35 @@
+{
+  "confidence_redundant": false,
+  "decision_rule": "co-primary signals are reported separately; strong requires both coherent support, aligned-vs-shifted control, score-matched residual, and oracle gain over confidence",
+  "evidence": {
+    "D_logit": {
+      "aligned_beats_shifted": false,
+      "association_direction_positive": true,
+      "coherent_support": false,
+      "confidence_oracle_gain": 0.655981778865121,
+      "confidence_score_matched_residual": -0.32763898391807345,
+      "damage_capture_above_random": false,
+      "multiple_class_direction": false,
+      "oracle_gain": 0.5796108270896118,
+      "oracle_gain_beats_confidence": false,
+      "score_matched_residual": -0.001374397395387833,
+      "score_matched_residual_positive": false
+    },
+    "D_rank": {
+      "aligned_beats_shifted": true,
+      "association_direction_positive": true,
+      "coherent_support": true,
+      "confidence_oracle_gain": 0.655981778865121,
+      "confidence_score_matched_residual": -0.32763898391807345,
+      "damage_capture_above_random": true,
+      "multiple_class_direction": true,
+      "oracle_gain": 0.0011102076982427989,
+      "oracle_gain_beats_confidence": false,
+      "score_matched_residual": 0.2589114224538216,
+      "score_matched_residual_positive": true
+    }
+  },
+  "random_capture_at_20": 0.2,
+  "random_damage_capture_auc": 0.5,
+  "status": "weak"
+}
