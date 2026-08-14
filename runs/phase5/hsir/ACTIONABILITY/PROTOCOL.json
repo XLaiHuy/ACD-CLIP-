@@ -1,0 +1,87 @@
+{
+  "audit": "Phase5-A.1 v2 actionability decomposition of HSIR",
+  "error_objects": {
+    "C_AP": "frozen Phase5-A positive AP contamination",
+    "R_neg": "frozen Phase5-A negative pairwise inversion risk",
+    "R_pos": "frozen Phase5-A positive pairwise inversion risk"
+  },
+  "inference_only": true,
+  "no_new_selector_learning": true,
+  "no_training": true,
+  "oracles": "positive-only, negative-only, and both; selected pixels move across all unselected pixels while unselected relative score order is preserved",
+  "pixel_data_source": {
+    "authoritative_cache_found": false,
+    "dense_cache_persisted": false,
+    "forward_count_expected": 2162,
+    "prior_phase5_analysis_reused": true,
+    "prior_runtime_estimate": {
+      "decision": "FULL_TEST_PRACTICAL",
+      "estimated_class_text_cache_hours": 0.16825449110778412,
+      "estimated_images": 2162,
+      "estimated_total_hours": 0.16698277259471878,
+      "mean_seconds_per_image": 0.27804716990794986,
+      "measured_on": "VisA TEST; first two images of canonical candle test dataset",
+      "measured_seconds_per_image": [
+        0.38151555391959846,
+        0.17457878589630127
+      ]
+    },
+    "source": "exactly one fresh VisA TEST predictor exposure pass"
+  },
+  "predictor_semantics": "reuse audit_phase5_hsir.predict_one with canonical VisA stage=test loader, exact Phase2B predictor, strict FP32",
+  "provenance": {
+    "checkpoint": {
+      "path": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+      "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34"
+    },
+    "config": {
+      "path": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase4/k1/short64_seed0_attempt5/config.json",
+      "sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4"
+    },
+    "dataset": "VisA",
+    "dataset_root": [
+      "/home/ai4/caohuy/data/VisA_20220922"
+    ],
+    "metadata_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+    "metadata_source": "/home/ai4/caohuy/ACD-CLIP-p1v84a/dataset/hub/VisA.jsonl",
+    "number_anomaly_images": 1200,
+    "number_classes": 12,
+    "number_images": 2162,
+    "number_normal_images": 962,
+    "phase5_commit": "29a8ffc934448b34424c77805a2c5c289bd9ddac",
+    "phase5_per_class": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase5/hsir/VISA_TEST/PER_CLASS.csv",
+    "phase5_per_image": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase5/hsir/VISA_TEST/PER_IMAGE.csv",
+    "phase5_summary": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase5/hsir/VISA_TEST/SUMMARY.json",
+    "predictor_parity": "PASS",
+    "provenance_checks": {
+      "anomaly_images": true,
+      "ap_parity": true,
+      "auroc_parity": true,
+      "checkpoint_sha": true,
+      "classes": true,
+      "config_sha": true,
+      "dataset": true,
+      "images": true,
+      "no_train_paths": true,
+      "normal_images": true,
+      "phase5_commit": true,
+      "phase5_terminal": true,
+      "predictor_parity": true,
+      "split": true,
+      "visa_metadata_sha": true
+    },
+    "split": "test"
+  },
+  "selection_budget": {
+    "k20": "ceil(0.20 * class pixel count)",
+    "primary_fraction": 0.2,
+    "union_fraction_per_selector": 0.1,
+    "union_matched_budget": "top K_union by each single selector"
+  },
+  "selectors": {
+    "D_logit": "D_logit descending",
+    "D_rank": "D_rank descending",
+    "U_conf": "-abs(final_margin) descending"
+  },
+  "tie_handling": "stable lexsort by descending selector then deterministic pixel_id=(canonical source_index * H*W + row-major y*W+x); GT is not used for selection"
+}
