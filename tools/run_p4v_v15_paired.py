@@ -20,7 +20,9 @@ def optimizer(model, config):
 
 def batch(dataset, index, device):
     raw=dataset[index % len(dataset)]
-    return raw["image"].unsqueeze(0).to(device).float(),raw["mask"].unsqueeze(0).to(device).float(),raw["label"].view(1).to(device),[raw["class_name"]],raw["file_name"]
+    image_path=str(raw["file_name"])
+    provenance={"image_path":image_path,"file_name":Path(image_path).name,"class_name":str(raw["class_name"]),"label":int(raw["label"].item())}
+    return raw["image"].unsqueeze(0).to(device).float(),raw["mask"].unsqueeze(0).to(device).float(),raw["label"].view(1).to(device),[raw["class_name"]],provenance
 
 def phase4_forward(model,image,mask,label,classes,config,mode):
     visual=model(image,return_phase4_features=True); v=torch.stack(visual["seg_tokens"])
@@ -57,8 +59,8 @@ def group_prediction(model,features,text,g,img_size):
 def evaluate(model,dataset,config,mode):
     model.eval(); model.clipmodel.eval(); rec=defaultdict(list); group=defaultdict(lambda:defaultdict(list)); classes=defaultdict(lambda:defaultdict(list)); images=[]; geometry=defaultdict(list)
     for idx in range(len(dataset)):
-        image,mask,label,names,files=batch(dataset,idx,next(model.parameters()).device); pred,base,v,adapted,outs,text=phase4_forward(model,image,mask,label,names,config,mode); target=mask[:,0]; prob=pred[:,1]; bce=F.binary_cross_entropy(prob.clamp(1e-6,1-1e-6),target,reduction="none")
-        ap,auc=_pixel_metrics(target,prob); name=names[0]; row={"class":name,"file":files[0],"normal_bce":None if not (target<.5).any() else float(bce[target<.5].mean()),"anomaly_bce":None if not (target>=.5).any() else float(bce[target>=.5].mean()),"pixel_ap":ap,"pixel_auc":auc}; images.append(row)
+        image,mask,label,names,provenance=batch(dataset,idx,next(model.parameters()).device); pred,base,v,adapted,outs,text=phase4_forward(model,image,mask,label,names,config,mode); target=mask[:,0]; prob=pred[:,1]; bce=F.binary_cross_entropy(prob.clamp(1e-6,1-1e-6),target,reduction="none")
+        ap,auc=_pixel_metrics(target,prob); name=names[0]; row={**provenance,"normal_bce":None if not (target<.5).any() else float(bce[target<.5].mean()),"anomaly_bce":None if not (target>=.5).any() else float(bce[target>=.5].mean()),"pixel_ap":ap,"pixel_auc":auc}; images.append(row)
         for key,sel in (("normal_bce",target<.5),("anomaly_bce",target>=.5)):
             if sel.any(): rec[key].append(float(bce[sel].mean())); classes[name][key].append(float(bce[sel].mean()))
         rec["pixel_ap"].append(ap);rec["pixel_auc"].append(auc);classes[name]["pixel_ap"].append(ap);classes[name]["pixel_auc"].append(auc)
