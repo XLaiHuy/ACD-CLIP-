@@ -1,0 +1,42 @@
+{
+  "highest_level_scientific_terminal": "STAGE_RESCUE_ORACLE_ONLY",
+  "input_integrity": "PASS",
+  "output_integrity": "PASS",
+  "provenance": {
+    "dataset": "VisA",
+    "split": "test",
+    "class_count": 12,
+    "image_count": 2162,
+    "normal_image_count": 962,
+    "anomaly_image_count": 1200,
+    "checkpoint_sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+    "config_sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4",
+    "predictor_parity": "PASS",
+    "evaluator_parity": "PASS"
+  },
+  "mechanism": [
+    "Branch A found real internal-stage rescue evidence: G_rescue was positively associated with C_AP and R_pos, and the internal rescue recovered 14.6901% of the A1 positive-only oracle AP gain on the class mean.",
+    "The rescue was not realized by a fixed stage or by GT-free P2/P3 arbitration: P3 harmed AP in all 12 classes and AUROC in 9 of 12 classes.",
+    "Therefore the mechanism exists as an oracle diagnostic, but a deployable GT-free stage-arbitration selector is not established."
+  ],
+  "Q1_potential": "medium",
+  "Q2_potential": "medium",
+  "external_replication": "unavailable",
+  "branch_c": "not_run: MVTec unavailable",
+  "total_model_inference_passes": 3,
+  "inference_pass_scope": "three completed full VisA TEST passes: prior A.1, Branch A, and B1; two Branch-A first-image implementation retries are recorded separately",
+  "total_runtime": "00:36:49 successful Branch-A plus B1 passes; retry overhead excluded",
+  "token_efficiency": {
+    "number_of_progress_polls": 68,
+    "longest_wait_interval": "30 seconds",
+    "exact_progress_available": false
+  },
+  "scientific_commits": [
+    "29a8ffc934448b34424c77805a2c5c289bd9ddac",
+    "fcbff12059a0cb29698c14f443a0396acbef8c55",
+    "06d72e37b9a7b2ce0db381e1d3b6edfc59de9c91",
+    "963006df88bf451cfc6c7d7baee4a3cb3792ea7e"
+  ],
+  "remote_head_at_report": "bf355649b77324110649f86b7918127a37904ce7",
+  "next": "Audit candidate SECOND-EVIDENCE sources on identified held-out high-risk weak-positive pixels."
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "branch": "A",
+    "input_status": "PASS",
+    "decision": "CONSENSUS_DILUTION_SUPPORTED",
+    "commit": "06d72e37b9a7b2ce0db381e1d3b6edfc59de9c91",
+    "runtime": "00:18:59 successful pass; two implementation-only first-image retries preceded it",
+    "next_branch": "B1"
+  },
+  {
+    "branch": "B1",
+    "input_status": "PASS",
+    "decision": "STAGE_RESCUE_ORACLE_ONLY",
+    "commit": "963006df88bf451cfc6c7d7baee4a3cb3792ea7e",
+    "runtime": "00:17:50",
+    "next_branch": "STOP"
+  }
+]
