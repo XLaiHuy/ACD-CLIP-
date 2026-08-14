@@ -1,0 +1,53 @@
+{
+  "decision": "V1_HARM_DOMINATED_BY_OPTIMIZATION_DRIFT",
+  "dominance_rule": "at least 70% of absolute primary degradation with consistent sign",
+  "optimization_drift_share": {
+    "pixel_ap_macro": 1.0000280646801893,
+    "pixel_auc_macro": 1.0000022686745949
+  },
+  "causal_identity": {
+    "normal_bce": {
+      "total_delta": 0.0,
+      "intervention_effect": 0.0,
+      "optimization_drift": 0.0,
+      "reconstruction_error": 0.0
+    },
+    "anomaly_bce": {
+      "total_delta": 0.0,
+      "intervention_effect": 0.0,
+      "optimization_drift": 0.0,
+      "reconstruction_error": 0.0
+    },
+    "pixel_ap_macro": {
+      "total_delta": -0.010884635150432587,
+      "intervention_effect": 3.0547380447387695e-07,
+      "optimization_drift": -0.01088494062423706,
+      "reconstruction_error": 0.0
+    },
+    "pixel_auc_macro": {
+      "total_delta": -0.026272892951965332,
+      "intervention_effect": 5.960464477539063e-08,
+      "optimization_drift": -0.026272952556610107,
+      "reconstruction_error": 0.0
+    }
+  },
+  "geometry_summary": {
+    "normal_angle": 1.4096022823650856e-05,
+    "normal_delta_norm": 0.03493490815162659,
+    "normal_correction_norm": 2.0778233300600135e-10,
+    "normal_relative_correction": 2.0778233300600135e-10,
+    "normal_radial_fraction": 0.7993290424346924,
+    "normal_tangent_fraction": 0.6007742285728455,
+    "normal_delta_margin": -3.5401534148604696e-08,
+    "normal_gate": 1.1654820752937667e-07,
+    "anomaly_angle": 6.473036137322197e-06,
+    "anomaly_delta_norm": 0.0363398939371109,
+    "anomaly_correction_norm": 3.425590922034871e-10,
+    "anomaly_relative_correction": 3.4255911995906274e-10,
+    "anomaly_radial_fraction": 0.7977943420410156,
+    "anomaly_tangent_fraction": 0.6020740866661072,
+    "anomaly_delta_margin": -3.700927209138172e-08,
+    "anomaly_gate": 1.6908643374335952e-07
+  },
+  "next_authorized": "Branch A: gradient-isolated conditional correction"
+}
