@@ -1,0 +1,36 @@
+{
+  "decision": "V1A_GRADIENT_ISOLATION_ZERO_STEP_PASS",
+  "checks": {
+    "off_exact": true,
+    "zero_delta_exact": true,
+    "zero_gate_exact": true,
+    "finite": true,
+    "corr_branch_base_grad_exact_zero": true,
+    "base_main_grad_nonzero": true,
+    "cops_grad_nonzero": true,
+    "visual_grad_nonzero": true,
+    "router_grad_zero": true,
+    "legacy_factor_grad_zero": true,
+    "act_absent": true
+  },
+  "exact_errors": {
+    "off": 0.0,
+    "zero_delta": 0.0,
+    "zero_gate": 0.0
+  },
+  "gradients": {
+    "corr_branch_base": 0.0,
+    "corr_cops": 5.282920483296039e-06,
+    "corr_visual": 0.04520681872963905,
+    "base_main": 2.219883918762207,
+    "router": 0.0,
+    "legacy": 0.0
+  },
+  "provenance": {
+    "config_sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4",
+    "manifest_sha256": "32e47c21256447ca8a94cb647ccb8dad833b30a777ebdd3d50c06240d9e63ac1",
+    "initialization": "fresh OpenAI CLIP only",
+    "precision": "strict FP32",
+    "optimizer_steps": 0
+  }
+}

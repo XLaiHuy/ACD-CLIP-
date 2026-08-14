@@ -1,0 +1,37 @@
+{
+  "decision": "PHASE4V_OPTIMIZATION_RECOVERY_NOT_SUPPORTED",
+  "paired_protocol": {
+    "initialization": "fresh OpenAI CLIP shared warmup",
+    "warmup_steps": 56,
+    "active_steps": 32,
+    "eta": 1.0,
+    "precision": "strict FP32"
+  },
+  "pass_criteria": {
+    "normal_bce_within_tolerance": true,
+    "anomaly_bce_improved": false,
+    "pixel_ap_at_least_base": false,
+    "pixel_auc_at_least_base": true,
+    "finite_and_bounded": true
+  },
+  "paired_metrics": {
+    "base": {
+      "normal_bce": 1.0000004522225936e-06,
+      "anomaly_bce": 13.815510749816895,
+      "pixel_ap_macro": 0.073240727186203,
+      "pixel_auc_macro": 0.9129390716552734
+    },
+    "v1a_active": {
+      "normal_bce": 1.0000004522225936e-06,
+      "anomaly_bce": 13.815510749816895,
+      "pixel_ap_macro": 0.07316853851079941,
+      "pixel_auc_macro": 0.9155266284942627
+    },
+    "active_minus_off": {
+      "pixel_ap_macro": 2.2351741790771484e-08,
+      "pixel_auc_macro": 2.384185791015625e-07
+    }
+  },
+  "interpretation": "Gradient isolation removed the previous drift mechanism but the explicit isolated intervention is effectively neutral, not harmful. Therefore the attribution did not justify a predictor-aligned Branch-B fallback.",
+  "stop": "Do not start Branch B/C/D, Router, MoE, OT, ACT, E20, or medical evaluation."
+}

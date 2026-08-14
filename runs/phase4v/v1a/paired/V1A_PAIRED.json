@@ -1,0 +1,1508 @@
+{
+  "protocol": {
+    "initialization": "fresh OpenAI CLIP shared warmup",
+    "precision": "strict FP32",
+    "warmup_steps": 56,
+    "active_steps": 32,
+    "eta": 1.0,
+    "config_sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4",
+    "manifest_sha256": "32e47c21256447ca8a94cb647ccb8dad833b30a777ebdd3d50c06240d9e63ac1"
+  },
+  "finite": {
+    "warmup": true,
+    "base": true,
+    "v1a": true
+  },
+  "loss_scale": {
+    "first_active_corr_to_base": 0.4729139506816864,
+    "mean_active_corr_to_base": 0.4237727870058734
+  },
+  "reports": {
+    "BASE": {
+      "mode": "OFF",
+      "normal_bce": 1.0000004522225936e-06,
+      "anomaly_bce": 13.815510749816895,
+      "pixel_ap_macro": 0.073240727186203,
+      "pixel_auc_macro": 0.9129390716552734,
+      "per_image": [
+        {
+          "class": "candle",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "candle",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "candle",
+          "file": "c",
+          "normal_bce": 1.0000003385357559e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.14046445488929749,
+          "pixel_auc": 0.9854156970977783
+        },
+        {
+          "class": "candle",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.12564143538475037,
+          "pixel_auc": 0.9775406122207642
+        },
+        {
+          "class": "capsules",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "capsules",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "capsules",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.01360300462692976,
+          "pixel_auc": 0.9762123227119446
+        },
+        {
+          "class": "capsules",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.013543208129703999,
+          "pixel_auc": 0.9102920293807983
+        },
+        {
+          "class": "cashew",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "cashew",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "cashew",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.001867882558144629,
+          "pixel_auc": 0.8288465738296509
+        },
+        {
+          "class": "cashew",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.0824040099978447,
+          "pixel_auc": 0.9964014291763306
+        },
+        {
+          "class": "chewinggum",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "chewinggum",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "chewinggum",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.23203608393669128,
+          "pixel_auc": 0.9967755675315857
+        },
+        {
+          "class": "chewinggum",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.21872922778129578,
+          "pixel_auc": 0.9711245894432068
+        },
+        {
+          "class": "fryum",
+          "file": "f",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "fryum",
+          "file": "f",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "fryum",
+          "file": "f",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.037967752665281296,
+          "pixel_auc": 0.8949291110038757
+        },
+        {
+          "class": "fryum",
+          "file": "f",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.06373248994350433,
+          "pixel_auc": 0.9426137208938599
+        },
+        {
+          "class": "macaroni1",
+          "file": "m",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "macaroni1",
+          "file": "m",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "macaroni1",
+          "file": "m",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.023723477497696877,
+          "pixel_auc": 0.9739473462104797
+        },
+        {
+          "class": "macaroni1",
+          "file": "m",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.0064355554059147835,
+          "pixel_auc": 0.8913517594337463
+        },
+        {
+          "class": "macaroni2",
+          "file": "m",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "macaroni2",
+          "file": "m",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "macaroni2",
+          "file": "m",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.219939723610878,
+          "pixel_auc": 0.968888521194458
+        },
+        {
+          "class": "macaroni2",
+          "file": "m",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.0150021743029356,
+          "pixel_auc": 0.9434115886688232
+        },
+        {
+          "class": "pcb1",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb1",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb1",
+          "file": "p",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.03527463972568512,
+          "pixel_auc": 0.9734763503074646
+        },
+        {
+          "class": "pcb1",
+          "file": "p",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.003565473249182105,
+          "pixel_auc": 0.6105592250823975
+        },
+        {
+          "class": "pcb2",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb2",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb2",
+          "file": "p",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.0324978232383728,
+          "pixel_auc": 0.9612990021705627
+        },
+        {
+          "class": "pcb2",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.005474258214235306,
+          "pixel_auc": 0.7880925536155701
+        },
+        {
+          "class": "pcb3",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb3",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb3",
+          "file": "p",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.009754226543009281,
+          "pixel_auc": 0.8862218856811523
+        },
+        {
+          "class": "pcb3",
+          "file": "p",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.007208559196442366,
+          "pixel_auc": 0.6539810299873352
+        },
+        {
+          "class": "pcb4",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb4",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb4",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.23253098130226135,
+          "pixel_auc": 0.9547557830810547
+        },
+        {
+          "class": "pcb4",
+          "file": "p",
+          "normal_bce": 1.0000003385357559e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.01152908056974411,
+          "pixel_auc": 0.8406757116317749
+        },
+        {
+          "class": "pipe_fryum",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pipe_fryum",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pipe_fryum",
+          "file": "p",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.09381730109453201,
+          "pixel_auc": 0.9886078238487244
+        },
+        {
+          "class": "pipe_fryum",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.13103468716144562,
+          "pixel_auc": 0.9951180219650269
+        }
+      ],
+      "per_class": {
+        "candle": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.13305294513702393,
+          "pixel_auc": 0.9814781546592712,
+          "anomaly_bce": 13.815511703491211
+        },
+        "capsules": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.01357310637831688,
+          "pixel_auc": 0.9432522058486938,
+          "anomaly_bce": 13.815510749816895
+        },
+        "cashew": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.042135946452617645,
+          "pixel_auc": 0.9126240015029907,
+          "anomaly_bce": 13.815509796142578
+        },
+        "chewinggum": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.22538265585899353,
+          "pixel_auc": 0.9839500784873962,
+          "anomaly_bce": 13.815510749816895
+        },
+        "fryum": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.050850123167037964,
+          "pixel_auc": 0.9187713861465454,
+          "anomaly_bce": 13.815509796142578
+        },
+        "macaroni1": {
+          "normal_bce": 1.0000005659094313e-06,
+          "pixel_ap": 0.015079516917467117,
+          "pixel_auc": 0.932649552822113,
+          "anomaly_bce": 13.815509796142578
+        },
+        "macaroni2": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.11747094988822937,
+          "pixel_auc": 0.9561500549316406,
+          "anomaly_bce": 13.815510749816895
+        },
+        "pcb1": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.01942005567252636,
+          "pixel_auc": 0.7920178174972534,
+          "anomaly_bce": 13.815510749816895
+        },
+        "pcb2": {
+          "normal_bce": 1.0000005659094313e-06,
+          "pixel_ap": 0.018986040726304054,
+          "pixel_auc": 0.8746957778930664,
+          "anomaly_bce": 13.815511703491211
+        },
+        "pcb3": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.00848139263689518,
+          "pixel_auc": 0.7701014280319214,
+          "anomaly_bce": 13.815511703491211
+        },
+        "pcb4": {
+          "normal_bce": 1.0000005659094313e-06,
+          "pixel_ap": 0.12203003466129303,
+          "pixel_auc": 0.8977157473564148,
+          "anomaly_bce": 13.815510749816895
+        },
+        "pipe_fryum": {
+          "normal_bce": 1.0000005659094313e-06,
+          "pixel_ap": 0.11242599785327911,
+          "pixel_auc": 0.9918628931045532,
+          "anomaly_bce": 13.815511703491211
+        }
+      },
+      "per_group": {
+        "0": {
+          "pixel_ap": 0.11192088574171066,
+          "pixel_auc": 0.7239956855773926,
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895
+        },
+        "1": {
+          "pixel_ap": 0.06905648112297058,
+          "pixel_auc": 0.8872005343437195,
+          "normal_bce": 1.0012547591031762e-06,
+          "anomaly_bce": 13.707778930664062
+        },
+        "2": {
+          "pixel_ap": 0.01716635935008526,
+          "pixel_auc": 0.7673289179801941,
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895
+        }
+      },
+      "geometry": {}
+    },
+    "ACTIVE": {
+      "mode": "ACTIVE",
+      "normal_bce": 1.0000004522225936e-06,
+      "anomaly_bce": 13.815510749816895,
+      "pixel_ap_macro": 0.07316853851079941,
+      "pixel_auc_macro": 0.9155266284942627,
+      "per_image": [
+        {
+          "class": "candle",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "candle",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "candle",
+          "file": "c",
+          "normal_bce": 1.0000003385357559e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.12547601759433746,
+          "pixel_auc": 0.9844964146614075
+        },
+        {
+          "class": "candle",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.11861474066972733,
+          "pixel_auc": 0.9773684740066528
+        },
+        {
+          "class": "capsules",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "capsules",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "capsules",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.011591719463467598,
+          "pixel_auc": 0.9729313254356384
+        },
+        {
+          "class": "capsules",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.010639956220984459,
+          "pixel_auc": 0.8951639533042908
+        },
+        {
+          "class": "cashew",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "cashew",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "cashew",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.0014065643772482872,
+          "pixel_auc": 0.7702034711837769
+        },
+        {
+          "class": "cashew",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.07172633707523346,
+          "pixel_auc": 0.9957984685897827
+        },
+        {
+          "class": "chewinggum",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "chewinggum",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "chewinggum",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.17237979173660278,
+          "pixel_auc": 0.9961324334144592
+        },
+        {
+          "class": "chewinggum",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.3526882529258728,
+          "pixel_auc": 0.9836041331291199
+        },
+        {
+          "class": "fryum",
+          "file": "f",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "fryum",
+          "file": "f",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "fryum",
+          "file": "f",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.03308646380901337,
+          "pixel_auc": 0.8971210718154907
+        },
+        {
+          "class": "fryum",
+          "file": "f",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.05073848366737366,
+          "pixel_auc": 0.9363962411880493
+        },
+        {
+          "class": "macaroni1",
+          "file": "m",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "macaroni1",
+          "file": "m",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "macaroni1",
+          "file": "m",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.02145298942923546,
+          "pixel_auc": 0.9708128571510315
+        },
+        {
+          "class": "macaroni1",
+          "file": "m",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.004509675316512585,
+          "pixel_auc": 0.852944552898407
+        },
+        {
+          "class": "macaroni2",
+          "file": "m",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "macaroni2",
+          "file": "m",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "macaroni2",
+          "file": "m",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.13209301233291626,
+          "pixel_auc": 0.9687829613685608
+        },
+        {
+          "class": "macaroni2",
+          "file": "m",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.013165821321308613,
+          "pixel_auc": 0.9319066405296326
+        },
+        {
+          "class": "pcb1",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb1",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb1",
+          "file": "p",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.020140191540122032,
+          "pixel_auc": 0.9543357491493225
+        },
+        {
+          "class": "pcb1",
+          "file": "p",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.003359180875122547,
+          "pixel_auc": 0.608605682849884
+        },
+        {
+          "class": "pcb2",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb2",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb2",
+          "file": "p",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.02198493853211403,
+          "pixel_auc": 0.9438125491142273
+        },
+        {
+          "class": "pcb2",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.007864387705922127,
+          "pixel_auc": 0.860397219657898
+        },
+        {
+          "class": "pcb3",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb3",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb3",
+          "file": "p",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.024983035400509834,
+          "pixel_auc": 0.9467896819114685
+        },
+        {
+          "class": "pcb3",
+          "file": "p",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.017274396494030952,
+          "pixel_auc": 0.7412079572677612
+        },
+        {
+          "class": "pcb4",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb4",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb4",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.23965145647525787,
+          "pixel_auc": 0.9578152894973755
+        },
+        {
+          "class": "pcb4",
+          "file": "p",
+          "normal_bce": 1.0000003385357559e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.011018692515790462,
+          "pixel_auc": 0.8405991792678833
+        },
+        {
+          "class": "pipe_fryum",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pipe_fryum",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pipe_fryum",
+          "file": "p",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.11177470535039902,
+          "pixel_auc": 0.9894753098487854
+        },
+        {
+          "class": "pipe_fryum",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.17842409014701843,
+          "pixel_auc": 0.9959368705749512
+        }
+      ],
+      "per_class": {
+        "candle": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.12204538285732269,
+          "pixel_auc": 0.9809324741363525,
+          "anomaly_bce": 13.815511703491211
+        },
+        "capsules": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.011115837842226028,
+          "pixel_auc": 0.9340476393699646,
+          "anomaly_bce": 13.815510749816895
+        },
+        "cashew": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.03656645119190216,
+          "pixel_auc": 0.8830009698867798,
+          "anomaly_bce": 13.815509796142578
+        },
+        "chewinggum": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.2625340223312378,
+          "pixel_auc": 0.9898682832717896,
+          "anomaly_bce": 13.815510749816895
+        },
+        "fryum": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.04191247373819351,
+          "pixel_auc": 0.91675865650177,
+          "anomaly_bce": 13.815509796142578
+        },
+        "macaroni1": {
+          "normal_bce": 1.0000005659094313e-06,
+          "pixel_ap": 0.012981332838535309,
+          "pixel_auc": 0.9118787050247192,
+          "anomaly_bce": 13.815509796142578
+        },
+        "macaroni2": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.072629414498806,
+          "pixel_auc": 0.9503448009490967,
+          "anomaly_bce": 13.815510749816895
+        },
+        "pcb1": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.011749686673283577,
+          "pixel_auc": 0.7814707159996033,
+          "anomaly_bce": 13.815510749816895
+        },
+        "pcb2": {
+          "normal_bce": 1.0000005659094313e-06,
+          "pixel_ap": 0.014924663119018078,
+          "pixel_auc": 0.9021048545837402,
+          "anomaly_bce": 13.815511703491211
+        },
+        "pcb3": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.021128715947270393,
+          "pixel_auc": 0.8439987897872925,
+          "anomaly_bce": 13.815511703491211
+        },
+        "pcb4": {
+          "normal_bce": 1.0000005659094313e-06,
+          "pixel_ap": 0.12533506751060486,
+          "pixel_auc": 0.8992072343826294,
+          "anomaly_bce": 13.815510749816895
+        },
+        "pipe_fryum": {
+          "normal_bce": 1.0000005659094313e-06,
+          "pixel_ap": 0.14509940147399902,
+          "pixel_auc": 0.9927060604095459,
+          "anomaly_bce": 13.815511703491211
+        }
+      },
+      "per_group": {
+        "0": {
+          "pixel_ap": 0.08312679082155228,
+          "pixel_auc": 0.711963415145874,
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895
+        },
+        "1": {
+          "pixel_ap": 0.07097082585096359,
+          "pixel_auc": 0.8951348662376404,
+          "normal_bce": 1.000366182779544e-06,
+          "anomaly_bce": 13.7592134475708
+        },
+        "2": {
+          "pixel_ap": 0.01752473972737789,
+          "pixel_auc": 0.781329870223999,
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895
+        }
+      },
+      "geometry": {
+        "normal_angle": 1.3345866136660334e-05,
+        "normal_delta_norm": 0.016608890146017075,
+        "normal_correction_norm": 4.143838050474358e-11,
+        "normal_relative_correction": 4.143838397419053e-11,
+        "normal_radial_fraction": 0.7171979546546936,
+        "normal_tangent_fraction": 0.6967135071754456,
+        "normal_delta_margin": -3.852510843671553e-08,
+        "normal_gate": 4.944990195099308e-08,
+        "anomaly_angle": 1.5718173017376103e-05,
+        "anomaly_delta_norm": 0.017552077770233154,
+        "anomaly_correction_norm": 6.324492318743324e-11,
+        "anomaly_relative_correction": 6.324492318743324e-11,
+        "anomaly_radial_fraction": 0.7239937782287598,
+        "anomaly_tangent_fraction": 0.6897385716438293,
+        "anomaly_delta_margin": -3.6713437623348e-08,
+        "anomaly_gate": 6.757039727744996e-08
+      }
+    },
+    "OFF": {
+      "mode": "OFF",
+      "normal_bce": 1.0000004522225936e-06,
+      "anomaly_bce": 13.815510749816895,
+      "pixel_ap_macro": 0.07316851615905762,
+      "pixel_auc_macro": 0.9155263900756836,
+      "per_image": [
+        {
+          "class": "candle",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "candle",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "candle",
+          "file": "c",
+          "normal_bce": 1.0000003385357559e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.1254759430885315,
+          "pixel_auc": 0.9844958186149597
+        },
+        {
+          "class": "candle",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.11861477792263031,
+          "pixel_auc": 0.9773688316345215
+        },
+        {
+          "class": "capsules",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "capsules",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "capsules",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.011591683141887188,
+          "pixel_auc": 0.9729311466217041
+        },
+        {
+          "class": "capsules",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.010639882646501064,
+          "pixel_auc": 0.8951619863510132
+        },
+        {
+          "class": "cashew",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "cashew",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "cashew",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.001406561816111207,
+          "pixel_auc": 0.7702019810676575
+        },
+        {
+          "class": "cashew",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.07172685116529465,
+          "pixel_auc": 0.9957984685897827
+        },
+        {
+          "class": "chewinggum",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "chewinggum",
+          "file": "c",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "chewinggum",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.17237980663776398,
+          "pixel_auc": 0.9961324334144592
+        },
+        {
+          "class": "chewinggum",
+          "file": "c",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.35268789529800415,
+          "pixel_auc": 0.9836042523384094
+        },
+        {
+          "class": "fryum",
+          "file": "f",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "fryum",
+          "file": "f",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "fryum",
+          "file": "f",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.03308655694127083,
+          "pixel_auc": 0.8971216082572937
+        },
+        {
+          "class": "fryum",
+          "file": "f",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.050738271325826645,
+          "pixel_auc": 0.9363945722579956
+        },
+        {
+          "class": "macaroni1",
+          "file": "m",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "macaroni1",
+          "file": "m",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "macaroni1",
+          "file": "m",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.02145291678607464,
+          "pixel_auc": 0.9708128571510315
+        },
+        {
+          "class": "macaroni1",
+          "file": "m",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.004509653430432081,
+          "pixel_auc": 0.8529435992240906
+        },
+        {
+          "class": "macaroni2",
+          "file": "m",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "macaroni2",
+          "file": "m",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "macaroni2",
+          "file": "m",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.13209287822246552,
+          "pixel_auc": 0.9687831997871399
+        },
+        {
+          "class": "macaroni2",
+          "file": "m",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.01316574402153492,
+          "pixel_auc": 0.931906521320343
+        },
+        {
+          "class": "pcb1",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb1",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb1",
+          "file": "p",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.020140131935477257,
+          "pixel_auc": 0.9543356895446777
+        },
+        {
+          "class": "pcb1",
+          "file": "p",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.0033591771498322487,
+          "pixel_auc": 0.6086044311523438
+        },
+        {
+          "class": "pcb2",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb2",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb2",
+          "file": "p",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.021984929218888283,
+          "pixel_auc": 0.9438125491142273
+        },
+        {
+          "class": "pcb2",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.007864409126341343,
+          "pixel_auc": 0.8603979349136353
+        },
+        {
+          "class": "pcb3",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb3",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb3",
+          "file": "p",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895,
+          "pixel_ap": 0.024983016774058342,
+          "pixel_auc": 0.9467894434928894
+        },
+        {
+          "class": "pcb3",
+          "file": "p",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.01727432571351528,
+          "pixel_auc": 0.7412074208259583
+        },
+        {
+          "class": "pcb4",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb4",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pcb4",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.2396518588066101,
+          "pixel_auc": 0.9578152894973755
+        },
+        {
+          "class": "pcb4",
+          "file": "p",
+          "normal_bce": 1.0000003385357559e-06,
+          "anomaly_bce": 13.815509796142578,
+          "pixel_ap": 0.011018740013241768,
+          "pixel_auc": 0.8406000137329102
+        },
+        {
+          "class": "pipe_fryum",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pipe_fryum",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": null,
+          "pixel_ap": null,
+          "pixel_auc": null
+        },
+        {
+          "class": "pipe_fryum",
+          "file": "p",
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.1117742657661438,
+          "pixel_auc": 0.9894753098487854
+        },
+        {
+          "class": "pipe_fryum",
+          "file": "p",
+          "normal_bce": 1.0000005659094313e-06,
+          "anomaly_bce": 13.815511703491211,
+          "pixel_ap": 0.17842409014701843,
+          "pixel_auc": 0.9959368705749512
+        }
+      ],
+      "per_class": {
+        "candle": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.1220453605055809,
+          "pixel_auc": 0.980932354927063,
+          "anomaly_bce": 13.815511703491211
+        },
+        "capsules": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.011115782894194126,
+          "pixel_auc": 0.9340465664863586,
+          "anomaly_bce": 13.815510749816895
+        },
+        "cashew": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.036566708236932755,
+          "pixel_auc": 0.8830002546310425,
+          "anomaly_bce": 13.815509796142578
+        },
+        "chewinggum": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.26253384351730347,
+          "pixel_auc": 0.9898683428764343,
+          "anomaly_bce": 13.815510749816895
+        },
+        "fryum": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.04191241413354874,
+          "pixel_auc": 0.9167580604553223,
+          "anomaly_bce": 13.815509796142578
+        },
+        "macaroni1": {
+          "normal_bce": 1.0000005659094313e-06,
+          "pixel_ap": 0.012981285341084003,
+          "pixel_auc": 0.911878228187561,
+          "anomaly_bce": 13.815509796142578
+        },
+        "macaroni2": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.07262931019067764,
+          "pixel_auc": 0.9503448605537415,
+          "anomaly_bce": 13.815510749816895
+        },
+        "pcb1": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.01174965500831604,
+          "pixel_auc": 0.7814700603485107,
+          "anomaly_bce": 13.815510749816895
+        },
+        "pcb2": {
+          "normal_bce": 1.0000005659094313e-06,
+          "pixel_ap": 0.0149246696382761,
+          "pixel_auc": 0.9021052122116089,
+          "anomaly_bce": 13.815511703491211
+        },
+        "pcb3": {
+          "normal_bce": 1.0000004522225936e-06,
+          "pixel_ap": 0.021128671243786812,
+          "pixel_auc": 0.8439984321594238,
+          "anomaly_bce": 13.815511703491211
+        },
+        "pcb4": {
+          "normal_bce": 1.0000005659094313e-06,
+          "pixel_ap": 0.12533530592918396,
+          "pixel_auc": 0.8992076516151428,
+          "anomaly_bce": 13.815510749816895
+        },
+        "pipe_fryum": {
+          "normal_bce": 1.0000005659094313e-06,
+          "pixel_ap": 0.14509917795658112,
+          "pixel_auc": 0.9927060604095459,
+          "anomaly_bce": 13.815511703491211
+        }
+      },
+      "per_group": {
+        "0": {
+          "pixel_ap": 0.0831262394785881,
+          "pixel_auc": 0.7119622826576233,
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895
+        },
+        "1": {
+          "pixel_ap": 0.07097088545560837,
+          "pixel_auc": 0.8951343894004822,
+          "normal_bce": 1.000366182779544e-06,
+          "anomaly_bce": 13.7592134475708
+        },
+        "2": {
+          "pixel_ap": 0.017524780705571175,
+          "pixel_auc": 0.7813281416893005,
+          "normal_bce": 1.0000004522225936e-06,
+          "anomaly_bce": 13.815510749816895
+        }
+      },
+      "geometry": {}
+    }
+  },
+  "local_checkpoints": [
+    "runs/phase4v/v1a/paired/warmup_adapter_state.pth",
+    "runs/phase4v/v1a/paired/base_adapter_state.pth",
+    "runs/phase4v/v1a/paired/v1a_adapter_state.pth"
+  ]
+}
