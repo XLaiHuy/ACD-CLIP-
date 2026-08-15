@@ -1,0 +1,116 @@
+{
+  "audit": "PHASE5-B2 DEPLOYABLE MATCHED-RISK REFERENCE ADJUDICATION",
+  "bridge_gates": {
+    "B1": "aligned macro W > 0.5",
+    "B2": "class-bootstrap W lower CI > 0.5",
+    "B3": ">=8/12 classes W > 0.5",
+    "B4": "aligned-minus-shifted mean > 0",
+    "B5": "aligned-minus-shifted class-bootstrap lower CI > 0",
+    "B6": "matched-pair coverage reported and every class has nonzero matched pairs and eligible positives"
+  },
+  "candidates": {
+    "C0": "unchanged Phase2B native logits and deployment",
+    "C1": {
+      "abstain": "cell with fewer than two eligible patches",
+      "delta": "adjudicated_m_bar - original_m_bar",
+      "evidence": "E_nonlocal descending, patch-index ascending ties",
+      "intervention": "add delta to abnormal native logit at all three stages; normal logit unchanged",
+      "name": "MATCHED-RISK SCORE-SLOT ADJUDICATION",
+      "slots": "preserve descending original m_bar multiset within each acted eligible cell"
+    },
+    "C1_SHIFT": {
+      "eligibility_and_cells": "unchanged",
+      "name": "same C1 with E_nonlocal circular shift",
+      "shift_native_grid": [
+        12,
+        12
+      ]
+    }
+  },
+  "conditioning": {
+    "base_margin": "m_bar(p)=mean_g m_g(p)",
+    "cells": "score_bin x D_rank_bin; cell membership frozen before E_nonlocal",
+    "d_rank_bins": "10 deterministic within-image quantile bins of pre-intervention D_rank",
+    "eligibility": "risk AND valid_reference",
+    "gt_free": true,
+    "risk": "top ceil(0.20*1369) D_rank patches, descending D_rank then ascending patch index",
+    "score_bins": "10 deterministic within-image quantile bins of m_bar",
+    "unit": "one image independently"
+  },
+  "dataset": {
+    "development_evidence_only": true,
+    "external_replication": "NOT_AVAILABLE",
+    "name": "VisA",
+    "split": "TEST"
+  },
+  "decision_gates": {
+    "G0": "all integrity, parity, GT firewall, deterministic, finite, and pretests pass",
+    "G1": "all bridge gates pass",
+    "G2": "macro AP delta > 0, AP CI lower > 0, >=8 positive classes, macro AUROC delta >= 0",
+    "G3": "C1-C1_SHIFT AP mean > 0 and class-bootstrap lower CI > 0",
+    "G4": "upper CI <= 0 for Normal delta FPR tau95, tau99, and negative risk",
+    "G5": "native patch AP improves while deployed AP does not: deployment dilution"
+  },
+  "frozen_reuse": {
+    "D_rank": "population std of per-stage percentile ranks of native margins",
+    "E_nonlocal": "B1 exact same-image low-risk peer rule, K=8",
+    "bootstrap": "2000 class-level resamples; seeds fixed in this file",
+    "deployment": "Gaussian blur Industrial (7x7, sigma 1), bilinear align_corners=True, stage mean, softmax",
+    "matching": "same-image positive/negative occupancy labels only after prediction freeze; deterministic SHA256 patch identity ordering; E never selects controls",
+    "predictor": "Phase2B AdapterModel forward and vision_text_fusion_gate_seg"
+  },
+  "inference_only": true,
+  "metrics": {
+    "normal": {
+      "indicators": [
+        "delta FPR@tau95",
+        "delta FPR@tau99",
+        "delta negative pairwise risk"
+      ],
+      "thresholds": "class-wise C0 Normal tau95 and tau99 via numpy quantile",
+      "thresholds_evaluation_only": true
+    },
+    "primary": "per-class pixel AP(C1)-AP(C0)",
+    "secondary": [
+      "pixel AUROC delta",
+      "C1-SHIFT AP/AUROC",
+      "C1-C1_SHIFT",
+      "coverage",
+      "acted cells",
+      "changed patches",
+      "native displacement",
+      "abstention",
+      "native patch AP"
+    ]
+  },
+  "no_external_vfm": true,
+  "no_formula_changes_after_full_start": true,
+  "no_gt_in_adjudicator": true,
+  "no_training": true,
+  "preregistration_sha256": "b927a795cdaedb989f3ab74fa92582d67577174d8b0ac92014a006be0c0b8c0d",
+  "recorded_head": "63f855057d04848e04d2f256b733fce2bf6a9ac4",
+  "required_ancestor": "63f855057d04848e04d2f256b733fce2bf6a9ac4",
+  "seeds": {
+    "bootstrap": 5201,
+    "pair_hash": "sha256",
+    "spatial_shift": [
+      12,
+      12
+    ],
+    "stable_sort": "mergesort/lexsort"
+  },
+  "source_hashes": {
+    "b0_audit": "96d55e55212ee54ed3dbf6e1001cd1cd24ad528a073687daf7473bcd4297fa9c",
+    "b1_audit": "06ffad8199e3ad06d47628b3add3fa9f80e1e0008f9f1386a55c601ca966c88c",
+    "checkpoint": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+    "config": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4",
+    "dataset_init": "86584da84e89bc3bd627c1552b79d0bf9dcba993f4605a7a458f5d3eece49c74",
+    "phase5_evaluator": "4821ce80a09d98ff7214398151b05078c57c47ea13a9418997ce5a887c5e9cb4",
+    "predictor": "e854b79636f9579305b8246f8afe394def67fa9eacccf661429afe9ae89fd4ef",
+    "test": "c1d6a55ca58066756014106dd92e5365b4754ff42368817bc758a252687078c8",
+    "train": "d2ae38fe45b2dcac43235fea68de9512f46b63d96c9540695e426f53df8c3ac7",
+    "utils": "236f5af1ca2f4ff2dcf97593120af534e201e32866e9ec9d54d4afb6535bb572",
+    "visa_metadata": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842"
+  },
+  "training_steps": 0
+}

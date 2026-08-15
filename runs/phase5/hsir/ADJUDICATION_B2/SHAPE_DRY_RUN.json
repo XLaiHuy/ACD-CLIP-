@@ -1,0 +1,137 @@
+{
+  "E_nonlocal_parity_max_abs": 0.0,
+  "T15_deployment_parity": true,
+  "T1_predictor_parity": true,
+  "T2_E_nonlocal_parity": true,
+  "class": "candle",
+  "feature_semantics": {
+    "alignment": "bilinear interpolation align_corners=True before L2 renormalization when grids differ",
+    "normalization": "seg_proj -> seg_layer_norms -> torch.nn.functional.normalize(dim=-1)",
+    "reference_grid": [
+      37,
+      37
+    ],
+    "source": "model/adapter.py::AdapterModel.forward return_phase4_features=True",
+    "stages": [
+      {
+        "dimension": 768,
+        "grid": [
+          37,
+          37
+        ],
+        "patch_count": 1369
+      },
+      {
+        "dimension": 768,
+        "grid": [
+          37,
+          37
+        ],
+        "patch_count": 1369
+      },
+      {
+        "dimension": 768,
+        "grid": [
+          37,
+          37
+        ],
+        "patch_count": 1369
+      }
+    ],
+    "tensor": "visual['seg_tokens']"
+  },
+  "forward_count": 1,
+  "gt_used_only_after_prediction": true,
+  "image_size": 518,
+  "patch_grid": [
+    37,
+    37
+  ],
+  "patch_stride": 14,
+  "peer_indices_parity": true,
+  "predictor_parity_max_abs": 0.0,
+  "risk_patch_count": 274,
+  "shape_record": {
+    "deployed_final_logits": [
+      1,
+      2,
+      518,
+      518
+    ],
+    "deployed_model_probability": [
+      1,
+      518,
+      518
+    ],
+    "deployed_reconstructed_probability": [
+      1,
+      2,
+      518,
+      518
+    ],
+    "feature_mapping": "seg_tokens [B,P,D] -> [D,grid_h,grid_w] via image_encoder.grid_size; scalar evidence bilinear align_corners=True to image grid",
+    "image_pixel_level_tensors": [
+      "model_prob",
+      "reconstructed_prob",
+      "final_logits",
+      "score",
+      "final_margin",
+      "D_rank",
+      "D_logit",
+      "candidate_evidence"
+    ],
+    "mapping": "native [G,B,P,2] -> [B,2,grid_h,grid_w] -> Gaussian blur -> bilinear align_corners=True -> group mean -> softmax",
+    "native_stage_logits": [
+      3,
+      1,
+      1369,
+      2
+    ],
+    "native_stage_margins": [
+      3,
+      1,
+      1369
+    ],
+    "patch_count": 1369,
+    "patch_grid": [
+      37,
+      37
+    ],
+    "patch_level_tensors": [
+      "seg_tokens",
+      "stacked_visual_features",
+      "native_stage_logits",
+      "native_stage_margins"
+    ],
+    "stacked_visual_features": [
+      3,
+      1,
+      1369,
+      768
+    ],
+    "stage_visual_features": [
+      [
+        1,
+        1369,
+        768
+      ],
+      [
+        1,
+        1369,
+        768
+      ],
+      [
+        1,
+        1369,
+        768
+      ]
+    ]
+  },
+  "source_index": 0,
+  "status": "PASS",
+  "target_mask_shape": [
+    1,
+    518,
+    518
+  ]
+}
