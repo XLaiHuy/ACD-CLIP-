@@ -124,6 +124,16 @@
     ],
     "status": "NOT_RUN"
   },
+  "projection_math": {
+    "G_partial_order_projection": "minimize 0.5*||x-m||_2^2 subject to x_i >= x_j for every accepted relation; multiple constraints may pool or cascade",
+    "P_positive_only_minimum_uplift": "Delta_i = +g, Delta_j = 0, with x_i = x_j = m_j for one accepted inverted pair",
+    "S_symmetric_minimum_projection": "Delta_i = +g/2, Delta_j = -g/2, with x_i = x_j = (m_i + m_j)/2 for one accepted inverted pair",
+    "deployment_property": "The fixed pre-softmax deployment operator is linear and nonnegative, but this does not establish deployed ranking improvement",
+    "inversion_gap": "g = m_j - m_i for a proposed relation i > j; action is considered only for strict g > 0, with no tuned epsilon",
+    "reason_not_frozen": "Gate 3 does not provide a deployable GT-free pair proposal, E acceptance/abstention rule, or conflict/repetition guard, so no projection family is an implementation contract",
+    "status": "REVIEW_ONLY_NOT_FROZEN",
+    "unrelated_order_property": "An isolated S or P pair leaves unrelated coordinates unchanged; repeated or conflicting constraints require an unprovided bounded conflict rule"
+  },
   "rank_geometry": {
     "aligned": {
       "gap_1": {
