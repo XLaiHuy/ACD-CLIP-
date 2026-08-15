@@ -1,0 +1,61 @@
+{
+  "audit": "PHASE5-B3 BRIDGE ACTION MISMATCH FORENSIC",
+  "bootstrap": {
+    "reps": 2000,
+    "seed": 5301,
+    "unit": "class"
+  },
+  "cell_geometry": "all acted cells: margin ranges, pairwise score gaps p50/p95/max, global rank span, aligned/shifted delta quantiles",
+  "constraints": {
+    "no_dense_cache": true,
+    "no_new_candidate": true,
+    "no_new_correction": true,
+    "no_training": true,
+    "no_tuning": true,
+    "protected_code_read_only": true
+  },
+  "dataset": {
+    "anomaly": 1200,
+    "classes": 12,
+    "images": 2162,
+    "name": "VisA",
+    "normal": 962,
+    "split": "TEST"
+  },
+  "displacement": {
+    "fixed_strata": [
+      "1",
+      "2",
+      "3-4",
+      ">=5",
+      "normalized quartiles"
+    ],
+    "normalized": "rank displacement/(cell size-1)",
+    "quartiles": "per class, without GT/outcome",
+    "rank": "absolute stable descending within-acted-cell rank change"
+  },
+  "frozen_reuse": {
+    "C0": "exact B2 predictor",
+    "C1": "exact B2 adjudicate_slots",
+    "C1_SHIFT": "exact B2 shift_native_grid",
+    "D_rank": "exact B2 predictor",
+    "E_nonlocal": "exact B1 K=8"
+  },
+  "inference_only": true,
+  "mode": "diagnostic_forensic_only",
+  "negative_control": {
+    "same_cells_eligibility": true,
+    "shift": [
+      12,
+      12
+    ]
+  },
+  "transition_definitions": {
+    "base_correct": "m_pos > m_neg",
+    "broken": "base right -> corrected wrong",
+    "corrected_correct": "corrected_pos > corrected_neg",
+    "missed": "base wrong -> corrected wrong",
+    "preserved": "base right -> corrected right",
+    "rescued": "base wrong -> corrected right"
+  }
+}

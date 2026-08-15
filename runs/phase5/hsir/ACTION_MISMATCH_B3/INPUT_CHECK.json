@@ -1,0 +1,73 @@
+{
+  "b2_artifact_hashes": {
+    "BRIDGE_SUMMARY.json": "6ee8372cfd3b0021bb639d20805931b07f288cc9f0dd079df08854ddee9910f4",
+    "DECISION.json": "49c8ad5e748c179f033127d00e0fe5dc711d423ec19098d24de241781c3a7b2f",
+    "INPUT_CHECK.json": "174818d06dcecdd91ece541e975f68f8b1357d51bd96cc7299bcbf04509a795a",
+    "NORMAL_SAFETY.json": "5b2a2f1b82060a64d21f54767ca5ecd7fc128bb9b66a7dc638a9f2e3cdd710e5",
+    "OUTPUT_CHECK.json": "7a844587f25e7533e1bf34100fbe128291e6c6b05c7b08a717cfd0724ae45716",
+    "PER_CLASS.csv": "dacb86d98855fa3606b40bb6e879971b52f2fb1872962e174e0b8103a553b244",
+    "PREREGISTRATION.json": "bf5084a7df300dbe75a3f69516e7d3b5608bde8f5ce191a759686a47438d01fd",
+    "REPORT.md": "ec85589cee2d0ff42918097e4de9181f40415f8a2c34171aff041666cd7e5a8c",
+    "SHAPE_DRY_RUN.json": "560b26155a65366a25041b663f860c234afc3ab44c9eefc1ec48740f4cf1e108",
+    "SPATIAL_CONTROL.json": "2073808f35dcaac19eaa519c41105c997323f658f1a22380244612869ac5770f",
+    "SUMMARY.json": "28e329f3143ac1564437eb45569d6dc43c3e10711e09614054c7a19d065dc3d4",
+    "TEST_CHECK.json": "a3584d04ee48201fe96f49a8b4ad3c7cb5541bcb5945759f86f28a57422fa03f"
+  },
+  "b2_bridge_pass": true,
+  "b2_terminal": "MATCHED_RISK_ADJUDICATION_UNSUPPORTED",
+  "branch": "autopilot/p4-conditional-semantic-factorization",
+  "checkpoint": {
+    "path": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+    "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34"
+  },
+  "checks": {
+    "b2_bridge_pass": true,
+    "b2_forward_count": true,
+    "b2_integrity": true,
+    "b2_terminal": true,
+    "branch": true,
+    "counts": true,
+    "no_train_paths": true,
+    "protected_hashes_match": true,
+    "required_ancestor": true,
+    "test_split": true
+  },
+  "config": {
+    "path": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase4/k1/short64_seed0_attempt5/config.json",
+    "sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4"
+  },
+  "counts": {
+    "anomaly": 1200,
+    "classes": 12,
+    "images": 2162,
+    "normal": 962
+  },
+  "current_head": "a8bc7d7a64e398861f7409bd4c009f92328b1cd6",
+  "evaluator_implementation": "tools/audit_phase5_hsir.py exact_auc_ap/pairwise_risks/ap_contamination",
+  "gt_firewall": "labels loaded after predictor and C1/C1-SHIFT freeze",
+  "metadata_source": "/home/ai4/caohuy/ACD-CLIP-p1v84a/dataset/hub/VisA.jsonl",
+  "no_method_rescue": true,
+  "no_new_candidate": true,
+  "no_training": true,
+  "predictor_implementation": "new B2 predictor_gt_free -> AdapterModel.forward + exact Phase2B deployment",
+  "protected_hashes": {
+    "b0_audit": "96d55e55212ee54ed3dbf6e1001cd1cd24ad528a073687daf7473bcd4297fa9c",
+    "b1_audit": "06ffad8199e3ad06d47628b3add3fa9f80e1e0008f9f1386a55c601ca966c88c",
+    "b2_audit": "dd3b77a228a870c225d7ebafa10a456d8dea65ce75c0c966520b17891b977460",
+    "checkpoint": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+    "config": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4",
+    "dataset_init": "86584da84e89bc3bd627c1552b79d0bf9dcba993f4605a7a458f5d3eece49c74",
+    "phase5_evaluator": "4821ce80a09d98ff7214398151b05078c57c47ea13a9418997ce5a887c5e9cb4",
+    "predictor": "e854b79636f9579305b8246f8afe394def67fa9eacccf661429afe9ae89fd4ef",
+    "test": "c1d6a55ca58066756014106dd92e5365b4754ff42368817bc758a252687078c8",
+    "train": "d2ae38fe45b2dcac43235fea68de9512f46b63d96c9540695e426f53df8c3ac7",
+    "utils": "236f5af1ca2f4ff2dcf97593120af534e201e32866e9ec9d54d4afb6535bb572",
+    "visa_metadata": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842"
+  },
+  "required_ancestor": "a8bc7d7a64e398861f7409bd4c009f92328b1cd6",
+  "split": "TEST",
+  "status": "PASS",
+  "visa_root": [
+    "/home/ai4/caohuy/data/VisA_20220922"
+  ]
+}
