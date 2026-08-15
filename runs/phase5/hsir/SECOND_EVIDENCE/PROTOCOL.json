@@ -1,0 +1,209 @@
+{
+  "architecture": {
+    "image_levels": [
+      8,
+      16,
+      24
+    ],
+    "img_size": 518,
+    "n_groups": 3,
+    "text_levels": [
+      4,
+      8,
+      12
+    ],
+    "visual_feature_source": "model/adapter.py::AdapterModel.forward()['seg_tokens']"
+  },
+  "audit": "PHASE5-B0 SECOND-EVIDENCE DISCOVERY",
+  "candidates": {
+    "E_global": "1 - cosine(final aligned normalized patch, normalized image mean feature)",
+    "E_local": "1 - cosine(final aligned normalized patch, valid 3x3 neighbor mean excluding center)",
+    "E_multistage": "unweighted mean of E_local over all authoritative seg_tokens stages",
+    "E_xstage": "unweighted mean of 1-cosine over all unique aligned seg_tokens stage pairs"
+  },
+  "controls": {
+    "confidence": "U_conf=-abs(final_margin)",
+    "rank": "D_rank",
+    "shift": "np.roll(vertical=floor(H/3), horizontal=floor(W/3), wraparound)"
+  },
+  "error_objects": {
+    "C_AP": "Phase5-A ap_contamination",
+    "R_neg": "Phase5-A pairwise negative inversion risk",
+    "R_pos": "Phase5-A pairwise positive inversion risk"
+  },
+  "feature_semantics": {
+    "alignment": "bilinear align_corners=True to reference grid; scalar evidence bilinear align_corners=True to image grid",
+    "normalization": "per-patch L2 normalization; alignment re-normalizes after interpolation",
+    "pipeline": "seg_proj -> seg_layer_norms -> F.normalize(dim=-1)",
+    "runtime_grid_source": "SHAPE_DRY_RUN.json -> model.image_encoder.grid_size",
+    "source_file": "model/adapter.py",
+    "source_function": "AdapterModel.forward",
+    "spatial_grid": "runtime-verified square patch grid per stage; reference is largest stage grid",
+    "tensor": "visual['seg_tokens']"
+  },
+  "gates": {
+    "A": "bootstrap lower CI > 0.5 and >=8 supportive classes",
+    "B": "candidate mean positive C_AP and R_pos capture exceed both fixed controls",
+    "C": "aligned win rate and C_AP capture exceed shifted control",
+    "D": "candidate normal fraction and R_neg capture do not exceed both fixed controls",
+    "E": ">=8 supportive and <=2 opposed classes"
+  },
+  "inference_only": true,
+  "matching": "10 final-score quantile bins x 10 D_rank quantile bins within S_rank20; deterministic class|positive_pixel_id|negative_pixel_id SHA256 keyed control stream",
+  "no_external_representation": true,
+  "no_training": true,
+  "oracles": "Phase5-A positive-only oracle semantics; selected positive pixels move above all unselected while unselected order is preserved",
+  "population": "S_rank20 = top ceil(0.20*N_class) D_rank pixels per class; GT never enters selection",
+  "provenance": {
+    "authoritative_pixel_cache": false,
+    "checkpoint": {
+      "path": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+      "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34"
+    },
+    "checks": {
+      "a1_predictor_parity": true,
+      "a1_split": true,
+      "actionability_ancestor": true,
+      "arbitration_target_parity": true,
+      "b1_ancestor": true,
+      "branch_a_ancestor": true,
+      "checkpoint_sha": true,
+      "config_sha": true,
+      "no_train_dataset_root": true,
+      "phase5_ancestor": true,
+      "phase5_counts": true,
+      "phase5_dataset": true,
+      "phase5_image_counts": true,
+      "phase5_no_train_paths": true,
+      "phase5_predictor_parity": true,
+      "phase5_split": true,
+      "stage_predictor_parity": true,
+      "visa_metadata_sha": true
+    },
+    "config": {
+      "path": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase4/k1/short64_seed0_attempt5/config.json",
+      "sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4"
+    },
+    "counts": {
+      "anomaly": 1200,
+      "classes": 12,
+      "images": 2162,
+      "normal": 962
+    },
+    "current_head": "f1fd4118d296d825e572831078e7a31c9132bc61",
+    "evaluator_implementation": "tools/audit_phase5_hsir.py::{exact_auc_ap,project_exact_auc_ap,ap_contamination,pairwise_risks}",
+    "inference_authorization": "one fresh class-streamed VisA TEST pass; one image forward; no dense cache persisted",
+    "metadata_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+    "metadata_source": "/home/ai4/caohuy/ACD-CLIP-p1v84a/dataset/hub/VisA.jsonl",
+    "predictor_implementation": "tools/audit_phase5_second_evidence.py::predictor_one_with_features; model/adapter.py::AdapterModel.forward; tools/audit_phase5_hsir.py::deploy_from_native",
+    "predictor_parity": "PASS",
+    "scientific_ancestors": {
+      "actionability": "fcbff12059a0cb29698c14f443a0396acbef8c55",
+      "branch_a": "06d72e37b9a7b2ce0db381e1d3b6edfc59de9c91",
+      "branch_b1": "963006df88bf451cfc6c7d7baee4a3cb3792ea7e",
+      "phase5": "29a8ffc934448b34424c77805a2c5c289bd9ddac"
+    },
+    "split": "TEST",
+    "status": "PASS",
+    "upstream_artifact_sha256": {
+      "actionability_decision": "9ac9fa2a122d12a5edc12d4e0e15310fa060ddf3aa49cb1baacd4954485541e3",
+      "actionability_summary": "b252356d728578ea91cefa5f7a97bf061eaa8f047110cf8e432dd4ffca784946",
+      "stage_arbitration_decision": "6c48820e2c0b3dfdc7866e5503377c7d6d630b3e2fb4baab60b0f98853dc38d1",
+      "stage_arbitration_summary": "ff5a9e99fc9b783b23155be78c4dc18caeae0d77096367c814936eb10c076c01",
+      "stage_rescue_decision": "6f9a15b8fc8faa652f315fa43abcef54484b7d24b587120bc927b2fd5d981ebf",
+      "stage_rescue_summary": "069f56a2b1f6263e895d930e742a18f4242fd0aa693593340b370690126f6680",
+      "visa_test_decision": "366051f3ce1e13a0273b55bb71ad9ae5f0e6c479948d120f1afd493e2e02a549",
+      "visa_test_per_class": "9924d6f3393be53720484a205f291f3a6c8d8d826bae813b5b02701490921cc8",
+      "visa_test_per_image": "bc0ffa48e8a317545f50872032de85ff95ba231c36a23859b79c4f89f5a36a7f",
+      "visa_test_summary": "0e3c5204dfa7c4b4e0107e29a21975c7b97f8bc552e20da9fe14720acafb793e"
+    },
+    "visa_root": [
+      "/home/ai4/caohuy/data/VisA_20220922"
+    ]
+  },
+  "runtime_shape_dry_run": {
+    "class": "candle",
+    "forward_count": 1,
+    "predictor_parity_max_abs_probability_error": 0.0,
+    "shape_record": {
+      "deployed_final_logits": [
+        1,
+        2,
+        518,
+        518
+      ],
+      "deployed_model_probability": [
+        1,
+        518,
+        518
+      ],
+      "deployed_reconstructed_probability": [
+        1,
+        2,
+        518,
+        518
+      ],
+      "feature_mapping": "seg_tokens [B,P,D] -> [D,grid_h,grid_w] via image_encoder.grid_size; scalar evidence bilinear align_corners=True to image grid",
+      "image_pixel_level_tensors": [
+        "model_prob",
+        "reconstructed_prob",
+        "final_logits",
+        "score",
+        "final_margin",
+        "D_rank",
+        "D_logit",
+        "candidate_evidence"
+      ],
+      "mapping": "native [G,B,P,2] -> [B,2,grid_h,grid_w] -> Gaussian blur -> bilinear align_corners=True -> group mean -> softmax",
+      "native_stage_logits": [
+        3,
+        1,
+        1369,
+        2
+      ],
+      "native_stage_margins": [
+        3,
+        1,
+        1369
+      ],
+      "patch_count": 1369,
+      "patch_grid": [
+        37,
+        37
+      ],
+      "patch_level_tensors": [
+        "seg_tokens",
+        "stacked_visual_features",
+        "native_stage_logits",
+        "native_stage_margins"
+      ],
+      "stacked_visual_features": [
+        3,
+        1,
+        1369,
+        768
+      ],
+      "stage_visual_features": [
+        [
+          1,
+          1369,
+          768
+        ],
+        [
+          1,
+          1369,
+          768
+        ],
+        [
+          1,
+          1369,
+          768
+        ]
+      ]
+    },
+    "source_index": 0,
+    "status": "PASS"
+  },
+  "training_steps": 0,
+  "triage": "top ceil(0.10*|S_rank20|) by candidate evidence within S_rank20; confidence and rank controls use exact same K"
+}

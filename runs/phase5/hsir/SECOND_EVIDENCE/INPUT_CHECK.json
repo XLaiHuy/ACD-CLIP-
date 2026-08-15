@@ -1,0 +1,67 @@
+{
+  "authoritative_pixel_cache": false,
+  "checkpoint": {
+    "path": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+    "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34"
+  },
+  "checks": {
+    "a1_predictor_parity": true,
+    "a1_split": true,
+    "actionability_ancestor": true,
+    "arbitration_target_parity": true,
+    "b1_ancestor": true,
+    "branch_a_ancestor": true,
+    "checkpoint_sha": true,
+    "config_sha": true,
+    "no_train_dataset_root": true,
+    "phase5_ancestor": true,
+    "phase5_counts": true,
+    "phase5_dataset": true,
+    "phase5_image_counts": true,
+    "phase5_no_train_paths": true,
+    "phase5_predictor_parity": true,
+    "phase5_split": true,
+    "stage_predictor_parity": true,
+    "visa_metadata_sha": true
+  },
+  "config": {
+    "path": "/home/ai4/caohuy/ACD-CLIP-p1v84a/runs/phase4/k1/short64_seed0_attempt5/config.json",
+    "sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4"
+  },
+  "counts": {
+    "anomaly": 1200,
+    "classes": 12,
+    "images": 2162,
+    "normal": 962
+  },
+  "current_head": "f1fd4118d296d825e572831078e7a31c9132bc61",
+  "evaluator_implementation": "tools/audit_phase5_hsir.py::{exact_auc_ap,project_exact_auc_ap,ap_contamination,pairwise_risks}",
+  "inference_authorization": "one fresh class-streamed VisA TEST pass; one image forward; no dense cache persisted",
+  "metadata_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+  "metadata_source": "/home/ai4/caohuy/ACD-CLIP-p1v84a/dataset/hub/VisA.jsonl",
+  "predictor_implementation": "tools/audit_phase5_second_evidence.py::predictor_one_with_features; model/adapter.py::AdapterModel.forward; tools/audit_phase5_hsir.py::deploy_from_native",
+  "predictor_parity": "PASS",
+  "scientific_ancestors": {
+    "actionability": "fcbff12059a0cb29698c14f443a0396acbef8c55",
+    "branch_a": "06d72e37b9a7b2ce0db381e1d3b6edfc59de9c91",
+    "branch_b1": "963006df88bf451cfc6c7d7baee4a3cb3792ea7e",
+    "phase5": "29a8ffc934448b34424c77805a2c5c289bd9ddac"
+  },
+  "split": "TEST",
+  "status": "PASS",
+  "upstream_artifact_sha256": {
+    "actionability_decision": "9ac9fa2a122d12a5edc12d4e0e15310fa060ddf3aa49cb1baacd4954485541e3",
+    "actionability_summary": "b252356d728578ea91cefa5f7a97bf061eaa8f047110cf8e432dd4ffca784946",
+    "stage_arbitration_decision": "6c48820e2c0b3dfdc7866e5503377c7d6d630b3e2fb4baab60b0f98853dc38d1",
+    "stage_arbitration_summary": "ff5a9e99fc9b783b23155be78c4dc18caeae0d77096367c814936eb10c076c01",
+    "stage_rescue_decision": "6f9a15b8fc8faa652f315fa43abcef54484b7d24b587120bc927b2fd5d981ebf",
+    "stage_rescue_summary": "069f56a2b1f6263e895d930e742a18f4242fd0aa693593340b370690126f6680",
+    "visa_test_decision": "366051f3ce1e13a0273b55bb71ad9ae5f0e6c479948d120f1afd493e2e02a549",
+    "visa_test_per_class": "9924d6f3393be53720484a205f291f3a6c8d8d826bae813b5b02701490921cc8",
+    "visa_test_per_image": "bc0ffa48e8a317545f50872032de85ff95ba231c36a23859b79c4f89f5a36a7f",
+    "visa_test_summary": "0e3c5204dfa7c4b4e0107e29a21975c7b97f8bc552e20da9fe14720acafb793e"
+  },
+  "visa_root": [
+    "/home/ai4/caohuy/data/VisA_20220922"
+  ]
+}

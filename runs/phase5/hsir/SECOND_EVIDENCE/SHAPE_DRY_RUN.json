@@ -1,0 +1,83 @@
+{
+  "class": "candle",
+  "forward_count": 1,
+  "predictor_parity_max_abs_probability_error": 0.0,
+  "shape_record": {
+    "deployed_final_logits": [
+      1,
+      2,
+      518,
+      518
+    ],
+    "deployed_model_probability": [
+      1,
+      518,
+      518
+    ],
+    "deployed_reconstructed_probability": [
+      1,
+      2,
+      518,
+      518
+    ],
+    "feature_mapping": "seg_tokens [B,P,D] -> [D,grid_h,grid_w] via image_encoder.grid_size; scalar evidence bilinear align_corners=True to image grid",
+    "image_pixel_level_tensors": [
+      "model_prob",
+      "reconstructed_prob",
+      "final_logits",
+      "score",
+      "final_margin",
+      "D_rank",
+      "D_logit",
+      "candidate_evidence"
+    ],
+    "mapping": "native [G,B,P,2] -> [B,2,grid_h,grid_w] -> Gaussian blur -> bilinear align_corners=True -> group mean -> softmax",
+    "native_stage_logits": [
+      3,
+      1,
+      1369,
+      2
+    ],
+    "native_stage_margins": [
+      3,
+      1,
+      1369
+    ],
+    "patch_count": 1369,
+    "patch_grid": [
+      37,
+      37
+    ],
+    "patch_level_tensors": [
+      "seg_tokens",
+      "stacked_visual_features",
+      "native_stage_logits",
+      "native_stage_margins"
+    ],
+    "stacked_visual_features": [
+      3,
+      1,
+      1369,
+      768
+    ],
+    "stage_visual_features": [
+      [
+        1,
+        1369,
+        768
+      ],
+      [
+        1,
+        1369,
+        768
+      ],
+      [
+        1,
+        1369,
+        768
+      ]
+    ]
+  },
+  "source_index": 0,
+  "status": "PASS"
+}
