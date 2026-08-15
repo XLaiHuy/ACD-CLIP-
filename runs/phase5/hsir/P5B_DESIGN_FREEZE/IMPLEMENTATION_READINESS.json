@@ -1,0 +1,23 @@
+{
+  "GT_free_static_check": true,
+  "deployment_operator_synthetic_probe": {
+    "model_forwards": 0,
+    "path": "/tmp/p5b_deployment_probe_v2.json",
+    "status": "PASS",
+    "training_steps": 0
+  },
+  "exact_blocker": "Gate 3 failed: no concrete already-supported GT-free pair proposal plus E acceptance/abstention and conflict/repetition contract. Candidate implementation and candidate-specific tests were intentionally not created.",
+  "forbidden": [
+    "full VisA candidate evaluation",
+    "training",
+    "threshold/AP tuning",
+    "medical data",
+    "Phase2B/model predictor modification"
+  ],
+  "implementation_present": false,
+  "next_required_audit": "Offline GT-free selector reliability audit; if arrays are absent, one inference-only 2162-image instrumentation pass, with GT joined only post-action for labels.",
+  "preregistration_frozen": false,
+  "ready_for_single_full_eval": false,
+  "schema_version": "P5B_IMPLEMENTATION_READINESS_v1",
+  "synthetic_tests_pass": false
+}

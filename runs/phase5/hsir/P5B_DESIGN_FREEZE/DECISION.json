@@ -1,0 +1,227 @@
+{
+  "SPATIAL_CONSTRAINT_REQUIRED": true,
+  "assumptions_still_unverified": [
+    "A GT-free deterministic pair proposal can be specified from persisted per-patch E/peer outputs without recreating C1.",
+    "An abstention rule can be frozen without VisA test threshold search or learned calibration.",
+    "A bounded native spatial-support constraint can be defined without an unsupported distance cutoff.",
+    "Any future candidate that passes these audits will improve after the exact deployment path.",
+    "Any future candidate transfers to medical zero-shot data."
+  ],
+  "b3_evidence": {
+    "action_displacement_breakage_class_bootstrap_ci": [
+      0.7026936551532272,
+      0.953933428458777
+    ],
+    "aligned": {
+      "broken": 202,
+      "missed": 574,
+      "net": 390,
+      "preserved": 1417,
+      "rescued": 592
+    },
+    "aligned_net_positive_classes": 10,
+    "deployed_aligned_minus_shifted_ap_macro": -0.0013108118267521375,
+    "deployed_reversal_classes": 7,
+    "native_aligned_minus_shifted_ap_macro": 0.0053571689297257545,
+    "pairs": 2785,
+    "shifted": {
+      "broken": 847,
+      "missed": 632,
+      "net": -313,
+      "preserved": 772,
+      "rescued": 534
+    },
+    "shifted_net_positive_classes": 0
+  },
+  "candidate": "NONE",
+  "candidate_family": "NONE",
+  "candidate_reason": "No candidate can pass Gate 3 without inventing a new GT-free pair selector and conflict/abstention contract. A is contradicted by broad rank-gap utility; B is mechanistically preferred but not specified; G risks C1-like broad permutation.",
+  "deployment_findings": {
+    "path": "native 37x37 -> Gaussian blur 7x7 sigma1 -> bilinear resize align_corners=True -> stage mean -> softmax",
+    "performance_guarantee": false,
+    "positive_linear_pre_softmax_operator": true,
+    "softmax_in_probe": false,
+    "synthetic_probe": "/tmp/p5b_deployment_probe_v2.json",
+    "synthetic_probe_status": "PASS"
+  },
+  "exact_gt_free_proposal": {
+    "accepted_relation": null,
+    "ambiguous_rule": "abstention is required but no calibrated/frozen relation rule exists",
+    "conflict_rule": null,
+    "proposed_pairs": null,
+    "reason": "Do not convert GT-defined B3/B3.1 evaluation bridges into inference constraints.",
+    "status": "NOT_SPECIFIED"
+  },
+  "forbidden_tuning_actions": [
+    "Do not implement A, B, or G before Gate 3 passes.",
+    "Do not use B3/B3.1 GT evaluation pairs as inference constraints.",
+    "Do not search rank, score, spatial, displacement, epsilon, or action-budget thresholds.",
+    "Do not optimize or rescue the decision using AP.",
+    "Do not run a new full VisA candidate, train, use medical data, or modify Phase2B/model predictor code.",
+    "Do not change K=8, top-20%, 10x10 cells, shift, pair rules, D_rank, E_nonlocal, C1, or deployment.",
+    "Do not reopen C1, local multiscale, CNN/router, stage arbitration, or score+lambda*E tuning."
+  ],
+  "forwards": 0,
+  "gate_3": {
+    "missing": [
+      "A deployable GT-free pair population: B3 bridge rows are GT-defined evaluation pairs.",
+      "A frozen deterministic E acceptance/abstention rule for proposed pairs.",
+      "A frozen disjointness/conflict rule that is not a new C1-like full sort."
+    ],
+    "passed": false,
+    "reason": "The current artifacts support a design family but not a complete candidate contract. Inventing the missing selector would violate design-only scope.",
+    "required_fields": [
+      "pair proposal",
+      "accepted E relation",
+      "ambiguous abstention",
+      "conflict/repetition prevention",
+      "unrelated-order preservation",
+      "bounded native authority/spatial support"
+    ]
+  },
+  "integrity": {
+    "artifact_contract_pass": true,
+    "artifact_hashes": {
+      "runs/phase5/hsir/ACTION_GEOMETRY_B31/DECISION.json": "cb431a762be196979438920ec9822e06957ef3ad7ff0f93870fa0630fe3ed088",
+      "runs/phase5/hsir/ACTION_GEOMETRY_B31/GEOMETRY_SUMMARY.json": "4112e5bb9f7532ca7970c433f854829ef6f074ac8eb18ad6428f57d0e9a83d42",
+      "runs/phase5/hsir/ACTION_GEOMETRY_B31/INPUT_CHECK.json": "fa9deed5a6b2e8264b159b5402afcc31c8b3c3542e3563b925870a8884017fcc",
+      "runs/phase5/hsir/ACTION_GEOMETRY_B31/PAIR_GEOMETRY.csv": "b5b9812ba46ab7576801617b885a43db37e2d77d2289f24dad43a3d5d578237f",
+      "runs/phase5/hsir/ACTION_GEOMETRY_B31/PER_CLASS.json": "ff885415b8cedc427ead0dd22be6e058b3e8441278e7d90611e68d92070d205e",
+      "runs/phase5/hsir/ACTION_MISMATCH_B3/SUMMARY.json": "9f04182d66e389296697b0f7272f138742505982818aac18986da43f3037087c",
+      "runs/phase5/hsir/ADJUDICATION_B2_CORRECTED/DECISION.json": "49c8ad5e748c179f033127d00e0fe5dc711d423ec19098d24de241781c3a7b2f"
+    },
+    "b31_artifacts_reused_without_recomputation": true,
+    "gt_firewall_pass": true,
+    "source_hashes": {
+      "model/adapter.py": "e854b79636f9579305b8246f8afe394def67fa9eacccf661429afe9ae89fd4ef",
+      "tools/audit_phase5_b2_adjudication.py": "dd3b77a228a870c225d7ebafa10a456d8dea65ce75c0c966520b17891b977460",
+      "tools/audit_phase5_b3_action_mismatch.py": "ddd703b412a60047e23b3377780e187605efcab6b1aea94cc55155b3e3cf770e",
+      "tools/audit_phase5_reference_validity.py": "06ffad8199e3ad06d47628b3add3fa9f80e1e0008f9f1386a55c601ca966c88c",
+      "tools/audit_phase5_second_evidence.py": "96d55e55212ee54ed3dbf6e1001cd1cd24ad528a073687daf7473bcd4297fa9c"
+    },
+    "source_integrity_pass": true
+  },
+  "medical_transfer": {
+    "industrial_thresholds_or_class_rules_allowed": false,
+    "medical_data_used": false,
+    "relative_same_image_quantities_preferred": true,
+    "status": "UNPROVEN"
+  },
+  "model_forwards": 0,
+  "new_visa_candidate_evaluation": false,
+  "next_command_or_experiment": {
+    "command_template": "python /tmp/p5b_gt_free_selector_audit.py --split test --output /tmp/p5b_gt_free_selector_audit_v1",
+    "forward_requirement": "If required per-patch arrays cannot be recovered, one future inference-only pass over 2162 images is the smallest model-forward requirement; do not run it as a candidate evaluation.",
+    "implementation_status": "temporary driver not created by this freeze",
+    "purpose": "offline GT-free selector reliability audit before any candidate freeze",
+    "required_trace": [
+      "canonical 2162-image order and exact frozen predictor outputs",
+      "per-image m_bar, stable rank positions, D_rank, valid_reference, E_nonlocal, peer indices/features, score/D_rank cells",
+      "declared pair proposal trace before GT is loaded",
+      "accepted/abstained/conflict/repeated-patch decisions",
+      "native delta and spatial-support accounting",
+      "GT joined only after inference/action fields are frozen for descriptive audit labels"
+    ],
+    "status": "NOT_RUN"
+  },
+  "rank_geometry": {
+    "aligned": {
+      "gap_1": {
+        "break_rate": 0.2,
+        "broken": 4,
+        "missed": 4,
+        "net": 14,
+        "pairs": 42,
+        "preserved": 16,
+        "rescue_rate": 0.8181818181818182,
+        "rescued": 18
+      },
+      "gap_2": {
+        "break_rate": 0.43478260869565216,
+        "broken": 10,
+        "missed": 7,
+        "net": 2,
+        "pairs": 42,
+        "preserved": 13,
+        "rescue_rate": 0.631578947368421,
+        "rescued": 12
+      },
+      "gap_3": {
+        "break_rate": 0.27586206896551724,
+        "broken": 8,
+        "missed": 4,
+        "net": 6,
+        "pairs": 47,
+        "preserved": 21,
+        "rescue_rate": 0.7777777777777778,
+        "rescued": 14
+      },
+      "gap_4_5": {
+        "break_rate": 0.3235294117647059,
+        "broken": 11,
+        "missed": 6,
+        "net": 16,
+        "pairs": 67,
+        "preserved": 23,
+        "rescue_rate": 0.8181818181818182,
+        "rescued": 27
+      },
+      "gap_6_10": {
+        "break_rate": 0.16494845360824742,
+        "broken": 16,
+        "missed": 44,
+        "net": 44,
+        "pairs": 201,
+        "preserved": 81,
+        "rescue_rate": 0.5769230769230769,
+        "rescued": 60
+      },
+      "gap_gt_10": {
+        "break_rate": 0.10805084745762712,
+        "broken": 153,
+        "missed": 509,
+        "net": 308,
+        "pairs": 2386,
+        "preserved": 1263,
+        "rescue_rate": 0.47525773195876286,
+        "rescued": 461
+      }
+    },
+    "key_findings": [
+      "Aligned gap >10 contains 461/592 rescues and net +308; gap 1 contains 18 rescues and net +14.",
+      "Aligned gap >10 net class-bootstrap 95% CI is [5.083333333333333, 49.916666666666664] across 12 classes.",
+      "Aligned gap 4-5 net class-bootstrap 95% CI is [0.08333333333333333, 3.0]; gaps 2 and 3 cross zero.",
+      "No rank-gap, score-gap, or AP threshold was selected or searched."
+    ]
+  },
+  "rejected_alternatives": {
+    "A": "Rejected: aligned utility is not concentrated at adjacent or very short base-rank gaps.",
+    "B": "Not rejected mechanistically; withheld because the required GT-free proposal/acceptance/abstention/conflict contract is absent.",
+    "G": "Rejected: broader partial-order projection has no current guarantee against cascading or C1-like broad movement."
+  },
+  "schema_version": "P5B_DECISION_v1",
+  "scientific_premises": {
+    "C1_full_score_slot_reranking_is_closed": true,
+    "D_rank_is_ranking_risk_not_anomaly_evidence": true,
+    "E_nonlocal_is_same_image_K8_reference_evidence": true,
+    "b3_terminal": "AGGRESSIVE_ACTION_MISMATCH_SUPPORTED",
+    "gt_is_evaluation_only": true,
+    "native_aligned_advantage_does_not_imply_deployed_advantage": true
+  },
+  "selected_candidate": "NONE",
+  "spatial_geometry": {
+    "interpretation": "Rank-locality is not spatial-locality; rescued and broken native distances overlap and are broad.",
+    "no_spatial_threshold_inferred": true,
+    "rank_gap_vs_chebyshev": {
+      "pearson": -0.013422106862733313,
+      "spearman": -0.011988392893529919
+    },
+    "rank_gap_vs_euclidean": {
+      "pearson": -0.01264229929786299,
+      "spearman": -0.01182229989352999
+    },
+    "spatial_constraint_required_for_future_candidate": true
+  },
+  "terminal": "P5B_RELIABILITY_AUDIT_REQUIRED",
+  "training_steps": 0
+}

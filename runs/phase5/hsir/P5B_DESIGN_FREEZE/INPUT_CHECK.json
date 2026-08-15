@@ -1,0 +1,114 @@
+{
+  "audited_artifacts": {
+    "b31_model_forwards": 2162,
+    "b31_pair_rows": 2785,
+    "b31_parity": {
+      "aligned": {
+        "broken": 202,
+        "missed": 574,
+        "net": 390,
+        "pairs": 2785,
+        "preserved": 1417,
+        "rescued": 592
+      },
+      "shifted": {
+        "broken": 847,
+        "missed": 632,
+        "net": -313,
+        "pairs": 2785,
+        "preserved": 772,
+        "rescued": 534
+      }
+    },
+    "b31_raw_checksum": "b49f7fcc61dd6309c4c75967a2f9fb610e7834a8b1adb33e741ac01c7c6744a3",
+    "b31_raw_schema": "B31R2_RAW_PAIR_GEOMETRY_v1",
+    "b31_training_steps": 0,
+    "hashes_sha256": {
+      "runs/phase5/hsir/ACTION_GEOMETRY_B31/DECISION.json": "cb431a762be196979438920ec9822e06957ef3ad7ff0f93870fa0630fe3ed088",
+      "runs/phase5/hsir/ACTION_GEOMETRY_B31/GEOMETRY_SUMMARY.json": "4112e5bb9f7532ca7970c433f854829ef6f074ac8eb18ad6428f57d0e9a83d42",
+      "runs/phase5/hsir/ACTION_GEOMETRY_B31/INPUT_CHECK.json": "fa9deed5a6b2e8264b159b5402afcc31c8b3c3542e3563b925870a8884017fcc",
+      "runs/phase5/hsir/ACTION_GEOMETRY_B31/PAIR_GEOMETRY.csv": "b5b9812ba46ab7576801617b885a43db37e2d77d2289f24dad43a3d5d578237f",
+      "runs/phase5/hsir/ACTION_GEOMETRY_B31/PER_CLASS.json": "ff885415b8cedc427ead0dd22be6e058b3e8441278e7d90611e68d92070d205e",
+      "runs/phase5/hsir/ACTION_MISMATCH_B3/SUMMARY.json": "9f04182d66e389296697b0f7272f138742505982818aac18986da43f3037087c",
+      "runs/phase5/hsir/ADJUDICATION_B2_CORRECTED/DECISION.json": "49c8ad5e748c179f033127d00e0fe5dc711d423ec19098d24de241781c3a7b2f"
+    }
+  },
+  "design_gate": {
+    "candidate_full_eval_run": false,
+    "candidate_implementation_created": false,
+    "existing_c1_is_not_a_valid_fallback": true,
+    "gate_3_pass": false,
+    "medical_data_used": false,
+    "reason": "No already-supported deterministic GT-free pair proposal, E acceptance rule, abstention rule, and conflict/repetition guard can be specified from persisted deployable inputs without inventing a new rule."
+  },
+  "gt_firewall": {
+    "gt_used_only_for_archived_b3_evaluation": true,
+    "inference_or_action_uses_gt": false,
+    "new_candidate_gt_path": false,
+    "note": "Existing B3/B3.1 labels remain evaluation-only and are excluded from the P5B proposal.",
+    "pass": true
+  },
+  "integrity_pass": true,
+  "offline_scope": {
+    "ap_optimization": false,
+    "model_forwards": 0,
+    "new_threshold_search": false,
+    "new_visa_candidate_evaluation": false,
+    "training_steps": 0
+  },
+  "preflight": {
+    "branch": "autopilot/p5-minimal-reference-adjudication",
+    "expected_head": "70c8202cfaf6f5cf3e3c6f304a07ea4d150dab69",
+    "git_author_valid": true,
+    "git_committer_valid": true,
+    "head": "70c8202cfaf6f5cf3e3c6f304a07ea4d150dab69",
+    "working_tree_clean_before_outputs": true
+  },
+  "schema_version": "P5B_INPUT_CHECK_v1",
+  "semantic_contract": {
+    "C1": {
+      "meaning": "GT-free full within-cell E ordering over eligible slots",
+      "path": "tools/audit_phase5_b2_adjudication.py:289-332",
+      "status": "closed as a deployable design because it permits broad permutation/cascading",
+      "unchanged": true
+    },
+    "D_rank": {
+      "meaning": "prediction/ranking risk from disagreement among native Phase2B stage ranks; auxiliary risk only, not anomaly evidence",
+      "unchanged": true
+    },
+    "E_nonlocal": {
+      "meaning": "same-image K=8 low-risk-peer visual reference evidence",
+      "peer_rule_unchanged": true,
+      "unchanged": true
+    },
+    "b3_pair_rows": {
+      "meaning": "post-hoc GT-positive/GT-negative bridge pairs after prediction and action freeze",
+      "path": "tools/audit_phase5_b3_action_mismatch.py:82-87,127-150",
+      "reason": "bridge_matches consumes labels; pair rows are evaluation strata, not a GT-free candidate population",
+      "usable_as_inference_constraints": false
+    },
+    "deployment": {
+      "exact_path": "native 37x37 -> Gaussian blur 7x7 sigma1 -> bilinear resize align_corners=True -> stage mean -> softmax",
+      "path": "tools/audit_phase5_reference_validity.py:244-254",
+      "unchanged": true
+    },
+    "deterministic_ties": "stable Phase2B ordering uses audited deterministic tie handling; no new epsilon or threshold introduced here",
+    "predictor": {
+      "contract": "one image forward; native m_bar, D_rank, same-image K=8 E_nonlocal and valid_reference; no mask/label/occupancy input",
+      "gt_free": true,
+      "path": "tools/audit_phase5_b2_adjudication.py:348-388"
+    }
+  },
+  "source_integrity": {
+    "model_source_modified": false,
+    "phase2b_predictor_modified": false,
+    "sha256": {
+      "model/adapter.py": "e854b79636f9579305b8246f8afe394def67fa9eacccf661429afe9ae89fd4ef",
+      "tools/audit_phase5_b2_adjudication.py": "dd3b77a228a870c225d7ebafa10a456d8dea65ce75c0c966520b17891b977460",
+      "tools/audit_phase5_b3_action_mismatch.py": "ddd703b412a60047e23b3377780e187605efcab6b1aea94cc55155b3e3cf770e",
+      "tools/audit_phase5_reference_validity.py": "06ffad8199e3ad06d47628b3add3fa9f80e1e0008f9f1386a55c601ca966c88c",
+      "tools/audit_phase5_second_evidence.py": "96d55e55212ee54ed3dbf6e1001cd1cd24ad528a073687daf7473bcd4297fa9c"
+    },
+    "tracked_source_modified": false
+  }
+}
