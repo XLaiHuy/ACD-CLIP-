@@ -1,0 +1,28 @@
+{
+  "minimal_example": {
+    "correct_W": 1.0,
+    "e_neg": [
+      0.1,
+      0.2
+    ],
+    "e_pos": [
+      0.9,
+      0.8
+    ],
+    "original_b2_call_W": 0.5
+  },
+  "no_model_forward": true,
+  "pytest_passed": 9,
+  "status": "PASS",
+  "tests": {
+    "F1_known_wins_W_1": true,
+    "F2_known_losses_W_0": true,
+    "F3_exact_ties_W_0_5": true,
+    "F4_mixed_expected_W_0_375": true,
+    "F5_aligned_shifted_differ": true,
+    "F6_flatten_37x37_to_1369_identity": true,
+    "F7_distinct_matched_indices": true,
+    "F8_nonidentical_bootstrap_nonzero_width": true,
+    "ROOT_CAUSE_REPRODUCTION_original_call_self_compares": true
+  }
+}

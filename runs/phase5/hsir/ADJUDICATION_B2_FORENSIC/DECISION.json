@@ -1,0 +1,35 @@
+{
+  "aggregation_check": "PASS; all 12 persisted class W values are genuinely identical because the faulty per-class W is exactly 0.5; bootstrap zero width is therefore expected under the defect.",
+  "evidence_distribution": {
+    "pair_level_values_recoverable": false,
+    "reason": "B2 persisted only class summaries and counts, not E_pos/E_neg pair arrays; no inference was rerun."
+  },
+  "full_visa_rerun": "SCIENTIFICALLY_JUSTIFIED_AFTER_APPROVAL; not executed in this forensic audit.",
+  "gt_firewall": "PASS; predictor_gt_free has no mask/target argument and GT is accessed only after C0/C1/C1-SHIFT freeze in process_class.",
+  "integrity": "PASS",
+  "minimal_audit_only_fix_not_applied": "Replace matched_win(bridge_e_pos, arange(...), arange(...)) with a two-array comparison bridge_win_rate(bridge_e_pos, bridge_e_neg), and analogously for shifted arrays. This does not alter preregistration, bins, coverage, gates, predictor, E_nonlocal, or D_rank.",
+  "root_cause": {
+    "effect": "both calls compare bridge_pos_e[i] against bridge_pos_e[j] with identical index vectors, so every diagonal difference is zero and W is exactly 0.5; bridge_neg_e and bridge_neg_s are ignored.",
+    "matched_win_definition": "delta = evidence[pos] - evidence[neg]; W=mean((delta>0)+0.5*(delta==0))",
+    "source_locations": {
+      "aligned_call": "tools/audit_phase5_b2_adjudication.py:524",
+      "matched_win": "tools/audit_phase5_b2_adjudication.py:413-417",
+      "shifted_call": "tools/audit_phase5_b2_adjudication.py:525"
+    },
+    "summary": "process_class stores positive and negative E_nonlocal values separately, but matched_win is called with the positive-only array and arange indices for both sides."
+  },
+  "shape_index_check": {
+    "E_nonlocal_patch_shape": "[1369]",
+    "occupancy_shape_after_committed_fix": "[1369]",
+    "risk_valid_bins_shape": "[1369]",
+    "row_major_identity": "PASS",
+    "same_patch_matching": "PASS; positives and negatives are disjoint by GT partition"
+  },
+  "shift_check": {
+    "aligned_shifted_before_pairing": "PASS",
+    "failure_location": "downstream W call ignores both negative arrays",
+    "shift_alias_or_overwrite": "NOT_FOUND",
+    "shift_function": "np.roll(E.reshape(37,37),(12,12)).reshape(-1)"
+  },
+  "terminal": "B2_BRIDGE_IMPLEMENTATION_DEFECT_CONFIRMED"
+}
