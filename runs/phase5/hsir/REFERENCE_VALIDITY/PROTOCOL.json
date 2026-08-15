@@ -1,0 +1,135 @@
+{
+  "M1": "Normal member H3 median split; report E_multistage and E_xstage low-H minus high-H win; primary PASS lower CI >0 and >=8 positive classes",
+  "M2": "exact target 518x518 occupancy in 14x14 blocks; risky positive patches contain any S_rank20 pixel and occupancy>0; valid 8-neighbor surroundedness; rho=Spearman(max(A5,A7)-A3,surroundedness); PASS lower CI >0 and >=8 positive classes",
+  "architecture": {
+    "image_levels": [
+      8,
+      16,
+      24
+    ],
+    "img_size": 518,
+    "n_groups": 3,
+    "text_levels": [
+      4,
+      8,
+      12
+    ],
+    "visual_feature_source": "model/adapter.py::AdapterModel.forward()['seg_tokens']"
+  },
+  "audit": "PHASE5-B1 MULTI-SCALE REFERENCE VALIDITY",
+  "checkpoint_sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+  "config_sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4",
+  "dataset_metadata_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+  "decision_tree": [
+    "LOCAL_MULTISCALE_ANALYTIC_SUPPORTED",
+    "LOCAL_MECHANISM_SUPPORTED_TINY_CNN_JUSTIFIED",
+    "LOCAL_REFERENCE_MECHANISM_UNSUPPORTED",
+    "NONLOCAL_SAME_IMAGE_REFERENCE_SUPPORTED",
+    "NONLOCAL_REFERENCE_UNSAFE",
+    "EXTERNAL_COMPLEMENTARY_REPRESENTATION_JUSTIFIED",
+    "REFERENCE_VALIDITY_AUDIT_INCONCLUSIVE",
+    "REFERENCE_VALIDITY_OUTPUT_INVALID"
+  ],
+  "feature_semantics": {
+    "alignment": "authoritative 37x37 grid; bilinear align_corners=True only if a stage grid differs, followed by L2 renormalization",
+    "pipeline": "seg_proj -> seg_layer_norms -> F.normalize(dim=-1)",
+    "source_file": "model/adapter.py",
+    "source_function": "AdapterModel.forward",
+    "tensor": "visual['seg_tokens']"
+  },
+  "gates": {
+    "A": "bootstrap lower CI matched win >0.5 and >=8 supportive classes",
+    "B": "positive C_AP and R_pos capture exceed fixed confidence and D_rank controls",
+    "C": "aligned win and positive C_AP capture exceed shifted control",
+    "D": "Normal fraction and negative R_neg capture do not exceed both controls",
+    "E": "supportive >=8 and opposed <=2"
+  },
+  "git_head": "211e9b032ceda45a28f3e06408d6c0b28dafc0b9",
+  "inference_only": true,
+  "local_formula": {
+    "A_s": "qC_s*(1-qH_s)",
+    "C_g_s": "1-cosine(normalized mean core, normalized mean ring)",
+    "C_s": "mean over three authoritative stages",
+    "E_valid_ms": "max(A_3,A_5,A_7)",
+    "H_g_s": "mean pairwise(1-cosine(ring_i,ring_j)); normalized ring-sum identity, no pair matrix",
+    "H_s": "mean over three authoritative stages",
+    "qC_s": "percentile_rank(C_s) within each image",
+    "qH_s": "percentile_rank(H_s) within each image"
+  },
+  "local_scales": {
+    "3": {
+      "core": "center patch",
+      "ring": "valid 3x3 excluding center"
+    },
+    "5": {
+      "core": "valid 3x3",
+      "ring": "valid 5x5 excluding inner 3x3"
+    },
+    "7": {
+      "core": "valid 5x5",
+      "ring": "valid 7x7 excluding inner 5x5"
+    },
+    "padding": "none; valid positions only; no circular or replicated feature padding"
+  },
+  "matching": "reuse B0 deterministic_matches: same-class score x D_rank 10x10 quantile bins, deterministic SHA256 keyed control, no candidate evidence",
+  "no_dense_feature_cache": true,
+  "no_formula_changes_after_full_pass_start": true,
+  "no_gt_in_candidate_construction": true,
+  "no_target_test_training": true,
+  "nonlocal_fallback": {
+    "K": 8,
+    "abstain": "fewer than K valid peers -> valid_reference=false and evidence=0",
+    "activation": "interpret only after LOCAL_REFERENCE_MECHANISM_UNSUPPORTED",
+    "descriptor": "normalize(mean over three aligned stage features)",
+    "evidence": "mean_g 1-cosine(center stage, normalized mean of same selected peers)",
+    "pool": "same image; Chebyshev distance >3; D_rank below image median; all stage anomaly percentiles <0.5",
+    "tie": "descending cosine then ascending patch index"
+  },
+  "old_baseline": "E_multistage imported from audit_phase5_second_evidence.evidence_maps; B0 parity required <=1e-6 on the real dry-run image",
+  "population": "S_rank20 = top ceil(0.20*N_class) D_rank pixels per class; GT-free stable identity ordering",
+  "protocol_content_sha256": "796cb285d5cd9a1287a80c0854996516003cb28a8d1c083b725ba37ccbc6472a",
+  "random_seeds": {
+    "bootstrap": 5101,
+    "peer_tie": "ascending patch index",
+    "selection": "stable lexsort"
+  },
+  "runtime_contract": {
+    "deployed_final_logits": [
+      1,
+      2,
+      518,
+      518
+    ],
+    "deployed_probability": [
+      1,
+      518,
+      518
+    ],
+    "image_size": 518,
+    "native_logits": [
+      3,
+      1,
+      1369,
+      2
+    ],
+    "native_margins": [
+      3,
+      1,
+      1369
+    ],
+    "native_visual_features": [
+      3,
+      1,
+      1369,
+      768
+    ],
+    "patch_grid": [
+      37,
+      37
+    ],
+    "patch_stride": 14
+  },
+  "spatial_control": "reuse B0 shifted_map: wraparound floor(518/3)=172 pixels in both axes",
+  "training_steps": 0,
+  "triage": "inside S_rank20 select top ceil(0.10*|S_rank20|); U_conf=-abs(final_margin) and D_rank controls use exact same K"
+}
