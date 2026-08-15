@@ -1,0 +1,431 @@
+{
+  "SPATIAL_CONSTRAINT_REQUIRED": true,
+  "assumptions_still_unverified": [
+    "A future B implementation can enforce a true minimum-distortion/trust-region constraint without recreating full-slot reranking.",
+    "A deployment-aware spatial-support constraint can be specified without tuning on VisA test outcomes.",
+    "Native pair geometry is a mechanism diagnostic, not a causal decomposition of blur-resize effects."
+  ],
+  "b3_parity": {
+    "aligned": {
+      "broken": 202,
+      "missed": 574,
+      "net": 390,
+      "pairs": 2785,
+      "preserved": 1417,
+      "rescued": 592
+    },
+    "shifted": {
+      "broken": 847,
+      "missed": 632,
+      "net": -313,
+      "pairs": 2785,
+      "preserved": 772,
+      "rescued": 534
+    },
+    "status": "PASS"
+  },
+  "candidate": "B",
+  "candidate_reason": "Useful aligned evidence extends well beyond adjacent ranks, while B3 independently shows breakage increases with action displacement and shifted evidence is harmful. Candidate B is the only allowed family matching broad evidence with minimum-distortion, abstention-capable, bounded authority. Spatial constraint is required as a deployment guardrail because native score interventions are applied on the 37x37 grid and broad spatial support can be redistributed by blur-resize; no spatial cutoff is supported.",
+  "deployment_findings": {
+    "breakage_vs_action_displacement_class_bootstrap": {
+      "bootstrap95_ci": [
+        0.7026936551532272,
+        0.953933428458777
+      ],
+      "mean": 0.8425800798515745,
+      "median": 0.9486832980505139,
+      "n_classes": 12,
+      "unit": "class"
+    },
+    "deployed_aligned_minus_shifted_AP_macro_mean": -0.0013108118267521375,
+    "deployed_reversal_classes": 7,
+    "interpretation": "Native aligned advantage weakens and reverses after native correction -> Gaussian blur 7x7 sigma1 -> bilinear resize align_corners=True -> stage mean -> softmax. This supports bounded native action and deployment validation, not a new inference rule.",
+    "native_advantage_classes": 12,
+    "native_aligned_minus_shifted_AP_macro_mean": 0.0053571689297257545
+  },
+  "forbidden_tuning_actions": [
+    "Do not search rank-gap, score-gap, spatial, or displacement cutoffs.",
+    "Do not optimize or rescue the decision using AP.",
+    "Do not implement candidate A/B/C in this diagnostic.",
+    "Do not train, tune, run another VisA candidate, alter K=8/top-20%/10x10/shift/pair rules, or modify the Phase2B predictor/model.",
+    "Do not use GT in inference, eligibility, evidence, pair selection, or action.",
+    "Do not reopen C1, local multiscale, CNN/router, stage arbitration, or score+lambda*E tuning."
+  ],
+  "integrity": true,
+  "model_forwards": 2162,
+  "next_design_review_question": "Can a GT-free bounded minimum-distortion pairwise projection preserve unrelated Phase2B order, abstain on uncertain E constraints, and explicitly limit native spatial score-mass movement before the exact deployment path?",
+  "rank_geometry": {
+    "aligned": {
+      "gap_1": {
+        "break_rate": 0.2,
+        "broken": 4,
+        "missed": 4,
+        "n_pairs": 42,
+        "net": 14,
+        "preserved": 16,
+        "rescue_rate": 0.8181818181818182,
+        "rescued": 18
+      },
+      "gap_2": {
+        "break_rate": 0.43478260869565216,
+        "broken": 10,
+        "missed": 7,
+        "n_pairs": 42,
+        "net": 2,
+        "preserved": 13,
+        "rescue_rate": 0.631578947368421,
+        "rescued": 12
+      },
+      "gap_3": {
+        "break_rate": 0.27586206896551724,
+        "broken": 8,
+        "missed": 4,
+        "n_pairs": 47,
+        "net": 6,
+        "preserved": 21,
+        "rescue_rate": 0.7777777777777778,
+        "rescued": 14
+      },
+      "gap_4_5": {
+        "break_rate": 0.3235294117647059,
+        "broken": 11,
+        "missed": 6,
+        "n_pairs": 67,
+        "net": 16,
+        "preserved": 23,
+        "rescue_rate": 0.8181818181818182,
+        "rescued": 27
+      },
+      "gap_6_10": {
+        "break_rate": 0.16494845360824742,
+        "broken": 16,
+        "missed": 44,
+        "n_pairs": 201,
+        "net": 44,
+        "preserved": 81,
+        "rescue_rate": 0.5769230769230769,
+        "rescued": 60
+      },
+      "gap_gt_10": {
+        "break_rate": 0.10805084745762712,
+        "broken": 153,
+        "missed": 509,
+        "n_pairs": 2386,
+        "net": 308,
+        "preserved": 1263,
+        "rescue_rate": 0.47525773195876286,
+        "rescued": 461
+      }
+    },
+    "key_findings": [
+      "Aligned utility is not concentrated at adjacency: gap 1 net is +14, while gap >10 net is +308 and contains 461 of 592 rescues.",
+      "Aligned net is positive in 10/12 classes overall; class-bootstrap net is positive for gap >10 with 95% CI [5.0833, 49.9167] and for gap 4-5 with CI [0.0833, 3.0], while gap 2 and gap 3 CIs cross zero.",
+      "Shifted control is net negative overall and has zero classes with positive shifted net; its gap >10 stratum is -286.",
+      "Aligned rescued and broken score gaps overlap; no near-tie threshold is inferred or searched."
+    ],
+    "shifted": {
+      "gap_1": {
+        "break_rate": 0.55,
+        "broken": 11,
+        "missed": 8,
+        "n_pairs": 42,
+        "net": 3,
+        "preserved": 9,
+        "rescue_rate": 0.6363636363636364,
+        "rescued": 14
+      },
+      "gap_2": {
+        "break_rate": 0.7391304347826086,
+        "broken": 17,
+        "missed": 13,
+        "n_pairs": 42,
+        "net": -11,
+        "preserved": 6,
+        "rescue_rate": 0.3157894736842105,
+        "rescued": 6
+      },
+      "gap_3": {
+        "break_rate": 0.4482758620689655,
+        "broken": 13,
+        "missed": 10,
+        "n_pairs": 47,
+        "net": -5,
+        "preserved": 16,
+        "rescue_rate": 0.4444444444444444,
+        "rescued": 8
+      },
+      "gap_4_5": {
+        "break_rate": 0.6176470588235294,
+        "broken": 21,
+        "missed": 19,
+        "n_pairs": 67,
+        "net": -7,
+        "preserved": 13,
+        "rescue_rate": 0.42424242424242425,
+        "rescued": 14
+      },
+      "gap_6_10": {
+        "break_rate": 0.6288659793814433,
+        "broken": 61,
+        "missed": 50,
+        "n_pairs": 201,
+        "net": -7,
+        "preserved": 36,
+        "rescue_rate": 0.5192307692307693,
+        "rescued": 54
+      },
+      "gap_gt_10": {
+        "break_rate": 0.5112994350282486,
+        "broken": 724,
+        "missed": 532,
+        "n_pairs": 2386,
+        "net": -286,
+        "preserved": 692,
+        "rescue_rate": 0.4515463917525773,
+        "rescued": 438
+      }
+    }
+  },
+  "raw_cache": {
+    "checkpoint_manifest": "/tmp/p5_b31r2_run2/CHECKPOINT_MANIFEST.json",
+    "path": "/tmp/p5_b31r2_run2/RAW_PAIR_GEOMETRY.json",
+    "row_count": 2785,
+    "sha256": "b49f7fcc61dd6309c4c75967a2f9fb610e7834a8b1adb33e741ac01c7c6744a3"
+  },
+  "rejected_alternatives": {
+    "A": "Rejected: positive utility is not concentrated at gap 1 or gaps 1-3; most rescued pairs and net utility occur at gap >10.",
+    "C": "Rejected: broad partial-order projection risks C1-like permutation; this diagnostic supplies no minimum-distortion or deployment-safety guarantee."
+  },
+  "schema_validation": {
+    "known_pairs_vs_n_pairs_bug_resolved": true,
+    "status": "PASS",
+    "zero_model_forwards_precheck": true
+  },
+  "schema_version": "B31R2_DECISION_v1",
+  "spatial_geometry": {
+    "key_findings": [
+      "Aligned rescued pairs are spatially broad (Chebyshev mean 14.45, median 14) and broken pairs overlap (mean 13.37, median 13).",
+      "Rank gap versus native spatial distance is near zero (Pearson about -0.013; Spearman about -0.011), so rank-locality is not spatial-locality.",
+      "Distance distributions do not justify a spatial threshold; deployment still requires a spatial-support guardrail."
+    ],
+    "summary": {
+      "all_pairs": {
+        "rank_gap_vs_chebyshev": {
+          "pearson": -0.013422106862733313,
+          "spearman": -0.011988392893529919
+        },
+        "rank_gap_vs_euclidean": {
+          "pearson": -0.01264229929786299,
+          "spearman": -0.011822580102536187
+        }
+      },
+      "by_variant": {
+        "aligned": {
+          "outcome_distributions": {
+            "broken": {
+              "chebyshev": {
+                "mean": 13.366336633663366,
+                "n": 202,
+                "p0": 2.0,
+                "p100": 32.0,
+                "p25": 8.0,
+                "p50": 13.0,
+                "p75": 18.0,
+                "p95": 25.0
+              },
+              "euclidean": {
+                "mean": 14.861785891218567,
+                "n": 202,
+                "p0": 2.0,
+                "p100": 35.38361202590826,
+                "p25": 9.096424967926286,
+                "p50": 13.601470508735444,
+                "p75": 19.6468827043885,
+                "p95": 28.160255680657446
+              },
+              "n": 202
+            },
+            "missed": {
+              "chebyshev": {
+                "mean": 13.026132404181185,
+                "n": 574,
+                "p0": 1.0,
+                "p100": 31.0,
+                "p25": 7.0,
+                "p50": 12.0,
+                "p75": 18.0,
+                "p95": 26.0
+              },
+              "euclidean": {
+                "mean": 14.456656038748038,
+                "n": 574,
+                "p0": 1.0,
+                "p100": 38.600518131237564,
+                "p25": 8.246211251235321,
+                "p50": 13.527547277904578,
+                "p75": 20.0,
+                "p95": 28.81057763485353
+              },
+              "n": 574
+            },
+            "preserved": {
+              "chebyshev": {
+                "mean": 13.947776993648553,
+                "n": 1417,
+                "p0": 1.0,
+                "p100": 34.0,
+                "p25": 9.0,
+                "p50": 14.0,
+                "p75": 19.0,
+                "p95": 25.0
+              },
+              "euclidean": {
+                "mean": 15.576620689786235,
+                "n": 1417,
+                "p0": 1.0,
+                "p100": 36.76955262170047,
+                "p25": 10.0,
+                "p50": 15.033296378372908,
+                "p75": 21.02379604162864,
+                "p95": 28.68095007058624
+              },
+              "n": 1417
+            },
+            "rescued": {
+              "chebyshev": {
+                "mean": 14.447635135135135,
+                "n": 592,
+                "p0": 2.0,
+                "p100": 32.0,
+                "p25": 10.0,
+                "p50": 14.0,
+                "p75": 18.0,
+                "p95": 25.0
+              },
+              "euclidean": {
+                "mean": 16.271775880070976,
+                "n": 592,
+                "p0": 2.0,
+                "p100": 36.05551275463989,
+                "p25": 11.313708498984761,
+                "p50": 16.07786751923925,
+                "p75": 20.615528128088304,
+                "p95": 28.29222371438046
+              },
+              "n": 592
+            }
+          },
+          "spatial_distance_vs_post_action_rank_displacement": {
+            "pearson": 0.04325056241264286,
+            "spearman": 0.057802777918388004
+          }
+        },
+        "shifted": {
+          "outcome_distributions": {
+            "broken": {
+              "chebyshev": {
+                "mean": 14.283353010625738,
+                "n": 847,
+                "p0": 1.0,
+                "p100": 34.0,
+                "p25": 9.0,
+                "p50": 14.0,
+                "p75": 19.0,
+                "p95": 26.0
+              },
+              "euclidean": {
+                "mean": 15.900186954687028,
+                "n": 847,
+                "p0": 1.0,
+                "p100": 35.608987629529715,
+                "p25": 10.024937810560445,
+                "p50": 15.297058540778355,
+                "p75": 21.470910553583888,
+                "p95": 29.190742455382274
+              },
+              "n": 847
+            },
+            "missed": {
+              "chebyshev": {
+                "mean": 14.174050632911392,
+                "n": 632,
+                "p0": 1.0,
+                "p100": 32.0,
+                "p25": 9.0,
+                "p50": 14.0,
+                "p75": 19.0,
+                "p95": 27.0
+              },
+              "euclidean": {
+                "mean": 15.881646800221207,
+                "n": 632,
+                "p0": 1.0,
+                "p100": 36.05551275463989,
+                "p25": 10.0,
+                "p50": 15.016648189186455,
+                "p75": 21.418428557670495,
+                "p95": 29.270014763692025
+              },
+              "n": 632
+            },
+            "preserved": {
+              "chebyshev": {
+                "mean": 13.427461139896373,
+                "n": 772,
+                "p0": 1.0,
+                "p100": 34.0,
+                "p25": 9.0,
+                "p50": 13.0,
+                "p75": 18.0,
+                "p95": 25.0
+              },
+              "euclidean": {
+                "mean": 15.034577612478413,
+                "n": 772,
+                "p0": 1.0,
+                "p100": 36.76955262170047,
+                "p25": 9.486832980505138,
+                "p50": 14.317821063276353,
+                "p75": 20.223748416156685,
+                "p95": 27.51363298439521
+              },
+              "n": 772
+            },
+            "rescued": {
+              "chebyshev": {
+                "mean": 13.243445692883896,
+                "n": 534,
+                "p0": 1.0,
+                "p100": 31.0,
+                "p25": 8.0,
+                "p50": 13.0,
+                "p75": 17.0,
+                "p95": 25.0
+              },
+              "euclidean": {
+                "mean": 14.782417808059153,
+                "n": 534,
+                "p0": 1.0,
+                "p100": 38.600518131237564,
+                "p25": 9.57733918582788,
+                "p50": 14.422205101855956,
+                "p75": 19.235384061671343,
+                "p95": 27.071029356114803
+              },
+              "n": 534
+            }
+          },
+          "spatial_distance_vs_post_action_rank_displacement": {
+            "pearson": -0.05200718655110509,
+            "spearman": -0.03825038790275812
+          }
+        }
+      },
+      "interpretation": "Rank gap and native spatial separation are nearly uncorrelated; no spatial cutoff is supported."
+    }
+  },
+  "successful_full_pass": true,
+  "terminal": "B31R2_DESIGN_FAMILY_JUSTIFIED",
+  "training_steps": 0,
+  "zero_training_steps": true
+}

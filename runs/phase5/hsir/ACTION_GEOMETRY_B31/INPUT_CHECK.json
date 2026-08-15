@@ -1,0 +1,288 @@
+{
+  "checkpoint_manifest": {
+    "class_checkpoints": {
+      "candle": {
+        "completed_images": 200,
+        "path": "/tmp/p5_b31r2_run2/raw_classes/candle.json",
+        "row_count": 77,
+        "sha256": "7eba073f9b1b2016915cfb3b421e6840fd2ccb1cdfd1f5da3c88197e8309fac8"
+      },
+      "capsules": {
+        "completed_images": 160,
+        "path": "/tmp/p5_b31r2_run2/raw_classes/capsules.json",
+        "row_count": 124,
+        "sha256": "fc5e31138c1869153c0ca8e080c5a28f43b3f61eeaca1e9d3e8e990113199a92"
+      },
+      "cashew": {
+        "completed_images": 150,
+        "path": "/tmp/p5_b31r2_run2/raw_classes/cashew.json",
+        "row_count": 318,
+        "sha256": "b5c0cb07863f1faafb8e51484e74ee5e625ee93913557c143e0981ee3946c2e6"
+      },
+      "chewinggum": {
+        "completed_images": 150,
+        "path": "/tmp/p5_b31r2_run2/raw_classes/chewinggum.json",
+        "row_count": 146,
+        "sha256": "ae7b12f6d55558f48f70b8c0c79d977e6fc42bb250469047c5dea177b19db667"
+      },
+      "fryum": {
+        "completed_images": 150,
+        "path": "/tmp/p5_b31r2_run2/raw_classes/fryum.json",
+        "row_count": 456,
+        "sha256": "d52908b55b011db9062f9a99a150e583ee26cfedcb62aa3619a93a43b59090db"
+      },
+      "macaroni1": {
+        "completed_images": 200,
+        "path": "/tmp/p5_b31r2_run2/raw_classes/macaroni1.json",
+        "row_count": 92,
+        "sha256": "db01b911768510d5ec0ccd297b0cb34b3fb7cacf8e32a15919d6ddd398d7a058"
+      },
+      "macaroni2": {
+        "completed_images": 200,
+        "path": "/tmp/p5_b31r2_run2/raw_classes/macaroni2.json",
+        "row_count": 115,
+        "sha256": "232bd4d43a9af6cef9198aa38c3c18112a4edb2cd6d4996328df06e38f47c645"
+      },
+      "pcb1": {
+        "completed_images": 200,
+        "path": "/tmp/p5_b31r2_run2/raw_classes/pcb1.json",
+        "row_count": 450,
+        "sha256": "a0d5ab275b90d2f6fbe0458e411ad074fe0c55f5fb0d6a1e4615a4c46237a00d"
+      },
+      "pcb2": {
+        "completed_images": 200,
+        "path": "/tmp/p5_b31r2_run2/raw_classes/pcb2.json",
+        "row_count": 190,
+        "sha256": "1ecf6e103edaac88b18759c1c7658086e5653d632a4c53450eb97fad2f513b75"
+      },
+      "pcb3": {
+        "completed_images": 201,
+        "path": "/tmp/p5_b31r2_run2/raw_classes/pcb3.json",
+        "row_count": 116,
+        "sha256": "235aeae5af2ef9b7e743064ff590a806bca1c2820994a2a703fc75654f827eb0"
+      },
+      "pcb4": {
+        "completed_images": 201,
+        "path": "/tmp/p5_b31r2_run2/raw_classes/pcb4.json",
+        "row_count": 179,
+        "sha256": "219e32c371734bf9492282c7025bed34aba056448ec73c8d7bfa009fc61fdfba"
+      },
+      "pipe_fryum": {
+        "completed_images": 150,
+        "path": "/tmp/p5_b31r2_run2/raw_classes/pipe_fryum.json",
+        "row_count": 522,
+        "sha256": "c518d85c13b3e0c1316838e5d84241bbe5940789a7485e98e88756606c3b0b20"
+      }
+    },
+    "completed_classes": [
+      "candle",
+      "capsules",
+      "cashew",
+      "chewinggum",
+      "fryum",
+      "macaroni1",
+      "macaroni2",
+      "pcb1",
+      "pcb2",
+      "pcb3",
+      "pcb4",
+      "pipe_fryum"
+    ],
+    "completed_images": 2162,
+    "forward_count": 2162,
+    "identity_enriched_offline": true,
+    "identity_source": "canonical_records.file_name",
+    "raw_final_forward_count": 2162,
+    "raw_final_path": "/tmp/p5_b31r2_run2/RAW_PAIR_GEOMETRY.json",
+    "raw_final_row_count": 2785,
+    "raw_final_sha256": "b49f7fcc61dd6309c4c75967a2f9fb610e7834a8b1adb33e741ac01c7c6744a3",
+    "raw_finalized": true,
+    "schema_version": "B31R2_RAW_PAIR_GEOMETRY_v1"
+  },
+  "dataset": {
+    "anomaly_images": 1200,
+    "classes": 12,
+    "image_order": "canonical class-sorted records; same as audited B3",
+    "images": 2162,
+    "normal_images": 962
+  },
+  "dry_run": {
+    "dry_forwards": 2,
+    "pair_rows": 6,
+    "path": "/tmp/p5_b31r2_run2/DRY_PAIR_GEOMETRY.json",
+    "sha256": "bb858eeacb37c458013018c3956425aca679ec9d0927d8292bd66366acef3df8",
+    "status": "PASS"
+  },
+  "full_pass": {
+    "inference_only": true,
+    "model_forwards": 2162,
+    "raw_final_path": "/tmp/p5_b31r2_run2/RAW_PAIR_GEOMETRY.json",
+    "raw_final_reopened": true,
+    "raw_final_sha256": "b49f7fcc61dd6309c4c75967a2f9fb610e7834a8b1adb33e741ac01c7c6744a3",
+    "raw_finalized_before_parity": true,
+    "raw_pair_count": 2785,
+    "training_steps": 0
+  },
+  "integrity_pass": true,
+  "measurement_plumbing_note": "Three temporary driver attempts stopped after the first class before parity because of driver-only checkpoint bookkeeping defects; their partial rows were not used. The reported scientific result is from the one completed 2162-forward full pass.",
+  "preflight": {
+    "branch": "autopilot/p5-minimal-reference-adjudication",
+    "git_author_valid": true,
+    "git_committer_valid": true,
+    "head": "e615ca1164ea8e4538d01f6ae05c3831bb794052",
+    "working_tree_clean_before_outputs": true
+  },
+  "schema_version": "B31R2_INPUT_CHECK_v1",
+  "semantic_reuse": {
+    "D_rank_unchanged": true,
+    "E_nonlocal_unchanged": true,
+    "K": 8,
+    "c1_action_unchanged": true,
+    "d_rank_bins": 10,
+    "deployment_unchanged": true,
+    "deterministic_ties_unchanged": true,
+    "gt_firewall": true,
+    "pair_population_unchanged": true,
+    "phase2b_predictor_unchanged": true,
+    "risk_top_fraction": 0.2,
+    "score_bins": 10,
+    "shift": [
+      12,
+      12
+    ]
+  },
+  "source_modifications": {
+    "model_source_modified": false,
+    "phase2b_predictor_modified": false,
+    "tracked_source_modified": false
+  },
+  "status": "PASS",
+  "zero_forward_schema_validation": {
+    "checks": {
+      "b2_output_pass": true,
+      "b3_gt_firewall": true,
+      "b3_no_training": true,
+      "b3_output_pass": true,
+      "cell_geometry_schema": true,
+      "class_count": true,
+      "csv_present": true,
+      "displacement_schema": true,
+      "finite_summary": true,
+      "forward_count": true,
+      "known_schema_bug_resolved": true,
+      "pair_aggregate_reproduction": true,
+      "pair_row_count": true,
+      "pair_rows_schema": true,
+      "transition_aggregate_keys": true,
+      "transition_stratum_keys": true
+    },
+    "legacy_pair_row_schema": {
+      "fields": [
+        "aligned_correct",
+        "aligned_corrected_gap",
+        "aligned_e_gap",
+        "aligned_e_prefers_positive",
+        "aligned_pair_rank_displacement",
+        "aligned_transition",
+        "base_correct",
+        "base_margin_gap",
+        "class",
+        "image_id",
+        "negative_index",
+        "positive_index",
+        "shifted_correct",
+        "shifted_corrected_gap",
+        "shifted_e_gap",
+        "shifted_e_prefers_positive",
+        "shifted_pair_rank_displacement",
+        "shifted_transition"
+      ],
+      "scope": "PAIR_TRANSITIONS.per_class[*].pair_rows"
+    },
+    "legacy_stratum_schema": {
+      "fields": [
+        "n_pairs",
+        "rescued",
+        "missed",
+        "preserved",
+        "broken",
+        "rescue_rate_when_base_wrong",
+        "break_rate_when_base_correct"
+      ],
+      "n_pairs_not_pairs": true,
+      "scope": "summary.per_class[*].displacement.*_pair_strata"
+    },
+    "legacy_transition_schema": {
+      "fields": [
+        "pairs",
+        "rescued",
+        "missed",
+        "preserved",
+        "broken",
+        "net",
+        "base_wrong",
+        "base_correct",
+        "rescue_rate_when_base_wrong",
+        "break_rate_when_base_correct"
+      ],
+      "scope": "summary.transitions"
+    },
+    "pair_rows_checked": 2785,
+    "parity_totals": {
+      "aligned": {
+        "broken": 202,
+        "missed": 574,
+        "net": 390,
+        "pairs": 2785,
+        "preserved": 1417,
+        "rescued": 592
+      },
+      "shifted": {
+        "broken": 847,
+        "missed": 632,
+        "net": -313,
+        "pairs": 2785,
+        "preserved": 772,
+        "rescued": 534
+      }
+    },
+    "raw_required_fields": [
+      "class",
+      "image_id",
+      "patch_i",
+      "patch_j",
+      "native_row_i",
+      "native_col_i",
+      "native_row_j",
+      "native_col_j",
+      "m_bar_i",
+      "m_bar_j",
+      "base_rank_position_i",
+      "base_rank_position_j",
+      "base_rank_gap_signed_i_minus_j",
+      "base_rank_gap_abs",
+      "base_score_gap_signed_i_minus_j",
+      "base_score_gap_abs",
+      "D_rank_i",
+      "D_rank_j",
+      "valid_reference_i",
+      "valid_reference_j",
+      "E_aligned_i",
+      "E_aligned_j",
+      "E_shifted_i",
+      "E_shifted_j",
+      "delta_row_i_minus_j",
+      "delta_col_i_minus_j",
+      "native_chebyshev_distance",
+      "native_euclidean_distance",
+      "aligned_transition",
+      "shifted_transition",
+      "aligned_pair_rank_displacement",
+      "shifted_pair_rank_displacement"
+    ],
+    "raw_schema_version": "B31R2_RAW_PAIR_GEOMETRY_v1",
+    "schema_version": "B31R2_SCHEMA_CONTRACT_v1",
+    "status": "PASS",
+    "zero_model_forwards": true
+  }
+}
