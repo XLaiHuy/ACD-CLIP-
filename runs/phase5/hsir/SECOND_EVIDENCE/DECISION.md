@@ -13,4 +13,4 @@ This was an inference-only detection audit over held-out VisA TEST. The four can
 
 Primary candidate: `None`.
 
-Next: Classify the bottleneck as representation/objective-level and evaluate whether an external complementary representation source is scientifically justified; do not launch it automatically.
+Next: Resolve class-level instability of the candidate signal before any method design; do not launch external representation search.

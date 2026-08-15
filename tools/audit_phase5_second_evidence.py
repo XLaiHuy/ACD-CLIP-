@@ -952,6 +952,8 @@ def run(args: argparse.Namespace) -> None:
         "next_action": (
             "Formulate one minimal deployable adjudication hypothesis using the selected evidence; do not implement it."
             if decision.get("primary_second_evidence_candidate") else
+            "Resolve class-level instability of the candidate signal before any method design; do not launch external representation search."
+            if decision["terminal"] == "SECOND_EVIDENCE_CLASS_UNSTABLE" else
             "Classify the bottleneck as representation/objective-level and evaluate whether an external complementary representation source is scientifically justified; do not launch it automatically."
         ),
         "no_training": True,
