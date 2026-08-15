@@ -1,4 +1,5 @@
 import importlib.util
+import inspect
 from pathlib import Path
 
 import numpy as np
@@ -17,24 +18,26 @@ def correct_win_rate(e_pos, e_neg):
 
 
 def test_f1_known_positive_wins():
-    assert correct_win_rate([0.9, 0.8], [0.1, 0.2]) == 1.0
+    assert B2.bridge_win_rate(np.array([0.9, 0.8]), np.array([0.1, 0.2])) == 1.0
 
 
 def test_f2_known_positive_losses():
-    assert correct_win_rate([0.1, 0.2], [0.9, 0.8]) == 0.0
+    assert B2.bridge_win_rate(np.array([0.1, 0.2]), np.array([0.9, 0.8])) == 0.0
 
 
 def test_f3_exact_ties():
-    assert correct_win_rate([0.4, 0.4], [0.4, 0.4]) == 0.5
+    assert B2.bridge_win_rate(np.array([0.4, 0.4]), np.array([0.4, 0.4])) == 0.5
 
 
 def test_f4_mixed_wins_losses_ties():
-    assert correct_win_rate([0.9, 0.1, 0.5, 0.7], [0.2, 0.8, 0.5, 0.9]) == 0.375
+    assert B2.bridge_win_rate(
+        np.array([0.9, 0.1, 0.5, 0.7]), np.array([0.2, 0.8, 0.5, 0.9])
+    ) == 0.375
 
 
 def test_f5_aligned_and_shifted_evidence_differ():
-    aligned = correct_win_rate([0.9, 0.8], [0.1, 0.2])
-    shifted = correct_win_rate([0.1, 0.2], [0.9, 0.8])
+    aligned = B2.bridge_win_rate(np.array([0.9, 0.8]), np.array([0.1, 0.2]))
+    shifted = B2.bridge_win_rate(np.array([0.1, 0.2]), np.array([0.9, 0.8]))
     assert aligned == 1.0 and shifted == 0.0 and aligned != shifted
 
 
@@ -65,9 +68,26 @@ def test_f8_bootstrap_nonidentical_vector_has_nonzero_width():
     assert ci[1] > ci[0]
 
 
+def test_bridge_win_rate_rejects_invalid_arrays():
+    with np.testing.assert_raises(ValueError):
+        B2.bridge_win_rate(np.array([]), np.array([]))
+    with np.testing.assert_raises(ValueError):
+        B2.bridge_win_rate(np.array([0.1]), np.array([0.1, 0.2]))
+    with np.testing.assert_raises(ValueError):
+        B2.bridge_win_rate(np.array([np.nan]), np.array([0.1]))
+
+
 def test_original_b2_call_collapses_to_self_comparison():
     e_pos = np.array([0.9, 0.8], dtype=np.float32)
     e_neg = np.array([0.1, 0.2], dtype=np.float32)
     original_call = B2.matched_win(e_pos, np.arange(e_pos.size), np.arange(e_neg.size))
     assert original_call == 0.5
-    assert correct_win_rate(e_pos, e_neg) == 1.0
+    assert B2.bridge_win_rate(e_pos, e_neg) == 1.0
+
+
+def test_production_bridge_uses_separate_positive_and_negative_arrays():
+    source = inspect.getsource(B2.process_class)
+    assert "bridge_win_rate(bridge_e_pos, bridge_e_neg)" in source
+    assert "bridge_win_rate(bridge_s_pos, bridge_s_neg)" in source
+    assert "matched_win(bridge_e_pos" not in source
+    assert "matched_win(bridge_s_pos" not in source

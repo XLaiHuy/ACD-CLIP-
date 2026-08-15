@@ -1,0 +1,23 @@
+{
+  "gt_invariance": "adjudicate_slots receives no GT argument; identical frozen inputs produce identical output",
+  "no_training": true,
+  "status": "PASS",
+  "test_count": 15,
+  "tests": {
+    "T10_d_rank_freeze": true,
+    "T11_deterministic_ties": true,
+    "T12_gt_invariance": true,
+    "T13_nan_inf": true,
+    "T14_empty_singleton_cells": true,
+    "T15_deployment_parity": true,
+    "T1_predictor_parity": true,
+    "T2_E_nonlocal_parity": true,
+    "T3_identity": true,
+    "T4_score_slot_conservation": true,
+    "T5_no_new_range": true,
+    "T6_outside_action_invariance": true,
+    "T7_normal_logit_invariance": true,
+    "T8_target_margin_exactness": true,
+    "T9_raw_stage_difference_preservation": true
+  }
+}

@@ -417,6 +417,20 @@ def matched_win(evidence: np.ndarray, pos: np.ndarray, neg: np.ndarray) -> float
     return float(np.mean((delta > 0).astype(np.float64) + 0.5 * (delta == 0)))
 
 
+def bridge_win_rate(e_pos: np.ndarray, e_neg: np.ndarray) -> float:
+    """Compare already matched positive and negative evidence arrays."""
+    e_pos = np.asarray(e_pos, dtype=np.float64)
+    e_neg = np.asarray(e_neg, dtype=np.float64)
+    if e_pos.ndim != 1 or e_neg.ndim != 1 or e_pos.shape != e_neg.shape:
+        raise ValueError("bridge evidence arrays must be finite 1-D arrays with the same shape")
+    if e_pos.size == 0:
+        raise ValueError("bridge evidence arrays must be non-empty")
+    if not finite_array(e_pos) or not finite_array(e_neg):
+        raise ValueError("bridge evidence arrays must be finite 1-D arrays with the same shape")
+    delta = e_pos - e_neg
+    return float(np.mean((delta > 0).astype(np.float64) + 0.5 * (delta == 0)))
+
+
 def mean_negative_risk(scores: np.ndarray, labels: np.ndarray) -> float | None:
     _, r_neg = pairwise_risks(scores, labels)
     return mean_or_none(r_neg.tolist())
@@ -521,8 +535,8 @@ def process_class(model, dataset, class_name: str, records: list[dict[str, Any]]
     bridge_e_neg = np.concatenate(bridge_neg_e) if bridge_neg_e else np.asarray([], dtype=np.float32)
     bridge_s_pos = np.concatenate(bridge_pos_s) if bridge_pos_s else np.asarray([], dtype=np.float32)
     bridge_s_neg = np.concatenate(bridge_neg_s) if bridge_neg_s else np.asarray([], dtype=np.float32)
-    w_aligned = matched_win(bridge_e_pos, np.arange(bridge_e_pos.size), np.arange(bridge_e_neg.size)) if bridge_e_pos.size else None
-    w_shift = matched_win(bridge_s_pos, np.arange(bridge_s_pos.size), np.arange(bridge_s_neg.size)) if bridge_s_pos.size else None
+    w_aligned = bridge_win_rate(bridge_e_pos, bridge_e_neg) if bridge_e_pos.size else None
+    w_shift = bridge_win_rate(bridge_s_pos, bridge_s_neg) if bridge_s_pos.size else None
     bridge_coverage = None if bridge_positive_total == 0 else float(bridge_matched_total / bridge_positive_total)
     displacement = np.concatenate(changed_abs) if changed_abs and any(x.size for x in changed_abs) else np.asarray([], dtype=np.float32)
     row = {
