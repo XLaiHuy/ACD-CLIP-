@@ -1,0 +1,115 @@
+{
+  "E0": {
+    "cache_integrity": true,
+    "class_count_12": true,
+    "gt_firewall": true,
+    "image_count_2162": true,
+    "numeric_outputs_finite": true,
+    "selector_trace_parity": true,
+    "zero_model_forwards": true,
+    "zero_training": true
+  },
+  "E0_pass": true,
+  "E1": {
+    "at_least_8_classes_pixel_AP_positive": false,
+    "macro_pixel_AUROC_delta_nonnegative": false,
+    "mean_pixel_AP_delta_positive": false,
+    "pixel_AP_bootstrap_lower_positive": false
+  },
+  "E1_pass": false,
+  "E2": {
+    "mean_pixel_AP_P5_minus_SHIFT_positive": true,
+    "pixel_AP_P5_minus_SHIFT_bootstrap_lower_positive": false
+  },
+  "E2_pass": false,
+  "E3": {
+    "upper_CI_delta_FPR_tau95_nonpositive": false,
+    "upper_CI_delta_FPR_tau99_nonpositive": false,
+    "upper_CI_delta_negative_pairwise_risk_nonpositive": false
+  },
+  "E3_pass": false,
+  "candidate_commit_sha": "d2c8ef0c75d80cd40a31c5042b104f39c267661a",
+  "class_consistency": {
+    "classes": 12,
+    "pixel_AP_positive_P5_minus_C0": 5,
+    "pixel_AP_positive_P5_minus_SHIFT": 8
+  },
+  "deployment_dilution": false,
+  "evaluator_sha256": "ff0b577aa1f398dd6c7d07235064a531b5fc3d266ecbd2f9d280691d24a71fbd",
+  "exact_next_scientific_question": "Can the frozen positive-only selector improve deployed pixel AP while satisfying the preregistered normal-safety guardrail?",
+  "forbidden_posthoc_actions": [
+    "Do not change selector, K=8, risk fraction, cells, unanimity, shift, projection, deployment, or action count.",
+    "Do not tune thresholds or rerun another candidate automatically.",
+    "Do not train, use medical data, or modify Phase2B/model predictor code.",
+    "Do not relabel selector opportunities as strict post-action rescues/breaks."
+  ],
+  "gt_firewall": {
+    "gt_changes_selector_or_action": false,
+    "gt_loaded_only_after_method_outputs_frozen": true,
+    "status": "PASS"
+  },
+  "integrity": "PASS",
+  "model_forwards": 0,
+  "normal_safety_result": {
+    "upper_CI_delta_FPR_tau95_nonpositive": false,
+    "upper_CI_delta_FPR_tau99_nonpositive": false,
+    "upper_CI_delta_negative_pairwise_risk_nonpositive": false
+  },
+  "physical_model_forward_calls": 0,
+  "primary_macro_deltas": {
+    "native_patch_AP_P5_minus_C0": {
+      "bootstrap95_ci": [
+        -8.110534851371819e-06,
+        3.0298696158789286e-05
+      ],
+      "bootstrap_reps": 2000,
+      "bootstrap_seed": 5651,
+      "mean": 6.286100153925685e-06,
+      "median": -3.0563128118610283e-06,
+      "n_classes": 12,
+      "unit": "class"
+    },
+    "pixel_AP_P5_minus_C0": {
+      "bootstrap95_ci": [
+        -9.709936667829084e-06,
+        8.296800474039568e-06
+      ],
+      "bootstrap_reps": 2000,
+      "bootstrap_seed": 5611,
+      "mean": -6.563013335858977e-07,
+      "median": -9.450852118120245e-07,
+      "n_classes": 12,
+      "unit": "class"
+    },
+    "pixel_AP_P5_minus_SHIFT": {
+      "bootstrap95_ci": [
+        -0.00017972273820991233,
+        0.0001943590075835395
+      ],
+      "bootstrap_reps": 2000,
+      "bootstrap_seed": 5613,
+      "mean": 2.9146129153362343e-05,
+      "median": 8.053023806679771e-05,
+      "n_classes": 12,
+      "unit": "class"
+    },
+    "pixel_AUROC_P5_minus_C0": {
+      "bootstrap95_ci": [
+        -2.5019817086467434e-05,
+        1.40889397289808e-05
+      ],
+      "bootstrap_reps": 2000,
+      "bootstrap_seed": 5631,
+      "mean": -7.2552080041624984e-06,
+      "median": -1.2028086175119856e-05,
+      "n_classes": 12,
+      "unit": "class"
+    }
+  },
+  "protocol_commit_sha": "cfa5fc46417b37e2943d671cf713ce40d6c7628d",
+  "r0_evidence_commit_sha": "8865489a7aad490d218886e8ec534187f9f70e12",
+  "schema_version": "P5B_FULL_EVAL_v1",
+  "scientific_model_forwards": 0,
+  "terminal": "P5B_SELECTIVE_ADJUDICATION_UNSUPPORTED",
+  "training_steps": 0
+}
