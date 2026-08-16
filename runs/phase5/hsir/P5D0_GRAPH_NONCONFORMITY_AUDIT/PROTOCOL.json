@@ -37,7 +37,7 @@
   "edge_definition": {
     "orientation": "strict base inversion i->j with m_bar_i < m_bar_j",
     "base_order": "float32 m_bar, descending value, ascending patch ID tie break",
-    "q_m": "within-image percentile rank from that exact stable base order, rank/(1369-1)",
+    "q_m": "ascending within-image score percentile from the exact float32 descending base order: (1369-1-rank_desc)/(1369-1), with ascending patch-ID ties",
     "target": "g_ij = q_m(j)-q_m(i) > 0",
     "raw_score_gap": "m_bar_j-m_bar_i, retained diagnostic-only",
     "all_edges_retained": true,
