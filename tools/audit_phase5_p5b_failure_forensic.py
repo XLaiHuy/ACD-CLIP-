@@ -893,6 +893,7 @@ def compute_main(cache_root: Path) -> dict[str, Any]:
     transition_store = new_transition_store(("P5", "SHIFT", "T1_AN_TIE", "T2_AN_STRICT_MIN", "AN_ONLY", "NA_ONLY"), class_names)
     rank_leverage = {c: {"selected_mixed": 0, "selected_AN": 0, "selected_NA": 0, "total_inversions": 0, "total_pairs": 0, "AN_transitions": 0, "NA_transitions": 0, "positive_contamination_total": 0.0, "positive_contamination_touched": 0.0, "negative_risk_total": 0.0, "negative_risk_touched": 0.0} for c in class_names}
     spatial_mass = {variant: {case: {"positive_mass": 0.0, "inside_mass": 0.0, "outside_mass": 0.0, "effective_pixels": 0.0, "images": 0} for case in CASE_NAMES} for variant in ("aligned", "shifted")}
+    spatial_mass_per_class = {class_name: {"positive_mass": 0.0, "inside_mass": 0.0, "outside_mass": 0.0, "effective_pixels": 0.0} for class_name in class_names}
     pixel_buffers = {"C0": [], "P5": [], "P5_SHIFT": [], "labels": []}
     patch_buffers = {name: [] for name in CONDITIONS}
     patch_buffers.update({"P5_SHIFT": [], "labels": []})
@@ -1007,6 +1008,11 @@ def compute_main(cache_root: Path) -> dict[str, Any]:
                 spatial_mass[variant][case]["inside_mass"] += float(inside.sum())
                 spatial_mass[variant][case]["outside_mass"] += float(outside.sum())
                 spatial_mass[variant][case]["effective_pixels"] += float(np.sum(induced > 0))
+                if variant == "aligned":
+                    spatial_mass_per_class[cls]["positive_mass"] += float(induced.sum())
+                    spatial_mass_per_class[cls]["inside_mass"] += float(inside.sum())
+                    spatial_mass_per_class[cls]["outside_mass"] += float(outside.sum())
+                    spatial_mass_per_class[cls]["effective_pixels"] += float(np.sum(induced > 0))
         case_by_image[(cls, state["source_index"])] = {"aligned": aligned_rel, "shifted": shifted_rel_full}
         image_count += 1
     flush_class(current_class)
@@ -1018,7 +1024,7 @@ def compute_main(cache_root: Path) -> dict[str, Any]:
         "class_names": class_names, "aligned_rows": aligned_rows, "shifted_rows": shifted_rows, "image_rows": image_rows,
         "all_patch_scores": all_patch_scores, "all_patch_labels": all_patch_labels, "pixel_metrics": pixel_metrics,
         "native_metrics": native_metrics, "transition_store": transition_store, "transition_json": matrices,
-        "rank_leverage": rank_leverage, "spatial_mass": spatial_mass, "image_count": image_count, "case_by_image": case_by_image,
+        "rank_leverage": rank_leverage, "spatial_mass": spatial_mass, "spatial_mass_per_class": spatial_mass_per_class, "image_count": image_count, "case_by_image": case_by_image,
     }
 
 
@@ -1111,7 +1117,7 @@ def build_rank_leverage(main: dict[str, Any], class_names: list[str], class_pixe
         x = main["rank_leverage"][c]
         per_class[c] = {
             **x,
-            "selected_mixed_fraction": None if not (x["selected_mixed"] + x["selected_AN"] + x["selected_NA"]) else float(x["selected_mixed"] / (x["selected_mixed"] + x["selected_AN"] + x["selected_NA"] + sum(1 for r in main["aligned_rows"] if r["class"] == c and r["case"] in {"N0", "NN", "AA"}))),
+            "selected_mixed_fraction": None if not len([r for r in main["aligned_rows"] if r["class"] == c]) else float(x["selected_mixed"] / len([r for r in main["aligned_rows"] if r["class"] == c])),
             "an_over_total_inversions": None if not x["total_inversions"] else float(x["selected_AN"] / x["total_inversions"]),
             "an_over_total_pairs": None if not x["total_pairs"] else float(x["selected_AN"] / x["total_pairs"]),
             "positive_contamination_fraction_touched": None if not x["positive_contamination_total"] else float(x["positive_contamination_touched"] / x["positive_contamination_total"]),
@@ -1149,16 +1155,30 @@ def build_feature_correlations(rows: list[dict[str, Any]], class_pixel: dict[str
 
 
 def normal_safety_attribution(main: dict[str, Any], class_pixel_metrics: dict[str, Any], class_names: list[str]) -> dict[str, Any]:
-    rows = []
-    for cls in class_names:
-        normal_c0 = []; normal_p5 = []
-        for state in load_state_records(CACHE_ROOT):
-            if state["class"] == cls and int(state["record"]["label"]) == 0:
-                normal_c0.append(state["c0_prob"][0, 1].reshape(-1)); normal_p5.append(state["aligned_prob"][0, 1].reshape(-1))
-        if normal_c0:
+    rows: dict[str, dict[str, Any]] = {}
+    current_class: str | None = None
+    normal_c0: list[np.ndarray] = []
+    normal_p5: list[np.ndarray] = []
+    def flush() -> None:
+        nonlocal normal_c0, normal_p5
+        if current_class is not None and normal_c0:
             nm = b2.normal_metrics(np.concatenate(normal_c0), np.concatenate(normal_p5), np.concatenate(normal_p5))
-            rows.append({"class": cls, "normal_images": len(normal_c0), "fpr95_delta_N0": nm["delta_C1"]["fpr_at_tau95"], "fpr99_delta_N0": nm["delta_C1"]["fpr_at_tau99"], "mean_probability_delta_N0": nm["delta_C1"]["mean_anomaly_probability"], "p99_probability_delta_N0": nm["delta_C1"]["p99_anomaly_probability"], "max_probability_delta_N0": nm["delta_C1"]["maximum_anomaly_probability"]})
-    return {"all_normal_actions_are_N0": True, "normal_images": int(sum(x["normal_images"] for x in rows)), "normal_images_with_actions": int(sum(x["normal_images"] for x in rows if x["normal_images"] > 0)), "attributed_case": "N0", "metrics": {key: class_bootstrap({x["class"]: x[key] for x in rows}, BOOTSTRAP_SEED + 500 + idx) for idx, key in enumerate(("fpr95_delta_N0", "fpr99_delta_N0", "mean_probability_delta_N0", "p99_probability_delta_N0", "max_probability_delta_N0"))}, "per_class": rows}
+            rows[current_class] = {"class": current_class, "normal_images": len(normal_c0), "fpr95_delta_N0": nm["delta_C1"]["fpr_at_tau95"], "fpr99_delta_N0": nm["delta_C1"]["fpr_at_tau99"], "mean_probability_delta_N0": nm["delta_C1"]["mean_anomaly_probability"], "p99_probability_delta_N0": nm["delta_C1"]["p99_anomaly_probability"], "max_probability_delta_N0": nm["delta_C1"]["maximum_anomaly_probability"]}
+        normal_c0 = []
+        normal_p5 = []
+    for state in load_state_records(CACHE_ROOT):
+        if int(state["record"]["label"]) != 0:
+            continue
+        if current_class is None:
+            current_class = state["class"]
+        elif state["class"] != current_class:
+            flush()
+            current_class = state["class"]
+        normal_c0.append(state["c0_prob"][0, 1].reshape(-1))
+        normal_p5.append(state["aligned_prob"][0, 1].reshape(-1))
+    flush()
+    ordered = [rows[class_name] for class_name in class_names if class_name in rows]
+    return {"all_normal_actions_are_N0": True, "normal_images": int(sum(x["normal_images"] for x in ordered)), "normal_images_with_actions": int(sum(x["normal_images"] for x in ordered if x["normal_images"] > 0)), "attributed_case": "N0", "metrics": {key: class_bootstrap({x["class"]: x[key] for x in ordered}, BOOTSTRAP_SEED + 500 + idx) for idx, key in enumerate(("fpr95_delta_N0", "fpr99_delta_N0", "mean_probability_delta_N0", "p99_probability_delta_N0", "max_probability_delta_N0"))}, "per_class": ordered}
 
 
 def decision_payload(main: dict[str, Any], condition_metrics: dict[str, Any], rank_leverage: dict[str, Any], spatial_summary: dict[str, Any], class_names: list[str]) -> tuple[dict[str, Any], list[dict[str, Any]]]:
@@ -1244,7 +1264,7 @@ def run_forensic(cache_root: Path, protocol_commit: str | None, implementation_c
     leverage = build_rank_leverage(main, class_names, pixel_native)
     spatial_case = action_mass_summary(main["spatial_mass"])
     total_spatial = {"positive_mass": sum(v["positive_mass"] for v in main["spatial_mass"]["aligned"].values()), "inside_mass": sum(v["inside_mass"] for v in main["spatial_mass"]["aligned"].values()), "outside_mass": sum(v["outside_mass"] for v in main["spatial_mass"]["aligned"].values()), "effective_pixels": sum(v["effective_pixels"] for v in main["spatial_mass"]["aligned"].values())}
-    spatial_summary = {"aligned_case_isolated": spatial_case["aligned"], "shifted_case_isolated": spatial_case["shifted"], "aligned_actual_total_positive_mass": total_spatial, "inside_fraction": None if total_spatial["positive_mass"] <= 0 else float(total_spatial["inside_mass"] / total_spatial["positive_mass"]), "per_class": {cls: {} for cls in class_names}}
+    spatial_summary = {"aligned_case_isolated": spatial_case["aligned"], "shifted_case_isolated": spatial_case["shifted"], "aligned_actual_total_positive_mass": total_spatial, "inside_fraction": None if total_spatial["positive_mass"] <= 0 else float(total_spatial["inside_mass"] / total_spatial["positive_mass"]), "per_class": {cls: {**main["spatial_mass_per_class"][cls], "inside_fraction": None if main["spatial_mass_per_class"][cls]["positive_mass"] <= 0 else float(main["spatial_mass_per_class"][cls]["inside_mass"] / main["spatial_mass_per_class"][cls]["positive_mass"])} for cls in class_names}}
     normal = normal_safety_attribution(main, pixel_native, class_names)
     feature = feature_separation(main["aligned_rows"], class_names)
     correlation = build_feature_correlations(main["aligned_rows"], pixel_native, native, class_names)
