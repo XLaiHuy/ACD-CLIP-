@@ -2,8 +2,8 @@
   "SPATIAL_CONSTRAINT_REQUIRED": true,
   "assumptions": [
     "The immutable P5B R0 cache is the exact frozen Phase2B/R0 evidence population.",
-    "q_m uses the audited float32 score order with ascending patch-ID ties.",
-    "Spatial flag is descriptive and does not define a deployable distance threshold."
+    "q_m is the ascending percentile induced by the exact float32 descending base order with ascending patch-ID ties.",
+    "The spatial flag is descriptive and does not define a deployable distance threshold."
   ],
   "b3_parity": {
     "aligned_certified": 387594,
@@ -28,14 +28,14 @@
     "G1": false,
     "G1_classes_increased": 12,
     "G1_old_fraction": 0.03960581875762963,
-    "G1_positive_mass_fraction": 0.06998958421905409,
-    "G2": false,
+    "G1_positive_mass_fraction": 0.050375630810926976,
+    "G2": true,
     "G2_aligned_S6_auc": {
       "ci95": [
-        0.45926695652221294,
-        0.5248259853443948
+        0.5444755636264808,
+        0.6168322998731599
       ],
-      "mean": 0.4903198176817319,
+      "mean": 0.5817385137089343,
       "n_classes": 12,
       "repetitions": 2000,
       "seed": 7702,
@@ -44,40 +44,64 @@
     "G3": false,
     "G3_aligned_minus_shifted_auc": {
       "ci95": [
-        -0.10940568404513316,
-        -0.048458427735159765
+        -0.011155901701856366,
+        0.07483142857697955
       ],
-      "mean": -0.07733417816242534,
+      "mean": 0.03244459814283004,
       "n_classes": 12,
       "repetitions": 2000,
       "seed": 7703,
       "unit": "class"
     },
     "G4": true,
-    "G4_mean_abs_classwise_spearman_S6_base": 0.08382103293679675
+    "G4_classwise_spearman": [
+      0.26215331701658195,
+      0.1987052146245113,
+      0.13283344489567883,
+      0.1369191502897694,
+      0.2353954082334885,
+      0.10102837605552856,
+      0.11309540629733525,
+      0.12371155769558871,
+      0.14925818683258857,
+      0.06508748948027722,
+      0.09408917861552266,
+      0.22392055649063533
+    ],
+    "G4_mean_abs_classwise_spearman_S6_base": 0.15301644054395885
   },
   "gt_free_manifest_finalized": true,
   "integrity": "PASS",
   "limitations": [
     "All GT quantities are post-hoc and not deployable.",
     "Graph association with masks is not causal.",
-    "S6 is a preregistered diagnostic and no alternate signal was selected.",
-    "Native graph leverage does not establish deployed improvement under blur, resize, stage mean, and softmax."
+    "S6 is the preregistered primary signal; S1-S5/S7 remain diagnostic-only.",
+    "Native graph leverage does not establish deployed improvement under blur, resize, stage mean, and softmax.",
+    "SciPy sparse linear algebra was unavailable; deterministic float64 NumPy reduced-Laplacian solve was used."
   ],
   "model_forwards": 0,
   "rank_geometry": {
     "aligned_edges": 387594,
     "all_certified_relations": true,
-    "primary_target": "q_m(j)-q_m(i) from exact stable within-image base percentile",
+    "duplicate_edges_retained": true,
+    "flow_sign_verified": true,
+    "primary_target": "q_m(j)-q_m(i), q_m=(1368-rank_desc)/(1368), exact float32 stable base order",
+    "raw_score_gap_is_diagnostic_only": true,
     "shifted_edges": 1920878
   },
   "schema_validation": {
     "cache_manifest_sha256": "cfbd66b04c04b314756d151b759d95041afc2a69a8dc411e24896a7b4f931365",
     "cache_schema": "P5B_R0_GT_FREE_CACHE_v1",
     "gt_free_manifest_finalized_before_gt": true,
-    "protocol_frozen": true
+    "gt_free_manifest_schema": "P5D0_GT_FREE_SIGNAL_MANIFEST_v2",
+    "node_files": 2162,
+    "protocol_commit": "4fe92794e1e80b1abdfa5451ae385088c6e38ed1",
+    "protocol_frozen": true,
+    "protocol_schema": "P5D0_GRAPH_NONCONFORMITY_AUDIT_v2",
+    "protocol_sha256": "2b0c281d3cd3ad2c4c60be934eec324da0a989dfe8f93b08c1975192b7a65a85",
+    "solver": "numpy.linalg.solve_float64_reduced_laplacian"
   },
-  "schema_version": "P5D0_DECISION_v1",
+  "schema_version": "P5D0_DECISION_v2",
   "spatial_geometry": {
     "aligned": {
       "max": 21.412587412587413,
@@ -85,6 +109,8 @@
       "n": 2162,
       "p95": 19.093896713615024
     },
+    "material_difference_observed": true,
+    "no_spatial_threshold": true,
     "shifted": {
       "max": 19.47981220657277,
       "mean": 15.322728989830281,
