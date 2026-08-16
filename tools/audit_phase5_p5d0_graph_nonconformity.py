@@ -366,7 +366,7 @@ def gt_free_pass(protocol: dict[str, Any], datasets: dict[str, Any], records: di
     TEMP_ROOT.mkdir(parents=True, exist_ok=True)
     entries: list[dict[str, Any]] = []
     done: list[str] = []
-    totals = {variant: {"edge_count": 0, "target_node_count": 0, "support_node_count": 0, "observed_energy": 0.0, "gradient_energy": 0.0, "residual_energy": 0.0, "component_sizes": []} for variant in VARIANTS}
+    totals = {variant: {"edge_count": 0, "target_node_count": 0, "support_node_count": 0, "observed_energy": 0.0, "gradient_energy": 0.0, "residual_energy": 0.0, "component_sizes": [], "chebyshev": [], "euclidean": []} for variant in VARIANTS}
     class_totals = {cls: {variant: {"images": 0, "edge_count": 0, "target_node_count": 0, "support_node_count": 0, "observed_energy": 0.0, "gradient_energy": 0.0, "residual_energy": 0.0} for variant in VARIANTS} for cls in CLASS_ORDER}
     image_index = 0
     for cls in CLASS_ORDER:
