@@ -22,3 +22,6 @@ This audit is a cache-only diagnostic of all certified R0 same-image relations. 
 ## Decision boundary
 
 The audit can support only the existence of graph non-conformity leverage for a later design question. It cannot select or implement D1, change R0/P5B, or claim causal deployment improvement.
+- **Protocol/code mismatch found in prior result:** the previous implementation used `m_bar_j-m_bar_i` as Hodge flow and persisted incident S1-S4 definitions, although the frozen contract requires `q_m(j)-q_m(i)` and target-only S1-S4. The prior graph cache/result is therefore invalidated; protocol v2 freezes the corrected flow, target-only signals, and explicit S7 epsilon/zero-degree convention before rerunning.
+- **Sparse-solver availability:** the preferred sparse dependency is unavailable in the execution environment. The corrected audit uses the existing deterministic float64 reduced-Laplacian NumPy solve with a documented fallback only for singular numerical failure; no model or protected-source dependency is added.
+- **Post-hoc completeness:** Pearson and Spearman nonredundancy, normal-image S6 distributions, and diagnostic-signal correlations with S6/base are persisted explicitly. These remain descriptive and cannot alter the primary signal or gates.
