@@ -1,0 +1,57 @@
+{
+  "cache": {
+    "manifest_sha256": "cfbd66b04c04b314756d151b759d95041afc2a69a8dc411e24896a7b4f931365",
+    "root": "/tmp/p5_r0_run2",
+    "schema_version": "P5B_R0_GT_FREE_CACHE_v1"
+  },
+  "checks": {
+    "author_ident_valid": true,
+    "branch_exact": true,
+    "cache_finalized": true,
+    "cache_images": true,
+    "cache_manifest_exists": true,
+    "cache_schema_exact": true,
+    "cache_sha_exact": true,
+    "cache_training_zero": true,
+    "committer_ident_valid": true,
+    "full_eval_outputs_exist": true,
+    "full_eval_terminal_archived": true,
+    "full_eval_zero_forwards": true,
+    "head_exact": true,
+    "protected_sources_exist": true,
+    "working_tree_clean_before_tool": true
+  },
+  "full_eval_artifact_hashes": {
+    "ACTION_DIAGNOSTICS.json": "7bc680061417c65690046abefda2875d0b4a93db5daf472a013e86e5304b59d3",
+    "CACHE_CHECK.json": "b9a823f2baf1f41b9713b8f62308538fcdb91dd1b1bbc83207cda7ef416e4201",
+    "DECISION.json": "126f0e605755761be8ba904235dc75d200245d5cba35b3955e6a2675d2fdbe63",
+    "DEPLOYMENT_ANALYSIS.json": "5c0b081f594c3f75d545fc239456281bfeab7f4552f0dccbdb93b12b260d905d",
+    "INPUT_CHECK.json": "5dd04f82b289ed8dbf7f818d6d464c9640c0bab186b1f7751597cb9a91a93ded",
+    "NORMAL_SAFETY.json": "0490f9def646d79754c27045bbf4f786ddb8dadd4f062452ca0119d29b90ed12",
+    "OUTPUT_CHECK.json": "389e5c86271fae0e4b722c13fc2bcb5e7183895ba5db3222676c9e3698b1b4af",
+    "PER_CLASS.csv": "c8ceb69742450b02f1673bd6c3f51c02f3f708944e7e762a224a0fe968d78b44",
+    "PROTOCOL.json": "16213f1bbbb871777e05d695dd6d82a405d54ad0a152e4be604de4e8c3595cbe",
+    "REPORT.md": "254639fe3d2bfc04557b369dd806d57b1d70186e9ce34f447edf9de869c2b5fe",
+    "SUMMARY.json": "0d8b00c2233e0e206a34af6bcc61bb491f4344d1953766affcbd9491898eaf36"
+  },
+  "model_forwards": 0,
+  "preflight": {
+    "branch": "autopilot/p5-minimal-reference-adjudication",
+    "expected_head": "cb8ce3518751eb0eb5224d918061160d4cd0bc7b",
+    "head": "cb8ce3518751eb0eb5224d918061160d4cd0bc7b",
+    "working_tree_clean_before_tool": true
+  },
+  "schema_version": "P5B_FAILURE_FORENSIC_C0_INPUT_v1",
+  "source_hashes": {
+    "model/adapter.py": "e854b79636f9579305b8246f8afe394def67fa9eacccf661429afe9ae89fd4ef",
+    "tools/audit_phase5_b2_adjudication.py": "dd3b77a228a870c225d7ebafa10a456d8dea65ce75c0c966520b17891b977460",
+    "tools/audit_phase5_b3_action_mismatch.py": "ddd703b412a60047e23b3377780e187605efcab6b1aea94cc55155b3e3cf770e",
+    "tools/audit_phase5_hsir.py": "4821ce80a09d98ff7214398151b05078c57c47ea13a9418997ce5a887c5e9cb4",
+    "tools/audit_phase5_p5b_full_eval.py": "ff0b577aa1f398dd6c7d07235064a531b5fc3d266ecbd2f9d280691d24a71fbd",
+    "tools/audit_phase5_reference_validity.py": "06ffad8199e3ad06d47628b3add3fa9f80e1e0008f9f1386a55c601ca966c88c",
+    "tools/audit_phase5_second_evidence.py": "96d55e55212ee54ed3dbf6e1001cd1cd24ad528a073687daf7473bcd4297fa9c",
+    "tools/phase5_selective_adjudication.py": "8f8c5d9a4ab9ed9f56206987dbfd3383f9e77572c21664d555cf3cee30c71d84"
+  },
+  "status": "PASS",
+  "training_steps": 0
+}

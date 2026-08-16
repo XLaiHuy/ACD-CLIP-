@@ -1,0 +1,89 @@
+{
+  "audit": "POST-HOC FORENSIC DECOMPOSITION OF FROZEN P5B SELECTIVE ACTION",
+  "bootstrap": {
+    "reps": 2000,
+    "seed": 7701,
+    "unit": "class"
+  },
+  "candidate_selection_allowed": false,
+  "case_taxonomy": {
+    "AA": "Anomaly image, target i=A and comparator j=A",
+    "AN": "Anomaly image, target i=A and comparator j=N",
+    "N0": "Normal image, target i=N and comparator j=N",
+    "NA": "Anomaly image, target i=N and comparator j=A",
+    "NN": "Anomaly image, target i=N and comparator j=N",
+    "order": [
+      "N0",
+      "NN",
+      "AA",
+      "AN",
+      "NA"
+    ],
+    "partition_rule": "exactly one case per selected relation; GT read only after frozen action"
+  },
+  "counterfactuals": {
+    "oracle_conditions": "diagnostic only, never deployable",
+    "strict_min": "m'_i=nextafter_float32(m_j,+inf); no epsilon or sweep",
+    "tie": "m'_i=m_j"
+  },
+  "dataset": {
+    "anomaly": 1200,
+    "classes": 12,
+    "images": 2162,
+    "name": "VisA",
+    "normal": 962,
+    "split": "TEST"
+  },
+  "descriptive_strata": {
+    "rank_gap": [
+      "1",
+      "2",
+      "3",
+      "4-5",
+      "6-10",
+      ">10"
+    ]
+  },
+  "forbidden": [
+    "No candidate implementation or selector/action modification",
+    "No tuning, margin sweep, threshold search, AP optimization, learned model, training, or new model forward",
+    "No GT in inference, selector, action, eligibility, evidence, or deployment construction",
+    "No dense maps or masks committed"
+  ],
+  "frozen_reuse": {
+    "K": 8,
+    "bins": 10,
+    "cache": "P5B_R0_GT_FREE_CACHE_v1",
+    "deployment": "exact Gaussian blur 7x7 sigma=1 -> bilinear resize align_corners=True -> stage mean -> softmax",
+    "occupancy": "exact B2 mask reshape 37x14x37x14 mean over stride axes; occupancy > 0",
+    "projection": "exact positive-only native abnormal-logit uplift by m_bar[j]-m_bar[i]",
+    "risk_fraction": 0.2,
+    "selector": "exact phase5_selective_adjudication.select_gt_free; no formula changes",
+    "shift": [
+      12,
+      12
+    ],
+    "ties": "stable descending m_bar then ascending patch ID; float32 score comparisons",
+    "unanimity": "3 stages and 8 LOO views"
+  },
+  "global_rank_states": [
+    "WRONG",
+    "TIE",
+    "RIGHT"
+  ],
+  "gt_dependent_diagnostics_not_deployable": true,
+  "input_check_sha256": "1056551ef702a5abe8055901f9f581d97f8b452e0cc48ddd346f01f41d6c113b",
+  "model_forwards": 0,
+  "post_hoc_forensic": true,
+  "profile_thresholds_frozen_before_analysis": {
+    "clear_tie_gain": 1e-06,
+    "dominant_fraction": 0.5,
+    "negligible_leverage_fraction": 0.01,
+    "spatial_inside_fraction": 0.5,
+    "substantial_case_fraction": 0.25
+  },
+  "protocol_sha256": "c758ab1587c7e315ad7ddbcb0fbf8ee83cb6a99616733a3fb961b8aca9435e98",
+  "schema_version": "P5B_FAILURE_FORENSIC_C0_v1",
+  "starting_head": "cb8ce3518751eb0eb5224d918061160d4cd0bc7b",
+  "training_steps": 0
+}
