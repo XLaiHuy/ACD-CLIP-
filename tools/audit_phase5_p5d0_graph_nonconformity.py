@@ -322,8 +322,9 @@ def validate_inputs() -> tuple[dict[str, Any], dict[str, Any], dict[str, list[di
         raise RuntimeError("P5D0_PREFLIGHT_BLOCKED:branch")
     if subprocess.run(["git", "merge-base", "--is-ancestor", PROTOCOL_COMMIT, "HEAD"], cwd=ROOT, check=False).returncode != 0:
         raise RuntimeError("P5D0_PROTOCOL_HEAD_MISMATCH")
-    if git("status", "--porcelain"):
-        raise RuntimeError("P5D0_PREFLIGHT_BLOCKED:dirty")
+    dirty = git("status", "--porcelain")
+    if dirty and any(not (line[3:].strip().startswith("runs/phase5/hsir/P5D0_GRAPH_NONCONFORMITY_AUDIT/") if len(line) >= 3 else False) for line in dirty.splitlines()):
+        raise RuntimeError("P5D0_PREFLIGHT_BLOCKED:unrelated_dirty")
     protocol = json.loads(PROTOCOL_PATH.read_text())
     if protocol.get("status") != "FROZEN" or protocol.get("model_forwards") != 0 or protocol.get("training_steps") != 0:
         raise RuntimeError("P5D0_PROTOCOL_INVALID")
