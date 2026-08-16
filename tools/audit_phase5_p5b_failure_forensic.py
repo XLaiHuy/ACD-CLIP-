@@ -282,6 +282,69 @@ def transition_matrix_fast(scores0: np.ndarray, scores1: np.ndarray, labels: np.
     return out
 
 
+def _range_joint_counts(sorted_values: np.ndarray, first: np.ndarray, second: np.ndarray, positive_side: bool) -> np.ndarray:
+    """Count joint old/new relation states against unchanged scores."""
+    values = np.asarray(sorted_values, dtype=np.float32).reshape(-1)
+    first = np.asarray(first, dtype=np.float32).reshape(-1)
+    second = np.asarray(second, dtype=np.float32).reshape(-1)
+    if first.shape != second.shape:
+        raise ValueError("transition range query shape mismatch")
+    size = int(values.size)
+    first_left = np.searchsorted(values, first, side="left")
+    first_right = np.searchsorted(values, first, side="right")
+    second_left = np.searchsorted(values, second, side="left")
+    second_right = np.searchsorted(values, second, side="right")
+    if positive_side:
+        lows = ((first_right, first_left, np.zeros_like(first_left)),
+                (second_right, second_left, np.zeros_like(second_left)))
+        highs = ((np.full(first.shape, size, dtype=np.int64), first_right, first_left),
+                 (np.full(second.shape, size, dtype=np.int64), second_right, second_left))
+    else:
+        lows = ((np.zeros_like(first_left), first_left, first_right),
+                (np.zeros_like(second_left), second_left, second_right))
+        highs = ((first_left, first_right, np.full(first.shape, size, dtype=np.int64)),
+                 (second_left, second_right, np.full(second.shape, size, dtype=np.int64)))
+    out = np.zeros((3, 3), dtype=np.int64)
+    for row in range(3):
+        for col in range(3):
+            out[row, col] = np.maximum(
+                0, np.minimum(highs[0][row], highs[1][col])
+                - np.maximum(lows[0][row], lows[1][col])
+            ).sum(dtype=np.int64)
+    return out
+
+
+def pooled_transition_matrix(scores0: np.ndarray, scores1: np.ndarray, labels: np.ndarray) -> np.ndarray:
+    """Count exact pooled positive-negative rank transitions."""
+    scores0 = np.asarray(scores0, dtype=np.float32).reshape(-1)
+    scores1 = np.asarray(scores1, dtype=np.float32).reshape(-1)
+    labels = np.asarray(labels, dtype=bool).reshape(-1)
+    if scores0.shape != scores1.shape or scores0.shape != labels.shape:
+        raise ValueError("pooled transition shape mismatch")
+    changed = scores0 != scores1
+    pos = np.flatnonzero(labels)
+    neg = np.flatnonzero(~labels)
+    acted_pos = pos[changed[pos]]
+    acted_neg = neg[changed[neg]]
+    unaffected_pos = pos[~changed[pos]]
+    unaffected_neg = neg[~changed[neg]]
+    out = np.zeros((3, 3), dtype=np.int64)
+    if acted_pos.size and unaffected_neg.size:
+        values = np.sort(scores0[unaffected_neg], kind="mergesort")
+        out += _range_joint_counts(values, scores0[acted_pos], scores1[acted_pos], True)
+    if acted_neg.size and unaffected_pos.size:
+        values = np.sort(scores0[unaffected_pos], kind="mergesort")
+        out += _range_joint_counts(values, scores0[acted_neg], scores1[acted_neg], False)
+    if acted_pos.size and acted_neg.size:
+        neg0 = scores0[acted_neg]
+        neg1 = scores1[acted_neg]
+        for index in acted_pos:
+            old = np.where(scores0[index] < neg0, 0, np.where(scores0[index] == neg0, 1, 2))
+            new = np.where(scores1[index] < neg1, 0, np.where(scores1[index] == neg1, 1, 2))
+            for row in range(3):
+                for col in range(3):
+                    out[row, col] += int(np.sum((old == row) & (new == col)))
+    return out
 def auc_credit(matrix: np.ndarray) -> float:
     weights = np.asarray([0.0, 0.5, 1.0], dtype=np.float64)
     return float(np.sum(matrix * weights[None, :] - matrix * weights[:, None]))
@@ -888,7 +951,9 @@ def compute_main(cache_root: Path) -> dict[str, Any]:
     shifted_rows: list[dict[str, Any]] = []
     image_rows: dict[str, list[dict[str, Any]]] = {"aligned": [], "shifted": []}
     all_patch_scores = {"C0": [], "P5": [], "P5_SHIFT": [], "T1_AN_TIE": [], "T2_AN_STRICT_MIN": [], "AN_ONLY": [], "NA_ONLY": []}
+    all_patch_scores_by_class = {c: {name: [] for name in all_patch_scores} for c in class_names}
     all_patch_labels: list[np.ndarray] = []
+    all_patch_labels_by_class = {c: [] for c in class_names}
     native_metrics: dict[str, dict[str, dict[str, float]]] = {c: {} for c in class_names}
     transition_store = new_transition_store(("P5", "SHIFT", "T1_AN_TIE", "T2_AN_STRICT_MIN", "AN_ONLY", "NA_ONLY"), class_names)
     rank_leverage = {c: {"selected_mixed": 0, "selected_AN": 0, "selected_NA": 0, "total_inversions": 0, "total_pairs": 0, "AN_transitions": 0, "NA_transitions": 0, "positive_contamination_total": 0.0, "positive_contamination_touched": 0.0, "negative_risk_total": 0.0, "negative_risk_touched": 0.0} for c in class_names}
@@ -957,6 +1022,8 @@ def compute_main(cache_root: Path) -> dict[str, Any]:
         pixel_buffers["C0"].append(state["c0_prob"][0, 1].reshape(-1).astype(np.float32))
         pixel_buffers["P5"].append(state["aligned_prob"][0, 1].reshape(-1).astype(np.float32))
         pixel_buffers["P5_SHIFT"].append(state["shifted_prob"][0, 1].reshape(-1).astype(np.float32))
+        for name in all_patch_scores:
+            all_patch_scores_by_class[cls][name].append(all_patch_scores[name][-1])
         pixel_buffers["labels"].append(state["mask"].reshape(-1).astype(np.uint8))
         strict_an_delta = strict_delta_for_pairs(state["traces"]["aligned"], aligned_case_target, m_bar, {"AN"})
         all_patch_scores["C0"].append(m_bar.copy()); all_patch_scores["P5"].append((m_bar + aligned_full_delta).astype(np.float32)); all_patch_scores["P5_SHIFT"].append((m_bar + shifted_full_delta).astype(np.float32)); all_patch_scores["T1_AN_TIE"].append((m_bar + aligned_case_delta["AN"]).astype(np.float32)); all_patch_scores["T2_AN_STRICT_MIN"].append((m_bar + strict_an_delta).astype(np.float32)); all_patch_scores["AN_ONLY"].append((m_bar + aligned_case_delta["AN"]).astype(np.float32)); all_patch_scores["NA_ONLY"].append((m_bar + aligned_case_delta["NA"]).astype(np.float32)); all_patch_labels.append(labels.astype(np.uint8))
@@ -1016,6 +1083,19 @@ def compute_main(cache_root: Path) -> dict[str, Any]:
         case_by_image[(cls, state["source_index"])] = {"aligned": aligned_rel, "shifted": shifted_rel_full}
         image_count += 1
     flush_class(current_class)
+    transition_conditions = {"P5": "P5", "SHIFT": "P5_SHIFT", "T1_AN_TIE": "T1_AN_TIE", "T2_AN_STRICT_MIN": "T2_AN_STRICT_MIN", "AN_ONLY": "AN_ONLY", "NA_ONLY": "NA_ONLY"}
+    for name, condition in transition_conditions.items():
+        pooled_scores0 = np.concatenate(all_patch_scores["C0"]).astype(np.float32, copy=False)
+        pooled_scores1 = np.concatenate(all_patch_scores[condition]).astype(np.float32, copy=False)
+        pooled_labels = np.concatenate(all_patch_labels).astype(np.uint8, copy=False)
+        transition_store[name]["matrix"] = pooled_transition_matrix(pooled_scores0, pooled_scores1, pooled_labels)
+        transition_store[name]["total_pairs"] = total_pair_count(pooled_labels)
+        for class_name in class_names:
+            class_scores0 = np.concatenate(all_patch_scores_by_class[class_name]["C0"]).astype(np.float32, copy=False)
+            class_scores1 = np.concatenate(all_patch_scores_by_class[class_name][condition]).astype(np.float32, copy=False)
+            class_labels = np.concatenate(all_patch_labels_by_class[class_name]).astype(np.uint8, copy=False)
+            transition_store[name]["per_class"][class_name]["matrix"] = pooled_transition_matrix(class_scores0, class_scores1, class_labels)
+            transition_store[name]["per_class"][class_name]["total_pairs"] = total_pair_count(class_labels)
     matrices = aggregate_transition_store(transition_store, class_names)
     for name in transition_store:
         if name == "P5":
