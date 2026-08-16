@@ -450,10 +450,13 @@ def corr(x: np.ndarray, y: np.ndarray, method: str) -> float | None:
 
 
 def safe_auc(scores: np.ndarray, labels: np.ndarray) -> float | None:
+    scores = np.asarray(scores, dtype=np.float32)
     labels = np.asarray(labels, dtype=np.uint8)
+    keep = np.isfinite(scores)
+    scores, labels = scores[keep], labels[keep]
     if labels.size == 0 or labels.sum() == 0 or labels.sum() == labels.size:
         return None
-    return float(exact_auc_ap(np.asarray(scores, dtype=np.float32), labels)[0])
+    return float(exact_auc_ap(scores, labels)[0])
 
 
 def aggregate_numeric(values: list[float]) -> dict[str, Any]:
@@ -465,10 +468,10 @@ def posthoc_analysis(protocol: dict[str, Any], datasets: dict[str, Any], records
     # This is the first function that opens masks or consumes labels.
     baseline = json.loads((ROOT / "runs/phase5/hsir/P5B_FAILURE_FORENSIC_C0/RANK_LEVERAGE.json").read_text())
     per_class: dict[str, dict[str, Any]] = {cls: {"class": cls, "images": 0, "anomaly_images": 0, "normal_images": 0, "variants": {}, "correlation": {}} for cls in CLASS_ORDER}
-    values: dict[str, dict[str, list[np.ndarray]]] = {variant: {name: [] for name in ("S1_support_degree", "S2_signed_incident_target_sum", "S3_incident_target_rms", "S4_max_abs_incident_residual", "S5_hodge_potential", "S6_potential_percentile", "S7_incident_residual_fraction")} for variant in VARIANTS}
     diagnostic_names = ("S1_support_degree", "S2_signed_incident_target_sum", "S3_incident_target_rms", "S4_max_abs_incident_residual", "S5_hodge_potential", "S6_potential_percentile", "S7_incident_residual_fraction")
     class_values: dict[str, dict[str, dict[str, list[np.ndarray]]]] = {cls: {variant: {name: [] for name in diagnostic_names} for variant in VARIANTS} for cls in CLASS_ORDER}
-    relation_values: dict[str, dict[str, list[float]]] = {variant: {"score_gap": [], "chebyshev": [], "euclidean": []} for variant in VARIANTS}
+    class_diag_labels = {cls: {variant: [] for variant in VARIANTS} for cls in CLASS_ORDER}
+    class_diag_scores = {cls: {variant: {name: [] for name in diagnostic_names} for variant in VARIANTS} for cls in CLASS_ORDER}
     class_mass: dict[str, dict[str, float]] = {cls: {"positive_total": 0.0, "positive_touched": 0.0, "negative_total": 0.0, "negative_touched": 0.0} for cls in CLASS_ORDER}
     image_lookup = {(e["class"], int(e["source_index"])): e for e in entries}
     for cls in CLASS_ORDER:
@@ -497,13 +500,18 @@ def posthoc_analysis(protocol: dict[str, Any], datasets: dict[str, Any], records
                 pos_touched = float(np.nansum(contamination[labels.astype(bool) & support]))
                 neg_total = float(np.nansum(neg_patch[labels == 0]))
                 neg_touched = float(np.nansum(neg_patch[(labels == 0) & support]))
-                class_mass[cls]["positive_total"] += pos_total
-                class_mass[cls]["positive_touched"] += pos_touched
-                class_mass[cls]["negative_total"] += neg_total
-                class_mass[cls]["negative_touched"] += neg_touched
+                if variant == "aligned":
+                    class_mass[cls]["positive_total"] += pos_total
+                    class_mass[cls]["positive_touched"] += pos_touched
+                    class_mass[cls]["negative_total"] += neg_total
+                    class_mass[cls]["negative_touched"] += neg_touched
                 for name in diagnostic_names:
                     signal = node[f"{variant}_{name}"]
                     class_values[cls][variant][name].append(signal[support])
+                    if image_label:
+                        class_diag_scores[cls][variant][name].append(signal[support])
+                if image_label:
+                    class_diag_labels[cls][variant].append(labels[support])
                 if variant not in per_class[cls]["variants"]:
                     per_class[cls]["variants"][variant] = {"support_nodes": 0, "target_nodes": 0, "positive_total": 0.0, "positive_touched": 0.0, "negative_total": 0.0, "negative_touched": 0.0, "anomaly_auc": None, "normal_auc": None, "normal_support_nodes": 0, "normal_S6": []}
                 v = per_class[cls]["variants"][variant]
@@ -524,6 +532,16 @@ def posthoc_analysis(protocol: dict[str, Any], datasets: dict[str, Any], records
                 per_class[cls]["correlation"].setdefault(variant, {})
                 for name in ("m_bar", "D_rank", "E_nonlocal"):
                     per_class[cls]["correlation"][variant][name] = corr(node[f"{variant}_S6_potential_percentile"][support], node[name][support], "spearman")
+    for pool_cls in CLASS_ORDER:
+        for pool_variant in VARIANTS:
+            s6_parts, m_parts, d_parts, e_parts = [], [], [], []
+            for pool_entry in (e for e in entries if e["class"] == pool_cls):
+                with np.load(TEMP_ROOT / pool_entry["relative_path"], allow_pickle=False) as pool_data:
+                    pool_support = pool_data[f"{pool_variant}_support_degree"] > 0
+                    s6_parts.append(pool_data[f"{pool_variant}_S6_potential_percentile"][pool_support])
+                    m_parts.append(pool_data["m_bar"][pool_support]); d_parts.append(pool_data["D_rank"][pool_support]); e_parts.append(pool_data["E_nonlocal"][pool_support])
+            pooled_s6 = np.concatenate(s6_parts) if s6_parts else np.empty(0)
+            per_class[pool_cls]["correlation"][pool_variant] = {"m_bar": corr(pooled_s6, np.concatenate(m_parts) if m_parts else np.empty(0), "spearman"), "D_rank": corr(pooled_s6, np.concatenate(d_parts) if d_parts else np.empty(0), "spearman"), "E_nonlocal": corr(pooled_s6, np.concatenate(e_parts) if e_parts else np.empty(0), "spearman")}
     for cls in CLASS_ORDER:
         for variant in VARIANTS:
             v = per_class[cls]["variants"][variant]
@@ -544,6 +562,14 @@ def posthoc_analysis(protocol: dict[str, Any], datasets: dict[str, Any], records
             v["normal_S6"] = aggregate_numeric(v["normal_S6"])
             v["positive_mass_fraction"] = None if v["positive_total"] == 0 else v["positive_touched"] / v["positive_total"]
             v["negative_risk_fraction"] = None if v["negative_total"] == 0 else v["negative_touched"] / v["negative_total"]
+            v["diagnostic_signals"] = {}
+            for name in diagnostic_names:
+                score = np.concatenate(class_diag_scores[cls][variant][name]) if class_diag_scores[cls][variant][name] else np.empty(0, dtype=np.float64)
+                label = np.concatenate(class_diag_labels[cls][variant]) if class_diag_labels[cls][variant] else np.empty(0, dtype=np.uint8)
+                keep = np.isfinite(score)
+                score, label = score[keep], label[keep]
+                effect = None if score.size == 0 or label.sum() == 0 or label.sum() == label.size else float(score[label == 1].mean() - score[label == 0].mean())
+                v["diagnostic_signals"][name] = {"anomaly_auc": safe_auc(score, label), "positive_minus_negative_mean": effect, "n_nodes": int(score.size)}
     global_metrics: dict[str, Any] = {"variants": {}, "per_class": per_class}
     for variant in VARIANTS:
         all_anomaly_scores: list[np.ndarray] = []
@@ -569,6 +595,10 @@ def posthoc_analysis(protocol: dict[str, Any], datasets: dict[str, Any], records
     old_class = baseline["per_class"]
     old_pos = {cls: old_class[cls]["positive_contamination_fraction_touched"] for cls in CLASS_ORDER}
     global_metrics["leverage"] = {"aligned_positive_mass": {"total": sum(x["positive_total"] for x in class_mass.values()), "touched": sum(x["positive_touched"] for x in class_mass.values()), "fraction": sum(x["positive_touched"] for x in class_mass.values()) / sum(x["positive_total"] for x in class_mass.values())}, "aligned_negative_risk": {"total": sum(x["negative_total"] for x in class_mass.values()), "touched": sum(x["negative_touched"] for x in class_mass.values()), "fraction": sum(x["negative_touched"] for x in class_mass.values()) / sum(x["negative_total"] for x in class_mass.values())}, "old_selected_positive_fraction": OLD_POSITIVE_FRACTION, "old_selected_negative_fraction": OLD_NEGATIVE_FRACTION, "positive_fraction_by_class": pos_fraction, "negative_fraction_by_class": neg_fraction, "old_positive_fraction_by_class": old_pos, "classes_increased_over_old": int(sum(pos_fraction[c] > old_pos[c] for c in CLASS_ORDER))}
+    shifted_positive = {cls: analysis_v for cls, analysis_v in ((c, per_class[c]["variants"]["shifted"]) for c in CLASS_ORDER)}
+    shifted_positive_total = sum(shifted_positive[c]["positive_total"] for c in CLASS_ORDER)
+    shifted_negative_total = sum(shifted_positive[c]["negative_total"] for c in CLASS_ORDER)
+    global_metrics["leverage"].update({"shifted_positive_mass": {"total": shifted_positive_total, "touched": sum(shifted_positive[c]["positive_touched"] for c in CLASS_ORDER), "fraction": sum(shifted_positive[c]["positive_touched"] for c in CLASS_ORDER) / shifted_positive_total}, "shifted_negative_risk": {"total": shifted_negative_total, "touched": sum(shifted_positive[c]["negative_touched"] for c in CLASS_ORDER), "fraction": sum(shifted_positive[c]["negative_touched"] for c in CLASS_ORDER) / shifted_negative_total}, "shifted_positive_fraction_by_class": {c: shifted_positive[c]["positive_mass_fraction"] for c in CLASS_ORDER}, "shifted_negative_fraction_by_class": {c: shifted_positive[c]["negative_risk_fraction"] for c in CLASS_ORDER}})
     global_metrics["bootstrap"] = {"aligned_S6_auc": bootstrap(auc_by_class["aligned"], BOOTSTRAP_SEED + 1), "aligned_minus_shifted_S6_auc": bootstrap(auc_delta, BOOTSTRAP_SEED + 2), "aligned_positive_mass_fraction": bootstrap(pos_fraction, BOOTSTRAP_SEED + 3), "aligned_negative_risk_fraction": bootstrap(neg_fraction, BOOTSTRAP_SEED + 4)}
     global_metrics["nonredundancy"] = {variant: {name: bootstrap({cls: global_metrics["per_class"][cls]["correlation"][variant][name] for cls in CLASS_ORDER}, BOOTSTRAP_SEED + 20 + idx) for idx, name in enumerate(("m_bar", "D_rank", "E_nonlocal"))} for variant in VARIANTS}
     return {"schema_version": "P5D0_POSTHOC_ANALYSIS_v1", "protocol_commit": PROTOCOL_COMMIT, "implementation_sha256": implementation_sha, "gt_firewall": {"manifest_finalized_before_gt": True, "manifest_sha256": sha256(TEMP_ROOT / "GT_FREE_SIGNAL_MANIFEST.json")}, "global": global_metrics, "per_class": per_class, "class_mass": class_mass}
@@ -606,7 +636,7 @@ def write_outputs(protocol: dict[str, Any], graph_summary: dict[str, Any], analy
     atomic_json(OUTPUT_ROOT / "LEVERAGE_COVERAGE.json", analysis["global"]["leverage"])
     atomic_json(OUTPUT_ROOT / "PRIMARY_SIGNAL_AUDIT.json", {"primary": "S6", "aligned": analysis["global"]["variants"]["aligned"], "shifted": analysis["global"]["variants"]["shifted"], "bootstrap": analysis["global"]["bootstrap"], "diagnostic_only": ["S1", "S2", "S3", "S4", "S5", "S7"]})
     atomic_json(OUTPUT_ROOT / "HODGE_CONSISTENCY.json", {variant: graph_summary["variants"][variant] for variant in VARIANTS})
-    atomic_json(OUTPUT_ROOT / "DIAGNOSTIC_SIGNALS.json", {"schema_version": "P5D0_DIAGNOSTIC_SIGNALS_v1", "signals": ["S1", "S2", "S3", "S4", "S5", "S7"], "diagnostic_only": True, "nonredundancy": analysis["global"]["nonredundancy"], "per_class_correlations": {cls: analysis["per_class"][cls]["correlation"] for cls in CLASS_ORDER}})
+    atomic_json(OUTPUT_ROOT / "DIAGNOSTIC_SIGNALS.json", {"schema_version": "P5D0_DIAGNOSTIC_SIGNALS_v1", "signals": ["S1", "S2", "S3", "S4", "S5", "S7"], "diagnostic_only": True, "nonredundancy": analysis["global"]["nonredundancy"], "per_class_correlations": {cls: analysis["per_class"][cls]["correlation"] for cls in CLASS_ORDER}, "per_class_diagnostic_signals": {cls: {variant: analysis["per_class"][cls]["variants"][variant]["diagnostic_signals"] for variant in VARIANTS} for cls in CLASS_ORDER}})
     atomic_json(OUTPUT_ROOT / "ALIGNED_SHIFTED_GRAPH.json", {variant: graph_summary["variants"][variant] for variant in VARIANTS} | {"primary_auc": {variant: analysis["global"]["variants"][variant] for variant in VARIANTS}})
     with (OUTPUT_ROOT / "PER_CLASS.csv").open("w", newline="", encoding="utf-8") as f:
         fields = ["class", "images", "positive_mass_fraction_aligned", "positive_mass_fraction_shifted", "negative_risk_fraction_aligned", "negative_risk_fraction_shifted", "S6_auc_aligned", "S6_auc_shifted", "S6_auc_delta"]
