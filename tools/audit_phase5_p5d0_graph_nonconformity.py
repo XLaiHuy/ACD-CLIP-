@@ -33,7 +33,7 @@ from phase5_selective_adjudication import select_gt_free  # noqa: E402
 
 OUTPUT_ROOT = ROOT / "runs/phase5/hsir/P5D0_GRAPH_NONCONFORMITY_AUDIT"
 CACHE_ROOT = Path("/tmp/p5_r0_run2")
-TEMP_ROOT = Path("/tmp/p5_d0_graph_nonconformity_v2")
+TEMP_ROOT = Path("/tmp/p5_d0_graph_nonconformity_v3")
 PROTOCOL_PATH = OUTPUT_ROOT / "PROTOCOL.json"
 PROTOCOL_COMMIT = "4fe92794e1e80b1abdfa5451ae385088c6e38ed1"
 EXPECTED_CACHE_SHA = "cfbd66b04c04b314756d151b759d95041afc2a69a8dc411e24896a7b4f931365"
@@ -440,7 +440,7 @@ def gt_free_pass(protocol: dict[str, Any], datasets: dict[str, Any], records: di
     TEMP_ROOT.mkdir(parents=True, exist_ok=True)
     entries: list[dict[str, Any]] = []
     done: list[str] = []
-    totals = {variant: {"edge_count": 0, "target_node_count": 0, "support_node_count": 0, "incident_node_count": 0, "observed_energy": 0.0, "gradient_energy": 0.0, "residual_energy": 0.0, "component_sizes": [], "chebyshev": [], "euclidean": [], "raw_gap_means": [], "raw_gap_p95": [], "raw_gap_max": []} for variant in VARIANTS}
+    totals = {variant: {"edge_count": 0, "target_node_count": 0, "support_node_count": 0, "incident_node_count": 0, "observed_energy": 0.0, "gradient_energy": 0.0, "residual_energy": 0.0, "component_sizes": [], "chebyshev": [], "euclidean": [], "raw_gap_means": [], "raw_gap_p95": [], "raw_gap_max": [], "identity_errors": [], "orthogonality": []} for variant in VARIANTS}
     class_totals = {cls: {variant: {"images": 0, "edge_count": 0, "target_node_count": 0, "support_node_count": 0, "observed_energy": 0.0, "gradient_energy": 0.0, "residual_energy": 0.0, "incident_node_count": 0} for variant in VARIANTS} for cls in CLASS_ORDER}
     image_index = 0
     for cls in CLASS_ORDER:
@@ -466,6 +466,8 @@ def gt_free_pass(protocol: dict[str, Any], datasets: dict[str, Any], records: di
                 class_totals[cls][variant]["images"] += 1
                 if graph["summary"]["spatial"]["chebyshev_mean"] is not None:
                     totals[variant]["chebyshev"].append(graph["summary"]["spatial"]["chebyshev_mean"]); totals[variant]["euclidean"].append(graph["summary"]["spatial"]["euclidean_mean"])
+                totals[variant]["identity_errors"].append(abs(graph["summary"]["projection_identity_error"]))
+                totals[variant]["orthogonality"].append(abs(graph["summary"]["gradient_residual_dot"]))
                 raw_summary = graph["summary"]["raw_score_gap_distribution"]
                 if raw_summary["n"]:
                     totals[variant]["raw_gap_means"].append(raw_summary["mean"]); totals[variant]["raw_gap_p95"].append(raw_summary["p95"]); totals[variant]["raw_gap_max"].append(raw_summary["max"])
@@ -482,7 +484,7 @@ def gt_free_pass(protocol: dict[str, Any], datasets: dict[str, Any], records: di
     graph_summary = {"schema_version": GRAPH_SCHEMA_VERSION, "protocol_commit": PROTOCOL_COMMIT, "implementation_sha256": implementation_sha, "images": EXPECTED_IMAGES, "classes": EXPECTED_CLASSES, "variants": {}}
     for variant in VARIANTS:
         t = totals[variant]
-        graph_summary["variants"][variant] = {"edge_count": int(t["edge_count"]), "target_node_count_sum": int(t["target_node_count"]), "support_node_count_sum": int(t["support_node_count"]), "component_count": len(t["component_sizes"]), "component_size_distribution": distribution(t["component_sizes"]), "observed_energy": t["observed_energy"], "gradient_energy": t["gradient_energy"], "residual_energy": t["residual_energy"], "gradient_fraction": t["gradient_energy"] / t["observed_energy"] if t["observed_energy"] else None, "residual_fraction": t["residual_energy"] / t["observed_energy"] if t["observed_energy"] else None, "spatial_edge_mean_distribution": float_distribution(t["chebyshev"]), "spatial_edge_euclidean_mean_distribution": float_distribution(t["euclidean"]), "raw_score_gap_mean_per_image": float_distribution(t["raw_gap_means"]), "raw_score_gap_p95_per_image": float_distribution(t["raw_gap_p95"]), "raw_score_gap_max_per_image": float_distribution(t["raw_gap_max"]), "solver": "numpy.linalg.solve_float64_reduced_laplacian"}
+        graph_summary["variants"][variant] = {"edge_count": int(t["edge_count"]), "target_node_count_sum": int(t["target_node_count"]), "support_node_count_sum": int(t["support_node_count"]), "component_count": len(t["component_sizes"]), "component_size_distribution": distribution(t["component_sizes"]), "observed_energy": t["observed_energy"], "gradient_energy": t["gradient_energy"], "residual_energy": t["residual_energy"], "gradient_fraction": t["gradient_energy"] / t["observed_energy"] if t["observed_energy"] else None, "residual_fraction": t["residual_energy"] / t["observed_energy"] if t["observed_energy"] else None, "spatial_edge_mean_distribution": float_distribution(t["chebyshev"]), "spatial_edge_euclidean_mean_distribution": float_distribution(t["euclidean"]), "raw_score_gap_mean_per_image": float_distribution(t["raw_gap_means"]), "raw_score_gap_p95_per_image": float_distribution(t["raw_gap_p95"]), "raw_score_gap_max_per_image": float_distribution(t["raw_gap_max"]), "projection_identity_error_distribution": float_distribution(t["identity_errors"]), "gradient_residual_dot_distribution": float_distribution(t["orthogonality"]), "projection_identity_error_max_abs": max(t["identity_errors"]) if t["identity_errors"] else None, "gradient_residual_dot_max_abs": max(t["orthogonality"]) if t["orthogonality"] else None, "solver": "numpy.linalg.solve_float64_reduced_laplacian"}
     graph_summary["per_class"] = class_totals
     atomic_json(TEMP_ROOT / "GT_FREE_GRAPH_SUMMARY.json", graph_summary)
     manifest = {"schema_version": "P5D0_GT_FREE_SIGNAL_MANIFEST_v2", "protocol_commit": PROTOCOL_COMMIT, "protocol_sha256": sha256(PROTOCOL_PATH), "implementation_sha256": implementation_sha, "cache_manifest_sha256": EXPECTED_CACHE_SHA, "gt_read": False, "images": len(entries), "entries": entries, "graph_summary_sha256": sha256(TEMP_ROOT / "GT_FREE_GRAPH_SUMMARY.json"), "node_signal_definitions": protocol["node_signals"], "edge_definition": protocol["edge_definition"], "hodge_definition": protocol["hodge_definition"]}
@@ -720,7 +722,7 @@ def write_outputs(protocol: dict[str, Any], graph_summary: dict[str, Any], analy
     atomic_json(OUTPUT_ROOT / "ALIGNED_SHIFTED_GRAPH.json", {"schema_version": "P5D0_ALIGNED_SHIFTED_GRAPH_v2", "aligned": graph_summary["variants"]["aligned"], "shifted": graph_summary["variants"]["shifted"], "primary_auc": {variant: analysis["global"]["variants"][variant] for variant in VARIANTS}})
     with (OUTPUT_ROOT / "PER_CLASS.csv").open("w", newline="", encoding="utf-8") as f:
         fields = ["class", "images", "positive_mass_fraction_aligned", "positive_mass_fraction_shifted", "negative_risk_fraction_aligned", "negative_risk_fraction_shifted", "S6_auc_aligned", "S6_auc_shifted", "S6_auc_delta", "normal_S6_n_aligned", "normal_S6_n_shifted"]
-        writer = csv.DictWriter(f, fieldnames=fields); writer.writeheader()
+        writer = csv.DictWriter(f, fieldnames=fields, lineterminator="\n"); writer.writeheader()
         for cls in CLASS_ORDER:
             av = analysis["per_class"][cls]["variants"]["aligned"]; sv = analysis["per_class"][cls]["variants"]["shifted"]
             writer.writerow({"class": cls, "images": analysis["per_class"][cls]["images"], "positive_mass_fraction_aligned": av["positive_mass_fraction"], "positive_mass_fraction_shifted": sv["positive_mass_fraction"], "negative_risk_fraction_aligned": av["negative_risk_fraction"], "negative_risk_fraction_shifted": sv["negative_risk_fraction"], "S6_auc_aligned": av["anomaly_auc"], "S6_auc_shifted": sv["anomaly_auc"], "S6_auc_delta": None if av["anomaly_auc"] is None or sv["anomaly_auc"] is None else av["anomaly_auc"] - sv["anomaly_auc"], "normal_S6_n_aligned": av["normal_S6"]["n"], "normal_S6_n_shifted": sv["normal_S6"]["n"]})
