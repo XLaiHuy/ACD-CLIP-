@@ -38,6 +38,7 @@ OUTPUT_ROOT = ROOT / "runs/phase5/hsir/P5B_FAILURE_FORENSIC_C0"
 CACHE_ROOT = Path("/tmp/p5_r0_run2")
 FULL_EVAL_ROOT = ROOT / "runs/phase5/hsir/P5B_FULL_EVAL"
 START_HEAD = "cb8ce3518751eb0eb5224d918061160d4cd0bc7b"
+EXPECTED_PROTOCOL_COMMIT = "e8040490b0980583d4f61d99cd0a408171dd1f74"
 EXPECTED_CACHE_SHA = "cfbd66b04c04b314756d151b759d95041afc2a69a8dc411e24896a7b4f931365"
 EXPECTED_CACHE_SCHEMA = "P5B_R0_GT_FREE_CACHE_v1"
 EXPECTED_IMAGES = 2162
@@ -853,10 +854,12 @@ def class_profile(class_name: str, aligned_rows: list[dict[str, Any]], leverage:
     return {"class": class_name, "profile": profiles, "case_counts": counts, "case_mass": mass}
 
 
-def validate_protocol_inputs(cache_root: Path, protocol_commit: str | None) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]]:
-    if protocol_commit is None or head() != protocol_commit:
-        raise RuntimeError("P5B_FORENSIC_PROTOCOL_HEAD_MISMATCH")
-    if branch() != "autopilot/p5-minimal-reference-adjudication" or not only_forensic_tool_modified():
+def validate_protocol_inputs(cache_root: Path, protocol_commit: str | None, implementation_commit: str | None) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]]:
+    if protocol_commit != EXPECTED_PROTOCOL_COMMIT:
+        raise RuntimeError("P5B_FORENSIC_PROTOCOL_COMMIT_MISMATCH")
+    if implementation_commit is None or head() != implementation_commit:
+        raise RuntimeError("P5B_FORENSIC_IMPLEMENTATION_HEAD_MISMATCH")
+    if branch() != "autopilot/p5-minimal-reference-adjudication" or not clean_tree():
         raise RuntimeError("P5B_FORENSIC_RUN_PREFLIGHT_BLOCKED")
     protocol = json.loads((OUTPUT_ROOT / "PROTOCOL.json").read_text())
     input_check = json.loads((OUTPUT_ROOT / "INPUT_CHECK.json").read_text())
@@ -884,7 +887,7 @@ def compute_main(cache_root: Path) -> dict[str, Any]:
     aligned_rows: list[dict[str, Any]] = []
     shifted_rows: list[dict[str, Any]] = []
     image_rows: dict[str, list[dict[str, Any]]] = {"aligned": [], "shifted": []}
-    all_patch_scores = {"C0": [], "P5": [], "P5_SHIFT": [], "T1_AN_TIE": [], "T2_AN_STRICT_MIN": []}
+    all_patch_scores = {"C0": [], "P5": [], "P5_SHIFT": [], "T1_AN_TIE": [], "T2_AN_STRICT_MIN": [], "AN_ONLY": [], "NA_ONLY": []}
     all_patch_labels: list[np.ndarray] = []
     native_metrics: dict[str, dict[str, dict[str, float]]] = {c: {} for c in class_names}
     transition_store = new_transition_store(("P5", "SHIFT", "T1_AN_TIE", "T2_AN_STRICT_MIN", "AN_ONLY", "NA_ONLY"), class_names)
@@ -955,7 +958,7 @@ def compute_main(cache_root: Path) -> dict[str, Any]:
         pixel_buffers["P5_SHIFT"].append(state["shifted_prob"][0, 1].reshape(-1).astype(np.float32))
         pixel_buffers["labels"].append(state["mask"].reshape(-1).astype(np.uint8))
         strict_an_delta = strict_delta_for_pairs(state["traces"]["aligned"], aligned_case_target, m_bar, {"AN"})
-        all_patch_scores["C0"].append(m_bar.copy()); all_patch_scores["P5"].append((m_bar + aligned_full_delta).astype(np.float32)); all_patch_scores["P5_SHIFT"].append((m_bar + shifted_full_delta).astype(np.float32)); all_patch_scores["T1_AN_TIE"].append((m_bar + aligned_case_delta["AN"]).astype(np.float32)); all_patch_scores["T2_AN_STRICT_MIN"].append((m_bar + strict_an_delta).astype(np.float32)); all_patch_labels.append(labels.astype(np.uint8))
+        all_patch_scores["C0"].append(m_bar.copy()); all_patch_scores["P5"].append((m_bar + aligned_full_delta).astype(np.float32)); all_patch_scores["P5_SHIFT"].append((m_bar + shifted_full_delta).astype(np.float32)); all_patch_scores["T1_AN_TIE"].append((m_bar + aligned_case_delta["AN"]).astype(np.float32)); all_patch_scores["T2_AN_STRICT_MIN"].append((m_bar + strict_an_delta).astype(np.float32)); all_patch_scores["AN_ONLY"].append((m_bar + aligned_case_delta["AN"]).astype(np.float32)); all_patch_scores["NA_ONLY"].append((m_bar + aligned_case_delta["NA"]).astype(np.float32)); all_patch_labels.append(labels.astype(np.uint8))
         total_pairs = total_pair_count(labels)
         trans_pairs = {"P5": aligned_full_delta, "SHIFT": shifted_full_delta, "T1_AN_TIE": aligned_case_delta["AN"], "T2_AN_STRICT_MIN": strict_an_delta, "AN_ONLY": aligned_case_delta["AN"], "NA_ONLY": aligned_case_delta["NA"]}
         for name, delta in trans_pairs.items():
@@ -1188,7 +1191,7 @@ def decision_payload(main: dict[str, Any], condition_metrics: dict[str, Any], ra
         inside = spatial_summary.get("inside_fraction")
         next_question = "DEPLOYMENT_AWARE_SPATIAL_SUPPORT_REQUIRED" if inside is not None and inside < PROFILE_THRESHOLDS["spatial_inside_fraction"] else "NO_SUPPORTED_PHASE5_ACTION_DIRECTION"
     decision = {
-        "integrity": "PASS", "model_forwards": 0, "training_steps": 0, "candidate_selection_allowed": False,
+        "integrity": "PASS", "protocol_commit_sha": EXPECTED_PROTOCOL_COMMIT, "implementation_commit_sha": head(), "model_forwards": 0, "training_steps": 0, "candidate_selection_allowed": False,
         "dominant_failure_mode": profiles, "next_research_question": next_question,
         "strict_minus_tie_native_ap_gain": strict_gain, "AN_coverage_of_C0_inversions": an_coverage,
         "limitations": ["All oracle/counterfactual results are GT-dependent post-hoc diagnostics and are not deployable.", "No causal inference is made from associations.", "Spatial attribution uses case-isolated probability changes; nonlinear effects are not additive."],
@@ -1214,8 +1217,8 @@ def pooled_native_auc(main: dict[str, Any], condition: str) -> float:
     return float(exact_auc_ap(scores, labels)[0])
 
 
-def run_forensic(cache_root: Path, protocol_commit: str | None) -> None:
-    protocol, manifest, datasets, records = validate_protocol_inputs(cache_root, protocol_commit)
+def run_forensic(cache_root: Path, protocol_commit: str | None, implementation_commit: str | None) -> None:
+    protocol, manifest, datasets, records = validate_protocol_inputs(cache_root, protocol_commit, implementation_commit)
     class_names = sorted(records)
     main = compute_main(cache_root)
     pixel_native = full_pixel_metrics(main)
@@ -1291,13 +1294,14 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=("protocol", "forensic"), required=True)
     parser.add_argument("--protocol-commit")
+    parser.add_argument("--implementation-commit")
     parser.add_argument("--cache-root", type=Path, default=CACHE_ROOT)
     args = parser.parse_args()
     if args.mode == "protocol":
         run_protocol()
         return
     if args.mode == "forensic":
-        run_forensic(args.cache_root, args.protocol_commit)
+        run_forensic(args.cache_root, args.protocol_commit, args.implementation_commit)
         return
     raise RuntimeError("unsupported mode")
 
