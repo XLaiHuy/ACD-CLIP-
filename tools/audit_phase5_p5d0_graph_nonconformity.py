@@ -466,6 +466,7 @@ def posthoc_analysis(protocol: dict[str, Any], datasets: dict[str, Any], records
     baseline = json.loads((ROOT / "runs/phase5/hsir/P5B_FAILURE_FORENSIC_C0/RANK_LEVERAGE.json").read_text())
     per_class: dict[str, dict[str, Any]] = {cls: {"class": cls, "images": 0, "anomaly_images": 0, "normal_images": 0, "variants": {}, "correlation": {}} for cls in CLASS_ORDER}
     values: dict[str, dict[str, list[np.ndarray]]] = {variant: {name: [] for name in ("S1_support_degree", "S2_signed_incident_target_sum", "S3_incident_target_rms", "S4_max_abs_incident_residual", "S5_hodge_potential", "S6_potential_percentile", "S7_incident_residual_fraction")} for variant in VARIANTS}
+    diagnostic_names = ("S1_support_degree", "S2_signed_incident_target_sum", "S3_incident_target_rms", "S4_max_abs_incident_residual", "S5_hodge_potential", "S6_potential_percentile", "S7_incident_residual_fraction")
     class_values: dict[str, dict[str, dict[str, list[np.ndarray]]]] = {cls: {variant: {name: [] for name in diagnostic_names} for variant in VARIANTS} for cls in CLASS_ORDER}
     relation_values: dict[str, dict[str, list[float]]] = {variant: {"score_gap": [], "chebyshev": [], "euclidean": []} for variant in VARIANTS}
     class_mass: dict[str, dict[str, float]] = {cls: {"positive_total": 0.0, "positive_touched": 0.0, "negative_total": 0.0, "negative_touched": 0.0} for cls in CLASS_ORDER}
@@ -632,7 +633,19 @@ def main() -> None:
         parser.error("use --synthetic or --official")
     protocol, datasets, records, counts = validate_inputs()
     implementation_sha = sha256(ROOT / "tools/audit_phase5_p5d0_graph_nonconformity.py")
-    entries, graph_summary = gt_free_pass(protocol, datasets, records, implementation_sha)
+    existing_manifest = TEMP_ROOT / "GT_FREE_SIGNAL_MANIFEST.json"
+    if existing_manifest.is_file():
+        saved_manifest = json.loads(existing_manifest.read_text())
+        if saved_manifest.get("schema_version") != "P5D0_GT_FREE_SIGNAL_MANIFEST_v1" or saved_manifest.get("images") != EXPECTED_IMAGES or saved_manifest.get("gt_read") is not False:
+            raise RuntimeError("P5D0_GT_FREE_MANIFEST_INVALID")
+        entries = saved_manifest["entries"]
+        graph_summary = json.loads((TEMP_ROOT / "GT_FREE_GRAPH_SUMMARY.json").read_text())
+        for entry in entries:
+            node_path = TEMP_ROOT / entry["relative_path"]
+            if not node_path.is_file() or sha256(node_path) != entry.get("sha256"):
+                raise RuntimeError(f"P5D0_GT_FREE_NODE_CHECKSUM_FAILED:{entry.get('key')}")
+    else:
+        entries, graph_summary = gt_free_pass(protocol, datasets, records, implementation_sha)
     analysis = posthoc_analysis(protocol, datasets, records, entries, graph_summary, implementation_sha)
     dec = decision(analysis, graph_summary, protocol, implementation_sha)
     write_outputs(protocol, graph_summary, analysis, dec, implementation_sha, counts)
