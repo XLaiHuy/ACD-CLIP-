@@ -1,0 +1,48 @@
+{
+  "schema_version": "P5B_IMPLEMENTATION_READINESS_v1",
+  "status": "PASS",
+  "candidate": "P5B_POSITIVE_ONLY_MIN_PROJECTION",
+  "r0_commit": "8865489a7aad490d218886e8ec534187f9f70e12",
+  "implementation_files": {
+    "tools/phase5_selective_adjudication.py": "8f8c5d9a4ab9ed9f56206987dbfd3383f9e77572c21664d555cf3cee30c71d84",
+    "tools/eval_phase5_selective_adjudication.py": "b59368746c8f546d37887c0050bfb666e73d91a80a9692949be4b741ca90cfa1",
+    "tests/test_phase5_selective_adjudication.py": "ab4f745799a567cfe4728f1ad1228f619afa3b99859082d1cc6d1a70c3b38a2b"
+  },
+  "unit_tests": {
+    "command": "PYTHONPATH=. pytest -q tests/test_phase5_selective_adjudication.py",
+    "status": "PASS",
+    "passed": 8,
+    "failed": 0
+  },
+  "static_checks": {
+    "python_compile": "PASS",
+    "protected_phase2b_and_model_hashes_unchanged": true,
+    "selector_and_action_gt_free_signatures": true,
+    "no_candidate_performance_metric": true,
+    "no_training": true
+  },
+  "zero_gt_replay": {
+    "status": "PASS",
+    "cache": "/tmp/p5_r0_run2",
+    "cache_manifest_sha256": "cfbd66b04c04b314756d151b759d95041afc2a69a8dc411e24896a7b4f931365",
+    "replay_result_sha256": "ed205c7b2dc03f662379ef28c009ae6546c41fbf74a230334d728b9bfdd25794",
+    "unique_cache_records": 2162,
+    "physical_model_forwards": 0,
+    "training_steps": 0,
+    "gt_loaded": false,
+    "performance_metrics_computed": false,
+    "aligned_selector_trace_parity": true,
+    "shifted_selector_trace_parity": true,
+    "all_operational_invariants": true,
+    "selected_relations_replayed": 99037
+  },
+  "ready_for_single_full_eval": true,
+  "full_eval_performed": false,
+  "forbidden_until_explicit_next_step": [
+    "Do not run a full candidate evaluation in this commit.",
+    "Do not tune or sweep any threshold, score, rank, spatial, or action parameter.",
+    "Do not modify Phase2B predictor/model code.",
+    "Do not train or use medical data.",
+    "Do not inspect AP/AUROC/FPR or GT utility before the single preregistered evaluation."
+  ]
+}

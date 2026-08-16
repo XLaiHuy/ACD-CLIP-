@@ -1,0 +1,35 @@
+{
+  "schema_version": "P5B_CANDIDATE_FREEZE_v1",
+  "integrity": "PASS",
+  "r0_commit": "8865489a7aad490d218886e8ec534187f9f70e12",
+  "r0_terminal": "R0_CONSENSUS_SELECTOR_SUPPORTED",
+  "candidate": "P5B_POSITIVE_ONLY_MIN_PROJECTION",
+  "candidate_family": "B",
+  "selection_rule": "Predetermined conditional branch after R0; no S/P/G comparison or AP-driven choice",
+  "frozen_math": {
+    "base_relation": "m_bar_i < m_bar_j",
+    "constraint": "m_prime_i >= m_prime_j",
+    "delta_i": "m_bar_j - m_bar_i",
+    "delta_j": 0,
+    "m_prime_i": "m_bar_j",
+    "m_prime_j": "m_bar_j",
+    "unrelated_coordinates": "unchanged",
+    "native_anomaly_logit_channel": 1,
+    "native_normal_logit_channel": 0,
+    "stages": 3,
+    "passes": 1,
+    "max_relations_per_patch": 1,
+    "recompute_D_rank": false,
+    "recompute_E": false,
+    "epsilon": null,
+    "margin_hyperparameter": null
+  },
+  "deployment": "native 37x37 -> Gaussian blur 7x7 sigma1 -> bilinear resize align_corners=True -> stage mean -> softmax",
+  "gt_firewall": {
+    "selector_accepts_gt": false,
+    "action_accepts_gt": false,
+    "gt_join": "none in candidate path"
+  },
+  "terminal": "P5B_CANDIDATE_FROZEN",
+  "future_evaluation": "Exactly one C0/P5/P5_SHIFT full evaluation only after readiness gates; no sweep"
+}

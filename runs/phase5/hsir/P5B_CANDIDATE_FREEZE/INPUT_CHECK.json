@@ -1,0 +1,30 @@
+{
+  "schema_version": "P5B_CANDIDATE_FREEZE_v1",
+  "status": "PASS",
+  "branch": "autopilot/p5-minimal-reference-adjudication",
+  "head": "8865489a7aad490d218886e8ec534187f9f70e12",
+  "r0_commit": "8865489a7aad490d218886e8ec534187f9f70e12",
+  "r0_commit_pushed": true,
+  "r0_terminal": "R0_CONSENSUS_SELECTOR_SUPPORTED",
+  "r0_selected_candidate": "P5B_POSITIVE_ONLY_MIN_PROJECTION",
+  "frozen_external_hashes": {
+    "checkpoint": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+    "config": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4",
+    "visa_metadata": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842"
+  },
+  "protected_source_hashes": {
+    "model/adapter.py": "e854b79636f9579305b8246f8afe394def67fa9eacccf661429afe9ae89fd4ef",
+    "tools/audit_phase5_b2_adjudication.py": "dd3b77a228a870c225d7ebafa10a456d8dea65ce75c0c966520b17891b977460",
+    "tools/audit_phase5_b3_action_mismatch.py": "ddd703b412a60047e23b3377780e187605efcab6b1aea94cc55155b3e3cf770e",
+    "tools/audit_phase5_reference_validity.py": "06ffad8199e3ad06d47628b3add3fa9f80e1e0008f9f1386a55c601ca966c88c",
+    "tools/audit_phase5_second_evidence.py": "96d55e55212ee54ed3dbf6e1001cd1cd24ad528a073687daf7473bcd4297fa9c"
+  },
+  "scope": {
+    "phase2b_predictor_modified": false,
+    "model_source_modified": false,
+    "training": false,
+    "candidate_performance_evaluation": false,
+    "medical_data_used": false,
+    "gt_in_selector_or_action": false
+  }
+}
