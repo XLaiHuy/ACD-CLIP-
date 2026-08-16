@@ -1,0 +1,36 @@
+{
+  "forbidden_actions": [
+    "Do not relax 3/3 and 8/8 unanimity.",
+    "Do not change K=8, top-20%, 10x10 cells, shift, D_rank, E_nonlocal, or peer selection.",
+    "Do not tune thresholds or optimize AP/AUROC.",
+    "Do not use GT in pair proposal, certification, selection, or action.",
+    "Do not run a candidate evaluation or implement a candidate if R0 fails."
+  ],
+  "gates": {
+    "G0_integrity_gt_firewall_finite_schema_parity": true,
+    "G1_selected_aligned_macro_W_above_half": true,
+    "G2_selected_aligned_class_bootstrap_lower_W_above_half": true,
+    "G3_eight_classes_above_half_and_nonzero_mixed_each": true,
+    "G4_selected_aligned_minus_shifted_macro_W_above_zero": true,
+    "G5_selected_aligned_minus_shifted_class_bootstrap_lower_above_zero": true,
+    "G6_certified_minus_raw_macro_W_above_zero_and_lower_ci_above_zero": true,
+    "G7_selected_net_positive_in_at_least_eight_classes": true,
+    "R0_PASS": true
+  },
+  "gt_firewall": {
+    "gt_changes_pair_universe_or_selection": false,
+    "gt_loaded_only_after_final_cache": true,
+    "pass": true,
+    "selector_accepts_gt": false
+  },
+  "integrity": "PASS",
+  "model_forwards": 2162,
+  "next_scientific_question": "If R0 passes, can the frozen positive-only projection replay satisfy all operational invariants without any GT path?",
+  "r0_pass": true,
+  "raw_certified_selected_semantics": "GT-free selector traces were frozen before GT; GT columns in SELECTED_PAIRS.csv are post-hoc labels only",
+  "schema_version": "P5B_R0_OUTPUT_v1",
+  "scientific_unique_image_forwards": 2162,
+  "selected_candidate": "P5B_POSITIVE_ONLY_MIN_PROJECTION",
+  "terminal": "R0_CONSENSUS_SELECTOR_SUPPORTED",
+  "training_steps": 0
+}

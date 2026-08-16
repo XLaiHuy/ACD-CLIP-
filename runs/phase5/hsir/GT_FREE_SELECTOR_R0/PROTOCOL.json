@@ -1,0 +1,41 @@
+{
+  "audit": "P5B R0 GT-FREE SELECTOR RELIABILITY",
+  "bootstrap": {
+    "reps": 2000,
+    "seed": 5401,
+    "unit": "class"
+  },
+  "deployment": "native 37x37 -> Gaussian blur 7x7 sigma1 -> bilinear align_corners=True -> stage mean -> softmax",
+  "frozen_inputs": {
+    "D_rank": "exact B2 D_rank ranking risk only",
+    "K": 8,
+    "cells": "score_bin x d_rank_bin",
+    "d_rank_bin": "exact B2 10-bin within-image D_rank quantile bins",
+    "m_bar": "exact B2 m_bar",
+    "peer_rule": "exact B1 same-image low-risk peer selection; no reselection in LOO",
+    "risk": "top ceil(0.20*1369) D_rank patches",
+    "score_bin": "exact B2 10-bin within-image m_bar quantile bins",
+    "shift": [
+      12,
+      12
+    ],
+    "valid_reference": "exact B2 valid_reference"
+  },
+  "gt_firewall": "GT labels loaded only after complete GT-free cache finalization; labels annotate outcomes only",
+  "reliability_views": {
+    "E_LOO": "for each omitted peer, mean over stages using the remaining 7 frozen peers",
+    "E_stage": "per-stage 1-cosine to normalized mean of the same frozen K=8 peers",
+    "certificate": "strict > at all 3 stages and all 8 LOO views; equality abstains"
+  },
+  "schema_version": "P5B_R0_OUTPUT_v1",
+  "selector": {
+    "cascade": false,
+    "certified": "raw relations passing unanimity certificate",
+    "max_actions_per_patch": 1,
+    "passes": 1,
+    "raw": "unordered eligible pairs within cells; orient m_i < m_j and require E_nonlocal_i > E_nonlocal_j",
+    "selected": "sort certified by ascending m_j-m_i, ascending min patch ID, ascending max patch ID; greedily accept only disjoint pairs",
+    "thresholds": false,
+    "total_sort": false
+  }
+}

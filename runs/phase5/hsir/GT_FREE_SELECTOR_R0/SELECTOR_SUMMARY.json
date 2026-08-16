@@ -1,0 +1,135 @@
+{
+  "counts": {
+    "anomaly": 1200,
+    "classes": 12,
+    "images": 2162,
+    "normal": 962
+  },
+  "coverage": {
+    "aligned_selected_nonzero_mixed_classes": 12,
+    "classes": [
+      "candle",
+      "capsules",
+      "cashew",
+      "chewinggum",
+      "fryum",
+      "macaroni1",
+      "macaroni2",
+      "pcb1",
+      "pcb2",
+      "pcb3",
+      "pcb4",
+      "pipe_fryum"
+    ],
+    "shifted_selected_nonzero_mixed_classes": 12
+  },
+  "gates": {
+    "G0_integrity_gt_firewall_finite_schema_parity": true,
+    "G1_selected_aligned_macro_W_above_half": true,
+    "G2_selected_aligned_class_bootstrap_lower_W_above_half": true,
+    "G3_eight_classes_above_half_and_nonzero_mixed_each": true,
+    "G4_selected_aligned_minus_shifted_macro_W_above_zero": true,
+    "G5_selected_aligned_minus_shifted_class_bootstrap_lower_above_zero": true,
+    "G6_certified_minus_raw_macro_W_above_zero_and_lower_ci_above_zero": true,
+    "G7_selected_net_positive_in_at_least_eight_classes": true,
+    "R0_PASS": true
+  },
+  "inference": {
+    "file_count": 2162,
+    "finalized": true,
+    "physical_model_forward_calls": 2162,
+    "schema_version": "P5B_R0_GT_FREE_CACHE_v1",
+    "scientific_unique_image_forwards": 2162,
+    "status": "PASS",
+    "training_steps": 0
+  },
+  "integrity": {
+    "gt_firewall": true,
+    "no_ap_auroc_computed": true,
+    "pair_selection_frozen_pre_gt": true,
+    "status": "PASS",
+    "training_steps": 0
+  },
+  "macro": {
+    "W_CERTIFIED_minus_W_RAW": {
+      "bootstrap95_ci": [
+        0.0017759077480205701,
+        0.11530434927023325
+      ],
+      "mean": 0.050588690098378984,
+      "median": 0.033505941867958355,
+      "n_classes": 12,
+      "unit": "class"
+    },
+    "W_SELECTED_minus_W_SELECTED_SHIFT": {
+      "bootstrap95_ci": [
+        0.23197988234427291,
+        0.40390200306324536
+      ],
+      "mean": 0.3164711065578445,
+      "median": 0.3250491932310114,
+      "n_classes": 12,
+      "unit": "class"
+    },
+    "aligned_certified_W": {
+      "bootstrap95_ci": [
+        0.6420816986937787,
+        0.8098817815676518
+      ],
+      "mean": 0.7242104046871866,
+      "median": 0.69375,
+      "n_classes": 12,
+      "unit": "class"
+    },
+    "aligned_raw_W": {
+      "bootstrap95_ci": [
+        0.57982518106108,
+        0.765347829046777
+      ],
+      "mean": 0.6736217145888075,
+      "median": 0.6641664888640877,
+      "n_classes": 12,
+      "unit": "class"
+    },
+    "aligned_selected_W": {
+      "bootstrap95_ci": [
+        0.6411146521475518,
+        0.7950062128203883
+      ],
+      "mean": 0.7137791706719181,
+      "median": 0.6672794117647058,
+      "n_classes": 12,
+      "unit": "class"
+    },
+    "fixed_aligned_selected_shifted_E_W": {
+      "bootstrap95_ci": [
+        0.5571752739127639,
+        0.6559335071103917
+      ],
+      "mean": 0.6051824090039062,
+      "median": 0.6143790849673203,
+      "n_classes": 12,
+      "unit": "class"
+    },
+    "shifted_selected_W": {
+      "bootstrap95_ci": [
+        0.3595079525886308,
+        0.4396288641390035
+      ],
+      "mean": 0.39730806411407377,
+      "median": 0.37960750068940163,
+      "n_classes": 12,
+      "unit": "class"
+    }
+  },
+  "metric_definitions": {
+    "W": "among mixed-label relations, 1 if E-preferred lower-base patch is GT-positive, 0 if GT-negative, 0.5 on exact E tie",
+    "abstention_rate": "1 - level pair count / RAW pair count",
+    "accepted_patches": "unique patch IDs participating in the level",
+    "damage_risk": "base direction correct and E-selected direction wrong",
+    "rescue_opportunity": "base direction wrong and E-selected direction correct"
+  },
+  "no_candidate_evaluation": true,
+  "no_threshold_search": true,
+  "schema_version": "P5B_R0_OUTPUT_v1"
+}

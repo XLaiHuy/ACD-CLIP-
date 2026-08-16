@@ -1,0 +1,65 @@
+{
+  "cache": {
+    "finalized": true,
+    "manifest": "/tmp/p5_r0_run2/CACHE_MANIFEST.json",
+    "manifest_sha256": "cfbd66b04c04b314756d151b759d95041afc2a69a8dc411e24896a7b4f931365",
+    "physical_model_forward_calls": 2162,
+    "schema_version": "P5B_R0_GT_FREE_CACHE_v1",
+    "scientific_unique_image_forwards": 2162,
+    "training_steps": 0
+  },
+  "data_availability": {
+    "authorized_one_inference_pass": true,
+    "committed_b31_cache_sufficient": false,
+    "reason": "B3.1 cache has pair-level rows but no aligned stage features or peer arrays sufficient for E_stage/E_LOO reconstruction"
+  },
+  "dataset": {
+    "anomaly": 1200,
+    "classes": 12,
+    "images": 2162,
+    "normal": 962
+  },
+  "frozen_external_hashes": {
+    "checkpoint": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+    "config": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4",
+    "visa_metadata": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842"
+  },
+  "gt_firewall": {
+    "gt_changes_pair_universe_or_selection": false,
+    "gt_loaded_only_after_final_cache": true,
+    "pass": true,
+    "selector_accepts_gt": false
+  },
+  "no_ap_auroc_optimization": true,
+  "no_candidate_evaluation": true,
+  "preflight": {
+    "branch": "autopilot/p5-minimal-reference-adjudication",
+    "expected_start_head": "08f40ac4d659b7743e3a652960f1a772b06d8e84",
+    "head": "08f40ac4d659b7743e3a652960f1a772b06d8e84",
+    "working_tree_clean_before_outputs": true
+  },
+  "schema_version": "P5B_R0_OUTPUT_v1",
+  "source_hashes": {
+    "model/adapter.py": "e854b79636f9579305b8246f8afe394def67fa9eacccf661429afe9ae89fd4ef",
+    "tools/audit_phase5_b2_adjudication.py": "dd3b77a228a870c225d7ebafa10a456d8dea65ce75c0c966520b17891b977460",
+    "tools/audit_phase5_b3_action_mismatch.py": "ddd703b412a60047e23b3377780e187605efcab6b1aea94cc55155b3e3cf770e",
+    "tools/audit_phase5_reference_validity.py": "06ffad8199e3ad06d47628b3add3fa9f80e1e0008f9f1386a55c601ca966c88c",
+    "tools/audit_phase5_second_evidence.py": "96d55e55212ee54ed3dbf6e1001cd1cd24ad528a073687daf7473bcd4297fa9c"
+  },
+  "status": "PASS",
+  "synthetic_tests": {
+    "model_forwards": 0,
+    "status": "PASS",
+    "tests": {
+      "already_correct_no_relation": true,
+      "formula_stage_mean_parity": true,
+      "identity_no_relation": true,
+      "loo_unanimity": true,
+      "minimum_cost_disjoint_selection": true,
+      "serialization_roundtrip": true,
+      "stage_unanimity": true,
+      "tie_abstention": true
+    },
+    "training_steps": 0
+  }
+}
