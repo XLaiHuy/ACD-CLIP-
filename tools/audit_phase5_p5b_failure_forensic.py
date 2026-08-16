@@ -1243,7 +1243,7 @@ def run_forensic(cache_root: Path, protocol_commit: str | None, implementation_c
     transition_json = aggregate_transition_store(main["transition_store"], class_names)
     leverage = build_rank_leverage(main, class_names, pixel_native)
     spatial_case = action_mass_summary(main["spatial_mass"])
-    total_spatial = {"positive_mass": sum(v["positive_mass"] for c in main["spatial_mass"]["aligned"].values()), "inside_mass": sum(v["inside_mass"] for c in main["spatial_mass"]["aligned"].values()), "outside_mass": sum(v["outside_mass"] for c in main["spatial_mass"]["aligned"].values()), "effective_pixels": sum(v["effective_pixels"] for v in main["spatial_mass"]["aligned"].values())}
+    total_spatial = {"positive_mass": sum(v["positive_mass"] for v in main["spatial_mass"]["aligned"].values()), "inside_mass": sum(v["inside_mass"] for v in main["spatial_mass"]["aligned"].values()), "outside_mass": sum(v["outside_mass"] for v in main["spatial_mass"]["aligned"].values()), "effective_pixels": sum(v["effective_pixels"] for v in main["spatial_mass"]["aligned"].values())}
     spatial_summary = {"aligned_case_isolated": spatial_case["aligned"], "shifted_case_isolated": spatial_case["shifted"], "aligned_actual_total_positive_mass": total_spatial, "inside_fraction": None if total_spatial["positive_mass"] <= 0 else float(total_spatial["inside_mass"] / total_spatial["positive_mass"]), "per_class": {cls: {} for cls in class_names}}
     normal = normal_safety_attribution(main, pixel_native, class_names)
     feature = feature_separation(main["aligned_rows"], class_names)
