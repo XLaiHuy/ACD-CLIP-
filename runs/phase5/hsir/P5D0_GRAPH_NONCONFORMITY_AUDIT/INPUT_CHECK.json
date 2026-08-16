@@ -1,0 +1,48 @@
+{
+  "schema_version": "P5D0_GRAPH_NONCONFORMITY_INPUT_v1",
+  "status": "PASS",
+  "preflight": {
+    "branch": "autopilot/p5-minimal-reference-adjudication",
+    "head": "34dc69b7cad6b40fb8967a1530796e31c40a9787",
+    "remote_head": "34dc69b7cad6b40fb8967a1530796e31c40a9787",
+    "working_tree_clean_before_protocol": true,
+    "author_ident_valid": true,
+    "committer_ident_valid": true
+  },
+  "cache": {
+    "root": "/tmp/p5_r0_run2",
+    "schema_version": "P5B_R0_GT_FREE_CACHE_v1",
+    "manifest_sha256": "cfbd66b04c04b314756d151b759d95041afc2a69a8dc411e24896a7b4f931365",
+    "finalized": true,
+    "scientific_unique_image_forwards": 2162,
+    "training_steps": 0,
+    "classes": 12,
+    "normal_images": 962,
+    "anomaly_images": 1200,
+    "records": 2162,
+    "all_certified_fields_present": true
+  },
+  "archived_baseline": {
+    "p5c0_protocol_sha256": "c5c2f98227754cf32b771731816a37c33cd90c3a6fb4a64da128ee3da9c5ebba",
+    "p5c0_decision_sha256": "f4da2222bac7bf8f1706fa7172e9f4c0511c78495fccf0a2a56a21b82ffecca2",
+    "old_selected_positive_contamination_mass_fraction": 0.03960581875762963,
+    "old_selected_negative_ranking_risk_mass_fraction": 0.01970289841145196,
+    "aligned_certified_relations": 387594,
+    "shifted_certified_relations": 1920878,
+    "aligned_selected_relations": 99037,
+    "shifted_selected_relations": 221476
+  },
+  "protected_source_hashes": {
+    "model/adapter.py": "e854b79636f9579305b8246f8afe394def67fa9eacccf661429afe9ae89fd4ef",
+    "tools/audit_phase5_b2_adjudication.py": "dd3b77a228a870c225d7ebafa10a456d8dea65ce75c0c966520b17891b977460",
+    "tools/audit_phase5_b3_action_mismatch.py": "ddd703b412a60047e23b3377780e187605efcab6b1aea94cc55155b3e3cf770e",
+    "tools/audit_phase5_reference_validity.py": "06ffad8199e3ad06d47628b3add3fa9f80e1e0008f9f1386a55c601ca966c88c",
+    "tools/audit_phase5_second_evidence.py": "96d55e55212ee54ed3dbf6e1001cd1cd24ad528a073687daf7473bcd4297fa9c",
+    "tools/audit_phase5_hsir.py": "4821ce80a09d98ff7214398151b05078c57c47ea13a9418997ce5a887c5e9cb4",
+    "tools/phase5_selective_adjudication.py": "8f8c5d9a4ab9ed9f56206987dbfd3383f9e77572c21664d555cf3cee30c71d84",
+    "tools/audit_phase5_p5b_full_eval.py": "ff0b577aa1f398dd6c7d07235064a531b5fc3d266ecbd2f9d280691d24a71fbd"
+  },
+  "model_forwards": 0,
+  "training_steps": 0,
+  "gt_read": false
+}

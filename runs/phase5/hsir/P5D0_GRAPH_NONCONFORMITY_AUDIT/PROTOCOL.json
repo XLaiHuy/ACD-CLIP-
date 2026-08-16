@@ -1,0 +1,101 @@
+{
+  "schema_version": "P5D0_GRAPH_NONCONFORMITY_AUDIT_v1",
+  "status": "FROZEN",
+  "purpose": "Determine whether all certified R0 same-image relations expose graph non-conformity leverage for a later bounded design review.",
+  "model_forwards": 0,
+  "training_steps": 0,
+  "cache_only": true,
+  "cache": {
+    "root": "/tmp/p5_r0_run2",
+    "schema_version": "P5B_R0_GT_FREE_CACHE_v1",
+    "manifest_sha256": "cfbd66b04c04b314756d151b759d95041afc2a69a8dc411e24896a7b4f931365",
+    "images": 2162,
+    "classes": 12,
+    "normal_images": 962,
+    "anomaly_images": 1200
+  },
+  "frozen_inputs": {
+    "phase2b_predictor": "archived cache only",
+    "R0": "phase5_selective_adjudication.select_gt_free",
+    "risk_fraction": 0.2,
+    "quantile_bins": 10,
+    "valid_reference": "cached B1 validity, unchanged",
+    "K": 8,
+    "shift": [12, 12],
+    "primary_graph_population": "all certified relations before disjoint selection",
+    "selected_trace": "archived selected pairs used only for parity and old-baseline comparison"
+  },
+  "edge_definition": {
+    "orientation": "strict base inversion i->j with m_bar_i < m_bar_j",
+    "base_order": "float32 m_bar, descending value, ascending patch ID tie break",
+    "q_m": "within-image percentile rank from that exact stable base order, rank/(1369-1)",
+    "target": "g_ij = q_m(j)-q_m(i) > 0",
+    "raw_score_gap": "m_bar_j-m_bar_i, retained diagnostic-only",
+    "all_edges_retained": true,
+    "duplicate_edges": "retain all certified relations deterministically"
+  },
+  "hodge_definition": {
+    "objective": "minimize sum over certified edges of ((p_i-p_j)-g_ij)^2",
+    "numeric_type": "float64",
+    "gauge": "mean potential zero independently in every edge-connected component",
+    "isolated_node_convention": "potential zero, support degree zero, incident residual fraction null",
+    "gradient": "g_hat=p_i-p_j",
+    "residual": "r=g-g_hat",
+    "required_checks": ["observed=gradient+residual energy", "gradient-residual orthogonality", "deterministic edge-shuffle invariance"]
+  },
+  "node_signals": {
+    "primary": "S6",
+    "S1": "incident certified-edge support degree",
+    "S2": "signed incident target sum",
+    "S3": "incident target RMS",
+    "S4": "maximum absolute incident residual",
+    "S5": "Hodge potential",
+    "S6": "deterministic within-image percentile rank of S5 over all 1369 nodes",
+    "S7": "incident residual-energy fraction; null for degree-zero nodes",
+    "diagnostic_only": ["S1", "S2", "S3", "S4", "S5", "S7"]
+  },
+  "gt_firewall": {
+    "rule": "materialize and hash all graph/node signals before any GT mask or label is read",
+    "posthoc_only": true,
+    "forbidden_before_barrier": ["mask", "occupancy", "labels", "AP", "risk", "candidate selection"]
+  },
+  "bootstrap": {
+    "unit": "class",
+    "repetitions": 2000,
+    "seed": 7701,
+    "interval": "percentile 95%"
+  },
+  "frozen_gates": {
+    "G0": "integrity, cache/hash/count parity, GT-free barrier, zero forwards/training, protected hashes",
+    "G1": "aligned graph positive-contamination mass touched fraction >= 2x old selected fraction and increase in >=8/12 classes",
+    "G2": "aligned S6 positive-vs-negative rank-AUC class-bootstrap lower CI > 0.5",
+    "G3": "aligned-minus-shifted S6 AUC class-bootstrap lower CI > 0 and aligned > shifted in >=8/12 classes",
+    "G4": "mean absolute classwise Spearman(S6, base_m) < 0.95"
+  },
+  "terminal_decision": {
+    "invalid": "P5D0_GRAPH_AUDIT_INVALID",
+    "leverage_insufficient": "GRAPH_AGGREGATION_LEVERAGE_INSUFFICIENT",
+    "ungrounded": "GRAPH_NONCONFORMITY_UNGROUNDED",
+    "redundant": "GRAPH_SIGNAL_REDUNDANT_WITH_BASE",
+    "supported": "GRAPH_NONCONFORMITY_SUPPORTED_FOR_D1"
+  },
+  "forbidden": [
+    "No Phase2B, R0, P5B, deployment, predictor, or protected-source edits",
+    "No new model forward, training, tuning, threshold search, AP optimization, or candidate implementation",
+    "No GT in graph construction, edge selection, node signal construction, or hashing",
+    "No post-hoc signal replacement or gate weakening",
+    "No dense maps, masks, or temporary NPZ committed",
+    "No D1 proposal unless the exact supported terminal is reached"
+  ],
+  "protected_protocol_sha256": "c5c2f98227754cf32b771731816a37c33cd90c3a6fb4a64da128ee3da9c5ebba",
+  "protected_source_hashes": {
+    "model/adapter.py": "e854b79636f9579305b8246f8afe394def67fa9eacccf661429afe9ae89fd4ef",
+    "tools/audit_phase5_b2_adjudication.py": "dd3b77a228a870c225d7ebafa10a456d8dea65ce75c0c966520b17891b977460",
+    "tools/audit_phase5_b3_action_mismatch.py": "ddd703b412a60047e23b3377780e187605efcab6b1aea94cc55155b3e3cf770e",
+    "tools/audit_phase5_reference_validity.py": "06ffad8199e3ad06d47628b3add3fa9f80e1e0008f9f1386a55c601ca966c88c",
+    "tools/audit_phase5_second_evidence.py": "96d55e55212ee54ed3dbf6e1001cd1cd24ad528a073687daf7473bcd4297fa9c",
+    "tools/audit_phase5_hsir.py": "4821ce80a09d98ff7214398151b05078c57c47ea13a9418997ce5a887c5e9cb4",
+    "tools/phase5_selective_adjudication.py": "8f8c5d9a4ab9ed9f56206987dbfd3383f9e77572c21664d555cf3cee30c71d84",
+    "tools/audit_phase5_p5b_full_eval.py": "ff0b577aa1f398dd6c7d07235064a531b5fc3d266ecbd2f9d280691d24a71fbd"
+  }
+}
