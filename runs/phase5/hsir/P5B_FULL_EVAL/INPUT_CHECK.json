@@ -1,0 +1,50 @@
+{
+  "schema_version": "P5B_FULL_EVAL_v1",
+  "status": "PASS",
+  "performance_metrics_computed": false,
+  "preflight": {
+    "branch": "autopilot/p5-minimal-reference-adjudication",
+    "head": "d2c8ef0c75d80cd40a31c5042b104f39c267661a",
+    "expected_head": "d2c8ef0c75d80cd40a31c5042b104f39c267661a",
+    "working_tree_clean_before_protocol": true,
+    "author_committer_valid": true
+  },
+  "readiness": {
+    "candidate_commit_sha": "d2c8ef0c75d80cd40a31c5042b104f39c267661a",
+    "r0_evidence_commit_sha": "8865489a7aad490d218886e8ec534187f9f70e12",
+    "r0_terminal": "R0_CONSENSUS_SELECTOR_SUPPORTED",
+    "candidate_readiness_status": "PASS",
+    "ready_for_single_full_eval": true,
+    "unit_tests_recorded": "8/8 PASS"
+  },
+  "cache": {
+    "root": "/tmp/p5_r0_run2",
+    "manifest_sha256": "cfbd66b04c04b314756d151b759d95041afc2a69a8dc411e24896a7b4f931365",
+    "schema_version": "P5B_R0_GT_FREE_CACHE_v1",
+    "finalized": true,
+    "unique_records": 2162,
+    "training_steps": 0
+  },
+  "protected_source_hashes": {
+    "model/adapter.py": "e854b79636f9579305b8246f8afe394def67fa9eacccf661429afe9ae89fd4ef",
+    "tools/audit_phase5_b2_adjudication.py": "dd3b77a228a870c225d7ebafa10a456d8dea65ce75c0c966520b17891b977460",
+    "tools/audit_phase5_b3_action_mismatch.py": "ddd703b412a60047e23b3377780e187605efcab6b1aea94cc55155b3e3cf770e",
+    "tools/audit_phase5_reference_validity.py": "06ffad8199e3ad06d47628b3add3fa9f80e1e0008f9f1386a55c601ca966c88c",
+    "tools/audit_phase5_second_evidence.py": "96d55e55212ee54ed3dbf6e1001cd1cd24ad528a073687daf7473bcd4297fa9c",
+    "tools/audit_phase5_hsir.py": "4821ce80a09d98ff7214398151b05078c57c47ea13a9418997ce5a887c5e9cb4"
+  },
+  "candidate_source_hashes": {
+    "tools/phase5_selective_adjudication.py": "8f8c5d9a4ab9ed9f56206987dbfd3383f9e77572c21664d555cf3cee30c71d84",
+    "tools/eval_phase5_selective_adjudication.py": "b59368746c8f546d37887c0050bfb666e73d91a80a9692949be4b741ca90cfa1",
+    "tools/audit_phase5_p5b_full_eval.py": "ff0b577aa1f398dd6c7d07235064a531b5fc3d266ecbd2f9d280691d24a71fbd"
+  },
+  "scope": {
+    "new_model_forward": false,
+    "training": false,
+    "tuning": false,
+    "medical_data": false,
+    "candidate_modified": false,
+    "gt_metric_computed": false,
+    "dense_full_dataset_cache_written": false
+  }
+}

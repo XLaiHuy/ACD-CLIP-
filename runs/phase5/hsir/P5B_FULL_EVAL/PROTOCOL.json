@@ -1,0 +1,88 @@
+{
+  "schema_version": "P5B_FULL_EVAL_v1",
+  "audit": "P5B frozen selective bounded adjudication full evaluation",
+  "protocol_commit_sha": null,
+  "performance_metrics_computed": false,
+  "candidate": {
+    "name": "P5B_POSITIVE_ONLY_MIN_PROJECTION",
+    "commit_sha": "d2c8ef0c75d80cd40a31c5042b104f39c267661a",
+    "r0_evidence_commit_sha": "8865489a7aad490d218886e8ec534187f9f70e12"
+  },
+  "inputs": {
+    "dataset": "VisA TEST",
+    "classes": 12,
+    "images": 2162,
+    "cache": "/tmp/p5_r0_run2",
+    "cache_schema": "P5B_R0_GT_FREE_CACHE_v1",
+    "cache_manifest_sha256": "cfbd66b04c04b314756d151b759d95041afc2a69a8dc411e24896a7b4f931365"
+  },
+  "conditions": {
+    "C0": "unchanged Phase2B native_logits",
+    "P5": "R0 aligned selected trace + positive-only minimum projection",
+    "P5_SHIFT": "same frozen pipeline using shifted E/E_stage/E_LOO only; action count not matched"
+  },
+  "frozen_selector": {
+    "risk": "top ceil(0.20*1369) D_rank patches",
+    "cells": "exact B2 within-image 10x10 m_bar/D_rank quantile cells",
+    "K": 8,
+    "peer_rule": "exact B1 same-image low-risk peers; no LOO reselection",
+    "stage_certificate": "strict E preference at all 3 stages",
+    "loo_certificate": "strict E preference at all 8 leave-one-peer-out views",
+    "selection": "ascending minimum cost, patch-ID tie-break, greedy disjoint one-pass",
+    "one_relation_per_patch": true,
+    "shift": [12, 12],
+    "D_rank_is_anomaly_evidence": false
+  },
+  "frozen_projection": {
+    "base_relation": "m_bar_i < m_bar_j",
+    "constraint": "m_prime_i >= m_prime_j",
+    "delta_i": "m_bar_j - m_bar_i",
+    "delta_j": 0,
+    "unrelated_coordinates": "unchanged",
+    "native_anomaly_logit_channel": 1,
+    "native_normal_logit_channel": 0,
+    "stages": 3,
+    "passes": 1,
+    "recompute_D_rank": false,
+    "recompute_E": false,
+    "epsilon": null,
+    "margin_hyperparameter": null
+  },
+  "deployment": "native 37x37 -> Gaussian blur 7x7 sigma1 -> bilinear resize align_corners=True -> stage mean -> softmax",
+  "gt_firewall": "Construct C0/P5/P5_SHIFT and freeze traces before loading each image mask; GT only labels/evaluates archived outputs",
+  "metrics": {
+    "deployed_pixel": ["exact AP", "exact AUROC"],
+    "native_patch": ["exact AP", "exact AUROC"],
+    "normal": ["C0 tau95", "C0 tau99", "FPR@tau95", "FPR@tau99", "mean anomaly probability", "p99 anomaly probability", "maximum anomaly probability"],
+    "negative_ranking": "exact audit_phase5_hsir.pairwise_risks negative risk",
+    "selector_labels": "post-hoc selector rescue opportunity, damage risk, net; no strict post-action rescue/break claim",
+    "action": ["selected relations", "participating/acted patches", "images with actions", "delta mean/median/p95/max", "positive native score mass", "native spatial support"]
+  },
+  "aggregation": {
+    "per_class": "class-pooled exact metric",
+    "macro": "mean across 12 classes",
+    "bootstrap_unit": "class",
+    "bootstrap_reps": 2000,
+    "bootstrap_seed": 5501,
+    "ci": "percentile 95%"
+  },
+  "gates_frozen_before_metrics": {
+    "E0": "all input/cache/source/GT-firewall/numeric/parity checks pass",
+    "E1": "mean P5-C0 pixel AP >0, lower CI >0, >=8/12 positive AP classes, macro AUROC delta >=0",
+    "E2": "mean P5-P5_SHIFT pixel AP >0 and lower CI >0",
+    "E3": "upper CI <=0 for P5-C0 Normal FPR@C0 tau95, tau99, and negative pairwise risk",
+    "deployment_dilution": "diagnostic only: native patch AP mean/lower CI positive while E1 fails"
+  },
+  "metric_helpers": {
+    "auc_ap": "tools/audit_phase5_hsir.py:exact_auc_ap",
+    "pairwise_risks": "tools/audit_phase5_hsir.py:pairwise_risks",
+    "occupancy": "tools/audit_phase5_b2_adjudication.py:occupancy_from_mask",
+    "normal_guardrail": "tools/audit_phase5_b2_adjudication.py:normal_metrics"
+  },
+  "forbidden_posthoc_actions": [
+    "No selector, K, risk fraction, cell, unanimity, shift, projection, deployment, or action-count changes.",
+    "No parameter tuning, threshold search, class removal, AP rescue, training, medical data, or predictor/model modification.",
+    "No automatic second candidate evaluation."
+  ],
+  "evaluator_sha256": "ff0b577aa1f398dd6c7d07235064a531b5fc3d266ecbd2f9d280691d24a71fbd"
+}
