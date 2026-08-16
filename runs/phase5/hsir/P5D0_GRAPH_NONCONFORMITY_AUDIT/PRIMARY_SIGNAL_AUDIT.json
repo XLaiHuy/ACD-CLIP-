@@ -1,0 +1,69 @@
+{
+  "aligned": {
+    "anomaly_auc": 0.46816341763558644,
+    "anomaly_nodes": 143208,
+    "anomaly_positive_nodes": 801,
+    "normal_auc": null
+  },
+  "bootstrap": {
+    "aligned_S6_auc": {
+      "ci95": [
+        0.45926695652221294,
+        0.5248259853443948
+      ],
+      "mean": 0.4903198176817319,
+      "n_classes": 12,
+      "repetitions": 2000,
+      "seed": 7702,
+      "unit": "class"
+    },
+    "aligned_minus_shifted_S6_auc": {
+      "ci95": [
+        -0.10940568404513316,
+        -0.048458427735159765
+      ],
+      "mean": -0.07733417816242534,
+      "n_classes": 12,
+      "repetitions": 2000,
+      "seed": 7703,
+      "unit": "class"
+    },
+    "aligned_negative_risk_fraction": {
+      "ci95": [
+        0.04486966640467528,
+        0.06547580941903633
+      ],
+      "mean": 0.05449549676580471,
+      "n_classes": 12,
+      "repetitions": 2000,
+      "seed": 7705,
+      "unit": "class"
+    },
+    "aligned_positive_mass_fraction": {
+      "ci95": [
+        0.05297370567344691,
+        0.10001211486122512
+      ],
+      "mean": 0.07517469993081612,
+      "n_classes": 12,
+      "repetitions": 2000,
+      "seed": 7704,
+      "unit": "class"
+    }
+  },
+  "diagnostic_only": [
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+    "S5",
+    "S7"
+  ],
+  "primary": "S6",
+  "shifted": {
+    "anomaly_auc": 0.552800005437179,
+    "anomaly_nodes": 303595,
+    "anomaly_positive_nodes": 2606,
+    "normal_auc": null
+  }
+}

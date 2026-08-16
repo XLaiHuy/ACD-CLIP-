@@ -1,0 +1,97 @@
+{
+  "SPATIAL_CONSTRAINT_REQUIRED": true,
+  "assumptions": [
+    "The immutable P5B R0 cache is the exact frozen Phase2B/R0 evidence population.",
+    "q_m uses the audited float32 score order with ascending patch-ID ties.",
+    "Spatial flag is descriptive and does not define a deployable distance threshold."
+  ],
+  "b3_parity": {
+    "aligned_certified": 387594,
+    "cache_only": true,
+    "expected_aligned_certified": 387594,
+    "expected_shifted_certified": 1920878,
+    "shifted_certified": 1920878
+  },
+  "b3_protected": true,
+  "candidate": "NONE",
+  "exact_next_question": "If and only if the terminal is GRAPH_NONCONFORMITY_SUPPORTED_FOR_D1, can a bounded D1 use graph evidence without broad permutation or deployment mass relocation?",
+  "forbidden_tuning_actions": [
+    "No Phase2B, R0, P5B, deployment, predictor, or protected-source edits",
+    "No new model forward, training, tuning, threshold search, AP optimization, or candidate implementation",
+    "No GT in graph construction, edge selection, node signal construction, or hashing",
+    "No post-hoc signal replacement or gate weakening",
+    "No dense maps, masks, or temporary NPZ committed",
+    "No D1 proposal unless the exact supported terminal is reached"
+  ],
+  "gates": {
+    "G0": true,
+    "G1": false,
+    "G1_classes_increased": 12,
+    "G1_old_fraction": 0.03960581875762963,
+    "G1_positive_mass_fraction": 0.06998958421905409,
+    "G2": false,
+    "G2_aligned_S6_auc": {
+      "ci95": [
+        0.45926695652221294,
+        0.5248259853443948
+      ],
+      "mean": 0.4903198176817319,
+      "n_classes": 12,
+      "repetitions": 2000,
+      "seed": 7702,
+      "unit": "class"
+    },
+    "G3": false,
+    "G3_aligned_minus_shifted_auc": {
+      "ci95": [
+        -0.10940568404513316,
+        -0.048458427735159765
+      ],
+      "mean": -0.07733417816242534,
+      "n_classes": 12,
+      "repetitions": 2000,
+      "seed": 7703,
+      "unit": "class"
+    },
+    "G4": true,
+    "G4_mean_abs_classwise_spearman_S6_base": 0.08382103293679675
+  },
+  "gt_free_manifest_finalized": true,
+  "integrity": "PASS",
+  "limitations": [
+    "All GT quantities are post-hoc and not deployable.",
+    "Graph association with masks is not causal.",
+    "S6 is a preregistered diagnostic and no alternate signal was selected.",
+    "Native graph leverage does not establish deployed improvement under blur, resize, stage mean, and softmax."
+  ],
+  "model_forwards": 0,
+  "rank_geometry": {
+    "aligned_edges": 387594,
+    "all_certified_relations": true,
+    "primary_target": "q_m(j)-q_m(i) from exact stable within-image base percentile",
+    "shifted_edges": 1920878
+  },
+  "schema_validation": {
+    "cache_manifest_sha256": "cfbd66b04c04b314756d151b759d95041afc2a69a8dc411e24896a7b4f931365",
+    "cache_schema": "P5B_R0_GT_FREE_CACHE_v1",
+    "gt_free_manifest_finalized_before_gt": true,
+    "protocol_frozen": true
+  },
+  "schema_version": "P5D0_DECISION_v1",
+  "spatial_geometry": {
+    "aligned": {
+      "max": 21.412587412587413,
+      "mean": 16.011307121765515,
+      "n": 2162,
+      "p95": 19.093896713615024
+    },
+    "shifted": {
+      "max": 19.47981220657277,
+      "mean": 15.322728989830281,
+      "n": 2162,
+      "p95": 18.053907878079656
+    }
+  },
+  "terminal": "GRAPH_AGGREGATION_LEVERAGE_INSUFFICIENT",
+  "training_steps": 0
+}
