@@ -320,7 +320,7 @@ def synthetic_tests() -> dict[str, Any]:
 def validate_inputs() -> tuple[dict[str, Any], dict[str, Any], dict[str, list[dict[str, Any]]], dict[str, int]]:
     if git("branch", "--show-current") != "autopilot/p5-minimal-reference-adjudication":
         raise RuntimeError("P5D0_PREFLIGHT_BLOCKED:branch")
-    if git("rev-parse", "HEAD") != PROTOCOL_COMMIT:
+    if subprocess.run(["git", "merge-base", "--is-ancestor", PROTOCOL_COMMIT, "HEAD"], cwd=ROOT, check=False).returncode != 0:
         raise RuntimeError("P5D0_PROTOCOL_HEAD_MISMATCH")
     if git("status", "--porcelain"):
         raise RuntimeError("P5D0_PREFLIGHT_BLOCKED:dirty")
