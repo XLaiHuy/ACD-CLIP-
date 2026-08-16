@@ -1022,11 +1022,12 @@ def compute_main(cache_root: Path) -> dict[str, Any]:
         pixel_buffers["C0"].append(state["c0_prob"][0, 1].reshape(-1).astype(np.float32))
         pixel_buffers["P5"].append(state["aligned_prob"][0, 1].reshape(-1).astype(np.float32))
         pixel_buffers["P5_SHIFT"].append(state["shifted_prob"][0, 1].reshape(-1).astype(np.float32))
-        for name in all_patch_scores:
-            all_patch_scores_by_class[cls][name].append(all_patch_scores[name][-1])
         pixel_buffers["labels"].append(state["mask"].reshape(-1).astype(np.uint8))
         strict_an_delta = strict_delta_for_pairs(state["traces"]["aligned"], aligned_case_target, m_bar, {"AN"})
         all_patch_scores["C0"].append(m_bar.copy()); all_patch_scores["P5"].append((m_bar + aligned_full_delta).astype(np.float32)); all_patch_scores["P5_SHIFT"].append((m_bar + shifted_full_delta).astype(np.float32)); all_patch_scores["T1_AN_TIE"].append((m_bar + aligned_case_delta["AN"]).astype(np.float32)); all_patch_scores["T2_AN_STRICT_MIN"].append((m_bar + strict_an_delta).astype(np.float32)); all_patch_scores["AN_ONLY"].append((m_bar + aligned_case_delta["AN"]).astype(np.float32)); all_patch_scores["NA_ONLY"].append((m_bar + aligned_case_delta["NA"]).astype(np.float32)); all_patch_labels.append(labels.astype(np.uint8))
+        for name in all_patch_scores:
+            all_patch_scores_by_class[cls][name].append(all_patch_scores[name][-1])
+        all_patch_labels_by_class[cls].append(labels.astype(np.uint8))
         total_pairs = total_pair_count(labels)
         trans_pairs = {"P5": aligned_full_delta, "SHIFT": shifted_full_delta, "T1_AN_TIE": aligned_case_delta["AN"], "T2_AN_STRICT_MIN": strict_an_delta, "AN_ONLY": aligned_case_delta["AN"], "NA_ONLY": aligned_case_delta["NA"]}
         for name, delta in trans_pairs.items():
