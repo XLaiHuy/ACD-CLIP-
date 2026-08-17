@@ -13,9 +13,8 @@ def transform(c: np.ndarray, G: np.ndarray, valid_reference: np.ndarray, config:
     stages = np.zeros((3, 1369), dtype=np.float64)
     for stage in range(3):
         for patch in range(1369):
-            tol, eigenvalues, eigenvectors, _, rank = centered_eigensystem(grams[stage, patch], c[stage, patch], "machine_rank")
-            z_dot = c[stage, patch] - float(c[stage, patch].mean())
-            whitened = np.asarray([(z_dot @ eigenvectors[:, j]) ** 2 / (eigenvalues[j] + np.finfo(np.float32).eps) for j in range(rank) if eigenvalues[j] > tol], dtype=np.float64)
+            tol, eigenvalues, eigenvectors, _, rank, b = centered_eigensystem(grams[stage, patch], c[stage, patch], "machine_rank")
+            whitened = np.asarray([(7.0 * (b @ eigenvectors[:, j]) ** 2) / (eigenvalues[j] ** 2) for j in range(rank) if eigenvalues[j] > tol], dtype=np.float64)
             if whitened.size:
                 stages[stage, patch] = float(whitened.sum() if config["whitened_aggregation"] == "sum_whitened" else whitened.max())
     out = aggregate_components(stages, valid_reference, config["stage_aggregation"])

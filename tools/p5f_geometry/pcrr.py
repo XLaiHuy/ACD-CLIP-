@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from .common import aggregate_components, decode_gram, validate_common
+from .common import PAIR_I, PAIR_J, aggregate_components, decode_gram, validate_common
 
 
 def transform(c: np.ndarray, G: np.ndarray, valid_reference: np.ndarray, config: dict) -> dict[str, np.ndarray | dict]:
@@ -21,12 +21,14 @@ def transform(c: np.ndarray, G: np.ndarray, valid_reference: np.ndarray, config:
                 comparisons[:, peer] = False
                 values[:, peer] = (1.0 + comparisons.sum(axis=1)) / 8.0
         elif config["witness_pool"] == "pooled_peer_pairs":
-            pair_distance = peer_distance[:, np.triu_indices(8, 1)[0], np.triu_indices(8, 1)[1]]
+            pair_distance = peer_distance[:, PAIR_I, PAIR_J]
             values = (1.0 + (pair_distance[:, None, :] <= query_distance[:, :, None]).sum(axis=2)) / 29.0
         else:
             raise ValueError("unknown PCRR witness pool")
         if config["witness_aggregation"] == "mean":
-            stages[stage] = values.mean(axis=1)
+            # Sorting the peer-slot values makes the floating reduction
+            # permutation-stable without changing the arithmetic mean.
+            stages[stage] = np.sum(np.sort(values, axis=1), axis=1, dtype=np.float64) / values.shape[1]
         elif config["witness_aggregation"] == "median":
             stages[stage] = np.median(values, axis=1)
         else:
