@@ -1,0 +1,11 @@
+{
+  "command": "tools/audit_p5fr1c_mvtec_posthoc.py --allow-gt",
+  "completion_status": "PASS",
+  "elapsed_seconds": 3150.349210500717,
+  "exit_code": 0,
+  "schema_version": "P5FR1CE1_EVALUATION_COMMAND_STATUS_V1",
+  "stderr": "/workspace/P5FR1CE1/model/tokenizer.py:10: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.\n  from pkg_resources import packaging\n",
+  "stdout": "{\n  \"P5FR1C_terminal\": \"P5FR1C_LATE_COMPLETION_RECONCILED\",\n  \"candidate\": \"NONE\",\n  \"empirical_provisional_winner\": \"NONE\",\n  \"empirical_scientific_ranking\": [\n    \"PGM\",\n    \"PCRR\",\n    \"ASR\",\n    \"CSRC\"\n  ],\n  \"final_external_winner\": false,\n  \"final_mvtec_selected_config\": null,\n  \"fully_eligible_families\": [],\n  \"medical\": false,\n  \"model_forwards\": 0,\n  \"runner_up\": \"NONE\",\n  \"schema_version\": \"P5FR1C_DECISION_V1\",\n  \"scientific_terminal\": \"NO_FOUR_FAMILY_METHOD_FULLY_SUPPORTED\",\n  \"training_steps\": 0,\n  \"winner_status\": \"NONE\"\n}\n",
+  "utc_end": "2026-08-17T15:37:28.859155676Z",
+  "utc_start": "2026-08-17T14:44:58.510054693Z"
+}
