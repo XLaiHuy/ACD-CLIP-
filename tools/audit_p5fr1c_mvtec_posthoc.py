@@ -116,7 +116,7 @@ def load_folds() -> dict[str,list[str]]:
 def integrity_subchecks(config_ids: list[str]) -> dict[str, bool]:
     lock = json.loads(INPUT_LOCK_PATH.read_text())
     manifest = json.loads(MANIFEST_PATH.read_text())
-    expected_ids = [x["config_id"] for x in load_configs()[1]]
+    expected_ids = [cfg["config_id"] for _, cfg in load_configs()[1]]
     source_hashes = lock.get("common_record_sha256", {})
     derived_hashes = manifest.get("all_config_record_hashes", {})
     return {
