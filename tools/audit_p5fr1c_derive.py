@@ -70,7 +70,7 @@ def record_name(identity: dict[str, Any]) -> str:
 
 def load_inputs() -> tuple[dict[str, Any], list[dict[str, Any]], list[tuple[str, dict[str, Any]]]]:
     lock = json.loads((NAMESPACE / "INPUT_LOCK.json").read_text())
-    if lock.get("late_completion_valid") is not True or lock.get("model_forwards_in_p5fr1c") != 0:
+    if lock.get("late_completion_validated") is not True or lock.get("model_forwards_in_p5fr1c") != 0:
         raise RuntimeError("P5FR1C_INPUT_LOCK_INVALID")
     identities = json.loads(Path("/workspace/P5F_MVTEC_CANONICAL_IDENTITIES.json").read_text())["identities"]
     if len(identities) != EXPECTED_RECORDS:
