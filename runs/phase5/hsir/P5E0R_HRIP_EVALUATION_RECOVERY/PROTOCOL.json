@@ -1,0 +1,106 @@
+{
+  "recovery_id": "P5E0R_HRIP_EVALUATION_RECOVERY",
+  "formula_id": "HRIP_SHARED_SOFT_PROJECTION",
+  "candidate": "NONE",
+  "original_e0_terminal": "P5E0_HRIP_AUDIT_INVALID",
+  "original_e0": {
+    "protocol_commit": "57ed9b62732ad2b54a02c74494eed3648510ae1e",
+    "base_implementation_commit": "6babcb736066c6fc276b2705117d70e4b2134848",
+    "official_runtime_head": "93e348c718aa070c272e5c32be1b5c12c25e6fe6",
+    "gt_freeze_commit": "2f55fc32db7384b9de5293083870b0dda36de8a2",
+    "invalid_result_commit": "9e8cc1d2c2cce5fe6622c36d553f52cca4f6a15a"
+  },
+  "inputs": {
+    "frozen_manifest": "runs/phase5/hsir/P5E0_HRIP_EVIDENCE_AUDIT/GT_FREE_HRIP_MANIFEST.json",
+    "frozen_manifest_sha256": "4055ab2abc75b628e1c8651b9ef76c37a12681863b849ff3d7ed372544d4dbfc",
+    "frozen_cache": "/workspace/P5E0_HRIP_FROZEN_CACHE",
+    "record_count": 2162,
+    "aggregate_record_manifest_sha256": "d35ebc2f1722e741a4cba5c11763ed0a9f5665e7f5f8f59ff4656b4d8f4b0392",
+    "canonical_ordering_sha256": "e87ec435475db75cc0308c0a5d5077190b48e860a6a2e33ce9765320a8bb16ec",
+    "frozen_e0_protocol_sha256": "9ba00525bd9805751b7f2d3d677dabca862887e586279d6b0e4508719803ade6",
+    "checkpoint_sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+    "config_sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4",
+    "metadata_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842"
+  },
+  "zero_forward_rule": {
+    "model_forwards": 0,
+    "training_steps": 0,
+    "medical": false,
+    "evidence_recomputed": false,
+    "forbidden": ["model loading", "model.forward", "vision_text_fusion_gate_seg", "HRIP reconstruction", "peer reconstruction", "tau reconstruction", "alpha reconstruction", "R0 recovery"]
+  },
+  "confirmed_defect": {
+    "old": "shifted_map(class_concatenated_HRIP, 518, 518)",
+    "correction": "for each image, shifted_map(image_HRIP_518x518, 518, 518), then concatenate in canonical order",
+    "helper": "tools/audit_phase5_hsir.py::shifted_map",
+    "height": 518,
+    "width": 518,
+    "shift": [172, 172],
+    "patch_grid_shift_forbidden": true,
+    "class_boundary_contamination_forbidden": true
+  },
+  "frozen_reconstruction": {
+    "score": "native stage logits -> Industrial Gaussian blur kernel=7 sigma=1 -> bilinear 518x518 align_corners=True -> mean stages -> softmax",
+    "d_rank": "native stage margins -> authoritative within-stage percentile_rank -> population_std across stages -> bilinear 518x518 align_corners=True",
+    "hrip": "frozen record hrip patch array upsampled to 518x518",
+    "e_nonlocal": "frozen record e_nonlocal_patch upsampled to 518x518",
+    "unchanged": ["HRIP", "HRIP_raw", "E_nonlocal", "score", "native logits", "native margins", "D_rank", "labels", "pixel IDs", "matching", "risk population", "triage"]
+  },
+  "evaluation": {
+    "risk_fraction": 0.2,
+    "risk_count": "ceil(0.20 * N_class_pixels) by D_rank descending with authoritative stable pixel-ID ties",
+    "matching": "tools/audit_phase5_second_evidence.py::deterministic_matches using score + D_rank inside frozen risk population",
+    "same_matches_for": ["HRIP", "E_nonlocal", "HRIP_SHIFT"],
+    "triage_fraction": 0.1,
+    "triage": "ceil(0.10 * risk_population) by evidence",
+    "leverage_helpers": ["tools/audit_phase5_hsir.py::ap_contamination", "tools/audit_phase5_hsir.py::pairwise_risks"],
+    "gt_use": "evaluation only after E0R protocol and implementation are committed and pushed"
+  },
+  "bootstrap": {
+    "unit": "class",
+    "repetitions": 2000,
+    "ci_quantiles": [0.025, 0.975],
+    "seeds": {
+      "hrip_matched_win": 5101,
+      "centroid_matched_win": 5102,
+      "hrip_minus_centroid": 5103,
+      "aligned_minus_shifted": 5104,
+      "c_ap_delta": 5105,
+      "r_pos_delta": 5106,
+      "r_neg_delta": 5107
+    },
+    "paired_delta_resampling": "same sampled class indices for both members"
+  },
+  "tests": {
+    "T1_T15_required": true,
+    "gt_free_synthetic_only": true,
+    "zero_forward_guard": true,
+    "frozen_cache_immutable": true,
+    "old_e0_immutable": true
+  },
+  "gates": {
+    "recovery_g0": "all integrity, zero-forward, immutable-evidence, per-image-shift, and frozen-semantics subchecks",
+    "g1": "HRIP lower95 matched-win > 0.5 and supportive classes >= 8/12",
+    "g2": "lower95(HRIP - E_nonlocal) > 0 and positive-direction classes >= 8/12",
+    "g3": "lower95(HRIP aligned - HRIP shifted) > 0 and aligned-better classes >= 8/12",
+    "g4": "lower95(C_AP delta)>0, lower95(R_pos delta)>0, upper95(R_neg delta)<=0"
+  },
+  "decision_tree": {
+    "integrity_failure": "E0R_TERMINAL=P5E0R_FROZEN_EVIDENCE_INVALID or P5E0R_EVALUATOR_INVALID; RECOVERED_SCIENTIFIC_TERMINAL=NOT_REACHED",
+    "scientific_failure": "E0R_TERMINAL=P5E0R_EVALUATION_RECOVERED and apply G1-G4 precedence",
+    "all_pass": "E0R_TERMINAL=P5E0R_EVALUATION_RECOVERED and RECOVERED_SCIENTIFIC_TERMINAL=HRIP_EVIDENCE_SUPPORTED_FOR_E1",
+    "e1_authorized_only_if": "RECOVERY_G0=PASS and recovered scientific terminal is HRIP_EVIDENCE_SUPPORTED_FOR_E1"
+  },
+  "outputs": ["DESIGN_REVIEW.md", "INPUT_LOCK.json", "PROTOCOL.json", "EVALUATOR_DIFF_REVIEW.md", "TEST_RESULTS.json", "RECOVERY_PROVENANCE.json", "PRIMARY_SIGNAL_AUDIT.json", "ALIGNED_SHIFTED.json", "LEVERAGE_SAFETY.json", "PER_CLASS.csv", "DECISION.json", "OUTPUT_CHECK.json", "REPORT.md"],
+  "commit_state_machine": {
+    "protocol": "phase5: freeze P5E0R evaluation recovery",
+    "implementation": "phase5: implement P5E0R frozen evaluator",
+    "result": "phase5: audit P5E0R frozen HRIP evidence",
+    "staging": "exact paths only",
+    "push": "normal push; no amend, force, reset, stash, clean, rebase, merge, or cherry-pick",
+    "code_freeze": "evaluator is immutable after implementation push and before the single GT evaluation"
+  },
+  "no_polling": true,
+  "no_tuning": true,
+  "no_alternate_candidate": true
+}
