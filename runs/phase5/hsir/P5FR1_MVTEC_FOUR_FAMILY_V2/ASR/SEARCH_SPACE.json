@@ -1,0 +1,11 @@
+{
+  "family": "ASR",
+  "count": 6,
+  "dimensions": {
+    "rank_policy": ["machine_rank", "energy_95", "energy_99"],
+    "stage_aggregation": ["mean", "median"]
+  },
+  "formula": "outside_subspace_energy/(centered_query_energy+machine_epsilon)",
+  "rank_policy": "machine_rank uses dtype-aware positive eigenspectrum; energy policies use cumulative positive eigenvalue energy",
+  "complexity_rank": {"asr_machine_rank_mean": 0, "asr_machine_rank_median": 1, "asr_energy_95_mean": 2, "asr_energy_95_median": 3, "asr_energy_99_mean": 4, "asr_energy_99_median": 5}
+}

@@ -1,0 +1,15 @@
+{
+  "schema_version": "P5FR1_GEOMETRY_SCHEMA_V1",
+  "peers": 8,
+  "diag_count": 8,
+  "offdiag_count": 28,
+  "packed_gram_count": 36,
+  "gram_layout": "diag8_then_offdiag28",
+  "offdiag_order": "numpy.triu_indices(8,1)",
+  "query_peer_shape": [3, 1369, 8],
+  "packed_gram_shape": [3, 1369, 36],
+  "valid_reference_shape": [1369],
+  "dtype": "float32",
+  "direct_gram_required": true,
+  "diag_tolerance": 0.00001
+}

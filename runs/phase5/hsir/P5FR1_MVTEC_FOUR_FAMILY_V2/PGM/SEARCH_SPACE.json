@@ -1,0 +1,10 @@
+{
+  "family": "PGM",
+  "count": 4,
+  "dimensions": {
+    "whitened_aggregation": ["sum_whitened", "max_whitened"],
+    "stage_aggregation": ["mean", "median"]
+  },
+  "formula": "sum_or_max_j ((z_j^2)/(lambda_j+machine_epsilon)) for centered peer Gram positive eigenspace rank <= 7",
+  "complexity_rank": {"pgm_sum_whitened_mean": 0, "pgm_sum_whitened_median": 1, "pgm_max_whitened_mean": 2, "pgm_max_whitened_median": 3}
+}

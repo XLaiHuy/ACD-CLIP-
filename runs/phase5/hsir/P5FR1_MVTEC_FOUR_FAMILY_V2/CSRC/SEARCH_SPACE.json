@@ -1,0 +1,11 @@
+{
+  "family": "CSRC",
+  "count": 8,
+  "dimensions": {
+    "association": ["spearman_average_tie", "kendall_tau_b"],
+    "pair_scope": ["all_three", "adjacent"],
+    "pair_aggregation": ["mean", "max"]
+  },
+  "formula": "inconsistency=(1-association(distance_stage_a,distance_stage_b))/2",
+  "complexity_rank": {"csrc_spearman_average_tie_all_three_mean": 0, "csrc_spearman_average_tie_all_three_max": 1, "csrc_spearman_average_tie_adjacent_mean": 2, "csrc_spearman_average_tie_adjacent_max": 3, "csrc_kendall_tau_b_all_three_mean": 4, "csrc_kendall_tau_b_all_three_max": 5, "csrc_kendall_tau_b_adjacent_mean": 6, "csrc_kendall_tau_b_adjacent_max": 7}
+}
