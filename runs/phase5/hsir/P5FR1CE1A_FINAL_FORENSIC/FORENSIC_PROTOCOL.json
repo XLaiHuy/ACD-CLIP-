@@ -1,0 +1,88 @@
+{
+  "schema_version": "P5FR1CE1A_FORENSIC_PROTOCOL_V1",
+  "audit_id": "P5FR1CE1A_FINAL_FORENSIC",
+  "audit_scope": [
+    "Phase2B architecture and pinned provenance",
+    "H6 and return_details deployment parity",
+    "B1 and common geometry construction",
+    "PCRR, CSRC, ASR, and PGM mathematics",
+    "GT-free evidence and deployment-score reconstruction",
+    "risk, matching, triage, and shifted-control measurements",
+    "OOF isolation and config-selection semantics",
+    "bootstrap, sign-flip, Holm, gates, ranking, and winner logic",
+    "GT/provenance bookkeeping",
+    "research-value scoring and final interpretation"
+  ],
+  "source_commit": "2ef784ff91b91e3b2c2c880dfaa74c02e94445d2",
+  "historical_result_commit": "2ef784ff91b91e3b2c2c880dfaa74c02e94445d2",
+  "historical_result_branch": "autopilot/p5-fr1c-e1-evaluator-recovery",
+  "historical_result_namespace": "runs/phase5/hsir/P5FR1C_MVTEC_LATE_COMPLETION",
+  "forensic_namespace": "runs/phase5/hsir/P5FR1CE1A_FINAL_FORENSIC",
+  "hard_boundaries": {
+    "new_gt_rule": "No new GT evaluation; no MVTec mask pixels or image pixels may be read.",
+    "new_mask_pixel_reads": 0,
+    "new_image_reads": 0,
+    "model_forward_rule": "Do not instantiate or run the model.",
+    "model_forwards": 0,
+    "training_steps": 0,
+    "medical": false,
+    "historical_artifacts_immutable": true,
+    "new_artifacts_only_in_forensic_namespace": true
+  },
+  "allowed_inputs": [
+    "pre-GT committed protocol/design artifacts",
+    "pre-GT committed source and tests",
+    "committed frozen manifests, hashes, metadata, and scalar/config artifacts",
+    "historical post-GT outputs for forensic comparison only",
+    "synthetic arrays and pure mathematical checks"
+  ],
+  "forbidden_inputs": [
+    "dataset RGB files",
+    "dataset mask pixels",
+    "checkpoint files",
+    "new model inference",
+    "new common-pass evidence",
+    "new GT evaluation",
+    "observed-result-driven scientific choices"
+  ],
+  "recoverability_classes": {
+    "S1": "Reporting or bookkeeping-only defect.",
+    "S2": "Research-score or non-scientific interpretation defect.",
+    "S3": "Deterministic scientific aggregation, selection, or statistical defect recoverable from frozen scalar artifacts without new GT.",
+    "S4": "Evidence-construction defect requiring new evidence or new GT.",
+    "S5": "Predictor/deployment mismatch requiring model rerun."
+  },
+  "reconciliation_policy": {
+    "allowed": [
+      "Only a rule unambiguously frozen before GT may be corrected.",
+      "All correction inputs must already exist in immutable committed scalar artifacts.",
+      "The correction must be deterministic, result-direction-independent, and require no image, mask, GT, or model access.",
+      "If a pre-GT semantic rule is ambiguous, classify PROTOCOL_AMBIGUOUS and do not promote a preferred interpretation."
+    ],
+    "forbidden": [
+      "Changing PCRR, CSRC, ASR, or PGM mathematics",
+      "Changing B1, K, folds, thresholds, risk/triage budgets, gates, or winner rules",
+      "Changing percentile evidence construction when it changes evidence",
+      "Adding/removing configurations or tuning after observing results",
+      "Reconstructing pixel maps or rereading masks"
+    ]
+  },
+  "certification_logic": {
+    "case_a": "SCIENTIFIC_RESULT_CERTIFIED_AS_IS",
+    "case_b": "SCIENTIFIC_RESULT_RECONCILED",
+    "case_c": "SCIENTIFIC_RESULT_NOT_CERTIFIABLE",
+    "case_a_condition": "No result-affecting defect exists.",
+    "case_b_condition": "Only S1-S3 defects exist and every correction is deterministically reconstructable from frozen scalar artifacts without new GT.",
+    "case_c_condition": "Any S4/S5 defect exists, or protocol ambiguity prevents a unique scientific correction.",
+    "zero_tune_certification_values": ["CERTIFIED", "AFFECTED", "NOT_CERTIFIABLE"],
+    "oof_certification_values": ["CERTIFIED_AS_IS", "RECONCILED", "NOT_CERTIFIABLE"]
+  },
+  "analysis_order": [
+    "freeze this protocol",
+    "audit source-of-truth and implementation semantics",
+    "classify defects",
+    "only if authorized, compute deterministic scalar-only reconciliation",
+    "independently check outputs",
+    "certify and report"
+  ]
+}
