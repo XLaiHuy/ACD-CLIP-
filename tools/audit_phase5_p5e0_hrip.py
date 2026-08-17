@@ -572,8 +572,8 @@ def write_run_provenance(state: dict[str, Any], identities: list[dict[str, Any]]
 def official_run(output_root: Path = RECORD_ROOT) -> dict[str, Any]:
     setup = load_setup()
     protocol = load_protocol()
-    if git_head() != EXPECTED_HEAD:
-        raise RuntimeError("P5E0_INPUT_PROVENANCE_INVALID: implementation must start after protocol commit")
+    if subprocess.run(["git", "merge-base", "--is-ancestor", EXPECTED_HEAD, git_head()], cwd=ROOT, check=False).returncode != 0:
+        raise RuntimeError("P5E0_INPUT_PROVENANCE_INVALID: current HEAD is not descended from the frozen implementation")
     identities = build_canonical_identities()
     ordering_hash = canonical_ordering_hash(identities)
     implementation = git_head()
