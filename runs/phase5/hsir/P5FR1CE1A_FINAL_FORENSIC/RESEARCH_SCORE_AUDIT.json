@@ -1,0 +1,230 @@
+{
+  "findings": [
+    {
+      "description": "Implementation scores selected-config class mean minus class median within one config, rather than robustness across configs; positive best-minus-median rewards within-config dispersion.",
+      "id": "RESEARCH_CONFIG_SENSITIVITY",
+      "scientific_eligibility_impact": false,
+      "severity": "S2",
+      "source": "tools/audit_p5fr1c_mvtec_posthoc.py:302-306"
+    },
+    {
+      "description": "Sensitivity best-config selection uses max(mean) for R_neg, although safer direction is more negative.",
+      "id": "RESEARCH_R_NEG_DIRECTION",
+      "scientific_eligibility_impact": false,
+      "severity": "S2",
+      "source": "historical sensitivity implementation"
+    }
+  ],
+  "forensic_interpretation": "Historical research-value ranking is reported but not certified as cross-config robustness. Use qualitative stability and design value only.",
+  "frozen_rule": {
+    "adaptability": {
+      "canonical_zero_tune_strength": {
+        "max": 5,
+        "rule": "5 if zero-tune G2 and G4 pass; 3 if either passes; otherwise 0"
+      },
+      "config_sensitivity": {
+        "max": 5,
+        "rule": "5 if selected-minus-median delta_vs_B1 >= 0.10; 3 if >=0.05; 1 if >0; otherwise 0"
+      },
+      "no_target_calibration_simplicity": {
+        "max": 5,
+        "rule": "5 for every frozen parameter-free family"
+      },
+      "outer_class_consistency": {
+        "max": 5,
+        "rule": "5 if selected config frequency >= 0.60; 3 if >=0.40; 1 if >=0.20; otherwise 0"
+      }
+    },
+    "cannot_override_scientific_eligibility": true,
+    "evidence": {
+      "alignment_grounding": {
+        "max": 3,
+        "rule": "3 if G3 passes"
+      },
+      "all_config_reconstruction": {
+        "max": 3,
+        "rule": "3 if GT-free manifest and all-config checks pass"
+      },
+      "class_direction_consistency": {
+        "max": 2,
+        "rule": "2 if all four gate direction counts meet their frozen thresholds"
+      },
+      "cv_integrity": {
+        "max": 1,
+        "rule": "1 if independent output check passes"
+      },
+      "multiplicity_confirmation": {
+        "max": 1,
+        "rule": "1 if Holm-adjusted family-vs-B1 p<0.05"
+      }
+    },
+    "frozen_before_gt": true,
+    "novelty": "DESIGN_PRIOR_SCORE.json",
+    "schema_version": "P5FR1C_RESEARCH_SCORE_RULES_V1",
+    "success": {
+      "G1": 4,
+      "G2": 7,
+      "G3": 3,
+      "G4": 6
+    },
+    "total": 100,
+    "useful": {
+      "C_AP": {
+        "max": 7,
+        "rule": "7 if lower95 delta > 0 else 0"
+      },
+      "R_neg": {
+        "max": 6,
+        "rule": "6 if upper95 delta <= 0 else 0"
+      },
+      "R_pos": {
+        "max": 7,
+        "rule": "7 if lower95 delta > 0 else 0"
+      }
+    }
+  },
+  "historical_highest": "PCRR",
+  "historical_ranking": [
+    "PCRR",
+    "PGM",
+    "ASR",
+    "CSRC"
+  ],
+  "historical_score": {
+    "families": {
+      "ASR": {
+        "adaptability": {
+          "canonical_zero_tune_strength": 0,
+          "config_sensitivity": 1,
+          "no_target_calibration_simplicity": 5,
+          "outer_class_consistency": 5
+        },
+        "compatibility_design": 13,
+        "evidence": {
+          "alignment_grounding": 3,
+          "all_config_reconstruction": 3,
+          "class_direction_consistency": 0,
+          "cv_integrity": 1,
+          "multiplicity_confirmation": 0
+        },
+        "family": "ASR",
+        "novelty": 11,
+        "scientific_eligibility_independent": false,
+        "success": {
+          "G1": 4,
+          "G2": 0,
+          "G3": 3,
+          "G4": 0
+        },
+        "total": 55,
+        "useful": {
+          "C_AP": 0,
+          "R_neg": 6,
+          "R_pos": 0
+        }
+      },
+      "CSRC": {
+        "adaptability": {
+          "canonical_zero_tune_strength": 0,
+          "config_sensitivity": 0,
+          "no_target_calibration_simplicity": 5,
+          "outer_class_consistency": 5
+        },
+        "compatibility_design": 15,
+        "evidence": {
+          "alignment_grounding": 0,
+          "all_config_reconstruction": 3,
+          "class_direction_consistency": 0,
+          "cv_integrity": 1,
+          "multiplicity_confirmation": 0
+        },
+        "family": "CSRC",
+        "novelty": 12,
+        "scientific_eligibility_independent": false,
+        "success": {
+          "G1": 0,
+          "G2": 0,
+          "G3": 0,
+          "G4": 0
+        },
+        "total": 47,
+        "useful": {
+          "C_AP": 0,
+          "R_neg": 6,
+          "R_pos": 0
+        }
+      },
+      "PCRR": {
+        "adaptability": {
+          "canonical_zero_tune_strength": 3,
+          "config_sensitivity": 1,
+          "no_target_calibration_simplicity": 5,
+          "outer_class_consistency": 5
+        },
+        "compatibility_design": 15,
+        "evidence": {
+          "alignment_grounding": 3,
+          "all_config_reconstruction": 3,
+          "class_direction_consistency": 0,
+          "cv_integrity": 1,
+          "multiplicity_confirmation": 0
+        },
+        "family": "PCRR",
+        "novelty": 13,
+        "scientific_eligibility_independent": false,
+        "success": {
+          "G1": 4,
+          "G2": 0,
+          "G3": 3,
+          "G4": 0
+        },
+        "total": 69,
+        "useful": {
+          "C_AP": 0,
+          "R_neg": 6,
+          "R_pos": 7
+        }
+      },
+      "PGM": {
+        "adaptability": {
+          "canonical_zero_tune_strength": 0,
+          "config_sensitivity": 1,
+          "no_target_calibration_simplicity": 5,
+          "outer_class_consistency": 5
+        },
+        "compatibility_design": 12,
+        "evidence": {
+          "alignment_grounding": 3,
+          "all_config_reconstruction": 3,
+          "class_direction_consistency": 2,
+          "cv_integrity": 1,
+          "multiplicity_confirmation": 0
+        },
+        "family": "PGM",
+        "novelty": 9,
+        "scientific_eligibility_independent": false,
+        "success": {
+          "G1": 4,
+          "G2": 0,
+          "G3": 3,
+          "G4": 0
+        },
+        "total": 61,
+        "useful": {
+          "C_AP": 0,
+          "R_neg": 6,
+          "R_pos": 7
+        }
+      }
+    },
+    "highest_research_value_family": "PCRR",
+    "ranking": [
+      "PCRR",
+      "PGM",
+      "ASR",
+      "CSRC"
+    ]
+  },
+  "historical_score_preserved": true,
+  "schema_version": "P5FR1CE1A_RESEARCH_SCORE_AUDIT_V1"
+}

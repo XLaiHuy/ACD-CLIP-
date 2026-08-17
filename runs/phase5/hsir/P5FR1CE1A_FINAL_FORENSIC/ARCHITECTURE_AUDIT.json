@@ -1,0 +1,84 @@
+{
+  "expected_shapes": {
+    "deployed_score": [
+      518,
+      518
+    ],
+    "image_stages": [
+      8,
+      16,
+      24
+    ],
+    "native_logits": [
+      3,
+      1,
+      1369,
+      2
+    ],
+    "native_margin": [
+      3,
+      1369
+    ],
+    "projected_patch_dimension": 768,
+    "text_stages": [
+      4,
+      8,
+      12
+    ]
+  },
+  "h6_audit": {
+    "authoritative_phase2b_call_supplied_h6_patch_logits": false,
+    "config_enabled": true,
+    "finding": "Static evidence proves no foundational H6/native-logit mismatch for the deployed Phase2B predictor.",
+    "forward_path_invokes_h6_for_phase2b_predictor": false,
+    "h6_patch_logits_parameter_exists": true,
+    "return_details_captures_base_logits_before_optional_h6_correction": true,
+    "severity": "S0",
+    "status": "ENABLED_BUT_INACTIVE_FOR_PHASE2B"
+  },
+  "model_forwards": 0,
+  "path_trace": [
+    "visual encoder -> stage visual features",
+    "adapters/Conv-LoRA -> seg_proj (1024 -> 768)",
+    "seg_layer_norms -> F.normalize",
+    "vision_text_fusion_gate_seg -> native logits",
+    "Industrial Gaussian blur (7, sigma 1)",
+    "bilinear interpolation (align_corners=True) to 518x518",
+    "mean logits across three stages -> softmax class dimension -> abnormal probability"
+  ],
+  "pinned_config_metadata": {
+    "conv_lora_rank": 8,
+    "dfg_attn_dim": 256,
+    "dfg_mode": "attn",
+    "h6_expert_enabled": false,
+    "h6_num_factors": 1,
+    "h6_progress": 1,
+    "h6_top_k": 1,
+    "img_size": 518,
+    "lora_rank": 16,
+    "n_groups": 3,
+    "patch_count": 1369,
+    "patch_grid": [
+      37,
+      37
+    ],
+    "use_ss2d_dfg": true
+  },
+  "schema_version": "P5FR1CE1A_ARCHITECTURE_AUDIT_V1",
+  "scope": "static source/config audit only; model not instantiated",
+  "source_references": {
+    "model/adapter.py": [
+      "lines 142-143",
+      "lines 471-558"
+    ],
+    "tools/audit_p5f_mvtec.py": [
+      "lines 164-165",
+      "lines 193-197"
+    ],
+    "tools/audit_phase5_hsir.py": [
+      "lines 795-812",
+      "lines 840-897"
+    ]
+  },
+  "status": "PASS"
+}

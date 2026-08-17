@@ -1,0 +1,47 @@
+{
+  "conclusions": [
+    {
+      "affected_by_reconciliation": false,
+      "claim": "No family satisfies G0-G4 and Holm-adjusted family-vs-B1 p<0.05.",
+      "confidence": "HIGH",
+      "evidence": "Both min-max and ordinal counterfactuals have fully_eligible_families=[] and winner=NONE.",
+      "supported": true
+    },
+    {
+      "affected_by_reconciliation": false,
+      "claim": "PGM is the strongest empirical family by observed OOF delta_vs_B1 ranking.",
+      "confidence": "MODERATE; not decisive",
+      "evidence": "PGM > PCRR > ASR > CSRC under both interpretations; PGM mean delta=0.04535, CI crosses zero, raw p=0.06226, Holm p=0.24902.",
+      "supported": true
+    },
+    {
+      "affected_by_reconciliation": false,
+      "claim": "PCRR shows alignment-grounded signal but not full scientific support.",
+      "confidence": "MODERATE",
+      "evidence": "G3 passes historically and ordinally; G2/G4 fail and Holm is non-significant.",
+      "supported": true
+    },
+    {
+      "affected_by_reconciliation": false,
+      "claim": "CSRC is the weakest empirical direction in this study.",
+      "confidence": "MODERATE",
+      "evidence": "Last under both rankings; G1-G4 fail historically; ordinal FOLD_1 changes but remains ineligible.",
+      "supported": true
+    },
+    {
+      "affected_by_reconciliation": true,
+      "claim": "ASR is conservative on negative-risk capture but not a supported winner.",
+      "confidence": "MODERATE",
+      "evidence": "R_neg_delta CI is below zero, while G4 fails because C_AP/R_pos do not both pass; ordinal FOLD_2 changes.",
+      "supported": true
+    },
+    {
+      "affected_by_reconciliation": false,
+      "claim": "PCRR is the strongest research-value direction.",
+      "confidence": "LOW / historical-only",
+      "evidence": "Historical score ranks PCRR first, but the score has S2 design/implementation defects and is not certified as robustness.",
+      "supported": false
+    }
+  ],
+  "schema_version": "P5FR1CE1A_ROBUST_CONCLUSIONS_V1"
+}

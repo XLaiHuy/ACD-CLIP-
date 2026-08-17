@@ -1,0 +1,81 @@
+{
+  "capture_semantics": {
+    "C_AP_delta": "candidate minus B1 AP-contamination capture",
+    "R_neg_delta": "candidate minus B1 negative inversion-risk capture",
+    "R_pos_delta": "candidate minus B1 positive inversion-risk capture",
+    "not_direct_detector_metric_deltas": true
+  },
+  "exact_auc_ap": {
+    "auroc_tie_credit": 0.5,
+    "source": "tools/audit_phase5_hsir.py",
+    "status": "PASS",
+    "tie_groups_complete": true
+  },
+  "matching": {
+    "bins": "10x10 score x D_rank quantile bins",
+    "candidate_evidence_used": false,
+    "same_class": true,
+    "selected_risk_positive_negative_only": true,
+    "status": "PASS",
+    "win_rule": "positive=1, tie=0.5, lower=0"
+  },
+  "risk": {
+    "R_neg": "anomaly inversion risk with half ties",
+    "R_pos": "normal inversion risk with half ties",
+    "population": "top ceil(0.20*N_class_pixels) by D_rank",
+    "status": "PASS"
+  },
+  "schema_version": "P5FR1CE1A_MEASUREMENT_AUDIT_V1",
+  "shift_control": {
+    "D_rank_shifted": false,
+    "GT_shifted": false,
+    "matches_shifted": false,
+    "operation": "per-image np.roll on evidence only",
+    "risk_shifted": false,
+    "score_shifted": false,
+    "shape": [
+      518,
+      518
+    ],
+    "shift": [
+      172,
+      172
+    ],
+    "status": "PASS"
+  },
+  "source_references": {
+    "tools/audit_p5fr1c_mvtec_posthoc.py": [
+      "lines 191-228"
+    ],
+    "tools/audit_phase5_hsir.py": [
+      "lines 204-223",
+      "lines 282",
+      "lines 420-421"
+    ],
+    "tools/audit_phase5_second_evidence.py": [
+      "deterministic_matches"
+    ]
+  },
+  "status": "PASS",
+  "synthetic_checks": {
+    "measurement_ties": {
+      "auc_half_ties": true,
+      "matched_win_tie": 0.5,
+      "status": "PASS"
+    },
+    "shift_per_image": {
+      "gt_score_risk_unchanged": true,
+      "height": 518,
+      "shift": [
+        172,
+        172
+      ],
+      "status": "PASS",
+      "width": 518
+    }
+  },
+  "triage": {
+    "population": "top ceil(0.10*risk_population) by evidence",
+    "status": "PASS"
+  }
+}

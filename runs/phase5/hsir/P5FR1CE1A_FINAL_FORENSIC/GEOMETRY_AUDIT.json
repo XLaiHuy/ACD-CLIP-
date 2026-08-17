@@ -1,0 +1,163 @@
+{
+  "b1": {
+    "candidate_pool": "D_rank < image median AND all stage percentile margins < 0.5",
+    "invalid_reference": "false validity with zero evidence when fewer than 8 peers",
+    "peer_count": 8,
+    "same_peer_ids_all_stages": true,
+    "shared_search_representation": "L2-normalized mean of the three normalized stage features",
+    "spatial_exclusion": "Chebyshev distance > 3",
+    "stage_centroid": "L2-normalized mean of selected stage-g peer features",
+    "status": "PASS",
+    "tie_break": "descending cosine similarity, then ascending patch index"
+  },
+  "compact_representation": {
+    "G": "cosine(peer stage feature, peer stage feature)",
+    "c": "cosine(query stage feature, peer stage feature)",
+    "packed_length": 36,
+    "packing": "diag8_then_offdiag28",
+    "status": "PASS",
+    "symmetry_and_diagonal": "validated by source and synthetic contract"
+  },
+  "d_rank": {
+    "formula": "population std across stage-wise average-tie percentile ranks of native margins",
+    "percentile_domain": "all 1369 patches, then invalid-reference evidence zeroed",
+    "status": "PASS"
+  },
+  "families": {
+    "ASR": {
+      "formula": "max(t - sum((u_j^T b)^2/lambda_j), 0) / t",
+      "rank_policies": [
+        "machine_rank",
+        "energy_95",
+        "energy_99"
+      ],
+      "status": "PASS"
+    },
+    "CSRC": {
+      "aggregation": "mean/max",
+      "associations": [
+        "Spearman average-tie",
+        "Kendall tau-b"
+      ],
+      "scopes": {
+        "adjacent": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "all_three": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            2
+          ]
+        ]
+      },
+      "status": "PASS"
+    },
+    "PCRR": {
+      "aggregation": "peer mean/median then stage mean/median",
+      "denominators": {
+        "local": 8,
+        "pooled": 29
+      },
+      "status": "PASS"
+    },
+    "PGM": {
+      "aggregations": [
+        "sum_whitened",
+        "max_whitened"
+      ],
+      "formula": "7 * (u_j^T b)^2 / lambda_j^2",
+      "status": "PASS"
+    }
+  },
+  "new_common_pass": false,
+  "schema_version": "P5FR1CE1A_GEOMETRY_AUDIT_V1",
+  "source_references": {
+    "tools/audit_p5f_mvtec.py": [
+      "lines 174",
+      "lines 197-200"
+    ],
+    "tools/audit_phase5_hsir.py": [
+      "lines 123-151",
+      "lines 204-282"
+    ],
+    "tools/p5f_geometry/common.py": [
+      "lines 16",
+      "lines 99-133"
+    ]
+  },
+  "status": "PASS",
+  "synthetic_checks": {
+    "asr_centered_energy": {
+      "near_zero_t_finite": true,
+      "rank_deficient_finite": true,
+      "status": "PASS"
+    },
+    "csrc_identity_and_reverse": {
+      "identity_inconsistency": 0.0,
+      "reverse_inconsistency": 1.0,
+      "status": "PASS"
+    },
+    "gram_pack_shape": {
+      "diagonal_entries": 8,
+      "packed_entries": 36,
+      "status": "PASS",
+      "strict_upper_entries": 28
+    },
+    "measurement_ties": {
+      "auc_half_ties": true,
+      "matched_win_tie": 0.5,
+      "status": "PASS"
+    },
+    "pcrr_denominators": {
+      "pooled_peer_pairs": 29,
+      "status": "PASS",
+      "witness_local": 8
+    },
+    "percentile_average_tie": {
+      "expected": [
+        0.16666666666666666,
+        0.16666666666666666,
+        0.6666666666666666,
+        1.0
+      ],
+      "input": [
+        1.0,
+        1.0,
+        3.0,
+        4.0
+      ],
+      "status": "PASS"
+    },
+    "pgm_whitening_factor": {
+      "K": 8,
+      "K_minus_1": 7,
+      "rank_deficient_finite": true,
+      "status": "PASS"
+    },
+    "shift_per_image": {
+      "gt_score_risk_unchanged": true,
+      "height": 518,
+      "shift": [
+        172,
+        172
+      ],
+      "status": "PASS",
+      "width": 518
+    }
+  }
+}

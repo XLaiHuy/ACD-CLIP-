@@ -1,0 +1,37 @@
+{
+  "bookkeeping_defect": {
+    "description": "main() sets gt_read=true only after evaluate() succeeds; a crash after mask access could persist gt_read=false",
+    "historical_numeric_impact": "none for the failed pre-mask crash",
+    "severity": "S1",
+    "status": "PROVENANCE_BOOKKEEPING_DEFECT"
+  },
+  "first_reads": {
+    "MASK_PATH_METADATA_FIRST_READ": "historical failed invocation: same load_metadata() call; mask_path metadata fields were read, but no mask file was opened",
+    "MASK_PIXELS_FIRST_READ": "not reached in historical failed invocation; successful evaluator path would first reach load_mask() after the integrity gate",
+    "METADATA_LABELS_FIRST_READ": "historical failed invocation: load_metadata() in evaluate(), before integrity_subchecks(); metadata labels were read as JSON metadata fields",
+    "SCIENTIFIC_METRICS_FIRST_COMPUTED": "not reached in historical failed invocation; successful path would first compute in evaluate_config() after data loading"
+  },
+  "forensic_access": {
+    "model_forwards": 0,
+    "new_gt_reads": 0,
+    "new_image_reads": 0,
+    "new_mask_pixel_reads": 0
+  },
+  "historical_failed_invocation": {
+    "GT_READ_status": false,
+    "MASK_READ_status": false,
+    "MODEL_FORWARDS": 0,
+    "SCIENTIFIC_METRICS_READ": false,
+    "command": "tools/audit_p5fr1c_mvtec_posthoc.py --allow-gt",
+    "exit_code": 1,
+    "failure": "TypeError in integrity_subchecks before any mask read"
+  },
+  "historical_status_immutable": true,
+  "metadata_vs_pixels": {
+    "mask_path_metadata_accessed_historical": true,
+    "mask_pixels_accessed_historical": false,
+    "metadata_accessed_historical": true,
+    "metrics_computed_historical_failed_attempt": false
+  },
+  "schema_version": "P5FR1CE1A_GT_PROVENANCE_AUDIT_V1"
+}

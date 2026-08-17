@@ -1,0 +1,83 @@
+{
+  "bootstrap": {
+    "frozen_rule": "fixed seeds 5101..5107 in final pre-GT P5FR1C protocol",
+    "repetitions": 2000,
+    "seeds": {
+      "C_AP_delta": 5105,
+      "R_neg_delta": 5107,
+      "R_pos_delta": 5106,
+      "aligned_minus_shifted": 5104,
+      "b1_matched_win": 5102,
+      "delta_vs_B1": 5103,
+      "matched_win": 5101
+    },
+    "status": "PASS",
+    "unit": "class"
+  },
+  "historical_holm_p": {
+    "ASR": 1.0,
+    "CSRC": 1.0,
+    "PCRR": 0.2490234375,
+    "PGM": 0.2490234375
+  },
+  "historical_raw_p": {
+    "ASR": 0.81707763671875,
+    "CSRC": 0.994873046875,
+    "PCRR": 0.0687255859375,
+    "PGM": 0.062255859375
+  },
+  "holm": {
+    "adjustment": "Holm step-down across four family tests",
+    "families": [
+      "PCRR",
+      "CSRC",
+      "ASR",
+      "PGM"
+    ],
+    "status": "PASS"
+  },
+  "independent_checker": "PASS",
+  "schema_version": "P5FR1CE1A_STATISTICS_AUDIT_V1",
+  "seed_conflict": {
+    "defect": false,
+    "earlier_hash_derived_design_seen": true,
+    "final_pre_gt_protocol_fixed_seeds_unambiguous": true
+  },
+  "sensitivity_holm_p": {
+    "minmax": {
+      "ASR": 1.0,
+      "CSRC": 1.0,
+      "PCRR": 0.2490234375,
+      "PGM": 0.2490234375
+    },
+    "ordinal": {
+      "ASR": 1.0,
+      "CSRC": 1.0,
+      "PCRR": 0.2490234375,
+      "PGM": 0.2490234375
+    }
+  },
+  "sensitivity_raw_p": {
+    "minmax": {
+      "ASR": 0.81707763671875,
+      "CSRC": 0.994873046875,
+      "PCRR": 0.0687255859375,
+      "PGM": 0.062255859375
+    },
+    "ordinal": {
+      "ASR": 0.804412841796875,
+      "CSRC": 0.99359130859375,
+      "PCRR": 0.0687255859375,
+      "PGM": 0.062255859375
+    }
+  },
+  "sign_flip": {
+    "absolute_value": false,
+    "alternative": "mean(delta_vs_B1)>0",
+    "assignments": 32768,
+    "count_rule": "T_s >= T_obs - 1e-15",
+    "n_classes": 15,
+    "status": "PASS",
+    "two_sided": false
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "changed_folds": [
+    {
+      "family": "CSRC",
+      "fold": "FOLD_1",
+      "historical": "csrc_spearman_average_tie_all_three_max",
+      "ordinal_counterfactual": "csrc_spearman_average_tie_adjacent_mean"
+    },
+    {
+      "family": "ASR",
+      "fold": "FOLD_2",
+      "historical": "asr_energy_99_median",
+      "ordinal_counterfactual": "asr_energy_95_median"
+    }
+  ],
+  "classification": "PROTOCOL_AMBIGUOUS",
+  "counterfactual_allowed_as_sensitivity_only": true,
+  "counterfactual_outcome": {
+    "minmax_eligible": [],
+    "minmax_ranking": [
+      "PGM",
+      "PCRR",
+      "ASR",
+      "CSRC"
+    ],
+    "minmax_winner": "NONE",
+    "ordinal_eligible": [],
+    "ordinal_ranking": [
+      "PGM",
+      "PCRR",
+      "ASR",
+      "CSRC"
+    ],
+    "ordinal_winner": "NONE"
+  },
+  "historical_rule": "per-metric min-max normalization of raw margins across configs",
+  "official_reconciliation": false,
+  "plausible_pre_gt_rule": "per-metric ordinal rank normalization to [0,1], with ties requiring an explicit rule",
+  "reason": "Two selections change, so the ambiguity is outcome-affecting; no interpretation is promoted without an unambiguous pre-GT rule.",
+  "schema_version": "P5FR1CE1A_SELECTION_AUDIT_V1",
+  "selection_diff": {
+    "ASR_CHANGED_FOLDS": 1,
+    "CSRC_CHANGED_FOLDS": 1,
+    "PCRR_CHANGED_FOLDS": 0,
+    "PGM_CHANGED_FOLDS": 0,
+    "SELECTIONS_CHANGED_TOTAL": 2
+  },
+  "selection_semantic_defect_unambiguously_proven": false,
+  "source_artifacts": [
+    "CANONICAL_CONFIGS.json",
+    "CONFIG_METRICS.json",
+    "FOLD_ASSIGNMENT.json",
+    "FOLD_SELECTIONS.json",
+    "SELECTION_DIFF.csv",
+    "SELECTION_SEMANTIC_SENSITIVITY.json"
+  ],
+  "source_hierarchy": {
+    "historical_checker": "repeats the same min-max interpretation",
+    "pre_gt_source": "historical implementation uses min-max raw margins",
+    "protocol": "uses normalized margins in [0,1] and does not explicitly define ordinal versus magnitude min-max"
+  }
+}
