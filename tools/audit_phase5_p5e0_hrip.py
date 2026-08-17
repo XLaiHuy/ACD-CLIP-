@@ -781,8 +781,9 @@ def write_synthetic_result(path: Path) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=("synthetic-tests", "official-run", "validate-cache", "freeze-gt-free"))
+    parser.add_argument("command", choices=("synthetic-tests", "official-run", "validate-cache", "freeze-gt-free", "posthoc-evaluate"))
     parser.add_argument("--output-root", type=Path, default=RECORD_ROOT)
+    parser.add_argument("--allow-gt", action="store_true")
     return parser.parse_args()
 
 
@@ -798,8 +799,12 @@ def main() -> None:
     elif args.command == "validate-cache":
         result = validate_cache(args.output_root)
         print(json.dumps({key: value for key, value in result.items() if key not in {"records", "identities", "state"}}, indent=2, sort_keys=True))
+    elif args.command == "freeze-gt-free":
+        from audit_phase5_p5e0_hrip_posthoc import freeze_gt_free
+        print(json.dumps(freeze_gt_free(args.output_root), indent=2, sort_keys=True))
     else:
-        raise SystemExit("GT-free freeze is implemented in the next phase after the implementation commit")
+        from audit_phase5_p5e0_hrip_posthoc import evaluate_posthoc
+        print(json.dumps(evaluate_posthoc(args.allow_gt, args.output_root), indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":
