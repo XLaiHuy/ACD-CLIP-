@@ -1,0 +1,15 @@
+{
+  "code_modified_after_first_official_forward": false,
+  "duplicate_forward_count": 0,
+  "error_type": "frozen post-forward code defect",
+  "gt_freeze_commit_sha": "2f55fc32db7384b9de5293083870b0dda36de8a2",
+  "official_successful_model_forwards": 2162,
+  "phase": "posthoc-evaluate",
+  "r0_cache_available": false,
+  "r0_cache_recovered_or_regenerated": false,
+  "reason": "After the first official VisA forward pass and GT-free evidence freeze, the frozen post-hoc evaluator failed before producing final metrics: shifted_map was called on the concatenated multi-image class array instead of per-image [H,W] maps.",
+  "rerun_performed": false,
+  "status": "AUDIT_INVALID",
+  "terminal": "P5E0_HRIP_AUDIT_INVALID",
+  "unique_identity_count": 2162
+}
