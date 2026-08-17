@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "gt_free_synthetic_only": true,
+  "model_forward_count": 0,
+  "tests": {
+    "T1_one_image_shift_parity": true,
+    "T2_two_image_boundary_isolation": true,
+    "T3_historical_class_concatenation_rejected": true,
+    "T4_identity_order_preserved": true,
+    "T5_only_shifted_evidence_changes": true,
+    "T6_no_rematching": true,
+    "T7_risk_population_exact": true,
+    "T8_triage_exact": true,
+    "T9_bootstrap_seed_lock": true,
+    "T10_zero_model_forward": true,
+    "T11_frozen_evidence_immutable": true,
+    "T12_old_e0_directory_immutable": true,
+    "T13_unshifted_authoritative_helper_semantics": true,
+    "T14_per_image_518_shift": true,
+    "T15_no_evidence_construction_api": true
+  }
+}
