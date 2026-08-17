@@ -1,0 +1,31 @@
+{
+  "schema_version": "P5F_DECISION_V2",
+  "operational_status": "AUDIT_INVALID",
+  "G0": false,
+  "G0_subchecks": {
+    "dataset_setup_pass": true,
+    "protocol_committed_before_implementation": true,
+    "implementation_committed_before_official_pass": true,
+    "first_forward_observed": true,
+    "compact_record_schema_valid": false,
+    "expected_peer_gram_shape": [3, 1369, 36],
+    "observed_peer_gram_shape": [3, 1369, 28],
+    "official_successful_forwards": 0,
+    "unique_finalized_identities": 0,
+    "duplicate_forwards": 0,
+    "unresolved_inflight_identity": 0,
+    "gt_free_manifest_finalized": false,
+    "gt_access_before_finalize": false,
+    "code_changed_after_first_forward": false,
+    "no_rerun": true
+  },
+  "G1": "NOT_REACHED",
+  "G2": "NOT_REACHED",
+  "G3": "NOT_REACHED",
+  "G4": "NOT_REACHED",
+  "terminal": "P5F_AUDIT_INVALID",
+  "candidate": "NONE",
+  "scientific_metrics": "NOT_REACHED",
+  "provisional_winner": "NONE",
+  "final_external_winner": false
+}
