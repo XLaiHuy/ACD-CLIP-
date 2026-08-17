@@ -1,0 +1,132 @@
+{
+  "schema_version": "PROJECT_HANDOFF_PHASE5_20260818_V1",
+  "handoff_date": "2026-08-18",
+  "repository": "XLaiHuy/ACD-CLIP-",
+  "handoff_branch": "handoff/phase5-20260818-portable",
+  "authoritative_forensic_branch": "autopilot/p5-fr1ce1-a-final-forensic-reconciliation",
+  "authoritative_head": "3f41c7e6ee4db86c67781edd3c71c80fbc1daa72",
+  "commits": {
+    "forensic_protocol": "f9a2b83753e577a60854ac21e03626bda775c22e",
+    "historical_result": "2ef784ff91b91e3b2c2c880dfaa74c02e94445d2",
+    "evaluator_recovery_implementation": "f6570348988d257347af8b833ba08ff67ad102fe",
+    "evaluator_recovery_freeze": "0e4278da12b79122d926d6b4ab080cf85980edb9",
+    "gt_free_source": "cd0d22072d34804494e38fa95bc2e9d338bead7c",
+    "geometry_implementation": "64a36d2df78ffac690f35c170770721ed1069fe1",
+    "reconciliation": null
+  },
+  "hard_protocol": {"new_model_forwards": 0, "new_gt_mask_reads": 0, "new_image_reads": 0, "training_steps": 0, "medical": false, "new_experiment": false},
+  "research_goal": {
+    "primary": "industrial-only development/training followed by frozen external zero-shot medical anomaly detection",
+    "core_principle": "learn the evidence, bound the authority",
+    "rules": ["design/train/tune only industrial", "freeze before medical", "medical is external zero-shot only", "no retrain/fine-tune/threshold tuning after medical", "learned reliability industrial-only", "prefer relational/domain-relative evidence", "reliability and abstention matter under domain shift"]
+  },
+  "architecture": {
+    "visual_stages": [8, 16, 24],
+    "text_stages": [4, 8, 12],
+    "patch_grid": [37, 37],
+    "patch_count": 1369,
+    "projected_patch_dimension": 768,
+    "native_stage_logits": [3, 1, 1369, 2],
+    "d_rank": "stage anomaly-minus-normal margin -> average-tie within-image percentile -> population std across stages",
+    "deployment": "native per-stage logits -> Gaussian blur k7 sigma1 -> bilinear 518x518 align_corners=True -> mean logits over stages -> softmax",
+    "status": "PASS",
+    "deployment_parity": "PASS",
+    "h6": "ENABLED_BUT_INACTIVE_FOR_PHASE2B",
+    "d_rank_status": "PASS",
+    "b1_status": "PASS",
+    "common_geometry": "PASS"
+  },
+  "b1": {
+    "candidate_pool": "D_rank < within-image median AND every stage anomaly percentile < 0.5",
+    "spatial_exclusion": "Chebyshev distance > 3",
+    "k": 8,
+    "search_representation": "normalized mean of three normalized stage features",
+    "tie_break": "descending cosine similarity then ascending patch index",
+    "same_peer_ids_all_stages": true,
+    "stage_reference": "normalize(mean peer features at stage)",
+    "evidence": "N_g=1-cosine(query_g,reference_g); B1=mean_g N_g",
+    "fewer_than_8": "invalid/abstain/evidence zero",
+    "interpretation": "trusted-ish Normal-like peers, not proven Normal"
+  },
+  "study": {
+    "families": {"PCRR": 8, "CSRC": 8, "ASR": 6, "PGM": 4},
+    "total_configs": 26,
+    "zero_tune": {"PCRR": "pcrr_witness_local_mean_mean", "CSRC": "csrc_spearman_average_tie_all_three_mean", "ASR": "asr_machine_rank_mean", "PGM": "pgm_sum_whitened_mean"},
+    "folds": {"FOLD_0": ["carpet", "bottle", "cable"], "FOLD_1": ["grid", "capsule", "hazelnut"], "FOLD_2": ["leather", "metal_nut", "pill"], "FOLD_3": ["tile", "screw", "transistor"], "FOLD_4": ["wood", "toothbrush", "zipper"]},
+    "implementation_status": {"PCRR": "PASS", "CSRC": "PASS", "ASR": "PASS", "PGM": "PASS"}
+  },
+  "certification": {
+    "final": "SCIENTIFIC_RESULT_NOT_CERTIFIABLE",
+    "zero_tune": "CERTIFIED",
+    "oof": "NOT_CERTIFIABLE",
+    "scientific_terminal": "NO_FOUR_FAMILY_METHOD_FULLY_SUPPORTED",
+    "fully_eligible_families": [],
+    "provisional_winner": "NONE",
+    "final_selected_config": null,
+    "reason": "pre-GT selection wording is ambiguous between raw-margin min-max and ordinal rank normalization"
+  },
+  "results": {
+    "PCRR": {
+      "zero_tune": {"config": "pcrr_witness_local_mean_mean", "matched_win": {"mean": 0.671687, "ci95": [0.614059, 0.727298]}, "delta_vs_b1": {"mean": 0.043713, "ci95": [0.003528, 0.087292]}, "aligned_minus_shifted": {"mean": 0.211391, "ci95": [0.158111, 0.265575]}, "C_AP": {"mean": -0.002243, "ci95": [-0.008458, 0.003110]}, "R_pos": {"mean": 0.013889, "ci95": [0.003825, 0.024242]}, "R_neg": {"mean": -0.018601, "ci95": [-0.027297, -0.010450]}},
+      "historical_oof": {"matched_win": {"mean": 0.667476, "ci95": [0.612919, 0.720437]}, "b1_matched_win": {"mean": 0.627975, "ci95": [0.550413, 0.700152]}, "delta_vs_b1": {"mean": 0.039502, "ci95": [-0.004733, 0.090019]}, "aligned_minus_shifted": {"mean": 0.208268, "ci95": [0.156585, 0.260019]}, "C_AP": {"mean": -0.000964, "ci95": [-0.008484, 0.005941]}, "R_pos": {"mean": 0.013753, "ci95": [0.003219, 0.024429]}, "R_neg": {"mean": -0.018751, "ci95": [-0.027953, -0.010833]}},
+      "gates": {"G1": true, "G2": false, "G3": true, "G4": false},
+      "raw_sign_flip_p": 0.068725586,
+      "holm_p": 0.249023438,
+      "historical_folds": ["pcrr_witness_local_mean_median", "pcrr_pooled_peer_pairs_mean_mean", "pcrr_pooled_peer_pairs_mean_mean", "pcrr_pooled_peer_pairs_mean_mean", "pcrr_witness_local_mean_median"]
+    },
+    "CSRC": {
+      "zero_tune": {"config": "csrc_spearman_average_tie_all_three_mean", "matched_win": {"mean": 0.512130, "ci95": [0.481909, 0.547055]}, "delta_vs_b1": {"mean": -0.115844, "ci95": [-0.202722, -0.028565]}, "aligned_minus_shifted": {"mean": 0.013697, "ci95": [-0.018107, 0.056519]}, "C_AP": {"mean": -0.022846, "ci95": [-0.034360, -0.012762]}, "R_pos": {"mean": -0.008095, "ci95": [-0.023346, 0.006326]}, "R_neg": {"mean": -0.036889, "ci95": [-0.054946, -0.021879]}},
+      "historical_oof": {"matched_win": {"mean": 0.499968, "ci95": [0.485194, 0.516282]}, "b1_matched_win": {"mean": 0.627975, "ci95": [0.550413, 0.700152]}, "delta_vs_b1": {"mean": -0.128007, "ci95": [-0.209762, -0.044549]}, "aligned_minus_shifted": {"mean": 0.007886, "ci95": [-0.006502, 0.023804]}, "C_AP": {"mean": -0.023146, "ci95": [-0.034037, -0.012788]}, "R_pos": {"mean": -0.012137, "ci95": [-0.028047, 0.004139]}, "R_neg": {"mean": -0.033957, "ci95": [-0.051194, -0.020784]}},
+      "gates": {"G1": false, "G2": false, "G3": false, "G4": false},
+      "raw_sign_flip_p": 0.994873047,
+      "holm_p": 1.0,
+      "historical_folds": ["csrc_spearman_average_tie_adjacent_max", "csrc_spearman_average_tie_all_three_max", "csrc_spearman_average_tie_adjacent_max", "csrc_spearman_average_tie_adjacent_max", "csrc_spearman_average_tie_adjacent_max"]
+    },
+    "ASR": {
+      "zero_tune": {"config": "asr_machine_rank_mean", "matched_win": {"mean": 0.604951, "ci95": [0.555041, 0.652102]}, "delta_vs_b1": {"mean": -0.023023, "ci95": [-0.065996, 0.014128]}, "aligned_minus_shifted": {"mean": 0.117202, "ci95": [0.065176, 0.169946]}, "C_AP": {"mean": -0.010854, "ci95": [-0.019625, -0.003671]}, "R_pos": {"mean": -0.000524, "ci95": [-0.012892, 0.012039]}, "R_neg": {"mean": -0.026354, "ci95": [-0.038393, -0.015563]}},
+      "historical_oof": {"matched_win": {"mean": 0.608074, "ci95": [0.564462, 0.650823]}, "b1_matched_win": {"mean": 0.627975, "ci95": [0.550413, 0.700152]}, "delta_vs_b1": {"mean": -0.019901, "ci95": [-0.061237, 0.017112]}, "aligned_minus_shifted": {"mean": 0.113078, "ci95": [0.066036, 0.157393]}, "C_AP": {"mean": -0.011721, "ci95": [-0.019548, -0.004295]}, "R_pos": {"mean": -0.002108, "ci95": [-0.016563, 0.011073]}, "R_neg": {"mean": -0.025519, "ci95": [-0.036016, -0.016656]}},
+      "gates": {"G1": true, "G2": false, "G3": true, "G4": false},
+      "raw_sign_flip_p": 0.817077637,
+      "holm_p": 1.0,
+      "historical_folds": ["asr_energy_95_mean", "asr_energy_95_median", "asr_energy_99_median", "asr_energy_95_median", "asr_energy_95_median"]
+    },
+    "PGM": {
+      "zero_tune": {"config": "pgm_sum_whitened_mean", "matched_win": {"mean": 0.674022, "ci95": [0.613286, 0.734492]}, "delta_vs_b1": {"mean": 0.046048, "ci95": [-0.005011, 0.101467]}, "aligned_minus_shifted": {"mean": 0.215457, "ci95": [0.155545, 0.274829]}, "C_AP": {"mean": 0.002873, "ci95": [-0.004115, 0.010031]}, "R_pos": {"mean": 0.015435, "ci95": [0.003143, 0.027410]}, "R_neg": {"mean": -0.013078, "ci95": [-0.019470, -0.007497]}},
+      "historical_oof": {"matched_win": {"mean": 0.673324, "ci95": [0.613195, 0.731519]}, "b1_matched_win": {"mean": 0.627975, "ci95": [0.550413, 0.700152]}, "delta_vs_b1": {"mean": 0.045350, "ci95": [-0.003272, 0.102869]}, "aligned_minus_shifted": {"mean": 0.214076, "ci95": [0.155707, 0.272627]}, "C_AP": {"mean": 0.002594, "ci95": [-0.004177, 0.009745]}, "R_pos": {"mean": 0.014688, "ci95": [0.002309, 0.027492]}, "R_neg": {"mean": -0.013341, "ci95": [-0.019750, -0.007811]}},
+      "gates": {"G1": true, "G2": false, "G3": true, "G4": false},
+      "raw_sign_flip_p": 0.062255859,
+      "holm_p": 0.249023438,
+      "historical_folds": ["pgm_max_whitened_mean", "pgm_sum_whitened_mean", "pgm_max_whitened_mean", "pgm_sum_whitened_mean", "pgm_max_whitened_mean"]
+    }
+  },
+  "selection_sensitivity": {
+    "historical": "per-metric raw-margin min-max",
+    "counterfactual": "per-metric descending ordinal rank with average ties",
+    "changed_total": 2,
+    "changed": [{"family": "CSRC", "fold": "FOLD_1", "historical": "csrc_spearman_average_tie_all_three_max", "ordinal": "csrc_spearman_average_tie_adjacent_mean"}, {"family": "ASR", "fold": "FOLD_2", "historical": "asr_energy_99_median", "ordinal": "asr_energy_95_median"}],
+    "PCRR_changed": 0,
+    "PGM_changed": 0,
+    "historical_ranking": ["PGM", "PCRR", "ASR", "CSRC"],
+    "ordinal_ranking": ["PGM", "PCRR", "ASR", "CSRC"],
+    "official_reconciliation": false,
+    "fully_eligible_both": [],
+    "winner_both": "NONE"
+  },
+  "statistics": {"bootstrap": {"repetitions": 2000, "unit": "class", "seeds": {"matched_win": 5101, "b1_matched_win": 5102, "delta_vs_B1": 5103, "aligned_minus_shifted": 5104, "C_AP_delta": 5105, "R_pos_delta": 5106, "R_neg_delta": 5107}, "status": "PASS"}, "sign_flip": {"assignments": 32768, "alternative": "mean(delta_vs_B1)>0", "status": "PASS"}, "holm": {"status": "PASS", "p": {"PCRR": 0.249023438, "PGM": 0.249023438, "ASR": 1.0, "CSRC": 1.0}}, "decision_changed": false},
+  "defects": [{"id": "S1-PROV-001", "severity": "S1", "status": "FORENSIC_ONLY", "effect": "none for historical pre-mask crash"}, {"id": "S2-RESEARCH-001", "severity": "S2", "status": "HISTORICAL_SCORE_PRESERVED", "effect": "research interpretation only"}, {"id": "S2-RESEARCH-002", "severity": "S2", "status": "HISTORICAL_SCORE_PRESERVED", "effect": "research interpretation only"}, {"id": "S3-SELECT-001", "severity": "S3", "status": "PROTOCOL_AMBIGUOUS_RESULT_AFFECTING", "effect": "OOF selection interpretation-dependent"}, {"id": "S3-CHECK-001", "severity": "S3", "status": "FORENSIC_CHECKER_REPLACED", "effect": "checker coverage gap"}],
+  "S4_defects": [],
+  "S5_defects": [],
+  "robust_conclusions": ["No family satisfies G0-G4 plus Holm-adjusted significance.", "PGM is strongest empirically under both interpretations but not a supported winner.", "PCRR has alignment-grounded signal but not full support.", "ASR reduces negative-risk capture but fails full usefulness.", "CSRC is weakest and closed as current primary direction.", "Historical PCRR-first research value is interpretation-only."],
+  "next_hypothesis": {"started": false, "hypothesis": "parameter-free peer geometry, especially PGM/PCRR, may contain alignment-grounded evidence", "focus": "industrial-only evidence authority, reliability, and abstention", "preregister": ["ordinal versus min-max semantics", "tie behavior", "corrected research robustness rubric", "industrial dev/validation boundaries", "untouched industrial validation", "no medical access"]},
+  "earlier_results": {
+    "E0RC_HRIP": {"operational": "PASS", "G0": "PASS", "G1": "PASS", "G2": "FAIL", "G3": "PASS", "G4": "FAIL", "matched_win": 0.6932912850, "matched_win_ci95": [0.6060009350, 0.7773992426], "supportive": "10/12", "b1_matched_win": 0.7005508780, "b1_ci95": [0.6160589830, 0.7790048563], "delta_vs_b1": -0.00725959294, "delta_ci95": [-0.052018198, 0.0328305343], "positive": "8/12", "aligned_minus_shifted": 0.2405858566, "aligned_ci95": [0.1720132350, 0.2961238718], "aligned_better": "11/12", "C_AP_delta": -0.01590103315, "C_AP_ci95": [-0.03908224835, 0.00499908072], "R_pos_delta": -0.00514820744, "R_pos_ci95": [-0.04970847046, 0.03639588178], "R_neg_delta": -0.0206419190, "R_neg_ci95": [-0.02797440574, -0.01474099187], "terminal": "HRIP_NOT_BETTER_THAN_B1_CENTROID", "E1_authorized": false, "candidate": "NONE"},
+    "B1_historical": {"coverage": "100%", "supportive": "11/12", "matched_win_mean": 0.6990785, "matched_win_ci95": [0.6132139, 0.7832789], "shifted_mean": 0.4270157, "fraction_A1_oracle_recovered": 0.52035, "posthoc_gt_contamination": "0.0173%"}
+  },
+  "commit_history": ["1d636895e9f6f299d14f92ae150aebf4e3b4fb80", "02a56c8997c9c5f14ecab485da84d0d644d82ebd", "a2c6d51b859a8259291fe06e0195bbde70ac5816", "859d4e2c8074f05ffb2056e4efe5fc38657763bb", "ca65e8bddaca5acb56b8918cd5f95270fa95dbb2", "64a36d2df78ffac690f35c170770721ed1069fe1", "529096949afae2c6bad2b73d976a6f8cf0455e3d", "779aace6f0decdb6bb4de7cdb5df4c96a22e53ff", "ecef06b5ad7d69426b1cabdcfe4869f7615f9101", "cd0d22072d34804494e38fa95bc2e9d338bead7c", "0e4278da12b79122d926d6b4ab080cf85980edb9", "f6570348988d257347af8b833ba08ff67ad102fe", "2ef784ff91b91e3b2c2c880dfaa74c02e94445d2", "f9a2b83753e577a60854ac21e03626bda775c22e", "3f41c7e6ee4db86c67781edd3c71c80fbc1daa72"],
+  "checkpoint": {"status": "REQUIRED_ALREADY_REMOTE", "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34", "size_bytes": 56451915, "remote_branch": "origin/artifacts/p5-runtime-inputs", "remote_commit": "316ce9d4a9ddf742cf17f1c98c5011891c90ab08", "remote_path": "runs/phase4v/v1_7/readiness_full/adapter_5.pth", "config_sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4"},
+  "assets": {"MVTec_data_committed": false, "archive_sha256": "61124d44b1e62ad0dc64e1b6111c7ffcfda20cd36a92f68e14df0a8016cf477b", "metadata_sha256": "3a5e304ea16bba82e6e525d188698e91ca92b718696f8c257ed435d235b4cc2c", "canonical_identity_sha256": "c0ace7f629a636db6393aca7bebe1b37a6a9f5673ff59ff8b6800484642faa34", "records": 1725, "classes": 15},
+  "runtime_artifacts": {"all_config_aggregate_hash": "3f6bc75c3c3a0eeed7a72b457d1e060a9aed55186e905b0ed1e9ad639be23b67", "large_caches_manifested_not_committed": true, "optional_rental_only_paths": ["/workspace/P5FR1_LATE_COMPLETION_SNAPSHOT", "/workspace/P5FR1C_ALL_CONFIG_EVIDENCE", "/tmp/p5fr1c_all_config_evidence", "/workspace/P5FR1C_DERIVE_INTERRUPTED_20260817T100730Z_640"]},
+  "environment": {"preferred": "torchhuy", "conda_export": "unavailable", "pip_freeze": "unavailable", "system_python": "3.12.3", "git": "2.43.0", "git_lfs": "3.4.1", "requirements_sha256": "71751ee469d1d9d1e47ad51f4155a8d56558ff78fa66806dd4c374ef35e0dc3a"},
+  "read_first": ["PROJECT_HANDOFF_PHASE5_20260818.md", "NEXT_MACHINE_START.md", "runs/phase5/hsir/P5FR1CE1A_FINAL_FORENSIC/FINAL_REPORT.md"],
+  "prohibitions": ["do not immediately rerun P5FR1C/P5FR1CE1", "do not rerun 1725 derive", "do not reopen medical", "do not begin P5-G"]
+}

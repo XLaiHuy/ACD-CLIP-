@@ -1,0 +1,11 @@
+{
+  "command": "tools/audit_p5fr1c_mvtec_posthoc.py --allow-gt",
+  "completion_status": "FAIL",
+  "elapsed_seconds": 3.0787277221679688,
+  "exit_code": 1,
+  "schema_version": "P5FR1C_EVALUATION_COMMAND_STATUS_V1",
+  "stderr": "/workspace/ACD-CLIP-P5FR1C/model/tokenizer.py:10: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.\n  from pkg_resources import packaging\nTraceback (most recent call last):\n  File \"/workspace/ACD-CLIP-P5FR1C/tools/audit_p5fr1c_mvtec_posthoc.py\", line 381, in <module>\n    if __name__=='__main__': main()\n                             ^^^^^^\n  File \"/workspace/ACD-CLIP-P5FR1C/tools/audit_p5fr1c_mvtec_posthoc.py\", line 377, in main\n    result=evaluate(); status.update({\"end_time\":now_iso(),\"elapsed_seconds\":time.time()-start,\"exit_code\":0,\"completion_status\":\"PASS\",\"gt_read\":True}); atomic_json(RUN_STATUS_PATH,status); print(json.dumps(result,indent=2,sort_keys=True))\n           ^^^^^^^^^^\n  File \"/workspace/ACD-CLIP-P5FR1C/tools/audit_p5fr1c_mvtec_posthoc.py\", line 323, in evaluate\n    g0_subchecks = integrity_subchecks(config_ids)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/ACD-CLIP-P5FR1C/tools/audit_p5fr1c_mvtec_posthoc.py\", line 119, in integrity_subchecks\n    expected_ids = [x[\"config_id\"] for x in load_configs()[1]]\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/ACD-CLIP-P5FR1C/tools/audit_p5fr1c_mvtec_posthoc.py\", line 119, in <listcomp>\n    expected_ids = [x[\"config_id\"] for x in load_configs()[1]]\n                    ~^^^^^^^^^^^^^\nTypeError: tuple indices must be integers or slices, not str\n",
+  "stdout": "",
+  "utc_end": "2026-08-17T14:07:28.486496366Z",
+  "utc_start": "2026-08-17T14:07:25.407935461Z"
+}
