@@ -1,0 +1,81 @@
+{
+  "reconciliation_id": "P5-E0RC_LATE_COMPLETION_RECONCILIATION",
+  "scope": "artifact-only reconciliation of the single frozen E0R evaluation",
+  "forbidden": ["evaluator rerun", "model forward", "GT reload", "pixel metric recomputation", "frozen-cache recomputation", "evidence recomputation", "tuning", "candidate change", "medical evaluation", "E1 implementation"],
+  "historical_terminals_immutable": {
+    "original_e0": "P5E0_HRIP_AUDIT_INVALID",
+    "original_e0r": "P5E0R_EVALUATOR_INVALID"
+  },
+  "frozen_inputs": {
+    "e0_gt_freeze_commit": "2f55fc32db7384b9de5293083870b0dda36de8a2",
+    "e0_invalid_result_commit": "9e8cc1d2c2cce5fe6622c36d553f52cca4f6a15a",
+    "e0r_protocol_commit": "3cdfe68794096e28bd5e801b43d44e2fb5384869",
+    "e0r_implementation_commit": "67b8fac4b0eb6b9262181c1320beecc3ff633203",
+    "e0r_invalid_result_commit": "b02ca12577d4e97980b4d575ef6c80ebcf09f55c",
+    "evaluator_source_sha256": "cde507daf114ddecbb0d589a1276adf017fe063a7e0840b06438f4406ca517d2",
+    "late_snapshot": "/workspace/P5E0R_LATE_COMPLETION_SNAPSHOT"
+  },
+  "reconciliation_rules": {
+    "parse_snapshot_only": true,
+    "no_gt_reload": true,
+    "no_raw_pixel_recomputation": true,
+    "allowed": ["JSON parsing", "CSV parsing", "finite-value validation", "12-class scalar arithmetic", "class bootstrap verification from existing per-class values"],
+    "tolerance": {"atol": 1e-12, "rtol": 1e-10}
+  },
+  "e0rc_g0": {
+    "semantics": "positive assertions only",
+    "requirements": [
+      "original E0 terminal unchanged",
+      "original E0R committed terminal unchanged",
+      "frozen E0 chain of custody exact",
+      "aggregate manifest exact",
+      "canonical ordering exact",
+      "historical E0 forwards=2162",
+      "historical duplicates=0",
+      "E0R model forwards=0",
+      "E0R training=0",
+      "E0R medical=false",
+      "E0R evidence_recomputed=false",
+      "original E0 files unchanged",
+      "original E0 tools unchanged",
+      "E0R evaluator source unchanged",
+      "no evaluator rerun",
+      "source/snapshot hashes equal",
+      "late artifacts structurally complete",
+      "late completion temporally consistent",
+      "shift_calls=2162 if reported",
+      "each shift length=518*518 if reported",
+      "cross_image_shift=false if reported",
+      "risk_fraction=0.20",
+      "triage_fraction=0.10",
+      "bootstrap_reps=2000",
+      "frozen seeds exact",
+      "no tuning",
+      "candidate=NONE"
+    ],
+    "excluded_negative_reporting_fields": ["original_e0_files_modified", "original_e0_tools_modified"]
+  },
+  "scientific_gates": {
+    "G1": "lower95(HRIP matched-win)>0.5 and supportive_classes>=8/12",
+    "G2": "lower95(HRIP-E_nonlocal matched-win)>0 and positive_direction_classes>=8/12",
+    "G3": "lower95(HRIP_aligned-HRIP_shifted)>0 and aligned_better_classes>=8/12",
+    "G4": "lower95(C_AP_delta)>0 and lower95(R_pos_delta)>0 and upper95(R_neg_delta)<=0",
+    "risk_fraction": 0.20,
+    "triage_fraction": 0.10,
+    "bootstrap_unit": "class",
+    "bootstrap_reps": 2000,
+    "seeds": {"hrip_matched_win": 5101, "centroid_matched_win": 5102, "hrip_minus_centroid": 5103, "aligned_minus_shifted": 5104, "c_ap_delta": 5105, "r_pos_delta": 5106, "r_neg_delta": 5107}
+  },
+  "shift_seed_note": "Any standalone shifted descriptive bootstrap is provenance-only; G3 authority is exclusively the paired aligned-minus-shifted delta with seed 5104.",
+  "decision_tree": {
+    "g0_failure": "E0RC_TERMINAL=P5E0RC_RECONCILIATION_INVALID; RECONCILED_SCIENTIFIC_TERMINAL=NOT_REACHED",
+    "g0_pass": "E0RC_TERMINAL=P5E0RC_LATE_COMPLETION_RECONCILED; apply original G1-G4 precedence",
+    "e1": "authorized only if E0RC_G0 and all G1-G4 pass"
+  },
+  "outputs": ["LATE_ARTIFACT_INVENTORY.json", "METRIC_RECONCILIATION.json", "DECISION.json", "OUTPUT_CHECK.json", "REPORT.md"],
+  "no_rerun": true,
+  "model_forwards": 0,
+  "training_steps": 0,
+  "medical": false,
+  "candidate": "NONE"
+}
