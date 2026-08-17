@@ -1,0 +1,16 @@
+{
+  "family": "PCRR",
+  "count": 8,
+  "dimensions": {
+    "witness_pool": ["witness_local", "pooled_peer_pairs"],
+    "witness_aggregation": ["mean", "median"],
+    "stage_aggregation": ["mean", "median"]
+  },
+  "formula": {
+    "d_query_peer": "1-c_k",
+    "d_peer_peer": "1-G_ab",
+    "local": "(1 + count_{l != k}(d_kl <= d_qk))/8",
+    "pooled": "(1 + count_{a < b}(d_ab <= d_qk))/29"
+  },
+  "complexity_rank": {"pcrr_witness_local_mean_mean": 0, "pcrr_witness_local_mean_median": 1, "pcrr_witness_local_median_mean": 2, "pcrr_witness_local_median_median": 3, "pcrr_pooled_peer_pairs_mean_mean": 4, "pcrr_pooled_peer_pairs_mean_median": 5, "pcrr_pooled_peer_pairs_median_mean": 6, "pcrr_pooled_peer_pairs_median_median": 7}
+}

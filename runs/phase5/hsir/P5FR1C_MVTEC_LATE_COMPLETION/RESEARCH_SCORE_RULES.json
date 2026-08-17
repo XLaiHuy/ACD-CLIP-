@@ -1,0 +1,67 @@
+{
+  "adaptability": {
+    "canonical_zero_tune_strength": {
+      "max": 5,
+      "rule": "5 if zero-tune G2 and G4 pass; 3 if either passes; otherwise 0"
+    },
+    "config_sensitivity": {
+      "max": 5,
+      "rule": "5 if selected-minus-median delta_vs_B1 >= 0.10; 3 if >=0.05; 1 if >0; otherwise 0"
+    },
+    "no_target_calibration_simplicity": {
+      "max": 5,
+      "rule": "5 for every frozen parameter-free family"
+    },
+    "outer_class_consistency": {
+      "max": 5,
+      "rule": "5 if selected config frequency >= 0.60; 3 if >=0.40; 1 if >=0.20; otherwise 0"
+    }
+  },
+  "cannot_override_scientific_eligibility": true,
+  "evidence": {
+    "alignment_grounding": {
+      "max": 3,
+      "rule": "3 if G3 passes"
+    },
+    "all_config_reconstruction": {
+      "max": 3,
+      "rule": "3 if GT-free manifest and all-config checks pass"
+    },
+    "class_direction_consistency": {
+      "max": 2,
+      "rule": "2 if all four gate direction counts meet their frozen thresholds"
+    },
+    "cv_integrity": {
+      "max": 1,
+      "rule": "1 if independent output check passes"
+    },
+    "multiplicity_confirmation": {
+      "max": 1,
+      "rule": "1 if Holm-adjusted family-vs-B1 p<0.05"
+    }
+  },
+  "frozen_before_gt": true,
+  "novelty": "DESIGN_PRIOR_SCORE.json",
+  "schema_version": "P5FR1C_RESEARCH_SCORE_RULES_V1",
+  "success": {
+    "G1": 4,
+    "G2": 7,
+    "G3": 3,
+    "G4": 6
+  },
+  "total": 100,
+  "useful": {
+    "C_AP": {
+      "max": 7,
+      "rule": "7 if lower95 delta > 0 else 0"
+    },
+    "R_neg": {
+      "max": 6,
+      "rule": "6 if upper95 delta <= 0 else 0"
+    },
+    "R_pos": {
+      "max": 7,
+      "rule": "7 if lower95 delta > 0 else 0"
+    }
+  }
+}

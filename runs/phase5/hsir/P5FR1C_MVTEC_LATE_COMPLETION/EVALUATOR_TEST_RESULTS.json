@@ -1,0 +1,27 @@
+{
+  "schema_version": "P5FR1C_EVALUATOR_TEST_RESULTS_V1",
+  "status": "PASS",
+  "failed": [],
+  "gt_accessed": false,
+  "model_forwards": 0,
+  "tests": {
+    "T01_one_sided_known": true,
+    "T02_one_sided_differs_two_sided": true,
+    "T03_holm_reference": true,
+    "T04_eligible_order_independent": true,
+    "T05_best_ranking_max_delta": true,
+    "T06_head_to_head_known": true,
+    "T07_no_eligible_none": true,
+    "T08_one_eligible": true,
+    "T09_no_separation": true,
+    "T10_zero_tune_nonempty": true,
+    "T11_fold_leakage": true,
+    "T12_holdout_excluded": true,
+    "T13_per_image_shift": true,
+    "T14_checker_gate_corruption": true,
+    "T15_checker_winner_corruption": true,
+    "T16_no_model_loader": true,
+    "T17_model_forwards_zero_path": true,
+    "T18_historical_helper_reuse": true
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "schema_version": "P5F_CANONICAL_CONFIGS_V2",
+  "frozen_before_gt": true,
+  "candidate": "NONE",
+  "families": {
+    "PCRR": [
+      {"config_id": "pcrr_witness_local_mean_mean", "witness_pool": "witness_local", "witness_aggregation": "mean", "stage_aggregation": "mean", "complexity_rank": 0},
+      {"config_id": "pcrr_witness_local_mean_median", "witness_pool": "witness_local", "witness_aggregation": "mean", "stage_aggregation": "median", "complexity_rank": 1},
+      {"config_id": "pcrr_witness_local_median_mean", "witness_pool": "witness_local", "witness_aggregation": "median", "stage_aggregation": "mean", "complexity_rank": 2},
+      {"config_id": "pcrr_witness_local_median_median", "witness_pool": "witness_local", "witness_aggregation": "median", "stage_aggregation": "median", "complexity_rank": 3},
+      {"config_id": "pcrr_pooled_peer_pairs_mean_mean", "witness_pool": "pooled_peer_pairs", "witness_aggregation": "mean", "stage_aggregation": "mean", "complexity_rank": 4},
+      {"config_id": "pcrr_pooled_peer_pairs_mean_median", "witness_pool": "pooled_peer_pairs", "witness_aggregation": "mean", "stage_aggregation": "median", "complexity_rank": 5},
+      {"config_id": "pcrr_pooled_peer_pairs_median_mean", "witness_pool": "pooled_peer_pairs", "witness_aggregation": "median", "stage_aggregation": "mean", "complexity_rank": 6},
+      {"config_id": "pcrr_pooled_peer_pairs_median_median", "witness_pool": "pooled_peer_pairs", "witness_aggregation": "median", "stage_aggregation": "median", "complexity_rank": 7}
+    ],
+    "CSRC": [
+      {"config_id": "csrc_spearman_average_tie_all_three_mean", "association": "spearman_average_tie", "pair_scope": "all_three", "pair_aggregation": "mean", "complexity_rank": 0},
+      {"config_id": "csrc_spearman_average_tie_all_three_max", "association": "spearman_average_tie", "pair_scope": "all_three", "pair_aggregation": "max", "complexity_rank": 1},
+      {"config_id": "csrc_spearman_average_tie_adjacent_mean", "association": "spearman_average_tie", "pair_scope": "adjacent", "pair_aggregation": "mean", "complexity_rank": 2},
+      {"config_id": "csrc_spearman_average_tie_adjacent_max", "association": "spearman_average_tie", "pair_scope": "adjacent", "pair_aggregation": "max", "complexity_rank": 3},
+      {"config_id": "csrc_kendall_tau_b_all_three_mean", "association": "kendall_tau_b", "pair_scope": "all_three", "pair_aggregation": "mean", "complexity_rank": 4},
+      {"config_id": "csrc_kendall_tau_b_all_three_max", "association": "kendall_tau_b", "pair_scope": "all_three", "pair_aggregation": "max", "complexity_rank": 5},
+      {"config_id": "csrc_kendall_tau_b_adjacent_mean", "association": "kendall_tau_b", "pair_scope": "adjacent", "pair_aggregation": "mean", "complexity_rank": 6},
+      {"config_id": "csrc_kendall_tau_b_adjacent_max", "association": "kendall_tau_b", "pair_scope": "adjacent", "pair_aggregation": "max", "complexity_rank": 7}
+    ],
+    "ASR": [
+      {"config_id": "asr_machine_rank_mean", "rank_policy": "machine_rank", "stage_aggregation": "mean", "complexity_rank": 0},
+      {"config_id": "asr_machine_rank_median", "rank_policy": "machine_rank", "stage_aggregation": "median", "complexity_rank": 1},
+      {"config_id": "asr_energy_95_mean", "rank_policy": "energy_95", "stage_aggregation": "mean", "complexity_rank": 2},
+      {"config_id": "asr_energy_95_median", "rank_policy": "energy_95", "stage_aggregation": "median", "complexity_rank": 3},
+      {"config_id": "asr_energy_99_mean", "rank_policy": "energy_99", "stage_aggregation": "mean", "complexity_rank": 4},
+      {"config_id": "asr_energy_99_median", "rank_policy": "energy_99", "stage_aggregation": "median", "complexity_rank": 5}
+    ],
+    "PGM": [
+      {"config_id": "pgm_sum_whitened_mean", "whitened_aggregation": "sum_whitened", "stage_aggregation": "mean", "complexity_rank": 0},
+      {"config_id": "pgm_sum_whitened_median", "whitened_aggregation": "sum_whitened", "stage_aggregation": "median", "complexity_rank": 1},
+      {"config_id": "pgm_max_whitened_mean", "whitened_aggregation": "max_whitened", "stage_aggregation": "mean", "complexity_rank": 2},
+      {"config_id": "pgm_max_whitened_median", "whitened_aggregation": "max_whitened", "stage_aggregation": "median", "complexity_rank": 3}
+    ]
+  },
+  "total_configs": 26,
+  "canonical_zero_tune": {
+    "PCRR": "pcrr_witness_local_mean_mean",
+    "CSRC": "csrc_spearman_average_tie_all_three_mean",
+    "ASR": "asr_machine_rank_mean",
+    "PGM": "pgm_sum_whitened_mean"
+  }
+}
