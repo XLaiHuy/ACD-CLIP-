@@ -1,0 +1,71 @@
+{
+  "schema_version": "P5F_PROTOCOL_V2",
+  "study": "P5-F MVTec Four-Family Isolated Optimization Study v2",
+  "historical_base_commit": "1d636895e9f6f299d14f92ae150aebf4e3b4fb80",
+  "branch": "autopilot/p5-f-mvtec-four-family-v2",
+  "scope": "industrial-only MVTec AD development-selection; no medical transfer",
+  "candidate": "NONE",
+  "training_steps": 0,
+  "medical": false,
+  "dataset": {"root": "/workspace/data/mvtec_ad", "metadata_sha256": "3a5e304ea16bba82e6e525d188698e91ca92b718696f8c257ed435d235b4cc2c", "classes": 15, "records": 1725, "image_size": [518, 518], "patch_grid": [37, 37], "patch_count": 1369, "canonical_ordering_hash": "e1bdc3574b553532d24e0f2b6e450315f4c7474685f4dac2d64cac24a99bdb65"},
+  "checkpoint_sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+  "config_sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4",
+  "authoritative_helpers": {
+    "b1_selector": "tools/audit_phase5_reference_validity.py::nonlocal_peers",
+    "percentile_rank": "tools/audit_phase5_hsir.py::percentile_rank",
+    "population_std": "tools/audit_phase5_hsir.py::population_std",
+    "matching": "tools/audit_phase5_second_evidence.py::deterministic_matches",
+    "matched_win": "tools/audit_phase5_second_evidence.py::matched_win_rate",
+    "pairwise_risks": "tools/audit_phase5_hsir.py::pairwise_risks",
+    "triage": "tools/audit_phase5_second_evidence.py::candidate_triage",
+    "shift": "tools/audit_phase5_hsir.py::shifted_map",
+    "model_loader": "tools/audit_p4v_phase2b_readiness.py::load_model",
+    "text_features": "utils.py::get_phase2b_global_text_features",
+    "native_model": "model/adapter.py::ACDCLIP.forward and vision_text_fusion_gate_seg"
+  },
+  "gt_free_barrier": {
+    "official_loader": "isolated image-only loader; canonical index/class/image path only",
+    "forbidden_before_manifest": ["label", "mask_path", "ground_truth", "target", "target_occupancy", "mask pixels", "GT metrics"],
+    "image_preprocessing": "RGB, Resize(518,518) bicubic, ToTensor, CLIP mean/std, no augmentation",
+    "model_forward": "torch.inference_mode, strict FP32, one successful forward per canonical identity",
+    "model_forwards": 1725,
+    "duplicate_forwards": 0,
+    "cache_contents": "native logits/margins, D_rank, B1 peer IDs/validity/centroid, c [3,1369,8], G upper [3,1369,36]",
+    "cache_forbidden": ["images", "masks", "labels", "target occupancy", "768-D stage features"],
+    "finalize_before_gt": true
+  },
+  "b1_selector": {
+    "shared_representation": "normalize(mean of the three aligned normalized stage features)",
+    "pool": "D_rank strictly below within-image median and every stage anomaly percentile strictly below 0.5",
+    "spatial_exclusion": "ChebyshevDistance(query,peer)>3",
+    "K": 8,
+    "ranking": "descending shared cosine; ascending patch index tie",
+    "same_peer_ids_all_stages": true,
+    "invalid_reference": "valid_reference=false; peer IDs safe-filled only for computation; B1/family evidence zero; validity separate"
+  },
+  "common_geometry": {
+    "c": "query-peer cosine, [3,1369,8], normalized FP32 stage features",
+    "G": "peer-peer cosine upper triangle including diagonal, [3,1369,36]",
+    "b1_centroid": "normalize(mean eight peer features), then 1-cosine per stage averaged over stages",
+    "normalization": "raw stage evidence -> authoritative within-image average-tie percentile_rank per component -> frozen family stage aggregation",
+    "invalid": "zero evidence, candidate_valid=false, coverage diagnostic only"
+  },
+  "families": {
+    "PCRR": {"configs": 8, "formula": "peer-relative witness rank; local denominator 8 or pooled denominator 29; mean/median witness and stage aggregation"},
+    "CSRC": {"configs": 8, "formula": "Spearman average-tie or Kendall tau-b inconsistency=(1-association)/2 over all-three or adjacent stage pairs; mean/max pair aggregation"},
+    "ASR": {"configs": 6, "formula": "centered peer Gram eigenspace residual outside subspace; machine-rank/energy-95/energy-99; mean/median stages"},
+    "PGM": {"configs": 4, "formula": "centered peer Gram whitened z_j^2/(lambda_j+eps); sum/max and mean/median stages"}
+  },
+  "config_total": 26,
+  "config_search_frozen": true,
+  "folds": "FOLD_ASSIGNMENT.json",
+  "seed_derivation": "uint32(first 8 hex chars SHA256(P5Fv2|family|fold|config_id|metric_name))",
+  "bootstrap": {"unit": "class", "repetitions": 2000, "seeds": {"matched_win": 5101, "centroid_matched_win": 5102, "family_minus_b1": 5103, "aligned_minus_shifted": 5104, "C_AP": 5105, "R_pos": 5106, "R_neg": 5107}},
+  "selection": {"dev_only": true, "outer_folds": 5, "metrics": ["M_WIN", "M_CAP", "M_POS", "M_SAFE"], "rule": "gate pass count, direction count, worst normalized margin rank, mean normalized margin rank, lower complexity rank, lexicographically smallest config ID"},
+  "evaluation": {"risk_fraction": 0.2, "triage_fraction": 0.1, "same_pairs_all_evidence": true, "shift_per_image": true, "shift_pixels": [172, 172], "gt_evaluation_only": true},
+  "gates": {"G0": "integrity/parity/isolation/no-leakage/freeze/forward accounting", "G1": "lower95 matched-win > 0.5 and supportive >= 10/15", "G2": "lower95 family-minus-B1 > 0 and positive >= 10/15", "G3": "lower95 aligned-minus-shifted > 0 and aligned-better >= 10/15", "G4": "lower95 C_AP > 0, lower95 R_pos > 0, upper95 R_neg <= 0"},
+  "multiple_family": {"test": "exact 2^15 paired class sign-flip on OOF matched delta", "holm_across": 4, "alpha": 0.05},
+  "commit_state_machine": {"commit1": "phase5: freeze MVTec isolated four-family study", "commit2": "phase5: implement MVTec isolated four-family study", "commit3": "phase5: freeze MVTec all-config GT-free evidence", "commit4": "phase5: audit MVTec four-family study", "commit5": "phase5: select MVTec geometry family only if provisional winner exists", "staging": "exact paths only; no git add .; no amend; no force push"},
+  "recovery": {"atomic_records": true, "run_status_persisted": true, "inflight_refuses_rerun": true, "no_result_driven_retry": true},
+  "prohibitions": ["training", "medical evaluation", "Phase2B modification", "B1 selector tuning", "K/radius/threshold/risk/triage tuning", "new candidate", "hidden rerun", "GT before freeze", "model forward after common pass", "sibling-family import", "large feature cache", "historical artifact modification"]
+}

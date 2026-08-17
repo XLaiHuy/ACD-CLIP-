@@ -1,0 +1,42 @@
+{
+  "schema_version": "P5F_METRIC_PROTOCOL_V2",
+  "primary_unit": "class",
+  "bootstrap_reps": 2000,
+  "bootstrap_seeds": {
+    "matched_win": 5101,
+    "centroid_matched_win": 5102,
+    "family_minus_b1": 5103,
+    "aligned_minus_shifted": 5104,
+    "C_AP": 5105,
+    "R_pos": 5106,
+    "R_neg": 5107
+  },
+  "matching": {
+    "source": "tools/audit_phase5_second_evidence.py::deterministic_matches",
+    "same_pairs_for_family_b1_shifted": true,
+    "candidate_evidence_enters_matching": false
+  },
+  "risk": {"fraction": 0.2, "selection": "top ceil(0.20*N) D_rank pixels per class"},
+  "triage": {"fraction": 0.1, "selection": "top ceil(0.10*|risk_population|) evidence pixels"},
+  "shift": {"source": "tools/audit_phase5_hsir.py::shifted_map", "height": 518, "width": 518, "shift": [172, 172], "per_image": true, "shift_gt": false, "shift_score": false, "shift_d_rank": false},
+  "gates": {
+    "G0": "all integrity, parity, isolation, freeze, forward, and no-leakage assertions",
+    "G1": "lower95(class-bootstrap family matched-win) > 0.5 and supportive classes >= 10/15",
+    "G2": "lower95(paired family-minus-B1 matched-win) > 0 and positive classes >= 10/15",
+    "G3": "lower95(paired aligned-minus-shifted family win) > 0 and aligned-better classes >= 10/15",
+    "G4": "lower95(C_AP delta) > 0, lower95(R_pos delta) > 0, upper95(R_neg delta) <= 0"
+  },
+  "multiple_family_control": {
+    "test": "exact 2^15 paired class sign-flip test on OOF matched delta vs B1",
+    "correction": "Holm across four families",
+    "alpha": 0.05,
+    "winner_requires": "G1-G4 and Holm-adjusted p < 0.05"
+  },
+  "selection": {
+    "dev_margins": ["lower95 matched delta", "lower95 C_AP delta", "lower95 R_pos delta", "-upper95 R_neg delta"],
+    "gate_pass_count": "count of four positive/nonnegative margins",
+    "direction_count": "correct-sign class outcomes across four metrics, maximum 48",
+    "ranking": "per-family normalized margins in [0,1]; lexicographic gate count, direction count, worst rank, mean rank, lower complexity rank, lexicographically smaller config id"
+  },
+  "research_value": {"novelty": 15, "adaptability": 20, "useful": 20, "compatibility": 15, "success": 20, "evidence": 10, "separate_from_scientific_eligibility": true}
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": "P5F_FAIRNESS_CONTRACT_V2",
+  "scope": "PCRR, CSRC, ASR, PGM on identical MVTec common geometry",
+  "shared": {
+    "dataset": "MVTec AD TEST",
+    "domain": "Industrial",
+    "images": 1725,
+    "classes": 15,
+    "image_size": [518, 518],
+    "patch_grid": [37, 37],
+    "b1_peer_selector": "tools/audit_phase5_reference_validity.py::nonlocal_peers",
+    "peer_count": 8,
+    "spatial_exclusion_chebyshev": 3,
+    "d_rank_population": "strict D_rank below within-image median and all three stage anomaly percentiles < 0.5",
+    "gt_free_forward_passes": "one per canonical identity",
+    "risk_fraction": 0.2,
+    "triage_fraction": 0.1,
+    "folds": 5,
+    "bootstrap_reps": 2000,
+    "matching": "frozen deployed score + D_rank deterministic same-class quantile-bin matching",
+    "shift": "per-image np.roll by (172,172) pixels after evidence construction",
+    "baselines": ["B1 centroid", "canonical zero-tune family config"],
+    "metrics": ["matched pair win", "delta vs B1", "aligned minus shifted", "C_AP", "R_pos", "R_neg", "secondary pixel AUROC", "secondary pixel AP"]
+  },
+  "family_isolation": {
+    "pcrr": "PCRR configs only plus B1 and current development-class metrics",
+    "csrc": "CSRC configs only plus B1 and current development-class metrics",
+    "asr": "ASR configs only plus B1 and current development-class metrics",
+    "pgm": "PGM configs only plus B1 and current development-class metrics",
+    "cross_family_selection": false,
+    "posthoc_candidate_invention": false
+  },
+  "forbidden": ["training", "medical evaluation", "Phase2B update", "B1 selector tuning", "threshold tuning", "risk/triage sweep", "hidden rerun", "GT before freeze", "sibling-family imports"]
+}

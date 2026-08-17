@@ -1,0 +1,62 @@
+{
+  "schema_version": "P5F_INPUT_CHECK_V2",
+  "setup_status": "PASS",
+  "dataset_ready": "PASS",
+  "repo": "/workspace/ACD-CLIP-P5F",
+  "base_repo": "/workspace/ACD-CLIP-",
+  "branch": "autopilot/p5-f-mvtec-four-family-v2",
+  "start_head": "1d636895e9f6f299d14f92ae150aebf4e3b4fb80",
+  "required_base_head": "1d636895e9f6f299d14f92ae150aebf4e3b4fb80",
+  "remote_start_head": null,
+  "worktree_clean": true,
+  "dataset": {
+    "name": "MVTec AD",
+    "slug": "ipythonx/mvtec-ad",
+    "root": "/workspace/data/mvtec_ad",
+    "metadata": "/workspace/ACD-CLIP-P5F/dataset/hub/MVTec.jsonl",
+    "metadata_sha256": "3a5e304ea16bba82e6e525d188698e91ca92b718696f8c257ed435d235b4cc2c",
+    "canonical_identity_path": "/workspace/P5F_MVTEC_CANONICAL_IDENTITIES.json",
+    "canonical_identity_sha256": "c0ace7f629a636db6393aca7bebe1b37a6a9f5673ff59ff8b6800484642faa34",
+    "canonical_ordering_hash": "e1bdc3574b553532d24e0f2b6e450315f4c7474685f4dac2d64cac24a99bdb65",
+    "classes": 15,
+    "records": 1725,
+    "image_size": [518, 518],
+    "patch_grid": [37, 37],
+    "image_paths_valid": true,
+    "provided_mask_paths_valid": true,
+    "mask_pixels_read": false,
+    "performance_metrics_read": false
+  },
+  "frozen_runtime": {
+    "python": "/workspace/miniforge3/envs/torchhuy/bin/python",
+    "python_version": "3.11.15",
+    "torch": "2.5.1+cu121",
+    "torch_cuda": "12.1",
+    "cuda_available": true,
+    "gpu": "NVIDIA GeForce RTX 3090",
+    "dependency_status": "PASS",
+    "required_project_imports": "PASS",
+    "training_steps": 0,
+    "medical": false
+  },
+  "checkpoint": {
+    "path": "/workspace/ACD-CLIP-/runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+    "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34"
+  },
+  "config": {
+    "path": "/workspace/ACD-CLIP-/runs/phase4/k1/short64_seed0_attempt5/config.json",
+    "sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4"
+  },
+  "authoritative_source_hashes": {
+    "b1_selector": "06ffad8199e3ad06d47628b3add3fa9f80e1e0008f9f1386a55c601ca966c88",
+    "percentile_risk_helpers": "4821ce80a09d98ff7214398151b05078c57c47ea13a9418997ce5a887c5e9cb4",
+    "matching_triage_helpers": "96d55e55212ee54ed3dbf6e1001cd1cd24ad528a073687daf7473bcd4297fa9c",
+    "model_loading": "c8bef34bd2cc50f9031d93190583dc98e47096483fdebf748be576b9187c54d1",
+    "model_adapter": "e854b79636f9579305b8246f8afe394def67fa9eacccf661429afe9ae89fd4ef",
+    "text_features": "236f5af1ca2f4ff2dcf97593120af534e201e32866e9ec9d54d4afb6535bb572",
+    "dataset_info": "86f321ef54575e7142460ace05d100db79fbd67e1c3274e7f37e9a3ffcbb366c"
+  },
+  "source_audit_status": "PASS: B1 selector, native score/D_rank, MVTec class text API, and mask-opening dataset behavior reviewed",
+  "r0_cache_available": false,
+  "scientific_inference_started": false
+}
