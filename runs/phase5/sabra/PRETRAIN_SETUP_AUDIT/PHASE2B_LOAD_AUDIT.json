@@ -1,0 +1,130 @@
+{
+  "all_model_parameters_frozen": true,
+  "architecture_contract_pass": true,
+  "backward_calls": 0,
+  "checkpoint_epoch": 5,
+  "h6_enabled": false,
+  "h6_route_invocations": 0,
+  "image_stages": [
+    8,
+    16,
+    24
+  ],
+  "model_eval": true,
+  "model_name": "ViT-L-14-336",
+  "no_training": true,
+  "optimizer_steps": 0,
+  "patch_count_expected": 1369,
+  "phase2b_load_pass": true,
+  "projected_patch_dimension_expected": 768,
+  "sample_records": [
+    {
+      "class_name": "fryum",
+      "feature_shapes": [
+        [
+          1,
+          1369,
+          768
+        ],
+        [
+          1,
+          1369,
+          768
+        ],
+        [
+          1,
+          1369,
+          768
+        ]
+      ],
+      "image_path": "fryum/Data/Images/Anomaly/009.JPG",
+      "native_stage_logits_shape": [
+        3,
+        1,
+        1369,
+        2
+      ],
+      "native_stage_margin_shape": [
+        3,
+        1,
+        1369
+      ],
+      "reconstructed_probability_shape": [
+        1,
+        2,
+        518,
+        518
+      ],
+      "sample_index": 0,
+      "source_probability_shape": [
+        1,
+        518,
+        518
+      ],
+      "source_reconstruction_max_abs_probability_error": 0.0,
+      "used_ground_truth_label": false,
+      "used_ground_truth_mask": false
+    },
+    {
+      "class_name": "candle",
+      "feature_shapes": [
+        [
+          1,
+          1369,
+          768
+        ],
+        [
+          1,
+          1369,
+          768
+        ],
+        [
+          1,
+          1369,
+          768
+        ]
+      ],
+      "image_path": "candle/Data/Images/Anomaly/004.JPG",
+      "native_stage_logits_shape": [
+        3,
+        1,
+        1369,
+        2
+      ],
+      "native_stage_margin_shape": [
+        3,
+        1,
+        1369
+      ],
+      "reconstructed_probability_shape": [
+        1,
+        2,
+        518,
+        518
+      ],
+      "sample_index": 1,
+      "source_probability_shape": [
+        1,
+        518,
+        518
+      ],
+      "source_reconstruction_max_abs_probability_error": 0.0,
+      "used_ground_truth_label": false,
+      "used_ground_truth_mask": false
+    }
+  ],
+  "smoke_indices": [
+    0,
+    1
+  ],
+  "smoke_sample_count": 2,
+  "text_stages": [
+    4,
+    8,
+    12
+  ],
+  "visual_grid_size": [
+    37,
+    37
+  ]
+}

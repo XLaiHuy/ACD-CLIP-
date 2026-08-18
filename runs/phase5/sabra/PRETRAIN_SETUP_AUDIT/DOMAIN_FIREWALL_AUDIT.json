@@ -1,0 +1,50 @@
+{
+  "gt_evaluation_path": {
+    "implementation": "tools/sabra/data.py::VisaEvaluationDataset",
+    "used_only_for_deterministic_mask_loader_check": true
+  },
+  "gt_firewall_pass": true,
+  "gt_free_evidence_path": {
+    "implementation": "tools/sabra/data.py::VisaEvidenceDataset",
+    "labels_exposed": false,
+    "masks_exposed": false,
+    "runtime_mask_pixel_guard": {
+      "contains_label": false,
+      "contains_mask": false,
+      "contains_mask_path": false,
+      "gt_free_image_only": true,
+      "output_keys": [
+        "class_name",
+        "image",
+        "image_path",
+        "index"
+      ],
+      "read_attempts": 0,
+      "status": "PASS"
+    },
+    "runtime_smoke_used": true
+  },
+  "historical_p5_evaluation_run": false,
+  "medical_image_or_mask_opened": false,
+  "medical_reads": 0,
+  "mvtec_asset_level_audit": {
+    "archive_exists": false,
+    "archive_expected_hash": "61124d44b1e62ad0dc64e1b6111c7ffcfda20cd36a92f68e14df0a8016cf477b",
+    "archive_hash": null,
+    "archive_hash_matches_when_present": null,
+    "archive_path": "/workspace/data/_downloads/p5f_mvtec_20260817T062919Z/mvtec-ad.zip",
+    "asset_level_only": true,
+    "metadata_expected_hash": "3a5e304ea16bba82e6e525d188698e91ca92b718696f8c257ed435d235b4cc2c",
+    "metadata_hash": "3a5e304ea16bba82e6e525d188698e91ca92b718696f8c257ed435d235b4cc2c",
+    "metadata_hash_matches_when_known": true,
+    "metadata_path": "/workspace/ACD-CLIP-/dataset/hub/MVTec.jsonl",
+    "mvtec_science_reads": 0,
+    "predictor_or_evaluator_run": false,
+    "recursive_sample_inspection_performed": false,
+    "root_exists": true,
+    "root_path": "/workspace/data/mvtec_ad"
+  },
+  "mvtec_predictor_or_evaluator_run": false,
+  "mvtec_science_reads": 0,
+  "training_steps": 0
+}

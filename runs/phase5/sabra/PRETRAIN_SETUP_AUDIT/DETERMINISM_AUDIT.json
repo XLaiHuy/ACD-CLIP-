@@ -1,0 +1,88 @@
+{
+  "deterministic_loader_pass": true,
+  "image_byte_or_numerical_identical": true,
+  "image_max_abs_difference": 0.0,
+  "image_sample_index": 0,
+  "image_tensor_shape": [
+    3,
+    518,
+    518
+  ],
+  "mask_binary": true,
+  "mask_byte_or_numerical_identical": true,
+  "mask_max_abs_difference": 0.0,
+  "mask_sample_index": 0,
+  "mask_tensor_shape": [
+    1,
+    518,
+    518
+  ],
+  "mask_unique_values": [
+    0.0,
+    1.0
+  ],
+  "runtime_test_command": {
+    "argv": [
+      "/workspace/ACD-CLIP-/.runtime/miniconda3/envs/torchhuy/bin/python",
+      "/workspace/ACD-CLIP-/tools/sabra/test_setup.py"
+    ],
+    "returncode": 0,
+    "stderr": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.191s\n\nOK",
+    "stdout": ""
+  },
+  "transform_contract": {
+    "forbidden_ops": [
+      "Gaussian noise",
+      "ColorJitter",
+      "random rotation",
+      "affine",
+      "horizontal flip",
+      "vertical flip",
+      "random crop"
+    ],
+    "image": [
+      {
+        "interpolation": "bicubic",
+        "op": "Resize",
+        "size": [
+          518,
+          518
+        ]
+      },
+      {
+        "op": "ToTensor"
+      },
+      {
+        "mean": [
+          0.48145466,
+          0.4578275,
+          0.40821073
+        ],
+        "op": "Normalize",
+        "std": [
+          0.26862954,
+          0.26130258,
+          0.27577711
+        ]
+      }
+    ],
+    "mask": [
+      {
+        "interpolation": "nearest",
+        "op": "Resize",
+        "size": [
+          518,
+          518
+        ]
+      },
+      {
+        "op": "ToTensor"
+      },
+      {
+        "op": "binary_threshold",
+        "threshold": 0
+      }
+    ],
+    "stochastic_augmentation": false
+  }
+}
