@@ -1,0 +1,157 @@
+{
+  "schema_version": "SABRA_PRETRAIN_LOGIC_AUDIT_PROTOCOL_V1",
+  "status": "FROZEN_BEFORE_SCIENTIFIC_GT_EVALUATION",
+  "protocol_commit_sha": null,
+  "study": "SABRA pre-training logic audit",
+  "primary_question": "Is the architecture logic sufficiently supported to justify a subsequent preregistered full-training study?",
+  "dataset": {
+    "name": "VisA",
+    "classes": ["candle", "capsules", "cashew", "chewinggum", "fryum", "macaroni1", "macaroni2", "pcb1", "pcb2", "pcb3", "pcb4", "pipe_fryum"],
+    "metadata_path": "dataset/hub/VisA.jsonl",
+    "metadata_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+    "image_size": 518,
+    "patch_grid": [37, 37],
+    "patch_count": 1369,
+    "patch_stride": 14,
+    "mask_transform": "nearest resize to 518x518; binary mask is >0",
+    "patch_occupancy": "mean of each non-overlapping 14x14 mask block",
+    "patch_anomaly_gt": "occupancy > 0",
+    "continuous_gt": "occupancy"
+  },
+  "provenance": {
+    "branch": "research/p5-sabra-g",
+    "reconciled_start_head": "1235b4506da5eead8419bb57eb1ecafcbda9775b",
+    "setup_readiness_path": "runs/phase5/sabra/PRETRAIN_SETUP_AUDIT/READINESS_DECISION.json",
+    "required_setup_terminal": "PRETRAIN_LOGIC_AUDIT_READY",
+    "checkpoint_path": "runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+    "checkpoint_sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+    "config_path": "runs/phase4/k1/short64_seed0_attempt5/config.json",
+    "config_sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4",
+    "clip_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+    "canonical_pgm_source": "tools/p5f_geometry/pgm.py",
+    "canonical_pcrr_source": "tools/p5f_geometry/pcrr.py",
+    "canonical_geometry_common_source": "tools/p5f_geometry/common.py",
+    "canonical_b1_reference": "tools/audit_phase5_reference_validity.py::nonlocal_peers"
+  },
+  "firewall": {
+    "mvtec_science_reads": 0,
+    "medical_reads": 0,
+    "phase2b_training_steps": 0,
+    "gt_free_cache_may_read": ["VisA RGB image pixels", "public class/image identity", "frozen Phase2B outputs"],
+    "gt_free_cache_forbidden": ["VisA labels", "VisA masks", "mask pixels", "raw RGB persistence", "persistent full 768-D features"],
+    "phase2b_frozen": true,
+    "h6_disabled": true
+  },
+  "deployment": {
+    "operator": ["native logits", "Gaussian blur kernel=7 sigma=1", "bilinear resize 518x518 align_corners=True", "mean three stages", "two-class softmax"],
+    "source": "model/adapter.py::ACDCLIP.vision_text_fusion_gate_seg(test_mode=True, domain=Industrial)",
+    "sidecar": "tools/sabra/phase2b.py::deploy_native_logits",
+    "parity_tolerance_max_abs": 1e-6,
+    "loss": "utils.calculate_seg_loss"
+  },
+  "b1": {
+    "k": 8,
+    "candidate_pool": ["D_rank < within-image median", "all three stage anomaly percentile ranks < 0.5", "Chebyshev spatial distance > 3"],
+    "search_representation": "L2-normalized mean of the three aligned normalized stage features",
+    "ordering": "descending cosine similarity; tie ascending patch index",
+    "primary": "p1..p8",
+    "reserve": "p9 exact next valid candidate in the same ordering",
+    "same_peer_ids_all_stages": true,
+    "valid_b1_rule": "candidate_count >= 8",
+    "valid_stability_rule": "candidate_count >= 9",
+    "never_fabricate_p9": true
+  },
+  "geometry": {
+    "packed_gram_layout": "diag8_then_offdiag28",
+    "packed_gram_values": 36,
+    "replacement": "replace one c slot and the corresponding G row/column with p9 cosines; replacement diagonal=1",
+    "pgm": {
+      "name": "pgm_sum_whitened_mean",
+      "source": "tools/p5f_geometry/pgm.py",
+      "rank_policy": "machine_rank",
+      "whitened_aggregation": "sum_whitened",
+      "stage_aggregation": "mean",
+      "formula": "H=I-11^T/8; w=1/8; C=HGH; b=H(c-Gw); sum_j 7*(b dot v_j)^2/lambda_j^2 over lambda_j > eps(float32)*max(1,max(lambda))*8"
+    },
+    "pcrr": {
+      "name": "pcrr_witness_local_mean_mean",
+      "source": "tools/p5f_geometry/pcrr.py",
+      "witness_pool": "witness_local",
+      "witness_aggregation": "mean",
+      "stage_aggregation": "mean",
+      "comparison": "peer distance <= query-to-peer distance; self excluded; witness=(1+count)/8"
+    },
+    "baseline_cdf": "all valid_b1 patches in the same image, per stage raw component, average ties; invalid patches excluded",
+    "perturbation_cdf": "same frozen baseline CDF; never recompute or rerank a perturbation image"
+  },
+  "stability": {
+    "boundary": "1 - abs(r_p8_to_p9-r_0)",
+    "influence": "1 - max_j abs(r_j-r_0)",
+    "robust": "min(r_0,r_1,...,r_8)",
+    "stability_clip": "clip to [0,1] only for numeric overflow/underflow",
+    "pgm_structural_trust": "S_P=min(S_boundary_P,S_influence_P); T_P=min(R_P,S_P)",
+    "pcrr_structural_trust_if_retained": "S_R=min(S_boundary_R,S_influence_R); T_R=min(R_R,S_R); TRUST=min(T_P,T_R)",
+    "trust_if_pcrr_drop": "TRUST=T_P"
+  },
+  "cache": {
+    "immutable": true,
+    "finalization_flag": "GT_FREE_CACHE_FINALIZED=true",
+    "required_fields": ["class", "image_id/path identity", "patch index", "native logits [3,1369,2]", "native margins [3,1369]", "mean native margin", "margin rank", "robust margin", "stage ranks", "D_rank", "deployed score/margin if required", "peer_indices [1369,8]", "reserve_peer_index [1369]", "valid_b1", "valid_stability", "candidate count", "B1 centroid evidence", "query_peer_cos [3,1369,8]", "peer_gram_upper [3,1369,36]", "query_reserve_cos [3,1369]", "reserve_to_peer_cos [3,1369,8]", "baseline PGM", "baseline PCRR", "8 replacement PGM scores", "8 replacement PCRR scores", "p8/p9 gap", "PGM eigensystem diagnostics", "PCRR comparison/tie diagnostics", "deployment sensitivity"],
+    "forbidden_persistent_fields": ["raw RGB", "full 768-D features"],
+    "manifest": "runs/phase5/sabra/PRETRAIN_LOGIC_AUDIT/GT_FREE_CACHE_MANIFEST.json"
+  },
+  "scientific": {
+    "rope_auroc_delta": [-0.01, 0.01],
+    "negative_tail_threshold": -0.05,
+    "catastrophic_tail": "at least 2/12 classes delta<=-0.05 OR median delta<-0.01",
+    "promising_support": "at least 8/12 non-neutral intended-positive classes and no catastrophic tail",
+    "strong_support": "at least 9/12 supportive classes plus strong mean/median evidence",
+    "pgm_target": "patch_anomaly_gt; report AUROC, AP, normalized AP if defined, occupancy Spearman, B1 comparison",
+    "pcrr_target": "patch_anomaly_gt; LOCO fixed logistic PGM vs PGM+PCRR; primary delta=AUROC(B)-AUROC(A)",
+    "trust_models": ["E", "E+S_boundary", "E+S_influence", "E+R", "E+T"],
+    "trust_primary": "AUROC(E+T)-AUROC(E)",
+    "trust_control": "E mandatory covariate in fixed LOCO logistic; within-image E quartile diagnostic",
+    "need_features": ["mean-margin within-image percentile rank", "robust-normalized mean margin", "D_rank", "mean absolute deployment sensitivity"],
+    "need_target": "utility_positive",
+    "need_oracle": "u_signed=-dL/d(delta_i), shared positive abnormal native patch delta across all stages; u_positive=max(u_signed,0); u_harm=max(-u_signed,0); positive iff u_signed>1e-8",
+    "need_fd": {"epsilon": 0.0001, "patch_indices": [0, 684, 1368], "sign_tolerance": 1e-8, "abs_tolerance": 0.002, "relative_tolerance": 0.02, "required_sign_rate": 0.999},
+    "need_models": {"preprocessing": "fit on 11 training classes only", "c1": "balanced logistic on four fixed features", "c2": "balanced logistic on standardized feature plus positive hinges at training q25/q50/q75; no interactions", "solver": "lbfgs", "C": 1.0, "max_iter": 1000, "random_state": 0},
+    "need_baselines": ["margin-only", "D_rank-only", "margin+D_rank", "C1", "C2"],
+    "authority_scores": ["N", "N*E", "N*T"],
+    "authority_primary": "AUROC(N*T)-AUROC(N*E)",
+    "authority_secondary": ["AUROC(N*T)-AUROC(N)", "AUROC(N*T)-AUROC(Phase2B margin/confidence)", "signed utility", "harm rate", "top-ranked utility", "risk-coverage", "coverage"],
+    "no_finite_correction_or_production_threshold": true
+  },
+  "reference_credibility": {
+    "stable_but_wrong_definition": "valid patch with E>=0.75, T_P>=0.75, binary patch GT negative",
+    "required": ["p1..p8 occupancy", "p9 occupancy", "reference set contamination", "multiple anomalous references", "clean vs contaminated", "high/low Trust false-evidence rates", "STABLE_BUT_WRONG.csv"],
+    "high_trust_systematic_failure_veto": true
+  },
+  "coverage": {
+    "p9_coverage": "valid_stability/valid_b1",
+    "strong": "overall>=0.90 and every class>=0.75",
+    "acceptable": "overall>=0.80, no more than 2 classes<0.70, no class<0.50",
+    "insufficient_veto": "overall<0.80 OR at least 3 classes<0.70 OR any class<0.50"
+  },
+  "statistics": {
+    "unit": "VisA class",
+    "n_classes": 12,
+    "bootstrap_repetitions": 10000,
+    "bootstrap_seeds": {"core": 5101, "per_component_offset": 100},
+    "sign_flip_assignments": 4096,
+    "holm_family": ["H_PGM", "H_TRUST", "H_NEED", "H_AUTHORITY"],
+    "pcrr_holm_separate": true,
+    "report": ["mean", "median", "bootstrap95CI", "supportive class count", "neutral class count", "negative class count", "worst classes", "raw p", "Holm adjusted p"]
+  },
+  "authorization": {
+    "core": ["PGM", "Trust", "Need", "Authority"],
+    "allowed_statuses": ["SUPPORTED", "PROMISING_BUT_UNCERTAIN"],
+    "required_integrity": ["source/provenance", "checkpoint/config", "GT firewall", "geometry parity", "Need oracle/deployment parity", "OOF integrity"],
+    "pcrr_drop_does_not_block": true,
+    "strong": "all four core modules SUPPORTED",
+    "provisional": "all four core modules allowed but at least one PROMISING_BUT_UNCERTAIN",
+    "authorized_relational_evidence": "PGM if PCRR DROP; PGM+PCRR if PCRR RETAIN",
+    "full_sabra_train_authorized": "true only when all required gates pass, all four core modules allowed, and no catastrophic safety/reference failure"
+  },
+  "required_artifacts": ["SABRA_PRETRAIN_LOGIC_AUDIT_PROTOCOL.md", "SABRA_PRETRAIN_LOGIC_AUDIT_PROTOCOL.json", "GT_FREE_CACHE_MANIFEST.json", "GT_FIREWALL_AUDIT.json", "GEOMETRY_PARITY_AUDIT.json", "B1_P9_AUDIT.json", "STABILITY_COVERAGE_AUDIT.json", "PGM_AUDIT.json", "PCRR_AUDIT.json", "TRUST_AUDIT.json", "REFERENCE_CREDIBILITY_AUDIT.json", "STABLE_BUT_WRONG.csv", "NEED_ORACLE_AUDIT.json", "NEED_ORACLE_PARITY.json", "NEED_DIAGNOSTIC_AUDIT.json", "AUTHORITY_AUDIT.json", "PER_CLASS.csv", "STATISTICS.json", "ADVERSARIAL_REVIEW.md", "DECISION.json", "REPORT.md"]
+}
