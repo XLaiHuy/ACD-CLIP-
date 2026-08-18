@@ -1,0 +1,21 @@
+{
+  "delta_definition": "delta=zeros_like(native_stage_logits); deploy_native_logits(native + delta)",
+  "deployment_helper": "tools/sabra/phase2b.py::deploy_with_delta",
+  "deployment_source": "model/adapter.py::ACDCLIP.vision_text_fusion_gate_seg(test_mode=True, domain='Industrial')",
+  "max_absolute_logit_difference": 0.0,
+  "max_absolute_probability_difference": 0.0,
+  "no_h6_routing": true,
+  "operator": [
+    "native stage logits",
+    "Gaussian blur kernel=7 sigma=1",
+    "bilinear resize to 518x518 align_corners=True",
+    "mean over 3 stages",
+    "two-class softmax"
+  ],
+  "pass": true,
+  "sample_count": 2,
+  "source_reconstruction_max_absolute_probability_error": 0.0,
+  "status": "PASS",
+  "tolerance": 1e-06,
+  "training_steps": 0
+}

@@ -1,0 +1,90 @@
+{
+  "conda_env_export_from_history": {
+    "argv": [
+      "/workspace/ACD-CLIP-/.runtime/miniconda3/bin/conda",
+      "env",
+      "export",
+      "--name",
+      "torchhuy",
+      "--from-history"
+    ],
+    "returncode": 0,
+    "stderr": "/workspace/ACD-CLIP-/.runtime/miniconda3/lib/python3.14/site-packages/conda/cli/main_export.py:295: CondaExportWarning: The exported environment contains 3rd party Python packages.\n\nYour environment contains 39 packages installed via pip. Conda cannot reliably lock these packages for reproducible environments.\n\nDetected packages:\n  - filelock==3.32.3\n  - fsspec==2026.7.0\n  - ftfy==6.3.1\n  - jinja2==3.1.6\n  - kornia==0.8.1\n  - kornia-rs==0.1.10\n  - lightning-utilities==0.15.3\n  - markupsafe==3.0.3\n  - mpmath==1.3.0\n  - networkx==3.4.2\n  - numpy==2.2.6\n  - nvidia-cublas-cu12==12.1.3.1\n  - nvidia-cuda-cupti-cu12==12.1.105\n  - nvidia-cuda-nvrtc-cu12==12.1.105\n  - nvidia-cuda-runtime-cu12==12.1.105\n  - nvidia-cudnn-cu12==9.1.0.70\n  - nvidia-cufft-cu12==11.0.2.54\n  - nvidia-curand-cu12==10.3.2.106\n  - nvidia-cusolver-cu12==11.4.5.107\n  - nvidia-cusparse-cu12==12.1.0.106\n  - nvidia-nccl-cu12==2.21.5\n  - nvidia-nvjitlink-cu12==12.9.86\n  - nvidia-nvtx-cu12==12.1.105\n  - pandas==2.3.3\n  - pillow==11.3.0\n  - python-dateutil==2.9.0.post0\n  - pytz==2026.3.post1\n  - regex==2026.7.19\n  - setuptools==80.9.0\n  - six==1.17.0\n  - sympy==1.13.1\n  - torch==2.5.1+cu121\n  - torchmetrics==1.8.2\n  - torchvision==0.20.1+cu121\n  - tqdm==4.67.0\n  - triton==3.1.0\n  - typing-extensions==4.16.0\n  - tzdata==2026.3\n  - wcwidth==0.8.2\n\nLearn more: https://docs.conda.io/projects/conda/en/stable/user-guide/configuration/pip-interoperability.html\n  warnings.warn(warning, CondaExportWarning)",
+    "stdout": "name: torchhuy\nchannels:\n  - defaults\ndependencies:\n  - python=3.10\nprefix: /workspace/ACD-CLIP-/.runtime/miniconda3/envs/torchhuy"
+  },
+  "cuda": {
+    "available": true,
+    "device_index": 0,
+    "device_name": "NVIDIA GeForce RTX 3090",
+    "driver_query": {
+      "argv": [
+        "nvidia-smi",
+        "--query-gpu=index,name,memory.total,driver_version",
+        "--format=csv,noheader"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "0, NVIDIA GeForce RTX 3090, 24576 MiB, 595.84"
+    },
+    "tf32_cudnn": true,
+    "tf32_matmul": false,
+    "torch_cuda_version": "12.1",
+    "vram_bytes": 25296044032
+  },
+  "cuda_compatibility": {
+    "driver_supports_cuda_12_1_runtime": true,
+    "observed_driver_query": "0, NVIDIA GeForce RTX 3090, 24576 MiB, 595.84",
+    "observed_torch_cuda": "12.1"
+  },
+  "environment_pass": true,
+  "git_lfs": {
+    "argv": [
+      "git",
+      "lfs",
+      "version"
+    ],
+    "returncode": 1,
+    "stderr": "git: 'lfs' is not a git command. See 'git --help'.\n\nThe most similar command is\n\tlog",
+    "stdout": ""
+  },
+  "git_lfs_available": false,
+  "gpu_pass": true,
+  "imports_and_versions_pass": true,
+  "kornia_rs_compatibility_note": "kornia_rs==0.1.10 retained; 0.1.14 caused illegal-instruction import failure on this CPU",
+  "pip_freeze": {
+    "argv": [
+      "/workspace/ACD-CLIP-/.runtime/miniconda3/envs/torchhuy/bin/python",
+      "-m",
+      "pip",
+      "freeze"
+    ],
+    "returncode": 0,
+    "stderr": "",
+    "stdout": "filelock==3.32.3\nfsspec==2026.7.0\nftfy==6.3.1\nJinja2==3.1.6\nkornia==0.8.1\nkornia_rs==0.1.10\nlightning-utilities==0.15.3\nMarkupSafe==3.0.3\nmpmath==1.3.0\nnetworkx==3.4.2\nnumpy==2.2.6\nnvidia-cublas-cu12==12.1.3.1\nnvidia-cuda-cupti-cu12==12.1.105\nnvidia-cuda-nvrtc-cu12==12.1.105\nnvidia-cuda-runtime-cu12==12.1.105\nnvidia-cudnn-cu12==9.1.0.70\nnvidia-cufft-cu12==11.0.2.54\nnvidia-curand-cu12==10.3.2.106\nnvidia-cusolver-cu12==11.4.5.107\nnvidia-cusparse-cu12==12.1.0.106\nnvidia-nccl-cu12==2.21.5\nnvidia-nvjitlink-cu12==12.9.86\nnvidia-nvtx-cu12==12.1.105\npackaging @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_packaging_1785888127/work\npandas==2.3.3\npillow==11.3.0\npython-dateutil==2.9.0.post0\npytz==2026.3.post1\nregex==2026.7.19\nsix==1.17.0\nsympy==1.13.1\ntorch==2.5.1+cu121\ntorchmetrics==1.8.2\ntorchvision==0.20.1+cu121\ntqdm==4.67.0\ntriton==3.1.0\ntyping_extensions==4.16.0\ntzdata==2026.3\nwcwidth==0.8.2"
+  },
+  "python_3_10_pass": true,
+  "python_executable": "/workspace/ACD-CLIP-/.runtime/miniconda3/envs/torchhuy/bin/python",
+  "required_versions": {
+    "Pillow": "11.3.0",
+    "kornia": "0.8.1",
+    "numpy": "2.2.6",
+    "pandas": "2.3.3",
+    "torch": "2.5.1+cu121",
+    "torchmetrics": "1.8.2",
+    "torchvision": "0.20.1+cu121"
+  },
+  "requirements_sha256": "71751ee469d1d9d1e47ad51f4155a8d56558ff78fa66806dd4c374ef35e0dc3a",
+  "requirements_sha256_expected": "71751ee469d1d9d1e47ad51f4155a8d56558ff78fa66806dd4c374ef35e0dc3a",
+  "timestamp_utc": "2026-08-18T15:54:20.968856+00:00",
+  "training_steps": 0,
+  "versions": {
+    "Pillow": "11.3.0",
+    "kornia": "0.8.1",
+    "numpy": "2.2.6",
+    "pandas": "2.3.3",
+    "python": "3.10.20",
+    "torch": "2.5.1+cu121",
+    "torchmetrics": "1.8.2",
+    "torchvision": "0.20.1+cu121"
+  }
+}
