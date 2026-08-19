@@ -9,3 +9,7 @@ The candidate freeze was pushed and verified. MVTec external validation was auth
 The final readiness package is persisted at `runs/phase5/sabra/TRUST_V2_M4_RECOVERY_V2/FINAL_20E_TRAIN_READINESS/`. Its exact persistence boundary is readiness commit `a1de69cf0d365ab34e1ac6257453806e7003a22d`. `FULL_20E_TRAIN_AUTHORIZED=false`, `EXPLORATORY_20E=false`, and no training has started. This package is non-executable and does not authorize medical access, Phase2B redesign, retuning, or an exploratory run without explicit exploratory labelling.
 
 The final handoff update is the repository boundary immediately following the readiness commit. Do not rerun Phase2B, rebuild the GT-free cache, alter formulas, retune thresholds, change gates, or use invalid archived artifacts as evidence.
+
+## Terminal external-validation failure
+
+The MVTec external-validation stage is preserved as `EXTERNAL_VALIDATION_FAILURE` with `VALID=false` at `runs/phase5/sabra/TRUST_V2_M4_RECOVERY_V2/FAILED_EXTERNAL_VALIDATION_20260819_MVTEC_UNAVAILABLE/`. All audited image-root locations were absent; MVTec image/mask reads are zero, metadata probe count is one, and no MVTec metrics are claimed. The VisA result and GT-free cache remain valid and usable. Full-20e training remains unauthorized.

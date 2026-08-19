@@ -1,5 +1,5 @@
 # Resume status
 
-`TRUST_V2_M4_RECOVERY_V2_EXTERNAL_UNAVAILABLE_FINAL_READINESS_PERSISTED`
+`TRUST_V2_M4_RECOVERY_V2_EXTERNAL_VALIDATION_FAILURE`
 
-Candidate freeze is complete and remotely verified. The final 20e readiness package is persisted at `runs/phase5/sabra/TRUST_V2_M4_RECOVERY_V2/FINAL_20E_TRAIN_READINESS/` and records `FULL_20E_TRAIN_AUTHORIZED=false`, `EXPLORATORY_20E=false`, and `training_started=false`. External MVTec validation is unavailable because the image root is absent. Medical reads are zero. No scientific result-changing action is permitted.
+`VALID=false` applies to the MVTec external-validation stage only. Its complete failure record is under `FAILED_EXTERNAL_VALIDATION_20260819_MVTEC_UNAVAILABLE/`. The VisA result, frozen candidate, and GT-free cache remain valid and usable. MVTec image/mask reads are 0, metadata probes are 1, medical reads are 0, and `FULL_20E_TRAIN_AUTHORIZED=false`. Next action, if ever permitted, is to supply the authorized MVTec image root and run only the frozen external evaluation.
