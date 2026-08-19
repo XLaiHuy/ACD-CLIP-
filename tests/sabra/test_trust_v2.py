@@ -18,7 +18,7 @@ from sabra.trust_v2.numerical import (  # noqa: E402
     relational_v2,
     trust_stability,
 )
-from sabra.trust_v2.visa_audit import _reserve_metadata_for_patch  # noqa: E402
+from sabra.trust_v2.visa_audit import EXPECTED_VISA_CLASSES, _model_metrics, _reserve_metadata_for_patch  # noqa: E402
 
 
 class TrustV2NumericalTest(unittest.TestCase):
@@ -153,6 +153,14 @@ class TrustV2NumericalTest(unittest.TestCase):
         for key, value in stability.items():
             self.assertEqual(value.tobytes(), trust_stability(self.relational, self.b1)[key].tobytes())
         self.assertEqual(predictions_before, predictions.tobytes())
+
+    def test_26_authority_metrics_allow_undefined_zero_occupancy_spearman(self) -> None:
+        classes = np.repeat(np.asarray(EXPECTED_VISA_CLASSES), 2)
+        target = np.tile(np.asarray([0, 1], dtype=np.int8), len(EXPECTED_VISA_CLASSES))
+        scores = np.tile(np.asarray([0.2, 0.8], dtype=np.float32), len(EXPECTED_VISA_CLASSES))
+        metrics, rows = _model_metrics({"A": scores}, target, np.zeros_like(scores), classes)
+        self.assertIsNone(metrics["A"]["occupancy_spearman_mean"])
+        self.assertEqual(len(rows["rows"]), len(EXPECTED_VISA_CLASSES))
 
 
 if __name__ == "__main__":

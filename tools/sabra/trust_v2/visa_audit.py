@@ -191,7 +191,9 @@ def _model_metrics(oof: dict[str, np.ndarray], target: np.ndarray, occupancy: np
             mask = classes == cls
             class_auc[cls] = _auc(score[mask], target[mask])
             class_ap[cls] = _ap(score[mask], target[mask])
-        metrics[name] = {"class_auroc": class_auc, "class_ap": class_ap, "overall_auroc": _auc(score, target), "overall_ap": _ap(score, target), "brier": float(brier_score_loss(target, score)), "occupancy_spearman_mean": float(np.nanmean([_spearman(score[classes == cls], occupancy[classes == cls]) for cls in EXPECTED_VISA_CLASSES]))}
+        occupancy_spearman = [_spearman(score[classes == cls], occupancy[classes == cls]) for cls in EXPECTED_VISA_CLASSES]
+        occupancy_spearman_mean = None if all(value is None for value in occupancy_spearman) else float(np.nanmean(np.asarray([np.nan if value is None else value for value in occupancy_spearman], dtype=np.float64)))
+        metrics[name] = {"class_auroc": class_auc, "class_ap": class_ap, "overall_auroc": _auc(score, target), "overall_ap": _ap(score, target), "brier": float(brier_score_loss(target, score)), "occupancy_spearman_mean": occupancy_spearman_mean}
         for cls in EXPECTED_VISA_CLASSES:
             mask = classes == cls
             prevalence = float(target[mask].mean())
