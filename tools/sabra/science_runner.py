@@ -33,6 +33,23 @@ CHECKPOINT = ROOT / "runs/phase4v/v1_7/readiness_full/adapter_5.pth"
 CONFIG = ROOT / "runs/phase4/k1/short64_seed0_attempt5/config.json"
 CLIP = ROOT / ".runtime/assets/ViT-L-14-336px.pt"
 METADATA = ROOT / "dataset/hub/VisA.jsonl"
+SCIENCE_CACHE_FIELDS = (
+    "native_logits",
+    "margin_within_image_rank",
+    "robust_margin_normalization",
+    "D_rank",
+    "deployment_sensitivity",
+    "valid_b1",
+    "baseline_pgm",
+    "baseline_pcrr",
+    "replacement_pcrr",
+    "pgm_boundary_stability",
+    "pgm_influence_stability",
+    "pgm_robust_evidence",
+    "pgm_stability",
+    "trust",
+)
+
 
 
 def _finite(values: Iterable[float | None]) -> np.ndarray:
@@ -119,7 +136,7 @@ def load_records() -> tuple[list[dict[str, Any]], dict[str, Any]]:
             paths = data["image_path"].astype(str)
             count = paths.size
             for index in range(count):
-                records.append({key: data[key][index] for key in data.files if key != "image_path"} | {"class_name": class_name, "image_path": str(paths[index])})
+                records.append({key: data[key][index] for key in SCIENCE_CACHE_FIELDS} | {"class_name": class_name, "image_path": str(paths[index])})
     if len(records) != int(manifest["record_count"]):
         raise RuntimeError("cache record count mismatch")
     return records, manifest
@@ -383,18 +400,22 @@ def run_science() -> dict[str, Any]:
     contamination = []
     high_trust = []
     low_trust = []
-    for index, record in enumerate(records):
-        valid = np.asarray(record["valid_b1"], dtype=bool)
-        peers = np.maximum(np.asarray(record["peer_indices"], dtype=np.int64), 0)
-        peer_occ = np.asarray(occupancy[index])[peers]
-        peer_has = (peer_occ.max(axis=1) > 0) & valid
-        peer_multiple = (peer_occ > 0).sum(axis=1) >= 2
-        contamination.extend(peer_has[valid].tolist())
-        high = np.asarray(record["trust"]) >= 0.75
-        high_trust.extend((high & (gt[index] == 0) & valid).tolist())
-        low_trust.extend((~high & (gt[index] == 0) & valid).tolist())
-        for patch in np.flatnonzero(valid & (np.asarray(record["baseline_pgm"]) >= 0.75) & (np.asarray(record["pgm_robust_evidence"]) >= 0.75) & (gt[index] == 0)):
-            stable_wrong.append({"class": record["class_name"], "image_path": record["image_path"], "patch": int(patch), "peer_indices": ";".join(map(str, peers[patch])), "peer_occupancy": ";".join(f"{x:.6f}" for x in peer_occ[patch]), "E": float(record["baseline_pgm"][patch]), "stability": float(record["pgm_stability"][patch]), "robust": float(record["pgm_robust_evidence"][patch]), "Trust": float(record["trust"][patch])})
+    for class_name in EXPECTED_VISA_CLASSES:
+        class_indices = [index for index, record in enumerate(records) if record["class_name"] == class_name]
+        with np.load(CACHE_ROOT / f"{class_name}.npz", allow_pickle=False) as data:
+            peer_indices = data["peer_indices"]
+            for shard_index, index in enumerate(class_indices):
+                record = records[index]
+                valid = np.asarray(record["valid_b1"], dtype=bool)
+                peers = np.maximum(np.asarray(peer_indices[shard_index], dtype=np.int64), 0)
+                peer_occ = np.asarray(occupancy[index])[peers]
+                peer_has = (peer_occ.max(axis=1) > 0) & valid
+                contamination.extend(peer_has[valid].tolist())
+                high = np.asarray(record["trust"]) >= 0.75
+                high_trust.extend((high & (gt[index] == 0) & valid).tolist())
+                low_trust.extend((~high & (gt[index] == 0) & valid).tolist())
+                for patch in np.flatnonzero(valid & (np.asarray(record["baseline_pgm"]) >= 0.75) & (np.asarray(record["pgm_robust_evidence"]) >= 0.75) & (gt[index] == 0)):
+                    stable_wrong.append({"class": record["class_name"], "image_path": record["image_path"], "patch": int(patch), "peer_indices": ";".join(map(str, peers[patch])), "peer_occupancy": ";".join(f"{x:.6f}" for x in peer_occ[patch]), "E": float(record["baseline_pgm"][patch]), "stability": float(record["pgm_stability"][patch]), "robust": float(record["pgm_robust_evidence"][patch]), "Trust": float(record["trust"][patch])})
     write_csv(AUDIT_ROOT / "STABLE_BUT_WRONG.csv", stable_wrong)
     ref = {"status": "PASS", "reference_sets_with_anomalous_peer_fraction": float(np.mean(contamination)) if contamination else None, "high_trust_false_evidence_rate": float(np.mean(high_trust)) if high_trust else None, "low_trust_false_evidence_rate": float(np.mean(low_trust)) if low_trust else None, "stable_but_wrong_count": len(stable_wrong), "p9_occupancy_reported": True, "multiple_contaminated_peer_fraction": float(np.mean([x for x in contamination])) if contamination else None, "no_peer_selection_uses_gt": True}
     write_json(AUDIT_ROOT / "REFERENCE_CREDIBILITY_AUDIT.json", ref)
