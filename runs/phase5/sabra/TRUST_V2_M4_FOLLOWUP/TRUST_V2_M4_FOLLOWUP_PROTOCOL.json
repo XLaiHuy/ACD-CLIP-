@@ -1,0 +1,134 @@
+{
+  "M4": {
+    "D_rel": "abs(PGM_baseline_rank - PCRR_baseline_rank)",
+    "comparison": "per held-out VisA class AUROC(M4) - AUROC(selected_non_PCRR_model)",
+    "definition": "selected non-PCRR model columns in exact order followed by D_rel",
+    "diagnostic_only": true,
+    "forbidden": [
+      "E + PCRR",
+      "PGM + alpha*PCRR",
+      "weighted fusion",
+      "PCRR rescue model",
+      "PCRR threshold tuning",
+      "feature subset search",
+      "M4 model selection"
+    ],
+    "retain_logic": "positive mean, non-negative median, no catastrophic tail, at least WEAK_POSITIVE_EVIDENCE"
+  },
+  "cache_reuse": {
+    "classes": [
+      "candle",
+      "capsules",
+      "cashew",
+      "chewinggum",
+      "fryum",
+      "macaroni1",
+      "macaroni2",
+      "pcb1",
+      "pcb2",
+      "pcb3",
+      "pcb4",
+      "pipe_fryum"
+    ],
+    "manifest": "runs/phase5/sabra/TRUST_V2_DEVELOPMENT/TRUST_V2_GT_FREE_MANIFEST.json",
+    "manifest_sha256": "3e6f31a031100b9635a27a78f974ee2a7146f6faee0d0bcfadf0b256cae4df16",
+    "max_abs_drel_identity_error": 0.0,
+    "missing_fields": [],
+    "p16_coverage": "STRONG",
+    "rebuild_authorized": false,
+    "record_count": 2162,
+    "required_fields": [
+      "baseline_pgm",
+      "baseline_pcrr",
+      "D_rel",
+      "peer_coherence",
+      "query_support_mean",
+      "peer_eigen_entropy",
+      "stage_query_profile_disagreement",
+      "S9",
+      "R9",
+      "S16",
+      "R16"
+    ],
+    "shard_sha256": {
+      "candle": "63cc28c545d83d01de9fa039698a6968b270203faeaccef64cf96d91219ccc2e",
+      "capsules": "6456d2e4fb330c94b24134cc8273c39b434aa2fab8dfa7dac17a54bd46efacb7",
+      "cashew": "815737ff61e30fb7e88caa0574d4f904b77a7a8418f473aa683b4f2a1ee687d3",
+      "chewinggum": "d6ddb75421ca02d9a79c33b540f8b4c3640f7c0af976c27f30813d4be0c30fb3",
+      "fryum": "a07ad15c951b4b41149062d1b92f6a8f6e665eac41de6c6ff8e310d3922e5d1f",
+      "macaroni1": "630c7e80aabe163e6aa998dd2256a26ef728f858f6e416cae9ce61fa6011852a",
+      "macaroni2": "b8d0996d51185efa262643d2da3bb75eeda6e9d07830fcc69ea6c6757ba81fea",
+      "pcb1": "e3c6dd567ade0420c1ae842dba86b6f89bd9e2986592372d94cc32e43de392d8",
+      "pcb2": "7530eb77a54ff44d38a9cf9efd9773ad886ad6abc968fe096dd3d975f1a9ee27",
+      "pcb3": "ca500e01366016dd4cded7198a5e2c5124a5e3483a98f4b6c1c2d60653bef7a2",
+      "pcb4": "18f68894022647c0325d6141181eb9edbf7c7476502b89ff1f373509f23e57bd",
+      "pipe_fryum": "f59e642488fac0a59af5a406995d373091d2607f0beacb230ace52cc394785a9"
+    }
+  },
+  "created_from_head": "203ea7fa8fba3462404452e1a6e69a2110a4eee1",
+  "firewall": {
+    "MVTec_before_candidate_freeze": false,
+    "counters": {
+      "MEDICAL_READS": 0,
+      "MVTEC_READS_BEFORE_FREEZE": 0,
+      "PHASE2B_TRAINING_STEPS": 0,
+      "TRUST_V2_MODEL_SELECTION_AFTER_MVTEC": 0
+    },
+    "medical_access": false,
+    "phase2b_training": false
+  },
+  "m3_gate": "original STRONG or ACCEPTABLE p16 coverage rule",
+  "models": {
+    "M0": [
+      "E"
+    ],
+    "M1": [
+      "E",
+      "peer_coherence",
+      "query_support_mean",
+      "peer_eigen_entropy",
+      "stage_query_profile_disagreement"
+    ],
+    "M2": [
+      "E",
+      "peer_coherence",
+      "query_support_mean",
+      "peer_eigen_entropy",
+      "stage_query_profile_disagreement",
+      "S9",
+      "R9"
+    ],
+    "M3": [
+      "E",
+      "peer_coherence",
+      "query_support_mean",
+      "peer_eigen_entropy",
+      "stage_query_profile_disagreement",
+      "S9",
+      "R9",
+      "S16",
+      "R16"
+    ]
+  },
+  "prior_run_status": "TRUST_V2_STUDY_INVALID",
+  "protocol_id": "TRUST_V2_M4_CORRECTION_FOLLOWUP",
+  "protocol_sha256": "380a1e1ee8798b6396adc7b8c91224bced9a0743a9a867f2f823429fed031715",
+  "purpose": "Correct the omitted preregistered M4 diagnostic only; no Trust-v2 redesign.",
+  "selection": "original deterministic non-PCRR selection rule; invalid prior results excluded",
+  "status": "frozen",
+  "unchanged_semantics": [
+    "M0-M3",
+    "12 class-held-out LOCO",
+    "training-fold-only StandardScaler",
+    "balanced lbfgs LogisticRegression C=1 max_iter=1000 random_state=0",
+    "p9/p16 definitions",
+    "PGM",
+    "Need C1",
+    "Authority-v2",
+    "evidence ladder",
+    "safety metrics",
+    "GT semantics",
+    "MVTec firewall",
+    "medical firewall"
+  ]
+}
