@@ -1,0 +1,53 @@
+{
+  "M4_definition": "selected_non_PCRR_model + D_rel",
+  "M4_feature_order": [
+    "E",
+    "peer_coherence",
+    "query_support_mean",
+    "peer_eigen_entropy",
+    "stage_query_profile_disagreement",
+    "D_rel"
+  ],
+  "PCRR_STATUS": "DROP",
+  "candidate_feature_order": [
+    "E",
+    "peer_coherence",
+    "query_support_mean",
+    "peer_eigen_entropy",
+    "stage_query_profile_disagreement"
+  ],
+  "candidate_model": "M1_E_Credibility",
+  "class_effect": {
+    "candle": -1.2490428408007404e-05,
+    "capsules": -0.0007879500705542108,
+    "cashew": 0.000472175849871026,
+    "chewinggum": -0.0005735515407774283,
+    "fryum": 0.0021025215043350975,
+    "macaroni1": 0.0007462405845588549,
+    "macaroni2": -0.0008612952884416991,
+    "pcb1": 0.002664562856939834,
+    "pcb2": -0.002594263062296376,
+    "pcb3": -0.00042965976492448377,
+    "pcb4": 0.00010117790187091913,
+    "pipe_fryum": 0.0017120545101714235
+  },
+  "effect": {
+    "bootstrap95_ci": [
+      -0.0005825262733052641,
+      0.001001478544157029
+    ],
+    "catastrophic": 0,
+    "mean": 0.0002116269210287458,
+    "median": 4.434373673145586e-05,
+    "n_classes": 12,
+    "negative": 6,
+    "nonnegative": 6,
+    "positive": 6,
+    "raw_p": 0.62451171875
+  },
+  "m4_oof": true,
+  "primary_comparison": "AUROC(M4) - AUROC(selected_non_PCRR_model)",
+  "status": "PASS",
+  "used_for_fusion": false,
+  "used_for_model_selection": false
+}

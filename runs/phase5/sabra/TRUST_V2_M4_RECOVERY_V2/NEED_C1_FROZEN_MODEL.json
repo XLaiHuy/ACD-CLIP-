@@ -1,0 +1,64 @@
+{
+  "OOF": true,
+  "effect": {
+    "bootstrap95_ci": [
+      0.025848990620302353,
+      0.050519351886462636
+    ],
+    "catastrophic": 0,
+    "mean": 0.038077051528473876,
+    "median": 0.03804237441383451,
+    "n_classes": 12,
+    "negative": 0,
+    "nonnegative": 12,
+    "positive": 12,
+    "raw_p": 0.00048828125
+  },
+  "features": [
+    "margin_within_image_rank",
+    "robust_margin_normalization",
+    "D_rank",
+    "deployment_sensitivity"
+  ],
+  "model": "C1",
+  "oracle_parity": {
+    "absolute_tolerance": 0.002,
+    "epsilon": 0.0001,
+    "patch_indices": [
+      0,
+      684,
+      1368
+    ],
+    "relative_tolerance": 0.02,
+    "rows": [
+      {
+        "absolute_error": 3.727047316604004e-12,
+        "autograd": -3.727047316604004e-12,
+        "finite_difference": -0.0,
+        "patch": 0,
+        "record": "candle/Data/Images/Anomaly/000.JPG",
+        "sign_match": true
+      },
+      {
+        "absolute_error": 1.4280219368112412e-11,
+        "autograd": -1.4280219368112412e-11,
+        "finite_difference": -0.0,
+        "patch": 684,
+        "record": "candle/Data/Images/Anomaly/000.JPG",
+        "sign_match": true
+      },
+      {
+        "absolute_error": 4.033357849098085e-12,
+        "autograd": -4.033357849098085e-12,
+        "finite_difference": -0.0,
+        "patch": 1368,
+        "record": "candle/Data/Images/Anomaly/000.JPG",
+        "sign_match": true
+      }
+    ],
+    "sign_rate": 1.0,
+    "status": "PASS"
+  },
+  "status": "FROZEN",
+  "utility_target": "signed utility > 1e-8"
+}

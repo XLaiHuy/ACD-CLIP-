@@ -1,0 +1,83 @@
+{
+  "MVTec_reads": 0,
+  "artifact_path_collision_guard": "PASS",
+  "cache_manifest_sha256": "3e6f31a031100b9635a27a78f974ee2a7146f6faee0d0bcfadf0b256cae4df16",
+  "cache_shards_sha256_verified": true,
+  "cache_unchanged": true,
+  "decision": {
+    "counters": {
+      "MEDICAL_READS": 0,
+      "MVTEC_READS_BEFORE_FREEZE": 0,
+      "PHASE2B_TRAINING_STEPS": 0,
+      "TRUST_V2_MODEL_SELECTION_AFTER_MVTEC": 0
+    },
+    "selected_model": "M1_E_Credibility",
+    "statuses": {
+      "Authority": "SUPPORTED",
+      "Need": "SUPPORTED",
+      "P16": "STRONG",
+      "PCRR": "DROP",
+      "Trust": "SUPPORTED"
+    },
+    "terminal": "TRUST_V2_DEVELOPMENT_ELIGIBLE"
+  },
+  "divergence": "0\t0",
+  "forbidden_roots_not_written": [
+    "runs/phase5/sabra/TRUST_V2_DEVELOPMENT result paths",
+    "runs/phase5/sabra/TRUST_V2_M4_FOLLOWUP result paths"
+  ],
+  "local_head": "41fc5069e19c861b3c1ae75e5e795207b81bb4ab",
+  "m4": {
+    "PCRR_STATUS": "DROP",
+    "candidate_feature_order": [
+      "E",
+      "peer_coherence",
+      "query_support_mean",
+      "peer_eigen_entropy",
+      "stage_query_profile_disagreement"
+    ],
+    "candidate_model": "M1_E_Credibility",
+    "definition": "selected_non_PCRR_model + D_rel",
+    "feature_order": [
+      "E",
+      "peer_coherence",
+      "query_support_mean",
+      "peer_eigen_entropy",
+      "stage_query_profile_disagreement",
+      "D_rel"
+    ],
+    "primary_comparison": "AUROC(M4) - AUROC(selected_non_PCRR_model)"
+  },
+  "medical_reads": 0,
+  "old_invalid_artifacts_untouched": {
+    "ADVERSARIAL_REVIEW.md": true,
+    "AUTHORITY_V2_AUDIT.json": true,
+    "DECISION.json": true,
+    "NEED_C1_FROZEN_MODEL.json": true,
+    "PCRR_DISAGREEMENT_AUDIT.json": true,
+    "PER_CLASS_TRUST_V2.csv": true,
+    "REFERENCE_CREDIBILITY_AUDIT.json": true,
+    "REPORT.md": true,
+    "STABLE_BUT_WRONG_V2.csv": true,
+    "STATISTICS.json": true,
+    "TRUST_V2_MODEL_AUDIT.json": true
+  },
+  "oof_isolation": true,
+  "remote_head": "41fc5069e19c861b3c1ae75e5e795207b81bb4ab",
+  "result_artifacts": [
+    "STABLE_BUT_WRONG_V2.csv",
+    "PER_CLASS_TRUST_V2.csv",
+    "TRUST_V2_MODEL_AUDIT.json",
+    "PCRR_DISAGREEMENT_AUDIT.json",
+    "NEED_C1_FROZEN_MODEL.json",
+    "AUTHORITY_V2_AUDIT.json",
+    "STATISTICS.json",
+    "REFERENCE_CREDIBILITY_AUDIT.json",
+    "DECISION.json",
+    "ADVERSARIAL_REVIEW.md",
+    "REPORT.md"
+  ],
+  "result_root": "runs/phase5/sabra/TRUST_V2_M4_RECOVERY_V2",
+  "status": "PASS",
+  "study": "TRUST_V2_M4_RECOVERY_V2"
+}\n
