@@ -3,9 +3,9 @@
   "VALID": false,
   "entries": [
     {
-      "bytes": 3265,
+      "bytes": 3769,
       "path": "FAILURE_STATE.json",
-      "sha256": "77d350288f4b4830af706434da8d8160d968d9916fcd9514abc82a8e1e383143",
+      "sha256": "c51d391bf8cb11a0d79ffecf97d4c4ba7e6d406fabdaa0e8c251c03cff5852ed",
       "valid_as_scientific_evidence": false
     },
     {
@@ -15,9 +15,9 @@
       "valid_as_scientific_evidence": false
     },
     {
-      "bytes": 783,
+      "bytes": 835,
       "path": "GIT_PROVENANCE.txt",
-      "sha256": "c7066d75d2169073cb1d8878107c68d4f1ab5ecdfe47396d4359d2970bfc4df4",
+      "sha256": "3b7dbef794d8a5b20b53a9215bcf366de83f8fa72b6d4916c004712dcf7236a7",
       "valid_as_scientific_evidence": false
     },
     {
@@ -81,20 +81,22 @@
       "valid_as_scientific_evidence": true
     },
     {
-      "bytes": 1529,
+      "bytes": 1836,
       "path": "../FINAL_20E_TRAIN_READINESS/TRAIN20E_READINESS.json",
-      "sha256": "baf8282757a8aa20a979db848b2d6b587afb1a532a58cc364a3faa470a62ae6e",
+      "sha256": "7902b718f90d9b560e5a7bed8ba29400a4c2b9ad1efe8eb030ff9359731c1acc",
       "valid_as_scientific_evidence": true
     },
     {
-      "bytes": 3134,
+      "bytes": 3849,
       "path": "../HANDOFF_TRUST_V2_M4_RECOVERY_V2/HANDOFF_STATE.json",
-      "sha256": "c6d2b599dd25798a9148231c224fd459735f85936cc80078c5351b8b10efb153",
+      "sha256": "043b6d46a7c83e0c9630cec30208985530607f2abcf7888f820c910c596242ba",
       "valid_as_scientific_evidence": true
     }
   ],
+  "failure_commit": "c35f47579c998a72c190c1cc30d74185eee76e89",
   "failure_label": "EXTERNAL_VALIDATION_FAILURE",
+  "failure_pushed": true,
   "schema": "SABRA_EXTERNAL_VALIDATION_FAILURE_ARTIFACT_MANIFEST_V1",
-  "scope": "Failure-state record and hashes of the preserved external-gate artifacts; no MVTec result is valid evidence.",
+  "scope": "Failure-state record and hashes of preserved external-gate artifacts; no MVTec result is valid evidence.",
   "self_hash_note": "This manifest and SHA256SUMS.txt are excluded from this manifest to avoid circular self-reference; the checksum file covers this manifest."
 }
