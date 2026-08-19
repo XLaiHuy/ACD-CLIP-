@@ -1,0 +1,68 @@
+{
+  "Authority_v2": "SUPPORTED",
+  "DO_NOT_RERUN": [
+    "Phase2B inference",
+    "GT-free cache generation",
+    "Trust-v2 formulas",
+    "M0-M4 definitions",
+    "model-selection rule",
+    "thresholds or gates"
+  ],
+  "D_rel": "abs(PGM_baseline_rank - PCRR_baseline_rank)",
+  "FULL_SABRA_TRAIN_AUTHORIZATION": false,
+  "M4_feature_set": [
+    "E",
+    "peer_coherence",
+    "query_support_mean",
+    "peer_eigen_entropy",
+    "stage_query_profile_disagreement",
+    "D_rel"
+  ],
+  "M4_implementation_commit": "ada8de0fca1eddfb450b1368e038048654b55386",
+  "MVTec_image_reads": 0,
+  "MVTec_mask_reads": 0,
+  "MVTec_metadata_probe_reads": 1,
+  "MVTec_reads": 0,
+  "MVTec_result_commit": null,
+  "MVTec_status": "UNAVAILABLE",
+  "NEXT_FULL_SABRA_TRAIN_STUDY_AUTHORIZED": false,
+  "Need": "SUPPORTED",
+  "PCRR_STATUS": "DROP",
+  "Trust_v2": "SUPPORTED",
+  "VisA_terminal": "TRUST_V2_DEVELOPMENT_ELIGIBLE",
+  "archive_commit": "2bc1e8674cb432837495700ac8255b5b43d9f360",
+  "branch": "research/p5-sabra-g",
+  "cache_unchanged": true,
+  "candidate_freeze_commit": "c878ca10c0596b7ed01909cf65de486b21946dbd",
+  "candidate_frozen": true,
+  "divergence": "0\t0",
+  "invalid_archive": "runs/phase5/sabra/INVALIDATED_TRUST_V2_RUNS/20260820_ARTIFACT_COLLISION",
+  "local_head": "c878ca10c0596b7ed01909cf65de486b21946dbd",
+  "medical_reads": 0,
+  "metadata_serialization_repair": {
+    "old_pushed_auxiliary_bytes_preserved_in_git_history": true,
+    "scientific_content_changed": false,
+    "scope": [
+      "RECOVERY_ARTIFACT_PATH_AUDIT.json",
+      "handoff and unavailable-MVTec metadata"
+    ],
+    "status": "REPAIRED_BEFORE_HANDOFF_COMMIT"
+  },
+  "next_allowed_action": "Provide an authorized MVTec image root, then perform only the frozen external evaluation; no candidate redesign or medical access.",
+  "p16": "STRONG",
+  "protocol_commit": "41fc5069e19c861b3c1ae75e5e795207b81bb4ab",
+  "recovery_protocol_runner_commit": "41fc5069e19c861b3c1ae75e5e795207b81bb4ab",
+  "remote_head": "c878ca10c0596b7ed01909cf65de486b21946dbd",
+  "selected_features": [
+    "E",
+    "peer_coherence",
+    "query_support_mean",
+    "peer_eigen_entropy",
+    "stage_query_profile_disagreement"
+  ],
+  "selected_model": "M1_E_Credibility",
+  "starting_remote_sha": "ada8de0fca1eddfb450b1368e038048654b55386",
+  "status": "HANDOFF_READY",
+  "study": "TRUST_V2_M4_RECOVERY_V2",
+  "visa_result_commit": "834e8d34375f532eab6683fd0ed24fbb3d7c1700"
+}
