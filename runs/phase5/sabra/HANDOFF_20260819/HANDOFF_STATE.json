@@ -1,0 +1,52 @@
+{
+  "CLIP_hash": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+  "DO_NOT_RERUN": [
+    "valid finalized cache"
+  ],
+  "GT_FREE_CACHE_FINALIZED": true,
+  "GT_exposure_state": "POST_CACHE_GT_ALLOWED",
+  "MUST_RERUN": [],
+  "MVTEC_science_reads": 0,
+  "Phase2B_training_steps": 0,
+  "branch": "research/p5-sabra-g",
+  "cache_hashes": {
+    "candle": "2462c474f3d74b4750e7c473a991a5e5c32066a16595d78596cc25b2534a4972",
+    "capsules": "6073a0d62983be03d90c393ed33104fb9c7ee8f2950a69acc5b1639953dba3dc",
+    "cashew": "250f61415f32ad53c1ffed28462dcf42e81942e147b05ca2b02caad8b334bd86",
+    "chewinggum": "477d637e1c5d163b4f8551bb335c47a7f92333e4897f99eb3c036216540075ca",
+    "fryum": "e08b052a96be3db113dc525787e8ee1187ef2cddbe664caf18b2d5a05a81ae38",
+    "macaroni1": "c9d5c1e9b7cfbd7cecbd1eae9e6fc5238f7ed1cfea23353eaabfce0338164bfa",
+    "macaroni2": "d4df751039192cdaec85b324091feafea17e7c59a3a84bf416bf0426fce37c7f",
+    "pcb1": "f5691230b1f95f3bab95dc2e7cf7f9675742ff792076d44ac35572c4da470ce0",
+    "pcb2": "7cec649fc5baff833479625a5dd41c10895153ff38af89d08d6d82f0af796a78",
+    "pcb3": "2c9a378e8c3c73eafda6e9ad8659417b28fc31b722d9fb0a1b40cce433110880",
+    "pcb4": "0f08472a187ee54d142c6f24a6c1395517daede60bd0d3e4169f9c1aabb9391f",
+    "pipe_fryum": "21b9f74866bc9944bd5c9a50fc301c485ff7906b289408dd9168553cef224742"
+  },
+  "checkpoint_hash": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+  "config_hash": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4",
+  "divergence": "3\t0",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 3060",
+    "python": "3.10.20",
+    "torch": "2.5.1+cu121",
+    "torch_cuda": "12.1"
+  },
+  "first_failed_stage": "remote_push_or_science",
+  "forbidden_actions": [
+    "MVTec reads",
+    "medical reads",
+    "Phase2B training",
+    "post-hoc formula changes",
+    "credential inclusion"
+  ],
+  "implementation_commit": "f0721374593556250ad6c56261013cad553a1a61 phase5: implement SABRA pretrain logic audit",
+  "last_valid_stage": "gt_free_cache_finalized",
+  "local_head": "280da999194c02132d242221f914abbc10ac9014",
+  "medical_reads": 0,
+  "next_allowed_action": "push implementation, then run science",
+  "remote_head": "35fd2194a315256b781dda07e4631c0d0857dbc3",
+  "result_commit": "",
+  "scientific_statuses": {},
+  "terminal": "PRETRAIN_LOGIC_AUDIT_INCOMPLETE"
+}
