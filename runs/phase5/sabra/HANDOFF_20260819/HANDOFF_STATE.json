@@ -25,14 +25,14 @@
   },
   "checkpoint_hash": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
   "config_hash": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4",
-  "divergence": "4\t0",
+  "divergence": "0\t0",
   "environment": {
     "gpu": "NVIDIA GeForce RTX 3060",
     "python": "3.10.20",
     "torch": "2.5.1+cu121",
     "torch_cuda": "12.1"
   },
-  "first_failed_stage": "remote_push_or_science",
+  "first_failed_stage": null,
   "forbidden_actions": [
     "MVTec reads",
     "medical reads",
@@ -41,12 +41,27 @@
     "credential inclusion"
   ],
   "implementation_commit": "f0721374593556250ad6c56261013cad553a1a61 phase5: implement SABRA pretrain logic audit",
-  "last_valid_stage": "gt_free_cache_finalized",
-  "local_head": "1648afb40ebc8817ba96956b33208fd5a80f5e2f",
+  "last_valid_stage": "science_complete",
+  "local_head": "63ec4be75b2228eff536e79fc81af05bf83360b4",
   "medical_reads": 0,
-  "next_allowed_action": "push implementation, then run science",
-  "remote_head": "35fd2194a315256b781dda07e4631c0d0857dbc3",
-  "result_commit": "",
-  "scientific_statuses": {},
-  "terminal": "PRETRAIN_LOGIC_AUDIT_INCOMPLETE"
+  "next_allowed_action": "commit/push final handoff",
+  "remote_head": "63ec4be75b2228eff536e79fc81af05bf83360b4",
+  "result_commit": "63ec4be75b2228eff536e79fc81af05bf83360b4 phase5: audit SABRA pretrain logic",
+  "original_result_commit": "f2bef23f66e9f113685ad9ef6beab8e0edaec0c5",
+  "repaired_result_commit": "63ec4be75b2228eff536e79fc81af05bf83360b4",
+  "result_commit_repair": {
+    "path": "runs/phase5/sabra/PRETRAIN_LOGIC_AUDIT/STABLE_BUT_WRONG.csv",
+    "reason": "GitHub 100 MB blob limit; scientific content unchanged",
+    "scope": "HEAD-only amend; pushed ancestors untouched",
+    "lfs_oid": "10f4f8172c0255cadb5749ac96ebc60423b7688b3275274b95c6261c81401318",
+    "lfs_size_bytes": 118728602,
+    "scientific_content_unchanged": true
+  },
+  "scientific_statuses": {
+    "Authority": "INCONCLUSIVE",
+    "Need": "SUPPORTED",
+    "PGM": "SUPPORTED",
+    "Trust": "INCONCLUSIVE"
+  },
+  "terminal": "FULL_SABRA_TRAIN_NOT_AUTHORIZED"
 }
