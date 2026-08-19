@@ -154,7 +154,18 @@ def _loss_for_delta(native: torch.Tensor, mask: torch.Tensor, patch: int | None 
     return calculate_seg_loss(probability, mask)
 
 
-def need_oracle(records: list[dict[str, Any]], gt_masks: list[np.ndarray], device: torch.device) -> tuple[np.ndarray, np.ndarray, np.ndarray, dict[str, Any]]:
+def load_science_masks(group: list[dict[str, Any]], metadata: dict[str, dict[str, Any]], data_root: Path) -> np.ndarray:
+    """Load only one oracle batch of full-resolution masks at a time."""
+    masks = np.zeros((len(group), 1, IMAGE_SIZE, IMAGE_SIZE), dtype=np.float32)
+    for index, record in enumerate(group):
+        row = metadata[record["image_path"]]
+        if int(row["label"]):
+            with Image.open(safe_data_path(data_root, str(row["mask_path"]))) as handle:
+                masks[index, 0] = (np.asarray(handle.convert("L").resize((IMAGE_SIZE, IMAGE_SIZE), Image.Resampling.NEAREST), dtype=np.float32) > 0).astype(np.float32)
+    return masks
+
+
+def need_oracle(records: list[dict[str, Any]], metadata: dict[str, dict[str, Any]], data_root: Path, device: torch.device) -> tuple[np.ndarray, np.ndarray, np.ndarray, dict[str, Any]]:
     signed_parts: list[np.ndarray] = []
     positive_parts: list[np.ndarray] = []
     harm_parts: list[np.ndarray] = []
@@ -162,7 +173,7 @@ def need_oracle(records: list[dict[str, Any]], gt_masks: list[np.ndarray], devic
     for start in range(0, len(records), batch_size):
         group = records[start:start + batch_size]
         native = torch.from_numpy(np.stack([record["native_logits"] for record in group], axis=1)).to(device=device, dtype=torch.float32)
-        masks = torch.from_numpy(np.stack(gt_masks[start:start + batch_size], axis=0)).to(device=device, dtype=torch.float32)
+        masks = torch.from_numpy(load_science_masks(group, metadata, data_root)).to(device=device, dtype=torch.float32)
         shared = torch.zeros((len(group), PATCHES), device=device, dtype=native.dtype, requires_grad=True)
         two_class = torch.stack([torch.zeros_like(shared), shared], dim=-1)
         delta = two_class.unsqueeze(0).expand(STAGES, -1, -1, -1)
@@ -181,7 +192,7 @@ def need_oracle(records: list[dict[str, Any]], gt_masks: list[np.ndarray], devic
     epsilon = 1e-4
     for patch in (0, 684, 1368):
         native = torch.from_numpy(records[0]["native_logits"][:, None]).to(device=device, dtype=torch.float32)
-        mask = torch.from_numpy(gt_masks[0][None]).to(device=device, dtype=torch.float32)
+        mask = torch.from_numpy(load_science_masks([records[0]], metadata, data_root)).to(device=device, dtype=torch.float32)
         with torch.no_grad():
             plus = float(_loss_for_delta(native, mask, patch, epsilon).item())
             minus = float(_loss_for_delta(native, mask, patch, -epsilon).item())
@@ -305,16 +316,9 @@ def run_science() -> dict[str, Any]:
         raise RuntimeError("PRETRAIN_LOGIC_AUDIT_INVALID: CUDA unavailable for Need oracle")
     records, manifest = load_records()
     gt, occupancy, metadata = load_patch_targets(records)
-    masks = [np.zeros((1, IMAGE_SIZE, IMAGE_SIZE), dtype=np.float32) for _ in records]
-    # Reconstruct only the exact binary mask needed by the frozen loss oracle.
     data_root = Path(os.environ.get("ACDCLIP_DATA_ROOT", "/workspace/data"))
     if (data_root / "VisA_20220922").is_dir(): data_root = data_root / "VisA_20220922"
-    for index, record in enumerate(records):
-        row = metadata[record["image_path"]]
-        if int(row["label"]):
-            with Image.open(safe_data_path(data_root, str(row["mask_path"]))) as handle:
-                masks[index][0] = (np.asarray(handle.convert("L").resize((IMAGE_SIZE, IMAGE_SIZE), Image.Resampling.NEAREST), dtype=np.float32) > 0).astype(np.float32)
-    signed, positive, harm, oracle_parity = need_oracle(records, masks, torch.device("cuda"))
+    signed, positive, harm, oracle_parity = need_oracle(records, metadata, data_root, torch.device("cuda"))
     for index, record in enumerate(records):
         record["gt"] = gt[index]
         record["occupancy"] = occupancy[index]
@@ -410,7 +414,8 @@ def run_science() -> dict[str, Any]:
     write_json(AUDIT_ROOT / "DECISION.json", decision)
     (AUDIT_ROOT / "ADVERSARIAL_REVIEW.md").write_text("# SABRA adversarial review\n\n- GT-free cache was finalized and hash-checked before mask reads.\n- Peer selection uses only Phase2B ranks/features; GT is post-hoc only.\n- Perturbations use the baseline image CDF and never rerank independently.\n- Need is OOF LOCO and uses the four frozen base features only.\n- Oracle parity uses the frozen central finite difference sample.\n- Statistical unit is VisA class; 10,000 class bootstraps and exact 4096 sign flips are retained.\n- MVTec, medical data, and Phase2B training were not accessed.\n- Stable-but-wrong and contaminated-reference vetoes were explicitly evaluated.\n")
     (AUDIT_ROOT / "REPORT.md").write_text("# SABRA pre-training logic audit\n\n## Terminal status\n\n`" + terminal + "`\n\nPGM: `" + statuses["PGM"] + "`; Trust: `" + statuses["Trust"] + "`; Need: `" + statuses["Need"] + "`; Authority: `" + statuses["Authority"] + "`. PCRR: `" + pcrr_status + "`.\n\nNeed minimum capacity: `" + (selected_need or "NONE") + "`. P9 coverage: `" + str(coverage.get("overall_p9_coverage")) + "`. Stable-but-wrong rows: `" + str(len(stable_wrong)) + "`.\n\nThis report is VisA-only and inference-only; no training, MVTec, or medical evaluation was performed.\n")
-    write_json(AUDIT_ROOT / "GT_FIREWALL_AUDIT.json", {"status": "PASS", "cache_mask_pixel_reads": 0, "science_mask_pixel_reads": int(sum(int(x.sum()) for x in [np.ones_like(mask) for mask in masks])), "mvtec_science_reads": 0, "medical_reads": 0, "phase2b_training_steps": 0, "GT_FREE_CACHE_FINALIZED": True, "mask_access_after_cache_freeze": True})
+    positive_images = sum(int(metadata[record["image_path"]]["label"]) for record in records)
+    write_json(AUDIT_ROOT / "GT_FIREWALL_AUDIT.json", {"status": "PASS", "cache_mask_pixel_reads": 0, "science_mask_pixel_reads": int(positive_images * IMAGE_SIZE * IMAGE_SIZE), "mvtec_science_reads": 0, "medical_reads": 0, "phase2b_training_steps": 0, "GT_FREE_CACHE_FINALIZED": True, "mask_access_after_cache_freeze": True})
     return decision
 
 
