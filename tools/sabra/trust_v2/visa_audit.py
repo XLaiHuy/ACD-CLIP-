@@ -120,16 +120,20 @@ def _classes(records: list[dict[str, Any]]) -> np.ndarray:
 
 
 def _loco(features: np.ndarray, target: np.ndarray, classes: np.ndarray) -> np.ndarray:
-    features = np.asarray(features, dtype=np.float64)
+    features = np.asarray(features)
     if features.ndim == 1:
         features = features[:, None]
     output = np.full(target.shape, np.nan, dtype=np.float64)
     for held in EXPECTED_VISA_CLASSES:
         train, test = classes != held, classes == held
-        scaler = StandardScaler().fit(features[train])
+        train_features = np.asarray(features[train], dtype=np.float64)
+        scaler = StandardScaler().fit(train_features)
+        scaler.transform(train_features, copy=False)
         model = LogisticRegression(class_weight="balanced", solver="lbfgs", C=1.0, max_iter=1000, random_state=0)
-        model.fit(scaler.transform(features[train]), target[train])
-        output[test] = model.predict_proba(scaler.transform(features[test]))[:, 1]
+        model.fit(train_features, target[train])
+        test_features = np.asarray(features[test], dtype=np.float64)
+        scaler.transform(test_features, copy=False)
+        output[test] = model.predict_proba(test_features)[:, 1]
     return output.astype(np.float32)
 
 
