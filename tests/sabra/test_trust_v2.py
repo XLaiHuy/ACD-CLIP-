@@ -18,6 +18,7 @@ from sabra.trust_v2.numerical import (  # noqa: E402
     relational_v2,
     trust_stability,
 )
+from sabra.trust_v2.visa_audit import _reserve_metadata_for_patch  # noqa: E402
 
 
 class TrustV2NumericalTest(unittest.TestCase):
@@ -128,6 +129,30 @@ class TrustV2NumericalTest(unittest.TestCase):
         again = relational_v2(compact_geometry_v2(self.features, self.b1), self.b1)
         for key in ("baseline_pgm", "baseline_pcrr", "reserve_pgm_rank"):
             np.testing.assert_array_equal(self.relational[key], again[key])
+
+    def test_24_reporting_serializes_patch_specific_reserve_ids(self) -> None:
+        p9 = np.asarray([101, 203, 307], dtype=np.int64)
+        p16 = np.asarray([401, 503, 607], dtype=np.int64)
+        row0 = _reserve_metadata_for_patch(p9, p16, 0)
+        row1 = _reserve_metadata_for_patch(p9, p16, 1)
+        self.assertEqual(row0, {"p9_index": 101, "p16_index": 401})
+        self.assertEqual(row1, {"p9_index": 203, "p16_index": 503})
+        self.assertNotEqual(row0, row1)
+
+    def test_25_reporting_fix_does_not_mutate_science_or_predictions(self) -> None:
+        scientific = {
+            key: np.array(self.relational[key], copy=True)
+            for key in ("baseline_pgm", "baseline_pcrr", "reserve_pgm_rank", "reserve_pcrr_rank")
+        }
+        stability = {key: np.array(value, copy=True) for key, value in trust_stability(self.relational, self.b1).items()}
+        predictions = np.linspace(0.01, 0.99, 3 * PATCHES, dtype=np.float32)
+        predictions_before = predictions.tobytes()
+        _reserve_metadata_for_patch(np.asarray([11, 13]), np.asarray([17, 19]), 1)
+        for key, value in scientific.items():
+            self.assertEqual(value.tobytes(), self.relational[key].tobytes())
+        for key, value in stability.items():
+            self.assertEqual(value.tobytes(), trust_stability(self.relational, self.b1)[key].tobytes())
+        self.assertEqual(predictions_before, predictions.tobytes())
 
 
 if __name__ == "__main__":

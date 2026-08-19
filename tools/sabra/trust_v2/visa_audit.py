@@ -217,6 +217,13 @@ def _safety(scores: dict[str, np.ndarray], utility: np.ndarray, classes: np.ndar
     return out
 
 
+def _reserve_metadata_for_patch(p9_row: np.ndarray, p16_row: np.ndarray, patch_idx: int) -> dict[str, int]:
+    return {
+        "p9_index": max(int(np.asarray(p9_row)[patch_idx]), 0),
+        "p16_index": max(int(np.asarray(p16_row)[patch_idx]), 0),
+    }
+
+
 def _reference_and_stable_rows(records: list[dict[str, Any]], gt: np.ndarray, occupancy: np.ndarray, selected: np.ndarray) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     stable: list[dict[str, Any]] = []
     contaminated: list[bool] = []
@@ -235,8 +242,6 @@ def _reference_and_stable_rows(records: list[dict[str, Any]], gt: np.ndarray, oc
             for local_index, record in enumerate(class_records):
                 valid = np.asarray(record["valid_b1"], dtype=bool)
                 peers = np.maximum(np.asarray(peer_rows[local_index], dtype=np.int64), 0)
-                p9 = max(int(p9_rows[local_index]), 0)
-                p16 = max(int(p16_rows[local_index]), 0)
                 peer_occ = occupancy[image_index][peers]
                 peer_has = (peer_occ.max(axis=1) > 0) & valid
                 contaminated.extend(peer_has[valid].tolist())
@@ -247,7 +252,8 @@ def _reference_and_stable_rows(records: list[dict[str, Any]], gt: np.ndarray, oc
                     for column in range(quality.shape[1]):
                         q = np.nanquantile(quality[valid, column], [0.25, 0.5, 0.75])
                         quartiles.append(int(np.digitize(quality[patch, column], q, right=True) + 1))
-                    stable.append({"class": record["class_name"], "image_path": record["image_path"], "patch": int(patch), "E_raw": float(record["baseline_pgm"][patch]), "T_v2": float(selected[image_index * PATCHES + patch]), "p1_p8_contaminated": bool(peer_has[patch]), "p1_p8_multiple_contaminated": bool((peer_occ[patch] > 0).sum() >= 2), "p9_index": int(p9), "p16_index": int(p16), "quality_quartiles": ";".join(map(str, quartiles))})
+                    reserve_metadata = _reserve_metadata_for_patch(p9_rows[local_index], p16_rows[local_index], int(patch))
+                    stable.append({"class": record["class_name"], "image_path": record["image_path"], "patch": int(patch), "E_raw": float(record["baseline_pgm"][patch]), "T_v2": float(selected[image_index * PATCHES + patch]), "p1_p8_contaminated": bool(peer_has[patch]), "p1_p8_multiple_contaminated": bool((peer_occ[patch] > 0).sum() >= 2), **reserve_metadata, "quality_quartiles": ";".join(map(str, quartiles))})
                 image_index += 1
     return stable, {"reference_sets_with_anomalous_peer_fraction": float(np.mean(contaminated)) if contaminated else None, "multiple_contaminated_peer_fraction": float(np.mean(multiple)) if multiple else None, "stable_but_wrong_count": len(stable), "no_gt_peer_selection": True}
 
