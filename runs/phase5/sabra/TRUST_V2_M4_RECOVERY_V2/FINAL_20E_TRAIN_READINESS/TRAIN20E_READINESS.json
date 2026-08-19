@@ -1,0 +1,41 @@
+{
+  "schema": "SABRA_TRAIN20E_READINESS_V1",
+  "status": "PERSISTED_NOT_AUTHORIZED",
+  "scientific_terminal": "RECOVERY_V2_TERMINAL_WITH_MVTEC_UNAVAILABLE",
+  "FULL_20E_TRAIN_AUTHORIZED": false,
+  "EXPLORATORY_20E": false,
+  "training_started": false,
+  "medical_reads": 0,
+  "mvtec_image_mask_reads": 0,
+  "mvtec_metadata_probe_reads": 1,
+  "mvtec_status": "MVTEC_EXTERNAL_UNAVAILABLE",
+  "candidate": {
+    "selected_model": "M1_E_Credibility",
+    "features": [
+      "E",
+      "peer_coherence",
+      "query_support_mean",
+      "peer_eigen_entropy",
+      "stage_query_profile_disagreement"
+    ],
+    "m4_features": [
+      "E",
+      "peer_coherence",
+      "query_support_mean",
+      "peer_eigen_entropy",
+      "stage_query_profile_disagreement",
+      "D_rel"
+    ],
+    "pcrr_status": "DROP",
+    "trust_v2_status": "SUPPORTED",
+    "authority_v2_status": "SUPPORTED"
+  },
+  "provenance": {
+    "result_commit": "834e8d34375f532eab6683fd0ed24fbb3d7c1700",
+    "candidate_freeze_commit": "c878ca10c0596b7ed01909cf65de486b21946dbd",
+    "handoff_commit_before_readiness": "90bb99debfde1dfad9393016cbeb03ead963ed56",
+    "readiness_commit": "PENDING_COMMIT",
+    "final_handoff_update": "PENDING_FINAL_HANDOFF_UPDATE"
+  },
+  "reason_not_authorized": "The candidate was frozen, but MVTec external validation could not run because the required image root was unavailable."
+}
