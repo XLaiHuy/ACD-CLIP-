@@ -235,7 +235,9 @@ def _reference_and_stable_rows(records: list[dict[str, Any]], gt: np.ndarray, oc
 
 
 def run() -> dict[str, Any]:
+    print("TRUST_V2_STAGE cache_gate", flush=True)
     records, manifest = load_gt_free_records()
+    print("TRUST_V2_STAGE gt_opened", flush=True)
     gt, occupancy, metadata = load_patch_targets(records)
     classes = _classes(records)
     target = gt.reshape(-1).astype(np.int8)
@@ -248,7 +250,9 @@ def run() -> dict[str, Any]:
     model_features: dict[str, np.ndarray] = {"M0_E": e[:, None], "M1_E_Credibility": base_features, "M2_E_Credibility_S9_R9": np.column_stack([base_features, feature_arrays["S9"], feature_arrays["R9"]])}
     if coverage.get("m3_eligible"):
         model_features["M3_E_Credibility_S9_R9_S16_R16"] = np.column_stack([model_features["M2_E_Credibility_S9_R9"], feature_arrays["S16"], feature_arrays["R16"]])
+    print("TRUST_V2_STAGE trust_oof_start", list(model_features), flush=True)
     oof = {name: _loco(features, target, classes) for name, features in model_features.items()}
+    print("TRUST_V2_STAGE trust_oof_done", flush=True)
     metrics, class_metric_rows = _model_metrics(oof, target, flat_occupancy, classes)
     effects = {}
     for name in list(oof)[1:]:
@@ -268,6 +272,7 @@ def run() -> dict[str, Any]:
     _write_csv(TRUST_ROOT / "PER_CLASS_TRUST_V2.csv", class_metric_rows["rows"])
     write_json(TRUST_ROOT / "TRUST_V2_MODEL_AUDIT.json", {"status": "PASS", "models": list(model_features), "metrics": metrics, "effects_vs_M0": effects, "effect_summaries": summaries, "ladders": ladders, "selected_model": selected_name or "M0_E", "selected_model_features": list(model_features.get(selected_name, model_features["M0_E"]).shape), "OOF": True, "class_unit": "VisA class", "training_fold_only_scaling": True, "logistic": {"class_weight": "balanced", "solver": "lbfgs", "C": 1.0, "max_iter": 1000, "random_state": 0}})
     write_json(TRUST_ROOT / "PCRR_DISAGREEMENT_AUDIT.json", {"status": "PASS", "PCRR_STATUS": pcrr_status, "class_effect": dict(zip(EXPECTED_VISA_CLASSES, pcrr_effect)), "effect": pcrr_summary, "used_for_fusion": False})
+    print("TRUST_V2_STAGE trust_metrics_done", flush=True)
     c1_records: list[dict[str, Any]] = []
     old_fields = ("native_logits", "margin_within_image_rank", "robust_margin_normalization", "D_rank", "deployment_sensitivity")
     for class_name in EXPECTED_VISA_CLASSES:
@@ -280,9 +285,11 @@ def run() -> dict[str, Any]:
                 c1_records.append({key: np.array(old[key][index], copy=True) for key in old_fields} | {"class_name": class_name, "image_path": record["image_path"]})
     data_root = Path(os.environ.get("ACDCLIP_DATA_ROOT", "/workspace/data"))
     if (data_root / "VisA_20220922").is_dir(): data_root = data_root / "VisA_20220922"
+    print("TRUST_V2_STAGE c1_oracle_start", flush=True)
     signed, positive, harm, oracle_parity = need_oracle(c1_records, metadata, data_root, __import__("torch").device("cuda"))
     utility_target = (signed.reshape(-1) > 1e-8).astype(np.int8)
     need_features = np.column_stack([_flat(c1_records, "margin_within_image_rank"), _flat(c1_records, "robust_margin_normalization"), _flat(c1_records, "D_rank"), _flat(c1_records, "deployment_sensitivity")])
+    print("TRUST_V2_STAGE c1_oracle_done", flush=True)
     c1 = _loco(need_features, utility_target, classes)
     margin_only = _loco(need_features[:, :1], utility_target, classes)
     need_effect = [(_auc(c1[classes == cls], utility_target[classes == cls]) - _auc(margin_only[classes == cls], utility_target[classes == cls])) if _auc(c1[classes == cls], utility_target[classes == cls]) is not None and _auc(margin_only[classes == cls], utility_target[classes == cls]) is not None else None for cls in EXPECTED_VISA_CLASSES]
