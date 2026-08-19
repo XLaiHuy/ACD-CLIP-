@@ -68,8 +68,11 @@ def construct_b1_v2(
     candidate_count = np.zeros(PATCHES, dtype=np.int32)
     gap9 = np.zeros(PATCHES, dtype=np.float32)
     gap16 = np.zeros(PATCHES, dtype=np.float32)
-    shared = _normalize_rows(features.mean(axis=0))
-    pool_features = shared[pool_indices]
+    import torch
+    import torch.nn.functional as F
+    tensor = torch.from_numpy(features)
+    shared = F.normalize(tensor.mean(dim=0), dim=-1)
+    pool_features = shared.float()[pool_indices]
     for query in range(PATCHES):
         if not pool_indices.size:
             continue
@@ -81,7 +84,8 @@ def construct_b1_v2(
         candidate_count[query] = int(candidates.size)
         if not candidates.size:
             continue
-        similarities = shared[query] @ pool_features[np.flatnonzero(spatial_ok)].T
+        columns = np.flatnonzero(spatial_ok)
+        similarities = (shared[query] @ pool_features[columns].T).numpy()
         order = np.lexsort((candidates, -similarities))
         ordered = candidates[order]
         ordered_similarity = similarities[order]
