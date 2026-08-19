@@ -270,10 +270,14 @@ def run() -> dict[str, Any]:
     write_json(TRUST_ROOT / "PCRR_DISAGREEMENT_AUDIT.json", {"status": "PASS", "PCRR_STATUS": pcrr_status, "class_effect": dict(zip(EXPECTED_VISA_CLASSES, pcrr_effect)), "effect": pcrr_summary, "used_for_fusion": False})
     c1_records: list[dict[str, Any]] = []
     old_fields = ("native_logits", "margin_within_image_rank", "robust_margin_normalization", "D_rank", "deployment_sensitivity")
-    for record in records:
-        with np.load(OLD_CACHE_ROOT / f"{record['class_name']}.npz", allow_pickle=False) as old:
-            index = int(np.flatnonzero(old["image_path"].astype(str) == record["image_path"])[0])
-            c1_records.append({key: np.asarray(old[key][index]) for key in old_fields} | {"class_name": record["class_name"], "image_path": record["image_path"]})
+    for class_name in EXPECTED_VISA_CLASSES:
+        class_records = [record for record in records if record["class_name"] == class_name]
+        with np.load(OLD_CACHE_ROOT / f"{class_name}.npz", allow_pickle=False) as old:
+            old_paths = old["image_path"].astype(str)
+            old_index = {path: index for index, path in enumerate(old_paths)}
+            for record in class_records:
+                index = old_index[record["image_path"]]
+                c1_records.append({key: np.asarray(old[key][index]) for key in old_fields} | {"class_name": class_name, "image_path": record["image_path"]})
     data_root = Path(os.environ.get("ACDCLIP_DATA_ROOT", "/workspace/data"))
     if (data_root / "VisA_20220922").is_dir(): data_root = data_root / "VisA_20220922"
     signed, positive, harm, oracle_parity = need_oracle(c1_records, metadata, data_root, __import__("torch").device("cuda"))
