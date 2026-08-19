@@ -229,39 +229,31 @@ def _feature_credibility(geometry: dict[str, np.ndarray], b1: dict[str, np.ndarr
     upper = np.triu_indices(PEERS, 1)
     peer_coherence = gram[:, :, upper[0], upper[1]].mean(axis=(0, 2)).astype(np.float32)
     query_support_mean = c.mean(axis=(0, 2)).astype(np.float32)
-    entropy = np.zeros(PATCHES, dtype=np.float64)
     H = np.eye(PEERS) - np.full((PEERS, PEERS), 1.0 / PEERS)
-    for patch in np.flatnonzero(valid):
-        stage_values = []
-        for stage in range(STAGES):
-            centered = H @ gram[stage, patch] @ H
-            centered = (centered + centered.T) * 0.5
-            eigenvalues = np.linalg.eigvalsh(centered)[::-1]
-            maximum = max(float(eigenvalues[0]), 0.0)
-            tolerance = np.finfo(np.float32).eps * max(1.0, maximum) * PEERS
-            positive = eigenvalues[eigenvalues > tolerance]
-            if positive.size:
-                probabilities = positive / positive.sum()
-                stage_values.append(float(-np.sum(probabilities * np.log(probabilities)) / np.log(PEERS - 1)))
-            else:
-                stage_values.append(0.0)
-        entropy[patch] = float(np.mean(stage_values))
-    profile_disagreement = np.zeros(PATCHES, dtype=np.float64)
-    pairs = ((0, 1), (0, 2), (1, 2))
-    for patch in np.flatnonzero(valid):
-        values = []
-        for left, right in pairs:
-            a, b = c[left, patch], c[right, patch]
-            cosine = float(np.dot(a, b) / max(np.linalg.norm(a) * np.linalg.norm(b), 1e-12))
-            values.append(1.0 - cosine)
-        profile_disagreement[patch] = float(np.mean(values))
+    centered = np.einsum("ij,spjk,kl->spil", H, gram, H)
+    centered = (centered + np.swapaxes(centered, -1, -2)) * 0.5
+    eigenvalues = np.linalg.eigvalsh(centered)[..., ::-1]
+    maximum = np.maximum(eigenvalues[..., 0], 0.0)
+    tolerance = np.finfo(np.float32).eps * np.maximum(1.0, maximum) * PEERS
+    positive = eigenvalues > tolerance[..., None]
+    positive_values = np.where(positive, eigenvalues, 0.0)
+    total = positive_values.sum(axis=-1, keepdims=True)
+    probabilities = np.divide(positive_values, np.maximum(total, 1e-30), where=np.ones_like(positive_values, dtype=bool))
+    entropy_stage = -np.sum(np.where(positive, probabilities * np.log(np.maximum(probabilities, 1e-30)), 0.0), axis=-1) / np.log(PEERS - 1)
+    entropy = np.clip(entropy_stage.mean(axis=0), 0.0, 1.0).astype(np.float32)
+    profile_values = []
+    for left, right in ((0, 1), (0, 2), (1, 2)):
+        denominator = np.maximum(np.linalg.norm(c[left], axis=-1) * np.linalg.norm(c[right], axis=-1), 1e-12)
+        profile_values.append(1.0 - np.sum(c[left] * c[right], axis=-1) / denominator)
+    profile_disagreement = np.mean(profile_values, axis=0).astype(np.float32)
+    for value in (peer_coherence, query_support_mean, entropy, profile_disagreement):
+        value[~valid] = 0.0
     return {
         "peer_coherence": peer_coherence,
         "query_support_mean": query_support_mean,
-        "peer_eigen_entropy": np.clip(entropy, 0.0, 1.0).astype(np.float32),
-        "stage_query_profile_disagreement": profile_disagreement.astype(np.float32),
+        "peer_eigen_entropy": entropy,
+        "stage_query_profile_disagreement": profile_disagreement,
     }
-
 
 def trust_stability(relational: dict[str, np.ndarray], b1: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
     baseline = relational["baseline_pgm"]
