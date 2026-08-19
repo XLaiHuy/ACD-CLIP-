@@ -1,0 +1,159 @@
+{
+  "cache_policy": {
+    "D_rel_cache_derived": true,
+    "cache_root": "runs/phase5/sabra/TRUST_V2_DEVELOPMENT/cache",
+    "manifest": "runs/phase5/sabra/TRUST_V2_DEVELOPMENT/TRUST_V2_GT_FREE_MANIFEST.json",
+    "new_scientific_features_required": false,
+    "rebuild": false,
+    "reuse_unchanged": true
+  },
+  "firewalls": {
+    "MVTec_before_candidate_freeze": false,
+    "MVTec_reads_before_freeze": 0,
+    "medical_access": false,
+    "medical_reads": 0
+  },
+  "invalid_archive": "runs/phase5/sabra/INVALIDATED_TRUST_V2_RUNS/20260820_ARTIFACT_COLLISION",
+  "output_policy": {
+    "atomic_writes": true,
+    "exact_path_staging": true,
+    "forbidden_roots": [
+      "runs/phase5/sabra/TRUST_V2_DEVELOPMENT",
+      "runs/phase5/sabra/TRUST_V2_M4_FOLLOWUP"
+    ],
+    "root": "runs/phase5/sabra/TRUST_V2_M4_RECOVERY_V2",
+    "runtime_collision_error": "ARTIFACT_PATH_COLLISION"
+  },
+  "pre_freeze_git": {
+    "HEAD": "2bc1e8674cb432837495700ac8255b5b43d9f360",
+    "divergence": "0\t0",
+    "origin": "2bc1e8674cb432837495700ac8255b5b43d9f360",
+    "protocol_commit_pending": true
+  },
+  "prior_invalidations": [
+    "The earlier reserve serialization defect was reporting-only and was repaired; it does not authorize definition changes.",
+    "The Trust-v2 M4 follow-up was invalid because the preregistered M4 diagnostic was omitted.",
+    "The subsequent corrected VisA run was invalid because result paths collided with prior untracked invalid artifacts.",
+    "The immediately preceding invalid untracked bytes were overwritten before preservation and cannot be claimed recoverable; no bytes are reconstructed."
+  ],
+  "protocol_id": "TRUST_V2_M4_RECOVERY_V2",
+  "provenance": {
+    "cache_builder": {
+      "path": "tools/sabra/trust_v2/cache_builder.py",
+      "sha256": "201cd8cd87b671c8b90c7b21d58e6eb22ce593898ae50a87494906da74ebbc11"
+    },
+    "cache_manifest": {
+      "path": "runs/phase5/sabra/TRUST_V2_DEVELOPMENT/TRUST_V2_GT_FREE_MANIFEST.json",
+      "sha256": "3e6f31a031100b9635a27a78f974ee2a7146f6faee0d0bcfadf0b256cae4df16"
+    },
+    "cache_shards": {
+      "root": "runs/phase5/sabra/TRUST_V2_DEVELOPMENT/cache",
+      "sha256": {
+        "candle": "63cc28c545d83d01de9fa039698a6968b270203faeaccef64cf96d91219ccc2e",
+        "capsules": "6456d2e4fb330c94b24134cc8273c39b434aa2fab8dfa7dac17a54bd46efacb7",
+        "cashew": "815737ff61e30fb7e88caa0574d4f904b77a7a8418f473aa683b4f2a1ee687d3",
+        "chewinggum": "d6ddb75421ca02d9a79c33b540f8b4c3640f7c0af976c27f30813d4be0c30fb3",
+        "fryum": "a07ad15c951b4b41149062d1b92f6a8f6e665eac41de6c6ff8e310d3922e5d1f",
+        "macaroni1": "630c7e80aabe163e6aa998dd2256a26ef728f858f6e416cae9ce61fa6011852a",
+        "macaroni2": "b8d0996d51185efa262643d2da3bb75eeda6e9d07830fcc69ea6c6757ba81fea",
+        "pcb1": "e3c6dd567ade0420c1ae842dba86b6f89bd9e2986592372d94cc32e43de392d8",
+        "pcb2": "7530eb77a54ff44d38a9cf9efd9773ad886ad6abc968fe096dd3d975f1a9ee27",
+        "pcb3": "ca500e01366016dd4cded7198a5e2c5124a5e3483a98f4b6c1c2d60653bef7a2",
+        "pcb4": "18f68894022647c0325d6141181eb9edbf7c7476502b89ff1f373509f23e57bd",
+        "pipe_fryum": "f59e642488fac0a59af5a406995d373091d2607f0beacb230ace52cc394785a9"
+      }
+    },
+    "checkpoint": {
+      "path": "runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+      "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34"
+    },
+    "clip": {
+      "path": ".runtime/assets/ViT-L-14-336px.pt",
+      "sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02"
+    },
+    "config": {
+      "path": "runs/phase4/k1/short64_seed0_attempt5/config.json",
+      "sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4"
+    },
+    "metadata": {
+      "path": "dataset/hub/VisA.jsonl",
+      "sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842"
+    },
+    "numerical": {
+      "path": "tools/sabra/trust_v2/numerical.py",
+      "sha256": "8c2c0d432e710f5d1e1425116953c1cc82f6f9e1fcbb256bdd270101db214ff8"
+    },
+    "recovery_runner": {
+      "path": "tools/sabra/trust_v2/recovery_v2.py",
+      "sha256": "75a8eea80be6f421d6abb8f6a1d3f76053f9cc8e58ab489550f63cdce63cadab"
+    },
+    "visa_audit": {
+      "path": "tools/sabra/trust_v2/visa_audit.py",
+      "sha256": "30ac8169a091c345108cecfd0ff7a11a52ee5dc9419d30aadcc5c40e14269901"
+    }
+  },
+  "purpose": "Collision-safe rerun of the already-frozen Trust-v2 M4 analysis from the finalized GT-free cache; no scientific redesign.",
+  "scientific_definitions": {
+    "D_rel": "abs(PGM_baseline_rank - PCRR_baseline_rank)",
+    "M0": [
+      "E"
+    ],
+    "M1": [
+      "E",
+      "peer_coherence",
+      "query_support_mean",
+      "peer_eigen_entropy",
+      "stage_query_profile_disagreement"
+    ],
+    "M2": [
+      "E",
+      "peer_coherence",
+      "query_support_mean",
+      "peer_eigen_entropy",
+      "stage_query_profile_disagreement",
+      "S9",
+      "R9"
+    ],
+    "M3": [
+      "E",
+      "peer_coherence",
+      "query_support_mean",
+      "peer_eigen_entropy",
+      "stage_query_profile_disagreement",
+      "S9",
+      "R9",
+      "S16",
+      "R16"
+    ],
+    "M3_eligibility": "existing frozen p16 coverage rule only",
+    "M4": "selected_non_PCRR_model + D_rel",
+    "pcrr_primary": "AUROC(M4) - AUROC(selected_non_PCRR_model) per held-out VisA class",
+    "pcrr_retention": "positive mean, non-negative median, no catastrophic tail, at least WEAK_POSITIVE_EVIDENCE; otherwise DROP"
+  },
+  "status": "FROZEN_BEFORE_VISA_RERUN",
+  "unchanged_semantics": [
+    "LOCO 12 folds",
+    "training-fold-only StandardScaler",
+    "balanced lbfgs logistic regression C=1.0 max_iter=1000 random_state=0",
+    "p9 and p16 definitions",
+    "PGM",
+    "Need C1",
+    "Authority-v2",
+    "evidence ladder",
+    "safety metrics",
+    "GT semantics",
+    "MVTec firewall",
+    "medical firewall",
+    "deterministic non-PCRR selection rule"
+  ],
+  "workflow": [
+    "freeze and push this protocol and implementation",
+    "run deterministic readiness tests",
+    "rerun VisA audit only after synchronized push",
+    "validate collision-safe artifacts",
+    "commit and push results",
+    "freeze candidate only if eligible",
+    "access MVTec only after remotely verified freeze",
+    "otherwise hand off and stop"
+  ]
+}

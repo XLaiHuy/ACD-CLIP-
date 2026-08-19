@@ -12,6 +12,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -25,15 +26,25 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path[:0] = [str(ROOT), str(ROOT / "tools")]
 
 from sabra.data import EXPECTED_VISA_CLASSES, read_visa_metadata, safe_data_path  # noqa: E402
-from sabra.logic_core import IMAGE_SIZE, PATCHES, sha256_file, write_json  # noqa: E402
+from sabra.logic_core import IMAGE_SIZE, PATCHES, json_default, sha256_file  # noqa: E402
 from sabra.science_runner import need_oracle  # noqa: E402
 
-TRUST_ROOT = ROOT / "runs/phase5/sabra/TRUST_V2_DEVELOPMENT"
-CACHE_ROOT = TRUST_ROOT / "cache"
+DEVELOPMENT_ROOT = ROOT / "runs/phase5/sabra/TRUST_V2_DEVELOPMENT"
+TRUST_ROOT = DEVELOPMENT_ROOT
+CACHE_ROOT = DEVELOPMENT_ROOT / "cache"
 OLD_CACHE_ROOT = ROOT / "runs/phase5/sabra/PRETRAIN_LOGIC_AUDIT/cache"
-MANIFEST = TRUST_ROOT / "TRUST_V2_GT_FREE_MANIFEST.json"
-PROTOCOL = TRUST_ROOT / "SABRA_TRUST_V2_PROTOCOL.md"
-PROTOCOL_JSON = TRUST_ROOT / "SABRA_TRUST_V2_PROTOCOL.json"
+MANIFEST = DEVELOPMENT_ROOT / "TRUST_V2_GT_FREE_MANIFEST.json"
+PROTOCOL = DEVELOPMENT_ROOT / "SABRA_TRUST_V2_PROTOCOL.md"
+PROTOCOL_JSON = DEVELOPMENT_ROOT / "SABRA_TRUST_V2_PROTOCOL.json"
+P16_COVERAGE_AUDIT = DEVELOPMENT_ROOT / "P16_COVERAGE_AUDIT.json"
+RECOVERY_ROOT = ROOT / "runs/phase5/sabra/TRUST_V2_M4_RECOVERY_V2"
+RESULT_ARTIFACT_NAMES = (
+    "STABLE_BUT_WRONG_V2.csv", "PER_CLASS_TRUST_V2.csv",
+    "TRUST_V2_MODEL_AUDIT.json", "PCRR_DISAGREEMENT_AUDIT.json",
+    "NEED_C1_FROZEN_MODEL.json", "AUTHORITY_V2_AUDIT.json",
+    "STATISTICS.json", "REFERENCE_CREDIBILITY_AUDIT.json",
+    "DECISION.json", "ADVERSARIAL_REVIEW.md", "REPORT.md",
+)
 CHECKPOINT = ROOT / "runs/phase4v/v1_7/readiness_full/adapter_5.pth"
 CONFIG = ROOT / "runs/phase4/k1/short64_seed0_attempt5/config.json"
 CLIP = ROOT / ".runtime/assets/ViT-L-14-336px.pt"
@@ -41,15 +52,62 @@ METADATA = ROOT / "dataset/hub/VisA.jsonl"
 SOURCES = [ROOT / "tools/sabra/trust_v2/cache_builder.py", ROOT / "tools/sabra/trust_v2/numerical.py", ROOT / "tools/sabra/phase2b.py", ROOT / "tools/sabra/data.py"]
 
 
+def _atomic_write_text(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists():
+        raise RuntimeError(f"ARTIFACT_PATH_COLLISION {path}")
+    temporary: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", newline="", dir=path.parent, prefix=f".{path.name}.tmp.", delete=False) as handle:
+            temporary = Path(handle.name)
+            handle.write(text)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
+    finally:
+        if temporary is not None and temporary.exists():
+            temporary.unlink()
+
+
+def _write_json(path: Path, payload: dict[str, Any]) -> None:
+    _atomic_write_text(path, json.dumps(payload, indent=2, sort_keys=True, default=json_default) + "\n")
+
+
 def _write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    if not rows:
-        path.write_text("\n")
-        return
-    with path.open("w", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(rows[0]), lineterminator="\n")
-        writer.writeheader()
-        writer.writerows(rows)
+    if path.exists():
+        raise RuntimeError(f"ARTIFACT_PATH_COLLISION {path}")
+    temporary: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", newline="", dir=path.parent, prefix=f".{path.name}.tmp.", delete=False) as handle:
+            temporary = Path(handle.name)
+            if not rows:
+                handle.write("\n")
+            else:
+                writer = csv.DictWriter(handle, fieldnames=list(rows[0]), lineterminator="\n")
+                writer.writeheader()
+                writer.writerows(rows)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
+    finally:
+        if temporary is not None and temporary.exists():
+            temporary.unlink()
+
+
+def configure_output_root(output_root: Path) -> None:
+    global TRUST_ROOT
+    expected = RECOVERY_ROOT.resolve()
+    actual = output_root.resolve()
+    if actual != expected:
+        raise RuntimeError(f"TRUST_V2_RECOVERY_OUTPUT_ROOT_INVALID expected={expected} actual={actual}")
+    actual.mkdir(parents=True, exist_ok=True)
+    collisions = [actual / name for name in RESULT_ARTIFACT_NAMES if (actual / name).exists()]
+    temporary_collisions = list(actual.glob(".*.tmp.*"))
+    if collisions or temporary_collisions:
+        found = collisions + temporary_collisions
+        raise RuntimeError("ARTIFACT_PATH_COLLISION " + ",".join(str(path) for path in found))
+    TRUST_ROOT = actual
 
 
 def _git(ref: str) -> str:
@@ -280,7 +338,7 @@ def run() -> dict[str, Any]:
     e = _flat(records, "baseline_pgm").astype(np.float32)
     pcrr = _flat(records, "baseline_pcrr").astype(np.float32)
     feature_arrays = {name: _flat(records, name).astype(np.float32) for name in ("peer_coherence", "query_support_mean", "peer_eigen_entropy", "stage_query_profile_disagreement", "S9", "R9", "S16", "R16", "D_rel")}
-    coverage = json.loads((TRUST_ROOT / "P16_COVERAGE_AUDIT.json").read_text())
+    coverage = json.loads(P16_COVERAGE_AUDIT.read_text())
     base_features = np.column_stack([e, feature_arrays["peer_coherence"], feature_arrays["query_support_mean"], feature_arrays["peer_eigen_entropy"], feature_arrays["stage_query_profile_disagreement"]])
     model_feature_order = {
         "M0_E": ["E"],
@@ -314,8 +372,8 @@ def run() -> dict[str, Any]:
     stable_rows, reference = _reference_and_stable_rows(records, gt, occupancy, selected)
     _write_csv(TRUST_ROOT / "STABLE_BUT_WRONG_V2.csv", stable_rows)
     _write_csv(TRUST_ROOT / "PER_CLASS_TRUST_V2.csv", class_metric_rows["rows"])
-    write_json(TRUST_ROOT / "TRUST_V2_MODEL_AUDIT.json", {"status": "PASS", "models": list(model_features), "model_feature_order": model_feature_order, "metrics": metrics, "effects_vs_M0": effects, "effect_summaries": summaries, "ladders": ladders, "selected_model": selected_key, "selected_model_features": list(selected_features.shape), "OOF": True, "class_unit": "VisA class", "training_fold_only_scaling": True, "logistic": {"class_weight": "balanced", "solver": "lbfgs", "C": 1.0, "max_iter": 1000, "random_state": 0}})
-    write_json(TRUST_ROOT / "PCRR_DISAGREEMENT_AUDIT.json", {"status": "PASS", "PCRR_STATUS": pcrr_status, "candidate_model": selected_key, "candidate_feature_order": model_feature_order[selected_key], "M4_feature_order": model_feature_order[selected_key] + ["D_rel"], "primary_comparison": "AUROC(M4) - AUROC(selected_non_PCRR_model)", "M4_definition": "selected_non_PCRR_model + D_rel", "class_effect": dict(zip(EXPECTED_VISA_CLASSES, pcrr_effect)), "effect": pcrr_summary, "used_for_fusion": False, "used_for_model_selection": False, "m4_oof": True})
+    _write_json(TRUST_ROOT / "TRUST_V2_MODEL_AUDIT.json", {"status": "PASS", "models": list(model_features), "model_feature_order": model_feature_order, "metrics": metrics, "effects_vs_M0": effects, "effect_summaries": summaries, "ladders": ladders, "selected_model": selected_key, "selected_model_features": list(selected_features.shape), "OOF": True, "class_unit": "VisA class", "training_fold_only_scaling": True, "logistic": {"class_weight": "balanced", "solver": "lbfgs", "C": 1.0, "max_iter": 1000, "random_state": 0}})
+    _write_json(TRUST_ROOT / "PCRR_DISAGREEMENT_AUDIT.json", {"status": "PASS", "PCRR_STATUS": pcrr_status, "candidate_model": selected_key, "candidate_feature_order": model_feature_order[selected_key], "M4_feature_order": model_feature_order[selected_key] + ["D_rel"], "primary_comparison": "AUROC(M4) - AUROC(selected_non_PCRR_model)", "M4_definition": "selected_non_PCRR_model + D_rel", "class_effect": dict(zip(EXPECTED_VISA_CLASSES, pcrr_effect)), "effect": pcrr_summary, "used_for_fusion": False, "used_for_model_selection": False, "m4_oof": True})
     print("TRUST_V2_STAGE trust_metrics_done", flush=True)
     c1_records: list[dict[str, Any]] = []
     old_fields = ("native_logits", "margin_within_image_rank", "robust_margin_normalization", "D_rank", "deployment_sensitivity")
@@ -339,23 +397,22 @@ def run() -> dict[str, Any]:
     need_effect = [(_auc(c1[classes == cls], utility_target[classes == cls]) - _auc(margin_only[classes == cls], utility_target[classes == cls])) if _auc(c1[classes == cls], utility_target[classes == cls]) is not None and _auc(margin_only[classes == cls], utility_target[classes == cls]) is not None else None for cls in EXPECTED_VISA_CLASSES]
     need_summary = _effect_summary(need_effect)
     need_status = _ladder(need_summary)
-    write_json(TRUST_ROOT / "NEED_C1_FROZEN_MODEL.json", {"status": "FROZEN", "model": "C1", "features": ["margin_within_image_rank", "robust_margin_normalization", "D_rank", "deployment_sensitivity"], "utility_target": "signed utility > 1e-8", "effect": need_summary, "OOF": True, "oracle_parity": oracle_parity})
-    write_json(TRUST_ROOT / "AUTHORITY_V2_AUDIT.json", {"status": "PENDING", "reason": "authority is computed after C1 and Trust-v2 model outputs"})
+    _write_json(TRUST_ROOT / "NEED_C1_FROZEN_MODEL.json", {"status": "FROZEN", "model": "C1", "features": ["margin_within_image_rank", "robust_margin_normalization", "D_rank", "deployment_sensitivity"], "utility_target": "signed utility > 1e-8", "effect": need_summary, "OOF": True, "oracle_parity": oracle_parity})
     authority_scores = {"A0_N": c1, "A1_N_E_raw": c1 * e, "A1_N_E_cal": c1 * oof["M0_E"], "A2_N_T_v2": c1 * selected}
     authority_metrics, _ = _model_metrics(authority_scores, utility_target, np.zeros_like(utility_target), classes)
     authority_effect = [(_auc(authority_scores["A2_N_T_v2"][classes == cls], utility_target[classes == cls]) - _auc(authority_scores["A1_N_E_cal"][classes == cls], utility_target[classes == cls])) if _auc(authority_scores["A2_N_T_v2"][classes == cls], utility_target[classes == cls]) is not None and _auc(authority_scores["A1_N_E_cal"][classes == cls], utility_target[classes == cls]) is not None else None for cls in EXPECTED_VISA_CLASSES]
     authority_summary = _effect_summary(authority_effect)
     authority_status = _ladder(authority_summary)
-    write_json(TRUST_ROOT / "AUTHORITY_V2_AUDIT.json", {"status": authority_status, "primary": "A2_N_T_v2 vs A1_N_E_cal", "secondary": ["A2_N_T_v2 vs A0_N", "A2_N_T_v2 vs A1_N_E_raw"], "metrics": authority_metrics, "safety": _safety(authority_scores, signed.reshape(-1), classes), "effect": authority_summary, "class_effect": dict(zip(EXPECTED_VISA_CLASSES, authority_effect)), "E_cal": "M0_E OOF", "T_v2": selected_name or "M0_E", "OOF": True})
+    _write_json(TRUST_ROOT / "AUTHORITY_V2_AUDIT.json", {"status": authority_status, "primary": "A2_N_T_v2 vs A1_N_E_cal", "secondary": ["A2_N_T_v2 vs A0_N", "A2_N_T_v2 vs A1_N_E_raw"], "metrics": authority_metrics, "safety": _safety(authority_scores, signed.reshape(-1), classes), "effect": authority_summary, "class_effect": dict(zip(EXPECTED_VISA_CLASSES, authority_effect)), "E_cal": "M0_E OOF", "T_v2": selected_name or "M0_E", "OOF": True})
     trust_status = ladders.get(selected_name, "INCONCLUSIVE") if selected_name else "INCONCLUSIVE"
     statuses = {"Trust": trust_status, "Need": need_status, "Authority": authority_status, "PCRR": pcrr_status, "P16": coverage.get("status")}
     statistics = {"unit": "VisA class", "n": 12, "bootstrap_repetitions": 10000, "sign_flip_assignments": 4096, "trust": summaries, "need": need_summary, "authority": authority_summary, "pcrr": pcrr_summary}
-    write_json(TRUST_ROOT / "STATISTICS.json", statistics)
-    write_json(TRUST_ROOT / "REFERENCE_CREDIBILITY_AUDIT.json", {"status": "PASS", **reference, "stable_but_wrong_count": len(stable_rows), "selected_model": selected_name or "M0_E"})
+    _write_json(TRUST_ROOT / "STATISTICS.json", statistics)
+    _write_json(TRUST_ROOT / "REFERENCE_CREDIBILITY_AUDIT.json", {"status": "PASS", **reference, "stable_but_wrong_count": len(stable_rows), "selected_model": selected_name or "M0_E"})
     decision = {"terminal": "TRUST_V2_DEVELOPMENT_ELIGIBLE" if trust_status in {"WEAK", "PROMISING", "SUPPORTED"} else "TRUST_V2_DEVELOPMENT_INCONCLUSIVE_OR_FALSIFIED", "statuses": statuses, "selected_model": selected_name or "M0_E", "selected_effect": summaries.get(selected_name, {}), "FULL_SABRA_TRAIN_AUTHORIZATION": False, "counters": {"MEDICAL_READS": 0, "MVTEC_READS_BEFORE_FREEZE": 0, "PHASE2B_TRAINING_STEPS": 0, "TRUST_V2_MODEL_SELECTION_AFTER_MVTEC": 0}, "GT_free_cache_verified": True, "GT_access_after_cache_freeze": True, "scientific_content": "Trust-v2 development only"}
-    write_json(TRUST_ROOT / "DECISION.json", decision)
-    (TRUST_ROOT / "ADVERSARIAL_REVIEW.md").write_text("# SABRA Trust-v2 adversarial review\n\n- GT-free cache provenance, shard hashes, frozen assets, and pushed implementation were checked before VisA masks were opened.\n- Peer selection and p9/p16 reserves were computed without GT; GT was used only for post-freeze evaluation.\n- Models are class-held-out OOF balanced logistic regressions with training-fold-only scaling.\n- MVTec and medical data were not accessed.\n- PCRR is diagnostic and never fused into the primary Trust-v2 score.\n")
-    (TRUST_ROOT / "REPORT.md").write_text(f"# SABRA Trust-v2 VisA development audit\n\nTrust status: `{trust_status}`. Need C1: `{need_status}`. Authority-v2: `{authority_status}`. PCRR: `{pcrr_status}`. p16 coverage: `{coverage.get('status')}`.\n\nSelected model: `{selected_name or 'M0_E'}`. Stable-but-wrong rows: `{len(stable_rows)}`.\n\nThis is VisA development evidence. MVTec remains forbidden unless a candidate is subsequently frozen and pushed. Full SABRA training is not authorized by this development audit.\n")
+    _write_json(TRUST_ROOT / "DECISION.json", decision)
+    _atomic_write_text(TRUST_ROOT / "ADVERSARIAL_REVIEW.md", "# SABRA Trust-v2 adversarial review\n\n- GT-free cache provenance, shard hashes, frozen assets, and pushed implementation were checked before VisA masks were opened.\n- Peer selection and p9/p16 reserves were computed without GT; GT was used only for post-freeze evaluation.\n- Models are class-held-out OOF balanced logistic regressions with training-fold-only scaling.\n- MVTec and medical data were not accessed.\n- PCRR is diagnostic and never fused into the primary Trust-v2 score.\n")
+    _atomic_write_text(TRUST_ROOT / "REPORT.md", f"# SABRA Trust-v2 VisA development audit\n\nTrust status: `{trust_status}`. Need C1: `{need_status}`. Authority-v2: `{authority_status}`. PCRR: `{pcrr_status}`. p16 coverage: `{coverage.get('status')}`.\n\nSelected model: `{selected_name or 'M0_E'}`. Stable-but-wrong rows: `{len(stable_rows)}`.\n\nThis is VisA development evidence. MVTec remains forbidden unless a candidate is subsequently frozen and pushed. Full SABRA training is not authorized by this development audit.\n")
     return decision
 
 
