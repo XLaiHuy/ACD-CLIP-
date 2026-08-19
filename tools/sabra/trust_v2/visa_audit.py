@@ -80,8 +80,10 @@ def load_gt_free_records() -> tuple[list[dict[str, Any]], dict[str, Any]]:
         if not shard.exists() or sha256_file(shard) != manifest.get("shards", {}).get(class_name):
             raise RuntimeError(f"TRUST_V2_CACHE_HASH_FAIL {class_name}")
         with np.load(shard, allow_pickle=False) as data:
-            for index, image_path in enumerate(data["image_path"].astype(str)):
-                records.append({key: np.array(data[key][index], copy=True) for key in fields} | {"class_name": class_name, "image_path": str(image_path)})
+            image_paths = np.array(data["image_path"].astype(str), copy=True)
+            shard_fields = {key: np.array(data[key], copy=True) for key in fields}
+            for index, image_path in enumerate(image_paths):
+                records.append({key: np.array(shard_fields[key][index], copy=True) for key in fields} | {"class_name": class_name, "image_path": str(image_path)})
     if len(records) != int(manifest["record_count"]):
         raise RuntimeError("TRUST_V2_RECORD_COUNT_FAIL")
     return records, manifest
