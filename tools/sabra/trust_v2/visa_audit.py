@@ -277,7 +277,7 @@ def run() -> dict[str, Any]:
             old_index = {path: index for index, path in enumerate(old_paths)}
             for record in class_records:
                 index = old_index[record["image_path"]]
-                c1_records.append({key: np.asarray(old[key][index]) for key in old_fields} | {"class_name": class_name, "image_path": record["image_path"]})
+                c1_records.append({key: np.array(old[key][index], copy=True) for key in old_fields} | {"class_name": class_name, "image_path": record["image_path"]})
     data_root = Path(os.environ.get("ACDCLIP_DATA_ROOT", "/workspace/data"))
     if (data_root / "VisA_20220922").is_dir(): data_root = data_root / "VisA_20220922"
     signed, positive, harm, oracle_parity = need_oracle(c1_records, metadata, data_root, __import__("torch").device("cuda"))
