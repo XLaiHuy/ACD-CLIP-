@@ -1,0 +1,457 @@
+{
+  "D_rel_retained": false,
+  "M4_definition": "selected_non_PCRR_model + D_rel",
+  "M4_diagnostic_feature_order": [
+    "E",
+    "peer_coherence",
+    "query_support_mean",
+    "peer_eigen_entropy",
+    "stage_query_profile_disagreement",
+    "D_rel"
+  ],
+  "PCRR_STATUS": "DROP",
+  "authority_formula": "A2_N_T_v2 = C1 * T_v2; comparator A1_N_E_cal = C1 * M0_E OOF",
+  "cache_manifest_sha256": "3e6f31a031100b9635a27a78f974ee2a7146f6faee0d0bcfadf0b256cae4df16",
+  "cache_shards_sha256": {
+    "candle": "63cc28c545d83d01de9fa039698a6968b270203faeaccef64cf96d91219ccc2e",
+    "capsules": "6456d2e4fb330c94b24134cc8273c39b434aa2fab8dfa7dac17a54bd46efacb7",
+    "cashew": "815737ff61e30fb7e88caa0574d4f904b77a7a8418f473aa683b4f2a1ee687d3",
+    "chewinggum": "d6ddb75421ca02d9a79c33b540f8b4c3640f7c0af976c27f30813d4be0c30fb3",
+    "fryum": "a07ad15c951b4b41149062d1b92f6a8f6e665eac41de6c6ff8e310d3922e5d1f",
+    "macaroni1": "630c7e80aabe163e6aa998dd2256a26ef728f858f6e416cae9ce61fa6011852a",
+    "macaroni2": "b8d0996d51185efa262643d2da3bb75eeda6e9d07830fcc69ea6c6757ba81fea",
+    "pcb1": "e3c6dd567ade0420c1ae842dba86b6f89bd9e2986592372d94cc32e43de392d8",
+    "pcb2": "7530eb77a54ff44d38a9cf9efd9773ad886ad6abc968fe096dd3d975f1a9ee27",
+    "pcb3": "ca500e01366016dd4cded7198a5e2c5124a5e3483a98f4b6c1c2d60653bef7a2",
+    "pcb4": "18f68894022647c0325d6141181eb9edbf7c7476502b89ff1f373509f23e57bd",
+    "pipe_fryum": "f59e642488fac0a59af5a406995d373091d2607f0beacb230ace52cc394785a9"
+  },
+  "created_from_commit": "834e8d34375f532eab6683fd0ed24fbb3d7c1700",
+  "evaluation_protocol": {
+    "MVTec": "same GT-free relational construction; frozen VisA scaler/model/Need; GT evaluation only",
+    "medical": "forbidden",
+    "no_tuning": true
+  },
+  "external_decision_rules": {
+    "authority_not_falsified": true,
+    "trust_promising": "mean >= 0.005, median >= 0, at least 60 percent classes positive, no catastrophic tail",
+    "trust_supported": "mean >= 0.010, median >= 0.005, at least 2/3 classes positive, no catastrophic tail",
+    "trust_weak": "mean > 0, median >= 0, at least 50 percent classes non-negative, no catastrophic tail"
+  },
+  "implementation_hashes": {
+    "cache_builder": {
+      "path": "tools/sabra/trust_v2/cache_builder.py",
+      "sha256": "201cd8cd87b671c8b90c7b21d58e6eb22ce593898ae50a87494906da74ebbc11"
+    },
+    "cache_manifest": {
+      "path": "runs/phase5/sabra/TRUST_V2_DEVELOPMENT/TRUST_V2_GT_FREE_MANIFEST.json",
+      "sha256": "3e6f31a031100b9635a27a78f974ee2a7146f6faee0d0bcfadf0b256cae4df16"
+    },
+    "cache_shards": {
+      "root": "runs/phase5/sabra/TRUST_V2_DEVELOPMENT/cache",
+      "sha256": {
+        "candle": "63cc28c545d83d01de9fa039698a6968b270203faeaccef64cf96d91219ccc2e",
+        "capsules": "6456d2e4fb330c94b24134cc8273c39b434aa2fab8dfa7dac17a54bd46efacb7",
+        "cashew": "815737ff61e30fb7e88caa0574d4f904b77a7a8418f473aa683b4f2a1ee687d3",
+        "chewinggum": "d6ddb75421ca02d9a79c33b540f8b4c3640f7c0af976c27f30813d4be0c30fb3",
+        "fryum": "a07ad15c951b4b41149062d1b92f6a8f6e665eac41de6c6ff8e310d3922e5d1f",
+        "macaroni1": "630c7e80aabe163e6aa998dd2256a26ef728f858f6e416cae9ce61fa6011852a",
+        "macaroni2": "b8d0996d51185efa262643d2da3bb75eeda6e9d07830fcc69ea6c6757ba81fea",
+        "pcb1": "e3c6dd567ade0420c1ae842dba86b6f89bd9e2986592372d94cc32e43de392d8",
+        "pcb2": "7530eb77a54ff44d38a9cf9efd9773ad886ad6abc968fe096dd3d975f1a9ee27",
+        "pcb3": "ca500e01366016dd4cded7198a5e2c5124a5e3483a98f4b6c1c2d60653bef7a2",
+        "pcb4": "18f68894022647c0325d6141181eb9edbf7c7476502b89ff1f373509f23e57bd",
+        "pipe_fryum": "f59e642488fac0a59af5a406995d373091d2607f0beacb230ace52cc394785a9"
+      }
+    },
+    "checkpoint": {
+      "path": "runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+      "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34"
+    },
+    "clip": {
+      "path": ".runtime/assets/ViT-L-14-336px.pt",
+      "sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02"
+    },
+    "config": {
+      "path": "runs/phase4/k1/short64_seed0_attempt5/config.json",
+      "sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4"
+    },
+    "metadata": {
+      "path": "dataset/hub/VisA.jsonl",
+      "sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842"
+    },
+    "numerical": {
+      "path": "tools/sabra/trust_v2/numerical.py",
+      "sha256": "8c2c0d432e710f5d1e1425116953c1cc82f6f9e1fcbb256bdd270101db214ff8"
+    },
+    "recovery_runner": {
+      "path": "tools/sabra/trust_v2/recovery_v2.py",
+      "sha256": "75a8eea80be6f421d6abb8f6a1d3f76053f9cc8e58ab489550f63cdce63cadab"
+    },
+    "visa_audit": {
+      "path": "tools/sabra/trust_v2/visa_audit.py",
+      "sha256": "30ac8169a091c345108cecfd0ff7a11a52ee5dc9419d30aadcc5c40e14269901"
+    }
+  },
+  "need_c1_model_parameters": {
+    "classes": [
+      0,
+      1
+    ],
+    "configuration": {
+      "C": 1.0,
+      "class_weight": "balanced",
+      "max_iter": 1000,
+      "random_state": 0,
+      "solver": "lbfgs"
+    },
+    "feature_order": [
+      "margin_within_image_rank",
+      "robust_margin_normalization",
+      "D_rank",
+      "deployment_sensitivity"
+    ],
+    "logistic_coef": [
+      [
+        0.5701253783930753,
+        0.0358569347689627,
+        -0.08941133262359234,
+        3.8072888867745425
+      ]
+    ],
+    "logistic_intercept": [
+      -0.18127337430370596
+    ],
+    "n_features_in": 4,
+    "oracle_parity": {
+      "absolute_tolerance": 0.002,
+      "epsilon": 0.0001,
+      "patch_indices": [
+        0,
+        684,
+        1368
+      ],
+      "relative_tolerance": 0.02,
+      "rows": [
+        {
+          "absolute_error": 3.727047316604004e-12,
+          "autograd": -3.727047316604004e-12,
+          "finite_difference": -0.0,
+          "patch": 0,
+          "record": "candle/Data/Images/Anomaly/000.JPG",
+          "sign_match": true
+        },
+        {
+          "absolute_error": 1.4280221102835888e-11,
+          "autograd": -1.4280221102835888e-11,
+          "finite_difference": -0.0,
+          "patch": 684,
+          "record": "candle/Data/Images/Anomaly/000.JPG",
+          "sign_match": true
+        },
+        {
+          "absolute_error": 4.033357849098085e-12,
+          "autograd": -4.033357849098085e-12,
+          "finite_difference": -0.0,
+          "patch": 1368,
+          "record": "candle/Data/Images/Anomaly/000.JPG",
+          "sign_match": true
+        }
+      ],
+      "sign_rate": 1.0,
+      "status": "PASS"
+    },
+    "random_seed": 0,
+    "scaler_mean": [
+      0.5000000000101289,
+      2.2096080952697243,
+      0.18084104934704168,
+      1.9242578534223963e-07
+    ],
+    "scaler_scale": [
+      0.28888607582376896,
+      9.344869887929626,
+      0.10347428331269795,
+      2.88461452547751e-06
+    ],
+    "sklearn_version": "1.7.2",
+    "utility_target": "signed utility > 1e-8"
+  },
+  "result_artifact_sha256": {
+    "DECISION.json": "81371c0950c569277d1a52941423fdea96ffc3e8b630bff7146f2d200cf557fc",
+    "NEED_C1_FROZEN_MODEL.json": "2c1149f1c692fc4c1b62de3b71609724a1f07bc70ef42769fb93e702649447ec",
+    "PCRR_DISAGREEMENT_AUDIT.json": "dfbeda376e0bfb025e3a739f97907e22a77e0cb7f6ef0b869f47121d9ad2ecf1",
+    "TRUST_V2_MODEL_AUDIT.json": "9b22aa537beeb73c6ec3c482046e64c28ba172ca660133d4f0e17010134a20cc"
+  },
+  "selected_model": "M1_E_Credibility",
+  "selected_model_feature_order": [
+    "E",
+    "peer_coherence",
+    "query_support_mean",
+    "peer_eigen_entropy",
+    "stage_query_profile_disagreement"
+  ],
+  "source_hashes": {
+    "cache_builder": {
+      "path": "tools/sabra/trust_v2/cache_builder.py",
+      "sha256": "201cd8cd87b671c8b90c7b21d58e6eb22ce593898ae50a87494906da74ebbc11"
+    },
+    "cache_manifest": {
+      "path": "runs/phase5/sabra/TRUST_V2_DEVELOPMENT/TRUST_V2_GT_FREE_MANIFEST.json",
+      "sha256": "3e6f31a031100b9635a27a78f974ee2a7146f6faee0d0bcfadf0b256cae4df16"
+    },
+    "cache_shards": {
+      "root": "runs/phase5/sabra/TRUST_V2_DEVELOPMENT/cache",
+      "sha256": {
+        "candle": "63cc28c545d83d01de9fa039698a6968b270203faeaccef64cf96d91219ccc2e",
+        "capsules": "6456d2e4fb330c94b24134cc8273c39b434aa2fab8dfa7dac17a54bd46efacb7",
+        "cashew": "815737ff61e30fb7e88caa0574d4f904b77a7a8418f473aa683b4f2a1ee687d3",
+        "chewinggum": "d6ddb75421ca02d9a79c33b540f8b4c3640f7c0af976c27f30813d4be0c30fb3",
+        "fryum": "a07ad15c951b4b41149062d1b92f6a8f6e665eac41de6c6ff8e310d3922e5d1f",
+        "macaroni1": "630c7e80aabe163e6aa998dd2256a26ef728f858f6e416cae9ce61fa6011852a",
+        "macaroni2": "b8d0996d51185efa262643d2da3bb75eeda6e9d07830fcc69ea6c6757ba81fea",
+        "pcb1": "e3c6dd567ade0420c1ae842dba86b6f89bd9e2986592372d94cc32e43de392d8",
+        "pcb2": "7530eb77a54ff44d38a9cf9efd9773ad886ad6abc968fe096dd3d975f1a9ee27",
+        "pcb3": "ca500e01366016dd4cded7198a5e2c5124a5e3483a98f4b6c1c2d60653bef7a2",
+        "pcb4": "18f68894022647c0325d6141181eb9edbf7c7476502b89ff1f373509f23e57bd",
+        "pipe_fryum": "f59e642488fac0a59af5a406995d373091d2607f0beacb230ace52cc394785a9"
+      }
+    },
+    "checkpoint": {
+      "path": "runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+      "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34"
+    },
+    "clip": {
+      "path": ".runtime/assets/ViT-L-14-336px.pt",
+      "sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02"
+    },
+    "config": {
+      "path": "runs/phase4/k1/short64_seed0_attempt5/config.json",
+      "sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4"
+    },
+    "metadata": {
+      "path": "dataset/hub/VisA.jsonl",
+      "sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842"
+    },
+    "numerical": {
+      "path": "tools/sabra/trust_v2/numerical.py",
+      "sha256": "8c2c0d432e710f5d1e1425116953c1cc82f6f9e1fcbb256bdd270101db214ff8"
+    },
+    "recovery_runner": {
+      "path": "tools/sabra/trust_v2/recovery_v2.py",
+      "sha256": "75a8eea80be6f421d6abb8f6a1d3f76053f9cc8e58ab489550f63cdce63cadab"
+    },
+    "visa_audit": {
+      "path": "tools/sabra/trust_v2/visa_audit.py",
+      "sha256": "30ac8169a091c345108cecfd0ff7a11a52ee5dc9419d30aadcc5c40e14269901"
+    }
+  },
+  "status": "CANDIDATE_FROZEN",
+  "study": "TRUST_V2_M4_RECOVERY_V2",
+  "trust_model": {
+    "D_rel_retained": false,
+    "M4_definition": "selected_non_PCRR_model + D_rel",
+    "M4_diagnostic_feature_order": [
+      "E",
+      "peer_coherence",
+      "query_support_mean",
+      "peer_eigen_entropy",
+      "stage_query_profile_disagreement",
+      "D_rel"
+    ],
+    "PCRR_STATUS": "DROP",
+    "cache_manifest_sha256": "3e6f31a031100b9635a27a78f974ee2a7146f6faee0d0bcfadf0b256cae4df16",
+    "cache_shards_sha256": {
+      "candle": "63cc28c545d83d01de9fa039698a6968b270203faeaccef64cf96d91219ccc2e",
+      "capsules": "6456d2e4fb330c94b24134cc8273c39b434aa2fab8dfa7dac17a54bd46efacb7",
+      "cashew": "815737ff61e30fb7e88caa0574d4f904b77a7a8418f473aa683b4f2a1ee687d3",
+      "chewinggum": "d6ddb75421ca02d9a79c33b540f8b4c3640f7c0af976c27f30813d4be0c30fb3",
+      "fryum": "a07ad15c951b4b41149062d1b92f6a8f6e665eac41de6c6ff8e310d3922e5d1f",
+      "macaroni1": "630c7e80aabe163e6aa998dd2256a26ef728f858f6e416cae9ce61fa6011852a",
+      "macaroni2": "b8d0996d51185efa262643d2da3bb75eeda6e9d07830fcc69ea6c6757ba81fea",
+      "pcb1": "e3c6dd567ade0420c1ae842dba86b6f89bd9e2986592372d94cc32e43de392d8",
+      "pcb2": "7530eb77a54ff44d38a9cf9efd9773ad886ad6abc968fe096dd3d975f1a9ee27",
+      "pcb3": "ca500e01366016dd4cded7198a5e2c5124a5e3483a98f4b6c1c2d60653bef7a2",
+      "pcb4": "18f68894022647c0325d6141181eb9edbf7c7476502b89ff1f373509f23e57bd",
+      "pipe_fryum": "f59e642488fac0a59af5a406995d373091d2607f0beacb230ace52cc394785a9"
+    },
+    "created_from_commit": "834e8d34375f532eab6683fd0ed24fbb3d7c1700",
+    "formulas": {
+      "D_rel": "abs(PGM_baseline_rank - PCRR_baseline_rank)",
+      "M4": "selected_non_PCRR_model + D_rel, diagnostic-only",
+      "Trust": "selected VisA-frozen logistic model on the exact feature order",
+      "p16": "exact sixteenth candidate in frozen B1 ordering",
+      "p9": "exact ninth candidate in frozen B1 ordering"
+    },
+    "implementation_hashes": {
+      "cache_builder": {
+        "path": "tools/sabra/trust_v2/cache_builder.py",
+        "sha256": "201cd8cd87b671c8b90c7b21d58e6eb22ce593898ae50a87494906da74ebbc11"
+      },
+      "cache_manifest": {
+        "path": "runs/phase5/sabra/TRUST_V2_DEVELOPMENT/TRUST_V2_GT_FREE_MANIFEST.json",
+        "sha256": "3e6f31a031100b9635a27a78f974ee2a7146f6faee0d0bcfadf0b256cae4df16"
+      },
+      "cache_shards": {
+        "root": "runs/phase5/sabra/TRUST_V2_DEVELOPMENT/cache",
+        "sha256": {
+          "candle": "63cc28c545d83d01de9fa039698a6968b270203faeaccef64cf96d91219ccc2e",
+          "capsules": "6456d2e4fb330c94b24134cc8273c39b434aa2fab8dfa7dac17a54bd46efacb7",
+          "cashew": "815737ff61e30fb7e88caa0574d4f904b77a7a8418f473aa683b4f2a1ee687d3",
+          "chewinggum": "d6ddb75421ca02d9a79c33b540f8b4c3640f7c0af976c27f30813d4be0c30fb3",
+          "fryum": "a07ad15c951b4b41149062d1b92f6a8f6e665eac41de6c6ff8e310d3922e5d1f",
+          "macaroni1": "630c7e80aabe163e6aa998dd2256a26ef728f858f6e416cae9ce61fa6011852a",
+          "macaroni2": "b8d0996d51185efa262643d2da3bb75eeda6e9d07830fcc69ea6c6757ba81fea",
+          "pcb1": "e3c6dd567ade0420c1ae842dba86b6f89bd9e2986592372d94cc32e43de392d8",
+          "pcb2": "7530eb77a54ff44d38a9cf9efd9773ad886ad6abc968fe096dd3d975f1a9ee27",
+          "pcb3": "ca500e01366016dd4cded7198a5e2c5124a5e3483a98f4b6c1c2d60653bef7a2",
+          "pcb4": "18f68894022647c0325d6141181eb9edbf7c7476502b89ff1f373509f23e57bd",
+          "pipe_fryum": "f59e642488fac0a59af5a406995d373091d2607f0beacb230ace52cc394785a9"
+        }
+      },
+      "checkpoint": {
+        "path": "runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+        "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34"
+      },
+      "clip": {
+        "path": ".runtime/assets/ViT-L-14-336px.pt",
+        "sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02"
+      },
+      "config": {
+        "path": "runs/phase4/k1/short64_seed0_attempt5/config.json",
+        "sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4"
+      },
+      "metadata": {
+        "path": "dataset/hub/VisA.jsonl",
+        "sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842"
+      },
+      "numerical": {
+        "path": "tools/sabra/trust_v2/numerical.py",
+        "sha256": "8c2c0d432e710f5d1e1425116953c1cc82f6f9e1fcbb256bdd270101db214ff8"
+      },
+      "recovery_runner": {
+        "path": "tools/sabra/trust_v2/recovery_v2.py",
+        "sha256": "75a8eea80be6f421d6abb8f6a1d3f76053f9cc8e58ab489550f63cdce63cadab"
+      },
+      "visa_audit": {
+        "path": "tools/sabra/trust_v2/visa_audit.py",
+        "sha256": "30ac8169a091c345108cecfd0ff7a11a52ee5dc9419d30aadcc5c40e14269901"
+      }
+    },
+    "metrics": {
+      "selected_effect": {
+        "bootstrap95_ci": [
+          0.013154559284292846,
+          0.030663713099643688
+        ],
+        "catastrophic": 0,
+        "mean": 0.021220814828743512,
+        "median": 0.015102877128878422,
+        "n_classes": 12,
+        "negative": 0,
+        "nonnegative": 12,
+        "positive": 12,
+        "raw_p": 0.00048828125
+      },
+      "selected_model": {
+        "brier": 0.08137881582257744,
+        "class_ap": {
+          "candle": 0.6482780443806988,
+          "capsules": 0.6631905531760415,
+          "cashew": 0.6191652630869394,
+          "chewinggum": 0.8564367801673971,
+          "fryum": 0.4599172798193576,
+          "macaroni1": 0.5528725506233164,
+          "macaroni2": 0.43242782059419466,
+          "pcb1": 0.3836526962370334,
+          "pcb2": 0.41971401639760814,
+          "pcb3": 0.5060460030045117,
+          "pcb4": 0.48760579234423207,
+          "pipe_fryum": 0.5996168781221433
+        },
+        "class_auroc": {
+          "candle": 0.9572444006085232,
+          "capsules": 0.9437303069679667,
+          "cashew": 0.9555450784913991,
+          "chewinggum": 0.9749691920513643,
+          "fryum": 0.9437846761285708,
+          "macaroni1": 0.9497818380934756,
+          "macaroni2": 0.9535080291694946,
+          "pcb1": 0.9122028102845514,
+          "pcb2": 0.9130152626591403,
+          "pcb3": 0.9360147374578447,
+          "pcb4": 0.9532614517877113,
+          "pipe_fryum": 0.9526110152184348
+        },
+        "occupancy_spearman_mean": 0.07234444529055471,
+        "overall_ap": 0.4917447525004694,
+        "overall_auroc": 0.9449651090894591
+      },
+      "statuses": {
+        "Authority": "SUPPORTED",
+        "Need": "SUPPORTED",
+        "P16": "STRONG",
+        "PCRR": "DROP",
+        "Trust": "SUPPORTED"
+      }
+    },
+    "result_artifact_sha256": {
+      "DECISION.json": "81371c0950c569277d1a52941423fdea96ffc3e8b630bff7146f2d200cf557fc",
+      "NEED_C1_FROZEN_MODEL.json": "2c1149f1c692fc4c1b62de3b71609724a1f07bc70ef42769fb93e702649447ec",
+      "PCRR_DISAGREEMENT_AUDIT.json": "dfbeda376e0bfb025e3a739f97907e22a77e0cb7f6ef0b869f47121d9ad2ecf1",
+      "TRUST_V2_MODEL_AUDIT.json": "9b22aa537beeb73c6ec3c482046e64c28ba172ca660133d4f0e17010134a20cc"
+    },
+    "selected_model": "M1_E_Credibility",
+    "selected_model_feature_order": [
+      "E",
+      "peer_coherence",
+      "query_support_mean",
+      "peer_eigen_entropy",
+      "stage_query_profile_disagreement"
+    ],
+    "status": "CANDIDATE_FROZEN",
+    "study": "TRUST_V2_M4_RECOVERY_V2",
+    "trust_model_parameters": {
+      "classes": [
+        0,
+        1
+      ],
+      "configuration": {
+        "C": 1.0,
+        "class_weight": "balanced",
+        "max_iter": 1000,
+        "random_state": 0,
+        "solver": "lbfgs"
+      },
+      "logistic_coef": [
+        [
+          1.3018450853640104,
+          -0.2695483648711294,
+          -1.0689073689270232,
+          -0.15963310998917157,
+          -0.21636621439274037
+        ]
+      ],
+      "logistic_intercept": [
+        -2.1275222142822083
+      ],
+      "n_features_in": 5,
+      "random_seed": 0,
+      "scaler_mean": [
+        0.4999999999035899,
+        0.9983725737577895,
+        0.9780552019773476,
+        0.6472107814846797,
+        0.005536795984189277
+      ],
+      "scaler_scale": [
+        0.24054206728976146,
+        0.0011314947851400272,
+        0.08155402767007523,
+        0.0857240569054026,
+        0.08436831841803878
+      ],
+      "sklearn_version": "1.7.2"
+    }
+  }
+}
