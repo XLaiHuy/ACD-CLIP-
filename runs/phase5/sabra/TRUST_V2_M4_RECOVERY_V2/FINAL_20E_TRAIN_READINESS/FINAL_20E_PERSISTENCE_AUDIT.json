@@ -1,51 +1,18 @@
 {
-  "schema": "SABRA_FINAL_20E_PERSISTENCE_AUDIT_V1",
   "audit_status": "PASS_WITH_TRAINING_NOT_AUTHORIZED",
-  "scientific_pipeline_terminal": true,
-  "science_rerun_performed_for_persistence": false,
-  "phase2b_rerun": false,
-  "gt_free_cache_rebuilt": false,
-  "mvtec_accessed_during_persistence": false,
-  "medical_accessed": false,
-  "medical_reads": 0,
-  "mvtec_image_mask_reads": 0,
-  "mvtec_metadata_probe_reads": 1,
-  "full_20e_train_authorized": false,
   "exploratory_20e": false,
-  "training_started": false,
-  "scientific_outcome": {
-    "selected_model": "M1_E_Credibility",
-    "selected_features": [
-      "E",
-      "peer_coherence",
-      "query_support_mean",
-      "peer_eigen_entropy",
-      "stage_query_profile_disagreement"
-    ],
-    "m4_features": [
-      "E",
-      "peer_coherence",
-      "query_support_mean",
-      "peer_eigen_entropy",
-      "stage_query_profile_disagreement",
-      "D_rel"
-    ],
-    "d_rel_definition": "abs(PGM_baseline_rank - PCRR_baseline_rank)",
-    "pcrr_status": "DROP",
-    "trust_v2_status": "SUPPORTED",
-    "need_c1_status": "SUPPORTED",
-    "authority_v2_status": "SUPPORTED",
-    "candidate_frozen": true,
-    "mvtec_status": "MVTEC_EXTERNAL_UNAVAILABLE"
-  },
-  "required_persistence": {
-    "valid_recovery_artifacts": "Persisted under TRUST_V2_M4_RECOVERY_V2 and included in the package manifest.",
-    "invalidated_artifacts": "Excluded from staging and evidence; the current invalid untracked TRUST_V2_DEVELOPMENT files remain untouched. Their prior overwritten untracked bytes are not claimed recoverable; the committed invalidation archive is the preserved invalid evidence.",
-    "source_and_tests": "Included by exact path in the package manifest.",
-    "cache": "The finalized GT-free cache is unchanged and persisted by exact-path Git LFS rules.",
-    "assets": "The exact runtime CLIP asset and Phase4v checkpoint are persisted by exact-path Git LFS rules.",
-    "resume": "Exact resume commands and the non-authorizing training state are recorded in FINAL_20E_RESUME_COMMANDS.md and FINAL_20E_TRAIN_CONFIG.json."
-  },
+  "final_package_files": [
+    "FINAL_20E_TRAIN_PROTOCOL.md",
+    "FINAL_20E_TRAIN_CONFIG.json",
+    "TRAIN20E_READINESS.json",
+    "FINAL_20E_PERSISTENCE_AUDIT.json",
+    "FINAL_20E_ARTIFACT_MANIFEST.json",
+    "FINAL_20E_SHA256SUMS.txt",
+    "FINAL_20E_GIT_PROVENANCE.txt",
+    "FINAL_20E_RESUME_COMMANDS.md"
+  ],
+  "full_20e_train_authorized": false,
+  "gt_free_cache_rebuilt": false,
   "invalid_untracked_paths_excluded": [
     "runs/phase5/sabra/TRUST_V2_DEVELOPMENT/ADVERSARIAL_REVIEW.md",
     "runs/phase5/sabra/TRUST_V2_DEVELOPMENT/AUTHORITY_V2_AUDIT.json",
@@ -75,14 +42,53 @@
     ".runtime/assets/ViT-L-14-336px.pt",
     "runs/phase4v/v1_7/readiness_full/adapter_5.pth"
   ],
-  "final_package_files": [
-    "FINAL_20E_TRAIN_PROTOCOL.md",
-    "FINAL_20E_TRAIN_CONFIG.json",
-    "TRAIN20E_READINESS.json",
-    "FINAL_20E_PERSISTENCE_AUDIT.json",
-    "FINAL_20E_ARTIFACT_MANIFEST.json",
-    "FINAL_20E_SHA256SUMS.txt",
-    "FINAL_20E_GIT_PROVENANCE.txt",
-    "FINAL_20E_RESUME_COMMANDS.md"
-  ]
+  "medical_accessed": false,
+  "medical_reads": 0,
+  "mvtec_accessed_during_persistence": false,
+  "mvtec_image_mask_reads": 0,
+  "mvtec_metadata_probe_reads": 1,
+  "phase2b_rerun": false,
+  "provenance_commits": {
+    "final_handoff_update_commit": "this final handoff update commit; SHA is reported after push",
+    "readiness_boundary_divergence": "0 0",
+    "readiness_boundary_verified": true,
+    "readiness_commit": "a1de69cf0d365ab34e1ac6257453806e7003a22d"
+  },
+  "required_persistence": {
+    "assets": "The exact runtime CLIP asset and Phase4v checkpoint are persisted by exact-path Git LFS rules.",
+    "cache": "The finalized GT-free cache is unchanged and persisted by exact-path Git LFS rules.",
+    "invalidated_artifacts": "Excluded from staging and evidence; the current invalid untracked TRUST_V2_DEVELOPMENT files remain untouched. Their prior overwritten untracked bytes are not claimed recoverable; the committed invalidation archive is the preserved invalid evidence.",
+    "resume": "Exact resume commands and the non-authorizing training state are recorded in FINAL_20E_RESUME_COMMANDS.md and FINAL_20E_TRAIN_CONFIG.json.",
+    "source_and_tests": "Included by exact path in the package manifest.",
+    "valid_recovery_artifacts": "Persisted under TRUST_V2_M4_RECOVERY_V2 and included in the package manifest."
+  },
+  "schema": "SABRA_FINAL_20E_PERSISTENCE_AUDIT_V1",
+  "science_rerun_performed_for_persistence": false,
+  "scientific_outcome": {
+    "authority_v2_status": "SUPPORTED",
+    "candidate_frozen": true,
+    "d_rel_definition": "abs(PGM_baseline_rank - PCRR_baseline_rank)",
+    "m4_features": [
+      "E",
+      "peer_coherence",
+      "query_support_mean",
+      "peer_eigen_entropy",
+      "stage_query_profile_disagreement",
+      "D_rel"
+    ],
+    "mvtec_status": "MVTEC_EXTERNAL_UNAVAILABLE",
+    "need_c1_status": "SUPPORTED",
+    "pcrr_status": "DROP",
+    "selected_features": [
+      "E",
+      "peer_coherence",
+      "query_support_mean",
+      "peer_eigen_entropy",
+      "stage_query_profile_disagreement"
+    ],
+    "selected_model": "M1_E_Credibility",
+    "trust_v2_status": "SUPPORTED"
+  },
+  "scientific_pipeline_terminal": true,
+  "training_started": false
 }

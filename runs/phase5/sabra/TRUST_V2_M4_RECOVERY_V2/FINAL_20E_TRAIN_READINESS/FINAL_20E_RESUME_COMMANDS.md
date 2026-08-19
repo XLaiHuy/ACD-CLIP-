@@ -3,6 +3,8 @@
 This is a persistence and review record. It is not permission to start
 training.
 
+Readiness persistence commit: `a1de69cf0d365ab34e1ac6257453806e7003a22d`.
+
 ## Verify the persisted boundary
 
 ```bash

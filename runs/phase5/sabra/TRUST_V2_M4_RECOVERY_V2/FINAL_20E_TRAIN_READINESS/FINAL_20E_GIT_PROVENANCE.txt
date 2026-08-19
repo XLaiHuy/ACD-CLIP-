@@ -1,45 +1,20 @@
 schema: SABRA_FINAL_20E_GIT_PROVENANCE_V1
 branch: research/p5-sabra-g
-current_head_before_readiness_commit: 90bb99debfde1dfad9393016cbeb03ead963ed56
-origin_research_p5_sabra_g_before_readiness_commit: 90bb99debfde1dfad9393016cbeb03ead963ed56
-divergence_before_readiness_commit: 0 0
-result_commit: 834e8d34375f532eab6683fd0ed24fbb3d7c1700
+current_head_before_final_handoff_update: a1de69cf0d365ab34e1ac6257453806e7003a22d
+origin_research_p5_sabra_g_before_final_handoff_update: a1de69cf0d365ab34e1ac6257453806e7003a22d
+divergence_before_final_handoff_update: 0 0
+archive_commit: 2bc1e8674cb432837495700ac8255b5b43d9f360
+protocol_commit: 41fc5069e19c861b3c1ae75e5e795207b81bb4ab
+visa_result_commit: 834e8d34375f532eab6683fd0ed24fbb3d7c1700
 candidate_freeze_commit: c878ca10c0596b7ed01909cf65de486b21946dbd
-handoff_commit_before_readiness: 90bb99debfde1dfad9393016cbeb03ead963ed56
-readiness_commit: to be recorded by the final handoff update after this persistence commit
-scientific_terminal: Recovery-v2 VisA candidate frozen; MVTec external validation unavailable
-FULL_20E_TRAIN_AUTHORIZED: false
-EXPLORATORY_20E: false
-medical_reads: 0
-mvtec_image_mask_reads: 0
-mvtec_metadata_probe_reads: 1
-training_started: false
-working_tree_note: known invalid untracked TRUST_V2_DEVELOPMENT artifacts are intentionally excluded
-
-git_status_before_readiness_commit:
-M .gitattributes
- M runs/phase5/sabra/TRUST_V2_DEVELOPMENT/cache/candle.npz
- M runs/phase5/sabra/TRUST_V2_DEVELOPMENT/cache/capsules.npz
- M runs/phase5/sabra/TRUST_V2_DEVELOPMENT/cache/cashew.npz
- M runs/phase5/sabra/TRUST_V2_DEVELOPMENT/cache/chewinggum.npz
- M runs/phase5/sabra/TRUST_V2_DEVELOPMENT/cache/fryum.npz
- M runs/phase5/sabra/TRUST_V2_DEVELOPMENT/cache/macaroni1.npz
- M runs/phase5/sabra/TRUST_V2_DEVELOPMENT/cache/macaroni2.npz
- M runs/phase5/sabra/TRUST_V2_DEVELOPMENT/cache/pcb1.npz
- M runs/phase5/sabra/TRUST_V2_DEVELOPMENT/cache/pcb2.npz
- M runs/phase5/sabra/TRUST_V2_DEVELOPMENT/cache/pcb3.npz
- M runs/phase5/sabra/TRUST_V2_DEVELOPMENT/cache/pcb4.npz
- M runs/phase5/sabra/TRUST_V2_DEVELOPMENT/cache/pipe_fryum.npz
-?? runs/phase5/sabra/PRETRAIN_LOGIC_AUDIT/cache/
-?? runs/phase5/sabra/TRUST_V2_DEVELOPMENT/ADVERSARIAL_REVIEW.md
-?? runs/phase5/sabra/TRUST_V2_DEVELOPMENT/AUTHORITY_V2_AUDIT.json
-?? runs/phase5/sabra/TRUST_V2_DEVELOPMENT/DECISION.json
-?? runs/phase5/sabra/TRUST_V2_DEVELOPMENT/NEED_C1_FROZEN_MODEL.json
-?? runs/phase5/sabra/TRUST_V2_DEVELOPMENT/PCRR_DISAGREEMENT_AUDIT.json
-?? runs/phase5/sabra/TRUST_V2_DEVELOPMENT/PER_CLASS_TRUST_V2.csv
-?? runs/phase5/sabra/TRUST_V2_DEVELOPMENT/REFERENCE_CREDIBILITY_AUDIT.json
-?? runs/phase5/sabra/TRUST_V2_DEVELOPMENT/REPORT.md
-?? runs/phase5/sabra/TRUST_V2_DEVELOPMENT/STABLE_BUT_WRONG_V2.csv
-?? runs/phase5/sabra/TRUST_V2_DEVELOPMENT/STATISTICS.json
-?? runs/phase5/sabra/TRUST_V2_DEVELOPMENT/TRUST_V2_MODEL_AUDIT.json
-?? runs/phase5/sabra/TRUST_V2_M4_RECOVERY_V2/FINAL_20E_TRAIN_READINESS/
+readiness_commit: a1de69cf0d365ab34e1ac6257453806e7003a22d
+final_handoff_update_commit: this final handoff update commit; SHA is reported after push
+mvtec_result_commit: NONE_EXTERNAL_DATA_UNAVAILABLE
+MVTec_reads=0
+MVTec_metadata_probe_reads=1
+medical_reads=0
+FULL_20E_TRAIN_AUTHORIZED=false
+EXPLORATORY_20E=false
+training_started=false
+required_lfs_objects: uploaded; remote lfs dry-run empty for required paths
+repository_wide_lfs_fsck_note: unrelated historical LFS paths are missing locally; required readiness paths verified separately

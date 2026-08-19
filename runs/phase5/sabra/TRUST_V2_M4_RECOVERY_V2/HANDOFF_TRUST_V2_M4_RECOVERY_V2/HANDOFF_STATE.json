@@ -9,6 +9,8 @@
     "thresholds or gates"
   ],
   "D_rel": "abs(PGM_baseline_rank - PCRR_baseline_rank)",
+  "EXPLORATORY_20E": false,
+  "FULL_20E_TRAIN_AUTHORIZED": false,
   "FULL_SABRA_TRAIN_AUTHORIZATION": false,
   "M4_feature_set": [
     "E",
@@ -36,8 +38,11 @@
   "candidate_freeze_commit": "c878ca10c0596b7ed01909cf65de486b21946dbd",
   "candidate_frozen": true,
   "divergence": "0\t0",
+  "final_handoff_update_commit": "this final handoff update commit; SHA is reported after push",
+  "final_readiness_package": "runs/phase5/sabra/TRUST_V2_M4_RECOVERY_V2/FINAL_20E_TRAIN_READINESS",
+  "final_training_authorization_reason": "MVTec external validation unavailable; no external metrics were claimed.",
   "invalid_archive": "runs/phase5/sabra/INVALIDATED_TRUST_V2_RUNS/20260820_ARTIFACT_COLLISION",
-  "local_head": "c878ca10c0596b7ed01909cf65de486b21946dbd",
+  "local_head": "a1de69cf0d365ab34e1ac6257453806e7003a22d",
   "medical_reads": 0,
   "metadata_serialization_repair": {
     "old_pushed_auxiliary_bytes_preserved_in_git_history": true,
@@ -51,8 +56,12 @@
   "next_allowed_action": "Provide an authorized MVTec image root, then perform only the frozen external evaluation; no candidate redesign or medical access.",
   "p16": "STRONG",
   "protocol_commit": "41fc5069e19c861b3c1ae75e5e795207b81bb4ab",
+  "readiness_boundary_divergence": "0\t0",
+  "readiness_boundary_local_head": "a1de69cf0d365ab34e1ac6257453806e7003a22d",
+  "readiness_boundary_remote_head": "a1de69cf0d365ab34e1ac6257453806e7003a22d",
+  "readiness_commit": "a1de69cf0d365ab34e1ac6257453806e7003a22d",
   "recovery_protocol_runner_commit": "41fc5069e19c861b3c1ae75e5e795207b81bb4ab",
-  "remote_head": "c878ca10c0596b7ed01909cf65de486b21946dbd",
+  "remote_head": "a1de69cf0d365ab34e1ac6257453806e7003a22d",
   "selected_features": [
     "E",
     "peer_coherence",
@@ -62,7 +71,8 @@
   ],
   "selected_model": "M1_E_Credibility",
   "starting_remote_sha": "ada8de0fca1eddfb450b1368e038048654b55386",
-  "status": "HANDOFF_READY",
+  "status": "HANDOFF_READY_WITH_FINAL_20E_READINESS_PERSISTED",
   "study": "TRUST_V2_M4_RECOVERY_V2",
+  "training_started": false,
   "visa_result_commit": "834e8d34375f532eab6683fd0ed24fbb3d7c1700"
 }

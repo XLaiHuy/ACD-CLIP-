@@ -1,16 +1,8 @@
 {
-  "schema": "SABRA_TRAIN20E_READINESS_V1",
-  "status": "PERSISTED_NOT_AUTHORIZED",
-  "scientific_terminal": "RECOVERY_V2_TERMINAL_WITH_MVTEC_UNAVAILABLE",
-  "FULL_20E_TRAIN_AUTHORIZED": false,
   "EXPLORATORY_20E": false,
-  "training_started": false,
-  "medical_reads": 0,
-  "mvtec_image_mask_reads": 0,
-  "mvtec_metadata_probe_reads": 1,
-  "mvtec_status": "MVTEC_EXTERNAL_UNAVAILABLE",
+  "FULL_20E_TRAIN_AUTHORIZED": false,
   "candidate": {
-    "selected_model": "M1_E_Credibility",
+    "authority_v2_status": "SUPPORTED",
     "features": [
       "E",
       "peer_coherence",
@@ -27,15 +19,24 @@
       "D_rel"
     ],
     "pcrr_status": "DROP",
-    "trust_v2_status": "SUPPORTED",
-    "authority_v2_status": "SUPPORTED"
+    "selected_model": "M1_E_Credibility",
+    "trust_v2_status": "SUPPORTED"
   },
+  "medical_reads": 0,
+  "mvtec_image_mask_reads": 0,
+  "mvtec_metadata_probe_reads": 1,
+  "mvtec_status": "MVTEC_EXTERNAL_UNAVAILABLE",
   "provenance": {
-    "result_commit": "834e8d34375f532eab6683fd0ed24fbb3d7c1700",
     "candidate_freeze_commit": "c878ca10c0596b7ed01909cf65de486b21946dbd",
+    "final_handoff_update": "this final handoff update commit; SHA is reported after push",
     "handoff_commit_before_readiness": "90bb99debfde1dfad9393016cbeb03ead963ed56",
-    "readiness_commit": "PENDING_COMMIT",
-    "final_handoff_update": "PENDING_FINAL_HANDOFF_UPDATE"
+    "readiness_commit": "a1de69cf0d365ab34e1ac6257453806e7003a22d",
+    "result_commit": "834e8d34375f532eab6683fd0ed24fbb3d7c1700",
+    "resume_boundary_before_final_handoff": "a1de69cf0d365ab34e1ac6257453806e7003a22d"
   },
-  "reason_not_authorized": "The candidate was frozen, but MVTec external validation could not run because the required image root was unavailable."
+  "reason_not_authorized": "The candidate was frozen, but MVTec external validation could not run because the required image root was unavailable.",
+  "schema": "SABRA_TRAIN20E_READINESS_V1",
+  "scientific_terminal": "RECOVERY_V2_TERMINAL_WITH_MVTEC_UNAVAILABLE",
+  "status": "PERSISTED_NOT_AUTHORIZED",
+  "training_started": false
 }
