@@ -112,16 +112,28 @@ def _p16_parity(
         raw_pcrr = base.pcrr_raw(rep_c, pack_gram(rep_g))["raw"]
         direct_raw_pgm.append(raw_pgm)
         direct_raw_pcrr.append(raw_pcrr)
-    compact_raw_pgm = relational["reserve_pgm_raw"][1, :, :, patches].transpose(0, 2, 1)
-    compact_raw_pcrr = relational["reserve_pcrr_raw"][1, :, :, patches].transpose(0, 2, 1)
+    compact_raw_pgm = relational["reserve_pgm_raw"][1][:, :, patches]
+    compact_raw_pcrr = relational["reserve_pcrr_raw"][1][:, :, patches]
     direct_raw_pgm_array = np.stack(direct_raw_pgm, axis=-1)
     direct_raw_pcrr_array = np.stack(direct_raw_pcrr, axis=-1)
     compact_q_sample = compact_q[:, patches]
-    compact_r_sample = compact_r[:, :, patches]
+    compact_r_sample = compact_r[:, patches, :].transpose(0, 2, 1)
     q_error = float(np.max(np.abs(compact_q_sample - direct_q[:, patches])))
-    r_error = float(np.max(np.abs(compact_r_sample - direct_r[:, :, patches])))
+    r_error = float(np.max(np.abs(compact_r_sample - direct_r[:, patches, :].transpose(0, 2, 1))))
     raw_pgm_error = float(np.max(np.abs(compact_raw_pgm - direct_raw_pgm_array)))
     raw_pcrr_error = float(np.max(np.abs(compact_raw_pcrr - direct_raw_pcrr_array)))
+    _, pgm_support = base.fixed_cdf_components(relational["pgm_raw"], b1["valid_b1"])
+    _, pcrr_support = base.fixed_cdf_components(relational["pcrr_raw"], b1["valid_b1"])
+    direct_full_pgm = np.zeros_like(relational["reserve_pgm_raw"][1])
+    direct_full_pcrr = np.zeros_like(relational["reserve_pcrr_raw"][1])
+    direct_full_pgm[:, :, patches] = direct_raw_pgm_array
+    direct_full_pcrr[:, :, patches] = direct_raw_pcrr_array
+    compact_mapped_pgm = base.map_fixed_cdf(relational["reserve_pgm_raw"][1], b1["valid_p16"], pgm_support).mean(axis=-2)
+    direct_mapped_pgm = base.map_fixed_cdf(direct_full_pgm, b1["valid_p16"], pgm_support).mean(axis=-2)
+    compact_mapped_pcrr = base.map_fixed_cdf(relational["reserve_pcrr_raw"][1], b1["valid_p16"], pcrr_support).mean(axis=-2)
+    direct_mapped_pcrr = base.map_fixed_cdf(direct_full_pcrr, b1["valid_p16"], pcrr_support).mean(axis=-2)
+    mapped_rank_error = float(np.max(np.abs(compact_mapped_pgm[:, patches] - direct_mapped_pgm[:, patches])))
+    mapped_pcrr_error = float(np.max(np.abs(compact_mapped_pcrr[:, patches] - direct_mapped_pcrr[:, patches])))
     state.update({
         "status": "PASS",
         "done": True,
@@ -133,11 +145,15 @@ def _p16_parity(
         "reserve_to_peer_max_abs_error": r_error,
         "raw_pgm_stage_output_max_abs_error": raw_pgm_error,
         "raw_pcrr_stage_output_max_abs_error": raw_pcrr_error,
+        "mapped_rank_max_abs_error": mapped_rank_error,
+        "mapped_pcrr_rank_max_abs_error": mapped_pcrr_error,
         "mapped_rank_and_final_e_checked": True,
-        "max_abs_error": max(q_error, r_error, raw_pgm_error, raw_pcrr_error),
+        "max_abs_error": max(q_error, r_error, raw_pgm_error, raw_pcrr_error, mapped_rank_error, mapped_pcrr_error),
         "max_relative_error": float(max(
             np.max(np.abs(compact_raw_pgm - direct_raw_pgm_array) / np.maximum(np.abs(direct_raw_pgm_array), 1e-12)),
             np.max(np.abs(compact_raw_pcrr - direct_raw_pcrr_array) / np.maximum(np.abs(direct_raw_pcrr_array), 1e-12)),
+            np.max(np.abs(compact_mapped_pgm[:, patches] - direct_mapped_pgm[:, patches]) / np.maximum(np.abs(direct_mapped_pgm[:, patches]), 1e-12)),
+            np.max(np.abs(compact_mapped_pcrr[:, patches] - direct_mapped_pcrr[:, patches]) / np.maximum(np.abs(direct_mapped_pcrr[:, patches]), 1e-12)),
         )),
         "tolerance": {"absolute": 2e-5, "relative": 2e-5},
         "raw_outputs_are_stagewise": True,
