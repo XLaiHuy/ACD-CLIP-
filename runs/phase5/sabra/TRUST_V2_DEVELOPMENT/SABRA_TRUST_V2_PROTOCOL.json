@@ -1,0 +1,57 @@
+{
+  "protocol_name": "SABRA Trust-v2 / Reference Credibility Development",
+  "protocol_version": "Trust-v2",
+  "status": "frozen",
+  "source_of_truth": "SABRA_TRUST_V2_PROTOCOL.md",
+  "source_sha256": "0fecc3188d72310d6761252bedd2dc51a69380399c445d02857431ac6a0c3e8e",
+  "development_dataset": "VisA",
+  "external_dataset": "MVTec",
+  "medical_data": "forbidden",
+  "development_firewall": {
+    "medical_reads": 0,
+    "mvtec_reads_before_freeze": 0,
+    "phase2b_training_steps": 0,
+    "trust_v2_model_selection_after_mvtec": 0
+  },
+  "frozen_assets": {
+    "checkpoint": "runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+    "checkpoint_sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+    "config": "runs/phase4/k1/short64_seed0_attempt5/config.json",
+    "config_sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4",
+    "clip_asset": ".runtime/assets/ViT-L-14-336px.pt",
+    "clip_asset_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+    "visa_metadata_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842"
+  },
+  "frozen_semantics": {
+    "stages": [8, 16, 24],
+    "features": [3, 1369, 768],
+    "candidate_k": 8,
+    "reserves": [9, 16],
+    "pgm": "pgm_sum_whitened_mean",
+    "pcrr": "pcrr_witness_local_mean_mean",
+    "ordering": "descending shared-representation query cosine, ascending patch index tie-break",
+    "b1_rule": "D_rank candidate below image median, all three stage ranks below 0.5, Chebyshev grid distance greater than 3",
+    "cdf_rule": "fixed baseline image CDF; no new CDF and no reranking"
+  },
+  "required_outputs": {
+    "gt_free_cache": "runs/phase5/sabra/TRUST_V2_DEVELOPMENT/",
+    "frozen_candidate": "TRUST_V2_FROZEN_MODEL.json",
+    "external_validation": "runs/phase5/sabra/TRUST_V2_EXTERNAL_MVTEC/",
+    "handoff": "PROJECT_HANDOFF_SABRA_TRUST_V2_20260819.md"
+  },
+  "commit_boundaries": [
+    "phase5: freeze SABRA Trust-v2 development protocol",
+    "phase5: implement SABRA Trust-v2 audit",
+    "phase5: audit SABRA Trust-v2 on VisA",
+    "phase5: freeze SABRA Trust-v2 candidate",
+    "phase5: validate SABRA Trust-v2 on MVTec",
+    "phase5: preserve SABRA Trust-v2 handoff"
+  ],
+  "scientific_integrity": [
+    "Do not access MVTec before candidate freeze and push.",
+    "Do not access medical data.",
+    "Do not modify frozen Phase2B weights.",
+    "Do not retune or alter the protocol after results are observed.",
+    "Do not rerun or alter the completed SABRA study."
+  ]
+}
