@@ -74,14 +74,14 @@ def load_gt_free_records() -> tuple[list[dict[str, Any]], dict[str, Any]]:
         if manifest.get("source_hashes", {}).get(key) != sha256_file(path):
             raise RuntimeError(f"TRUST_V2_PROVENANCE_FAIL {key}")
     records: list[dict[str, Any]] = []
-    fields = ["D_rank", "peer_indices", "reserve_p9_index", "reserve_p16_index", "valid_b1", "valid_p9", "valid_p16", "baseline_pgm", "baseline_pcrr", "D_rel", "peer_coherence", "query_support_mean", "peer_eigen_entropy", "stage_query_profile_disagreement", "S9", "R9", "S16", "R16"]
+    fields = ["D_rank", "valid_b1", "valid_p9", "valid_p16", "baseline_pgm", "baseline_pcrr", "D_rel", "peer_coherence", "query_support_mean", "peer_eigen_entropy", "stage_query_profile_disagreement", "S9", "R9", "S16", "R16"]
     for class_name in EXPECTED_VISA_CLASSES:
         shard = CACHE_ROOT / f"{class_name}.npz"
         if not shard.exists() or sha256_file(shard) != manifest.get("shards", {}).get(class_name):
             raise RuntimeError(f"TRUST_V2_CACHE_HASH_FAIL {class_name}")
         with np.load(shard, allow_pickle=False) as data:
             for index, image_path in enumerate(data["image_path"].astype(str)):
-                records.append({key: np.asarray(data[key][index]) for key in fields} | {"class_name": class_name, "image_path": str(image_path)})
+                records.append({key: np.array(data[key][index], copy=True) for key in fields} | {"class_name": class_name, "image_path": str(image_path)})
     if len(records) != int(manifest["record_count"]):
         raise RuntimeError("TRUST_V2_RECORD_COUNT_FAIL")
     return records, manifest
@@ -215,24 +215,35 @@ def _reference_and_stable_rows(records: list[dict[str, Any]], gt: np.ndarray, oc
     stable: list[dict[str, Any]] = []
     contaminated: list[bool] = []
     multiple: list[bool] = []
-    for image_index, record in enumerate(records):
-        valid = np.asarray(record["valid_b1"], dtype=bool)
-        peers = np.maximum(np.asarray(record["peer_indices"], dtype=np.int64), 0)
-        p9 = max(int(record["reserve_p9_index"]), 0)
-        p16 = max(int(record["reserve_p16_index"]), 0)
-        peer_occ = occupancy[image_index][peers]
-        peer_has = (peer_occ.max(axis=1) > 0) & valid
-        contaminated.extend(peer_has[valid].tolist())
-        multiple.extend(((peer_occ > 0).sum(axis=1) >= 2)[valid].tolist())
-        quality = np.column_stack([record["baseline_pgm"], record["peer_coherence"], record["query_support_mean"], record["peer_eigen_entropy"], record["stage_query_profile_disagreement"], record["S9"], record["R9"], record["S16"], record["R16"], record["D_rel"]])
-        for patch in np.flatnonzero(valid & (record["baseline_pgm"] >= 0.75) & (selected[image_index * PATCHES:(image_index + 1) * PATCHES] >= 0.75) & (gt[image_index] == 0)):
-            quartiles = []
-            for column in range(quality.shape[1]):
-                q = np.nanquantile(quality[valid, column], [0.25, 0.5, 0.75])
-                quartiles.append(int(np.digitize(quality[patch, column], q, right=True) + 1))
-            stable.append({"class": record["class_name"], "image_path": record["image_path"], "patch": int(patch), "E_raw": float(record["baseline_pgm"][patch]), "T_v2": float(selected[image_index * PATCHES + patch]), "p1_p8_contaminated": bool(peer_has[patch]), "p1_p8_multiple_contaminated": bool((peer_occ[patch] > 0).sum() >= 2), "p9_index": int(p9), "p16_index": int(p16), "quality_quartiles": ";".join(map(str, quartiles))})
+    records_by_class = {class_name: [] for class_name in EXPECTED_VISA_CLASSES}
+    for record in records:
+        records_by_class[record["class_name"]].append(record)
+    image_index = 0
+    for class_name in EXPECTED_VISA_CLASSES:
+        class_records = records_by_class[class_name]
+        shard = CACHE_ROOT / f"{class_name}.npz"
+        with np.load(shard, allow_pickle=False) as data:
+            peer_rows = data["peer_indices"]
+            p9_rows = data["reserve_p9_index"]
+            p16_rows = data["reserve_p16_index"]
+            for local_index, record in enumerate(class_records):
+                valid = np.asarray(record["valid_b1"], dtype=bool)
+                peers = np.maximum(np.asarray(peer_rows[local_index], dtype=np.int64), 0)
+                p9 = max(int(p9_rows[local_index]), 0)
+                p16 = max(int(p16_rows[local_index]), 0)
+                peer_occ = occupancy[image_index][peers]
+                peer_has = (peer_occ.max(axis=1) > 0) & valid
+                contaminated.extend(peer_has[valid].tolist())
+                multiple.extend(((peer_occ > 0).sum(axis=1) >= 2)[valid].tolist())
+                quality = np.column_stack([record["baseline_pgm"], record["peer_coherence"], record["query_support_mean"], record["peer_eigen_entropy"], record["stage_query_profile_disagreement"], record["S9"], record["R9"], record["S16"], record["R16"], record["D_rel"]])
+                for patch in np.flatnonzero(valid & (record["baseline_pgm"] >= 0.75) & (selected[image_index * PATCHES:(image_index + 1) * PATCHES] >= 0.75) & (gt[image_index] == 0)):
+                    quartiles = []
+                    for column in range(quality.shape[1]):
+                        q = np.nanquantile(quality[valid, column], [0.25, 0.5, 0.75])
+                        quartiles.append(int(np.digitize(quality[patch, column], q, right=True) + 1))
+                    stable.append({"class": record["class_name"], "image_path": record["image_path"], "patch": int(patch), "E_raw": float(record["baseline_pgm"][patch]), "T_v2": float(selected[image_index * PATCHES + patch]), "p1_p8_contaminated": bool(peer_has[patch]), "p1_p8_multiple_contaminated": bool((peer_occ[patch] > 0).sum() >= 2), "p9_index": int(p9), "p16_index": int(p16), "quality_quartiles": ";".join(map(str, quartiles))})
+                image_index += 1
     return stable, {"reference_sets_with_anomalous_peer_fraction": float(np.mean(contaminated)) if contaminated else None, "multiple_contaminated_peer_fraction": float(np.mean(multiple)) if multiple else None, "stable_but_wrong_count": len(stable), "no_gt_peer_selection": True}
-
 
 def run() -> dict[str, Any]:
     print("TRUST_V2_STAGE cache_gate", flush=True)
