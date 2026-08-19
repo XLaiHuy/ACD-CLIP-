@@ -46,6 +46,25 @@ def _data_root() -> Path:
     return nested if nested.is_dir() else configured
 
 
+def _forward_batch(model: torch.nn.Module, text: torch.Tensor, images: torch.Tensor, device: torch.device) -> tuple[np.ndarray, np.ndarray]:
+    """Run frozen Phase2B inference in a small batch; no sensitivity/backward pass."""
+    with torch.no_grad():
+        visual = model(images.to(device).float(), return_phase4_features=True)
+        features = torch.stack([value.float() for value in visual["seg_tokens"]])
+        _, _, native_margin = model.vision_text_fusion_gate_seg(
+            features,
+            text.expand(-1, images.shape[0], -1, -1),
+            img_size=frozen_cache.IMAGE_SIZE,
+            test_mode=True,
+            domain="Industrial",
+            return_details=True,
+        )
+    return (
+        features.detach().cpu().numpy().transpose(1, 0, 2, 3).astype(np.float32),
+        native_margin.detach().cpu().numpy().transpose(1, 0, 2).astype(np.float32),
+    )
+
+
 def _stack(records: list[dict[str, np.ndarray | str]]) -> dict[str, np.ndarray]:
     keys = [key for key in records[0] if key != "image_path"]
     output = {key: np.stack([np.asarray(row[key]) for row in records]) for key in keys}
@@ -262,15 +281,23 @@ def build() -> dict[str, Any]:
         if shard_path.exists():
             raise RuntimeError(f"unexpected partial shard exists: {shard_path}")
         records: list[dict[str, np.ndarray | str]] = []
-        for row in grouped[class_name]:
-            image_path = str(row["image_path"])
-            sample = dataset[path_index[image_path]]
-            result = frozen_cache._forward_one(model, text_by_class[class_name], sample["image"], torch.device("cuda"))
-            record, transient = build_compact_record(np.asarray(result["features"], dtype=np.float32), np.asarray(result["native_margin"], dtype=np.float32), image_path)
-            record["p9_replacement_pgm_rank"] = transient["relational"]["reserve_pgm_rank"][0]
-            _p16_parity(np.asarray(result["features"], dtype=np.float32), transient["b1"], transient["geometry"], transient["relational"], class_name, image_path, p16_state)
-            records.append(record)
-            del result, transient, sample
+        device = torch.device("cuda")
+        batch_size = 2
+        class_rows = grouped[class_name]
+        for start in range(0, len(class_rows), batch_size):
+            batch_rows = class_rows[start:start + batch_size]
+            batch_samples = [dataset[path_index[str(row["image_path"])]] for row in batch_rows]
+            images = torch.stack([sample["image"] for sample in batch_samples])
+            batch_features, batch_margins = _forward_batch(model, text_by_class[class_name], images, device)
+            for offset, row in enumerate(batch_rows):
+                image_path = str(row["image_path"])
+                features = batch_features[offset]
+                native_margin = batch_margins[offset]
+                record, transient = build_compact_record(features, native_margin, image_path)
+                record["p9_replacement_pgm_rank"] = transient["relational"]["reserve_pgm_rank"][0]
+                _p16_parity(features, transient["b1"], transient["geometry"], transient["relational"], class_name, image_path, p16_state)
+                records.append(record)
+            del batch_samples, images, batch_features, batch_margins
         np.savez_compressed(shard_path, **_stack(records))
         shard_hashes[class_name] = sha256_file(shard_path)
         summaries.append(_summary(class_name, records))
