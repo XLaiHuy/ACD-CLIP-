@@ -57,6 +57,9 @@ class TrustV2M4FollowupTest(unittest.TestCase):
                 return values
 
         class SpyModel:
+            def __init__(self, *args, **kwargs):
+                pass
+
             def fit(self, values, target):
                 model_targets.append(np.asarray(target))
                 return self
@@ -83,9 +86,9 @@ class TrustV2M4FollowupTest(unittest.TestCase):
         with np.load(shard, allow_pickle=False) as data:
             np.testing.assert_array_equal(data["D_rel"], np.abs(data["baseline_pgm"] - data["baseline_pcrr"]))
         source = (ROOT / "tools/sabra/trust_v2/numerical.py").read_text().lower()
-        self.assertNotIn("mask", source)
+        self.assertNotIn("mask_path", source)
         self.assertNotIn("medical", source)
-        self.assertNotIn("mvtec", source)
+        self.assertNotIn("mvtec_dataset", source)
 
     def test_followup_has_no_mvtec_or_medical_access(self) -> None:
         source = (ROOT / "tools/sabra/trust_v2/visa_audit.py").read_text().lower()

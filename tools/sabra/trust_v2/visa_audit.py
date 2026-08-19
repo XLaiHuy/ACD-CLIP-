@@ -119,6 +119,16 @@ def _classes(records: list[dict[str, Any]]) -> np.ndarray:
     return np.repeat(np.asarray([record["class_name"] for record in records]), PATCHES)
 
 
+def build_m4_features(selected_features: np.ndarray, d_rel: np.ndarray) -> np.ndarray:
+    selected = np.asarray(selected_features, dtype=np.float32)
+    if selected.ndim == 1:
+        selected = selected[:, None]
+    disagreement = np.asarray(d_rel, dtype=np.float32).reshape(-1, 1)
+    if selected.shape[0] != disagreement.shape[0]:
+        raise ValueError("M4 row count mismatch")
+    return np.column_stack([selected, disagreement]).astype(np.float32, copy=False)
+
+
 def _loco(features: np.ndarray, target: np.ndarray, classes: np.ndarray) -> np.ndarray:
     features = np.asarray(features)
     if features.ndim == 1:
@@ -272,9 +282,15 @@ def run() -> dict[str, Any]:
     feature_arrays = {name: _flat(records, name).astype(np.float32) for name in ("peer_coherence", "query_support_mean", "peer_eigen_entropy", "stage_query_profile_disagreement", "S9", "R9", "S16", "R16", "D_rel")}
     coverage = json.loads((TRUST_ROOT / "P16_COVERAGE_AUDIT.json").read_text())
     base_features = np.column_stack([e, feature_arrays["peer_coherence"], feature_arrays["query_support_mean"], feature_arrays["peer_eigen_entropy"], feature_arrays["stage_query_profile_disagreement"]])
+    model_feature_order = {
+        "M0_E": ["E"],
+        "M1_E_Credibility": ["E", "peer_coherence", "query_support_mean", "peer_eigen_entropy", "stage_query_profile_disagreement"],
+        "M2_E_Credibility_S9_R9": ["E", "peer_coherence", "query_support_mean", "peer_eigen_entropy", "stage_query_profile_disagreement", "S9", "R9"],
+    }
     model_features: dict[str, np.ndarray] = {"M0_E": e[:, None], "M1_E_Credibility": base_features, "M2_E_Credibility_S9_R9": np.column_stack([base_features, feature_arrays["S9"], feature_arrays["R9"]])}
     if coverage.get("m3_eligible"):
         model_features["M3_E_Credibility_S9_R9_S16_R16"] = np.column_stack([model_features["M2_E_Credibility_S9_R9"], feature_arrays["S16"], feature_arrays["R16"]])
+        model_feature_order["M3_E_Credibility_S9_R9_S16_R16"] = model_feature_order["M2_E_Credibility_S9_R9"] + ["S16", "R16"]
     print("TRUST_V2_STAGE trust_oof_start", list(model_features), flush=True)
     oof = {name: _loco(features, target, classes) for name, features in model_features.items()}
     print("TRUST_V2_STAGE trust_oof_done", flush=True)
@@ -287,16 +303,19 @@ def run() -> dict[str, Any]:
     rank = {"INCONCLUSIVE": 0, "WEAK": 1, "PROMISING": 2, "SUPPORTED": 3, "FALSIFIED": -1}
     eligible = [name for name in summaries if ladders[name] not in {"INCONCLUSIVE", "FALSIFIED"}]
     selected_name = max(eligible, key=lambda name: (rank[ladders[name]], -list(summaries).index(name))) if eligible else None
-    selected = oof[selected_name] if selected_name else oof["M0_E"]
-    pcrr_scores = _loco(np.column_stack([e, pcrr]), target, classes)
-    pcrr_effect = [(_auc(pcrr_scores[classes == cls], target[classes == cls]) - _auc(oof["M0_E"][classes == cls], target[classes == cls])) if _auc(pcrr_scores[classes == cls], target[classes == cls]) is not None and _auc(oof["M0_E"][classes == cls], target[classes == cls]) is not None else None for cls in EXPECTED_VISA_CLASSES]
+    selected_key = selected_name or "M0_E"
+    selected = oof[selected_key]
+    selected_features = model_features[selected_key]
+    m4_features = build_m4_features(selected_features, feature_arrays["D_rel"])
+    m4_scores = _loco(m4_features, target, classes)
+    pcrr_effect = [(_auc(m4_scores[classes == cls], target[classes == cls]) - _auc(selected[classes == cls], target[classes == cls])) if _auc(m4_scores[classes == cls], target[classes == cls]) is not None and _auc(selected[classes == cls], target[classes == cls]) is not None else None for cls in EXPECTED_VISA_CLASSES]
     pcrr_summary = _effect_summary(pcrr_effect)
     pcrr_status = "RETAIN" if _ladder(pcrr_summary) in {"WEAK", "PROMISING", "SUPPORTED"} else "DROP"
     stable_rows, reference = _reference_and_stable_rows(records, gt, occupancy, selected)
     _write_csv(TRUST_ROOT / "STABLE_BUT_WRONG_V2.csv", stable_rows)
     _write_csv(TRUST_ROOT / "PER_CLASS_TRUST_V2.csv", class_metric_rows["rows"])
-    write_json(TRUST_ROOT / "TRUST_V2_MODEL_AUDIT.json", {"status": "PASS", "models": list(model_features), "metrics": metrics, "effects_vs_M0": effects, "effect_summaries": summaries, "ladders": ladders, "selected_model": selected_name or "M0_E", "selected_model_features": list(model_features.get(selected_name, model_features["M0_E"]).shape), "OOF": True, "class_unit": "VisA class", "training_fold_only_scaling": True, "logistic": {"class_weight": "balanced", "solver": "lbfgs", "C": 1.0, "max_iter": 1000, "random_state": 0}})
-    write_json(TRUST_ROOT / "PCRR_DISAGREEMENT_AUDIT.json", {"status": "PASS", "PCRR_STATUS": pcrr_status, "class_effect": dict(zip(EXPECTED_VISA_CLASSES, pcrr_effect)), "effect": pcrr_summary, "used_for_fusion": False})
+    write_json(TRUST_ROOT / "TRUST_V2_MODEL_AUDIT.json", {"status": "PASS", "models": list(model_features), "model_feature_order": model_feature_order, "metrics": metrics, "effects_vs_M0": effects, "effect_summaries": summaries, "ladders": ladders, "selected_model": selected_key, "selected_model_features": list(selected_features.shape), "OOF": True, "class_unit": "VisA class", "training_fold_only_scaling": True, "logistic": {"class_weight": "balanced", "solver": "lbfgs", "C": 1.0, "max_iter": 1000, "random_state": 0}})
+    write_json(TRUST_ROOT / "PCRR_DISAGREEMENT_AUDIT.json", {"status": "PASS", "PCRR_STATUS": pcrr_status, "candidate_model": selected_key, "candidate_feature_order": model_feature_order[selected_key], "M4_feature_order": model_feature_order[selected_key] + ["D_rel"], "primary_comparison": "AUROC(M4) - AUROC(selected_non_PCRR_model)", "M4_definition": "selected_non_PCRR_model + D_rel", "class_effect": dict(zip(EXPECTED_VISA_CLASSES, pcrr_effect)), "effect": pcrr_summary, "used_for_fusion": False, "used_for_model_selection": False, "m4_oof": True})
     print("TRUST_V2_STAGE trust_metrics_done", flush=True)
     c1_records: list[dict[str, Any]] = []
     old_fields = ("native_logits", "margin_within_image_rank", "robust_margin_normalization", "D_rank", "deployment_sensitivity")
