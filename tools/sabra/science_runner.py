@@ -249,6 +249,10 @@ def _predict(coefficients: np.ndarray, features: np.ndarray) -> np.ndarray:
 
 
 def _preprocess(train: np.ndarray, test: np.ndarray, capacity: str) -> tuple[np.ndarray, np.ndarray]:
+    train = np.asarray(train)
+    test = np.asarray(test)
+    if train.ndim == 1:
+        train, test = train[:, None], test[:, None]
     mean = train.mean(axis=0)
     scale = train.std(axis=0)
     scale[scale < 1e-8] = 1.0
