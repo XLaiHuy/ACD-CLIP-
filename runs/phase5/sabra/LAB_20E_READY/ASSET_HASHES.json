@@ -1,0 +1,130 @@
+{
+  "assets": [
+    {
+      "git_lfs": true,
+      "path": ".runtime/assets/ViT-L-14-336px.pt",
+      "required_for_train_or_eval": true,
+      "role": "OpenAI CLIP asset",
+      "sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02"
+    },
+    {
+      "git_lfs": true,
+      "path": "runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+      "required_for_train_or_eval": true,
+      "role": "frozen Trust-v2 evaluator asset",
+      "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34"
+    },
+    {
+      "git_lfs": false,
+      "path": "runs/phase4/k1/short64_seed0_attempt5/config.json",
+      "required_for_train_or_eval": true,
+      "role": "frozen config provenance",
+      "sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4"
+    },
+    {
+      "git_lfs": false,
+      "path": "runs/phase5/sabra/TRUST_V2_M4_RECOVERY_V2/EXTERNAL_VALIDATION_FREEZE.json",
+      "required_for_train_or_eval": true,
+      "role": "frozen Trust-v2 candidate",
+      "sha256": "dad927de4d3aa250a3a5f19f9af006c21a5767b2760e1efcfe769b8509ef8abd"
+    },
+    {
+      "git_lfs": false,
+      "path": "runs/phase5/sabra/TRUST_V2_M4_RECOVERY_V2/NEED_C1_FROZEN_MODEL.json",
+      "required_for_train_or_eval": true,
+      "role": "frozen Need artifact",
+      "sha256": "2c1149f1c692fc4c1b62de3b71609724a1f07bc70ef42769fb93e702649447ec"
+    },
+    {
+      "git_lfs": false,
+      "path": "dataset/hub/VisA.jsonl",
+      "required_for_train_or_eval": true,
+      "role": "training metadata",
+      "sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842"
+    },
+    {
+      "git_lfs": false,
+      "path": "dataset/hub/MVTec.jsonl",
+      "required_for_train_or_eval": true,
+      "role": "benchmark metadata",
+      "sha256": "3a5e304ea16bba82e6e525d188698e91ca92b718696f8c257ed435d235b4cc2c"
+    },
+    {
+      "git_lfs": false,
+      "path": "tools/sabra/trust_v2/numerical.py",
+      "required_for_train_or_eval": true,
+      "role": "EXACT reference",
+      "sha256": "8c2c0d432e710f5d1e1425116953c1cc82f6f9e1fcbb256bdd270101db214ff8"
+    },
+    {
+      "git_lfs": false,
+      "path": "tools/sabra/trust_v2/fast_geometry.py",
+      "required_for_train_or_eval": true,
+      "role": "certified FAST geometry",
+      "sha256": "266d89d2646236af8c30422f64268d9651fe8d6f6397f33a45f54a5749e93800"
+    },
+    {
+      "git_lfs": false,
+      "path": "tools/sabra/trust_v2/backend.py",
+      "required_for_train_or_eval": true,
+      "role": "backend routing",
+      "sha256": "913a78c85a8a61c027332c5e416167303ae93fa5d022054d04718c0aafce4e62"
+    },
+    {
+      "git_lfs": false,
+      "path": "tools/sabra/trust_v2/mvtec_external.py",
+      "required_for_train_or_eval": true,
+      "role": "post-training evaluator",
+      "sha256": "400a67ca338586c9e8f859cba23fa2cbeb9036e99a6773fded0efe7d1506dfb9"
+    },
+    {
+      "git_lfs": false,
+      "path": "runs/phase5/sabra/TRUST_V2_EXTERNAL_MVTEC_20260820_RESTART_5cacf3a/FAST_CERTIFICATION.json",
+      "required_for_train_or_eval": true,
+      "role": "FAST certification evidence",
+      "sha256": "d8e08e748609b482cf5fc8f31e09ce3d92d7024f6670875e1b8b153a66c67413"
+    },
+    {
+      "git_lfs": false,
+      "path": "runs/phase5/sabra/TRUST_V2_EXTERNAL_MVTEC_20260820_RESTART_5cacf3a/RESULT.json",
+      "required_for_train_or_eval": true,
+      "role": "completed MVTec result",
+      "sha256": "c703976964674d758ad544b5278e9bfdcf1c1c88bdecca856931a552363e69cf"
+    },
+    {
+      "git_lfs": false,
+      "path": "runs/phase5/sabra/LAB_20E_READY/TRAIN20E_FINAL_CONFIG.json",
+      "required_for_train_or_eval": true,
+      "role": "resolved lab training config",
+      "sha256": "d2d4f0ca0f6937ae347603a31f05e636c3eb32fb7406872f4fa61e5f6a797d24"
+    },
+    {
+      "git_lfs": false,
+      "path": "tools/sabra/lab_train.py",
+      "required_for_train_or_eval": true,
+      "role": "portable lab launcher",
+      "sha256": "f75da709ce6b1a1d139ac6927b2a47a6ce948bd4625d6a9d7d13166e7f9a5d1e"
+    },
+    {
+      "git_lfs": false,
+      "path": "tools/sabra/lab_preflight.py",
+      "required_for_train_or_eval": true,
+      "role": "structural preflight",
+      "sha256": "4716b7a892f4cf12c715eb8943e49254f9057fed211ee1a2978a1cab4103d1ea"
+    },
+    {
+      "git_lfs": false,
+      "path": "model/checkpoint_utils.py",
+      "required_for_train_or_eval": true,
+      "role": "atomic resumable checkpoint helpers",
+      "sha256": "f11b13d3e3d674e2dfafd6d65904388e79be2c23e8b9780bb8f20bccb04a8dcf"
+    }
+  ],
+  "git_lfs_required": true,
+  "schema": "LAB_ASSET_HASHES_V1",
+  "verification": [
+    "git lfs install",
+    "git lfs pull",
+    "sha256sum -c ASSET_HASHES.sha256"
+  ]
+}

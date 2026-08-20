@@ -36,7 +36,12 @@ from dataset.info import log_data_root
 from model.adapter import (
     ACDCLIP
 )
-from model.checkpoint_utils import build_phase4_checkpoint
+from model.checkpoint_utils import (
+    build_phase4_checkpoint,
+    load_adapter_checkpoint,
+    restore_rng_state,
+    write_torch_checkpoint_atomic,
+)
 from model.clip import create_model
 from model.h6.gated_early_stop import GateDecision, H6StructuralGateState, StructuralGateConfig
 from model.h6.losses import (
@@ -1607,11 +1612,23 @@ def train_h6_progress1(
         device: torch.device,
         args,
         logger: logging.Logger,
+        *,
+        start_epoch: int = 0,
+        dataloader_generator: torch.Generator | None = None,
+        resume_checkpoint: dict | None = None,
 ):
-    """Train only the requested Progress 1 path; no checkpoint is loaded here."""
+    """Train Progress 1 with optional epoch-boundary checkpoint restoration."""
     if not model.h6_enabled or model.h6_progress != 1:
         raise ValueError("train_h6_progress1 requires an H6 Progress 1 model")
     scaler = torch.cuda.amp.GradScaler(enabled=(device.type == "cuda" and args.precision == "fp16"))
+    global_optimizer_step = int(resume_checkpoint.get("global_step", 0)) if resume_checkpoint is not None else 0
+    if resume_checkpoint is not None:
+        restore_rng_state(
+            resume_checkpoint,
+            dataloader_generator=dataloader_generator,
+            amp_scaler=scaler,
+        )
+        logger.info("resumed checkpoint epoch=%s", resume_checkpoint.get("epoch"))
     loss_weights = {
         "center": args.lambda_h6_center,
         "center_factor_aware": bool(args.h6_center_factor_aware),
@@ -1660,7 +1677,9 @@ def train_h6_progress1(
     task_loss_history: list[float] = []
     saved_checkpoints: list[str] = []
     wiring_factor_collapse_probes = 0
-    for epoch_zero_based in range(args.epoch):
+    if int(start_epoch) < 0 or int(start_epoch) > int(args.epoch):
+        raise ValueError(f"invalid resume epoch {start_epoch} for total epochs {args.epoch}")
+    for epoch_zero_based in range(int(start_epoch), args.epoch):
         epoch = epoch_zero_based + 1
         started = time.monotonic()
         model.train()
@@ -1862,6 +1881,8 @@ def train_h6_progress1(
                 loss_weights={**loss_weights, "vae_kl_current": beta_vae_kl},
                 structural_gate_config=structural_gate_config.to_dict(),
                 structural_gate_state=structural_gate.state_dict(), optimizer=optimizer, scheduler=scheduler,
+                amp_scaler=scaler, dataloader_generator=dataloader_generator,
+                global_step=global_optimizer_step,
             )
             checkpoint["forensic"] = {
                 "optimizer_step": int(step), "microbatch": int(batch_number),
@@ -3596,6 +3617,7 @@ def train_h6_progress1(
                 scaler.step(optimizer)
                 scaler.update()
                 optimizer_step_count += 1
+                global_optimizer_step += 1
                 needs_v84_post_step = bool(
                     model.h6.progress_version == "P1-v8.4-A"
                     and optimizer_step_count == 1
@@ -4630,10 +4652,22 @@ def train_h6_progress1(
             structural_gate_state=structural_gate.state_dict(),
             optimizer=optimizer,
             scheduler=scheduler,
+            amp_scaler=scaler,
+            dataloader_generator=dataloader_generator,
+            global_step=global_optimizer_step,
         )
         latest_checkpoint_path = os.path.join(args.save_path, f"adapter_{epoch}.pth")
-        torch.save(payload, latest_checkpoint_path)
+        write_torch_checkpoint_atomic(latest_checkpoint_path, payload)
         saved_checkpoints.append(latest_checkpoint_path)
+        write_json_atomic(
+            Path(args.save_path) / "LATEST_CHECKPOINT.json",
+            {
+                "checkpoint": os.path.basename(latest_checkpoint_path),
+                "epoch": int(epoch),
+                "sha256": hashlib.sha256(Path(latest_checkpoint_path).read_bytes()).hexdigest(),
+                "source_git_sha": current_git_head(),
+            },
+        )
         if gate_decision.hard_failure:
             gated_abort_artifacts(
                 save_path=args.save_path,
@@ -4726,6 +4760,7 @@ def main():
     parser.add_argument("--cuda_device", type=int, default=0, help="cuda device id")
 
     parser.add_argument("--save_path", type=str, default="ckpt/test")
+    parser.add_argument("--resume", type=str, default=None, help="resume an epoch-boundary H6 checkpoint")
 
     # settings
     parser.add_argument("--n_groups", type=int, default=4, help="number of groups for adapter")
@@ -5799,7 +5834,20 @@ def main():
             write_json_atomic(Path(args.save_path) / "model_preflight.json", model_preflight)
             if failed_contracts:
                 raise RuntimeError(f"{args.h6_progress_version} model preflight failed: {failed_contracts}")
+        resume_checkpoint = None
+        resume_epoch = 0
+        if args.resume:
+            resume_checkpoint = torch.load(args.resume, map_location="cpu", weights_only=False)
+            load_adapter_checkpoint(model, resume_checkpoint)
+            if "optimizer_state" not in resume_checkpoint or "scheduler_state" not in resume_checkpoint:
+                raise ValueError("resume checkpoint is missing optimizer_state or scheduler_state")
+            optimizer.load_state_dict(resume_checkpoint["optimizer_state"])
+            lr_scheduler.load_state_dict(resume_checkpoint["scheduler_state"])
+            resume_epoch = int(resume_checkpoint.get("epoch", 0))
+            if resume_epoch >= int(args.epoch):
+                raise ValueError("resume checkpoint is already at or beyond the requested final epoch")
         dataset = get_text_and_image_dataset(args.dataset, args.img_size, "train")
+        dataloader_generator = make_dataloader_generator(args.seed)
         dataloader = torch.utils.data.DataLoader(
             dataset,
             batch_size=args.batch_size,
@@ -5807,10 +5855,15 @@ def main():
             num_workers=args.num_workers,
             pin_memory=args.pin_memory,
             worker_init_fn=seed_worker,
-            generator=make_dataloader_generator(args.seed),
+            generator=dataloader_generator,
         )
         logger.info("phase4_progress=1 training from OpenAI CLIP only; no Phase2B checkpoint will be loaded")
-        train_h6_progress1(model, args.dataset, dataloader, optimizer, lr_scheduler, device, args, logger)
+        train_h6_progress1(
+            model, args.dataset, dataloader, optimizer, lr_scheduler, device, args, logger,
+            start_epoch=resume_epoch,
+            dataloader_generator=dataloader_generator,
+            resume_checkpoint=resume_checkpoint,
+        )
         return
 
     model.requires_grad_(False)

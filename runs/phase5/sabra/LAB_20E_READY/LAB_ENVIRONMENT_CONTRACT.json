@@ -1,0 +1,18 @@
+{
+  "cuda_runtime": "12.1",
+  "driver_note": "Do not install a new NVIDIA driver; nvidia-smi CUDA need not equal torch CUDA runtime",
+  "python": "3.12.3",
+  "requirements_file": "requirements.txt",
+  "requirements_pins": {
+    "Pillow": "11.3.0",
+    "ftfy": "6.3.1",
+    "kornia": "0.8.1",
+    "torch": "2.5.1+cu121",
+    "torchvision": "0.20.1+cu121",
+    "tqdm": "4.67.0"
+  },
+  "schema": "LAB_ENVIRONMENT_CONTRACT_V1",
+  "scikit_learn": "1.7.2",
+  "torch": "2.5.1+cu121",
+  "torchvision": "0.20.1+cu121"
+}

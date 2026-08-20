@@ -30,7 +30,7 @@ sys.path[:0] = [str(ROOT), str(ROOT / "tools")]
 
 from sabra.cache_runner import _forward_one, _load_model  # noqa: E402
 from sabra.data import IMAGE_SIZE, VisaEvidenceDataset, safe_data_path  # noqa: E402
-from sabra.trust_v2.numerical import build_compact_record, percentile_rank  # noqa: E402
+from sabra.trust_v2.backend import compact_record_builder, validate_backend  # noqa: E402
 from utils import get_phase2b_global_text_features  # noqa: E402
 
 METADATA = ROOT / "dataset/hub/MVTec.jsonl"
@@ -239,7 +239,9 @@ def _score_record(
     }
 
 
-def run_gt_free_stage(data_root: Path, output_root: Path, freeze: dict[str, Any]) -> dict[str, Any]:
+def run_gt_free_stage(data_root: Path, output_root: Path, freeze: dict[str, Any], backend: str = "exact") -> dict[str, Any]:
+    backend = validate_backend(backend)
+    build_compact_record = compact_record_builder(backend)
     rows = _gt_free_rows()
     root = resolve_data_root(data_root, rows)
     dataset = VisaEvidenceDataset(rows, root, image_size=IMAGE_SIZE)
@@ -281,6 +283,7 @@ def run_gt_free_stage(data_root: Path, output_root: Path, freeze: dict[str, Any]
         "status": "PASS",
         "stage": "GT_FREE",
         "gt_free": True,
+        "backend": backend,
         "labels_read": False,
         "mask_paths_read": False,
         "mask_pixels_read": 0,
@@ -401,21 +404,25 @@ def evaluate_ground_truth(data_root: Path, output_root: Path, freeze: dict[str, 
     return result
 
 
-def run(data_root: Path, output_root: Path) -> dict[str, Any]:
+def run(data_root: Path, output_root: Path, backend: str = "exact") -> dict[str, Any]:
     freeze = frozen_contract()
     if output_root.exists() and any(output_root.iterdir()):
         raise RuntimeError(f"ARTIFACT_PATH_COLLISION {output_root}")
     output_root.mkdir(parents=True, exist_ok=False)
-    run_gt_free_stage(data_root, output_root, freeze)
+    run_gt_free_stage(data_root, output_root, freeze, backend=backend)
     return evaluate_ground_truth(data_root, output_root, freeze)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data-root", type=Path, default=Path(os.environ.get("MVTEC_ROOT", "/workspace/data/mvtec_ad")))
+    parser.add_argument("--data-root", type=Path, default=None, help="MVTec root; defaults to MVTEC_ROOT")
+    parser.add_argument("--backend", choices=["exact", "fast"], default="exact")
     parser.add_argument("--output-root", type=Path, default=EXTERNAL_ROOT)
     args = parser.parse_args()
-    print(json.dumps(run(args.data_root, args.output_root), indent=2, sort_keys=True))
+    data_root = args.data_root or (Path(os.environ["MVTEC_ROOT"]) if os.environ.get("MVTEC_ROOT") else None)
+    if data_root is None:
+        raise SystemExit("MVTec root is required via --data-root or MVTEC_ROOT")
+    print(json.dumps(run(data_root, args.output_root, backend=args.backend), indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":

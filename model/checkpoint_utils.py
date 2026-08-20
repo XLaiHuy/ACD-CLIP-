@@ -2,13 +2,82 @@
 
 from __future__ import annotations
 
+import os
+import random
+import tempfile
+from pathlib import Path
 from typing import Any, Dict, Mapping
 
+import numpy as np
 import torch
 
 
 PHASE4_CHECKPOINT_VERSION = 8
 P1_V84A_CHECKPOINT_VERSION = 9
+
+
+def capture_rng_state(
+    *,
+    dataloader_generator: torch.Generator | None = None,
+    amp_scaler: Any | None = None,
+) -> dict[str, Any]:
+    """Capture every mutable RNG/state source needed for a resumable run."""
+    state: dict[str, Any] = {
+        "python_random_state": random.getstate(),
+        "numpy_random_state": np.random.get_state(),
+        "torch_cpu_rng_state": torch.get_rng_state(),
+    }
+    if torch.cuda.is_available():
+        state["torch_cuda_rng_state_all"] = torch.cuda.get_rng_state_all()
+    if dataloader_generator is not None:
+        state["dataloader_generator_state"] = dataloader_generator.get_state()
+    if amp_scaler is not None:
+        state["amp_scaler_state"] = amp_scaler.state_dict()
+    return state
+
+
+def restore_rng_state(
+    checkpoint: Mapping[str, Any],
+    *,
+    dataloader_generator: torch.Generator | None = None,
+    amp_scaler: Any | None = None,
+) -> None:
+    """Restore state written by capture_rng_state when present."""
+    if checkpoint.get("python_random_state") is not None:
+        random.setstate(checkpoint["python_random_state"])
+    if checkpoint.get("numpy_random_state") is not None:
+        np.random.set_state(checkpoint["numpy_random_state"])
+    if checkpoint.get("torch_cpu_rng_state") is not None:
+        torch.set_rng_state(checkpoint["torch_cpu_rng_state"])
+    cuda_states = checkpoint.get("torch_cuda_rng_state_all")
+    if cuda_states is not None and torch.cuda.is_available():
+        torch.cuda.set_rng_state_all(cuda_states)
+    if dataloader_generator is not None and checkpoint.get("dataloader_generator_state") is not None:
+        dataloader_generator.set_state(checkpoint["dataloader_generator_state"])
+    if amp_scaler is not None and checkpoint.get("amp_scaler_state") is not None:
+        amp_scaler.load_state_dict(checkpoint["amp_scaler_state"])
+
+
+def write_torch_checkpoint_atomic(path: str | Path, payload: Mapping[str, Any]) -> None:
+    """Write a checkpoint without replacing the last valid file mid-write."""
+    destination = Path(path)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            dir=destination.parent,
+            prefix=f".{destination.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            temporary = Path(handle.name)
+            torch.save(dict(payload), handle)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, destination)
+    finally:
+        if temporary is not None and temporary.exists():
+            temporary.unlink()
 
 
 def validate_p1_v83_checkpoint_contract(checkpoint: Mapping[str, Any]) -> None:
@@ -183,6 +252,9 @@ def build_phase4_checkpoint(
     structural_gate_state: Mapping[str, Any] | None = None,
     optimizer: torch.optim.Optimizer | None = None,
     scheduler: Any | None = None,
+    amp_scaler: Any | None = None,
+    dataloader_generator: torch.Generator | None = None,
+    global_step: int | None = None,
 ) -> Dict[str, Any]:
     if not getattr(model, "h6_enabled", False) or getattr(model, "h6", None) is None:
         raise ValueError("build_phase4_checkpoint requires an H6-enabled model")
@@ -383,6 +455,7 @@ def build_phase4_checkpoint(
             else 7 if h6_config.get("progress_version") == "P1-v7-full" else 6
         ),
         "epoch": int(epoch),
+        "global_step": int(global_step) if global_step is not None else None,
         "seed": int(seed),
         "git_sha": phase2b_config.get("git_sha"),
         "phase4_progress": 1,
@@ -437,6 +510,10 @@ def build_phase4_checkpoint(
         payload["optimizer_state"] = optimizer.state_dict()
     if scheduler is not None:
         payload["scheduler_state"] = scheduler.state_dict()
+    payload.update(capture_rng_state(
+        dataloader_generator=dataloader_generator,
+        amp_scaler=amp_scaler,
+    ))
     if structural_gate_config is not None:
         payload["structural_gate_config"] = dict(structural_gate_config)
         payload["h6_config"]["structural_gate_mode"] = structural_gate_config.get("structural_gate_mode", "abort")

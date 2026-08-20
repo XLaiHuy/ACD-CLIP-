@@ -1,0 +1,12 @@
+{
+  "schema": "LAB_PRECHECK_EXPECTATIONS_V1",
+  "command": "python tools/sabra/lab_train.py preflight --config runs/phase5/sabra/LAB_20E_READY/TRAIN20E_FINAL_CONFIG.json",
+  "bounded": true,
+  "max_batches": 1,
+  "epoch_argument": 1,
+  "not_final_training": true,
+  "allowed_dataset": "VisA",
+  "forbidden_datasets": ["MVTec", "Medical"],
+  "expected": ["model loads", "P1-v8.3 model preflight PASS", "one VisA batch loads", "forward/loss/backward/optimizer step", "atomic checkpoint write/read", "FAST routing test", "training_started remains false for package session"],
+  "memory_logging": {"source": "train.py per-batch vram log", "fields": ["max_memory_allocated", "max_memory_reserved"], "oom_policy": "report RESOURCE_BLOCKER; do not alter frozen settings"}
+}

@@ -1,0 +1,170 @@
+{
+  "data_roles": {
+    "MVTec": {
+      "benchmark": "tools/sabra/trust_v2/mvtec_external.py --backend fast",
+      "checkpoint_selection_access": false,
+      "role": "previously observed external validation and post-training frozen benchmark",
+      "root_env": "MVTEC_ROOT",
+      "threshold_tuning_access": false,
+      "training_loader_access": false
+    },
+    "Medical": {
+      "checkpoint_selection_access": false,
+      "current_reads": 0,
+      "explicit_gate": "--allow-medical-evaluation",
+      "role": "clean final external evaluation after final checkpoint freeze",
+      "root_env": "MEDICAL_ROOT",
+      "sealed_by_default": true,
+      "training_loader_access": false,
+      "validation_loader_access": false
+    },
+    "global_constraints": {
+      "MVTec_feedback_to_training": false,
+      "Medical_feedback_to_training": false,
+      "no_recursive_all_data_scan": true,
+      "training_loader_must_not_discover_medical": true,
+      "training_loader_must_not_discover_mvtec": true
+    },
+    "schema": "DATASET_ROLE_CONTRACT_V1",
+    "train": {
+      "allowed_during_20e": true,
+      "dataset": "VisA",
+      "loader": "dataset.get_text_and_image_dataset('VisA', 518, 'train')",
+      "metadata": "dataset/hub/VisA.jsonl",
+      "root_env": "VISA_ROOT",
+      "split": "all rows exposed by existing train loader; no new split"
+    },
+    "validation": {
+      "allowed_during_20e": false,
+      "checkpoint_selection": "freeze adapter_20.pth before invocation; no automatic reselection",
+      "dataset": "VisA",
+      "implementation": "tools/sabra/trust_v2/visa_audit.py",
+      "role": "post-training held-out-class LOCO validation/development evidence"
+    }
+  },
+  "fast": {
+    "AP_delta": 0.0,
+    "AUROC_delta": 0.0,
+    "certification": "PASS",
+    "discrete_mismatch_count": 0,
+    "exact_reference_path": "/workspace/ACD-CLIP-exact-ref",
+    "exact_reference_sha": "b74483d6f0c3502e046e2c17ccf847d5b2bc7495",
+    "exact_runtime_seconds": 3.661146771046333,
+    "fast_runtime_seconds": 1.6854537070030347,
+    "max_G_error": 0.0,
+    "max_c_error": 0.0,
+    "max_eig_PGM_error": 1.9073486328125e-06,
+    "max_mapped_score_error": 0.0,
+    "peak_allocated_vram_bytes": 2516587008,
+    "peak_reserved_vram_bytes": 4303355904,
+    "speedup": 2.172202508935323,
+    "training_integration": "post-training evaluator route verified; training loss does not call Trust-v2 geometry"
+  },
+  "medical": {
+    "current_reads": 0,
+    "sealed_until_final_model_freeze": true
+  },
+  "medical_reads": 0,
+  "next_legal_action": "explicit lab authorization, checkout source SHA, Git-LFS hydration, asset/path preflight, bounded one-step preflight, then final 20e",
+  "next_machine": "LAB",
+  "preflight": {
+    "medical_reads": 0,
+    "scope": "one VisA batch, forward/loss/backward/optimizer/checkpoint round-trip",
+    "status": "PASS",
+    "training_started": false
+  },
+  "schema": "LAB_20E_HANDOFF_V1",
+  "science": {
+    "Authority_v2_external": "UNRESOLVED_MISSING_FROZEN_M0_E_CALIBRATOR",
+    "MVTec_external_decision": "EXTERNAL_VALIDATION_INCOMPLETE because Authority-v2 primary comparator is unavailable; Trust-v2 remains SUPPORTED",
+    "MVTec_historical_source_root": "/workspace/data/mvtec_ad",
+    "MVTec_result_root": "runs/phase5/sabra/TRUST_V2_EXTERNAL_MVTEC_20260820_RESTART_5cacf3a",
+    "PCRR_STATUS": "DROP",
+    "Trust_v2": {
+      "catastrophic_tail": {
+        "count": 0,
+        "threshold": -0.03
+      },
+      "frozen_rules": {
+        "PROMISING": {
+          "catastrophic_tail": 0,
+          "mean": 0.005,
+          "median": 0.0,
+          "positive_classes": 9
+        },
+        "SUPPORTED": {
+          "catastrophic_tail": 0,
+          "mean": 0.01,
+          "median": 0.005,
+          "positive_classes": 10
+        },
+        "WEAK": {
+          "catastrophic_tail": 0,
+          "mean": ">0",
+          "median": 0.0,
+          "nonnegative_classes": 8
+        }
+      },
+      "mean_delta": 0.21074739126824538,
+      "median_delta": 0.17836257309941517,
+      "nonnegative_classes": 14,
+      "per_class_image_auroc_delta": {
+        "bottle": 0.2305555555555555,
+        "cable": 0.41707271364317844,
+        "capsule": 0.5237335460710012,
+        "carpet": 0.12740770465489581,
+        "grid": 0.17836257309941517,
+        "hazelnut": 0.19267857142857153,
+        "leather": 0.056385869565217406,
+        "metal_nut": 0.13391984359726294,
+        "pill": 0.12752318603382434,
+        "screw": 0.11785201885632302,
+        "tile": 0.2216810966810967,
+        "toothbrush": 0.46944444444444444,
+        "transistor": -0.02229166666666671,
+        "wood": 0.3241228070175438,
+        "zipper": 0.06276260504201692
+      },
+      "positive_classes": 14
+    },
+    "Trust_v2_external": "SUPPORTED",
+    "scientific_validity": "VALID_POSITIVE_EXTERNAL_RESULT",
+    "selected_features": [
+      "E",
+      "peer_coherence",
+      "query_support_mean",
+      "peer_eigen_entropy",
+      "stage_query_profile_disagreement"
+    ],
+    "selected_model": "M1_E_Credibility"
+  },
+  "scientific_lineage": {
+    "MVTEC_RESULT_SHA": "b74483d6f0c3502e046e2c17ccf847d5b2bc7495",
+    "PRE_EXTERNAL_BOUNDARY_SHA": "5cacf3abc5df271adbe655c318d516777fd8ad61",
+    "candidate_freeze_sha": "c878ca10c0596b7ed01909cf65de486b21946dbd",
+    "current_source_sha_before_lab_package": "1b4396d2fc30c61707f7ef534b4fe8b69c3b27fe",
+    "previous_FAST_SHA": "1b4396d2fc30c61707f7ef534b4fe8b69c3b27fe"
+  },
+  "terminal_state": "LAB_20E_SOURCE_READY",
+  "training": {
+    "FULL_20E_TRAIN_AUTHORIZED": false,
+    "SOURCE_READY_FOR_LAB": true,
+    "TRAINING_STARTED": false,
+    "backend": "native_phase4_p1_v83_no_trust_v2_geometry",
+    "checkpoint_resume": "atomic epoch checkpoints with full RNG/optimizer/scheduler state",
+    "frozen_components": [
+      "OpenAI CLIP backbone",
+      "soft_prompt in canonical H6 P1-v8.3",
+      "H6 rho fixed at 0.05 and non-trainable"
+    ],
+    "post_training_trust_backend": "fast",
+    "resolved_config": "runs/phase5/sabra/LAB_20E_READY/TRAIN20E_FINAL_CONFIG.json",
+    "trainable_components": [
+      "image_adapter",
+      "text_adapter",
+      "H6 Progress-1 trainable modules"
+    ],
+    "validation_rule": "freeze adapter_20.pth after epoch 20; no MVTec/Medical feedback or automatic reselection"
+  },
+  "training_started": false
+}

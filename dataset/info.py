@@ -24,6 +24,23 @@ DATA_ROOT = resolve_data_root()
 BASE_PATH = str(REPO_ROOT).replace("\\", "/")
 
 
+def _env_path(name: str, *fallback_parts: str) -> Path:
+    """Resolve one explicitly configured dataset path without discovery."""
+    override = os.environ.get(name)
+    if override:
+        return Path(override).expanduser().resolve()
+    return DATA_ROOT.joinpath(*fallback_parts)
+
+
+MEDICAL_DATA_ROOT = Path(
+    os.environ.get("MEDICAL_ROOT", str(DATA_ROOT))
+).expanduser().resolve()
+
+
+def _medical_path(*parts: str) -> str:
+    return str(MEDICAL_DATA_ROOT.joinpath(*parts))
+
+
 def log_data_root(logger: logging.Logger | None = None) -> str:
     """Log and return the resolved data root for startup/preflight reports."""
     resolved = str(DATA_ROOT)
@@ -35,17 +52,17 @@ def _data_path(*parts: str) -> str:
     return str(DATA_ROOT.joinpath(*parts))
 
 DATA_PATH = {
-    "Brain": _data_path("MedAD", "Brain_AD", "test"),
-    "Liver": _data_path("MedAD", "Liver_AD", "test"),
-    "Retina": _data_path("MedAD", "Retina_RESC_AD", "test"),
-    "Colon_clinicDB": _data_path("Colon", "CVC-ClinicDB"),
-    "Colon_colonDB": _data_path("Colon", "CVC-ColonDB"),
-    "Colon_cvc300": _data_path("Colon", "CVC-300"),
-    "Colon_Kvasir": _data_path("Colon", "Kvasir"),
+    "Brain": _medical_path("MedAD", "Brain_AD", "test"),
+    "Liver": _medical_path("MedAD", "Liver_AD", "test"),
+    "Retina": _medical_path("MedAD", "Retina_RESC_AD", "test"),
+    "Colon_clinicDB": _medical_path("Colon", "CVC-ClinicDB"),
+    "Colon_colonDB": _medical_path("Colon", "CVC-ColonDB"),
+    "Colon_cvc300": _medical_path("Colon", "CVC-300"),
+    "Colon_Kvasir": _medical_path("Colon", "Kvasir"),
     "BTAD": _data_path("BTech_Dataset_transformed"),
     "MPDD": _data_path("MPDD"),
-    "MVTec": _data_path("mvtec_ad"),
-    "VisA": _data_path("VisA_20220922"),
+    "MVTec": str(_env_path("MVTEC_ROOT", "mvtec_ad")),
+    "VisA": str(_env_path("VISA_ROOT", "VisA_20220922")),
     "RSDD": _data_path("RSDD")
 }
 
@@ -55,15 +72,15 @@ DATA_PATH = {
 # tools/prepare_phase4_medical_splits.py.
 MEDICAL_EVAL_PATHS = {
     "Brain": {
-        "val": _data_path("MedAD", "Brain_AD", "valid"),
+        "val": _medical_path("MedAD", "Brain_AD", "valid"),
         "test": DATA_PATH["Brain"],
     },
     "Liver": {
-        "val": _data_path("MedAD", "Liver_AD", "valid"),
+        "val": _medical_path("MedAD", "Liver_AD", "valid"),
         "test": DATA_PATH["Liver"],
     },
     "Retina": {
-        "val": _data_path("MedAD", "Retina_RESC_AD", "val"),
+        "val": _medical_path("MedAD", "Retina_RESC_AD", "val"),
         "test": DATA_PATH["Retina"],
     },
     "Colon_clinicDB": {"val": DATA_PATH["Colon_clinicDB"], "test": DATA_PATH["Colon_clinicDB"]},
