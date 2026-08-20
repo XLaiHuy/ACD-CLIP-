@@ -1,10 +1,13 @@
 """Portable lab launcher for the frozen 20e P1-v8.3 contract."""
 from __future__ import annotations
 import argparse
+import errno
 import hashlib
 import json
 import os
+import pty
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -241,11 +244,68 @@ def repository_env() -> dict[str, str]:
     return env
 
 
-def run_process(command: list[str], log_path: Path, env: dict[str, str]) -> int:
+def _write_live_output(data: bytes) -> None:
+    """Forward PTY bytes without changing tqdm's carriage-return rendering."""
+    stream = getattr(sys.stdout, "buffer", None)
+    if stream is not None:
+        stream.write(data)
+        stream.flush()
+        return
+    sys.stdout.write(data.decode("utf-8", errors="replace"))
+    sys.stdout.flush()
+
+
+def run_process(
+    command: list[str],
+    log_path: Path,
+    env: dict[str, str],
+    live_progress: bool = False,
+) -> int:
+    """Run train.py, optionally teeing its PTY byte stream to terminal and log."""
     with log_path.open("w", encoding="utf-8") as log:
         log.write("$ " + " ".join(command) + "\n")
         log.flush()
-        return int(subprocess.run(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT, check=False).returncode)
+        if not live_progress:
+            return int(subprocess.run(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT, check=False).returncode)
+
+        master_fd, slave_fd = pty.openpty()
+        child = subprocess.Popen(
+            command,
+            cwd=ROOT,
+            env=env,
+            stdin=None,
+            stdout=slave_fd,
+            stderr=slave_fd,
+            start_new_session=True,
+        )
+        os.close(slave_fd)
+        interrupted = False
+        try:
+            while True:
+                try:
+                    data = os.read(master_fd, 64 * 1024)
+                except OSError as error:
+                    if error.errno == errno.EIO:
+                        break
+                    raise
+                if not data:
+                    break
+                log.buffer.write(data)
+                log.flush()
+                _write_live_output(data)
+
+        except KeyboardInterrupt:
+            interrupted = True
+            try:
+                os.killpg(child.pid, signal.SIGINT)
+            except ProcessLookupError:
+                pass
+        finally:
+            os.close(master_fd)
+
+        child.wait()
+        return 130 if interrupted else int(child.returncode)
+
 
 def load_config(path: Path) -> dict[str, Any]:
     config = json.loads(path.read_text(encoding="utf-8"))
@@ -286,6 +346,7 @@ def train(
     resume: Path | None = None,
     batch_size: int | None = None,
     grad_accum_steps: int | None = None,
+    live_progress: bool = False,
 ) -> int:
     if not os.environ.get("VISA_ROOT"):
         raise RuntimeError("VISA_ROOT is required; training never discovers MVTec or Medical")
@@ -318,7 +379,7 @@ def train(
             provenance_path=provenance_path,
             log_path=log_path,
         )
-    return run_process(command, log_path, env)
+    return run_process(command, log_path, env, live_progress=live_progress)
 
 def preflight(
     config_path: Path,
@@ -372,6 +433,7 @@ def main() -> None:
     train_parser.add_argument("--run-root", type=Path, default=None)
     train_parser.add_argument("--batch-size", type=int, default=None)
     train_parser.add_argument("--grad-accum-steps", type=int, default=None)
+    train_parser.add_argument("--live-progress", action="store_true", help="stream existing train.py tqdm through a PTY while logging it")
     resume_parser = sub.add_parser("resume")
     resume_parser.add_argument("--config", type=Path, default=PACKAGE / "TRAIN20E_FINAL_CONFIG.json")
     resume_parser.add_argument("--checkpoint", type=Path, required=True)
@@ -379,6 +441,7 @@ def main() -> None:
     resume_parser.add_argument("--run-root", type=Path, default=None)
     resume_parser.add_argument("--batch-size", type=int, default=None)
     resume_parser.add_argument("--grad-accum-steps", type=int, default=None)
+    resume_parser.add_argument("--live-progress", action="store_true", help="stream existing train.py tqdm through a PTY while logging it")
     pre_parser = sub.add_parser("preflight")
     pre_parser.add_argument("--config", type=Path, default=PACKAGE / "TRAIN20E_FINAL_CONFIG.json")
     pre_parser.add_argument("--output-root", type=Path, default=None)
@@ -386,9 +449,9 @@ def main() -> None:
     pre_parser.add_argument("--grad-accum-steps", type=int, default=None)
     args = parser.parse_args()
     if args.mode == "train":
-        raise SystemExit(train(args.config, args.run_id, args.run_root, batch_size=args.batch_size, grad_accum_steps=args.grad_accum_steps))
+        raise SystemExit(train(args.config, args.run_id, args.run_root, batch_size=args.batch_size, grad_accum_steps=args.grad_accum_steps, live_progress=args.live_progress))
     if args.mode == "resume":
-        raise SystemExit(train(args.config, args.run_id, args.run_root, resume=args.checkpoint, batch_size=args.batch_size, grad_accum_steps=args.grad_accum_steps))
+        raise SystemExit(train(args.config, args.run_id, args.run_root, resume=args.checkpoint, batch_size=args.batch_size, grad_accum_steps=args.grad_accum_steps, live_progress=args.live_progress))
     raise SystemExit(preflight(args.config, args.output_root, batch_size=args.batch_size, grad_accum_steps=args.grad_accum_steps))
 
 if __name__ == "__main__":

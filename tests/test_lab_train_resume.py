@@ -1,5 +1,10 @@
 import json
+import os
 import random
+import signal
+import sys
+import threading
+import time
 
 import numpy as np
 import pytest
@@ -102,7 +107,7 @@ def test_resume_preserves_initial_provenance_and_train_log(tmp_path, monkeypatch
     original_log = (root / "logs" / "train_wrapper.log").read_bytes()
     captured = {}
 
-    def fake_run(command, log_path, env):
+    def fake_run(command, log_path, env, live_progress=False):
         captured["command"] = command
         captured["log_path"] = log_path
         return 0
@@ -121,3 +126,52 @@ def test_resume_preserves_initial_provenance_and_train_log(tmp_path, monkeypatch
     record = json.loads(records[0].read_text(encoding="utf-8"))
     assert record["next_epoch"] == 5
     assert record["scientific_formula_change"] is False
+
+
+def test_live_process_tees_carriage_returns_to_terminal_and_log(tmp_path, monkeypatch):
+    log_path = tmp_path / "resume.log"
+    captured = bytearray()
+    monkeypatch.setattr(lab, "_write_live_output", captured.extend)
+    command = [sys.executable, "-c", "import sys; sys.stdout.write('0%\\r50%\\r100%\\n'); sys.stdout.flush()"]
+    assert lab.run_process(command, log_path, os.environ.copy(), live_progress=True) == 0
+    assert b"0%\r50%\r100%" in captured
+    assert b"0%\r50%\r100%" in log_path.read_bytes()
+
+
+def test_live_process_forwards_sigint_to_child_group_without_orphan(tmp_path):
+    log_path = tmp_path / "interrupted.log"
+    pid_path = tmp_path / "child.pid"
+    code = (
+        "import os, pathlib, signal, sys, time; "
+        f"pathlib.Path({str(pid_path)!r}).write_text(str(os.getpid())); "
+        "signal.signal(signal.SIGINT, lambda *_: sys.exit(0)); "
+        "sys.stdout.write('ready\\n'); sys.stdout.flush(); time.sleep(30)"
+    )
+    timer = threading.Timer(0.25, lambda: os.kill(os.getpid(), signal.SIGINT))
+    timer.start()
+    try:
+        assert lab.run_process([sys.executable, "-c", code], log_path, os.environ.copy(), live_progress=True) == 130
+    finally:
+        timer.cancel()
+    pid = int(pid_path.read_text())
+    deadline = time.monotonic() + 2
+    while os.path.exists(f"/proc/{pid}") and time.monotonic() < deadline:
+        time.sleep(0.02)
+    assert not os.path.exists(f"/proc/{pid}")
+
+
+def test_live_and_nonlive_resume_resolve_identical_scientific_command(tmp_path, monkeypatch):
+    base, _, checkpoint = _valid_existing_run(tmp_path)
+    captured = []
+
+    def fake_run(command, log_path, env, live_progress=False):
+        captured.append((command, live_progress))
+        return 0
+
+    monkeypatch.setenv("VISA_ROOT", "/tmp/visa")
+    monkeypatch.setattr(lab, "run_process", fake_run)
+    common = dict(config_path=lab.PACKAGE / "TRAIN20E_FINAL_CONFIG.json", run_id="lab20e_b1_accum6_seed0", batch_size=1, grad_accum_steps=6)
+    assert lab.train(run_root=base, resume=checkpoint, live_progress=False, **common) == 0
+    assert lab.train(run_root=base, resume=checkpoint, live_progress=True, **common) == 0
+    assert captured[0][0] == captured[1][0]
+    assert [live for _, live in captured] == [False, True]
