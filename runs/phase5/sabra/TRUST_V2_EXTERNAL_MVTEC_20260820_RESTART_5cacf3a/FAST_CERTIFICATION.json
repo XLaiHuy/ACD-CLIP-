@@ -1,0 +1,122 @@
+{
+  "AP_delta": 0.0,
+  "AUROC_delta": 0.0,
+  "FULL_20E_TRAIN_AUTHORIZED": false,
+  "GT_firewall": {
+    "labels_read": false,
+    "mask_paths_read": false,
+    "mask_pixels_read": 0,
+    "medical_reads": 0
+  },
+  "GT_used": false,
+  "MVTEC_RESULT_SHA": "b74483d6f0c3502e046e2c17ccf847d5b2bc7495",
+  "PRE_20E_SETUP_REQUIRED": true,
+  "PRE_EXTERNAL_BOUNDARY_SHA": "5cacf3abc5df271adbe655c318d516777fd8ad61",
+  "backend": "FAST",
+  "classes": [
+    "bottle",
+    "cable",
+    "capsule"
+  ],
+  "complete_class_parity": "one complete 1369-patch image from each of three fixed classes",
+  "complete_image_parity": true,
+  "discrete_mismatch_count": 0,
+  "exact_reference": {
+    "immutable": true,
+    "path": "/workspace/ACD-CLIP-exact-ref",
+    "sha": "b74483d6f0c3502e046e2c17ccf847d5b2bc7495"
+  },
+  "exact_reference_path": "/workspace/ACD-CLIP-exact-ref",
+  "exact_reference_sha": "b74483d6f0c3502e046e2c17ccf847d5b2bc7495",
+  "exact_runtime_seconds": 3.661146771046333,
+  "fast_runtime_seconds": 1.6854537070030347,
+  "fast_source_hashes": {
+    "exact_reference_mvtec_external.py": "6be73a26f4557db08d37e52250a88b05eb35a13517a5769e9978a71f25d23117",
+    "exact_reference_numerical.py": "8c2c0d432e710f5d1e1425116953c1cc82f6f9e1fcbb256bdd270101db214ff8",
+    "fast_geometry.py": "266d89d2646236af8c30422f64268d9651fe8d6f6397f33a45f54a5749e93800",
+    "fast_geometry_test.py": "07044115a6ff22fb8fb4b4797aa5ba9284e8f35f396cf683d0b5f6355f884531"
+  },
+  "final_metric_parity": {
+    "AP_max_abs_delta": 0.0,
+    "AUROC_max_abs_delta": 0.0,
+    "interpretation": "score vectors are identical on certified images; no GT or scientific metrics were observed during FAST certification"
+  },
+  "final_scientific_status": "EXACTLY_IDENTICAL",
+  "frozen_source_hashes_verified": true,
+  "implementation_changes": [
+    "padded batched FP32 per-query similarity with deterministic lexsort and targeted EXACT repair",
+    "batched compact c/G geometry",
+    "batched p9/p16 replacement construction",
+    "CUDA FP64 batched PGM and FP32 PCRR dispatch with frozen tolerance/rank semantics"
+  ],
+  "labels_read": false,
+  "mask_paths_read": false,
+  "mask_pixels_read": 0,
+  "max_G_error": 0.0,
+  "max_c_error": 0.0,
+  "max_eig_PGM_error": 1.9073486328125e-06,
+  "max_mapped_score_error": 0.0,
+  "medical_reads": 0,
+  "peak_allocated_vram_bytes": 2516587008,
+  "peak_reserved_vram_bytes": 4303355904,
+  "precision": "FP32 geometry; frozen FP64 PGM semantics retained",
+  "repeated_run_determinism": true,
+  "sample_count": 3,
+  "scientific_metrics_observed": false,
+  "speedup": 2.172202508935323,
+  "stages": [
+    {
+      "name": "synthetic_normal",
+      "status": "PASS"
+    },
+    {
+      "coverage": [
+        "near-zero eigenvalues",
+        "rank-deficient Gram matrices",
+        "duplicate peers",
+        "identical candidates",
+        "tied similarities",
+        "tiny norms",
+        "p16 boundary",
+        "batch size 1",
+        "larger batch",
+        "repeated execution"
+      ],
+      "name": "synthetic_adversarial",
+      "status": "PASS"
+    },
+    {
+      "GT_used": false,
+      "classes": [
+        "bottle",
+        "cable",
+        "capsule"
+      ],
+      "name": "fixed_authorized_industrial_samples",
+      "sample_count": 3,
+      "status": "PASS"
+    },
+    {
+      "name": "complete_image_parity",
+      "scope": "all 1369 patches in each tested image",
+      "status": "PASS"
+    },
+    {
+      "name": "complete_class_parity",
+      "scope": "one complete image from each of three fixed classes",
+      "status": "PASS"
+    },
+    {
+      "name": "runtime_memory_benchmark",
+      "scope": "backend-only, CUDA synchronized",
+      "status": "PASS"
+    }
+  ],
+  "status": "PASS",
+  "tested_images": [
+    "bottle/test/broken_large/000.png",
+    "cable/test/bent_wire/000.png",
+    "capsule/test/crack/000.png"
+  ],
+  "training_started": false
+}
