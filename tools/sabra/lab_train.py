@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
-PACKAGE = ROOT / "runs/phase5/sabra/LAB_20E_READY"
+PACKAGE = ROOT / "runs/phase5/sabra/LAB_20E_READY_V2"
 RUNS_DEFAULT = ROOT.parent / "acdclip_lab_runs"
 
 def sha256_file(path: Path) -> str:
@@ -59,6 +59,17 @@ def prepare_run_root(root: Path, config: dict[str, Any], run_id: str) -> None:
     shutil.copy2(PACKAGE / "ASSET_HASHES.json", root / "ASSET_HASHES.json")
     write_json(root / "ENVIRONMENT.json", {"python": sys.version, "cuda_device": os.environ.get("CUDA_DEVICE", "0"), "medical_reads": 0})
 
+def repository_env() -> dict[str, str]:
+    """Make subprocess imports deterministic from a clean lab shell."""
+    env = os.environ.copy()
+    entries = [str(ROOT), str(ROOT / "tools")]
+    existing = env.get("PYTHONPATH")
+    if existing:
+        entries.append(existing)
+    env["PYTHONPATH"] = os.pathsep.join(entries)
+    return env
+
+
 def run_process(command: list[str], log_path: Path, env: dict[str, str]) -> int:
     with log_path.open("w", encoding="utf-8") as log:
         log.write("$ " + " ".join(command) + "\n")
@@ -81,7 +92,9 @@ def train(config_path: Path, run_id: str, run_root: Path | None, resume: Path | 
     args = replace_or_append(args, "--save_path", str(root / "checkpoints"))
     if resume is not None:
         args = replace_or_append(args, "--resume", str(resume))
-    env = os.environ.copy()
+    env = repository_env()
+    env["ACDCLIP_PACKAGE_CONFIG_SHA256"] = sha256_file(PACKAGE / "TRAIN20E_FINAL_CONFIG.json")
+    env["ACDCLIP_DATASET_ROLE_SHA256"] = sha256_file(PACKAGE / "DATASET_ROLE_CONTRACT.json")
     env.setdefault("CUDA_DEVICE", "0")
     env.setdefault("NUM_WORKERS", "0")
     return run_process([sys.executable, "train.py", *args], root / "logs" / "train_wrapper.log", env)
@@ -96,7 +109,9 @@ def preflight(config_path: Path, output_root: Path | None) -> int:
     args = replace_or_append(args, "--save_path", str(root / "checkpoints"))
     args = replace_or_append(args, "--epoch", "1")
     args = replace_or_append(args, "--h6_smoke_max_batches", "1")
-    env = os.environ.copy()
+    env = repository_env()
+    env["ACDCLIP_PACKAGE_CONFIG_SHA256"] = sha256_file(PACKAGE / "TRAIN20E_FINAL_CONFIG.json")
+    env["ACDCLIP_DATASET_ROLE_SHA256"] = sha256_file(PACKAGE / "DATASET_ROLE_CONTRACT.json")
     env.setdefault("CUDA_DEVICE", "0")
     env.setdefault("NUM_WORKERS", "0")
     code = run_process([sys.executable, "train.py", *args], root / "preflight.log", env)
@@ -107,7 +122,14 @@ def preflight(config_path: Path, output_root: Path | None) -> int:
         import torch
         loaded = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
         checkpoint_fields = sorted(loaded)
-        required = {"epoch", "global_step", "optimizer_state", "scheduler_state", "python_random_state", "numpy_random_state", "torch_cpu_rng_state", "dataloader_generator_state"}
+        required = {
+            "epoch", "global_step", "image_adapter", "text_adapter", "soft_prompt",
+            "h6_state_dict", "optimizer_state", "scheduler_state", "amp_scaler_state",
+            "python_random_state", "numpy_random_state", "torch_cpu_rng_state",
+            "torch_cuda_rng_state_all", "dataloader_generator_state", "phase2b_config",
+            "h6_config", "git_sha", "package_config_sha256",
+            "dataset_role_contract_sha256",
+        }
         missing = sorted(required - set(loaded))
         if missing:
             raise RuntimeError(f"preflight checkpoint contract missing fields: {missing}")

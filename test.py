@@ -1,5 +1,6 @@
 import argparse
 import heapq
+import json
 import logging
 import os
 import tempfile
@@ -24,6 +25,7 @@ from dataset.info import log_data_root
 from model.adapter import (
     ACDCLIP
 )
+from model.checkpoint_loader import checkpoint_identity
 from model.checkpoint_utils import (
     h6_config_from_checkpoint,
     load_adapter_checkpoint,
@@ -406,6 +408,12 @@ def main():
         help="ViT-L-14-336",
     )
     parser.add_argument("--img_size", type=int, default=518)
+    parser.add_argument("--image_adapt_weight", type=float, default=0.15)
+    parser.add_argument("--text_adapt_weight", type=float, default=0.15)
+    parser.add_argument(
+        "--checkpoint", type=Path, default=None,
+        help="Explicit checkpoint to evaluate; when supplied no adapter fallback is permitted.",
+    )
     # testing
     parser.add_argument("--n_groups", type=int, default=4, help="number of groups for adapter")
 
@@ -616,12 +624,39 @@ def main():
             )
     if args.use_soft_prompt and args.use_hybrid_soft_prompt:
         raise ValueError("--use_soft_prompt and --use_hybrid_soft_prompt are mutually exclusive")
-    preflight_files = sorted(glob(args.save_path + "/adapter_*.pth"), key=get_epoch_from_checkpoint)
-    if args.epochs is not None:
-        selected_epochs = set(args.epochs)
-        preflight_files = [file for file in preflight_files if get_epoch_from_checkpoint(file) in selected_epochs]
+    if args.checkpoint is not None:
+        explicit_checkpoint = args.checkpoint.expanduser().resolve()
+        if not explicit_checkpoint.is_file():
+            raise FileNotFoundError(f"requested checkpoint does not exist: {explicit_checkpoint}")
+        preflight_files = [str(explicit_checkpoint)]
+    else:
+        preflight_files = sorted(glob(args.save_path + "/adapter_*.pth"), key=get_epoch_from_checkpoint)
+        if args.epochs is not None:
+            selected_epochs = set(args.epochs)
+            preflight_files = [file for file in preflight_files if get_epoch_from_checkpoint(file) in selected_epochs]
     assert len(preflight_files) > 0, "adapter checkpoint not found"
-    preflight_checkpoint = torch.load(preflight_files[0], map_location="cpu")
+    preflight_checkpoint = torch.load(preflight_files[0], map_location="cpu", weights_only=False)
+    if args.checkpoint is not None:
+        base_config = preflight_checkpoint.get("phase2b_config") or {}
+        for attr, key in ((
+            ("img_size", "img_size"), ("n_groups", "n_groups"),
+            ("lora_rank", "lora_rank"), ("lora_alpha", "lora_alpha"),
+            ("conv_lora_rank", "conv_lora_rank"), ("conv_lora_alpha", "conv_lora_alpha"),
+            ("dfg_mode", "dfg_mode"), ("dfg_attn_dim", "dfg_attn_dim"),
+            ("dfg_attn_tau", "dfg_attn_tau"), ("dfg_gamma_max", "dfg_gamma_max"),
+            ("dfg_ss2d_fusion", "dfg_ss2d_fusion"), ("dfg_beta_schedule", "dfg_beta_schedule"),
+            ("dfg_beta_target", "dfg_beta_target"), ("image_adapt_weight", "image_adapt_weight"),
+            ("text_adapt_weight", "text_adapt_weight"),
+        )):
+            if key in base_config and base_config[key] is not None:
+                setattr(args, attr, base_config[key])
+        if "conv_kernel_size_list" in base_config:
+            args.conv_kernel_size_list = list(base_config["conv_kernel_size_list"])
+        args.use_ss2d_dfg = bool(preflight_checkpoint.get("use_ss2d_dfg", base_config.get("use_ss2d_dfg", False)))
+        args.dfg_beta = float(preflight_checkpoint.get("dfg_beta", base_config.get("dfg_beta", args.dfg_beta)))
+        identity = checkpoint_identity(explicit_checkpoint, require_final_contract=True)
+    else:
+        identity = None
     preflight_h6 = h6_config_from_checkpoint(preflight_checkpoint)
     if preflight_h6 is not None:
         validate_p1_v83_checkpoint_contract(preflight_checkpoint)
@@ -711,6 +746,10 @@ def main():
         args.h6_progress = 0
     # ========================================================
     os.makedirs(args.save_path, exist_ok=True)
+    if identity is not None:
+        Path(args.save_path, "CHECKPOINT_IDENTITY.json").write_text(
+            json.dumps(identity, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
     logging.basicConfig(
         filename=os.path.join(args.save_path, "test.log"),
         encoding="utf-8",
@@ -734,6 +773,8 @@ def main():
     clip_model.eval()
     model = ACDCLIP(
         clip_model=clip_model,
+        image_adapt_weight=args.image_adapt_weight,
+        text_adapt_weight=args.text_adapt_weight,
         n_groups=args.n_groups,
         lora_rank=args.lora_rank,
         lora_alpha=args.lora_alpha,

@@ -1,0 +1,48 @@
+{
+  "MVTec": {
+    "backend": "fast",
+    "checkpoint_selection_access": false,
+    "implementation": "tools/sabra/lab_eval.py mvtec -> tools/sabra/trust_v2/mvtec_external.py",
+    "required_checkpoint_argument": true,
+    "role": "previously observed external validation and post-training frozen external benchmark",
+    "root_env": "MVTEC_ROOT",
+    "threshold_tuning_access": false,
+    "training_loader_access": false
+  },
+  "Medical": {
+    "checkpoint_selection_access": false,
+    "current_reads": 0,
+    "explicit_gate": "--allow-medical-evaluation",
+    "manifest_protocol": "tools/prepare_phase4_medical_splits.py; six existing datasets; no invented schema",
+    "role": "clean final external evaluation after final model/evaluation freeze",
+    "root_env": "MEDICAL_ROOT",
+    "sealed_by_default": true,
+    "training_loader_access": false,
+    "validation_loader_access": false
+  },
+  "global_constraints": {
+    "MVTec_feedback_to_training": false,
+    "Medical_feedback_to_training": false,
+    "no_checkpoint_reselection_after_evaluation": true,
+    "no_recursive_all_data_scan": true,
+    "training_loader_must_not_discover_MVTec": true,
+    "training_loader_must_not_discover_Medical": true
+  },
+  "schema": "DATASET_ROLE_CONTRACT_V2",
+  "train": {
+    "allowed_during_20e": true,
+    "dataset": "VisA",
+    "loader": "dataset.get_text_and_image_dataset('VisA', 518, 'train')",
+    "metadata": "dataset/hub/VisA.jsonl",
+    "root_env": "VISA_ROOT",
+    "split": "all rows exposed by existing train loader; no new split"
+  },
+  "validation": {
+    "allowed_during_20e": false,
+    "checkpoint_selection": "freeze adapter_20.pth before invocation; no automatic reselection",
+    "dataset": "VisA",
+    "implementation": "tools/sabra/lab_eval.py visa -> test.py",
+    "role": "post-training validation after adapter_20.pth is frozen; reports metrics only and cannot select a checkpoint",
+    "split": "existing test/evaluation stage used by test.py"
+  }
+}

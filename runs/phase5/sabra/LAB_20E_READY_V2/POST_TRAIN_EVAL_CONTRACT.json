@@ -1,0 +1,41 @@
+{
+  "checkpoint_identity": [
+    "path",
+    "sha256",
+    "epoch",
+    "global_step",
+    "source_git_sha",
+    "checkpoint_version",
+    "h6_progress_version"
+  ],
+  "collision_policy": "non-empty output roots are rejected; one fixed checkpoint per evaluation run",
+  "expected_final_epoch": 20,
+  "fixed_checkpoint": "adapter_20.pth",
+  "medical": {
+    "checkpoint_selection": false,
+    "command": "tools/sabra/lab_eval.py medical",
+    "requires": "--allow-medical-evaluation plus run-local medical manifests",
+    "sealed_until": "final adapter_20 freeze"
+  },
+  "mvtec": {
+    "backend": "fast",
+    "checkpoint_selection": false,
+    "command": "tools/sabra/lab_eval.py mvtec",
+    "gt_free_firewall": {
+      "labels_read": false,
+      "mask_paths_read": false,
+      "mask_pixels_read": 0,
+      "scientific_metrics_observed": false
+    },
+    "role": "POST_TRAINING_PREVIOUSLY_OBSERVED_EXTERNAL_BENCHMARK"
+  },
+  "output_root": "$ACDCLIP_RUN_ROOT/<RUN_ID>/validation/<dataset>",
+  "schema": "POST_TRAIN_EVAL_CONTRACT_V2",
+  "visa": {
+    "backend": "existing test.py metric implementation",
+    "checkpoint_selection": false,
+    "command": "tools/sabra/lab_eval.py visa",
+    "dataset": "VisA",
+    "split": "existing test/evaluation stage"
+  }
+}

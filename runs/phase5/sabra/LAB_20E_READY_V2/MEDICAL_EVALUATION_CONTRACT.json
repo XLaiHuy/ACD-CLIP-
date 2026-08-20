@@ -1,0 +1,18 @@
+{
+  "datasets": [
+    "Brain",
+    "Liver",
+    "Retina",
+    "Colon_clinicDB",
+    "Colon_colonDB",
+    "Colon_Kvasir"
+  ],
+  "evaluation_command": "python tools/sabra/lab_eval.py medical --checkpoint \"$ACDCLIP_RUN_ROOT/<RUN_ID>/checkpoints/adapter_20.pth\" --data-root \"$MEDICAL_ROOT\" --manifest-root \"$ACDCLIP_RUN_ROOT/<RUN_ID>/validation/medical_manifests\" --output-root \"$ACDCLIP_RUN_ROOT/<RUN_ID>/validation/medical\" --allow-medical-evaluation",
+  "guard": "refuse without --allow-medical-evaluation; training and ordinary validation never access Medical",
+  "manifest_preparation": "python tools/prepare_phase4_medical_splits.py --output-root \"$ACDCLIP_RUN_ROOT/<RUN_ID>/validation/medical_manifests\" --data-root \"$MEDICAL_ROOT\" --val-ratio 0.30 --seed 0",
+  "medical_reads_current": 0,
+  "schema": "MEDICAL_EVALUATION_CONTRACT_V2",
+  "selection_rule": "adapter_20 is frozen before Medical; Medical cannot change training, checkpoint, threshold, architecture, or hyperparameters",
+  "source_support": "existing test.py + dataset/info.py + tools/prepare_phase4_medical_splits.py",
+  "state": "SEALED_MANIFEST_REQUIRED_AFTER_FINAL_CHECKPOINT_FREEZE"
+}

@@ -1,0 +1,15 @@
+{
+  "bootstrap": "scripts/setup_lab_env.sh",
+  "driver_note": "do not install a new NVIDIA driver; nvidia-smi CUDA need not equal torch CUDA runtime",
+  "imports": "repository_env sets PYTHONPATH to repository root and tools for subprocesses",
+  "lfs": "git lfs install && git lfs pull",
+  "pypi_index": "https://pypi.org/simple",
+  "python": "3.12.3",
+  "requirements_file": "requirements.txt",
+  "schema": "LAB_ENVIRONMENT_CONTRACT_V2",
+  "scikit_learn": "1.7.2",
+  "torch": "2.5.1+cu121",
+  "torch_cuda_runtime": "12.1",
+  "torch_wheel_index": "https://download.pytorch.org/whl/cu121",
+  "torchvision": "0.20.1+cu121"
+}

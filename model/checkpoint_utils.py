@@ -505,6 +505,10 @@ def build_phase4_checkpoint(
         "dfg_beta_target": model.dfg_beta_target,
         "dfg_weight_residual_fp32": model.dfg_weight_residual_fp32,
         "phase2b_config": dict(phase2b_config),
+        # The lab wrapper supplies these hashes so a resumed run can verify
+        # the exact package contract without relying on a machine path.
+        "package_config_sha256": os.environ.get("ACDCLIP_PACKAGE_CONFIG_SHA256"),
+        "dataset_role_contract_sha256": os.environ.get("ACDCLIP_DATASET_ROLE_SHA256"),
     }
     if optimizer is not None:
         payload["optimizer_state"] = optimizer.state_dict()

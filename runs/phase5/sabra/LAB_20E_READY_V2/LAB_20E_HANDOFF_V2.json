@@ -1,0 +1,70 @@
+{
+  "LAB_20E_READY_V2": true,
+  "MVTEC_RERUN": false,
+  "SOURCE_READY_FOR_LAB": true,
+  "TRAINING_STARTED": false,
+  "environment": {
+    "bootstrap": "scripts/setup_lab_env.sh",
+    "cuda_runtime": "12.1",
+    "lfs": "git lfs install && git lfs pull",
+    "python": "3.12.3",
+    "torch": "2.5.1+cu121",
+    "torchvision": "0.20.1+cu121"
+  },
+  "evaluation": {
+    "medical": "SEALED_MANIFEST_REQUIRED_AFTER_FINAL_CHECKPOINT_FREEZE",
+    "mvtec": "checkpoint-aware Trust-v2 evaluator, backend fast, GT firewall preserved",
+    "visa": "checkpoint-aware test.py path; no historical visa_audit.py repurposing"
+  },
+  "medical_reads": 0,
+  "next_legal_action": "move to lab, checkout the commit containing LAB_20E_READY_V2, hydrate LFS, run bounded lab preflight, obtain explicit authorization, run 20e, freeze adapter_20, then execute post-training evaluation state machine",
+  "schema": "LAB_20E_HANDOFF_V2",
+  "science": {
+    "Authority_v2_external": "UNRESOLVED_MISSING_FROZEN_M0_E_CALIBRATOR",
+    "FAST_certification": "PASS",
+    "PCRR_STATUS": "DROP",
+    "Trust_v2_external": "SUPPORTED",
+    "historical_external_preserved": true,
+    "selected_features": [
+      "E",
+      "peer_coherence",
+      "query_support_mean",
+      "peer_eigen_entropy",
+      "stage_query_profile_disagreement"
+    ],
+    "selected_model": "M1_E_Credibility"
+  },
+  "scientific_lineage": {
+    "CERTIFIED_FAST_SHA": "1b4396d2fc30c61707f7ef534b4fe8b69c3b27fe",
+    "MVTEC_RESULT_SHA": "b74483d6f0c3502e046e2c17ccf847d5b2bc7495",
+    "PRE_EXTERNAL_BOUNDARY_SHA": "5cacf3abc5df271adbe655c318d516777fd8ad61",
+    "V1_LAB_PACKAGE_SHA": "e3726014594bf90c16d389a446e9f084c4d07a19",
+    "source_commit_before_v2": "e3726014594bf90c16d389a446e9f084c4d07a19"
+  },
+  "training": {
+    "FULL_20E_TRAIN_AUTHORIZED": false,
+    "backend": "native_phase4_p1_v83_no_trust_v2_geometry",
+    "checkpoint_contract_hashes": [
+      "package_config_sha256",
+      "dataset_role_contract_sha256"
+    ],
+    "checkpoint_resume": "IMPLEMENTED_AND_UNIT_TESTED",
+    "checkpoint_rule": "freeze adapter_20.pth after epoch 20; no reselection",
+    "config_sha256": "d2d4f0ca0f6937ae347603a31f05e636c3eb32fb7406872f4fa61e5f6a797d24",
+    "dataset_role_contract_sha256": "179ab41c805b7db1facff2996dd4015e523547c0da9cb741d9511dc1c11146e9",
+    "entrypoint": "tools/sabra/lab_train.py train",
+    "epochs": 20,
+    "final_config": "runs/phase5/sabra/LAB_20E_READY_V2/TRAIN20E_FINAL_CONFIG.json",
+    "frozen_components": [
+      "OpenAI CLIP backbone",
+      "canonical H6 soft prompt",
+      "H6 rho fixed at 0.05"
+    ],
+    "post_training_backend": "fast",
+    "trainable_components": [
+      "image_adapter",
+      "text_adapter",
+      "H6 Progress-1 trainable modules"
+    ]
+  }
+}

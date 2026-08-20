@@ -1,0 +1,33 @@
+{
+  "MVTec_rerun": false,
+  "command": "python tools/sabra/lab_train.py preflight --config runs/phase5/sabra/LAB_20E_READY_V2/TRAIN20E_FINAL_CONFIG.json",
+  "disposable_output": true,
+  "medical_reads": 0,
+  "memory_fields": [
+    "torch.cuda.max_memory_allocated",
+    "torch.cuda.max_memory_reserved"
+  ],
+  "required_checkpoint_fields": [
+    "epoch",
+    "global_step",
+    "image_adapter",
+    "text_adapter",
+    "h6_state_dict",
+    "optimizer_state",
+    "scheduler_state",
+    "amp_scaler_state",
+    "python_random_state",
+    "numpy_random_state",
+    "torch_cpu_rng_state",
+    "torch_cuda_rng_state_all",
+    "dataloader_generator_state",
+    "phase2b_config",
+    "h6_config",
+    "git_sha",
+    "package_config_sha256",
+    "dataset_role_contract_sha256"
+  ],
+  "schema": "LAB_PRECHECK_EXPECTATIONS_V2",
+  "scope": "one VisA training batch only; forward, loss, backward, optimizer step, atomic checkpoint write/read",
+  "training_started": false
+}

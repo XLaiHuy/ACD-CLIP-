@@ -28,7 +28,8 @@ from sklearn.metrics import average_precision_score, roc_auc_score
 ROOT = Path(__file__).resolve().parents[3]
 sys.path[:0] = [str(ROOT), str(ROOT / "tools")]
 
-from sabra.cache_runner import _forward_one, _load_model  # noqa: E402
+from sabra.cache_runner import _forward_one, _load_model as _load_historical_model  # noqa: E402
+from model.checkpoint_loader import load_checkpoint_for_evaluation  # noqa: E402
 from sabra.data import IMAGE_SIZE, VisaEvidenceDataset, safe_data_path  # noqa: E402
 from sabra.trust_v2.backend import compact_record_builder, validate_backend  # noqa: E402
 from utils import get_phase2b_global_text_features  # noqa: E402
@@ -239,14 +240,31 @@ def _score_record(
     }
 
 
-def run_gt_free_stage(data_root: Path, output_root: Path, freeze: dict[str, Any], backend: str = "exact") -> dict[str, Any]:
+def run_gt_free_stage(
+    data_root: Path,
+    output_root: Path,
+    freeze: dict[str, Any],
+    backend: str = "exact",
+    checkpoint: Path | None = None,
+    allow_nonfinal_checkpoint: bool = False,
+) -> dict[str, Any]:
     backend = validate_backend(backend)
     build_compact_record = compact_record_builder(backend)
     rows = _gt_free_rows()
     root = resolve_data_root(data_root, rows)
     dataset = VisaEvidenceDataset(rows, root, image_size=IMAGE_SIZE)
     device = torch.device("cuda")
-    model, _, _ = _load_model(device)
+    if checkpoint is None:
+        model, _, _ = _load_historical_model(device)
+        checkpoint_identity = None
+        evaluation_role = "HISTORICAL_FROZEN_EXTERNAL_VALIDATION"
+    else:
+        model, checkpoint_identity, _ = load_checkpoint_for_evaluation(
+            checkpoint,
+            device,
+            expected_epoch=None if allow_nonfinal_checkpoint else 20,
+        )
+        evaluation_role = "POST_TRAINING_PREVIOUSLY_OBSERVED_EXTERNAL_BENCHMARK"
     text_by_class = {name: _mvt_text(model, name, device) for name in EXPECTED_CLASSES}
     records: dict[str, list[dict[str, Any]]] = {name: [] for name in EXPECTED_CLASSES}
     for index, row in enumerate(rows):
@@ -294,6 +312,8 @@ def run_gt_free_stage(data_root: Path, output_root: Path, freeze: dict[str, Any]
         "images": len(rows),
         "frozen_selected_model": freeze["selected_model"],
         "frozen_feature_order": list(FEATURE_ORDER),
+        "evaluation_role": evaluation_role,
+        "checkpoint_identity": checkpoint_identity,
     }
     _write_json_once(output_root / "GT_FREE_MANIFEST.json", manifest)
     return manifest
@@ -397,6 +417,8 @@ def evaluate_ground_truth(data_root: Path, output_root: Path, freeze: dict[str, 
         },
         "medical_reads": 0,
         "MVTec_gt_reads": len(rows),
+        "evaluation_role": manifest.get("evaluation_role"),
+        "checkpoint_identity": manifest.get("checkpoint_identity"),
         "per_class": per_class,
     }
     _write_json_once(output_root / "PER_CLASS_METRICS.json", per_class)
@@ -404,12 +426,25 @@ def evaluate_ground_truth(data_root: Path, output_root: Path, freeze: dict[str, 
     return result
 
 
-def run(data_root: Path, output_root: Path, backend: str = "exact") -> dict[str, Any]:
+def run(
+    data_root: Path,
+    output_root: Path,
+    backend: str = "exact",
+    checkpoint: Path | None = None,
+    allow_nonfinal_checkpoint: bool = False,
+) -> dict[str, Any]:
     freeze = frozen_contract()
     if output_root.exists() and any(output_root.iterdir()):
         raise RuntimeError(f"ARTIFACT_PATH_COLLISION {output_root}")
-    output_root.mkdir(parents=True, exist_ok=False)
-    run_gt_free_stage(data_root, output_root, freeze, backend=backend)
+    output_root.mkdir(parents=True, exist_ok=True)
+    run_gt_free_stage(
+        data_root,
+        output_root,
+        freeze,
+        backend=backend,
+        checkpoint=checkpoint,
+        allow_nonfinal_checkpoint=allow_nonfinal_checkpoint,
+    )
     return evaluate_ground_truth(data_root, output_root, freeze)
 
 
@@ -417,12 +452,24 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-root", type=Path, default=None, help="MVTec root; defaults to MVTEC_ROOT")
     parser.add_argument("--backend", choices=["exact", "fast"], default="exact")
+    parser.add_argument("--checkpoint", type=Path, default=None, help="Explicit post-training checkpoint; never falls back when supplied")
+    parser.add_argument("--allow-nonfinal-checkpoint", action="store_true", help="Diagnostic-only override of the expected epoch-20 guard")
     parser.add_argument("--output-root", type=Path, default=EXTERNAL_ROOT)
     args = parser.parse_args()
     data_root = args.data_root or (Path(os.environ["MVTEC_ROOT"]) if os.environ.get("MVTEC_ROOT") else None)
     if data_root is None:
         raise SystemExit("MVTec root is required via --data-root or MVTEC_ROOT")
-    print(json.dumps(run(data_root, args.output_root, backend=args.backend), indent=2, sort_keys=True))
+    print(json.dumps(
+        run(
+            data_root,
+            args.output_root,
+            backend=args.backend,
+            checkpoint=args.checkpoint,
+            allow_nonfinal_checkpoint=args.allow_nonfinal_checkpoint,
+        ),
+        indent=2,
+        sort_keys=True,
+    ))
 
 
 if __name__ == "__main__":
