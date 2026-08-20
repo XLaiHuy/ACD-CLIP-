@@ -69,6 +69,27 @@ def test_straight_through_transition_schedule_and_gradients():
     assert torch.isfinite(router.query_projector[0].weight.grad).all()
 
 
+def test_dense_prediction_does_not_abort_on_unused_sparse_topk_diagnostics():
+    sparse_dead = torch.tensor([2, 2, 2])
+    unique_pairs = torch.tensor([1.0, 1.0, 1.0])
+    assert not router_specialization_failed(
+        1.0,
+        sparse_dead,
+        unique_pairs,
+        max_sparse_dead_factors=1,
+        min_unique_topk_pairs=2,
+        prediction_routing="dense",
+    )
+    assert router_specialization_failed(
+        1.0,
+        sparse_dead,
+        unique_pairs,
+        max_sparse_dead_factors=1,
+        min_unique_topk_pairs=2,
+        prediction_routing="scheduled_topk",
+    )
+
+
 def test_router_teacher_is_detached_and_updates_dense_router_only():
     projected = torch.randn(1, 1, 4, 2, requires_grad=True)
     prototype_normal = F.normalize(torch.randn(1, 4, 2), dim=-1).requires_grad_()

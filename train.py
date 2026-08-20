@@ -1333,7 +1333,13 @@ def router_specialization_failed(
         unique_topk_pairs: torch.Tensor,
         max_sparse_dead_factors: int,
         min_unique_topk_pairs: int,
+        *,
+        prediction_routing: str = "scheduled_topk",
 ) -> bool:
+    # The sparse top-k branch is diagnostic-only when inference uses dense
+    # routing.  Do not turn an unused branch into a hard training failure.
+    if prediction_routing == "dense":
+        return False
     if float(sparse_ratio) < 0.50:
         return False
     return bool(
@@ -4701,6 +4707,7 @@ def train_h6_progress1(
             unique_pairs,
             args.h6_router_max_sparse_dead_factors,
             args.h6_router_min_unique_topk_pairs,
+            prediction_routing=args.h6_prediction_routing,
         )
         if structural_gate_config.enabled:
             sparse_failure = False
