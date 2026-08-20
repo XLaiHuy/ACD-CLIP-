@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 
 from sabra.trust_v2 import mvtec_external
+from sabra.trust_v2.numerical import percentile_rank as frozen_percentile_rank
 
 
 def test_frozen_probability_is_deterministic_and_does_not_fit() -> None:
@@ -22,6 +23,99 @@ def test_frozen_probability_is_deterministic_and_does_not_fit() -> None:
     second = mvtec_external.frozen_probability(params, values)
     np.testing.assert_allclose(first, expected, rtol=0, atol=1e-7)
     np.testing.assert_array_equal(first, second)
+
+
+def _need_fixture() -> tuple[dict[str, np.ndarray], np.ndarray, np.ndarray]:
+    native_margins = np.asarray(
+        [
+            [1.0, 1.0, 2.0, 3.0, 3.0, 4.0],
+            [1.0, 1.0, 2.0, 3.0, 3.0, 4.0],
+            [1.0, 1.0, 2.0, 3.0, 3.0, 4.0],
+        ],
+        dtype=np.float32,
+    )
+    record = {
+        "baseline_pgm": np.linspace(0.1, 0.6, 6, dtype=np.float32),
+        "peer_coherence": np.linspace(0.9, 0.95, 6, dtype=np.float32),
+        "query_support_mean": np.linspace(0.8, 0.9, 6, dtype=np.float32),
+        "peer_eigen_entropy": np.linspace(0.5, 0.7, 6, dtype=np.float32),
+        "stage_query_profile_disagreement": np.linspace(0.01, 0.06, 6, dtype=np.float32),
+        "D_rank": np.linspace(0.05, 0.3, 6, dtype=np.float32),
+    }
+    sensitivity = np.linspace(0.001, 0.006, 6, dtype=np.float32)
+    return record, native_margins, sensitivity
+
+
+def _need_parameters() -> dict[str, object]:
+    return {
+        "scaler_mean": [0.5, 0.0, 0.17, 0.003],
+        "scaler_scale": [0.3, 2.0, 0.1, 0.002],
+        "logistic_coef": [[0.5, 0.1, -0.2, 0.7]],
+        "logistic_intercept": [-0.1],
+    }
+
+
+def _trust_parameters() -> dict[str, object]:
+    return {
+        "scaler_mean": [0.5, 0.9, 0.85, 0.6, 0.03],
+        "scaler_scale": [0.2, 0.02, 0.1, 0.1, 0.02],
+        "logistic_coef": [[0.4, -0.1, 0.2, -0.3, 0.5]],
+        "logistic_intercept": [0.0],
+    }
+
+
+def test_need_feature_order_is_exact() -> None:
+    assert mvtec_external.NEED_ORDER == (
+        "margin_within_image_rank",
+        "robust_margin_normalization",
+        "D_rank",
+        "deployment_sensitivity",
+    )
+
+
+def test_percentile_rank_ties_match_authoritative_path() -> None:
+    record, native_margins, sensitivity = _need_fixture()
+    actual = mvtec_external._need_feature_matrix(record, native_margins, sensitivity)
+    expected_rank = frozen_percentile_rank(native_margins.mean(axis=0)).astype(np.float32)
+    np.testing.assert_array_equal(actual[:, 0], expected_rank)
+    np.testing.assert_array_equal(
+        expected_rank,
+        np.asarray([0.1, 0.1, 0.4, 0.7, 0.7, 1.0], dtype=np.float32),
+    )
+
+
+def test_deployment_sensitivity_wiring_is_unchanged() -> None:
+    record, native_margins, sensitivity = _need_fixture()
+    actual = mvtec_external._need_feature_matrix(record, native_margins, sensitivity)
+    np.testing.assert_array_equal(actual[:, 3], sensitivity)
+
+
+def test_need_feature_and_score_parity() -> None:
+    record, native_margins, sensitivity = _need_fixture()
+    mean_margin = native_margins.mean(axis=0)
+    median = np.median(mean_margin)
+    robust = (mean_margin - median) / (np.median(np.abs(mean_margin - median)) + 1e-6)
+    expected = np.column_stack(
+        [
+            frozen_percentile_rank(mean_margin).astype(np.float32),
+            robust.astype(np.float32),
+            record["D_rank"],
+            sensitivity,
+        ]
+    )
+    actual = mvtec_external._need_feature_matrix(record, native_margins, sensitivity)
+    np.testing.assert_allclose(actual, expected, rtol=0, atol=1e-7)
+    freeze = {
+        "trust_model": {"trust_model_parameters": _trust_parameters()},
+        "need_c1_model_parameters": _need_parameters(),
+    }
+    scored = mvtec_external._score_record(record, freeze, native_margins, sensitivity)
+    np.testing.assert_allclose(
+        scored["Need_C1"],
+        mvtec_external.frozen_probability(_need_parameters(), expected),
+        rtol=0,
+        atol=1e-7,
+    )
 
 
 def test_gt_free_rows_drop_labels_and_masks() -> None:

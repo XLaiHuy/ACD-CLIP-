@@ -30,7 +30,7 @@ sys.path[:0] = [str(ROOT), str(ROOT / "tools")]
 
 from sabra.cache_runner import _forward_one, _load_model  # noqa: E402
 from sabra.data import IMAGE_SIZE, VisaEvidenceDataset, safe_data_path  # noqa: E402
-from sabra.trust_v2.numerical import build_compact_record  # noqa: E402
+from sabra.trust_v2.numerical import build_compact_record, percentile_rank  # noqa: E402
 from utils import get_phase2b_global_text_features  # noqa: E402
 
 METADATA = ROOT / "dataset/hub/MVTec.jsonl"
@@ -189,7 +189,33 @@ def _mvt_text(model: torch.nn.Module, class_name: str, device: torch.device) -> 
     ).float()
 
 
-def _score_record(record: dict[str, Any], freeze: dict[str, Any], native_margins: np.ndarray) -> dict[str, np.ndarray]:
+def _need_feature_matrix(
+    record: dict[str, Any],
+    native_margins: np.ndarray,
+    deployment_sensitivity: np.ndarray,
+) -> np.ndarray:
+    """Build the exact frozen Need C1 feature vector for one image."""
+    mean_margin = np.asarray(native_margins, dtype=np.float32).mean(axis=0)
+    ranks = percentile_rank(mean_margin).astype(np.float32)
+    median = float(np.median(mean_margin))
+    mad = float(np.median(np.abs(mean_margin - median)))
+    robust = (mean_margin - median) / (mad + 1e-6)
+    return np.column_stack(
+        [
+            ranks,
+            robust.astype(np.float32),
+            np.asarray(record["D_rank"], dtype=np.float32),
+            np.asarray(deployment_sensitivity, dtype=np.float32),
+        ]
+    )
+
+
+def _score_record(
+    record: dict[str, Any],
+    freeze: dict[str, Any],
+    native_margins: np.ndarray,
+    deployment_sensitivity: np.ndarray,
+) -> dict[str, np.ndarray]:
     trust_features = np.column_stack(
         [
             np.asarray(record["baseline_pgm"], dtype=np.float32),
@@ -201,21 +227,7 @@ def _score_record(record: dict[str, Any], freeze: dict[str, Any], native_margins
     )
     trust_params = freeze["trust_model"]["trust_model_parameters"]
     trust = frozen_probability(trust_params, trust_features)
-    mean_margin = np.asarray(native_margins, dtype=np.float32).mean(axis=0)
-    order = np.argsort(mean_margin, kind="mergesort")
-    ranks = np.empty_like(mean_margin, dtype=np.float32)
-    ranks[order] = np.arange(mean_margin.size, dtype=np.float32) / max(mean_margin.size - 1, 1)
-    median = float(np.median(mean_margin))
-    mad = float(np.median(np.abs(mean_margin - median)))
-    robust = (mean_margin - median) / (mad + 1e-6)
-    need_features = np.column_stack(
-        [
-            ranks,
-            robust.astype(np.float32),
-            np.asarray(record["D_rank"], dtype=np.float32),
-            np.asarray(record["deployment_sensitivity"], dtype=np.float32),
-        ]
-    )
+    need_features = _need_feature_matrix(record, native_margins, deployment_sensitivity)
     need = frozen_probability(freeze["need_c1_model_parameters"], need_features)
     e_raw = np.asarray(record["baseline_pgm"], dtype=np.float32)
     return {
@@ -244,12 +256,14 @@ def run_gt_free_stage(data_root: Path, output_root: Path, freeze: dict[str, Any]
             np.asarray(result["native_margin"], dtype=np.float32),
             row["image_path"],
         )
-        scores = _score_record(record, freeze, np.asarray(result["native_margin"], dtype=np.float32))
+        native_margins = np.asarray(result["native_margin"], dtype=np.float32)
+        deployment_sensitivity = np.asarray(result["sensitivity"], dtype=np.float32)
+        scores = _score_record(record, freeze, native_margins, deployment_sensitivity)
         arrays = {
             "image_path": np.asarray([row["image_path"]], dtype="U256"),
-            "native_margins": np.asarray(result["native_margin"], dtype=np.float32)[None],
+            "native_margins": native_margins[None],
             "D_rank": np.asarray(record["D_rank"], dtype=np.float32)[None],
-            "deployment_sensitivity": np.asarray(result["sensitivity"], dtype=np.float32)[None],
+            "deployment_sensitivity": deployment_sensitivity[None],
             **{name: values[None].astype(np.float32) for name, values in scores.items()},
         }
         records[row["class_name"]].append({"arrays": arrays, "image_path": row["image_path"]})
