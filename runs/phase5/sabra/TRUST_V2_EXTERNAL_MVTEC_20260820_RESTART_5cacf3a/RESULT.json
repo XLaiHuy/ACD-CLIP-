@@ -1,0 +1,893 @@
+{
+  "MVTec_gt_reads": 1725,
+  "authority_secondary_raw": {
+    "baseline": "A1_N_E_raw",
+    "candidate": "A2_N_T_v2",
+    "class_deltas": [
+      0.0277777777777779,
+      0.013212143928036046,
+      0.015157558835261153,
+      0.00040128410914930246,
+      0.003341687552213868,
+      0.15035714285714297,
+      0.0,
+      -0.012707722385141729,
+      0.13406983087834157,
+      0.0784996925599507,
+      0.005411255411255533,
+      0.05555555555555558,
+      0.03833333333333333,
+      0.02675438596491231,
+      -0.036502100840336116
+    ],
+    "decision": "FALSIFIED"
+  },
+  "authority_v2_external": "UNRESOLVED_MISSING_FROZEN_M0_E_CALIBRATOR",
+  "medical_reads": 0,
+  "per_class": {
+    "bottle": {
+      "A1_N_E_raw": {
+        "image": {
+          "auroc": 0.88015873015873,
+          "average_precision": 0.9629789482762889
+        },
+        "pixel": {
+          "auroc": 0.8981026532846192,
+          "average_precision": 0.5204265674119947
+        }
+      },
+      "A2_N_T_v2": {
+        "image": {
+          "auroc": 0.9079365079365079,
+          "average_precision": 0.9751172757704836
+        },
+        "pixel": {
+          "auroc": 0.9032375906360925,
+          "average_precision": 0.5486885106056264
+        }
+      },
+      "E_raw": {
+        "image": {
+          "auroc": 0.49722222222222223,
+          "average_precision": 0.7495533024091422
+        },
+        "pixel": {
+          "auroc": 0.8873626555724162,
+          "average_precision": 0.4998601461387659
+        }
+      },
+      "Need_C1": {
+        "image": {
+          "auroc": 0.9079365079365079,
+          "average_precision": 0.9753863084926957
+        },
+        "pixel": {
+          "auroc": 0.886974078510034,
+          "average_precision": 0.46649778663481306
+        }
+      },
+      "T_v2": {
+        "image": {
+          "auroc": 0.7277777777777777,
+          "average_precision": 0.8574623534336759
+        },
+        "pixel": {
+          "auroc": 0.9007238922341194,
+          "average_precision": 0.5536851553098491
+        }
+      },
+      "authority_raw_image_auroc_delta": 0.0277777777777779,
+      "class": "bottle",
+      "images": 83,
+      "trust_image_auroc_delta": 0.2305555555555555
+    },
+    "cable": {
+      "A1_N_E_raw": {
+        "image": {
+          "auroc": 0.8242128935532234,
+          "average_precision": 0.8751300451454971
+        },
+        "pixel": {
+          "auroc": 0.7507021202108761,
+          "average_precision": 0.17670928406525443
+        }
+      },
+      "A2_N_T_v2": {
+        "image": {
+          "auroc": 0.8374250374812594,
+          "average_precision": 0.89664990352695
+        },
+        "pixel": {
+          "auroc": 0.7398930779104593,
+          "average_precision": 0.20931057858774324
+        }
+      },
+      "E_raw": {
+        "image": {
+          "auroc": 0.38071589205397305,
+          "average_precision": 0.5439891644556192
+        },
+        "pixel": {
+          "auroc": 0.7835234236641011,
+          "average_precision": 0.09810741818199821
+        }
+      },
+      "Need_C1": {
+        "image": {
+          "auroc": 0.8378935532233883,
+          "average_precision": 0.8999485767554494
+        },
+        "pixel": {
+          "auroc": 0.6923960855846866,
+          "average_precision": 0.19817457851964482
+        }
+      },
+      "T_v2": {
+        "image": {
+          "auroc": 0.7977886056971515,
+          "average_precision": 0.8545275517474757
+        },
+        "pixel": {
+          "auroc": 0.7523818941738554,
+          "average_precision": 0.18555015472439826
+        }
+      },
+      "authority_raw_image_auroc_delta": 0.013212143928036046,
+      "class": "cable",
+      "images": 150,
+      "trust_image_auroc_delta": 0.41707271364317844
+    },
+    "capsule": {
+      "A1_N_E_raw": {
+        "image": {
+          "auroc": 0.782608695652174,
+          "average_precision": 0.9569484106573735
+        },
+        "pixel": {
+          "auroc": 0.9604512438513368,
+          "average_precision": 0.3174583803497127
+        }
+      },
+      "A2_N_T_v2": {
+        "image": {
+          "auroc": 0.7977662544874351,
+          "average_precision": 0.9599432562101926
+        },
+        "pixel": {
+          "auroc": 0.9604696285633554,
+          "average_precision": 0.38687797236381
+        }
+      },
+      "E_raw": {
+        "image": {
+          "auroc": 0.41124850418827286,
+          "average_precision": 0.8050820484363416
+        },
+        "pixel": {
+          "auroc": 0.9516141624048384,
+          "average_precision": 0.1791244593907435
+        }
+      },
+      "Need_C1": {
+        "image": {
+          "auroc": 0.7885919425608298,
+          "average_precision": 0.9578481948697732
+        },
+        "pixel": {
+          "auroc": 0.9531771831285655,
+          "average_precision": 0.31950540569834274
+        }
+      },
+      "T_v2": {
+        "image": {
+          "auroc": 0.9349820502592741,
+          "average_precision": 0.987477107977682
+        },
+        "pixel": {
+          "auroc": 0.9565665529444679,
+          "average_precision": 0.3452150201771321
+        }
+      },
+      "authority_raw_image_auroc_delta": 0.015157558835261153,
+      "class": "capsule",
+      "images": 132,
+      "trust_image_auroc_delta": 0.5237335460710012
+    },
+    "carpet": {
+      "A1_N_E_raw": {
+        "image": {
+          "auroc": 0.9903691813804174,
+          "average_precision": 0.9968424587168652
+        },
+        "pixel": {
+          "auroc": 0.9874203168070151,
+          "average_precision": 0.6876110001021866
+        }
+      },
+      "A2_N_T_v2": {
+        "image": {
+          "auroc": 0.9907704654895667,
+          "average_precision": 0.9971124988685232
+        },
+        "pixel": {
+          "auroc": 0.9889214257775687,
+          "average_precision": 0.7014987425416129
+        }
+      },
+      "E_raw": {
+        "image": {
+          "auroc": 0.86938202247191,
+          "average_precision": 0.9081704725607213
+        },
+        "pixel": {
+          "auroc": 0.9852103229273597,
+          "average_precision": 0.6869585857645111
+        }
+      },
+      "Need_C1": {
+        "image": {
+          "auroc": 0.9815409309791332,
+          "average_precision": 0.9941841119159653
+        },
+        "pixel": {
+          "auroc": 0.9821777040195363,
+          "average_precision": 0.6597883608682471
+        }
+      },
+      "T_v2": {
+        "image": {
+          "auroc": 0.9967897271268058,
+          "average_precision": 0.9990319267154075
+        },
+        "pixel": {
+          "auroc": 0.9878243524145257,
+          "average_precision": 0.7003665992805426
+        }
+      },
+      "authority_raw_image_auroc_delta": 0.00040128410914930246,
+      "class": "carpet",
+      "images": 117,
+      "trust_image_auroc_delta": 0.12740770465489581
+    },
+    "grid": {
+      "A1_N_E_raw": {
+        "image": {
+          "auroc": 0.9732664995822891,
+          "average_precision": 0.9892112150514047
+        },
+        "pixel": {
+          "auroc": 0.9684428071098815,
+          "average_precision": 0.3310923902703881
+        }
+      },
+      "A2_N_T_v2": {
+        "image": {
+          "auroc": 0.9766081871345029,
+          "average_precision": 0.9905875217286404
+        },
+        "pixel": {
+          "auroc": 0.9746763491787549,
+          "average_precision": 0.3523858570631098
+        }
+      },
+      "E_raw": {
+        "image": {
+          "auroc": 0.8149540517961571,
+          "average_precision": 0.8735257355360939
+        },
+        "pixel": {
+          "auroc": 0.9701648230956177,
+          "average_precision": 0.4179682183338798
+        }
+      },
+      "Need_C1": {
+        "image": {
+          "auroc": 0.9766081871345029,
+          "average_precision": 0.9905875217286403
+        },
+        "pixel": {
+          "auroc": 0.9544785521888338,
+          "average_precision": 0.2290109382574067
+        }
+      },
+      "T_v2": {
+        "image": {
+          "auroc": 0.9933166248955723,
+          "average_precision": 0.9975581917768779
+        },
+        "pixel": {
+          "auroc": 0.976602273728147,
+          "average_precision": 0.42107454727730964
+        }
+      },
+      "authority_raw_image_auroc_delta": 0.003341687552213868,
+      "class": "grid",
+      "images": 78,
+      "trust_image_auroc_delta": 0.17836257309941517
+    },
+    "hazelnut": {
+      "A1_N_E_raw": {
+        "image": {
+          "auroc": 0.5108928571428571,
+          "average_precision": 0.6538320500099487
+        },
+        "pixel": {
+          "auroc": 0.9553113513676907,
+          "average_precision": 0.25319479783640564
+        }
+      },
+      "A2_N_T_v2": {
+        "image": {
+          "auroc": 0.6612500000000001,
+          "average_precision": 0.729375667733394
+        },
+        "pixel": {
+          "auroc": 0.967110964774105,
+          "average_precision": 0.4137381687059263
+        }
+      },
+      "E_raw": {
+        "image": {
+          "auroc": 0.4751785714285714,
+          "average_precision": 0.6272432225462861
+        },
+        "pixel": {
+          "auroc": 0.9377909051506719,
+          "average_precision": 0.19977235567590126
+        }
+      },
+      "Need_C1": {
+        "image": {
+          "auroc": 0.5471428571428572,
+          "average_precision": 0.6596346761848986
+        },
+        "pixel": {
+          "auroc": 0.961918559480585,
+          "average_precision": 0.30521193873156843
+        }
+      },
+      "T_v2": {
+        "image": {
+          "auroc": 0.6678571428571429,
+          "average_precision": 0.7302797271513648
+        },
+        "pixel": {
+          "auroc": 0.9639761256827364,
+          "average_precision": 0.4070304424838011
+        }
+      },
+      "authority_raw_image_auroc_delta": 0.15035714285714297,
+      "class": "hazelnut",
+      "images": 110,
+      "trust_image_auroc_delta": 0.19267857142857153
+    },
+    "leather": {
+      "A1_N_E_raw": {
+        "image": {
+          "auroc": 0.9996603260869565,
+          "average_precision": 0.9998831229546519
+        },
+        "pixel": {
+          "auroc": 0.9900981661168953,
+          "average_precision": 0.4365451533720686
+        }
+      },
+      "A2_N_T_v2": {
+        "image": {
+          "auroc": 0.9996603260869565,
+          "average_precision": 0.9998831229546516
+        },
+        "pixel": {
+          "auroc": 0.9915087649045009,
+          "average_precision": 0.574184830707813
+        }
+      },
+      "E_raw": {
+        "image": {
+          "auroc": 0.9436141304347826,
+          "average_precision": 0.9734318843599381
+        },
+        "pixel": {
+          "auroc": 0.9925211954634645,
+          "average_precision": 0.46937140391652216
+        }
+      },
+      "Need_C1": {
+        "image": {
+          "auroc": 0.9996603260869565,
+          "average_precision": 0.9998831229546516
+        },
+        "pixel": {
+          "auroc": 0.986654742862277,
+          "average_precision": 0.40822654385785323
+        }
+      },
+      "T_v2": {
+        "image": {
+          "auroc": 1.0,
+          "average_precision": 1.0
+        },
+        "pixel": {
+          "auroc": 0.9930381653219118,
+          "average_precision": 0.6190344985714595
+        }
+      },
+      "authority_raw_image_auroc_delta": 0.0,
+      "class": "leather",
+      "images": 124,
+      "trust_image_auroc_delta": 0.056385869565217406
+    },
+    "metal_nut": {
+      "A1_N_E_raw": {
+        "image": {
+          "auroc": 0.7737047898338221,
+          "average_precision": 0.9505988279100319
+        },
+        "pixel": {
+          "auroc": 0.7666117334419991,
+          "average_precision": 0.30991724617016686
+        }
+      },
+      "A2_N_T_v2": {
+        "image": {
+          "auroc": 0.7609970674486803,
+          "average_precision": 0.9479954072796262
+        },
+        "pixel": {
+          "auroc": 0.744559797296557,
+          "average_precision": 0.30237361841584365
+        }
+      },
+      "E_raw": {
+        "image": {
+          "auroc": 0.6324535679374389,
+          "average_precision": 0.8612529421664529
+        },
+        "pixel": {
+          "auroc": 0.7697230292471744,
+          "average_precision": 0.3178783720596893
+        }
+      },
+      "Need_C1": {
+        "image": {
+          "auroc": 0.7644183773216031,
+          "average_precision": 0.9487430290532913
+        },
+        "pixel": {
+          "auroc": 0.7541232098187758,
+          "average_precision": 0.2963238909665839
+        }
+      },
+      "T_v2": {
+        "image": {
+          "auroc": 0.7663734115347018,
+          "average_precision": 0.9493794092214621
+        },
+        "pixel": {
+          "auroc": 0.742189733901637,
+          "average_precision": 0.30009650412159716
+        }
+      },
+      "authority_raw_image_auroc_delta": -0.012707722385141729,
+      "class": "metal_nut",
+      "images": 115,
+      "trust_image_auroc_delta": 0.13391984359726294
+    },
+    "pill": {
+      "A1_N_E_raw": {
+        "image": {
+          "auroc": 0.7069012547735952,
+          "average_precision": 0.9017186288678538
+        },
+        "pixel": {
+          "auroc": 0.8525191973104764,
+          "average_precision": 0.266701329295528
+        }
+      },
+      "A2_N_T_v2": {
+        "image": {
+          "auroc": 0.8409710856519368,
+          "average_precision": 0.9567433869813262
+        },
+        "pixel": {
+          "auroc": 0.8290706878389416,
+          "average_precision": 0.3169371819896921
+        }
+      },
+      "E_raw": {
+        "image": {
+          "auroc": 0.38175122749590834,
+          "average_precision": 0.7956530392250031
+        },
+        "pixel": {
+          "auroc": 0.8513054411447061,
+          "average_precision": 0.1794746509053061
+        }
+      },
+      "Need_C1": {
+        "image": {
+          "auroc": 0.8175122749590835,
+          "average_precision": 0.9465989170415985
+        },
+        "pixel": {
+          "auroc": 0.8388514506496885,
+          "average_precision": 0.26823274285939175
+        }
+      },
+      "T_v2": {
+        "image": {
+          "auroc": 0.5092744135297327,
+          "average_precision": 0.8468525957144226
+        },
+        "pixel": {
+          "auroc": 0.8225694603507336,
+          "average_precision": 0.2677398725568876
+        }
+      },
+      "authority_raw_image_auroc_delta": 0.13406983087834157,
+      "class": "pill",
+      "images": 167,
+      "trust_image_auroc_delta": 0.12752318603382434
+    },
+    "screw": {
+      "A1_N_E_raw": {
+        "image": {
+          "auroc": 0.6614060258249642,
+          "average_precision": 0.8388441288691124
+        },
+        "pixel": {
+          "auroc": 0.9736051690827651,
+          "average_precision": 0.08187375891339391
+        }
+      },
+      "A2_N_T_v2": {
+        "image": {
+          "auroc": 0.7399057183849149,
+          "average_precision": 0.8600763839497627
+        },
+        "pixel": {
+          "auroc": 0.979270715183828,
+          "average_precision": 0.26343956882669234
+        }
+      },
+      "E_raw": {
+        "image": {
+          "auroc": 0.569583931133429,
+          "average_precision": 0.7911611501045366
+        },
+        "pixel": {
+          "auroc": 0.9677599144799578,
+          "average_precision": 0.06741846307413969
+        }
+      },
+      "Need_C1": {
+        "image": {
+          "auroc": 0.578397212543554,
+          "average_precision": 0.7748716193808765
+        },
+        "pixel": {
+          "auroc": 0.9667388412792486,
+          "average_precision": 0.0420499368192819
+        }
+      },
+      "T_v2": {
+        "image": {
+          "auroc": 0.687435949989752,
+          "average_precision": 0.8300904535001326
+        },
+        "pixel": {
+          "auroc": 0.9771377438278727,
+          "average_precision": 0.26187664999983123
+        }
+      },
+      "authority_raw_image_auroc_delta": 0.0784996925599507,
+      "class": "screw",
+      "images": 160,
+      "trust_image_auroc_delta": 0.11785201885632302
+    },
+    "tile": {
+      "A1_N_E_raw": {
+        "image": {
+          "auroc": 0.9581529581529581,
+          "average_precision": 0.9841443814398424
+        },
+        "pixel": {
+          "auroc": 0.8310409387911578,
+          "average_precision": 0.5617230143869317
+        }
+      },
+      "A2_N_T_v2": {
+        "image": {
+          "auroc": 0.9635642135642136,
+          "average_precision": 0.9857243474161206
+        },
+        "pixel": {
+          "auroc": 0.8451009552670264,
+          "average_precision": 0.5936513636198091
+        }
+      },
+      "E_raw": {
+        "image": {
+          "auroc": 0.7036435786435786,
+          "average_precision": 0.8026225851730084
+        },
+        "pixel": {
+          "auroc": 0.8448583586551349,
+          "average_precision": 0.5369492249524971
+        }
+      },
+      "Need_C1": {
+        "image": {
+          "auroc": 0.9603174603174603,
+          "average_precision": 0.9850295799878337
+        },
+        "pixel": {
+          "auroc": 0.8021415031317713,
+          "average_precision": 0.5267564583213933
+        }
+      },
+      "T_v2": {
+        "image": {
+          "auroc": 0.9253246753246753,
+          "average_precision": 0.9570479033492801
+        },
+        "pixel": {
+          "auroc": 0.8552728360669684,
+          "average_precision": 0.6108416491567623
+        }
+      },
+      "authority_raw_image_auroc_delta": 0.005411255411255533,
+      "class": "tile",
+      "images": 117,
+      "trust_image_auroc_delta": 0.2216810966810967
+    },
+    "toothbrush": {
+      "A1_N_E_raw": {
+        "image": {
+          "auroc": 0.8833333333333333,
+          "average_precision": 0.9499102029717706
+        },
+        "pixel": {
+          "auroc": 0.9496665112464161,
+          "average_precision": 0.26806622775950806
+        }
+      },
+      "A2_N_T_v2": {
+        "image": {
+          "auroc": 0.9388888888888889,
+          "average_precision": 0.9768720555219607
+        },
+        "pixel": {
+          "auroc": 0.9520013356298214,
+          "average_precision": 0.41432738210840764
+        }
+      },
+      "E_raw": {
+        "image": {
+          "auroc": 0.3583333333333333,
+          "average_precision": 0.6532877297941946
+        },
+        "pixel": {
+          "auroc": 0.9299530615965469,
+          "average_precision": 0.15024083287713355
+        }
+      },
+      "Need_C1": {
+        "image": {
+          "auroc": 0.9083333333333332,
+          "average_precision": 0.9462053888552939
+        },
+        "pixel": {
+          "auroc": 0.9503865561817868,
+          "average_precision": 0.27294513197565634
+        }
+      },
+      "T_v2": {
+        "image": {
+          "auroc": 0.8277777777777777,
+          "average_precision": 0.8928823271138262
+        },
+        "pixel": {
+          "auroc": 0.9428538140017214,
+          "average_precision": 0.3755150172232705
+        }
+      },
+      "authority_raw_image_auroc_delta": 0.05555555555555558,
+      "class": "toothbrush",
+      "images": 42,
+      "trust_image_auroc_delta": 0.46944444444444444
+    },
+    "transistor": {
+      "A1_N_E_raw": {
+        "image": {
+          "auroc": 0.44375000000000003,
+          "average_precision": 0.3672930584334589
+        },
+        "pixel": {
+          "auroc": 0.6405735693642158,
+          "average_precision": 0.08936861348725478
+        }
+      },
+      "A2_N_T_v2": {
+        "image": {
+          "auroc": 0.48208333333333336,
+          "average_precision": 0.3881946815663795
+        },
+        "pixel": {
+          "auroc": 0.6509361153839139,
+          "average_precision": 0.10317454787093845
+        }
+      },
+      "E_raw": {
+        "image": {
+          "auroc": 0.44229166666666664,
+          "average_precision": 0.3601870239264605
+        },
+        "pixel": {
+          "auroc": 0.6324895036773945,
+          "average_precision": 0.0847994176571284
+        }
+      },
+      "Need_C1": {
+        "image": {
+          "auroc": 0.525,
+          "average_precision": 0.41337039010520177
+        },
+        "pixel": {
+          "auroc": 0.6344446162700078,
+          "average_precision": 0.09139718681955879
+        }
+      },
+      "T_v2": {
+        "image": {
+          "auroc": 0.41999999999999993,
+          "average_precision": 0.36048422743032543
+        },
+        "pixel": {
+          "auroc": 0.6512351437756254,
+          "average_precision": 0.10649594674915132
+        }
+      },
+      "authority_raw_image_auroc_delta": 0.03833333333333333,
+      "class": "transistor",
+      "images": 100,
+      "trust_image_auroc_delta": -0.02229166666666671
+    },
+    "wood": {
+      "A1_N_E_raw": {
+        "image": {
+          "auroc": 0.8728070175438597,
+          "average_precision": 0.9534237973746486
+        },
+        "pixel": {
+          "auroc": 0.9270229338065268,
+          "average_precision": 0.549975206721817
+        }
+      },
+      "A2_N_T_v2": {
+        "image": {
+          "auroc": 0.899561403508772,
+          "average_precision": 0.9437070891516133
+        },
+        "pixel": {
+          "auroc": 0.932916278342719,
+          "average_precision": 0.5837306791124679
+        }
+      },
+      "E_raw": {
+        "image": {
+          "auroc": 0.605701754385965,
+          "average_precision": 0.7994444262989057
+        },
+        "pixel": {
+          "auroc": 0.9290819388031775,
+          "average_precision": 0.5757872342058434
+        }
+      },
+      "Need_C1": {
+        "image": {
+          "auroc": 0.8697368421052631,
+          "average_precision": 0.9478159567230929
+        },
+        "pixel": {
+          "auroc": 0.9156511847331501,
+          "average_precision": 0.5049233788477764
+        }
+      },
+      "T_v2": {
+        "image": {
+          "auroc": 0.9298245614035088,
+          "average_precision": 0.957856831441511
+        },
+        "pixel": {
+          "auroc": 0.9355060439228131,
+          "average_precision": 0.6192249540129917
+        }
+      },
+      "authority_raw_image_auroc_delta": 0.02675438596491231,
+      "class": "wood",
+      "images": 79,
+      "trust_image_auroc_delta": 0.3241228070175438
+    },
+    "zipper": {
+      "A1_N_E_raw": {
+        "image": {
+          "auroc": 0.9548319327731093,
+          "average_precision": 0.9885906335952686
+        },
+        "pixel": {
+          "auroc": 0.932137827090126,
+          "average_precision": 0.4450344676862273
+        }
+      },
+      "A2_N_T_v2": {
+        "image": {
+          "auroc": 0.9183298319327732,
+          "average_precision": 0.9783810914309349
+        },
+        "pixel": {
+          "auroc": 0.9373811635531085,
+          "average_precision": 0.45599443147585517
+        }
+      },
+      "E_raw": {
+        "image": {
+          "auroc": 0.8715861344537814,
+          "average_precision": 0.9632914866306723
+        },
+        "pixel": {
+          "auroc": 0.9142595974797574,
+          "average_precision": 0.4145270517623828
+        }
+      },
+      "Need_C1": {
+        "image": {
+          "auroc": 0.8521533613445379,
+          "average_precision": 0.9603112895674879
+        },
+        "pixel": {
+          "auroc": 0.929043944979534,
+          "average_precision": 0.3854523908364699
+        }
+      },
+      "T_v2": {
+        "image": {
+          "auroc": 0.9343487394957983,
+          "average_precision": 0.9830870855284684
+        },
+        "pixel": {
+          "auroc": 0.9331770319807003,
+          "average_precision": 0.4452420618737728
+        }
+      },
+      "authority_raw_image_auroc_delta": -0.036502100840336116,
+      "class": "zipper",
+      "images": 151,
+      "trust_image_auroc_delta": 0.06276260504201692
+    }
+  },
+  "scientific_validity": "VALID_TRUST_EXTERNAL_AUTHORITY_PRIMARY_COMPARATOR_NOT_PERSISTED",
+  "status": "PASS",
+  "trust": {
+    "baseline": "E_raw_PGM_rank",
+    "candidate": "T_v2",
+    "class_deltas": [
+      0.2305555555555555,
+      0.41707271364317844,
+      0.5237335460710012,
+      0.12740770465489581,
+      0.17836257309941517,
+      0.19267857142857153,
+      0.056385869565217406,
+      0.13391984359726294,
+      0.12752318603382434,
+      0.11785201885632302,
+      0.2216810966810967,
+      0.46944444444444444,
+      -0.02229166666666671,
+      0.3241228070175438,
+      0.06276260504201692
+    ],
+    "decision": "SUPPORTED"
+  }
+}

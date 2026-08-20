@@ -1,0 +1,43 @@
+{
+  "medical_reads": 0,
+  "no_m0_invention": true,
+  "primary": {
+    "candidate": "A2_N_T_v2 = C1 * T_v2",
+    "comparator": "A1_N_E_cal = C1 * M0_E OOF",
+    "decision": "UNRESOLVED",
+    "reason": "The exact frozen M0_E OOF scaler and coefficients are not persisted in the frozen repository artifacts."
+  },
+  "secondary_raw": {
+    "candidate": "A2_N_T_v2",
+    "comparator": "A1_N_E_raw",
+    "gate": {
+      "catastrophic": 1,
+      "class_deltas": {
+        "bottle": 0.0277777777777779,
+        "cable": 0.013212143928036046,
+        "capsule": 0.015157558835261153,
+        "carpet": 0.00040128410914930246,
+        "grid": 0.003341687552213868,
+        "hazelnut": 0.15035714285714297,
+        "leather": 0.0,
+        "metal_nut": -0.012707722385141729,
+        "pill": 0.13406983087834157,
+        "screw": 0.0784996925599507,
+        "tile": 0.005411255411255533,
+        "toothbrush": 0.05555555555555558,
+        "transistor": 0.03833333333333333,
+        "wood": 0.02675438596491231,
+        "zipper": -0.036502100840336116
+      },
+      "decision": "FALSIFIED",
+      "mean": 0.03331078836916349,
+      "median": 0.015157558835261153,
+      "n_classes": 15,
+      "negative": 2,
+      "nonnegative": 13,
+      "positive": 12
+    },
+    "interpretation": "diagnostic-only; not substituted for the primary Authority comparator"
+  },
+  "status": "UNRESOLVED_MISSING_FROZEN_M0_E_CALIBRATOR"
+}

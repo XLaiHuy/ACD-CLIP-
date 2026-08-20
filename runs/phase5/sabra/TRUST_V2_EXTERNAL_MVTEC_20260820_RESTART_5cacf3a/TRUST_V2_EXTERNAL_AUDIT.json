@@ -1,0 +1,38 @@
+{
+  "baseline": "E_raw_PGM_rank",
+  "candidate": "T_v2",
+  "frozen_model": "M1_E_Credibility",
+  "frozen_need": "Need_C1",
+  "gate": {
+    "catastrophic": 0,
+    "class_deltas": {
+      "bottle": 0.2305555555555555,
+      "cable": 0.41707271364317844,
+      "capsule": 0.5237335460710012,
+      "carpet": 0.12740770465489581,
+      "grid": 0.17836257309941517,
+      "hazelnut": 0.19267857142857153,
+      "leather": 0.056385869565217406,
+      "metal_nut": 0.13391984359726294,
+      "pill": 0.12752318603382434,
+      "screw": 0.11785201885632302,
+      "tile": 0.2216810966810967,
+      "toothbrush": 0.46944444444444444,
+      "transistor": -0.02229166666666671,
+      "wood": 0.3241228070175438,
+      "zipper": 0.06276260504201692
+    },
+    "decision": "SUPPORTED",
+    "mean": 0.21074739126824538,
+    "median": 0.17836257309941517,
+    "n_classes": 15,
+    "negative": 1,
+    "nonnegative": 14,
+    "positive": 14
+  },
+  "gt_free_manifest": "PASS",
+  "medical_reads": 0,
+  "no_tuning": true,
+  "status": "SUPPORTED",
+  "unit": "MVTec class"
+}

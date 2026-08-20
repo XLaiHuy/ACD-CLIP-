@@ -1,0 +1,52 @@
+{
+  "FULL_20E_TRAIN_AUTHORIZED": false,
+  "MVTec_gt_metadata_rows_read": 1725,
+  "MVTec_image_reads": 1725,
+  "MVTec_mask_reads": 1258,
+  "external_dataset": "MVTec AD",
+  "gt_free_manifest": {
+    "MVTec_image_reads": 1725,
+    "classes": [
+      "bottle",
+      "cable",
+      "capsule",
+      "carpet",
+      "grid",
+      "hazelnut",
+      "leather",
+      "metal_nut",
+      "pill",
+      "screw",
+      "tile",
+      "toothbrush",
+      "transistor",
+      "wood",
+      "zipper"
+    ],
+    "frozen_feature_order": [
+      "E",
+      "peer_coherence",
+      "query_support_mean",
+      "peer_eigen_entropy",
+      "stage_query_profile_disagreement"
+    ],
+    "frozen_selected_model": "M1_E_Credibility",
+    "gt_free": true,
+    "images": 1725,
+    "labels_read": false,
+    "mask_paths_read": false,
+    "mask_pixels_read": 0,
+    "medical_reads": 0,
+    "scientific_metrics_observed": false,
+    "stage": "GT_FREE",
+    "status": "PASS"
+  },
+  "medical_reads": 0,
+  "no_tuning": true,
+  "output_root": "/workspace/ACD-CLIP/runs/phase5/sabra/TRUST_V2_EXTERNAL_MVTEC_20260820_RESTART_5cacf3a",
+  "pre_external_boundary_sha": "5cacf3abc5df271adbe655c318d516777fd8ad61",
+  "source_head_at_result": "5cacf3abc5df271adbe655c318d516777fd8ad61",
+  "status": "PASS",
+  "study": "TRUST_V2_M4_RECOVERY_V2",
+  "training_started": false
+}
