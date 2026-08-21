@@ -87,6 +87,11 @@ The wrapper validates resume compatibility through `train.py` before passing
 `--resume` once.  It never auto-selects a resume checkpoint.  A completed
 `run_manifest.json` is not overwritten unless `FORCE_RERUN=1` is explicit.
 
+If the Phase2B command is interrupted, the runner prints `TRAIN_INTERRUPTED=YES`
+and, only when `phase2b/last.pth` passes the same canonical validator, an exact
+`RESUME_COMMAND`.  Selection, SABRA fitting, lambda selection, Medical, and
+export are fail-stop stages; they never silently resume or restart.
+
 ## MVTec checkpoint selection
 
 ```bash

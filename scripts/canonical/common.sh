@@ -212,6 +212,36 @@ run_logged() {
   "$@" 2>&1 | tee "$log_path"
 }
 
+validate_resume_checkpoint() {
+  local checkpoint_path="$1"
+  "$PYTHON" - "$checkpoint_path" "$CONFIG" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+import torch
+
+from train import _validate_resume
+
+checkpoint_path = Path(sys.argv[1]).expanduser()
+config_path = Path(sys.argv[2]).expanduser()
+checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+config = json.loads(config_path.read_text(encoding="utf-8"))
+config.update({
+    "micro_batch_size": 6,
+    "batch_size": 6,
+    "grad_accum_steps": 1,
+    "effective_batch_size": 6,
+    "num_workers": 4,
+    "pin_memory": True,
+    "persistent_workers": True,
+    "prefetch_factor": 2,
+})
+_validate_resume(checkpoint, config)
+print("RESUME_COMPATIBILITY=PASS")
+PY
+}
+
 require_file() {
   local path="$1"
   [[ -f "$path" ]] || die "required file not found: $path"
