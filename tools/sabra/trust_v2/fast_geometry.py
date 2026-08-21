@@ -12,9 +12,15 @@ from typing import Any
 import numpy as np
 import torch
 import torch.nn.functional as F
-from p5f_geometry.common import decode_gram, pack_gram
+try:
+    from p5f_geometry.common import decode_gram, pack_gram
+except ModuleNotFoundError:  # package import from the repository root
+    from tools.p5f_geometry.common import decode_gram, pack_gram
 
-from sabra.trust_v2 import numerical as exact
+try:
+    from sabra.trust_v2 import numerical as exact
+except ModuleNotFoundError:  # package import from the repository root
+    from tools.sabra.trust_v2 import numerical as exact
 
 PATCHES = exact.PATCHES
 STAGES = exact.STAGES
@@ -91,16 +97,21 @@ def construct_b1_fast(
 
     peers = np.full((PATCHES, PEERS), -1, dtype=np.int64)
     valid_b1 = counts >= PEERS
-    peers[valid_b1] = ordered_ids[valid_b1, :PEERS]
+    if np.any(valid_b1):
+        peers[valid_b1] = ordered_ids[valid_b1, :PEERS]
     reserves = np.full((2, PATCHES), -1, dtype=np.int64)
     valid_p9 = counts >= 9
     valid_p16 = counts >= 16
-    reserves[0, valid_p9] = ordered_ids[valid_p9, 8]
-    reserves[1, valid_p16] = ordered_ids[valid_p16, 15]
+    if np.any(valid_p9):
+        reserves[0, valid_p9] = ordered_ids[valid_p9, 8]
+    if np.any(valid_p16):
+        reserves[1, valid_p16] = ordered_ids[valid_p16, 15]
     gap9 = np.zeros(PATCHES, dtype=np.float32)
     gap16 = np.zeros(PATCHES, dtype=np.float32)
-    gap9[valid_p9] = (ordered_scores[valid_p9, 7] - ordered_scores[valid_p9, 8]).astype(np.float32)
-    gap16[valid_p16] = (ordered_scores[valid_p16, 7] - ordered_scores[valid_p16, 15]).astype(np.float32)
+    if np.any(valid_p9):
+        gap9[valid_p9] = (ordered_scores[valid_p9, 7] - ordered_scores[valid_p9, 8]).astype(np.float32)
+    if np.any(valid_p16):
+        gap16[valid_p16] = (ordered_scores[valid_p16, 7] - ordered_scores[valid_p16, 15]).astype(np.float32)
     return {
         "peer_indices": peers,
         "reserve_p9_index": reserves[0],

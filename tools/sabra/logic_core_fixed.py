@@ -3,8 +3,12 @@ from __future__ import annotations
 
 import numpy as np
 
-from sabra import logic_core as _base
-from sabra.logic_core import *  # noqa: F401,F403
+try:
+    from sabra import logic_core as _base
+    from sabra.logic_core import *  # noqa: F401,F403
+except ModuleNotFoundError:  # package import from the repository root
+    from tools.sabra import logic_core as _base
+    from tools.sabra.logic_core import *  # noqa: F401,F403
 
 
 def pgm_raw(c: np.ndarray, packed_gram: np.ndarray) -> dict[str, np.ndarray]:

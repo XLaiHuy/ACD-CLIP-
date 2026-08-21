@@ -9,7 +9,7 @@ from torchvision import transforms as tv_transforms
 from torchvision.transforms import InterpolationMode
 
 from .transforms import AddGaussianNoise
-from .info import CLASS_NAMES, DATA_PATH, DOMAINS, MEDICAL_EVAL_PATHS
+from .info import CLASS_NAMES, DATA_PATH, DOMAINS, MEDICAL_EVAL_PATHS, dataset_domain, is_medical_dataset
 
 
 class TextAndImageDataset(Dataset):

@@ -234,3 +234,18 @@ PROMPTS = {
         "a photo of {}.",
     ],
 }
+
+
+def dataset_domain(dataset_name: str) -> str:
+    """Return the single authoritative domain label for a dataset."""
+    name = str(dataset_name)
+    if name == "Medical":
+        return "Medical"
+    try:
+        return str(DOMAINS[name])
+    except KeyError as exc:
+        raise ValueError(f"unknown dataset domain: {name}") from exc
+
+
+def is_medical_dataset(dataset_name: str) -> bool:
+    return dataset_domain(dataset_name) == "Medical"

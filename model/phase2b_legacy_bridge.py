@@ -117,6 +117,12 @@ def build_adapter(
     assert_legacy_branch_disabled(model)
     if checkpoint is not None:
         _reject_legacy_checkpoint(checkpoint)
+    model.use_hybrid_soft_prompt = bool(config.get("use_hybrid_soft_prompt", False))
+    model.use_soft_prompt = bool(config.get("use_soft_prompt", False))
+    model.hybrid_alpha_max = float(config.get("hybrid_alpha_max", 0.2))
+    model.soft_prompt_freeze_epochs = int(config.get("soft_prompt_freeze_epochs", 3))
+    model.prompt_mode = "hybrid" if model.use_hybrid_soft_prompt else "soft" if model.use_soft_prompt else "hard"
+    model.hybrid_alpha_current = float(config.get("hybrid_alpha_current", 0.0))
     if trainable:
         model.train()
         model.clipmodel.eval()
@@ -144,7 +150,9 @@ def load_adapter_state(model: Any, checkpoint: Mapping[str, Any]) -> None:
     model.use_hybrid_soft_prompt = bool(checkpoint.get("use_hybrid_soft_prompt", False))
     model.use_soft_prompt = bool(checkpoint.get("use_soft_prompt", False))
     model.hybrid_alpha_current = float(checkpoint.get("hybrid_alpha_current", 0.0))
-    model.prompt_mode = str(checkpoint.get("prompt_mode", "hybrid"))
+    model.hybrid_alpha_max = float(checkpoint.get("hybrid_alpha_max", getattr(model, "hybrid_alpha_max", 0.2)))
+    model.soft_prompt_freeze_epochs = int(checkpoint.get("soft_prompt_freeze_epochs", getattr(model, "soft_prompt_freeze_epochs", 3)))
+    model.prompt_mode = str(checkpoint.get("prompt_mode", getattr(model, "prompt_mode", "hybrid")))
     assert_legacy_branch_disabled(model)
 
 

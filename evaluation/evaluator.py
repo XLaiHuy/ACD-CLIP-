@@ -24,7 +24,12 @@ def _method_payload(record: Mapping[str, Any], method: str) -> Mapping[str, Any]
     return record
 
 
-def evaluate_records(records: Iterable[Mapping[str, Any]], method: str = "phase2b") -> dict[str, Any]:
+def evaluate_records(
+    records: Iterable[Mapping[str, Any]],
+    method: str = "phase2b",
+    *,
+    allow_undefined_image_metrics: bool = False,
+) -> dict[str, Any]:
     """Evaluate already-produced arrays; no model or dataset side effects."""
     if method not in {"phase2b", "sabra", "compare"}:
         raise ValueError(f"unknown evaluation method: {method}")
@@ -48,13 +53,14 @@ def evaluate_records(records: Iterable[Mapping[str, Any]], method: str = "phase2
                 np.concatenate(values[f"{name}_pixel_labels"]),
                 np.concatenate(values[f"{name}_image_scores"]),
                 np.concatenate(values[f"{name}_image_labels"]),
+                allow_undefined_image=allow_undefined_image_metrics,
             )
         return per_class, macro_metrics(per_class)
 
     if method == "compare":
         phase2b, phase2b_macro = one("phase2b")
         sabra, sabra_macro = one("sabra")
-        delta = {key: sabra_macro[key] - phase2b_macro[key] for key in phase2b_macro}
+        delta = {key: (None if sabra_macro[key] is None or phase2b_macro[key] is None else float(sabra_macro[key]) - float(phase2b_macro[key])) for key in phase2b_macro}
         return {"phase2b": phase2b, "phase2b_macro": phase2b_macro, "sabra": sabra, "sabra_macro": sabra_macro, "delta": delta}
     per_class, macro = one(method)
     return {"per_class": per_class, "macro": macro}

@@ -150,13 +150,20 @@ class MVTecDatasetAdapter:
             "model_inference": False,
         }
 
+    def __len__(self) -> int:
+        return len(self.samples)
+
+    def __getitem__(self, index: int) -> dict[str, Any]:
+        sample = self.samples[int(index)]
+        with Image.open(self._path(sample.image_path)) as handle:
+            image = self.image_transform(handle.convert("RGB")).contiguous()
+        if sample.mask_path:
+            with Image.open(self._path(sample.mask_path)) as handle:
+                mask = self.mask_transform(handle.convert("L")).gt(0).to(torch.float32)
+        else:
+            mask = torch.zeros((1, self.image_size, self.image_size), dtype=torch.float32)
+        return {"image": image, "mask": mask.contiguous(), "label": torch.tensor(sample.label, dtype=torch.int64), "class_name": sample.class_name, "image_path": sample.image_path, "index": int(index)}
+
     def __iter__(self) -> Iterable[dict[str, Any]]:
-        for index, sample in enumerate(self.samples):
-            with Image.open(self._path(sample.image_path)) as handle:
-                image = self.image_transform(handle.convert("RGB")).contiguous()
-            if sample.mask_path:
-                with Image.open(self._path(sample.mask_path)) as handle:
-                    mask = self.mask_transform(handle.convert("L")).gt(0).to(torch.float32)
-            else:
-                mask = torch.zeros((1, self.image_size, self.image_size), dtype=torch.float32)
-            yield {"image": image, "mask": mask.contiguous(), "label": torch.tensor(sample.label), "class_name": sample.class_name, "image_path": sample.image_path, "index": index}
+        for index in range(len(self)):
+            yield self[index]

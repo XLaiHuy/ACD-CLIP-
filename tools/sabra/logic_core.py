@@ -8,7 +8,10 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-from p5f_geometry.common import decode_gram, pack_gram
+try:
+    from p5f_geometry.common import decode_gram, pack_gram
+except ModuleNotFoundError:  # package import from the repository root
+    from tools.p5f_geometry.common import decode_gram, pack_gram
 
 ROOT = Path(__file__).resolve().parents[2]
 AUDIT_ROOT = ROOT / "runs/phase5/sabra/PRETRAIN_LOGIC_AUDIT"

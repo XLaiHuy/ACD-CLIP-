@@ -6,7 +6,11 @@ from tools.sabra.relational import assert_gt_free_payload, build_relational_reco
 
 
 def test_relational_pass_has_no_gt_argument_or_access():
-    record = build_relational_record(np.zeros((3, 1369, 768), dtype=np.float32), np.zeros((3, 1369), dtype=np.float32))
+    record = build_relational_record(
+        np.zeros((3, 1369, 768), dtype=np.float32),
+        np.zeros((3, 1369), dtype=np.float32),
+        deployment_sensitivity=np.full(1369, 0.25, dtype=np.float32),
+    )
     assert "mask" not in record
     assert "label" not in record
     assert_gt_free_payload(record)

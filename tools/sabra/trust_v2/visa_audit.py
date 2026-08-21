@@ -18,9 +18,88 @@ from typing import Any
 
 import numpy as np
 from PIL import Image
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score
-from sklearn.preprocessing import StandardScaler
+try:
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score
+    from sklearn.preprocessing import StandardScaler
+except ModuleNotFoundError:  # deterministic bounded fallback for minimal audit environments
+    try:
+        from sabra.trust import _fit_numpy_logistic, _sigmoid, fit_standardizer
+    except ModuleNotFoundError:
+        from tools.sabra.trust import _fit_numpy_logistic, _sigmoid, fit_standardizer
+
+    class StandardScaler:  # type: ignore[no-redef]
+        def fit(self, values):
+            self.mean_, self.scale_ = fit_standardizer(np.asarray(values, dtype=np.float64))
+            return self
+
+        def transform(self, values):
+            return (np.asarray(values, dtype=np.float64) - self.mean_) / self.scale_
+
+    class LogisticRegression:  # type: ignore[no-redef]
+        def __init__(self, **kwargs):
+            del kwargs
+
+        def fit(self, values, targets):
+            self.coef_, self.intercept_ = _fit_numpy_logistic(np.asarray(values, dtype=np.float64), np.asarray(targets, dtype=np.int8))
+            self.coef_ = np.asarray(self.coef_, dtype=np.float64).reshape(1, -1)
+            self.intercept_ = np.asarray([self.intercept_], dtype=np.float64)
+            return self
+
+        def predict_proba(self, values):
+            score = _sigmoid(np.asarray(values, dtype=np.float64) @ self.coef_.reshape(-1) + float(self.intercept_[0]))
+            return np.column_stack([1.0 - score, score])
+
+    try:
+        from evaluation.metrics import binary_average_precision, binary_auroc
+    except ModuleNotFoundError:
+        from tools.sabra.trust import _sigmoid  # pragma: no cover
+
+        def binary_auroc(scores, labels):
+            scores = np.asarray(scores, dtype=np.float64)
+            labels = np.asarray(labels, dtype=np.int8)
+            order = np.argsort(scores, kind="mergesort")
+            ranks = np.empty(order.size, dtype=np.float64)
+            sorted_scores = scores[order]
+            start = 0
+            while start < order.size:
+                end = start + 1
+                while end < order.size and sorted_scores[end] == sorted_scores[start]:
+                    end += 1
+                ranks[start:end] = (start + 1 + end) / 2.0
+                start = end
+            positives = float(labels.sum())
+            negatives = float(labels.size - labels.sum())
+            return float((ranks[labels[order] == 1].sum() - positives * (positives + 1.0) / 2.0) / (positives * negatives))
+
+        def binary_average_precision(scores, labels):
+            order = np.argsort(-np.asarray(scores), kind="mergesort")
+            y = np.asarray(labels, dtype=np.int8)[order]
+            positives = float(y.sum())
+            if positives <= 0:
+                return None
+            tp = 0.0
+            fp = 0.0
+            previous = 0.0
+            result = 0.0
+            for value in y:
+                tp += float(value)
+                fp += float(1 - value)
+                recall = tp / positives
+                result += (recall - previous) * (tp / max(tp + fp, 1.0))
+                previous = recall
+            return float(result)
+
+    def roc_auc_score(labels, scores):
+        return binary_auroc(scores, labels)
+
+    def average_precision_score(labels, scores):
+        return binary_average_precision(scores, labels)
+
+    def brier_score_loss(labels, scores):
+        labels = np.asarray(labels, dtype=np.float64)
+        scores = np.asarray(scores, dtype=np.float64)
+        return float(np.mean((scores - labels) ** 2))
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path[:0] = [str(ROOT), str(ROOT / "tools")]

@@ -23,15 +23,34 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from PIL import Image
-from sklearn.metrics import average_precision_score, roc_auc_score
+try:
+    from sklearn.metrics import average_precision_score, roc_auc_score
+except ModuleNotFoundError:  # deterministic exact metric fallback
+    from evaluation.metrics import binary_average_precision, binary_auroc
+
+    def roc_auc_score(labels, scores):
+        return binary_auroc(scores, labels)
+
+    def average_precision_score(labels, scores):
+        return binary_average_precision(scores, labels)
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path[:0] = [str(ROOT), str(ROOT / "tools")]
 
-from sabra.cache_runner import _forward_one, _load_model as _load_historical_model  # noqa: E402
+try:
+    from sabra.cache_runner import _forward_one, _load_model as _load_historical_model  # noqa: E402
+except (ImportError, ModuleNotFoundError) as exc:  # canonical wrapper has no historical cache loader
+    _historical_import_error = exc
+
+    def _forward_one(*args, **kwargs):  # type: ignore[no-redef]
+        raise RuntimeError("historical cache runtime is unavailable in the canonical package") from _historical_import_error
+
+    def _load_historical_model(*args, **kwargs):  # type: ignore[no-redef]
+        raise RuntimeError("historical cache runtime is unavailable in the canonical package") from _historical_import_error
 from model.checkpoint_loader import load_checkpoint_for_evaluation  # noqa: E402
 from sabra.data import IMAGE_SIZE, VisaEvidenceDataset, safe_data_path  # noqa: E402
 from sabra.trust_v2.backend import compact_record_builder, validate_backend  # noqa: E402
+from sabra.trust_v2.numerical import percentile_rank  # noqa: E402
 from utils import get_phase2b_global_text_features  # noqa: E402
 
 METADATA = ROOT / "dataset/hub/MVTec.jsonl"

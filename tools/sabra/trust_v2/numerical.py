@@ -9,10 +9,17 @@ from __future__ import annotations
 from typing import Any
 
 import numpy as np
-from p5f_geometry.common import decode_gram, pack_gram
+try:
+    from p5f_geometry.common import decode_gram, pack_gram
+except ModuleNotFoundError:  # package import from the repository root
+    from tools.p5f_geometry.common import decode_gram, pack_gram
 
-from sabra import logic_core as base
-from sabra import logic_core_fixed as fixed
+try:
+    from sabra import logic_core as base
+    from sabra import logic_core_fixed as fixed
+except ModuleNotFoundError:  # package import from the repository root
+    from tools.sabra import logic_core as base
+    from tools.sabra import logic_core_fixed as fixed
 
 PATCH_GRID = (37, 37)
 PATCHES = 1369
