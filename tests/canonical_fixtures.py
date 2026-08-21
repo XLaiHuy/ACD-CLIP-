@@ -6,9 +6,11 @@ from torch import nn
 from model.phase2b_runtime import IMAGE_SIZE, PATCH_COUNT, STAGES
 
 
-class TinyClip:
+class TinyClip(nn.Module):
     def __init__(self):
+        super().__init__()
         self.visual = nn.Identity()
+        self.backbone_parameter = nn.Parameter(torch.ones(1))
 
     def set_grad_checkpointing(self, enabled: bool):
         del enabled

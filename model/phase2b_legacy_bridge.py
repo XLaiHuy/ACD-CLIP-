@@ -82,6 +82,60 @@ def assert_legacy_branch_disabled(model: Any) -> None:
         raise AssertionError(f"legacy trainable parameters remain: {trainable_legacy[:5]}")
 
 
+def _module_parameters(module: Any) -> list[torch.nn.Parameter]:
+    if module is None or not hasattr(module, "parameters"):
+        return []
+    return list(module.parameters())
+
+
+def assert_phase2b_trainable_contract(
+    model: Any,
+    *,
+    soft_prompt_trainable: bool | None = None,
+) -> None:
+    """Assert the canonical trainable/frozen component partition."""
+    assert_legacy_branch_disabled(model)
+    clip_parameters = _module_parameters(getattr(model, "clipmodel", None))
+    if any(parameter.requires_grad for parameter in clip_parameters):
+        raise AssertionError("canonical Phase2B CLIP backbone has trainable parameters")
+    for name in ("image_adapter", "text_adapter"):
+        parameters = _module_parameters(getattr(model, name, None))
+        if not parameters:
+            raise AssertionError(f"canonical Phase2B component is missing: {name}")
+        if any(not parameter.requires_grad for parameter in parameters):
+            raise AssertionError(f"canonical Phase2B component is partially frozen: {name}")
+    soft_parameters = _module_parameters(getattr(model, "soft_prompt", None))
+    if soft_prompt_trainable is not None and any(
+        parameter.requires_grad != bool(soft_prompt_trainable)
+        for parameter in soft_parameters
+    ):
+        raise AssertionError(
+            "soft-prompt requires_grad does not match the canonical epoch schedule"
+        )
+
+
+def assert_phase2b_gradient_contract(
+    model: Any,
+    *,
+    soft_prompt_trainable: bool,
+) -> None:
+    """Audit gradients immediately after backward, before clipping/step."""
+    assert_phase2b_trainable_contract(model, soft_prompt_trainable=soft_prompt_trainable)
+    clip_parameters = _module_parameters(getattr(model, "clipmodel", None))
+    if any(parameter.grad is not None for parameter in clip_parameters):
+        raise AssertionError("frozen CLIP backbone received gradients")
+    for name in ("image_adapter", "text_adapter"):
+        parameters = _module_parameters(getattr(model, name, None))
+        if not any(parameter.grad is not None for parameter in parameters):
+            raise AssertionError(f"{name} received no gradient in canonical Phase2B backward")
+    soft_parameters = _module_parameters(getattr(model, "soft_prompt", None))
+    if soft_prompt_trainable:
+        if not any(parameter.grad is not None for parameter in soft_parameters):
+            raise AssertionError("trainable soft prompt received no gradient")
+    elif any(parameter.grad is not None for parameter in soft_parameters):
+        raise AssertionError("frozen soft prompt received a gradient")
+
+
 def build_adapter(
     config: Mapping[str, Any],
     clip_asset: str | Path,
@@ -127,9 +181,16 @@ def build_adapter(
         model.train()
         model.clipmodel.eval()
         model.image_encoder.eval()
+        if hasattr(model.clipmodel, "requires_grad_"):
+            model.clipmodel.requires_grad_(False)
+        if hasattr(model.image_encoder, "requires_grad_"):
+            model.image_encoder.requires_grad_(False)
         model.image_adapter.requires_grad_(True)
         model.text_adapter.requires_grad_(True)
-        model.soft_prompt.requires_grad_(bool(config.get("soft_prompt_trainable", False)))
+        # E1-E3 are frozen by the canonical schedule; the trainer enables the
+        # soft prompt explicitly at E4+ after constructing the optimizer.
+        model.soft_prompt.requires_grad_(False)
+        assert_phase2b_trainable_contract(model, soft_prompt_trainable=False)
     else:
         model.eval()
         model.clipmodel.eval()
@@ -159,7 +220,19 @@ def load_adapter_state(model: Any, checkpoint: Mapping[str, Any]) -> None:
 def trainable_parameter_summary(model: Any) -> dict[str, int]:
     trainable = sum(parameter.numel() for parameter in model.parameters() if parameter.requires_grad)
     frozen = sum(parameter.numel() for parameter in model.parameters() if not parameter.requires_grad)
-    return {"trainable": int(trainable), "frozen": int(frozen)}
+    clip_parameters = _module_parameters(getattr(model, "clipmodel", None))
+    image_parameters = _module_parameters(getattr(model, "image_adapter", None))
+    text_parameters = _module_parameters(getattr(model, "text_adapter", None))
+    soft_parameters = _module_parameters(getattr(model, "soft_prompt", None))
+    return {
+        "trainable": int(trainable),
+        "frozen": int(frozen),
+        "clip_total": int(sum(parameter.numel() for parameter in clip_parameters)),
+        "clip_trainable": int(sum(parameter.numel() for parameter in clip_parameters if parameter.requires_grad)),
+        "image_adapter_trainable": int(sum(parameter.numel() for parameter in image_parameters if parameter.requires_grad)),
+        "text_adapter_trainable": int(sum(parameter.numel() for parameter in text_parameters if parameter.requires_grad)),
+        "soft_prompt_trainable": int(sum(parameter.numel() for parameter in soft_parameters if parameter.requires_grad)),
+    }
 
 
 def assert_canonical_config(config: Mapping[str, Any]) -> None:

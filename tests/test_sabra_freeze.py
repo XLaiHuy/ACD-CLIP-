@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from tools.sabra.artifacts import validate_sabra_freeze
-from tools.sabra.relational import FEATURE_ORDER, NEED_ORDER
+from tools.sabra.relational import BACKEND_VERSION, FEATURE_ORDER, NEED_ORDER
 
 
 def _predictor(order):
@@ -26,7 +26,7 @@ def _freeze():
         "final_test_role": "Medical",
         "medical_seen": False,
         "phase2b": {"selected_epoch": 10, "checkpoint_sha256": "abc"},
-        "relational": {"implementation": "tools.sabra.relational.build_relational_record", "peer_count": 8},
+        "relational": {"implementation": "tools.sabra.relational.build_relational_record", "backend": "fast", "backend_version": BACKEND_VERSION, "peer_count": 8},
         "trust": _predictor(FEATURE_ORDER),
         "need": _predictor(NEED_ORDER),
         "correction": {

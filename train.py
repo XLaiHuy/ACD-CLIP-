@@ -7,6 +7,7 @@ import hashlib
 import json
 import random
 import time
+from collections import Counter
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any, Mapping
@@ -19,6 +20,7 @@ from tqdm.auto import tqdm
 
 from dataset import TextAndImageDataset
 from model.checkpoint_utils import capture_rng_state, restore_rng_state, write_torch_checkpoint_atomic
+from model.phase2b_legacy_bridge import assert_phase2b_gradient_contract
 from model.phase2b_runtime import (
     build_phase2b_trainable,
     configure_canonical_fp32,
@@ -99,33 +101,76 @@ def _build_loader(args: argparse.Namespace, config: Mapping[str, Any], generator
     return dataset, DataLoader(dataset, **kwargs), generator
 
 
+def _sample_weighted_regularizer(
+    values_by_class: Mapping[str, torch.Tensor | float],
+    class_names: list[str],
+    device: torch.device,
+) -> torch.Tensor:
+    """Average a per-class regularizer with one weight per batch sample."""
+    if not class_names or not values_by_class:
+        return torch.zeros((), device=device)
+    counts = Counter(class_names)
+    weighted: torch.Tensor | None = None
+    for class_name, count in counts.items():
+        value = values_by_class[class_name]
+        if not torch.is_tensor(value):
+            value = torch.as_tensor(value, dtype=torch.float32, device=device)
+        else:
+            value = value.to(device=device)
+        contribution = value * float(count)
+        weighted = contribution if weighted is None else weighted + contribution
+    if weighted is None:
+        return torch.zeros((), device=device)
+    return weighted / float(len(class_names))
+
+
 def _text_with_regularizers(model: Any, class_names: list[str], config: Mapping[str, Any], device: torch.device):
     from utils import get_phase2b_global_text_features
 
     dataset_name = str(config.get("dataset", "VisA"))
     unique = list(dict.fromkeys(class_names))
     by_class: dict[str, torch.Tensor] = {}
-    kg_values: list[torch.Tensor] = []
+    kg_by_class: dict[str, torch.Tensor] = {}
     for class_name in unique:
         if bool(config.get("use_hybrid_soft_prompt", False)):
             text, kg_loss, _stats = get_hybrid_soft_prompt_single_class_text_embedding(
                 model, dataset_name, class_name, device, return_kg=True,
             )
-            kg_values.append(kg_loss)
+            kg_by_class[class_name] = kg_loss
         elif bool(config.get("use_soft_prompt", False)):
             from utils import get_soft_prompt_single_class_text_embedding
             text, kg_loss, _stats = get_soft_prompt_single_class_text_embedding(model, dataset_name, class_name, device, return_kg=True)
-            kg_values.append(kg_loss)
+            kg_by_class[class_name] = kg_loss
         else:
             text = get_multiple_adapted_single_class_text_embedding(model, dataset_name, class_name, device)
         by_class[class_name] = text
     features = torch.stack([by_class[name] for name in class_names], dim=0).permute(1, 0, 2, 3).float()
-    kg_loss = torch.stack(kg_values).mean() if kg_values else torch.zeros((), device=device)
+    kg_loss = _sample_weighted_regularizer(kg_by_class, class_names, device)
     # lambda_k is preregistered as zero.  Keep an explicit tensor in the graph
     # so the task objective remains visible and can be enabled only by a new
     # scientific protocol, never implicitly.
     k_loss = torch.zeros((), device=device)
     return features, kg_loss, k_loss
+
+
+def _trainable_parameters_with_grad(optimizer: torch.optim.Optimizer) -> list[torch.nn.Parameter]:
+    parameters: list[torch.nn.Parameter] = []
+    seen: set[int] = set()
+    for group in optimizer.param_groups:
+        for parameter in group["params"]:
+            identity = id(parameter)
+            if parameter.requires_grad and parameter.grad is not None and identity not in seen:
+                seen.add(identity)
+                parameters.append(parameter)
+    return parameters
+
+
+def clip_trainable_gradients(optimizer: torch.optim.Optimizer, max_norm: float) -> torch.Tensor:
+    """Clip only unique trainable parameters that received gradients."""
+    parameters = _trainable_parameters_with_grad(optimizer)
+    if not parameters:
+        return torch.zeros((), dtype=torch.float32)
+    return torch.nn.utils.clip_grad_norm_(parameters, float(max_norm))
 
 
 def _checkpoint_payload(
@@ -245,6 +290,7 @@ def _run_batch_preflight(args: argparse.Namespace, config: dict[str, Any], devic
         iterator = iter(loader)
         max_steps = min(2, max(0, int(args.smoke_steps or 2)))
         optimizer = _make_optimizer(model, config)
+        _set_epoch_state(model, optimizer, config, epoch=1)
         optimizer.zero_grad(set_to_none=True)
         for _ in range(max_steps):
             batch = next(iterator)
@@ -259,7 +305,8 @@ def _run_batch_preflight(args: argparse.Namespace, config: dict[str, Any], devic
             loss = F.cross_entropy(result.classification_logits.float(), labels) + calculate_seg_loss(result.training_segmentation_probability, masks) + float(config.get("lambda_kg", 0.001)) * kg + float(config.get("lambda_k", 0.0)) * k
             loss.backward()
             backward_done = time.perf_counter()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), float(config.get("grad_clip_norm", 1.0)))
+            assert_phase2b_gradient_contract(model, soft_prompt_trainable=False)
+            clip_trainable_gradients(optimizer, float(config.get("grad_clip_norm", 1.0)))
             optimizer.step(); optimizer.zero_grad(set_to_none=True)
             step_done = time.perf_counter()
             timings["forward"].append(forward_done - started); timings["backward"].append(backward_done - forward_done); timings["step"].append(step_done - backward_done)
@@ -352,9 +399,13 @@ def train_phase2b(args: argparse.Namespace) -> dict[str, Any]:
                 raise FloatingPointError(f"non-finite loss at epoch={epoch} batch={batch_index}")
             divisor = grad_accum_window_size(batch_index, total_batches, int(args.grad_accum_steps))
             (task_loss / float(divisor)).backward()
+            assert_phase2b_gradient_contract(
+                model,
+                soft_prompt_trainable=(not soft_frozen and bool(config.get("soft_prompt_trainable", True))),
+            )
             should_step = (batch_index % int(args.grad_accum_steps) == 0) or batch_index == total_batches
             if should_step:
-                torch.nn.utils.clip_grad_norm_(model.parameters(), float(config["grad_clip_norm"]))
+                clip_trainable_gradients(optimizer, float(config["grad_clip_norm"]))
                 optimizer.step(); optimizer.zero_grad(set_to_none=True); global_step += 1
             sums["loss"] += float(task_loss.detach()); sums["cls"] += float(cls_loss.detach()); sums["seg"] += float(seg_loss.detach()); sums["kg"] += float(kg_loss.detach()); sums["k"] += float(k_loss.detach()); count += 1
             elapsed = max(time.perf_counter() - epoch_started, 1e-9)

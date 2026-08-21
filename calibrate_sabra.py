@@ -664,6 +664,11 @@ def main(argv: list[str] | None = None) -> int:
 
     source = json.loads(args.source_calibration.read_text(encoding="utf-8"))
     validate_source_calibration(source)
+    source_backend = str(source["relational"]["backend"]).lower()
+    if str(args.backend).lower() != source_backend:
+        raise SystemExit(
+            f"lambda-selection backend {args.backend!r} does not match source backend {source_backend!r}"
+        )
     root = resolve_mvtec_root(args.mvtec_root)
     if root is None or not root.exists():
         raise SystemExit(f"MVTec root does not exist: {args.mvtec_root}")

@@ -14,6 +14,7 @@ from kornia.filters import gaussian_blur2d
 from .phase2b_legacy_bridge import (
     assert_canonical_config,
     assert_legacy_branch_disabled,
+    assert_phase2b_trainable_contract,
     build_adapter,
     load_adapter_state,
     runtime_audit,
@@ -125,7 +126,7 @@ def build_phase2b_trainable(config: Mapping[str, Any], clip_asset: str | Path, d
     model.hybrid_alpha_max = float(config.get("hybrid_alpha_max", 0.2))
     model.soft_prompt_freeze_epochs = int(config.get("soft_prompt_freeze_epochs", 3))
     model.prompt_mode = "hybrid" if model.use_hybrid_soft_prompt else "soft" if model.use_soft_prompt else "hard"
-    assert_legacy_branch_disabled(model)
+    assert_phase2b_trainable_contract(model, soft_prompt_trainable=False)
     return model
 
 

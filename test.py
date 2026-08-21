@@ -12,6 +12,7 @@ from typing import Any, Iterable, Mapping
 
 import numpy as np
 import torch
+from torch.utils.data import DataLoader, Dataset
 from tqdm.auto import tqdm
 
 from dataset import get_text_and_image_dataset
@@ -107,19 +108,49 @@ def _iter_medical(dataset: str, data_root: Path) -> Iterable[dict[str, Any]]:
             }
 
 
-def _iter_samples(dataset: str, data_root: Path | None) -> Iterable[dict[str, Any]]:
+class _MedicalSampleDataset(Dataset):
+    """Map-style Medical adapter preserving the historical class/sample order."""
+
+    def __init__(self, dataset: str, data_root: Path) -> None:
+        os.environ.setdefault("ACDCLIP_DATA_ROOT", str(data_root.expanduser().resolve()))
+        datasets = get_text_and_image_dataset(dataset, 518, stage="test")
+        self.datasets = datasets
+        self.entries = [
+            (class_name, index)
+            for class_name, class_dataset in datasets.items()
+            for index in range(len(class_dataset))
+        ]
+
+    def __len__(self) -> int:
+        return len(self.entries)
+
+    def __getitem__(self, index: int) -> dict[str, Any]:
+        class_name, sample_index = self.entries[int(index)]
+        sample = self.datasets[class_name][sample_index]
+        return {
+            "image": sample["image"],
+            "mask": sample["mask"],
+            "label": int(sample["label"]),
+            "class_name": class_name,
+            "image_path": sample["file_name"],
+        }
+
+
+def _build_inference_dataset(dataset: str, data_root: Path | None) -> Dataset:
     if dataset == "MVTec":
         root = resolve_mvtec_root(data_root)
         if root is None:
             raise ValueError("MVTec evaluation requires --data-root/--mvtec-root or ACDCLIP_MVTEC_ROOT")
-        yield from MVTecDatasetAdapter(root)
-        return
+        return MVTecDatasetAdapter(root)
     if is_medical_dataset(dataset):
         if data_root is None:
             raise ValueError("Medical evaluation requires --data-root")
-        yield from _iter_medical(dataset, data_root)
-        return
+        return _MedicalSampleDataset(dataset, data_root)
     raise ValueError(f"unsupported evaluation dataset: {dataset}")
+
+
+def _iter_samples(dataset: str, data_root: Path | None) -> Iterable[dict[str, Any]]:
+    yield from _build_inference_dataset(dataset, data_root)
 
 
 def _verify_selected_checkpoint(selection: Mapping[str, Any]) -> tuple[Path, str]:
@@ -167,6 +198,10 @@ def run_model_records(
     device: torch.device,
     method: str,
     *,
+    batch_size: int = 6,
+    num_workers: int = 4,
+    prefetch_factor: int = 2,
+    pin_memory: bool | None = None,
     runtime_stats: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     checkpoint_path, checkpoint_sha = _verify_selected_checkpoint(selection)
@@ -178,47 +213,75 @@ def run_model_records(
     started = time.perf_counter()
     if device.type == "cuda" and torch.cuda.is_available():
         torch.cuda.reset_peak_memory_stats(device)
-    samples = _iter_samples(dataset, data_root)
-    progress = tqdm(samples, desc=f"{dataset} {method}", unit="img")
+    inference_dataset = _build_inference_dataset(dataset, data_root)
+    loader_kwargs: dict[str, Any] = {
+        "batch_size": int(batch_size),
+        "shuffle": False,
+        "num_workers": int(num_workers),
+        "pin_memory": bool(device.type == "cuda" if pin_memory is None else pin_memory),
+    }
+    if int(num_workers) > 0:
+        loader_kwargs["persistent_workers"] = True
+        loader_kwargs["prefetch_factor"] = int(prefetch_factor)
+    loader = DataLoader(inference_dataset, **loader_kwargs)
+    progress = tqdm(total=len(inference_dataset), desc=f"{dataset} {method}", unit="img")
     try:
-        for sample in progress:
-            image = sample["image"].unsqueeze(0).to(device, non_blocking=device.type == "cuda").float()
+        for batch in loader:
+            image = batch["image"].to(device, non_blocking=device.type == "cuda").float()
+            class_names = [str(value) for value in batch["class_name"]]
             forward = forward_phase2b(
                 model,
                 image,
-                [sample["class_name"]],
+                class_names,
                 device,
                 config,
                 domain=domain,
                 require_grad=False,
                 dataset_name=dataset,
             )
-            native_pixels = forward.deployed_segmentation_probability[0].detach().cpu().numpy().astype(np.float32)
-            native_cls = float(forward.classification_probability[0].detach().cpu())
-            payload: dict[str, Any] = {
-                "class_name": sample["class_name"],
-                "pixel_labels": sample["mask"].reshape(-1).numpy().astype(np.int8),
-                "image_labels": np.asarray([sample["label"]], dtype=np.int8),
-                "image_path": sample["image_path"],
-                "phase2b": {
-                    "pixel_scores": native_pixels.reshape(-1),
-                    "image_scores": np.asarray([image_score(native_cls, float(native_pixels.max()), domain)]),
-                },
-            }
+            native_pixels = forward.deployed_segmentation_probability.detach().cpu().numpy().astype(np.float32)
+            native_cls = forward.classification_probability.detach().cpu().numpy().astype(np.float32)
+            masks = batch["mask"].detach().cpu().numpy().astype(np.int8)
+            labels = batch["label"].detach().cpu().numpy().reshape(-1).astype(np.int8)
+            paths = [str(value) for value in batch["image_path"]]
+            corrected_pixels: np.ndarray | None = None
             if method in {"sabra", "compare"}:
                 if freeze is None:
                     raise ValueError("SABRA method requires a validated freeze")
+                # compare_forward consumes this single Batch-6 Phase2B forward.
                 composed = compare_forward(forward, freeze, domain=domain)
-                corrected_pixels = composed["corrected_probability"][0].detach().cpu().numpy().astype(np.float32)
-                payload["sabra"] = {
-                    "pixel_scores": corrected_pixels.reshape(-1),
-                    "image_scores": np.asarray([image_score(native_cls, float(corrected_pixels.max()), domain)]),
+                corrected_pixels = composed["corrected_probability"].detach().cpu().numpy().astype(np.float32)
+            for index, class_name in enumerate(class_names):
+                native_pixel = native_pixels[index]
+                native_image_score = image_score(float(native_cls[index]), float(native_pixel.max()), domain)
+                payload: dict[str, Any] = {
+                    "class_name": class_name,
+                    "pixel_labels": masks[index].reshape(-1),
+                    "image_labels": np.asarray([labels[index]], dtype=np.int8),
+                    "image_path": paths[index],
+                    "phase2b": {
+                        "pixel_scores": native_pixel.reshape(-1),
+                        "image_scores": np.asarray([native_image_score]),
+                    },
                 }
-            if method == "phase2b":
-                payload = {**payload, "pixel_scores": payload["phase2b"]["pixel_scores"], "image_scores": payload["phase2b"]["image_scores"]}
-            records.append(payload)
+                if corrected_pixels is not None:
+                    corrected_pixel = corrected_pixels[index]
+                    payload["sabra"] = {
+                        "pixel_scores": corrected_pixel.reshape(-1),
+                        "image_scores": np.asarray([image_score(float(native_cls[index]), float(corrected_pixel.max()), domain)]),
+                    }
+                if method == "phase2b":
+                    payload = {
+                        **payload,
+                        "pixel_scores": payload["phase2b"]["pixel_scores"],
+                        "image_scores": payload["phase2b"]["image_scores"],
+                    }
+                records.append(payload)
+            progress.update(len(class_names))
             elapsed = max(time.perf_counter() - started, 1e-9)
-            progress.set_postfix({"img/s": f"{len(records) / elapsed:.2f}"})
+            rate = len(records) / elapsed
+            remaining = max(len(inference_dataset) - len(records), 0)
+            progress.set_postfix({"img/s": f"{rate:.2f}", "eta": f"{remaining / max(rate, 1e-9):.0f}s"})
     finally:
         progress.close()
         del model
@@ -269,6 +332,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--config", type=Path, default=Path("configs/phase2b_canonical_v1.json"))
     parser.add_argument("--clip-asset", type=Path)
     parser.add_argument("--device", default="cuda")
+    parser.add_argument("--batch-size", type=int, default=6)
+    parser.add_argument("--num-workers", type=int, default=4)
+    parser.add_argument("--prefetch-factor", type=int, default=2)
+    parser.add_argument("--pin-memory", action=argparse.BooleanOptionalAction, default=None)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--metric-mode", choices=["exact"], default="exact")
     parser.add_argument("--pixel-stride", type=int, default=1)
@@ -307,6 +374,10 @@ def main(argv: list[str] | None = None) -> int:
             args.clip_asset,
             torch.device(args.device),
             args.method,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            prefetch_factor=args.prefetch_factor,
+            pin_memory=args.pin_memory,
             runtime_stats=runtime,
         )
     result = evaluate_records(

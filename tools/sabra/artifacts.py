@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from .correction import validate_lambda
-from .relational import FEATURE_ORDER, NEED_ORDER
+from .relational import BACKEND_VERSION, FEATURE_ORDER, NEED_ORDER
 
 PROTOCOL_VERSION = "SABRA_CANONICAL_V1"
 METRIC_FORMULA = ".35*pAUROC+.35*pAP+.15*iAUROC+.15*iAP"
@@ -81,6 +81,11 @@ def validate_source_calibration(payload: Mapping[str, Any]) -> None:
         raise ValueError("relational implementation identity mismatch")
     if int(relational.get("peer_count", -1)) != 8:
         raise ValueError("relational peer count must be eight")
+    backend = str(relational.get("backend", "")).lower()
+    if backend not in {"exact", "fast"}:
+        raise ValueError("relational backend provenance must be exact or fast")
+    if relational.get("backend_version") != BACKEND_VERSION:
+        raise ValueError("relational backend version mismatch")
     _validate_predictor("Trust", payload.get("trust", {}), FEATURE_ORDER)
     _validate_predictor("Need", payload.get("need", {}), NEED_ORDER)
     margin = payload.get("margin_scale", {})
@@ -171,6 +176,11 @@ def validate_sabra_freeze(payload: Mapping[str, Any], checkpoint_sha256: str | N
         raise ValueError("relational implementation identity mismatch")
     if int(relational.get("peer_count", -1)) != 8:
         raise ValueError("relational peer count must be eight")
+    backend = str(relational.get("backend", "")).lower()
+    if backend not in {"exact", "fast"}:
+        raise ValueError("frozen relational backend must be exact or fast")
+    if relational.get("backend_version") != BACKEND_VERSION:
+        raise ValueError("frozen relational backend version mismatch")
     correction = payload.get("correction", {})
     if correction.get("authority") != "T*N":
         raise ValueError("Authority must be T*N")

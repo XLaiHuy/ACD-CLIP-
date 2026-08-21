@@ -144,7 +144,7 @@ def _write_selection(output_dir: Path, candidates: list[dict[str, Any]], selecte
         "selected_epoch": int(selected["epoch"]),
         "selected_checkpoint": str(selected["path"]),
         "selected_checkpoint_sha256": selected_output["sha256"],
-        "evaluator": {"exact": True, "external_memory_ready": True, "pixel_stride": 1, "image_score_contract": "domain-specific frozen contract", "code_sha": code_sha},
+        "evaluator": {"exact": True, "external_memory_ready": False, "storage": "host-memory exact accumulation", "pixel_stride": 1, "image_score_contract": "domain-specific frozen contract", "code_sha": code_sha},
     }
     (output_dir / "phase2b_selection.json").write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     with (output_dir / "phase2b_selection_metrics.csv").open("w", newline="", encoding="utf-8") as handle:

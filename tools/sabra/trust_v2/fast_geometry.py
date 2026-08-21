@@ -181,7 +181,9 @@ def _batched_pgm_pcrr(c: np.ndarray, packed: np.ndarray) -> tuple[dict[str, np.n
     c = np.asarray(c, dtype=np.float32)
     packed = np.asarray(packed, dtype=np.float32)
     if not torch.cuda.is_available():
-        pgm = exact.base.pgm_raw(c, packed)
+        # CPU FAST is an execution shortcut only: fixed.pgm_raw is the
+        # authoritative PGM implementation used by the exact backend.
+        pgm = exact.fixed.pgm_raw(c, packed)
         pcrr = exact.base.pcrr_raw(c, packed)
         return pgm, pcrr
     device = torch.device("cuda")

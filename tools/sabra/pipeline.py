@@ -23,7 +23,12 @@ def corrected_from_forward(
     validate_sabra_freeze(freeze)
     native = forward.native_logits.detach()
     features = forward.seg_features.detach()
-    selected_backend = str(backend or freeze.get("relational", {}).get("backend", "fast"))
+    stored_backend = str(freeze["relational"]["backend"]).lower()
+    if backend is not None and str(backend).lower() != stored_backend:
+        raise ValueError(
+            f"requested SABRA backend {backend!r} does not match frozen backend {stored_backend!r}"
+        )
+    selected_backend = stored_backend
     corrections: list[np.ndarray] = []
     trust_values: list[np.ndarray] = []
     need_values: list[np.ndarray] = []
