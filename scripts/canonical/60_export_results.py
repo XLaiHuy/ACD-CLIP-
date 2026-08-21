@@ -191,9 +191,9 @@ def export_results(
     if freeze.get("relational", {}).get("backend") != "fast":
         raise ValueError("canonical export requires frozen SABRA backend=fast")
 
-    from dataset.info import CLASS_NAMES, is_medical_dataset
+    from dataset.info import MEDICAL_EVAL_PATHS
 
-    medical_datasets = tuple(name for name in CLASS_NAMES if is_medical_dataset(name))
+    medical_datasets = tuple(MEDICAL_EVAL_PATHS)
     rows: list[dict[str, Any]] = []
     phase2b_classes: list[dict[str, float | None]] = []
     sabra_classes: list[dict[str, float | None]] = []

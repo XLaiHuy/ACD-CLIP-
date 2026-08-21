@@ -52,11 +52,10 @@ print(f"MEDICAL_GUARD=PASS checkpoint_sha256={actual} backend=fast medical_seen=
 PY
 
 medical_names="$($PYTHON - <<'PY'
-from dataset.info import CLASS_NAMES, is_medical_dataset
+from dataset.info import MEDICAL_EVAL_PATHS
 
-for name in CLASS_NAMES:
-    if is_medical_dataset(name):
-        print(name)
+for name in MEDICAL_EVAL_PATHS:
+    print(name)
 PY
 )"
 [[ -n "$medical_names" ]] || die "authoritative Medical dataset metadata returned no datasets"

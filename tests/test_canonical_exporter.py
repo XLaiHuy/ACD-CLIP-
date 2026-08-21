@@ -29,6 +29,33 @@ def test_macro_aggregation_ignores_only_null_values() -> None:
     assert EXPORTER._mean_defined(rows) == {"pAUROC": 0.4, "pAP": 0.6000000000000001, "iAUROC": 0.5, "iAP": 0.7}
 
 
+def test_canonical_medical_workflow_uses_evaluation_metadata() -> None:
+    from dataset.info import MEDICAL_EVAL_PATHS
+
+    expected = (
+        "Brain",
+        "Liver",
+        "Retina",
+        "Colon_clinicDB",
+        "Colon_colonDB",
+        "Colon_Kvasir",
+    )
+    canonical = tuple(MEDICAL_EVAL_PATHS)
+    assert canonical == expected
+    assert "Colon_cvc300" not in canonical
+
+    medical_script = (ROOT / "scripts/canonical/50_eval_medical.sh").read_text(encoding="utf-8")
+    exporter_script = (ROOT / "scripts/canonical/60_export_results.py").read_text(encoding="utf-8")
+    assert "from dataset.info import MEDICAL_EVAL_PATHS" in medical_script
+    assert "for name in MEDICAL_EVAL_PATHS:" in medical_script
+    assert "medical_datasets = tuple(MEDICAL_EVAL_PATHS)" in exporter_script
+    assert "CLASS_NAMES, is_medical_dataset" not in medical_script
+    assert "CLASS_NAMES, is_medical_dataset" not in exporter_script
+
+    required_metrics = {ROOT / "medical" / dataset / "metrics.json" for dataset in canonical}
+    assert ROOT / "medical" / "Colon_cvc300" / "metrics.json" not in required_metrics
+
+
 def _workflow_path_allowed(path: str) -> bool:
     common = ROOT / "scripts/canonical/common.sh"
     result = subprocess.run(
