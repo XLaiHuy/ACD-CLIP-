@@ -869,7 +869,7 @@ def main():
     model.hybrid_alpha_current = 0.0 if args.hybrid_alpha is None else float(args.hybrid_alpha)
     ckp_files = preflight_files
     for file in ckp_files:
-        checkpoint = torch.load(file, map_location=device)
+        checkpoint = torch.load(file, map_location=device, weights_only=False)
         if checkpoint.get("dfg_mode", args.dfg_mode) != args.dfg_mode:
             raise ValueError(
                 f"Checkpoint DFG mode is {checkpoint['dfg_mode']!r}, "
