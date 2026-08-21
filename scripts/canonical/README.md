@@ -1,9 +1,11 @@
 # Canonical Phase2B + SABRA execution package
 
 This package is a reproducible, stage-gated wrapper around the canonical
-research entry points.  It is pinned to code SHA
-`4aa9b465ddeb072e9218b74982306d6324c62375` and does not duplicate model or
-metric implementation.
+research entry points.  The scientific implementation identity is pinned to
+`4aa9b465ddeb072e9218b74982306d6324c62375`; the workflow-package identity is
+derived from the current repository `HEAD` at runtime.  The guard accepts
+workflow-only commits layered above the scientific SHA and does not duplicate
+model or metric implementation.
 
 ## Required environment
 
@@ -21,8 +23,12 @@ export MEDICAL_ROOT=/path/to/medical_root
 `MVTEC_ROOT` is required for checkpoint selection and lambda selection.
 `MEDICAL_ROOT` is required only for the final Medical stage.  The same values
 can be supplied as `--mvtec-root`, `--medical-root`, and `--run-root` options.
-The scripts refuse a different Git HEAD unless `ALLOW_DIRTY_CODE=1` is set;
-that override prints a loud warning and is intended only for an explicit audit.
+The scripts require the scientific SHA to be an ancestor of `HEAD` and reject
+any committed path changed since it unless it is under `scripts/canonical/**`
+or `tests/test_canonical_exporter.py`.  Tracked working-tree changes are
+rejected by default; the known `.codebase-memory/**` generated files remain
+excluded.  `ALLOW_DIRTY_CODE=1` is an explicit emergency override, prints a
+loud warning, and marks scientific identity verification false.
 
 ## Recommended first scientific execution
 
@@ -43,6 +49,7 @@ export RUN_ROOT=/home/ai4/caohuy/acdclip_runs/canonical_sabra_v1_seed0
 # STOP AND INSPECT: $RUN_ROOT/sabra_lambda/SABRA_FREEZE.json
 ./scripts/canonical/run_pipeline.sh medical
 ./scripts/canonical/run_pipeline.sh export
+```
 
 ## Preflight
 
@@ -50,8 +57,10 @@ export RUN_ROOT=/home/ai4/caohuy/acdclip_runs/canonical_sabra_v1_seed0
 ./scripts/canonical/run_pipeline.sh preflight
 ```
 
-Preflight checks the pinned SHA, Python/Torch/CUDA, GPU, hydrated CLIP asset,
-VisA, and the canonical config.  If `MVTEC_ROOT` is set it invokes the
+Preflight checks the scientific SHA lineage, current workflow-package SHA,
+Python/Torch/CUDA, GPU, hydrated CLIP asset, VisA, and the canonical config.
+It records both provenance identities plus `scientific_code_verified=true`.
+If `MVTEC_ROOT` is set it invokes the
 existing read-only MVTec adapter preflight.  `MEDICAL_ROOT`, when set, is only
 checked as a directory; no Medical samples are opened.  The real preflight
 writes `manifests/preflight.json` without Medical statistics.

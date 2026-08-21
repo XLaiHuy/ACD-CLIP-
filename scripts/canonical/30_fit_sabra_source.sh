@@ -51,7 +51,7 @@ fit_cmd=(
   --num-workers 4
   --prefetch-factor 2
   --backend fast
-  --git-sha "$CANONICAL_SHA"
+  --git-sha "$SCIENTIFIC_CODE_SHA"
 )
 run_logged "$RUN_ROOT/logs/sabra_fit_source.log" "${fit_cmd[@]}"
 
@@ -62,7 +62,7 @@ else
   require_file "$source_dir/GT_TARGET_MANIFEST.json"
   require_file "$source_json"
   require_dir "$source_dir/gt_free_cache"
-  "$PYTHON" - "$selection_json" "$source_json" "$source_dir/GT_FREE_MANIFEST.json" "$source_dir/GT_TARGET_MANIFEST.json" "$CANONICAL_SHA" <<'PY'
+  "$PYTHON" - "$selection_json" "$source_json" "$source_dir/GT_FREE_MANIFEST.json" "$source_dir/GT_TARGET_MANIFEST.json" "$SCIENTIFIC_CODE_SHA" <<'PY'
 import sys
 from pathlib import Path
 
@@ -76,7 +76,7 @@ gt_target = load_json(sys.argv[4])
 expected_code_sha = sys.argv[5]
 validate_source_calibration(source)
 if source.get("provenance", {}).get("git_sha") != expected_code_sha:
-    raise SystemExit("source calibration provenance SHA differs from canonical HEAD")
+    raise SystemExit("source calibration provenance SHA differs from scientific code SHA")
 if source["phase2b"]["checkpoint_sha256"] != selection["selected_checkpoint_sha256"]:
     raise SystemExit("source calibration checkpoint SHA256 differs from Phase2B selection")
 if source.get("relational", {}).get("backend") != "fast":

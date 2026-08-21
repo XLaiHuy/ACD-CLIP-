@@ -18,7 +18,7 @@ freeze_json="$RUN_ROOT/sabra_lambda/SABRA_FREEZE.json"
 require_file "$selection_json"
 require_file "$freeze_json"
 
-"$PYTHON" - "$selection_json" "$freeze_json" "$CANONICAL_SHA" <<'PY'
+"$PYTHON" - "$selection_json" "$freeze_json" "$SCIENTIFIC_CODE_SHA" <<'PY'
 import hashlib
 import sys
 from pathlib import Path
@@ -29,7 +29,7 @@ selection = load_json(sys.argv[1])
 freeze = load_json(sys.argv[2])
 expected_code_sha = sys.argv[3]
 if freeze.get("provenance", {}).get("git_sha") != expected_code_sha:
-    raise SystemExit("SABRA freeze provenance SHA differs from canonical HEAD")
+    raise SystemExit("SABRA freeze provenance SHA differs from scientific code SHA")
 if selection.get("status") != "FROZEN":
     raise SystemExit("Phase2B selection must be FROZEN before Medical evaluation")
 checkpoint = Path(str(selection.get("selected_checkpoint", ""))).expanduser()

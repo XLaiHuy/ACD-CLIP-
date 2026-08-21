@@ -34,7 +34,7 @@ run_stage() {
 }
 
 run_export() {
-  export_cmd=("$PYTHON" "$SCRIPT_DIR/60_export_results.py" --run-root "$RUN_ROOT" --code-sha "$CANONICAL_SHA")
+  export_cmd=("$PYTHON" "$SCRIPT_DIR/60_export_results.py" --run-root "$RUN_ROOT" --code-sha "$SCIENTIFIC_CODE_SHA")
   if [[ -n "$ACDCLIP_REFERENCE_JSON" ]]; then
     export_cmd+=(--acdclip-reference-json "$ACDCLIP_REFERENCE_JSON")
   fi

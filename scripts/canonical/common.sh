@@ -5,7 +5,9 @@ set -euo pipefail
 # This file contains orchestration/validation only; scientific logic remains
 # in train.py, select_phase2b_checkpoint.py, calibrate_sabra.py, and test.py.
 
-CANONICAL_SHA="4aa9b465ddeb072e9218b74982306d6324c62375"
+SCIENTIFIC_CODE_SHA="4aa9b465ddeb072e9218b74982306d6324c62375"
+WORKFLOW_PACKAGE_SHA=""
+SCIENTIFIC_CODE_VERIFIED="0"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "${SCRIPT_DIR}/../.." && pwd)"
 
@@ -26,6 +28,7 @@ COMMON_ARGS=()
 
 export PYTHONUNBUFFERED=1
 export PYTHON CLIP_ASSET VISA_ROOT RUN_ROOT CONFIG MVTEC_ROOT MEDICAL_ROOT
+export SCIENTIFIC_CODE_SHA WORKFLOW_PACKAGE_SHA SCIENTIFIC_CODE_VERIFIED
 export ALLOW_DIRTY_CODE DRY_RUN FORCE_RERUN RESUME_CHECKPOINT EXPORT_FORCE ACDCLIP_REFERENCE_JSON PYTHONUNBUFFERED
 
 die() {
@@ -94,25 +97,91 @@ parse_common_args() {
   export ALLOW_DIRTY_CODE DRY_RUN FORCE_RERUN RESUME_CHECKPOINT EXPORT_FORCE ACDCLIP_REFERENCE_JSON
 }
 
-check_code_sha() {
-  local actual
-  actual="$(git -C "$REPO_ROOT" rev-parse HEAD)" || die "not a Git worktree: $REPO_ROOT"
-  if [[ "$actual" != "$CANONICAL_SHA" ]]; then
-    if [[ "$ALLOW_DIRTY_CODE" == "1" ]]; then
-      warn "ALLOW_DIRTY_CODE=1: HEAD=$actual, expected canonical SHA=$CANONICAL_SHA"
-    else
-      die "HEAD=$actual; expected canonical SHA=$CANONICAL_SHA (set ALLOW_DIRTY_CODE=1 only for an explicit audit)"
-    fi
+workflow_path_allowed() {
+  case "$1" in
+    scripts/canonical/*|tests/test_canonical_exporter.py) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+generated_untracked_path_allowed() {
+  case "$1" in
+    .codebase-memory|.codebase-memory/*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+provenance_override_or_die() {
+  local message="$1"
+  if [[ "$ALLOW_DIRTY_CODE" == "1" ]]; then
+    warn "ALLOW_DIRTY_CODE=1: $message"
+    SCIENTIFIC_CODE_VERIFIED="0"
+    return 0
   fi
-  export ACTUAL_CODE_SHA="$actual"
+  die "$message (set ALLOW_DIRTY_CODE=1 only for an explicit audit)"
+}
+
+check_workflow_lineage() {
+  SCIENTIFIC_CODE_VERIFIED="1"
+  WORKFLOW_PACKAGE_SHA="$(git -C "$REPO_ROOT" rev-parse HEAD)" || die "not a Git worktree: $REPO_ROOT"
+  git -C "$REPO_ROOT" rev-parse --verify "${SCIENTIFIC_CODE_SHA}^{commit}" >/dev/null 2>&1 \
+    || die "scientific code SHA is not present in repository history: $SCIENTIFIC_CODE_SHA"
+  if ! git -C "$REPO_ROOT" merge-base --is-ancestor "$SCIENTIFIC_CODE_SHA" "$WORKFLOW_PACKAGE_SHA"; then
+    provenance_override_or_die "scientific code SHA $SCIENTIFIC_CODE_SHA is not an ancestor of workflow HEAD $WORKFLOW_PACKAGE_SHA"
+  fi
+
+  local changed_path
+  local -a changed_paths=()
+  local -a disallowed_paths=()
+  mapfile -t changed_paths < <(git -C "$REPO_ROOT" diff --name-only "${SCIENTIFIC_CODE_SHA}..${WORKFLOW_PACKAGE_SHA}")
+  for changed_path in "${changed_paths[@]}"; do
+    [[ -z "$changed_path" ]] && continue
+    if ! workflow_path_allowed "$changed_path"; then
+      disallowed_paths+=("$changed_path")
+    fi
+  done
+  if ((${#disallowed_paths[@]} > 0)); then
+    provenance_override_or_die "non-workflow paths changed since $SCIENTIFIC_CODE_SHA: ${disallowed_paths[*]}"
+  fi
+  if [[ "$SCIENTIFIC_CODE_VERIFIED" != "0" ]]; then
+    SCIENTIFIC_CODE_VERIFIED="1"
+  fi
+}
+
+check_tracked_worktree() {
+  local status_line
+  local status_code
+  local status_path
+  local -a dirty_lines=()
+  local -a disallowed_dirty=()
+  mapfile -t dirty_lines < <(git -C "$REPO_ROOT" status --porcelain=v1 --untracked-files=all)
+  for status_line in "${dirty_lines[@]}"; do
+    [[ -z "$status_line" ]] && continue
+    status_code="${status_line:0:2}"
+    status_path="${status_line:3}"
+    if [[ "$status_code" == "??" ]] && { generated_untracked_path_allowed "$status_path" || workflow_path_allowed "$status_path"; }; then
+      continue
+    fi
+    disallowed_dirty+=("$status_line")
+  done
+  if ((${#disallowed_dirty[@]} > 0)); then
+    provenance_override_or_die "tracked or unexpected dirty files: ${disallowed_dirty[*]}"
+  fi
 }
 
 init_common() {
   parse_common_args "$@"
-  check_code_sha
+  check_workflow_lineage
+  check_tracked_worktree
   cd "$REPO_ROOT"
   printf '[canonical] repo=%s\n' "$REPO_ROOT"
-  printf '[canonical] code_sha=%s\n' "$ACTUAL_CODE_SHA"
+  printf '[canonical] scientific_code_sha=%s\n' "$SCIENTIFIC_CODE_SHA"
+  printf '[canonical] workflow_package_sha=%s\n' "$WORKFLOW_PACKAGE_SHA"
+  if [[ "$SCIENTIFIC_CODE_VERIFIED" == "1" ]]; then
+    printf '[canonical] scientific_code_verified=true\n'
+  else
+    printf '[canonical] scientific_code_verified=false\n'
+  fi
   printf '[canonical] run_root=%s\n' "$RUN_ROOT"
   if [[ "$DRY_RUN" == "1" ]]; then
     printf '[canonical] DRY_RUN=1 (commands will be printed, model stages will not execute)\n'

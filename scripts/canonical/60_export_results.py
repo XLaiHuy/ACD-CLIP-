@@ -22,7 +22,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 
-EXPECTED_CODE_SHA = "4aa9b465ddeb072e9218b74982306d6324c62375"
+SCIENTIFIC_CODE_SHA = "4aa9b465ddeb072e9218b74982306d6324c62375"
 METRIC_NAMES = ("pAUROC", "pAP", "iAUROC", "iAP")
 RAW_METRIC_NAMES = ("pixel_auroc", "pixel_ap", "image_auroc", "image_ap")
 
@@ -158,7 +158,7 @@ def _csv_value(value: Any) -> Any:
 def export_results(
     run_root: Path,
     *,
-    code_sha: str = EXPECTED_CODE_SHA,
+    code_sha: str = SCIENTIFIC_CODE_SHA,
     acdclip_reference: Path | None = None,
     force: bool = False,
     dry_run: bool = False,
@@ -226,8 +226,13 @@ def export_results(
     if not preflight_path.is_file():
         raise FileNotFoundError(f"missing required preflight manifest: {preflight_path}")
     preflight = load_json(preflight_path)
-    if preflight.get("git_sha") != code_sha:
-        raise ValueError("preflight manifest SHA does not match exporter code SHA")
+    if preflight.get("scientific_code_sha", preflight.get("git_sha")) != code_sha:
+        raise ValueError("preflight manifest scientific code SHA does not match exporter code SHA")
+    workflow_package_sha = preflight.get("workflow_package_sha")
+    if not isinstance(workflow_package_sha, str) or len(workflow_package_sha) != 40:
+        raise ValueError("preflight manifest lacks a valid workflow package SHA")
+    if preflight.get("scientific_code_verified") is not True:
+        raise ValueError("preflight manifest does not certify the scientific code identity")
     if preflight.get("cuda_available") is not True:
         raise ValueError("preflight manifest does not certify CUDA availability")
     if preflight.get("matmul_tf32") is not False or preflight.get("cudnn_tf32") is not False:
@@ -235,6 +240,9 @@ def export_results(
     sm_value = float(freeze["correction"]["margin_scale"])
     provenance = {
         "code_sha": code_sha,
+        "scientific_code_sha": code_sha,
+        "workflow_package_sha": workflow_package_sha,
+        "scientific_code_verified": True,
         "phase2b_selected_epoch": int(selection["selected_epoch"]),
         "phase2b_selected_checkpoint": str(selected_checkpoint.resolve()),
         "phase2b_selected_checkpoint_sha256": selected_sha,
@@ -320,7 +328,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-root", type=Path, default=Path(os.environ.get("RUN_ROOT", "/home/ai4/caohuy/acdclip_runs/canonical_sabra_v1_seed0")))
     parser.add_argument("--acdclip-reference-json", type=Path)
-    parser.add_argument("--code-sha", default=EXPECTED_CODE_SHA)
+    parser.add_argument("--code-sha", default=SCIENTIFIC_CODE_SHA)
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)

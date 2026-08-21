@@ -20,7 +20,7 @@ require_file "$selection_json"
 require_file "$source_json"
 require_clean_stage_output "$freeze_json"
 
-"$PYTHON" - "$selection_json" "$source_json" "$CANONICAL_SHA" <<'PY'
+"$PYTHON" - "$selection_json" "$source_json" "$SCIENTIFIC_CODE_SHA" <<'PY'
 import hashlib
 import sys
 from pathlib import Path
@@ -31,7 +31,7 @@ selection = load_json(sys.argv[1])
 source = load_json(sys.argv[2])
 expected_code_sha = sys.argv[3]
 if source.get("provenance", {}).get("git_sha") != expected_code_sha:
-    raise SystemExit("source calibration provenance SHA differs from canonical HEAD")
+    raise SystemExit("source calibration provenance SHA differs from scientific code SHA")
 if selection.get("status") != "FROZEN":
     raise SystemExit("Phase2B selection must be FROZEN before lambda selection")
 validate_source_calibration(source)
@@ -61,7 +61,7 @@ lambda_cmd=(
   --prefetch-factor 2
   --lambda-chunk-size 8
   --backend fast
-  --git-sha "$CANONICAL_SHA"
+  --git-sha "$SCIENTIFIC_CODE_SHA"
 )
 run_logged "$RUN_ROOT/logs/sabra_lambda.log" "${lambda_cmd[@]}"
 
@@ -71,7 +71,7 @@ else
   require_file "$lambda_dir/lambda_selection.csv"
   require_file "$lambda_dir/lambda_runtime.json"
   require_file "$freeze_json"
-  "$PYTHON" - "$selection_json" "$source_json" "$freeze_json" "$CANONICAL_SHA" <<'PY'
+  "$PYTHON" - "$selection_json" "$source_json" "$freeze_json" "$SCIENTIFIC_CODE_SHA" <<'PY'
 import sys
 
 from tools.sabra.artifacts import load_json, validate_sabra_freeze, validate_source_calibration
@@ -81,7 +81,7 @@ source = load_json(sys.argv[2])
 freeze = load_json(sys.argv[3])
 expected_code_sha = sys.argv[4]
 if freeze.get("provenance", {}).get("git_sha") != expected_code_sha:
-    raise SystemExit("SABRA freeze provenance SHA differs from canonical HEAD")
+    raise SystemExit("SABRA freeze provenance SHA differs from scientific code SHA")
 validate_source_calibration(source)
 validate_sabra_freeze(freeze, checkpoint_sha256=selection["selected_checkpoint_sha256"])
 if freeze["phase2b"]["selected_epoch"] != selection["selected_epoch"]:

@@ -84,7 +84,7 @@ train_cmd=(
   --prefetch-factor 2
   --pin-memory
   --persistent-workers
-  --git-sha "$CANONICAL_SHA"
+  --git-sha "$SCIENTIFIC_CODE_SHA"
 )
 if [[ -n "$RESUME_CHECKPOINT" ]]; then
   train_cmd+=(--resume "$RESUME_CHECKPOINT")

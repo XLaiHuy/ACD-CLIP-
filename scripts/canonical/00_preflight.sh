@@ -16,7 +16,11 @@ if [[ -n "$MVTEC_ROOT" ]]; then
   mvtec_cmd=("$PYTHON" "$REPO_ROOT/select_phase2b_checkpoint.py" --mvtec-root "$MVTEC_ROOT" --preflight-only)
   # This is the existing read-only MVTec adapter preflight, not evaluation.
   print_command "${mvtec_cmd[@]}"
-  "${mvtec_cmd[@]}"
+  if [[ "$DRY_RUN" == "1" ]]; then
+    printf '[canonical] DRY_RUN: would run the read-only MVTec adapter preflight\n'
+  else
+    "${mvtec_cmd[@]}"
+  fi
 fi
 
 if [[ -n "$MEDICAL_ROOT" ]]; then
@@ -32,7 +36,7 @@ if [[ "$DRY_RUN" == "1" ]]; then
 else
   mkdir -p "$(dirname -- "$manifest")"
 fi
-"$PYTHON" - "$manifest" "$CANONICAL_SHA" "$ACTUAL_CODE_SHA" "$PYTHON" "$CLIP_ASSET" "$VISA_ROOT" "$MVTEC_ROOT" "$CONFIG" "$DRY_RUN" <<'PY'
+"$PYTHON" - "$manifest" "$SCIENTIFIC_CODE_SHA" "$WORKFLOW_PACKAGE_SHA" "$SCIENTIFIC_CODE_VERIFIED" "$PYTHON" "$CLIP_ASSET" "$VISA_ROOT" "$MVTEC_ROOT" "$CONFIG" "$DRY_RUN" <<'PY'
 import hashlib
 import json
 import platform
@@ -47,14 +51,15 @@ import torch
 
 
 manifest_path = Path(sys.argv[1])
-git_sha = sys.argv[2]
-actual_git_sha = sys.argv[3]
-dry_run = sys.argv[9] == "1"
-python_path = sys.argv[4]
-clip_path = Path(sys.argv[5]).expanduser().resolve()
-visa_path = Path(sys.argv[6]).expanduser().resolve()
-mvtec_raw = sys.argv[7]
-config_path = Path(sys.argv[8]).expanduser().resolve()
+scientific_code_sha = sys.argv[2]
+workflow_package_sha = sys.argv[3]
+scientific_code_verified = sys.argv[4] == "1"
+dry_run = sys.argv[10] == "1"
+python_path = sys.argv[5]
+clip_path = Path(sys.argv[6]).expanduser().resolve()
+visa_path = Path(sys.argv[7]).expanduser().resolve()
+mvtec_raw = sys.argv[8]
+config_path = Path(sys.argv[9]).expanduser().resolve()
 
 
 def sha256_file(path: Path) -> str:
@@ -107,8 +112,10 @@ if bool(torch.backends.cuda.matmul.allow_tf32) or bool(torch.backends.cudnn.allo
 gpu = torch.cuda.get_device_name(0) if cuda_available else None
 vram = (torch.cuda.get_device_properties(0).total_memory / 1024**3) if cuda_available else None
 payload = {
-    "git_sha": git_sha,
-    "actual_git_sha": actual_git_sha,
+    "git_sha": scientific_code_sha,
+    "scientific_code_sha": scientific_code_sha,
+    "workflow_package_sha": workflow_package_sha,
+    "scientific_code_verified": scientific_code_verified,
     "python": python_path,
     "python_version": platform.python_version(),
     "torch": torch.__version__,
