@@ -193,3 +193,16 @@ status:
 - Medical accessed: no.
 - fix commit: pending the immediately following commit.
 - status: FIXED.
+### R0 Implementation Publication and Probe Authorization
+
+- timestamp: `2026-08-23T01:30:55+07:00`
+- implementation/fix commit: `252534bc71d548b3c2a8f91128e0379cff2906bf`
+- local HEAD equals remote HEAD: yes
+- R0-ENG-001 fix commit: `252534bc71d548b3c2a8f91128e0379cff2906bf`
+- invalid partial artifact removed: untracked `tools/sabra_car/r0_direction.py.orig`, a patch-tool backup with no scientific content
+- tests: 11 passed
+- next command: one bounded batch of eight cached VisA images for utility throughput and parity timing
+- expected probe runtime: at most 5 minutes
+- session time remaining: unavailable; not invented
+- Medical accessed: no
+- Phase2B training steps: 0
