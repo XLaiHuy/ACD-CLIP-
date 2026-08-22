@@ -156,3 +156,40 @@ NOTES:
 - scientific changes after result observation: none; no R0 experiment has run.
 - Medical accessed: no.
 - next action: commit and push this definition, then implement the additive R0 sidecar and regression tests.
+### R0 Engineering Bug R0-ENG-001
+
+BUG_ID:
+R0-ENG-001
+
+symptom:
+- Targeted test collection failed with `ModuleNotFoundError: No module named 'sklearn'`.
+
+root cause:
+- The initial sidecar used an undeclared scikit-learn runtime dependency that is absent from the frozen canonical environment.
+
+scientific impact:
+- None. The failure occurred during test collection before cache validation, GT access, utility computation, or any scientific result.
+
+fix:
+- Replace scikit-learn metrics with vectorized exact descending-score group formulas matching canonical tie-aware AP/AUROC semantics.
+
+regression test:
+- `test_vectorized_metrics_match_canonical_tie_semantics`
+
+fix commit:
+- Pending this fix commit.
+
+status:
+- FIX IMPLEMENTED; validation pending.
+### R0-ENG-001 Validation
+
+- timestamp: `2026-08-23T01:25:08+07:00`
+- root-cause fix: dependency-free vectorized exact grouped AP/AUROC.
+- regression test: `test_vectorized_metrics_match_canonical_tie_semantics` PASS.
+- affected suite: `tests/test_car_r0_direction.py tests/test_phase2b_runtime.py tests/test_sabra_trust_need.py`.
+- observed: 11 passed.
+- scientific contract/parity status: PASS.
+- scientific results observed: none.
+- Medical accessed: no.
+- fix commit: pending the immediately following commit.
+- status: FIXED.
