@@ -282,3 +282,25 @@ status:
 - Phase2B training steps: 0
 - execution mode: one blocking command
 - next action: run the complete fixed alpha landscape, then audit every emitted row before radius probing
+
+### R0 Alpha Landscape Result
+
+- timestamp: `2026-08-23T01:57:27+07:00`
+- elapsed runtime: 804.4572036098689 seconds
+- audited rows: 132 per-class rows; 12 classes; 11 condition labels including alpha-zero aliases
+- all pAP, pAUROC, and loss values finite: yes
+- selected signed alpha: 0.25
+- signed macro pAP: 0.626144040476265
+- matched positive-only macro pAP: 0.6158246330733695
+- signed minus positive-only macro pAP: +1.0319407402895497 pp
+- G1 precursor: PASS
+- signed-better class breadth versus positive-only: 12/12
+- G2 precursor: PASS
+- signed minus positive-only macro pAUROC: +0.23619865972595022 pp
+- G3 precursor: PASS
+- signed minus native macro pAP: +5.620394793869831 pp
+- signed-better class breadth versus native: 12/12
+- result status: ALPHA PASS; final R0 decision remains pending signed-radius and quadrant artifacts
+- Medical accessed: no (`medical_reads=0`)
+- Phase2B training steps: 0
+- next action: publish the alpha artifacts, then run the preregistered real-image sparse-radius parity/timing probe
