@@ -206,3 +206,21 @@ status:
 - session time remaining: unavailable; not invented
 - Medical accessed: no
 - Phase2B training steps: 0
+### R0 Utility Runtime Estimate
+
+- timestamp: `2026-08-23T01:32:12+07:00`
+- bounded probe: 8 cached VisA images
+- probe status: PASS
+- utility throughput: 40.04592044253699 images/s
+- pure-compute projection: 0.8998003525737052 minutes for 2,162 images
+- peak reserved VRAM: 222298112 bytes
+- EXPECTED_RUNTIME_MIN: 5
+- EXPECTED_FINISH_TIME: `2026-08-23T01:37:12+07:00`
+- available disk: 209 GiB
+- available RAM: 27 GiB; swap available 5.4 GiB
+- GPU before run: RTX 5060 Ti, 16311 MiB total, 556 MiB used
+- expected utility result size: under 100 MiB
+- session time remaining: unavailable; not invented
+- execution mode: one blocking command
+- Medical accessed: no
+- Phase2B training steps: 0
