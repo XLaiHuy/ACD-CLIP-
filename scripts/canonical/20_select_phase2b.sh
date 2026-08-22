@@ -21,7 +21,7 @@ done
 require_clean_stage_output "$selection_json"
 
 select_cmd=(
-  "$PYTHON" "$REPO_ROOT/select_phase2b_checkpoint.py"
+  "$PYTHON" "$SCRIPT_DIR/phase2b_selector_recovery.py"
   --checkpoint-dir "$checkpoint_dir"
   --candidate-epochs "10,12,14,16,18,20"
   --mvtec-root "$MVTEC_ROOT"

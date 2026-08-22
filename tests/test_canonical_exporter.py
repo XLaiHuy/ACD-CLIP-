@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import importlib
 import importlib.util
+import json
 import subprocess
 from pathlib import Path
 
@@ -11,8 +13,99 @@ assert SPEC is not None and SPEC.loader is not None
 EXPORTER = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(EXPORTER)
 
+WRAPPER_SPEC = importlib.util.spec_from_file_location(
+    "canonical_phase2b_selector_recovery", ROOT / "scripts/canonical/phase2b_selector_recovery.py"
+)
+assert WRAPPER_SPEC is not None and WRAPPER_SPEC.loader is not None
+SELECTOR_RECOVERY = importlib.util.module_from_spec(WRAPPER_SPEC)
+WRAPPER_SPEC.loader.exec_module(SELECTOR_RECOVERY)
+
+SELECTOR = importlib.import_module("select_phase2b_checkpoint")
+from evaluation.metrics import selection_score as CANONICAL_SELECTION_SCORE
+
 SCIENTIFIC_CODE_SHA = "4aa9b465ddeb072e9218b74982306d6324c62375"
 
+
+def _synthetic_phase2b_candidates() -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    metrics = {
+        10: (0.90, 0.80, 0.70, 0.60),
+        12: (0.90, 0.80, 0.70, 0.60),
+        14: (0.80, 0.70, 0.60, 0.50),
+        16: (0.70, 0.60, 0.50, 0.40),
+        18: (0.60, 0.50, 0.40, 0.30),
+        20: (0.50, 0.40, 0.30, 0.20),
+    }
+    for epoch, values in metrics.items():
+        rows.append(
+            {
+                "epoch": epoch,
+                "path": f"/synthetic/checkpoints/adapter_{epoch}.pth",
+                "sha256": f"{epoch:02d}" * 32,
+                "pixel_auroc": values[0],
+                "pixel_ap": values[1],
+                "image_auroc": values[2],
+                "image_ap": values[3],
+            }
+        )
+    return rows
+
+
+def test_phase2b_recovery_serializes_raw_rows_with_canonical_scores(tmp_path: Path) -> None:
+    raw_rows = _synthetic_phase2b_candidates()
+    assert all("score" not in row for row in raw_rows)
+    assert SELECTOR.selection_score is CANONICAL_SELECTION_SCORE
+
+    original_main = SELECTOR.main
+    original_select_candidate = SELECTOR.select_candidate
+    selected_inputs: list[list[dict[str, object]]] = []
+
+    def tracked_select_candidate(candidates):
+        materialized = [dict(candidate) for candidate in candidates]
+        selected_inputs.append(materialized)
+        return original_select_candidate(materialized)
+
+    def synthetic_main(argv=None):
+        assert argv == ["--synthetic"]
+        assert "--metrics-json" not in argv
+        selected = SELECTOR.select_candidate(raw_rows)
+        SELECTOR._write_selection(tmp_path, raw_rows, selected, code_sha="synthetic-code-sha")
+        return 0
+
+    SELECTOR.main = synthetic_main
+    SELECTOR.select_candidate = tracked_select_candidate
+    try:
+        assert SELECTOR_RECOVERY.main(["--synthetic"]) == 0
+    finally:
+        SELECTOR.main = original_main
+        SELECTOR.select_candidate = original_select_candidate
+
+    assert selected_inputs == [raw_rows]
+    selection = json.loads((tmp_path / "phase2b_selection.json").read_text(encoding="utf-8"))
+    assert selection["selected_epoch"] == 10
+    assert len(selection["candidates"]) == len(raw_rows)
+
+    output_by_epoch = {int(row["epoch"]): row for row in selection["candidates"]}
+    for raw in raw_rows:
+        epoch = int(raw["epoch"])
+        output = output_by_epoch[epoch]
+        expected_score = CANONICAL_SELECTION_SCORE(
+            {name: float(raw[name]) for name in SELECTOR.METRIC_NAMES}
+        )
+        assert output["score"] == expected_score
+        assert output["path"] == raw["path"]
+        assert output["sha256"] == raw["sha256"]
+        assert output["pAUROC"] == raw["pixel_auroc"]
+        assert output["pAP"] == raw["pixel_ap"]
+        assert output["iAUROC"] == raw["image_auroc"]
+        assert output["iAP"] == raw["image_ap"]
+
+
+def test_canonical_stage2_uses_recovery_wrapper_without_debug_metrics() -> None:
+    stage2 = (ROOT / "scripts/canonical/20_select_phase2b.sh").read_text(encoding="utf-8")
+    assert '"$PYTHON" "$SCRIPT_DIR/phase2b_selector_recovery.py"' in stage2
+    assert '"$REPO_ROOT/select_phase2b_checkpoint.py"' not in stage2
+    assert "--metrics-json" not in stage2
 
 def test_delta_preserves_undefined_metrics() -> None:
     phase2b = {"pixel_auroc": 0.4, "pixel_ap": 0.5, "image_auroc": None, "image_ap": None}
