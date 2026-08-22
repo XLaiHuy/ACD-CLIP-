@@ -1,0 +1,60 @@
+{
+  "elapsed_seconds": 9.958480918081477,
+  "medical_reads": 0,
+  "parity": [
+    {
+      "max_abs_error": 0.0,
+      "pass": true,
+      "test": "native_zero_delta_cache"
+    },
+    {
+      "absolute_error": 4.0978193283081055e-08,
+      "analytic": 0.01947377249598503,
+      "class": "candle",
+      "epsilon": 0.1,
+      "finite_difference": 0.019473731517791748,
+      "image_index": 9,
+      "image_path": "candle/Data/Images/Anomaly/009.JPG",
+      "informative": true,
+      "pass": true,
+      "patch": 1171,
+      "sign_match": true,
+      "test": "informative_utility_finite_difference",
+      "tolerance": 0.00021473772495985032
+    },
+    {
+      "absolute_error": 1.4528632164001465e-07,
+      "analytic": 0.01790747418999672,
+      "class": "candle",
+      "epsilon": 0.1,
+      "finite_difference": 0.01790761947631836,
+      "image_index": 65,
+      "image_path": "candle/Data/Images/Anomaly/065.JPG",
+      "informative": true,
+      "pass": true,
+      "patch": 822,
+      "sign_match": true,
+      "test": "informative_utility_finite_difference",
+      "tolerance": 0.0001990761947631836
+    },
+    {
+      "absolute_error": 8.177012205123901e-07,
+      "analytic": 0.017443520948290825,
+      "class": "candle",
+      "epsilon": 0.1,
+      "finite_difference": 0.017442703247070312,
+      "image_index": 8,
+      "image_path": "candle/Data/Images/Anomaly/008.JPG",
+      "informative": true,
+      "pass": true,
+      "patch": 381,
+      "sign_match": true,
+      "test": "informative_utility_finite_difference",
+      "tolerance": 0.00019443520948290825
+    }
+  ],
+  "phase2b_training_steps": 0,
+  "provenance_head": "5a156f14a14b72f375b3737b125d0903e5b63424",
+  "records": 2162,
+  "status": "PASS"
+}
