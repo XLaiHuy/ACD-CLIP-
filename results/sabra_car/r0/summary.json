@@ -1,0 +1,129 @@
+{
+  "action_rates": {
+    "BOOST_rate": 0.040801033050451754,
+    "KEEP_rate": 0.4661271892689249,
+    "SUPPRESS_rate": 0.4930717776806233,
+    "sign_reversal_rate": 0.9235753680833088
+  },
+  "decision": {
+    "breadth_vs_native": 12,
+    "decision": "CONTINUE",
+    "gates": {
+      "G0_correctness": {
+        "observed": "PASS",
+        "pass": true,
+        "threshold": "all PASS"
+      },
+      "G1_direction_pp": {
+        "observed": 1.0319407402895497,
+        "pass": true,
+        "threshold": ">=1.0"
+      },
+      "G2_breadth_classes": {
+        "observed": 12,
+        "pass": true,
+        "threshold": ">=8"
+      },
+      "G3_pAUROC_safety_pp": {
+        "observed": 0.23619865972595022,
+        "pass": true,
+        "threshold": ">=-0.5"
+      }
+    },
+    "loss_ap_disagreement_fraction": 0.05704697986577181,
+    "matched_positive_condition": "positive_alpha_0.25",
+    "medical_reads": 0,
+    "next_stage": "R1",
+    "phase2b_training_steps": 0,
+    "quadrant_counts": {
+      "ap_tie": 8,
+      "loss_down_ap_down": 40,
+      "loss_down_ap_up": 1119,
+      "loss_tie": 4,
+      "loss_up_ap_down": 5,
+      "loss_up_ap_up": 28
+    },
+    "selected_alpha": 0.25,
+    "signed_condition": "signed_alpha_0.25",
+    "signed_vs_native_pAP_pp": 5.620394793869831,
+    "signed_vs_native_pAUROC_pp": 2.440279421816016,
+    "stage": "R0"
+  },
+  "macro": [
+    {
+      "condition": "native",
+      "macro_pAP": 0.5699400925375667,
+      "macro_pAUROC": 0.9707623684180294,
+      "mean_loss": 0.4945596257183056
+    },
+    {
+      "condition": "positive_alpha_0",
+      "macro_pAP": 0.5699400925375667,
+      "macro_pAUROC": 0.9707623684180294,
+      "mean_loss": 0.4945596257183056
+    },
+    {
+      "condition": "positive_alpha_0.125",
+      "macro_pAP": 0.6002304032300099,
+      "macro_pAUROC": 0.9886508811244864,
+      "mean_loss": 0.44159641885709094
+    },
+    {
+      "condition": "positive_alpha_0.25",
+      "macro_pAP": 0.6158246330733695,
+      "macro_pAUROC": 0.9928031760389301,
+      "mean_loss": 0.4020279512658698
+    },
+    {
+      "condition": "positive_alpha_0.5",
+      "macro_pAP": 0.6270798043132193,
+      "macro_pAUROC": 0.995661259402916,
+      "mean_loss": 0.4224628592242918
+    },
+    {
+      "condition": "positive_alpha_1",
+      "macro_pAP": 0.5814147146141443,
+      "macro_pAUROC": 0.9961507820968909,
+      "mean_loss": 0.6329811616863895
+    },
+    {
+      "condition": "signed_alpha_0",
+      "macro_pAP": 0.5699400925375667,
+      "macro_pAUROC": 0.9707623684180294,
+      "mean_loss": 0.4945596257183056
+    },
+    {
+      "condition": "signed_alpha_0.125",
+      "macro_pAP": 0.6148526382438316,
+      "macro_pAUROC": 0.9906914825834346,
+      "mean_loss": 0.4363521975876144
+    },
+    {
+      "condition": "signed_alpha_0.25",
+      "macro_pAP": 0.626144040476265,
+      "macro_pAUROC": 0.9951651626361896,
+      "mean_loss": 0.3922941140913417
+    },
+    {
+      "condition": "signed_alpha_0.5",
+      "macro_pAP": 0.6238582170855611,
+      "macro_pAUROC": 0.9960806086698292,
+      "mean_loss": 0.4079824769508193
+    },
+    {
+      "condition": "signed_alpha_1",
+      "macro_pAP": 0.5695812928141647,
+      "macro_pAUROC": 0.995146018024692,
+      "mean_loss": 0.6060505280529256
+    },
+    {
+      "condition": "signed_radius",
+      "macro_pAP": 0.5767954095171167,
+      "macro_pAUROC": 0.9954967099829061,
+      "mean_loss": 0.6003993662213675
+    }
+  ],
+  "medical_access": false,
+  "status": "COMPLETE",
+  "training_steps": 0
+}

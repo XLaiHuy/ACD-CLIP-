@@ -439,3 +439,117 @@ validation:
 
 status:
 - FIXED; publish this engineering checkpoint before rerunning finalization.
+
+### Stage R0 — Signed Direction
+
+START_TIME:
+2026-08-23T01:15:03+07:00
+
+END_TIME:
+2026-08-23T02:17:45+07:00
+
+INPUT_COMMIT:
+`1af541e`
+
+OUTPUT_COMMIT:
+Recorded in the next append-only publication entry after commit creation.
+
+PURPOSE:
+- Test whether exact canonical-loss gradient sign supplies pixel-AP value beyond a matched positive-only oracle, and measure coordinate-radius headroom.
+
+HYPOTHESIS:
+- Signed BOOST/SUPPRESS direction will improve macro pAP over the same-alpha positive-only intervention by at least +1.00 pp without unsafe pAUROC loss.
+
+ALLOWED_CHANGES:
+- Additive cache-only R0 tooling, deterministic tests, append-only records, and result artifacts under `results/sabra_car/r0`.
+
+FORBIDDEN_CHANGES:
+- Phase2B training or parameter updates, canonical model edits, altered alpha grid/gates, Medical access, outcome-dependent fallback, force push, or history rewrite.
+
+DATA_USED:
+- dataset: VisA source only
+- records/classes: 2,162 images across the exact 12-class inventory
+- split: canonical fixed source metadata
+- whether GT was used: yes, for preregistered source-oracle utility, radius, and evaluation
+- whether Medical was accessed: no; zero reads
+
+IMPLEMENTATION:
+- files added: `tools/sabra_car/r0_direction.py`, `tools/sabra_car/__init__.py`, `tests/test_car_r0_direction.py`, R0 result artifacts
+- files modified: append-only journal and autopilot state
+- important algorithmic changes: exact signed utility, matched alpha landscape, exact grouped AP/AUROC, sparse coordinate-radius oracle, per-image loss/AP quadrants
+- canonical production inference and Phase2B parameters: unchanged
+
+COMMANDS:
+- `python -m tools.sabra_car.r0_direction --phase utilities --batch-size 4`
+- `python -m tools.sabra_car.r0_direction --phase alpha --batch-size 4`
+- `python -m tools.sabra_car.r0_direction --phase probe-radius --batch-size 4 --radius-patch-batch 64`
+- `python -m tools.sabra_car.r0_direction --phase radius --batch-size 4 --radius-patch-batch 64`
+- `python -m tools.sabra_car.r0_direction --phase finalize --batch-size 4`
+
+TESTS_BEFORE_RUN:
+- targeted R0/canonical suite: PASS, 15 tests after all engineering fixes
+- checkpoint/cache/config/CLIP/metadata/core hashes: PASS
+- native zero-delta cache parity: max absolute error 0
+- informative utility finite-difference parity: PASS on three top-absolute-utility coordinates
+- sparse basis/direct coordinate parity: PASS on three real-image coordinates
+- finite values and exact class/path/grid invariants: PASS
+
+RUN:
+- run directory: `results/sabra_car/r0`
+- utility elapsed: 16.2566 seconds initial generation; 9.9585 seconds validated cached rerun
+- alpha elapsed: 804.4572 seconds
+- full signed-radius elapsed: 92.7707 seconds
+- final metrics elapsed: 95.2649 seconds
+- execution mode: attached blocking commands; no detached jobs
+
+RESULTS:
+- selected signed alpha: 0.25
+- native macro pAP / pAUROC: 0.5699400925375667 / 0.9707623684180294
+- matched positive-only macro pAP / pAUROC: 0.6158246330733695 / 0.9928031760389301
+- signed macro pAP / pAUROC: 0.626144040476265 / 0.9951651626361896
+- signed-radius macro pAP / pAUROC: 0.5767954095171167 / 0.9954967099829061
+- signed minus positive-only: +1.0319407402895497 pp pAP, +0.23619865972595022 pp pAUROC
+- signed minus native: +5.620394793869831 pp pAP, +2.440279421816016 pp pAUROC
+- breadth: 12/12 classes over matched positive-only and 12/12 over native
+- action rates BOOST / KEEP / SUPPRESS: 0.040801033050451754 / 0.4661271892689249 / 0.4930717776806233
+- sign reversal among non-KEEP: 0.9235753680833088
+- loss/AP disagreement fraction: 0.05704697986577181
+- quadrants loss-down/AP-up, loss-down/AP-down, loss-up/AP-up, loss-up/AP-down: 1119, 40, 28, 5
+- ties: loss 4; AP 8
+
+EXPECTED_VS_OBSERVED:
+- expected: signed direction supplies at least +1.00 pp pAP over matched positive-only with breadth and pAUROC safety
+- observed: +1.03194 pp, 12/12 breadth, and +0.23620 pp pAUROC; hypothesis met narrowly but exactly
+- coordinate-radius oracle did not beat the selected fixed signed intervention and is retained only as negative/headroom evidence
+
+BUGS:
+- R0-ENG-001: unavailable scikit-learn dependency; replaced with exact dependency-free metrics
+- R0-ENG-002: fixed parity coordinates were uninformative; replaced with stable top-absolute-utility checks
+- R0-ENG-003: CRLF result serialization and non-fail-fast publication sequence; fixed and normalized without metric changes
+- R0-ENG-004: float32 basis cancellation exceeded 2e-6; bounded 3e-6 parity tolerance validated
+- R0-ENG-005: invalid lowercase Python boolean in final summary; factored into a directly tested helper
+- all failed-run evidence was preserved before reruns
+
+SCIENTIFIC_INTERPRETATION:
+- Signed suppression provides real incremental ranking value beyond merely boosting patches selected by the same loss gradient.
+- The gain over positive-only is only 0.03194 pp above the preregistered threshold, so downstream GT-free reliability must be judged strictly.
+- The coordinate-radius oracle underperforms fixed signed alpha on pAP, providing no evidence to expand the scientific family at R0.
+
+GATES:
+- G0 correctness; threshold all PASS; observed PASS; PASS
+- G1 signed minus matched positive-only macro pAP; threshold >= +1.00 pp; observed +1.0319407402895497 pp; PASS
+- G2 signed-better breadth; threshold >= 8/12; observed 12/12; PASS
+- G3 signed minus matched positive-only macro pAUROC; threshold >= -0.50 pp; observed +0.23619865972595022 pp; PASS
+- Medical reads; threshold zero; observed zero; PASS
+- Phase2B training steps; threshold zero; observed zero; PASS
+
+DECISION:
+- CONTINUE
+
+NEXT_STAGE:
+- Stage R1 — GT-free action predictor under fixed LOCO logistic-regression and selective-risk gates.
+
+NOTES:
+- R0B is not triggered because R0 passed.
+- No Medical dataset or sample was accessed.
+- All R0 scientific artifacts must be committed and local/remote equality verified before R1 implementation.
