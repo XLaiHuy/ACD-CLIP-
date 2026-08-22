@@ -9,7 +9,7 @@ Timestamp: 2026-08-23T02:46:12+07:00
 - worktree: `/home/ai4/caohuy/ACD-CLIP-sabra-car-v1`
 - branch: `research/p6-sabra-car-v1`
 - current published input HEAD: `58312d4`
-- final decision commit: pending the commit that includes this handoff
+- final decision commit: `44d7ab77880d548ddc5702853e5375e5610ae160`
 - force push used: no
 
 ## Completed stages

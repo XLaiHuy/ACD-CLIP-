@@ -767,3 +767,21 @@ NOTES:
 - Schema-valid downstream status is preserved in `results/sabra_car/final_results.csv` and `final_results.json`.
 - No Medical dataset or sample was accessed.
 - A future attempt requires a new preregistration and must not mutate this stopped run.
+
+### Final Publication Verification
+
+- timestamp: `2026-08-23T02:48:56+07:00`
+- final decision commit: `44d7ab77880d548ddc5702853e5375e5610ae160`
+- remote branch: `origin/research/p6-sabra-car-v1`
+- local HEAD: `44d7ab77880d548ddc5702853e5375e5610ae160`
+- remote HEAD: `44d7ab77880d548ddc5702853e5375e5610ae160`
+- divergence: `0 0`
+- worktree before closing audit: clean
+- final scientific status: STOP AT R1 CONVERGENCE CORRECTNESS GATE
+- downstream R1 efficacy/R2/R3/R4/Freeze: NOT_RUN
+- retrospective Medical benchmark: NOT_RUN
+- Medical accessed: no
+- MVTec accessed in R1: no
+- Phase2B training steps: 0
+- force push used: no
+- next action: publish this closing audit record, verify equality once more, and stop.
