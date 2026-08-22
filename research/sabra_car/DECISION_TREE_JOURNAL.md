@@ -260,3 +260,25 @@ validation:
 
 status:
 - FIXED; alpha evaluation authorized after publication of this checkpoint.
+
+### R0 Utility Publication and Alpha Runtime Estimate
+
+- timestamp: `2026-08-23T01:42:31+07:00`
+- R0-ENG-002 fix commit: `41de831`
+- utility evidence commit: `0e50df21f531e26b57469cc1c171a4f0fa437f4d`
+- local HEAD equals remote HEAD: yes
+- divergence: `0 0`
+- bounded probe: one native condition over the full 200-image candle class; result values were not printed or used for selection
+- probe pixels: 53,664,800
+- one-condition elapsed time: 8.805962819838896 seconds
+- projected 108 condition-class equivalents: 15.850733075710014 minutes
+- EXPECTED_RUNTIME_MIN: 20
+- EXPECTED_FINISH_TIME: `2026-08-23T02:02:31+07:00`
+- peak reserved VRAM: 113246208 bytes
+- available disk: 209 GiB
+- available RAM: 24 GiB; swap available 5.4 GiB
+- GPU before run: RTX 5060 Ti, 16311 MiB total, 556 MiB used
+- Medical accessed: no
+- Phase2B training steps: 0
+- execution mode: one blocking command
+- next action: run the complete fixed alpha landscape, then audit every emitted row before radius probing
