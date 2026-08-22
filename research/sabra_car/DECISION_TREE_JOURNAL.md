@@ -146,3 +146,13 @@ NOTES:
 - divergence: `0 0`
 - decision: S0 publication gate PASS; R0 implementation is authorized.
 - Medical access remains forbidden by explicit user instruction.
+
+### R0 Preregistration Addendum
+
+- timestamp: `2026-08-23T01:15:03+07:00`
+- input commit: `fe0c111`
+- purpose: freeze operational definitions that were implicit in the master preregistration before implementation or result access.
+- artifact: `research/sabra_car/R0_IMPLEMENTATION_CONTRACT.md`
+- scientific changes after result observation: none; no R0 experiment has run.
+- Medical accessed: no.
+- next action: commit and push this definition, then implement the additive R0 sidecar and regression tests.
