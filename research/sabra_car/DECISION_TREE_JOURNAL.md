@@ -384,3 +384,25 @@ validation:
 
 status:
 - FIXED; publish this correctness checkpoint before the full blocking radius run.
+
+### R0 Signed-Radius Result and Finalization Estimate
+
+- timestamp: `2026-08-23T02:09:19+07:00`
+- input correctness commit: `6c7175c69bbb8bebd7c08271c285775bf28fbfbe`
+- signed-radius status: PASS
+- elapsed runtime: 92.77068063500337 seconds
+- records: 2,162 across 12 VisA classes
+- shard path alignment: PASS
+- finite correction values: PASS
+- fixed signed-radius grid membership: PASS
+- zero-radius patches: 1,380,498
+- nonzero-radius patches: 1,579,480
+- Medical accessed: no (`medical_reads=0`)
+- Phase2B training steps: 0
+- finalization work: reuse audited alpha rows; evaluate signed-radius metrics and selected-alpha per-image quadrants
+- conservative EXPECTED_RUNTIME_MIN: 10
+- EXPECTED_FINISH_TIME: `2026-08-23T02:19:29+07:00`
+- available disk: 209 GiB
+- available RAM: 24 GiB; swap available 5.4 GiB
+- GPU before run: RTX 5060 Ti, 16311 MiB total, 556 MiB used
+- next action: publish the signed-radius artifacts, then run final R0 metrics and exact gate decision as one blocking command
