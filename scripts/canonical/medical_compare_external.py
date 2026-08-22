@@ -876,64 +876,61 @@ def infer_to_cache(
         torch.cuda.reset_peak_memory_stats(device)
     progress = tqdm(total=len(inference_dataset), desc=f"{dataset} compare external-cache", unit="img")
     try:
-        with torch.no_grad():
-            for batch in loader:
-                image = batch["image"].to(device, non_blocking=device.type == "cuda").float()
-                class_names = [str(value) for value in batch["class_name"]]
-                forward = forward_phase2b(
-                    model,
-                    image,
-                    class_names,
-                    device,
-                    config,
-                    domain=domain,
-                    require_grad=False,
-                    dataset_name=dataset,
-                )
-                # One shared Phase2B forward feeds both native and SABRA paths.
-                native_pixels = (
-                    forward.deployed_segmentation_probability.detach().cpu().numpy().astype(np.float32)
-                )
-                native_cls = forward.classification_probability.detach().cpu().numpy().astype(np.float32)
-                corrected_pixels = (
-                    compare_forward(forward, freeze, domain=domain)["corrected_probability"]
-                    .detach()
-                    .cpu()
-                    .numpy()
-                    .astype(np.float32)
-                )
-                masks = batch["mask"].detach().cpu().numpy().astype(np.int8)
-                labels = batch["label"].detach().cpu().numpy().reshape(-1).astype(np.int8)
-                paths = [str(value) for value in batch["image_path"]]
-                native_image_scores = np.asarray(
-                    [
-                        image_score(float(native_cls[index]), float(native_pixels[index].max()), domain)
-                        for index in range(len(class_names))
-                    ],
-                    dtype=np.float64,
-                )
-                sabra_image_scores = np.asarray(
-                    [
-                        image_score(float(native_cls[index]), float(corrected_pixels[index].max()), domain)
-                        for index in range(len(class_names))
-                    ],
-                    dtype=np.float64,
-                )
-                writer.write_batch(
-                    class_names=class_names,
-                    image_paths=paths,
-                    pixel_labels=masks,
-                    phase2b_pixel_scores=native_pixels,
-                    sabra_pixel_scores=corrected_pixels,
-                    image_labels=labels,
-                    phase2b_image_scores=native_image_scores,
-                    sabra_image_scores=sabra_image_scores,
-                )
-                progress.update(len(class_names))
-                elapsed = max(time.perf_counter() - started, 1e-9)
-                rate = writer.written / elapsed
-                remaining = max(len(inference_dataset) - writer.written, 0)
-                progress.set_postfix({"img/s": f"{rate:.2f}", "eta": f"{remaining / max(rate, 1e-9):.0f}s"})
+        for batch in loader:
+            image = batch["image"].to(device, non_blocking=device.type == "cuda").float()
+            class_names = [str(value) for value in batch["class_name"]]
+            forward = forward_phase2b(
+                model,
+                image,
+                class_names,
+                device,
+                config,
+                domain=domain,
+                require_grad=False,
+                dataset_name=dataset,
+            )
+            # One shared Phase2B forward feeds both native and SABRA paths.
+            native_pixels = (
+                forward.deployed_segmentation_probability.detach().cpu().numpy().astype(np.float32)
+            )
+            native_cls = forward.classification_probability.detach().cpu().numpy().astype(np.float32)
+            with torch.enable_grad():
+                corrected_probability = compare_forward(
+                    forward, freeze, domain=domain
+                )["corrected_probability"]
+            corrected_pixels = corrected_probability.detach().cpu().numpy().astype(np.float32)
+            masks = batch["mask"].detach().cpu().numpy().astype(np.int8)
+            labels = batch["label"].detach().cpu().numpy().reshape(-1).astype(np.int8)
+            paths = [str(value) for value in batch["image_path"]]
+            native_image_scores = np.asarray(
+                [
+                    image_score(float(native_cls[index]), float(native_pixels[index].max()), domain)
+                    for index in range(len(class_names))
+                ],
+                dtype=np.float64,
+            )
+            sabra_image_scores = np.asarray(
+                [
+                    image_score(float(native_cls[index]), float(corrected_pixels[index].max()), domain)
+                    for index in range(len(class_names))
+                ],
+                dtype=np.float64,
+            )
+            writer.write_batch(
+                class_names=class_names,
+                image_paths=paths,
+                pixel_labels=masks,
+                phase2b_pixel_scores=native_pixels,
+                sabra_pixel_scores=corrected_pixels,
+                image_labels=labels,
+                phase2b_image_scores=native_image_scores,
+                sabra_image_scores=sabra_image_scores,
+            )
+            progress.update(len(class_names))
+            elapsed = max(time.perf_counter() - started, 1e-9)
+            rate = writer.written / elapsed
+            remaining = max(len(inference_dataset) - writer.written, 0)
+            progress.set_postfix({"img/s": f"{rate:.2f}", "eta": f"{remaining / max(rate, 1e-9):.0f}s"})
         manifest = writer.complete()
     except BaseException:
         writer.abort()

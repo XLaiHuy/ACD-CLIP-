@@ -349,6 +349,13 @@ def test_prediction_cache_bitwise_parity_and_truncation_rejection(tmp_path: Path
     assert [row["image_path"] for row in identities] == [row["image_path"] for row in records]
     assert [row["order"] for row in identities] == list(range(len(records)))
 
+    wrong_workflow = {**expected, "workflow_package_sha": "e" * 40}
+    with pytest.raises(ValueError, match="mismatch for workflow_package_sha"):
+        MEDICAL_EXTERNAL.validate_inference_cache(work_dir, wrong_workflow)
+    wrong_evaluator = {**expected, "workflow_evaluator_sha256": "f" * 64}
+    with pytest.raises(ValueError, match="mismatch for workflow_evaluator_sha256"):
+        MEDICAL_EXTERNAL.validate_inference_cache(work_dir, wrong_evaluator)
+
     score_path = work_dir / "phase2b_pixel_scores.npy"
     with score_path.open("r+b") as handle:
         handle.truncate(score_path.stat().st_size - 1)
@@ -455,6 +462,139 @@ def test_medical_external_guard_reuses_canonical_checkpoint_and_freeze_validatio
     assert selected_sha == checkpoint_sha
     assert freeze_sha == MEDICAL_EXTERNAL.sha256_file(freeze_path)
     assert validated == [checkpoint_sha]
+
+
+def test_medical_external_inference_enables_only_sabra_sensitivity_grad(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    torch = MEDICAL_EXTERNAL.torch
+    checkpoint_sha = "a" * 64
+    forward_calls: list[bool] = []
+    compare_grad_states: list[bool] = []
+    cached_sabra: list[np.ndarray] = []
+
+    class FakeModel:
+        def __init__(self) -> None:
+            self.frozen_weight = torch.tensor(1.0, requires_grad=False)
+            self.eval_called = False
+
+        def eval(self):
+            self.eval_called = True
+            return self
+
+    class FakeProgress:
+        def update(self, _count: int) -> None:
+            pass
+
+        def set_postfix(self, _values: dict[str, str]) -> None:
+            pass
+
+        def close(self) -> None:
+            pass
+
+    class FakeLoader:
+        def __init__(self, _dataset, **_kwargs) -> None:
+            pass
+
+        def __iter__(self):
+            yield {
+                "image": torch.zeros((1, 3, 2, 2), dtype=torch.float32),
+                "class_name": ["synthetic"],
+                "mask": torch.zeros((1, 2, 2), dtype=torch.int8),
+                "label": torch.zeros((1,), dtype=torch.int8),
+                "image_path": ["synthetic.png"],
+            }
+
+    class FakeWriter:
+        def __init__(self, _work_dir, **_kwargs) -> None:
+            self.written = 0
+            self.cache_write_seconds = 0.0
+
+        def write_batch(self, *, class_names, sabra_pixel_scores, **_kwargs) -> None:
+            assert isinstance(sabra_pixel_scores, np.ndarray)
+            assert sabra_pixel_scores.dtype == np.float32
+            cached_sabra.append(sabra_pixel_scores)
+            self.written += len(class_names)
+
+        def complete(self) -> dict[str, int]:
+            return {"image_count": self.written}
+
+        def abort(self) -> None:
+            raise AssertionError("synthetic inference unexpectedly aborted")
+
+    class FakeForward:
+        deployed_segmentation_probability = torch.full((1, 4), 0.25, dtype=torch.float32)
+        classification_probability = torch.full((1,), 0.5, dtype=torch.float32)
+
+    model = FakeModel()
+
+    def fake_forward_phase2b(*_args, require_grad: bool, **_kwargs):
+        forward_calls.append(require_grad)
+        assert require_grad is False
+        assert model.frozen_weight.requires_grad is False
+        return FakeForward()
+
+    def fake_compare_forward(forward, _freeze, *, domain: str):
+        compare_grad_states.append(torch.is_grad_enabled())
+        assert torch.is_grad_enabled()
+        assert domain == "Medical"
+        assert forward.deployed_segmentation_probability.requires_grad is False
+        shared = torch.ones((1, 4), dtype=torch.float32, requires_grad=True)
+        corrected = shared.square()
+        assert corrected.requires_grad
+        return {"corrected_probability": corrected}
+
+    monkeypatch.setattr(MEDICAL_EXTERNAL, "load_json_config", lambda _path: {})
+    monkeypatch.setattr(
+        MEDICAL_EXTERNAL, "_verify_selected_checkpoint", lambda _selection: (tmp_path / "selected.pth", checkpoint_sha)
+    )
+    monkeypatch.setattr(MEDICAL_EXTERNAL, "load_phase2b_checkpoint", lambda *_args: model)
+    monkeypatch.setattr(MEDICAL_EXTERNAL, "dataset_domain", lambda _dataset: "Medical")
+    monkeypatch.setattr(MEDICAL_EXTERNAL, "_build_inference_dataset", lambda *_args: [object()])
+    monkeypatch.setattr(MEDICAL_EXTERNAL, "DataLoader", FakeLoader)
+    monkeypatch.setattr(MEDICAL_EXTERNAL, "InferenceCacheWriter", FakeWriter)
+    monkeypatch.setattr(MEDICAL_EXTERNAL, "tqdm", lambda **_kwargs: FakeProgress())
+    monkeypatch.setattr(MEDICAL_EXTERNAL, "forward_phase2b", fake_forward_phase2b)
+    monkeypatch.setattr(MEDICAL_EXTERNAL, "compare_forward", fake_compare_forward)
+    monkeypatch.setattr(MEDICAL_EXTERNAL, "image_score", lambda classification, pixel, _domain: classification + pixel)
+    monkeypatch.setattr(MEDICAL_EXTERNAL, "_cuda_runtime_stats", lambda *_args: {})
+
+    manifest, _runtime = MEDICAL_EXTERNAL.infer_to_cache(
+        dataset="Brain",
+        data_root=tmp_path / "data",
+        selection={},
+        freeze={},
+        checkpoint_sha256=checkpoint_sha,
+        freeze_sha256="b" * 64,
+        config_path=tmp_path / "config.json",
+        clip_asset=tmp_path / "clip.pt",
+        device=torch.device("cpu"),
+        work_dir=tmp_path / "medical_work" / "Brain",
+        workflow_package_sha="c" * 40,
+        evaluator_sha256="d" * 64,
+    )
+
+    assert manifest["image_count"] == 1
+    assert model.eval_called
+    assert model.frozen_weight.requires_grad is False
+    assert forward_calls == [False]
+    assert compare_grad_states == [True]
+    assert len(cached_sabra) == 1
+
+
+def test_deployment_sensitivity_can_reenable_grad_inside_no_grad() -> None:
+    torch = MEDICAL_EXTERNAL.torch
+    from model.phase2b_runtime import PATCH_COUNT, compute_deployment_sensitivity
+
+    native = torch.zeros((3, 1, PATCH_COUNT, 2), dtype=torch.float32)
+    with torch.no_grad():
+        with torch.enable_grad():
+            sensitivity = compute_deployment_sensitivity(native, domain="Medical")
+
+    assert sensitivity.shape == (1, PATCH_COUNT)
+    assert sensitivity.requires_grad is False
+    assert torch.isfinite(sensitivity).all()
+    assert torch.count_nonzero(sensitivity) > 0
 
 
 def test_external_metric_memory_is_chunk_bounded(tmp_path: Path) -> None:
