@@ -1,0 +1,342 @@
+{
+  "surface": "report",
+  "manifest": {
+    "version": 1,
+    "surface": "report",
+    "title": "SABRA Canonical Medical Test vs Published ACD-CLIP (N=3)",
+    "description": "Technical comparison of the completed six-dataset Medical test, including native Phase2B, SABRA, published ACD-CLIP N=3, macro means, and percentage-point deltas.",
+    "generatedAt": "2026-08-22T21:34:41+07:00",
+    "cards": [
+      {
+        "id": "macro_pixel_auroc",
+        "description": "Six-dataset macro pixel AUROC for SABRA, with the gap to published ACD-CLIP N=3.",
+        "dataset": "macro_summary",
+        "sourceId": "comparison_snapshot",
+        "metrics": [
+          { "label": "SABRA pixel AUROC", "field": "sabra_pauroc", "format": "number", "unit": "%" },
+          { "label": "vs published N=3", "field": "delta_pauroc_pp", "format": "number", "unit": "pp", "signed": true }
+        ]
+      },
+      {
+        "id": "macro_pixel_ap",
+        "description": "Six-dataset macro pixel AP for SABRA, with the gap to published ACD-CLIP N=3.",
+        "dataset": "macro_summary",
+        "sourceId": "comparison_snapshot",
+        "metrics": [
+          { "label": "SABRA pixel AP", "field": "sabra_pap", "format": "number", "unit": "%" },
+          { "label": "vs published N=3", "field": "delta_pap_pp", "format": "number", "unit": "pp", "signed": true }
+        ]
+      },
+      {
+        "id": "macro_image_auroc",
+        "description": "Three-dataset macro image AUROC for SABRA, with the gap to published ACD-CLIP N=3.",
+        "dataset": "macro_summary",
+        "sourceId": "comparison_snapshot",
+        "metrics": [
+          { "label": "SABRA image AUROC", "field": "sabra_iauroc", "format": "number", "unit": "%" },
+          { "label": "vs published N=3", "field": "delta_iauroc_pp", "format": "number", "unit": "pp", "signed": true }
+        ]
+      },
+      {
+        "id": "macro_image_ap",
+        "description": "Three-dataset macro image AP for SABRA, with the gap to published ACD-CLIP N=3.",
+        "dataset": "macro_summary",
+        "sourceId": "comparison_snapshot",
+        "metrics": [
+          { "label": "SABRA image AP", "field": "sabra_iap", "format": "number", "unit": "%" },
+          { "label": "vs published N=3", "field": "delta_iap_pp", "format": "number", "unit": "pp", "signed": true }
+        ]
+      }
+    ],
+    "charts": [
+      {
+        "id": "macro_comparison_chart",
+        "title": "Medical macro scores by method",
+        "subtitle": "Pixel metrics average six datasets; image metrics average Brain, Liver, and Retina. Values are percentages.",
+        "headerMarkdown": "Compare **published ACD-CLIP N=3**, native **Phase2B**, and **SABRA** on the same four reported metric labels.",
+        "intent": "comparison",
+        "question": "How do the canonical native and SABRA macro scores compare with published ACD-CLIP N=3?",
+        "rationale": "Grouped bars support direct comparison of three methods across four discrete same-unit metrics.",
+        "comparisonContext": {
+          "baseline": "Published ACD-CLIP ours (N=3)",
+          "denominator": "Six datasets for pixel metrics; three datasets for image metrics",
+          "grain": "Metric-method macro pair",
+          "normalization": "Unweighted arithmetic macro mean over defined datasets",
+          "semanticFamily": "AUROC and average precision",
+          "unit": "%"
+        },
+        "type": "bar",
+        "dataset": "macro_comparison",
+        "sourceId": "comparison_snapshot",
+        "encodings": {
+          "x": { "field": "metric", "type": "nominal", "label": "Metric" },
+          "y": { "field": "score_pct", "type": "quantitative", "label": "Score", "unit": "%" },
+          "color": { "field": "method", "type": "nominal", "label": "Method" },
+          "tooltip": [
+            { "field": "datasets", "type": "quantitative", "label": "Datasets" },
+            { "field": "delta_vs_published_pp", "type": "quantitative", "label": "vs published", "unit": "pp" }
+          ]
+        },
+        "yAxisTitle": "Score (%)",
+        "valueFormat": "number",
+        "unit": "%",
+        "layout": "full",
+        "labels": { "values": "auto" },
+        "legend": { "position": "bottom", "sort": "spec", "title": "Method" },
+        "palette": { "kind": "categorical", "name": "blue-gold-orange" },
+        "settings": { "groupMode": "grouped", "orientation": "vertical", "sort": "none", "showValues": true },
+        "surface": { "viewMode": "both", "interactiveLegend": true }
+      },
+      {
+        "id": "pixel_delta_chart",
+        "title": "SABRA pixel gap to published ACD-CLIP N=3",
+        "subtitle": "Positive values beat the published N=3 score; negative values trail it. Units are percentage points.",
+        "headerMarkdown": "The zero line is the published benchmark. Published values are rounded to one decimal, so very small gaps should be treated as ties at reported precision.",
+        "intent": "comparison",
+        "question": "On which Medical datasets does SABRA beat or trail published ACD-CLIP N=3 at pixel level?",
+        "rationale": "Grouped horizontal bars make signed per-dataset gaps and long dataset labels easy to compare around a common zero benchmark.",
+        "comparisonContext": {
+          "baseline": "Published ACD-CLIP ours (N=3)",
+          "denominator": "Each named Medical dataset",
+          "grain": "Dataset-metric pair",
+          "normalization": "Local score minus published score",
+          "semanticFamily": "Pixel-level AUROC and average precision gaps",
+          "unit": "percentage points"
+        },
+        "type": "bar",
+        "dataset": "pixel_delta_long",
+        "sourceId": "comparison_snapshot",
+        "encodings": {
+          "x": { "field": "dataset", "type": "nominal", "label": "Dataset" },
+          "y": { "field": "delta_pp", "type": "quantitative", "label": "SABRA minus published", "unit": "pp" },
+          "color": { "field": "metric", "type": "nominal", "label": "Metric" },
+          "tooltip": [
+            { "field": "sabra_score", "type": "quantitative", "label": "SABRA", "unit": "%" },
+            { "field": "published_score", "type": "quantitative", "label": "Published N=3", "unit": "%" }
+          ]
+        },
+        "yAxisTitle": "Difference (pp)",
+        "valueFormat": "number",
+        "unit": "pp",
+        "layout": "full",
+        "labels": { "values": "all" },
+        "legend": { "position": "bottom", "sort": "spec", "title": "Pixel metric" },
+        "palette": { "kind": "categorical", "name": "blue-gold" },
+        "referenceLines": [
+          { "axis": "y", "value": 0, "label": "Published N=3", "color": "neutral", "lineStyle": "solid" }
+        ],
+        "settings": { "groupMode": "grouped", "orientation": "horizontal", "sort": "none", "showValues": true },
+        "surface": { "viewMode": "both", "interactiveLegend": true }
+      }
+    ],
+    "tables": [
+      {
+        "id": "pixel_results_table",
+        "title": "Pixel-level results by Medical dataset",
+        "subtitle": "Six final zero-shot test datasets; scores in %, deltas in percentage points.",
+        "dataset": "pixel_results",
+        "sourceId": "comparison_snapshot",
+        "defaultSort": { "field": "sabra_pap", "direction": "desc" },
+        "density": "dense",
+        "layout": "full",
+        "columns": [
+          { "field": "dataset", "label": "Dataset", "type": "text" },
+          { "field": "published_pauroc", "label": "Published pAUROC", "format": "number", "unit": "%" },
+          { "field": "phase2b_pauroc", "label": "Phase2B pAUROC", "format": "number", "unit": "%" },
+          { "field": "sabra_pauroc", "label": "SABRA pAUROC", "format": "number", "unit": "%" },
+          { "field": "delta_pauroc_pp", "label": "SABRA vs pub pAUROC", "format": "number", "unit": "pp", "movement": true },
+          { "field": "published_pap", "label": "Published pAP", "format": "number", "unit": "%" },
+          { "field": "phase2b_pap", "label": "Phase2B pAP", "format": "number", "unit": "%" },
+          { "field": "sabra_pap", "label": "SABRA pAP", "format": "number", "unit": "%" },
+          { "field": "delta_pap_pp", "label": "SABRA vs pub pAP", "format": "number", "unit": "pp", "movement": true }
+        ]
+      },
+      {
+        "id": "image_results_table",
+        "title": "Image-level results on datasets with both image labels",
+        "subtitle": "Brain, Liver, and Retina only; colon datasets are excluded because image AUROC/AP are undefined in the all-abnormal protocol.",
+        "dataset": "image_results",
+        "sourceId": "comparison_snapshot",
+        "defaultSort": { "field": "sabra_iap", "direction": "desc" },
+        "density": "dense",
+        "layout": "full",
+        "columns": [
+          { "field": "dataset", "label": "Dataset", "type": "text" },
+          { "field": "published_iauroc", "label": "Published iAUROC", "format": "number", "unit": "%" },
+          { "field": "phase2b_iauroc", "label": "Phase2B iAUROC", "format": "number", "unit": "%" },
+          { "field": "sabra_iauroc", "label": "SABRA iAUROC", "format": "number", "unit": "%" },
+          { "field": "delta_iauroc_pp", "label": "SABRA vs pub iAUROC", "format": "number", "unit": "pp", "movement": true },
+          { "field": "published_iap", "label": "Published iAP", "format": "number", "unit": "%" },
+          { "field": "phase2b_iap", "label": "Phase2B iAP", "format": "number", "unit": "%" },
+          { "field": "sabra_iap", "label": "SABRA iAP", "format": "number", "unit": "%" },
+          { "field": "delta_iap_pp", "label": "SABRA vs pub iAP", "format": "number", "unit": "pp", "movement": true }
+        ]
+      }
+    ],
+    "sources": [
+      { "id": "comparison_snapshot", "label": "Derived Medical comparison snapshot", "path": "reports/medical_acdclip_comparison_20260822/comparison.csv", "query": { "sql": "SELECT * FROM comparison_snapshot" } },
+      { "id": "report_notes", "label": "Comparison methodology and data-quality notes", "path": "reports/medical_acdclip_comparison_20260822/REPORT_NOTES.md" },
+      { "id": "published_readme", "label": "Published ACD-CLIP results table", "path": "README.md" },
+      { "id": "canonical_protocol", "label": "SABRA canonical v1 protocol", "path": "docs/SABRA_CANONICAL_V1_PROTOCOL.md" }
+    ],
+    "blocks": [
+      {
+        "id": "title",
+        "type": "markdown",
+        "body": "# SABRA Canonical Medical Test vs Published ACD-CLIP (N=3)"
+      },
+      {
+        "id": "technical_summary",
+        "type": "markdown",
+        "sourceId": "comparison_snapshot",
+        "body": "## Technical summary\n\n- **The canonical Medical run is complete on all six datasets.** SABRA reaches **91.17% pixel AUROC / 39.50% pixel AP**, versus published ACD-CLIP N=3 at **91.55% / 43.03%**: gaps of **-0.38 / -3.53 pp**.\n- **Image-level transfer is closer to the published reference.** Across Brain, Liver, and Retina, SABRA reaches **75.76% image AUROC / 76.86% image AP**, versus **77.90% / 77.70%** published: **-2.14 / -0.84 pp**.\n- **SABRA improves the native Phase2B image branch but trades away pixel AP.** Macro changes are **+2.34 pp image AUROC**, **+2.93 pp image AP**, **+0.06 pp pixel AUROC**, and **-0.24 pp pixel AP**.\n- **Per-dataset, ColonDB is the clearest published-reference win** at **+1.37 pp pixel AUROC** and **+3.91 pp pixel AP**. Retina also exceeds the N=3 image scores by **+0.65 / +0.94 pp**, while Brain pixel AP remains the largest gap at **-13.89 pp**."
+      },
+      {
+        "id": "headline_metrics",
+        "type": "metric-strip",
+        "cardIds": ["macro_pixel_auroc", "macro_pixel_ap", "macro_image_auroc", "macro_image_ap"]
+      },
+      {
+        "id": "macro_interpretation",
+        "type": "markdown",
+        "sourceId": "comparison_snapshot",
+        "body": "## SABRA closes much of the image gap, not the pixel-AP gap\n\nThe macro comparison separates the two effects. SABRA materially improves the canonical image branch over native Phase2B, reducing the published gap from **-4.48 to -2.14 pp** on image AUROC and from **-3.77 to -0.84 pp** on image AP. Pixel AUROC remains near the published level, but pixel AP is still **3.53 pp** lower and slightly worse than native Phase2B."
+      },
+      {
+        "id": "macro_chart_block",
+        "type": "chart",
+        "chartId": "macro_comparison_chart",
+        "layout": "full"
+      },
+      {
+        "id": "pixel_interpretation",
+        "type": "markdown",
+        "sourceId": "comparison_snapshot",
+        "body": "## Pixel results are mixed across datasets\n\nSABRA is at or above the rounded published pAUROC on Brain, ClinicDB, and ColonDB, but only ColonDB exceeds published pAP. The largest remaining deficits are Brain pAP (**-13.89 pp**) and Kvasir pAP (**-5.05 pp**). Retina shows the clearest SABRA trade-off versus native Phase2B: image metrics improve slightly, while pixel AUROC/AP fall by **0.91 / 2.47 pp**."
+      },
+      {
+        "id": "pixel_delta_chart_block",
+        "type": "chart",
+        "chartId": "pixel_delta_chart",
+        "layout": "full"
+      },
+      {
+        "id": "pixel_table_intro",
+        "type": "markdown",
+        "body": "## Exact pixel-level lookup\n\nUse the table for the reported values behind the chart. Sorting defaults to SABRA pixel AP so the localization ranking is visible immediately."
+      },
+      {
+        "id": "pixel_table_block",
+        "type": "table",
+        "tableId": "pixel_results_table",
+        "layout": "full"
+      },
+      {
+        "id": "image_interpretation",
+        "type": "markdown",
+        "sourceId": "comparison_snapshot",
+        "body": "## Image-level gains are concentrated in Liver\n\nSABRA improves native Phase2B on every defined image metric. Liver contributes most of the gain at **+4.44 pp image AUROC** and **+7.91 pp image AP** versus native Phase2B, bringing both within roughly **2.4 pp** of published N=3. Retina already matches or exceeds the published reference; Brain remains below it despite a **+2.31 pp** SABRA gain in image AUROC."
+      },
+      {
+        "id": "image_table_block",
+        "type": "table",
+        "tableId": "image_results_table",
+        "layout": "full"
+      },
+      {
+        "id": "scope_definitions",
+        "type": "markdown",
+        "sourceId": "report_notes",
+        "body": "## Scope and metric definitions\n\n- **Published anchor:** ACD-CLIP `ours (N=3)`, selected because the canonical config uses `n_groups=3`. It is not a best-per-row mixture across N values.\n- **Pixel macro:** unweighted arithmetic mean of pAUROC or pAP across all six Medical datasets.\n- **Image macro:** unweighted arithmetic mean of iAUROC or iAP across Brain, Liver, and Retina only.\n- **Undefined image metrics:** ClinicDB, ColonDB, and Kvasir contain only abnormal image labels in this evaluation, so image AUROC/AP are `N/A`, not zero.\n- **Units:** scores are percentages; local-minus-reference differences are percentage points."
+      },
+      {
+        "id": "methodology",
+        "type": "markdown",
+        "sourceId": "report_notes",
+        "body": "## Frozen protocol and calculation method\n\nThe canonical run trained Phase2B on VisA, selected **epoch 10** on MVTecAD, froze SABRA at **lambda 0.565**, and evaluated Medical once as the final zero-shot domain. All six outputs share the same checkpoint and SABRA-freeze hashes. Pixel metrics are exact, full-resolution, stride 1; execution used seed 0, FP32, and effective batch 6. Canonical scores were converted from `[0,1]` to percentages. Published N=3 values were copied as reported, and every delta is `local score - published score`."
+      },
+      {
+        "id": "limitations",
+        "type": "markdown",
+        "sourceId": "published_readme",
+        "body": "## Limitations and robustness\n\n- Published ACD-CLIP values are rounded to one decimal. Gaps near zero, including Brain and ClinicDB pAUROC, should be read as ties at published precision rather than strict wins.\n- Matching `N=3` aligns the adapter group count, but the canonical Phase2B configuration contains additional research changes and checkpoint selection logic. This is a benchmark comparison, not proof of exact paper reproduction.\n- The public README provides the result table but not enough run-level provenance to prove identical seeds, checkpoint-selection policy, dataset file hashes, or evaluator implementation.\n- No confidence intervals or multi-seed variance are available; the comparison is descriptive for one frozen seed-0 run.\n\nThe published values were verified against the [official upstream results table](https://github.com/upupmake/ACD-CLIP#results)."
+      },
+      {
+        "id": "next_steps",
+        "type": "markdown",
+        "body": "## Recommended next steps\n\n1. Treat the current result as **image-transfer improvement with a pixel-AP trade-off**, not an across-the-board win.\n2. Prioritize Brain pAP and Kvasir pAP diagnostics; they dominate the remaining pixel gap.\n3. Preserve the exact canonical export and this comparison snapshot before any new tuning.\n4. If publication parity is the objective, reconstruct the paper's exact training source, seed, checkpoint rule, and evaluator from the paper/supplement before claiming reproduction."
+      },
+      {
+        "id": "further_questions",
+        "type": "markdown",
+        "body": "## Further questions\n\n- Does the paper supplement specify the exact training dataset and model-selection rule for each N variant?\n- Are the published Medical metrics computed with the same masks, test split files, full-resolution stride-1 evaluator, and image-score contract?\n- Would the conclusions hold across multiple seeds, especially for Retina pixel AP and Liver image metrics?"
+      }
+    ]
+  },
+  "snapshot": {
+    "version": 1,
+    "generatedAt": "2026-08-22T21:34:41+07:00",
+    "status": "ready",
+    "datasets": {
+      "macro_summary": [
+        {
+          "sabra_pauroc": 91.168351,
+          "delta_pauroc_pp": -0.381649,
+          "sabra_pap": 39.503452,
+          "delta_pap_pp": -3.529881,
+          "sabra_iauroc": 75.761302,
+          "delta_iauroc_pp": -2.138698,
+          "sabra_iap": 76.863261,
+          "delta_iap_pp": -0.836739
+        }
+      ],
+      "macro_comparison": [
+        { "metric": "Pixel AUROC", "method": "Published N=3", "score_pct": 91.55, "datasets": 6, "delta_vs_published_pp": 0.0 },
+        { "metric": "Pixel AUROC", "method": "Phase2B", "score_pct": 91.107097, "datasets": 6, "delta_vs_published_pp": -0.442903 },
+        { "metric": "Pixel AUROC", "method": "SABRA", "score_pct": 91.168351, "datasets": 6, "delta_vs_published_pp": -0.381649 },
+        { "metric": "Pixel AP", "method": "Published N=3", "score_pct": 43.033333, "datasets": 6, "delta_vs_published_pp": 0.0 },
+        { "metric": "Pixel AP", "method": "Phase2B", "score_pct": 39.747465, "datasets": 6, "delta_vs_published_pp": -3.285868 },
+        { "metric": "Pixel AP", "method": "SABRA", "score_pct": 39.503452, "datasets": 6, "delta_vs_published_pp": -3.529881 },
+        { "metric": "Image AUROC", "method": "Published N=3", "score_pct": 77.9, "datasets": 3, "delta_vs_published_pp": 0.0 },
+        { "metric": "Image AUROC", "method": "Phase2B", "score_pct": 73.418771, "datasets": 3, "delta_vs_published_pp": -4.481229 },
+        { "metric": "Image AUROC", "method": "SABRA", "score_pct": 75.761302, "datasets": 3, "delta_vs_published_pp": -2.138698 },
+        { "metric": "Image AP", "method": "Published N=3", "score_pct": 77.7, "datasets": 3, "delta_vs_published_pp": 0.0 },
+        { "metric": "Image AP", "method": "Phase2B", "score_pct": 73.931813, "datasets": 3, "delta_vs_published_pp": -3.768187 },
+        { "metric": "Image AP", "method": "SABRA", "score_pct": 76.863261, "datasets": 3, "delta_vs_published_pp": -0.836739 }
+      ],
+      "pixel_delta_long": [
+        { "dataset": "Brain", "metric": "pAUROC", "delta_pp": 0.061583, "sabra_score": 95.361583, "published_score": 95.3 },
+        { "dataset": "Brain", "metric": "pAP", "delta_pp": -13.886085, "sabra_score": 39.113915, "published_score": 53.0 },
+        { "dataset": "Liver", "metric": "pAUROC", "delta_pp": -0.989714, "sabra_score": 96.210286, "published_score": 97.2 },
+        { "dataset": "Liver", "metric": "pAP", "delta_pp": -2.451815, "sabra_score": 5.048185, "published_score": 7.5 },
+        { "dataset": "Retina", "metric": "pAUROC", "delta_pp": -0.405104, "sabra_score": 93.294896, "published_score": 93.7 },
+        { "dataset": "Retina", "metric": "pAP", "delta_pp": -2.497557, "sabra_score": 48.402443, "published_score": 50.9 },
+        { "dataset": "ClinicDB", "metric": "pAUROC", "delta_pp": 0.011991, "sabra_score": 89.211991, "published_score": 89.2 },
+        { "dataset": "ClinicDB", "metric": "pAP", "delta_pp": -1.202053, "sabra_score": 52.797947, "published_score": 54.0 },
+        { "dataset": "ColonDB", "metric": "pAUROC", "delta_pp": 1.365325, "sabra_score": 86.465325, "published_score": 85.1 },
+        { "dataset": "ColonDB", "metric": "pAP", "delta_pp": 3.91215, "sabra_score": 36.51215, "published_score": 32.6 },
+        { "dataset": "Kvasir", "metric": "pAUROC", "delta_pp": -2.333972, "sabra_score": 86.466028, "published_score": 88.8 },
+        { "dataset": "Kvasir", "metric": "pAP", "delta_pp": -5.053926, "sabra_score": 55.146074, "published_score": 60.2 }
+      ],
+      "pixel_results": [
+        { "dataset": "Brain", "published_pauroc": 95.3, "phase2b_pauroc": 95.349432, "sabra_pauroc": 95.361583, "delta_pauroc_pp": 0.061583, "published_pap": 53.0, "phase2b_pap": 39.826948, "sabra_pap": 39.113915, "delta_pap_pp": -13.886085 },
+        { "dataset": "Liver", "published_pauroc": 97.2, "phase2b_pauroc": 95.852269, "sabra_pauroc": 96.210286, "delta_pauroc_pp": -0.989714, "published_pap": 7.5, "phase2b_pap": 4.849695, "sabra_pap": 5.048185, "delta_pap_pp": -2.451815 },
+        { "dataset": "Retina", "published_pauroc": 93.7, "phase2b_pauroc": 94.202366, "sabra_pauroc": 93.294896, "delta_pauroc_pp": -0.405104, "published_pap": 50.9, "phase2b_pap": 50.871378, "sabra_pap": 48.402443, "delta_pap_pp": -2.497557 },
+        { "dataset": "ClinicDB", "published_pauroc": 89.2, "phase2b_pauroc": 88.629648, "sabra_pauroc": 89.211991, "delta_pauroc_pp": 0.011991, "published_pap": 54.0, "phase2b_pap": 51.653741, "sabra_pap": 52.797947, "delta_pap_pp": -1.202053 },
+        { "dataset": "ColonDB", "published_pauroc": 85.1, "phase2b_pauroc": 86.343541, "sabra_pauroc": 86.465325, "delta_pauroc_pp": 1.365325, "published_pap": 32.6, "phase2b_pap": 36.647861, "sabra_pap": 36.51215, "delta_pap_pp": 3.91215 },
+        { "dataset": "Kvasir", "published_pauroc": 88.8, "phase2b_pauroc": 86.265327, "sabra_pauroc": 86.466028, "delta_pauroc_pp": -2.333972, "published_pap": 60.2, "phase2b_pap": 54.635171, "sabra_pap": 55.146074, "delta_pap_pp": -5.053926 }
+      ],
+      "image_results": [
+        { "dataset": "Brain", "published_iauroc": 86.8, "phase2b_iauroc": 79.79187, "sabra_iauroc": 82.105361, "delta_iauroc_pp": -4.694639, "published_iap": 96.9, "phase2b_iap": 94.259649, "sabra_iap": 95.07405, "delta_iap_pp": -1.82595 },
+        { "dataset": "Liver", "published_iauroc": 65.8, "phase2b_iauroc": 58.991233, "sabra_iauroc": 63.430099, "delta_iauroc_pp": -2.369901, "published_iap": 55.3, "phase2b_iap": 45.761531, "sabra_iap": 53.676524, "delta_iap_pp": -1.623476 },
+        { "dataset": "Retina", "published_iauroc": 81.1, "phase2b_iauroc": 81.473211, "sabra_iauroc": 81.748445, "delta_iauroc_pp": 0.648445, "published_iap": 80.9, "phase2b_iap": 81.774258, "sabra_iap": 81.839209, "delta_iap_pp": 0.939209 }
+      ]
+    }
+  },
+  "sources": [
+    { "id": "comparison_snapshot", "label": "Derived Medical comparison snapshot", "path": "reports/medical_acdclip_comparison_20260822/comparison.csv" },
+    { "id": "report_notes", "label": "Comparison methodology and data-quality notes", "path": "reports/medical_acdclip_comparison_20260822/REPORT_NOTES.md" },
+    { "id": "published_readme", "label": "Published ACD-CLIP results table", "path": "README.md", "url": "https://github.com/upupmake/ACD-CLIP#results" },
+    { "id": "canonical_protocol", "label": "SABRA canonical v1 protocol", "path": "docs/SABRA_CANONICAL_V1_PROTOCOL.md" }
+  ]
+}
