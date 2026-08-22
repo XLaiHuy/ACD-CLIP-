@@ -553,3 +553,25 @@ NOTES:
 - R0B is not triggered because R0 passed.
 - No Medical dataset or sample was accessed.
 - All R0 scientific artifacts must be committed and local/remote equality verified before R1 implementation.
+
+### R0 Publication Verification and R1 Contract Authorization
+
+- timestamp: `2026-08-23T02:25:22+07:00`
+- R0 output commit: `571c26b07209c3005837deebfc306f1e3d1b433b`
+- remote branch: `origin/research/p6-sabra-car-v1`
+- local HEAD: `571c26b07209c3005837deebfc306f1e3d1b433b`
+- remote HEAD: `571c26b07209c3005837deebfc306f1e3d1b433b`
+- divergence: `0 0`
+- decision: R0 publication gate PASS; R1 contract preparation authorized.
+- R1 contract artifact: `research/sabra_car/R1_IMPLEMENTATION_CONTRACT.md`
+- source cache fields 1-9: exact canonical GT-free shards, 2,162 records, 12 classes
+- stability fields 10-11: Trust-v2 `where(valid_p9,S9,0)` and `where(valid_p16,S16,0)`
+- Trust-v2 hashes/path alignment/finiteness: PASS
+- Trust-v2 p9/p16 validity on VisA: 100%
+- solver runtime: existing Python 3.14.0, NumPy 1.26.4, scikit-learn 1.7.2 environment
+- deployment runtime remains the R0 `torchhuy` environment
+- scientific R1 results observed: none
+- R1 labels fitted: no
+- Medical accessed: no
+- Phase2B training steps: 0
+- next action: commit and push the R1 contract, then implement the additive split-runtime LOCO sidecar and deterministic tests.
