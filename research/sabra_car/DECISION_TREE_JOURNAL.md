@@ -406,3 +406,36 @@ status:
 - available RAM: 24 GiB; swap available 5.4 GiB
 - GPU before run: RTX 5060 Ti, 16311 MiB total, 556 MiB used
 - next action: publish the signed-radius artifacts, then run final R0 metrics and exact gate decision as one blocking command
+
+### R0 Engineering Bug R0-ENG-005
+
+BUG_ID:
+R0-ENG-005
+
+symptom:
+- Finalization raised `NameError: name 'false' is not defined` while constructing the final summary after metric and quadrant artifacts had been written.
+
+root cause:
+- A JSON-style lowercase boolean literal was used in Python code, and the summary-construction path lacked a direct unit test.
+
+scientific impact:
+- No final R0 decision artifact was written, so this failure is not a scientific gate result.
+- Partial metric/quadrant files were not inspected or used for branching after the failure.
+- No downstream stage was started.
+
+fix:
+- Move summary construction into `final_summary_payload` using the Python boolean `False` and explicit zero-training contract.
+
+regression test:
+- `test_final_summary_uses_python_boolean_and_zero_training`
+
+validation:
+- timestamp: `2026-08-23T02:14:18+07:00`
+- targeted suite: 15 passed.
+- `git diff --check`: PASS.
+- failed-run artifacts preserved with `r0_eng_005_fail` suffixes before rerun.
+- Medical accessed: no.
+- Phase2B training steps: 0.
+
+status:
+- FIXED; publish this engineering checkpoint before rerunning finalization.

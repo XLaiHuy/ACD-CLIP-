@@ -919,6 +919,19 @@ def decide(per_class: list[dict[str, Any]], macros: list[dict[str, Any]], alpha:
     }
 
 
+def final_summary_payload(
+    macros: list[dict[str, Any]], action_rates: dict[str, float | None], decision: dict[str, Any]
+) -> dict[str, Any]:
+    return {
+        "status": "COMPLETE",
+        "macro": macros,
+        "action_rates": action_rates,
+        "decision": decision,
+        "medical_access": False,
+        "training_steps": 0,
+    }
+
+
 def run_finalize(args: argparse.Namespace) -> dict[str, Any]:
     rows = condition_rows(args, include_radius=True)
     macros = macro_rows(rows)
@@ -938,14 +951,7 @@ def run_finalize(args: argparse.Namespace) -> dict[str, Any]:
         "sign_reversal_rate": float(np.count_nonzero(flat_actions < 0) / nonkeep) if nonkeep else None,
     }
     decision = decide(rows, macros, alpha, utility_summary, quadrant_counts)
-    summary = {
-        "status": "COMPLETE",
-        "macro": macros,
-        "action_rates": action_rates,
-        "decision": decision,
-        "medical_access": false,
-        "training_steps": 0,
-    }
+    summary = final_summary_payload(macros, action_rates, decision)
     write_csv(args.output / "summary.csv", macros)
     write_json(args.output / "summary.json", summary)
     return summary

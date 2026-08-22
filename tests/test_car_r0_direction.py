@@ -15,6 +15,7 @@ from tools.sabra_car.r0_direction import (
     coordinate_radius_for_image,
     exact_metrics,
     intervention_delta,
+    final_summary_payload,
     informative_coordinates,
     select_signed_alpha,
     write_csv,
@@ -49,6 +50,13 @@ def test_basis_parity_tolerance_covers_float32_cancellation_only():
     assert not basis_parity_pass(0.0, 3.1e-6)
     assert not basis_parity_pass(1.1e-6, 0.0)
     assert not basis_parity_pass(0.0, float("nan"))
+
+
+def test_final_summary_uses_python_boolean_and_zero_training():
+    payload = final_summary_payload([], {}, {"decision": "CONTINUE"})
+    assert payload["medical_access"] is False
+    assert payload["training_steps"] == 0
+    assert payload["decision"] == {"decision": "CONTINUE"}
 
 
 def test_intervention_is_abnormal_only_and_shared():
