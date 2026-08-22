@@ -1,0 +1,28 @@
+{
+  "status": "FAILED_CORRECTNESS",
+  "stage": "R1",
+  "phase": "LOCO_FIT",
+  "held_out_class": "candle",
+  "input_commit": "58312d4",
+  "estimator": {
+    "C": 1.0,
+    "class_weight": "balanced",
+    "max_iter": 1000,
+    "multi_class": "multinomial",
+    "random_state": 0,
+    "solver": "lbfgs",
+    "tol": 0.0001
+  },
+  "observed_classes": [-1, 0, 1],
+  "observed_iterations": 1000,
+  "convergence_warning": "lbfgs failed to converge after 1000 iteration(s) (status=1): STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+  "fold_prediction_written": false,
+  "risk_thresholds_evaluated": false,
+  "source_masks_opened": false,
+  "medical_reads": 0,
+  "mvtec_reads": 0,
+  "phase2b_training_steps": 0,
+  "observed_wall_seconds_approx": 375,
+  "decision": "STOP",
+  "reason": "The first full LOCO fold failed the frozen convergence correctness gate; no estimator or fallback change is authorized."
+}

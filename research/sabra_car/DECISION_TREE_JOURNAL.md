@@ -654,3 +654,116 @@ status:
 - MVTec accessed: no
 - Phase2B training steps: 0
 - next action: publish this estimate, then run the complete fixed LOCO fitter.
+
+### Stage R1 — GT-Free Action Predictor
+
+START_TIME:
+2026-08-23T02:25:22+07:00
+
+END_TIME:
+2026-08-23T02:46:12+07:00
+
+INPUT_COMMIT:
+`da8ac2b5cf137f96ac8ddda1c11739d9c0f13ad2`
+
+OUTPUT_COMMIT:
+Recorded in the next append-only publication entry after commit creation.
+
+PURPOSE:
+- Learn the preregistered GT-free three-class action predictor under strict leave-one-class-out isolation and determine whether a selective deployable action policy passes risk and efficacy gates.
+
+HYPOTHESIS:
+- The fixed multinomial predictor can converge within 1,000 LBFGS iterations and select a threshold with at least 10% coverage, at most 5% opposite-sign error, at least 25% relative risk reduction, and at least +0.50 pp source pAP.
+
+ALLOWED_CHANGES:
+- Additive R1 validation, LOCO fit/evaluation sidecars, deterministic tests, exact failure evidence, and mandatory stop/handoff artifacts.
+
+FORBIDDEN_CHANGES:
+- Alternate solver/model family, more than 1,000 iterations, feature/order changes, sampling, threshold changes, neural fallback, Phase2B updates, MVTec selection, or Medical access.
+
+DATA_USED:
+- dataset: immutable GT-free VisA feature caches plus committed R0 oracle action labels
+- records/classes: 2,162 images, 2,959,778 patches, 12 classes
+- split: fixed 12-fold leave-one-class-out
+- whether GT was used: R0 oracle labels were consumed as source targets; no masks were opened in R1
+- whether Medical was accessed: no
+- whether MVTec was accessed: no
+
+IMPLEMENTATION:
+- `tools/sabra_car/r1_common.py`: provenance, exact features, fold scaling, threshold/risk logic
+- `tools/sabra_car/r1_fit.py`: scikit-learn multinomial LOCO fitting and portable numeric artifacts
+- `tools/sabra_car/r1_evaluate.py`: canonical held-out action deployment, never reached
+- `tests/test_car_r1_action.py`: deterministic contract regressions
+- split runtimes: scikit-learn fitting in `Thai`; canonical deployment reserved for `torchhuy`
+
+COMMANDS:
+- bounded first-block timing probe, 220,000 patches; rejected as representative timing evidence
+- bounded evenly-spaced timing probe, 220,000 patches
+- `/home/ai4/ENTER/envs/Thai/bin/python -m tools.sabra_car.r1_fit`
+
+TESTS_BEFORE_RUN:
+- targeted R0/R1/canonical suite: PASS, 21 tests
+- solver constructor: PASS
+- both-runtime syntax/CLI: PASS
+- source/Trust-v2 hashes and identity alignment: PASS
+- feature finiteness and exact 11-field order: PASS
+- Medical/MVTec zero-read provenance: PASS
+
+RUN:
+- run directory: `results/sabra_car/r1`
+- full fitter input commit: `58312d4`
+- expected runtime: 100 minutes maximum budget
+- actual behavior: first full fold failed closed after approximately 375 wall-clock seconds
+- failing fold: held-out `candle`
+- estimator classes: `[-1,0,1]`
+- observed iterations: 1,000
+- convergence warning: LBFGS total iteration limit reached
+- fold prediction written: no
+- threshold landscape written: no
+- OOF evaluation run: no
+
+RESULTS:
+- selected threshold: NOT_RUN
+- coverage: NOT_RUN
+- opposite-sign rate/reduction: NOT_RUN
+- macro pAP/pAUROC: NOT_RUN
+- per-class breadth: NOT_RUN
+- downstream stages and final benchmarks: NOT_RUN
+
+EXPECTED_VS_OBSERVED:
+- expected: every fold converges within the fixed 1,000-iteration budget before risk/efficacy evaluation
+- observed: the first full fold exhausted exactly 1,000 iterations and failed the frozen correctness gate
+- interpretation boundary: no valid held-out prediction exists, so no scientific efficacy or risk claim is made
+
+BUGS:
+- R1-ENG-001: canonical manifest used numeric zero for `mask_pixels_read`; validator fixed to accept only boolean false or numeric zero
+- no authorized engineering fix exists for the full-fold convergence stop because solver and max_iter are frozen scientific protocol parameters
+
+SCIENTIFIC_INTERPRETATION:
+- R0 oracle direction remains a valid positive mechanistic result.
+- The preregistered GT-free predictor is not numerically certified under its fixed contract.
+- Adjusting solver, tolerance, iterations, scaling, sampling, or model family after this outcome would be post-hoc and is forbidden.
+- Therefore the deployable CAR hypothesis is unproven and the tree stops before R2.
+
+GATES:
+- common provenance/no-Medical/no-MVTec/no-Phase2B-update gates; observed PASS
+- full-fold estimator convergence before 1,000 iterations; observed FAIL at exactly 1,000
+- risk-qualified threshold exists; observed NOT_RUN
+- coverage >=10%; observed NOT_RUN
+- opposite-sign rate <=5%; observed NOT_RUN
+- relative risk reduction >=25%; observed NOT_RUN
+- macro pAP delta >=+0.50 pp; observed NOT_RUN
+- macro pAUROC delta >=-0.50 pp; observed NOT_RUN
+- non-negative pAP breadth >=7/12; observed NOT_RUN
+
+DECISION:
+- STOP
+
+NEXT_STAGE:
+- Final decision publication only. R2, R3, R4, Freeze, MVTec development, and retrospective Medical evaluation are NOT_RUN.
+
+NOTES:
+- Failure evidence is preserved in `results/sabra_car/r1/FIT_FAILED.json`.
+- Schema-valid downstream status is preserved in `results/sabra_car/final_results.csv` and `final_results.json`.
+- No Medical dataset or sample was accessed.
+- A future attempt requires a new preregistration and must not mutate this stopped run.
