@@ -15,6 +15,7 @@ from tools.sabra_car.r0_direction import (
     intervention_delta,
     informative_coordinates,
     select_signed_alpha,
+    write_csv,
 )
 from utils import calculate_seg_loss
 
@@ -30,6 +31,14 @@ def test_informative_coordinates_are_largest_and_stable():
     utility = np.array([[0.1, -0.4, 0.4], [0.2, -0.3, 0.0]], dtype=np.float32)
     assert informative_coordinates(utility, count=3) == [(0, 1), (0, 2), (1, 1)]
 
+
+
+def test_csv_writer_uses_lf_line_endings(tmp_path):
+    output = tmp_path / "rows.csv"
+    write_csv(output, [{"name": "candle", "value": 1}])
+    payload = output.read_bytes()
+    assert payload == b"name,value\ncandle,1\n"
+    assert b"\r" not in payload
 
 
 def test_intervention_is_abnormal_only_and_shared():

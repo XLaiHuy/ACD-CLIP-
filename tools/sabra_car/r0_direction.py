@@ -69,7 +69,7 @@ def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
         raise ValueError(f"refusing to write empty CSV: {path}")
     temporary = path.with_suffix(path.suffix + ".tmp")
     with temporary.open("w", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]), lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
     temporary.replace(path)

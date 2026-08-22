@@ -304,3 +304,39 @@ status:
 - Medical accessed: no (`medical_reads=0`)
 - Phase2B training steps: 0
 - next action: publish the alpha artifacts, then run the preregistered real-image sparse-radius parity/timing probe
+
+### R0 Engineering Bug R0-ENG-003
+
+BUG_ID:
+R0-ENG-003
+
+symptom:
+- `git diff --cached --check` reported trailing whitespace on every generated CSV row because the files used CRLF line endings.
+- The alpha evidence commit `bcff5927cf38bd754c357f51963ec762bd4f5822` was nevertheless created and pushed because the shell commands were newline-separated instead of fail-fast chained.
+
+root cause:
+- `csv.DictWriter` used the platform/default dialect line terminator rather than an explicitly repository-safe LF terminator.
+- The publication command did not use `&&` after the required cached-diff check.
+
+scientific impact:
+- None. CSV values, row order, selected alpha, and all reported metrics are unchanged; this is serialization and publication-control hygiene only.
+- No radius result was run or observed before this classification and fix.
+
+fix:
+- Set `lineterminator="\\n"` in the shared R0 CSV writer and normalize only the two already-generated alpha CSV files from CRLF to LF.
+- All future publication command sequences must stop on a failed `git diff --cached --check`.
+
+regression test:
+- `test_csv_writer_uses_lf_line_endings`
+
+validation:
+- timestamp: `2026-08-23T02:00:07+07:00`
+- targeted suite: 13 passed.
+- `git diff --check`: PASS after normalization.
+- normalized artifacts: `alpha_per_class.csv`, `alpha_summary.csv`.
+- alpha scientific metrics unchanged: yes.
+- Medical accessed: no.
+- Phase2B training steps: 0.
+
+status:
+- FIXED; radius probing remains pending publication of this corrective commit.
