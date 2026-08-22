@@ -575,3 +575,23 @@ NOTES:
 - Medical accessed: no
 - Phase2B training steps: 0
 - next action: commit and push the R1 contract, then implement the additive split-runtime LOCO sidecar and deterministic tests.
+
+### R1 Implementation Validation
+
+- timestamp: `2026-08-23T02:31:47+07:00`
+- input contract commit: `da8ac2b5cf137f96ac8ddda1c11739d9c0f13ad2`
+- implementation files: `r1_common.py`, `r1_fit.py`, `r1_evaluate.py`
+- regression file: `tests/test_car_r1_action.py`
+- targeted R0/R1/canonical suite: 20 passed
+- pure-NumPy feature order, supported S9/S16 masks, linear quantiles, IQR floor, stable argmax, confidence abstention, risk selection, and LF serialization: PASS
+- scikit-learn constructor contract: PASS
+- fitter environment: Python 3.14.0, NumPy 1.26.4, scikit-learn 1.7.2
+- evaluator environment: canonical `torchhuy`
+- fitter and evaluator CLI/syntax checks: PASS
+- cache fields/hashes/path alignment: PASS
+- scientific R1 results observed: none
+- full or partial LOCO model fit performed: no
+- Medical accessed: no
+- MVTec accessed: no
+- Phase2B training steps: 0
+- next action: commit and push implementation, verify equality, then run a bounded non-decision fit timing probe.
