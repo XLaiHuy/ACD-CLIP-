@@ -626,3 +626,31 @@ validation:
 
 status:
 - FIXED; publish before retrying the bounded timing-only fit.
+
+### R1 LOCO Runtime Estimate and Fit Authorization
+
+- timestamp: `2026-08-23T02:37:14+07:00`
+- input fix commit: `389246d610c78fa5e679f11e980412349be51345`
+- first timing probe: first 20,000 patches per 11 training classes; rejected as runtime-representativeness evidence because KEEP was over-sampled at 83%
+- representative timing probe: 20,000 evenly spaced patches per 11 training classes
+- representative probe patches: 220,000
+- representative action counts SUPPRESS / KEEP / BOOST: 105,369 / 104,987 / 9,644
+- load and complete hash validation: 1.6374666751362383 seconds
+- representative subset fit: 33.05409368686378 seconds
+- representative subset iterations: 1,000 with one convergence warning
+- projected full-fold fit: 403.5571293311591 seconds
+- projected 12-fold fit before overhead: approximately 81 minutes
+- conservative EXPECTED_RUNTIME_MIN: 100
+- EXPECTED_FINISH_TIME: `2026-08-23T04:17:14+07:00`
+- CPU resources: 28 logical processors
+- available RAM: 24 GiB; swap available 5.4 GiB
+- representative peak RSS: 371,388 KiB
+- available disk: 209 GiB
+- existing SABRA-CAR result size: 88 MiB
+- execution mode: one attached blocking CPU command
+- fail-closed behavior: stop before writing a fold prediction if that full fold does not converge within the frozen 1,000 iterations
+- scientific R1 results observed: none
+- Medical accessed: no
+- MVTec accessed: no
+- Phase2B training steps: 0
+- next action: publish this estimate, then run the complete fixed LOCO fitter.
