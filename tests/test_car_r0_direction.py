@@ -13,6 +13,7 @@ from tools.sabra_car.r0_direction import (
     coordinate_radius_for_image,
     exact_metrics,
     intervention_delta,
+    informative_coordinates,
     select_signed_alpha,
 )
 from utils import calculate_seg_loss
@@ -23,6 +24,12 @@ def test_signed_action_thresholds_are_exact():
     assert classify_actions(values).tolist() == [-1, 0, 0, 0, 1]
     tensor = torch.from_numpy(values)
     assert classify_actions(tensor).tolist() == [-1, 0, 0, 0, 1]
+
+
+def test_informative_coordinates_are_largest_and_stable():
+    utility = np.array([[0.1, -0.4, 0.4], [0.2, -0.3, 0.0]], dtype=np.float32)
+    assert informative_coordinates(utility, count=3) == [(0, 1), (0, 2), (1, 1)]
+
 
 
 def test_intervention_is_abnormal_only_and_shared():

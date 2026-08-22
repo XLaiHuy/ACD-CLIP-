@@ -224,3 +224,39 @@ status:
 - execution mode: one blocking command
 - Medical accessed: no
 - Phase2B training steps: 0
+
+### R0 Engineering Bug R0-ENG-002
+
+BUG_ID:
+R0-ENG-002
+
+symptom:
+- The initial utility finite-difference parity check passed at three fixed coordinates whose analytic utilities were approximately zero, so it did not provide informative evidence for the sign or magnitude of the utility derivative.
+
+root cause:
+- Fixed patch indices were selected before observing the utility distribution and happened to land on locally insensitive coordinates.
+
+scientific impact:
+- The 12 utility shards remained valid, with exact native-cache parity, but the original derivative-correctness evidence was too weak to authorize alpha evaluation.
+- No alpha result was run or observed before this classification and fix.
+
+fix:
+- Select the three stable largest-absolute-utility coordinates from the first canonical class and require finite-difference magnitude agreement, matching signs, nonzero analytic utility, and native zero-delta cache parity.
+
+regression test:
+- `test_informative_coordinates_are_largest_and_stable`
+
+validation:
+- timestamp: `2026-08-23T01:37:51+07:00`
+- targeted suite: 12 passed.
+- utility records: 2,162 across 12 VisA classes.
+- native zero-delta cache parity max absolute error: 0.
+- informative finite-difference absolute errors: 4.0978193283081055e-08, 1.4528632164001465e-07, 8.177012205123901e-07.
+- all informative checks: sign match true and within tolerance.
+- utility phase status: PASS.
+- elapsed rerun time: 9.958480918081477 seconds.
+- Medical accessed: no (`medical_reads=0`).
+- Phase2B training steps: 0.
+
+status:
+- FIXED; alpha evaluation authorized after publication of this checkpoint.

@@ -302,6 +302,66 @@ def evaluate_correction(
     return scores, losses
 
 
+def informative_coordinates(utility: np.ndarray, count: int = 3) -> list[tuple[int, int]]:
+    utility = np.asarray(utility, dtype=np.float32)
+    if utility.ndim != 2:
+        raise ValueError("utility must be [images,patches]")
+    order = np.argsort(-np.abs(utility), axis=None, kind="stable")[:count]
+    return [tuple(int(value) for value in np.unravel_index(int(flat), utility.shape)) for flat in order]
+
+
+def informative_utility_parity(
+    args: argparse.Namespace,
+    metadata: dict[str, dict[str, Any]],
+    data_root: Path,
+) -> list[dict[str, Any]]:
+    class_name = EXPECTED_VISA_CLASSES[0]
+    shard = load_shard(args.cache_root, class_name)
+    masks = load_masks(shard["image_path"], metadata, data_root)
+    with np.load(args.output / "utility" / f"{class_name}.npz", allow_pickle=False) as data:
+        utility = np.asarray(data["utility"], dtype=np.float32)
+    rows: list[dict[str, Any]] = []
+    device = torch.device("cuda")
+    native = torch.from_numpy(shard["native_logits"][0:1]).permute(1, 0, 2, 3).to(device)
+    with torch.no_grad():
+        probability, _ = deploy_correction(native, torch.zeros((1, PATCHES), device=device))
+    cache_error = float(np.max(np.abs(probability[0, 1].cpu().numpy() - shard["native_pixel_probability"][0])))
+    rows.append({"test": "native_zero_delta_cache", "max_abs_error": cache_error, "pass": cache_error <= 2e-6})
+    epsilon = 0.1
+    for image_index, patch in informative_coordinates(utility, count=3):
+        native = torch.from_numpy(shard["native_logits"][image_index:image_index + 1]).permute(1, 0, 2, 3).to(device)
+        mask = torch.from_numpy(masks[image_index:image_index + 1, None].astype(np.float32)).to(device)
+        values: list[float] = []
+        for signed_epsilon in (epsilon, -epsilon):
+            correction = torch.zeros((1, PATCHES), device=device)
+            correction[0, patch] = signed_epsilon
+            with torch.no_grad():
+                candidate, _ = deploy_correction(native, correction)
+                values.append(float(canonical_loss_per_image(candidate, mask)[0].item()))
+        finite_difference = -(values[0] - values[1]) / (2.0 * epsilon)
+        analytic = float(utility[image_index, patch])
+        absolute_error = abs(analytic - finite_difference)
+        tolerance = 2e-5 + 1e-2 * max(abs(analytic), abs(finite_difference))
+        sign_match = bool(np.sign(analytic) == np.sign(finite_difference))
+        rows.append({
+            "test": "informative_utility_finite_difference",
+            "class": class_name,
+            "image_index": image_index,
+            "image_path": str(shard["image_path"][image_index]),
+            "patch": patch,
+            "epsilon": epsilon,
+            "analytic": analytic,
+            "finite_difference": finite_difference,
+            "absolute_error": absolute_error,
+            "tolerance": tolerance,
+            "sign_match": sign_match,
+            "informative": abs(analytic) > EPSILON,
+            "pass": absolute_error <= tolerance and sign_match and abs(analytic) > EPSILON,
+        })
+    return rows
+
+
+
 def run_utilities(args: argparse.Namespace, provenance: dict[str, Any]) -> dict[str, Any]:
     output = args.output / "utility"
     output.mkdir(parents=True, exist_ok=True)
@@ -368,8 +428,7 @@ def run_utilities(args: argparse.Namespace, provenance: dict[str, Any]) -> dict[
             np.savez_compressed(handle, utility=utilities, native_loss=native_losses, image_path=paths)
         temporary.replace(destination)
         total += len(paths)
-    if not parity_rows:
-        parity_rows = json.loads((args.output / "utility_summary.json").read_text())["parity"]
+    parity_rows = informative_utility_parity(args, metadata, data_root)
     summary = {
         "status": "PASS" if all(row["pass"] for row in parity_rows) else "FAIL",
         "records": total,
