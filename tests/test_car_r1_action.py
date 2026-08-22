@@ -9,6 +9,7 @@ from tools.sabra_car.r1_common import (
     apply_robust_scaler,
     classify_utility,
     fit_robust_scaler,
+    is_zero_read_counter,
     select_threshold,
     stable_argmax_predictions,
     stack_features,
@@ -88,3 +89,11 @@ def test_r1_utility_threshold_and_csv_lf(tmp_path):
     payload = output.read_bytes()
     assert b"\r" not in payload
     assert payload.endswith(b"\n")
+
+
+def test_manifest_zero_read_counters_accept_boolean_or_numeric_zero_only():
+    assert is_zero_read_counter(False)
+    assert is_zero_read_counter(0)
+    assert is_zero_read_counter(0.0)
+    assert not is_zero_read_counter(True)
+    assert not is_zero_read_counter(1)

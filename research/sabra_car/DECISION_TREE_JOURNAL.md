@@ -595,3 +595,34 @@ NOTES:
 - MVTec accessed: no
 - Phase2B training steps: 0
 - next action: commit and push implementation, verify equality, then run a bounded non-decision fit timing probe.
+
+### R1 Engineering Bug R1-ENG-001
+
+BUG_ID:
+R1-ENG-001
+
+symptom:
+- The bounded timing probe stopped in provenance validation with `canonical GT-free manifest contract failed` before loading any feature shard.
+
+root cause:
+- The validator required `mask_pixels_read is False`, while the immutable manifest correctly represents that zero-read counter as numeric `0`; the other related counters use booleans or numeric zero.
+
+scientific impact:
+- None. No feature shard was loaded into a model, no LOCO estimator was fit, no held-out probability was produced, and no R1 scientific result was observed.
+
+fix:
+- Accept only boolean `false` or numeric zero for every canonical zero-read counter, while continuing to reject missing, true, or nonzero values.
+
+regression test:
+- `test_manifest_zero_read_counters_accept_boolean_or_numeric_zero_only`
+
+validation:
+- timestamp: `2026-08-23T02:34:37+07:00`
+- targeted suite: 21 passed.
+- `git diff --check`: PASS.
+- Medical accessed: no.
+- MVTec accessed: no.
+- Phase2B training steps: 0.
+
+status:
+- FIXED; publish before retrying the bounded timing-only fit.

@@ -83,6 +83,10 @@ def classify_utility(utility: np.ndarray) -> np.ndarray:
     return np.where(utility > EPSILON, 1, np.where(utility < -EPSILON, -1, 0)).astype(np.int8)
 
 
+def is_zero_read_counter(value: Any) -> bool:
+    return value is False or (not isinstance(value, bool) and value == 0)
+
+
 def stack_features(source: dict[str, np.ndarray], trust: dict[str, np.ndarray]) -> np.ndarray:
     arrays = [np.asarray(source[name], dtype=np.float32) for name in SOURCE_FEATURES]
     p9 = np.where(
@@ -125,12 +129,9 @@ def _load_manifest(path: Path, trust: bool) -> dict[str, Any]:
         if counters.get("MEDICAL_READS") != 0 or counters.get("MVTEC_READS_BEFORE_FREEZE") != 0:
             raise RuntimeError("Trust-v2 forbidden data counter is nonzero")
     else:
-        if (
-            manifest.get("dataset") != "VisA"
-            or manifest.get("medical_reads") != 0
-            or manifest.get("labels_read") is not False
-            or manifest.get("mask_paths_read") is not False
-            or manifest.get("mask_pixels_read") is not False
+        if manifest.get("dataset") != "VisA" or any(
+            not is_zero_read_counter(manifest.get(name))
+            for name in ("medical_reads", "labels_read", "mask_paths_read", "mask_pixels_read")
         ):
             raise RuntimeError("canonical GT-free manifest contract failed")
     return manifest
