@@ -135,3 +135,14 @@ NEXT_STAGE:
 NOTES:
 - Existing canonical VisA cache may be reused only after the frozen provenance audit passes.
 - Session time remaining is unavailable and will not be invented.
+
+### S0 Publication Verification
+
+- timestamp: `2026-08-23T01:15:03+07:00`
+- S0 output commit: `08ca99ff69d6d85184f5d145830876befb413628`
+- remote branch: `origin/research/p6-sabra-car-v1`
+- local HEAD: `08ca99ff69d6d85184f5d145830876befb413628`
+- remote HEAD: `08ca99ff69d6d85184f5d145830876befb413628`
+- divergence: `0 0`
+- decision: S0 publication gate PASS; R0 implementation is authorized.
+- Medical access remains forbidden by explicit user instruction.
