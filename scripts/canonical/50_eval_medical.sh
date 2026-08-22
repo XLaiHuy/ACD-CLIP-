@@ -64,10 +64,9 @@ mapfile -t medical_datasets <<< "$medical_names"
 for dataset in "${medical_datasets[@]}"; do
   [[ -n "$dataset" ]] || continue
   output_dir="$RUN_ROOT/medical/$dataset"
-  require_clean_stage_output "$output_dir/metrics.json"
+  work_dir="$RUN_ROOT/medical_work/$dataset"
   medical_cmd=(
-    "$PYTHON" "$REPO_ROOT/test.py"
-    --method compare
+    "$PYTHON" "$SCRIPT_DIR/medical_compare_external.py"
     --dataset "$dataset"
     --data-root "$MEDICAL_ROOT"
     --phase2b-selection "$selection_json"
@@ -82,8 +81,23 @@ for dataset in "${medical_datasets[@]}"; do
     --metric-mode exact
     --pixel-stride 1
     --output-dir "$output_dir"
+    --work-dir "$work_dir"
+    --reuse-inference-cache
   )
-  run_logged "$RUN_ROOT/logs/medical_${dataset}.log" "${medical_cmd[@]}"
+  if [[ -f "$output_dir/metrics.json" && -f "$output_dir/per_class_metrics.csv" ]]; then
+    # Validate and preserve a completed result without truncating its log.
+    run_cmd "${medical_cmd[@]}"
+    continue
+  fi
+  log_path="$RUN_ROOT/logs/medical_${dataset}.log"
+  if [[ -e "$log_path" ]]; then
+    resume_index=1
+    while [[ -e "$RUN_ROOT/logs/medical_${dataset}.resume${resume_index}.log" ]]; do
+      ((resume_index += 1))
+    done
+    log_path="$RUN_ROOT/logs/medical_${dataset}.resume${resume_index}.log"
+  fi
+  run_logged "$log_path" "${medical_cmd[@]}"
   if [[ "$DRY_RUN" != "1" ]]; then
     require_file "$output_dir/metrics.json"
     require_file "$output_dir/per_class_metrics.csv"

@@ -4,7 +4,11 @@ import importlib
 import importlib.util
 import json
 import subprocess
+import sys
 from pathlib import Path
+
+import numpy as np
+import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -12,6 +16,13 @@ SPEC = importlib.util.spec_from_file_location("canonical_exporter", ROOT / "scri
 assert SPEC is not None and SPEC.loader is not None
 EXPORTER = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(EXPORTER)
+
+MEDICAL_SPEC = importlib.util.spec_from_file_location(
+    "canonical_medical_external", ROOT / "scripts/canonical/medical_compare_external.py"
+)
+assert MEDICAL_SPEC is not None and MEDICAL_SPEC.loader is not None
+MEDICAL_EXTERNAL = importlib.util.module_from_spec(MEDICAL_SPEC)
+MEDICAL_SPEC.loader.exec_module(MEDICAL_EXTERNAL)
 
 WRAPPER_SPEC = importlib.util.spec_from_file_location(
     "canonical_phase2b_selector_recovery", ROOT / "scripts/canonical/phase2b_selector_recovery.py"
@@ -21,7 +32,12 @@ SELECTOR_RECOVERY = importlib.util.module_from_spec(WRAPPER_SPEC)
 WRAPPER_SPEC.loader.exec_module(SELECTOR_RECOVERY)
 
 SELECTOR = importlib.import_module("select_phase2b_checkpoint")
-from evaluation.metrics import selection_score as CANONICAL_SELECTION_SCORE
+from evaluation.evaluator import evaluate_records as CANONICAL_EVALUATE_RECORDS
+from evaluation.metrics import (
+    binary_average_precision as CANONICAL_AP,
+    binary_auroc as CANONICAL_AUROC,
+    selection_score as CANONICAL_SELECTION_SCORE,
+)
 
 SCIENTIFIC_CODE_SHA = "4aa9b465ddeb072e9218b74982306d6324c62375"
 
@@ -173,3 +189,326 @@ def test_scientific_ancestor_accepts_workflow_only_history() -> None:
     # allowlist and must be rejected even when the commit graph is valid.
     assert not _workflow_path_allowed("model/phase2b_runtime.py")
     assert not _workflow_path_allowed("train.py")
+
+
+def _metric_parity_cases() -> dict[str, tuple[np.ndarray, np.ndarray]]:
+    rng = np.random.default_rng(20260822)
+    random_scores = rng.random(4096, dtype=np.float32)
+    random_labels = rng.integers(0, 2, size=4096, dtype=np.int8)
+    imbalance_scores = rng.random(10_000, dtype=np.float32)
+    imbalance_labels = np.zeros(10_000, dtype=np.int8)
+    imbalance_labels[[17, 9999]] = 1
+    tied_scores = (rng.integers(0, 9, size=4097, dtype=np.int16).astype(np.float32) / np.float32(8.0))
+    tied_labels = rng.integers(0, 2, size=4097, dtype=np.int8)
+    all_equal_scores = np.full(101, np.float32(0.5), dtype=np.float32)
+    all_equal_labels = np.asarray(([0, 1] * 50) + [1], dtype=np.int8)
+    near_scores = np.asarray(
+        [
+            0.0,
+            np.nextafter(np.float32(0.0), np.float32(1.0)),
+            np.float32(1e-7),
+            np.float32(1.0) - np.finfo(np.float32).eps,
+            np.nextafter(np.float32(1.0), np.float32(0.0)),
+            1.0,
+        ]
+        * 20,
+        dtype=np.float32,
+    )
+    near_labels = np.tile(np.asarray([0, 1, 0, 1, 0, 1], dtype=np.int8), 20)
+    crossing_scores = np.asarray(([0.1] * 19) + ([0.4] * 37) + ([0.9] * 23), dtype=np.float32)
+    crossing_labels = np.asarray(([0, 1, 1] * 27)[: crossing_scores.size], dtype=np.int8)
+    ascending_order = np.argsort(random_scores, kind="mergesort")
+    descending_order = ascending_order[::-1]
+    shuffled_order = rng.permutation(random_scores.size)
+    return {
+        "random": (random_scores, random_labels),
+        "heavy_imbalance": (imbalance_scores, imbalance_labels),
+        "many_ties": (tied_scores, tied_labels),
+        "all_equal_mixed": (all_equal_scores, all_equal_labels),
+        "near_zero_one": (near_scores, near_labels),
+        "tie_crosses_chunks": (crossing_scores, crossing_labels),
+        "ascending": (random_scores[ascending_order], random_labels[ascending_order]),
+        "descending": (random_scores[descending_order], random_labels[descending_order]),
+        "random_input_order": (random_scores[shuffled_order], random_labels[shuffled_order]),
+    }
+
+
+def test_external_exact_metrics_match_canonical_to_1e12(tmp_path: Path) -> None:
+    for name, (scores, labels) in _metric_parity_cases().items():
+        expected_auroc = CANONICAL_AUROC(scores, labels)
+        expected_ap = CANONICAL_AP(scores, labels)
+        actual_auroc, actual_ap, metadata = MEDICAL_EXTERNAL.exact_metrics_from_arrays(
+            scores,
+            labels,
+            tmp_path / name,
+            chunk_elements=17,
+        )
+        assert metadata["initial_runs"] > 1
+        assert abs(actual_auroc - expected_auroc) <= 1e-12, name
+        assert abs(actual_ap - expected_ap) <= 1e-12, name
+
+
+def _synthetic_compare_records() -> list[dict[str, object]]:
+    native_maps = [
+        [0.1, 0.1, 0.2, 0.4, 0.4, 0.8, 0.9, 0.9, 0.0, 0.3, 0.3, 0.7, 0.2, 0.6, 0.6, 1.0],
+        [0.0, 0.2, 0.2, 0.5, 0.5, 0.5, 0.8, 0.8, 0.1, 0.1, 0.4, 0.7, 0.7, 0.9, 0.9, 1.0],
+        [0.05, 0.05, 0.3, 0.3, 0.6, 0.6, 0.6, 0.95, 0.1, 0.2, 0.2, 0.4, 0.4, 0.8, 0.8, 0.9],
+        [0.0, 0.15, 0.15, 0.35, 0.35, 0.55, 0.75, 0.75, 0.05, 0.25, 0.25, 0.45, 0.65, 0.65, 0.85, 1.0],
+    ]
+    labels = [
+        [0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1],
+        [0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1],
+        [0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1],
+        [1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    ]
+    class_names = ["class_a", "class_a", "class_b", "class_b"]
+    image_labels = [0, 1, 0, 0]
+    records: list[dict[str, object]] = []
+    for index, values in enumerate(native_maps):
+        native = np.asarray(values, dtype=np.float32)
+        correction = np.asarray(([0.0, 0.05, 0.0, 0.05] * 4), dtype=np.float32)
+        sabra = np.minimum(native + correction, np.float32(1.0)).astype(np.float32)
+        records.append(
+            {
+                "class_name": class_names[index],
+                "image_path": f"/synthetic/{class_names[index]}/{index:03d}.png",
+                "pixel_labels": np.asarray(labels[index], dtype=np.int8),
+                "image_labels": np.asarray([image_labels[index]], dtype=np.int8),
+                "phase2b": {
+                    "pixel_scores": native,
+                    "image_scores": np.asarray([0.1 + 0.2 * index]),
+                },
+                "sabra": {
+                    "pixel_scores": sabra,
+                    "image_scores": np.asarray([0.15 + 0.2 * index]),
+                },
+            }
+        )
+    return records
+
+
+def _write_synthetic_cache(tmp_path: Path, records: list[dict[str, object]]):
+    work_dir = tmp_path / "medical_work" / "Brain"
+    writer = MEDICAL_EXTERNAL.InferenceCacheWriter(
+        work_dir,
+        dataset="Brain",
+        data_root=tmp_path / "data",
+        image_count=len(records),
+        pixels_per_image=16,
+        image_size=4,
+        checkpoint_sha256="a" * 64,
+        freeze_sha256="b" * 64,
+        workflow_package_sha="c" * 40,
+        evaluator_sha256="d" * 64,
+    )
+    writer.write_batch(
+        class_names=[str(row["class_name"]) for row in records],
+        image_paths=[str(row["image_path"]) for row in records],
+        pixel_labels=np.stack([np.asarray(row["pixel_labels"]) for row in records]),
+        phase2b_pixel_scores=np.stack([np.asarray(row["phase2b"]["pixel_scores"]) for row in records]),
+        sabra_pixel_scores=np.stack([np.asarray(row["sabra"]["pixel_scores"]) for row in records]),
+        image_labels=np.concatenate([np.asarray(row["image_labels"]) for row in records]),
+        phase2b_image_scores=np.concatenate([np.asarray(row["phase2b"]["image_scores"]) for row in records]),
+        sabra_image_scores=np.concatenate([np.asarray(row["sabra"]["image_scores"]) for row in records]),
+    )
+    manifest = writer.complete()
+    expected = {
+        "dataset": "Brain",
+        "data_root": tmp_path / "data",
+        "selected_checkpoint_sha256": "a" * 64,
+        "sabra_freeze_sha256": "b" * 64,
+        "workflow_package_sha": "c" * 40,
+        "workflow_evaluator_sha256": "d" * 64,
+        "image_size": 4,
+        "pixels_per_image": 16,
+    }
+    validated = MEDICAL_EXTERNAL.validate_inference_cache(work_dir, expected)
+    return work_dir, validated, expected
+
+
+def test_prediction_cache_bitwise_parity_and_truncation_rejection(tmp_path: Path) -> None:
+    records = _synthetic_compare_records()
+    work_dir, _, expected = _write_synthetic_cache(tmp_path, records)
+    expected_labels = np.stack([np.asarray(row["pixel_labels"], dtype=np.int8) for row in records])
+    expected_native = np.stack([np.asarray(row["phase2b"]["pixel_scores"], dtype=np.float32) for row in records])
+    expected_sabra = np.stack([np.asarray(row["sabra"]["pixel_scores"], dtype=np.float32) for row in records])
+    cached_labels = np.load(work_dir / "pixel_labels.npy", mmap_mode="r")
+    cached_native = np.load(work_dir / "phase2b_pixel_scores.npy", mmap_mode="r")
+    cached_sabra = np.load(work_dir / "sabra_pixel_scores.npy", mmap_mode="r")
+    assert cached_native.dtype == np.float32
+    assert cached_sabra.dtype == np.float32
+    assert cached_labels.dtype == np.int8
+    assert cached_native.shape == expected_native.shape
+    assert np.array_equal(cached_native, expected_native)
+    assert np.array_equal(cached_sabra, expected_sabra)
+    assert np.array_equal(cached_labels, expected_labels)
+    identities = [
+        json.loads(line)
+        for line in (work_dir / MEDICAL_EXTERNAL.IDENTITIES_NAME).read_text(encoding="utf-8").splitlines()
+    ]
+    assert [row["image_path"] for row in identities] == [row["image_path"] for row in records]
+    assert [row["order"] for row in identities] == list(range(len(records)))
+
+    score_path = work_dir / "phase2b_pixel_scores.npy"
+    with score_path.open("r+b") as handle:
+        handle.truncate(score_path.stat().st_size - 1)
+    with pytest.raises(ValueError, match="missing or truncated"):
+        MEDICAL_EXTERNAL.validate_inference_cache(work_dir, expected)
+
+
+def test_external_compare_end_to_end_and_export_schema_parity(tmp_path: Path) -> None:
+    records = _synthetic_compare_records()
+    canonical = CANONICAL_EVALUATE_RECORDS(records, method="compare", allow_undefined_image_metrics=True)
+    work_dir, manifest, _ = _write_synthetic_cache(tmp_path, records)
+    external, runtime = MEDICAL_EXTERNAL.evaluate_inference_cache(
+        work_dir,
+        manifest,
+        memory_budget_bytes=16 * 1024**2,
+        chunk_elements=5,
+    )
+
+    for section in ("phase2b", "sabra"):
+        for class_name, expected_row in canonical[section].items():
+            for metric_name, expected_value in expected_row.items():
+                actual_value = external[section][class_name][metric_name]
+                if expected_value is None:
+                    assert actual_value is None
+                else:
+                    assert abs(actual_value - expected_value) <= 1e-12
+        for metric_name, expected_value in canonical[f"{section}_macro"].items():
+            actual_value = external[f"{section}_macro"][metric_name]
+            if expected_value is None:
+                assert actual_value is None
+            else:
+                assert abs(actual_value - expected_value) <= 1e-12
+    for metric_name, expected_value in canonical["delta"].items():
+        actual_value = external["delta"][metric_name]
+        if expected_value is None:
+            assert actual_value is None
+        else:
+            assert abs(actual_value - expected_value) <= 1e-12
+    assert external["phase2b"]["class_b"]["image_auroc"] is None
+    assert external["sabra"]["class_b"]["image_ap"] is None
+
+    output = {
+        **external,
+        "dataset": "Brain",
+        "role": "FINAL_ZERO_SHOT",
+        "phase2b_checkpoint_sha256": "a" * 64,
+        "sabra_freeze_sha256": "b" * 64,
+        "runtime": {
+            **runtime,
+            "external_memory": True,
+            "external_backend": "numpy_external",
+        },
+    }
+    output_dir = tmp_path / "medical" / "Brain"
+    MEDICAL_EXTERNAL._write_outputs_atomic(output_dir, output)
+    persisted = json.loads((output_dir / "metrics.json").read_text(encoding="utf-8"))
+    phase2b_export, sabra_export = EXPORTER._compare_metrics(persisted)
+    assert phase2b_export["pAUROC"] == external["phase2b_macro"]["pixel_auroc"]
+    assert sabra_export["pAP"] == external["sabra_macro"]["pixel_ap"]
+    assert EXPORTER._class_metrics(persisted, "phase2b")
+    assert EXPORTER._class_metrics(persisted, "sabra")
+
+
+def test_medical_external_guard_reuses_canonical_checkpoint_and_freeze_validation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    checkpoint = tmp_path / "selected.pth"
+    checkpoint.write_bytes(b"synthetic-checkpoint")
+    checkpoint_sha = MEDICAL_EXTERNAL.sha256_file(checkpoint)
+    selection_path = tmp_path / "selection.json"
+    selection_path.write_text(
+        json.dumps(
+            {
+                "status": "FROZEN",
+                "selected_checkpoint": str(checkpoint),
+                "selected_checkpoint_sha256": checkpoint_sha,
+            }
+        ),
+        encoding="utf-8",
+    )
+    freeze_path = tmp_path / "SABRA_FREEZE.json"
+    freeze_path.write_text(
+        json.dumps(
+            {
+                "provenance": {"git_sha": SCIENTIFIC_CODE_SHA},
+                "relational": {"backend": "fast"},
+                "medical_seen": False,
+            }
+        ),
+        encoding="utf-8",
+    )
+    validated: list[str] = []
+
+    def fake_validate(payload, checkpoint_sha256=None):
+        assert payload["medical_seen"] is False
+        validated.append(str(checkpoint_sha256))
+
+    monkeypatch.setattr(MEDICAL_EXTERNAL, "validate_sabra_freeze", fake_validate)
+    selection, _, selected_path, selected_sha, freeze_sha = MEDICAL_EXTERNAL.validate_medical_inputs(
+        "Brain", selection_path, freeze_path
+    )
+    assert selection["status"] == "FROZEN"
+    assert selected_path == checkpoint.resolve()
+    assert selected_sha == checkpoint_sha
+    assert freeze_sha == MEDICAL_EXTERNAL.sha256_file(freeze_path)
+    assert validated == [checkpoint_sha]
+
+
+def test_external_metric_memory_is_chunk_bounded(tmp_path: Path) -> None:
+    script = ROOT / "scripts/canonical/medical_compare_external.py"
+
+    def run(name: str, pixels: int) -> dict[str, object]:
+        completed = subprocess.run(
+            [
+                sys.executable,
+                str(script),
+                "--synthetic-stress",
+                str(tmp_path / name),
+                "--synthetic-pixels",
+                str(pixels),
+                "--synthetic-chunk-elements",
+                "50000",
+            ],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return json.loads(completed.stdout.splitlines()[-1])
+
+    small = run("small", 250_000)
+    large = run("large", 2_500_000)
+    assert large["pixels"] == 10 * small["pixels"]
+    assert large["initial_runs"] == 10 * small["initial_runs"]
+    assert large["peak_rss_bytes"] <= small["peak_rss_bytes"] * 1.5 + 64 * 1024**2
+    assert large["raw_disk_bytes"] > small["raw_disk_bytes"]
+    assert 0.0 <= large["auroc"] <= 1.0
+    assert 0.0 <= large["ap"] <= 1.0
+
+
+def test_medical_workflow_and_resume_use_external_cache_without_real_execution() -> None:
+    stage5 = (ROOT / "scripts/canonical/50_eval_medical.sh").read_text(encoding="utf-8")
+    resume = (ROOT / "scripts/canonical/RESUME_CANONICAL_MEDICAL.sh").read_text(encoding="utf-8")
+    assert '"$PYTHON" "$SCRIPT_DIR/medical_compare_external.py"' in stage5
+    assert '"$REPO_ROOT/test.py"' not in stage5
+    for contract in (
+        "--batch-size 6",
+        "--num-workers 4",
+        "--prefetch-factor 2",
+        "--pin-memory",
+        "--metric-mode exact",
+        "--pixel-stride 1",
+        "--reuse-inference-cache",
+    ):
+        assert contract in stage5
+    assert 'work_dir="$RUN_ROOT/medical_work/$dataset"' in stage5
+    assert "medical_Brain.oom_kill_backup.log" in resume
+    assert "./scripts/canonical/run_pipeline.sh medical" in resume
+    assert "./scripts/canonical/run_pipeline.sh export" in resume
+    assert "run_pipeline.sh train" not in resume
+    assert "run_pipeline.sh select" not in resume
+    assert "run_pipeline.sh fit-sabra" not in resume
+    assert "run_pipeline.sh lambda" not in resume
