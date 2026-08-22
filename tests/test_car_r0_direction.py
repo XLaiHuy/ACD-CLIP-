@@ -7,7 +7,9 @@ import torch
 from evaluation.metrics import binary_average_precision, binary_auroc
 from tools.sabra_car.r0_direction import (
     ALPHAS,
+    BASIS_PARITY_ATOL,
     PATCHES,
+    basis_parity_pass,
     canonical_loss_per_image,
     classify_actions,
     coordinate_radius_for_image,
@@ -39,6 +41,14 @@ def test_csv_writer_uses_lf_line_endings(tmp_path):
     payload = output.read_bytes()
     assert payload == b"name,value\ncandle,1\n"
     assert b"\r" not in payload
+
+
+def test_basis_parity_tolerance_covers_float32_cancellation_only():
+    assert BASIS_PARITY_ATOL == 3e-6
+    assert basis_parity_pass(0.0, 2.6e-6)
+    assert not basis_parity_pass(0.0, 3.1e-6)
+    assert not basis_parity_pass(1.1e-6, 0.0)
+    assert not basis_parity_pass(0.0, float("nan"))
 
 
 def test_intervention_is_abnormal_only_and_shared():

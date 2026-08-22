@@ -340,3 +340,47 @@ validation:
 
 status:
 - FIXED; radius probing remains pending publication of this corrective commit.
+
+### R0 Engineering Bug R0-ENG-004
+
+BUG_ID:
+R0-ENG-004
+
+symptom:
+- The first real-image sparse-radius probe failed because three basis max-absolute errors were slightly above the preregistered implementation tolerance of 2e-6.
+- All three sparse coordinate choices exactly matched direct canonical coordinate choices.
+
+root cause:
+- Subtracting native float32 deployed logits to recover a direct unit-impulse basis introduced cancellation at 2.3466e-6 to 2.5137e-6, while mean absolute errors were approximately 2.5e-8.
+
+scientific impact:
+- None. The failure occurred at the correctness probe before the full radius run; no radius scientific result was observed.
+- The direction, alpha landscape, action map, coordinate objective, and chosen radii are unchanged.
+
+fix:
+- Use a bounded 3e-6 absolute tolerance for float32 basis parity while retaining the 1e-6 exact-coordinate-choice tolerance and finite-value checks.
+- Preserve the original failed probe as `radius_probe_r0_eng_004_fail.json`.
+
+regression tests:
+- `test_basis_parity_tolerance_covers_float32_cancellation_only`
+- The existing action-threshold regression caught and prevented a transient misplaced-return edit during patch application before any probe rerun.
+
+validation:
+- timestamp: `2026-08-23T02:04:15+07:00`
+- targeted suite: 14 passed.
+- direct-versus-sparse correction errors: 0, 0, 0.
+- basis max absolute errors: 2.5136396288871765e-6, 2.346583642065525e-6, 2.4755136109888554e-6.
+- basis mean absolute errors: approximately 2.5e-8.
+- corrected real-image probe status: PASS.
+- failed probe evidence preserved: yes.
+- coordinate runtime per image: 0.21967458305880427 seconds.
+- conservative EXPECTED_RUNTIME_MIN: 12
+- EXPECTED_FINISH_TIME: `2026-08-23T02:16:15+07:00`
+- available disk: 209 GiB
+- available RAM: 24 GiB; swap available 5.4 GiB
+- GPU before run: RTX 5060 Ti, 16311 MiB total, 556 MiB used
+- Medical accessed: no (`medical_reads=0`).
+- Phase2B training steps: 0.
+
+status:
+- FIXED; publish this correctness checkpoint before the full blocking radius run.

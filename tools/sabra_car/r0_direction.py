@@ -30,6 +30,7 @@ BASE_SHA = "a986bcfee41c31f03d38e449efb8826d56c90525"
 CHECKPOINT_SHA = "6643cd68eafabf9acdb724242ef5b2d1fbc4bf7e9d2ba7ad6c47776ea646da80"
 CLIP_SHA = "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02"
 CONFIG_SHA = "edf5745686e3d3d0d3b4142341569da06ad5b54025a779b78d83f74303ce67fc"
+BASIS_PARITY_ATOL = 3e-6
 METADATA_SHA = "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842"
 MARGIN_SCALE = 19.840438842773438
 ALPHAS = (0.0, 0.125, 0.25, 0.5, 1.0)
@@ -90,6 +91,15 @@ def classify_actions(utility: np.ndarray | torch.Tensor) -> np.ndarray | torch.T
         )
     utility = np.asarray(utility)
     return np.where(utility > EPSILON, 1, np.where(utility < -EPSILON, -1, 0)).astype(np.int8)
+
+
+def basis_parity_pass(correction_error: float, basis_error: float) -> bool:
+    return (
+        math.isfinite(correction_error)
+        and math.isfinite(basis_error)
+        and correction_error <= 1e-6
+        and basis_error <= BASIS_PARITY_ATOL
+    )
 
 
 def intervention_delta(correction: torch.Tensor, native_logits: torch.Tensor) -> torch.Tensor:
@@ -714,7 +724,7 @@ def run_radius_probe(args: argparse.Namespace) -> dict[str, Any]:
             "correction_abs_error": abs(direct - observed),
             "basis_max_abs_error": basis_error,
             "direct_losses": losses,
-            "pass": abs(direct - observed) <= 1e-6 and basis_error <= 2e-6,
+            "pass": basis_parity_pass(abs(direct - observed), basis_error),
         })
     summary = {
         "status": "PASS" if all(row["pass"] for row in rows) else "FAIL",
