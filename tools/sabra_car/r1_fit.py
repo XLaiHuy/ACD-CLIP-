@@ -30,6 +30,8 @@ from tools.sabra_car.r1_common import (
 ORIGINAL_MAX_ITER = 1000
 RECOVERY_MAX_ITER = 5000
 RECOVERY_PROTOCOL = "SABRA-CAR R1 Recovery Protocol v1"
+V2_MAX_ITER = 100
+V2_SOLVER = "newton-cholesky"
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -42,16 +44,23 @@ class FoldConvergenceError(RuntimeError):
         self.details = details
 
 
-def estimator(max_iter: int = ORIGINAL_MAX_ITER) -> LogisticRegression:
-    if max_iter not in (ORIGINAL_MAX_ITER, RECOVERY_MAX_ITER):
-        raise ValueError(f"unauthorized R1 max_iter: {max_iter}")
+def estimator(
+    max_iter: int = ORIGINAL_MAX_ITER,
+    solver: str = "lbfgs",
+) -> LogisticRegression:
+    if (solver, max_iter) not in {
+        ("lbfgs", ORIGINAL_MAX_ITER),
+        ("lbfgs", RECOVERY_MAX_ITER),
+        (V2_SOLVER, V2_MAX_ITER),
+    }:
+        raise ValueError(f"unauthorized R1 max_iter/solver: {max_iter}/{solver}")
     return LogisticRegression(
         penalty="l2",
         C=1.0,
         fit_intercept=True,
         class_weight="balanced",
         random_state=0,
-        solver="lbfgs",
+        solver=solver,
         max_iter=max_iter,
         multi_class="multinomial",
         tol=1e-4,
@@ -75,13 +84,17 @@ def _git_head() -> str:
 def recovery_metadata(args: argparse.Namespace) -> dict[str, Any]:
     if getattr(args, "recovery_protocol", None) is None:
         return {}
-    return {
+    metadata = {
         "recovery_protocol": args.recovery_protocol,
         "original_r1_status": "INCONCLUSIVE_SOLVER_FAILURE_BEFORE_SCIENTIFIC_RESULT",
         "original_max_iter": ORIGINAL_MAX_ITER,
         "recovery_max_iter": args.max_iter,
         "max_recovery_attempts": 1,
+        "solver": args.solver,
     }
+    if getattr(args, "protocol_prereg_sha", None) is not None:
+        metadata["protocol_prereg_sha"] = args.protocol_prereg_sha
+    return metadata
 
 
 def valid_existing_fold(path: Path, image_path: np.ndarray, oracle: np.ndarray) -> bool:
@@ -103,6 +116,7 @@ def fit_fold(
     shards: dict[str, Any],
     output: Path,
     max_iter: int = ORIGINAL_MAX_ITER,
+    solver: str = "lbfgs",
 ) -> dict[str, Any]:
     train_names = [name for name in EXPECTED_CLASSES if name != held_out]
     train_features = np.concatenate(
@@ -117,7 +131,7 @@ def fit_fold(
     standardized_test = apply_robust_scaler(
         held.features.reshape(-1, len(FEATURE_ORDER)), median, iqr
     )
-    model = estimator(max_iter)
+    model = estimator(max_iter, solver)
     started = time.perf_counter()
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
@@ -128,9 +142,17 @@ def fit_fold(
     if convergence:
         details = {
             "held_out_class": held_out,
+            "training_patches": int(len(train_labels)),
+            "held_out_patches": int(held.oracle_action.size),
             "classes": model.classes_.tolist(),
             "n_iter": n_iter,
             "max_iter": max_iter,
+            "solver": solver,
+            "converged": False,
+            "finite_coefficient_check": bool(np.isfinite(model.coef_).all()),
+            "finite_intercept_check": bool(np.isfinite(model.intercept_).all()),
+            "finite_probability_check": "NOT_RUN",
+            "probability_normalization_check": "NOT_RUN",
             "fit_elapsed_seconds": elapsed,
             "warnings": [str(item.message) for item in caught],
         }
@@ -171,7 +193,12 @@ def fit_fold(
         "intercept": model.intercept_.tolist(),
         "n_iter": n_iter,
         "max_iter": max_iter,
+        "solver": solver,
         "converged": bool(np.max(model.n_iter_) <= max_iter),
+        "finite_coefficient_check": True,
+        "finite_intercept_check": True,
+        "finite_probability_check": True,
+        "probability_normalization_check": True,
         "training_patches": int(len(train_labels)),
         "held_out_patches": int(held.oracle_action.size),
         "training_class_counts": {
@@ -201,7 +228,11 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             continue
         if fold_path.exists() or parameter_path.exists():
             raise RuntimeError(f"invalid partial R1 fold artifact: {held_out}")
-        fold_parameters.append(fit_fold(held_out, shards, args.output, args.max_iter))
+        fold_parameters.append(
+            fit_fold(held_out, shards, args.output, args.max_iter, args.solver)
+        )
+        if getattr(args, "emit_progress", False):
+            print(json.dumps({"event": "FOLD_COMPLETE", **fold_parameters[-1]}), flush=True)
     probabilities: list[np.ndarray] = []
     oracle: list[np.ndarray] = []
     for class_name in EXPECTED_CLASSES:
@@ -255,7 +286,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 "python": runtime["python"],
                 "numpy": runtime["numpy"],
                 "sklearn": runtime["sklearn"],
-                "estimator": repr(estimator(args.max_iter)),
+                "estimator": repr(estimator(args.max_iter, args.solver)),
             },
         }
         | recovery_metadata(args),
@@ -282,7 +313,12 @@ def parser() -> argparse.ArgumentParser:
     )
     result.add_argument("--output", type=Path, default=ROOT / "results/sabra_car/r1")
     result.add_argument("--skip-hashes", action="store_true")
-    result.set_defaults(max_iter=ORIGINAL_MAX_ITER, recovery_protocol=None)
+    result.set_defaults(
+        max_iter=ORIGINAL_MAX_ITER,
+        solver="lbfgs",
+        recovery_protocol=None,
+        emit_progress=False,
+    )
     return result
 
 

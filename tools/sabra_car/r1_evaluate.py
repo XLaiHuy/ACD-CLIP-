@@ -76,6 +76,8 @@ def recovery_metadata(selection: dict[str, Any]) -> dict[str, Any]:
         "original_max_iter",
         "recovery_max_iter",
         "max_recovery_attempts",
+        "solver",
+        "protocol_prereg_sha",
     )
     return {key: selection[key] for key in keys if key in selection}
 
