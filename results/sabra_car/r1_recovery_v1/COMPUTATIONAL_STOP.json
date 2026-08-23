@@ -1,0 +1,44 @@
+{
+  "C": 1.0,
+  "class_weight": "balanced",
+  "failed_fold": {
+    "classes": [
+      -1,
+      0,
+      1
+    ],
+    "fit_elapsed_seconds": 2370.1823143600486,
+    "held_out_class": "candle",
+    "max_iter": 5000,
+    "n_iter": [
+      5000
+    ],
+    "warnings": [
+      "'multi_class' was deprecated in version 1.5 and will be removed in 1.8. From then on, it will always use 'multinomial'. Leave it to its default value to avoid this warning.",
+      "lbfgs failed to converge after 5000 iteration(s) (status=1):\nSTOP: TOTAL NO. OF ITERATIONS REACHED LIMIT\n\nIncrease the number of iterations to improve the convergence (max_iter=5000).\nYou might also want to scale the data as shown in:\n    https://scikit-learn.org/stable/modules/preprocessing.html\nPlease also refer to the documentation for alternative solver options:\n    https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression"
+    ]
+  },
+  "fold_predictions_complete": false,
+  "git_head": "176179c95cd547f6ca19d7e9f5fdc157ce74e8b8",
+  "max_recovery_attempts": 1,
+  "medical_reads": 0,
+  "mvtec_reads": 0,
+  "next_stage": "NONE",
+  "original_failure_artifact": "results/sabra_car/r1/FIT_FAILED.json",
+  "original_max_iter": 1000,
+  "original_r1_status": "INCONCLUSIVE_SOLVER_FAILURE_BEFORE_SCIENTIFIC_RESULT",
+  "original_s0_sha": "08ca99ff69d6d85184f5d145830876befb413628",
+  "penalty": "l2",
+  "phase2b_training_steps": 0,
+  "r1_gate_evaluated": false,
+  "r1_metrics_produced": false,
+  "r1_predictions_produced": false,
+  "r1_recovery_status": "COMPUTATIONAL_STOP",
+  "random_state": 0,
+  "recovery_max_iter": 5000,
+  "recovery_prereg_sha": "6f8fed381838a0221bb5289fb23d2243a6b5f0ef",
+  "recovery_protocol": "SABRA-CAR R1 Recovery Protocol v1",
+  "solver": "lbfgs",
+  "status": "COMPUTATIONAL_STOP",
+  "tol": 0.0001
+}
