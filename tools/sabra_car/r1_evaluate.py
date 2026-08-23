@@ -69,6 +69,17 @@ def _selected_risk_row(selection: dict[str, Any], threshold: float) -> dict[str,
     return matches[0]
 
 
+def recovery_metadata(selection: dict[str, Any]) -> dict[str, Any]:
+    keys = (
+        "recovery_protocol",
+        "original_r1_status",
+        "original_max_iter",
+        "recovery_max_iter",
+        "max_recovery_attempts",
+    )
+    return {key: selection[key] for key in keys if key in selection}
+
+
 def stop_without_evaluation(args: argparse.Namespace, selection: dict[str, Any]) -> dict[str, Any]:
     summary = {
         "status": "COMPLETE",
@@ -87,6 +98,7 @@ def stop_without_evaluation(args: argparse.Namespace, selection: dict[str, Any])
         "medical_access": False,
         "mvtec_access": False,
         "training_steps": 0,
+        **recovery_metadata(selection),
     }
     write_json(args.output / "summary.json", summary)
     return summary
@@ -222,6 +234,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "medical_access": False,
         "mvtec_access": False,
         "training_steps": 0,
+        **recovery_metadata(selection),
     }
     write_json(args.output / "summary.json", summary)
     return summary

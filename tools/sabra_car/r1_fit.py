@@ -27,10 +27,24 @@ from tools.sabra_car.r1_common import (
     write_json,
 )
 
+ORIGINAL_MAX_ITER = 1000
+RECOVERY_MAX_ITER = 5000
+RECOVERY_PROTOCOL = "SABRA-CAR R1 Recovery Protocol v1"
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def estimator() -> LogisticRegression:
+class FoldConvergenceError(RuntimeError):
+    def __init__(self, details: dict[str, Any]) -> None:
+        super().__init__(
+            f"R1 fold exhausted max_iter: {details['held_out_class']} "
+            f"at {details['max_iter']} iterations"
+        )
+        self.details = details
+
+
+def estimator(max_iter: int = ORIGINAL_MAX_ITER) -> LogisticRegression:
+    if max_iter not in (ORIGINAL_MAX_ITER, RECOVERY_MAX_ITER):
+        raise ValueError(f"unauthorized R1 max_iter: {max_iter}")
     return LogisticRegression(
         penalty="l2",
         C=1.0,
@@ -38,7 +52,7 @@ def estimator() -> LogisticRegression:
         class_weight="balanced",
         random_state=0,
         solver="lbfgs",
-        max_iter=1000,
+        max_iter=max_iter,
         multi_class="multinomial",
         tol=1e-4,
     )
@@ -56,6 +70,18 @@ def _git_head() -> str:
     return subprocess.run(
         ["git", "rev-parse", "HEAD"], cwd=ROOT, check=True, text=True, capture_output=True
     ).stdout.strip()
+
+
+def recovery_metadata(args: argparse.Namespace) -> dict[str, Any]:
+    if getattr(args, "recovery_protocol", None) is None:
+        return {}
+    return {
+        "recovery_protocol": args.recovery_protocol,
+        "original_r1_status": "INCONCLUSIVE_SOLVER_FAILURE_BEFORE_SCIENTIFIC_RESULT",
+        "original_max_iter": ORIGINAL_MAX_ITER,
+        "recovery_max_iter": args.max_iter,
+        "max_recovery_attempts": 1,
+    }
 
 
 def valid_existing_fold(path: Path, image_path: np.ndarray, oracle: np.ndarray) -> bool:
@@ -76,6 +102,7 @@ def fit_fold(
     held_out: str,
     shards: dict[str, Any],
     output: Path,
+    max_iter: int = ORIGINAL_MAX_ITER,
 ) -> dict[str, Any]:
     train_names = [name for name in EXPECTED_CLASSES if name != held_out]
     train_features = np.concatenate(
@@ -90,18 +117,35 @@ def fit_fold(
     standardized_test = apply_robust_scaler(
         held.features.reshape(-1, len(FEATURE_ORDER)), median, iqr
     )
-    model = estimator()
+    model = estimator(max_iter)
     started = time.perf_counter()
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
         model.fit(standardized_train, train_labels)
     elapsed = time.perf_counter() - started
     convergence = [str(item.message) for item in caught if issubclass(item.category, ConvergenceWarning)]
-    if convergence or tuple(model.classes_.tolist()) != (-1, 0, 1):
+    n_iter = model.n_iter_.tolist()
+    if convergence:
+        details = {
+            "held_out_class": held_out,
+            "classes": model.classes_.tolist(),
+            "n_iter": n_iter,
+            "max_iter": max_iter,
+            "fit_elapsed_seconds": elapsed,
+            "warnings": [str(item.message) for item in caught],
+        }
+        if np.max(model.n_iter_) >= max_iter:
+            raise FoldConvergenceError(details)
         raise RuntimeError(
-            f"R1 fold convergence/class contract failed: held_out={held_out} "
-            f"warnings={convergence} classes={model.classes_.tolist()}"
+            f"R1 fold emitted a convergence warning before max_iter: {details}"
         )
+    if tuple(model.classes_.tolist()) != (-1, 0, 1):
+        raise RuntimeError(
+            f"R1 fold class contract failed: held_out={held_out} "
+            f"classes={model.classes_.tolist()}"
+        )
+    if not np.isfinite(model.coef_).all() or not np.isfinite(model.intercept_).all():
+        raise RuntimeError(f"non-finite R1 fitted parameters: {held_out}")
     probability = model.predict_proba(standardized_test).astype(np.float32)
     probability = probability.reshape(held.oracle_action.shape + (3,))
     if not np.isfinite(probability).all() or not np.allclose(
@@ -125,9 +169,9 @@ def fit_fold(
         "classes": model.classes_.tolist(),
         "coefficient": model.coef_.tolist(),
         "intercept": model.intercept_.tolist(),
-        "n_iter": model.n_iter_.tolist(),
-        "max_iter": 1000,
-        "converged": bool(np.max(model.n_iter_) < 1000),
+        "n_iter": n_iter,
+        "max_iter": max_iter,
+        "converged": bool(np.max(model.n_iter_) <= max_iter),
         "training_patches": int(len(train_labels)),
         "held_out_patches": int(held.oracle_action.size),
         "training_class_counts": {
@@ -136,8 +180,6 @@ def fit_fold(
         "fit_elapsed_seconds": elapsed,
         "warnings": [str(item.message) for item in caught],
     }
-    if not parameters["converged"]:
-        raise RuntimeError(f"R1 fold exhausted max_iter: {held_out}")
     write_json(output / "parameters" / f"{held_out}.json", parameters)
     del train_features, train_labels, standardized_train, standardized_test, model
     return parameters
@@ -159,7 +201,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             continue
         if fold_path.exists() or parameter_path.exists():
             raise RuntimeError(f"invalid partial R1 fold artifact: {held_out}")
-        fold_parameters.append(fit_fold(held_out, shards, args.output))
+        fold_parameters.append(fit_fold(held_out, shards, args.output, args.max_iter))
     probabilities: list[np.ndarray] = []
     oracle: list[np.ndarray] = []
     for class_name in EXPECTED_CLASSES:
@@ -183,6 +225,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "medical_reads": 0,
         "mvtec_reads": 0,
         "phase2b_training_steps": 0,
+        **recovery_metadata(args),
     }
     write_json(args.output / "selection.json", selection)
     runtime = {
@@ -199,6 +242,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "medical_reads": 0,
         "mvtec_reads": 0,
         "phase2b_training_steps": 0,
+        **recovery_metadata(args),
     }
     write_json(args.output / "runtime.json", runtime)
     write_json(
@@ -211,9 +255,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 "python": runtime["python"],
                 "numpy": runtime["numpy"],
                 "sklearn": runtime["sklearn"],
-                "estimator": repr(estimator()),
+                "estimator": repr(estimator(args.max_iter)),
             },
-        },
+        }
+        | recovery_metadata(args),
     )
     return selection
 
@@ -237,6 +282,7 @@ def parser() -> argparse.ArgumentParser:
     )
     result.add_argument("--output", type=Path, default=ROOT / "results/sabra_car/r1")
     result.add_argument("--skip-hashes", action="store_true")
+    result.set_defaults(max_iter=ORIGINAL_MAX_ITER, recovery_protocol=None)
     return result
 
 
