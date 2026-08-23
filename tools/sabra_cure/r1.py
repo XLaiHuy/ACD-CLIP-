@@ -250,8 +250,10 @@ def concat(shards: dict[str, Shard], names: Iterable[str], field: str) -> np.nda
     return np.concatenate([getattr(shards[name], field) for name in names], axis=0)
 
 
-def fit_inner_crossfit(shards: dict[str, Shard], outer_train: list[str]) -> tuple[np.ndarray, list[dict[str, Any]]]:
+def fit_inner_crossfit(shards: dict[str, Shard], outer_train: list[str]) -> tuple[np.ndarray, list[dict[str, Any]], np.ndarray, np.ndarray]:
     residual_targets: list[np.ndarray] = []
+    held_targets: list[np.ndarray] = []
+    crossfit_predictions: list[np.ndarray] = []
     evidence: list[dict[str, Any]] = []
     for held in outer_train:
         inner_train = [name for name in outer_train if name != held]
@@ -265,13 +267,15 @@ def fit_inner_crossfit(shards: dict[str, Shard], outer_train: list[str]) -> tupl
         test_y = transform(shards[held].utility, scale)
         mu = test_x @ beta + intercept
         residual_targets.append(np.log(np.abs(test_y - mu) + 1e-4))
+        held_targets.append(test_y)
+        crossfit_predictions.append(mu)
         evidence.append({"held_class": held, "training_classes": inner_train, "training_scale": scale,
                          "feature_median": median.tolist(), "feature_iqr": iqr.tolist(),
                          "mean_beta": beta.tolist(), "mean_intercept": intercept,
                          "prediction_count": int(len(mu)), "residual_finite": bool(np.isfinite(mu).all())})
     residual = np.concatenate(residual_targets)
     finite("cross-fitted residual target", residual)
-    return residual, evidence
+    return residual, evidence, np.concatenate(held_targets), np.concatenate(crossfit_predictions)
 
 
 def fold(held: str, shards: dict[str, Shard]) -> dict[str, Any]:
@@ -283,7 +287,7 @@ def fold(held: str, shards: dict[str, Shard]) -> dict[str, Any]:
     standardized_train = scale_x(train_x, median, iqr)
     train_y = transform(train_u, scale)
     beta_mu, intercept_mu = fit_ridge_accumulated((standardized_train,), (train_y,))
-    residual, inner = fit_inner_crossfit(shards, outer_train)
+    residual, inner, inner_y, inner_mu_cf = fit_inner_crossfit(shards, outer_train)
     beta_z, intercept_z = fit_ridge_accumulated((standardized_train,), (residual,))
     held_shard = shards[held]
     held_x = scale_x(held_shard.x, median, iqr)
@@ -301,7 +305,8 @@ def fold(held: str, shards: dict[str, Shard]) -> dict[str, Any]:
                   "uncertainty_target": "log(abs(y-mu_cf)+1e-4)", "sigma": "exp(clip(z,log(1e-4),log(4)))",
                   "informative_abs_y_threshold": informative_threshold, "inner_crossfits": inner,
                   "training_patches": int(len(train_y)), "held_patches": int(len(y))}
-    return {"parameters": parameters, "image_path": held_shard.image_path, "utility": held_shard.utility, "y": y, "mu": mu, "sigma": sigma}
+    return {"parameters": parameters, "image_path": held_shard.image_path, "utility": held_shard.utility, "y": y, "mu": mu, "sigma": sigma,
+            "inner_y": inner_y, "inner_mu_cf": inner_mu_cf, "residual_target": residual}
 
 
 def pearson(x: np.ndarray, y: np.ndarray) -> float | None:
@@ -351,6 +356,7 @@ def pre_execution_audit(output: Path) -> dict[str, Any]:
         raise RuntimeError("START_STATE_FAILURE published base absent from HEAD")
     parity = parity_fixture()
     if parity["status"] != "PASS":
+        save_npz(output / "inner_crossfit" / f"{name}.npz", y=item["inner_y"], mu_cf=item["inner_mu_cf"], residual_target=item["residual_target"])
         raise RuntimeError("ENGINEERING_STOP sufficient-statistics parity")
     shards, provenance = load_shards(check_hashes=True)
     checks = {"published_p7_execution_base": True, "phase0_parent": PHASE0_PARENT,
@@ -412,6 +418,8 @@ def audit_results(output: Path, shards: dict[str, Shard] | None = None, summary:
     held = []
     finite_predictions = True
     serialization_error = 0.0
+    crossfit_residual_error = 0.0
+    leakage_audit = True
     for name in CLASSES:
         params = json.loads((output / "parameters" / f"{name}.json").read_text())
         with np.load(output / "folds" / f"{name}.npz", allow_pickle=False) as data:
@@ -423,12 +431,27 @@ def audit_results(output: Path, shards: dict[str, Shard] | None = None, summary:
             finite_predictions = finite_predictions and bool(np.isfinite(data["y"]).all() and np.isfinite(data["mu"]).all() and np.isfinite(data["sigma"]).all())
             reconstructed[name] = {"y": np.asarray(data["y"]), "mu": np.asarray(data["mu"]), "parameters": params}
             held.append(params["held_out_class"])
+        with np.load(output / "inner_crossfit" / f"{name}.npz", allow_pickle=False) as inner_data:
+            offset = 0
+            for inner in params["inner_crossfits"]:
+                inner_held = inner["held_class"]
+                expected_train = [candidate for candidate in CLASSES if candidate not in {name, inner_held}]
+                leakage_audit = leakage_audit and inner_held != name and inner["training_classes"] == expected_train
+                count = len(shards[inner_held].utility)
+                observed_y = np.asarray(inner_data["y"])[offset:offset + count]
+                observed_mu = np.asarray(inner_data["mu_cf"])[offset:offset + count]
+                observed_residual = np.asarray(inner_data["residual_target"])[offset:offset + count]
+                crossfit_residual_error = max(crossfit_residual_error, float(np.max(np.abs(observed_residual - np.log(np.abs(observed_y - observed_mu) + 1e-4)))))
+                finite_predictions = finite_predictions and bool(np.isfinite(observed_y).all() and np.isfinite(observed_mu).all() and np.isfinite(observed_residual).all())
+                offset += count
+            leakage_audit = leakage_audit and offset == len(inner_data["y"]) == len(inner_data["mu_cf"]) == len(inner_data["residual_target"])
     conclusion = evaluate(reconstructed, audit_pass=True)
     recompute = conclusion["metrics"] == summary["metrics"] and conclusion["gates"] == summary["gates"]
-    status = "PASS" if (held == list(CLASSES) and finite_predictions and serialization_error <= 1e-10 and recompute) else "FAIL"
+    status = "PASS" if (held == list(CLASSES) and finite_predictions and serialization_error <= 1e-10 and crossfit_residual_error <= 1e-10 and leakage_audit and recompute) else "FAIL"
     payload = {"status": status, "folds_complete": len(held), "held_class_order": held,
-               "leakage_audit": bool(all(name not in json.loads((output / "parameters" / f"{name}.json").read_text())["outer_training_classes"] and len(json.loads((output / "parameters" / f"{name}.json").read_text())["inner_crossfits"]) == 11 for name in CLASSES)),
+               "leakage_audit": leakage_audit,
                "finite_predictions": finite_predictions, "serialization_max_abs_error": serialization_error,
+               "crossfit_residual_max_abs_error": crossfit_residual_error,
                "serialization_parity": serialization_error <= 1e-10, "metric_recomputation_parity": recompute,
                "provenance_audit": True, "freeze_audit": True, "firewall_audit": True,
                "phase2b_training_steps": 0, "additional_clip_forwards": 0, "mvtec_accessed": False, "medical_accessed": False}
