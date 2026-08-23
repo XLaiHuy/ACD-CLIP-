@@ -1,0 +1,51 @@
+{
+  "F10_firewall": true,
+  "F1_persisted_reconstruction": true,
+  "F2_full_class_ap_operator": true,
+  "F3_one_image_counterfactual_operator": true,
+  "F4_finite_target_path": true,
+  "F5_16_gt_free_features": true,
+  "F6_nested_exclusion": true,
+  "F7_outer_gt_excluded": true,
+  "F8_no_patch_ap_attribution": true,
+  "F9_fixed_alpha": true,
+  "classes": [
+    "candle",
+    "capsules",
+    "cashew",
+    "chewinggum",
+    "fryum",
+    "macaroni1",
+    "macaroni2",
+    "pcb1",
+    "pcb2",
+    "pcb3",
+    "pcb4",
+    "pipe_fryum"
+  ],
+  "feature_order": [
+    "safe_fraction",
+    "expanded_fraction",
+    "expansion_band_fraction",
+    "band_boost_fraction",
+    "band_suppress_fraction",
+    "band_risk_median",
+    "band_risk_q90",
+    "band_abs_mu_median",
+    "band_abs_mu_q90",
+    "band_native_rank_median",
+    "band_native_rank_q90",
+    "band_top10_native_rank_fraction",
+    "band_sigma_median",
+    "band_proposal_native_support_median",
+    "band_proposal_peer_support_median",
+    "band_abs_stage_disagreement_median"
+  ],
+  "firewall": {
+    "clip": 0,
+    "medical": 0,
+    "mvtec": 0,
+    "phase2b_steps": 0
+  },
+  "status": "GO"
+}
