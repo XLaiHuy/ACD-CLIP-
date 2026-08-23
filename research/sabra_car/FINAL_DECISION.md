@@ -1,15 +1,17 @@
 # SABRA-CAR Final Decision
 
-Status: STOP AT R1
+Status: CLOSED AT R1 — INCONCLUSIVE SOLVER FAILURE BEFORE SCIENTIFIC RESULT
 
 Timestamp: 2026-08-23T02:46:12+07:00
 
 ## Decision
 
-SABRA-CAR stops at Stage R1. R0 passed exactly, but the first full
-leave-one-class-out multinomial action-predictor fold exhausted the frozen
-`max_iter=1000` LBFGS budget and failed the preregistered correctness gate
-before any held-out prediction was written.
+The original SABRA-CAR workflow stopped operationally at Stage R1. R0 passed
+exactly, but the first full leave-one-class-out multinomial action-predictor
+fold exhausted the frozen `max_iter=1000` LBFGS budget before any held-out
+prediction was written. The original R1 outcome is therefore
+`INCONCLUSIVE_SOLVER_FAILURE_BEFORE_SCIENTIFIC_RESULT`, not a scientific FAIL,
+scientific PASS, threshold STOP, or result against the R1 hypothesis.
 
 The model family, solver, preprocessing, and iteration limit were frozen before
 R1 fitting. No alternate solver, larger iteration budget, resampling, neural
@@ -48,5 +50,6 @@ certified under its frozen training contract. The workflow therefore makes no
 claim about deployable CAR efficacy and does not advance to reliability,
 radius, development, freeze, or final benchmarks.
 
-A future attempt requires a new preregistration before observing new results;
-it must not mutate this stopped run or reuse Medical outcomes for selection.
+A future attempt requires a distinct new preregistration before observing new
+results; it must preserve this original inconclusive event and must not reuse
+Medical outcomes for selection.
