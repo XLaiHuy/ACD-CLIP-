@@ -1,0 +1,48 @@
+{
+  "execution_base_sha": "0a69b6826d132718081fbd7a2edfd25a1b2214c8",
+  "firewall": {
+    "medical_accessed": false,
+    "mvtec_accessed": false
+  },
+  "folds_completed": 12,
+  "freeze": {
+    "additional_clip_forwards": 0,
+    "phase2b_training_steps": 0
+  },
+  "gates": {
+    "G1_AUDIT": true,
+    "G2_COVERAGE": true,
+    "G3_SAFETY": true,
+    "G4_HARM_REDUCTION": true,
+    "G5_PAP_NATIVE": false,
+    "G6_PAP_R2": true,
+    "G7_BREADTH": false,
+    "G8_AUROC": true,
+    "G9_MECHANISM": true
+  },
+  "metrics": {
+    "breadth": 5,
+    "harm_safety": {
+      "coverage": 0.17336367795152205,
+      "harm_density": 0.004274799836136297,
+      "wrong_rate": 0.011599671030835012
+    },
+    "macro_auroc": {
+      "harm": 0.9714520806680665,
+      "native": 0.9707623684180294
+    },
+    "macro_pap": {
+      "binary": 0.5687442846171642,
+      "harm": 0.5698249926799137,
+      "native": 0.5699400925375667,
+      "published_r2": 0.5655672459760029
+    },
+    "relative_weighted_harm_reduction": 0.8753552964814764,
+    "unfiltered_direction": {
+      "coverage": 1.0,
+      "harm_density": 0.03429588033398476,
+      "wrong_rate": 0.07464309823236742
+    }
+  },
+  "status": "R2V2_SCIENTIFIC_STOP"
+}
