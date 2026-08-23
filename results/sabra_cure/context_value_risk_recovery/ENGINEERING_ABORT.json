@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-08-23T21:30:10+07:00",
+  "pid": 3705974,
+  "attempt_uuid": "54fed406-07a0-4cde-88e6-0fbe5db20a76",
+  "execution_base_sha": "a05e4967f02f1e2feb95e2b380656ea92e35eee8",
+  "runtime_seconds_at_abort_request": 1286,
+  "completed_outer_folds": 1,
+  "reason": "P15_ENGINEERING_STOP_UNBOUNDED_OUTER_CACHE_RETENTION",
+  "evidence": {
+    "p15_outer_retains_prior_fold_groups": true,
+    "resident_memory_kib_at_abort_request": 14580356,
+    "bounded_per_fold_cache_contract_violated": true
+  },
+  "scientific_results_interpretable": false
+}
