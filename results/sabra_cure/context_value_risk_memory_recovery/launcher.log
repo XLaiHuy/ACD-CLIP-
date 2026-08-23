@@ -1,0 +1,17 @@
+/home/ai4/caohuy/ACD-CLIP-sabra-context-value-risk-memory-recovery-v1/model/tokenizer.py:10: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ai4/caohuy/ACD-CLIP-sabra-context-value-risk-memory-recovery-v1/tools/sabra_cure/context_value_risk_memory_recovery.py", line 253, in <module>
+    if __name__ == "__main__": main()
+                               ^^^^^^
+  File "/home/ai4/caohuy/ACD-CLIP-sabra-context-value-risk-memory-recovery-v1/tools/sabra_cure/context_value_risk_memory_recovery.py", line 249, in main
+    result = synthetic_memory_fixture(args.output) if args.memory_fixture else benchmark(args.output) if args.benchmark else parity(args.output) if args.parity else pre_audit(args.output) if args.pre_audit else execute(args.output, args.resume_attempt)
+                                                                                                                                                                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ai4/caohuy/ACD-CLIP-sabra-context-value-risk-memory-recovery-v1/tools/sabra_cure/context_value_risk_memory_recovery.py", line 234, in execute
+    stale_refs.extend(refs); assert_no_live_completed_cache(stale_refs); post = memory_event(out, held, "after_finalize", len(compact)); enforce_memory(post, before["rss_bytes"], finalized=True)
+                                                                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ai4/caohuy/ACD-CLIP-sabra-context-value-risk-memory-recovery-v1/tools/sabra_cure/context_value_risk_memory_recovery.py", line 91, in enforce_memory
+    raise RuntimeError("P16_ENGINEERING_STOP post-finalize RSS threshold breach")
+RuntimeError: P16_ENGINEERING_STOP post-finalize RSS threshold breach

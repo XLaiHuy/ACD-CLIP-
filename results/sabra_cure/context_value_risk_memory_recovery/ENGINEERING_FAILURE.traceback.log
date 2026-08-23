@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/home/ai4/caohuy/ACD-CLIP-sabra-context-value-risk-memory-recovery-v1/tools/sabra_cure/context_value_risk_memory_recovery.py", line 234, in execute
+    stale_refs.extend(refs); assert_no_live_completed_cache(stale_refs); post = memory_event(out, held, "after_finalize", len(compact)); enforce_memory(post, before["rss_bytes"], finalized=True)
+                                                                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ai4/caohuy/ACD-CLIP-sabra-context-value-risk-memory-recovery-v1/tools/sabra_cure/context_value_risk_memory_recovery.py", line 91, in enforce_memory
+    raise RuntimeError("P16_ENGINEERING_STOP post-finalize RSS threshold breach")
+RuntimeError: P16_ENGINEERING_STOP post-finalize RSS threshold breach
