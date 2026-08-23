@@ -59,7 +59,8 @@ def test_selection_tie_prefers_higher_q_and_no_expansion_fallback(monkeypatch):
 
 
 def test_atomic_failure_and_exactly_once_guard(tmp_path):
-    p14.atomic(tmp_path / "ATTEMPT_STARTED.json", {"runs": 1})
+    p14.atomic(tmp_path / "ATTEMPT_STARTED.json", {"runs": 1, "numpy_flag": np.bool_(True)})
     with pytest.raises(RuntimeError, match="attempt exists"):
         p14.guard(tmp_path)
-    assert json.loads((tmp_path / "ATTEMPT_STARTED.json").read_text())["runs"] == 1
+    payload = json.loads((tmp_path / "ATTEMPT_STARTED.json").read_text())
+    assert payload["runs"] == 1 and payload["numpy_flag"] is True

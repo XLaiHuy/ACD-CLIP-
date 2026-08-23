@@ -24,7 +24,7 @@ PROTECTED=('results/sabra_car/r0','results/sabra_cure/r1','results/sabra_cure/r2
 def git(*a:str)->str:return r1.git(*a)
 def atomic(path:Path,value:Any)->None:
  path.parent.mkdir(parents=True,exist_ok=True)
- with tempfile.NamedTemporaryFile('w',encoding='utf-8',dir=path.parent,delete=False) as h: json.dump(value,h,indent=2,sort_keys=True,allow_nan=False);h.write('\n');tmp=Path(h.name)
+ with tempfile.NamedTemporaryFile('w',encoding='utf-8',dir=path.parent,delete=False) as h: json.dump(value,h,indent=2,sort_keys=True,allow_nan=False,default=lambda x:x.item() if isinstance(x,np.generic) else (_ for _ in ()).throw(TypeError(f'unsupported JSON value {type(x)!r}')));h.write('\n');tmp=Path(h.name)
  os.replace(tmp,path)
 def log(line:str)->None:
  OUT.mkdir(parents=True,exist_ok=True)
