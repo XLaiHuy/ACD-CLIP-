@@ -64,3 +64,4 @@ def test_atomic_failure_and_exactly_once_guard(tmp_path):
         p14.guard(tmp_path)
     payload = json.loads((tmp_path / "ATTEMPT_STARTED.json").read_text())
     assert payload["runs"] == 1 and payload["numpy_flag"] is True
+    assert json.loads(json.dumps({"numpy_flag": np.bool_(True)}, default=p14.json_default))["numpy_flag"] is True
