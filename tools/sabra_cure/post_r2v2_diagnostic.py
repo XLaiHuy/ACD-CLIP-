@@ -50,6 +50,14 @@ def sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def manifest_path(path: Path) -> str:
+    """Use stable repository-relative names where possible, absolute immutable cache paths otherwise."""
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
 def finite(value: np.ndarray, label: str) -> None:
     if not np.isfinite(value).all():
         raise RuntimeError(f"DIAGNOSTIC_ENGINEERING_STOP non-finite {label}")
@@ -132,7 +140,7 @@ def input_hashes() -> dict[str, str]:
     files = [R2V2 / x for x in ("summary.json", "pre_execution_audit.json", "post_execution_audit.json", "downstream_metrics.json", "ATTEMPT_STARTED.json")]
     for name in r1.CLASSES:
         files += [R2V2 / "folds" / f"{name}.npz", R2V2 / "parameters" / f"{name}.json", r1.SOURCE_ROOT / "gt_free_cache" / f"{name}.npz"]
-    return {str(path.relative_to(ROOT)): sha(path) for path in files}
+    return {manifest_path(path): sha(path) for path in files}
 
 
 def pre_audit(out: Path) -> dict[str, Any]:

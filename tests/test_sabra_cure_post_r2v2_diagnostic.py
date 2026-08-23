@@ -1,7 +1,9 @@
 import numpy as np
 import pytest
 
-from tools.sabra_cure.post_r2v2_diagnostic import assign, correlation, execute, masks_for, qbounds, rank_stats
+from pathlib import Path
+
+from tools.sabra_cure.post_r2v2_diagnostic import ROOT, assign, correlation, execute, manifest_path, masks_for, qbounds, rank_stats
 
 
 def test_masks_partition_and_oracle_rejected_cohorts():
@@ -37,3 +39,8 @@ def test_correlations_null_for_undefined_and_finite_for_valid_inputs():
 def test_execution_requires_the_prior_clean_preaudit(tmp_path):
     with pytest.raises(RuntimeError, match="missing passing pre-execution audit"):
         execute(tmp_path)
+
+
+def test_hash_manifest_supports_external_immutable_cache_paths():
+    assert manifest_path(ROOT / "results" / "x.json") == "results/x.json"
+    assert manifest_path(Path("/tmp/immutable-cache.npz")) == "/tmp/immutable-cache.npz"
