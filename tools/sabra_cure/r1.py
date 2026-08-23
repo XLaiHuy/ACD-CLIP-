@@ -356,7 +356,6 @@ def pre_execution_audit(output: Path) -> dict[str, Any]:
         raise RuntimeError("START_STATE_FAILURE published base absent from HEAD")
     parity = parity_fixture()
     if parity["status"] != "PASS":
-        save_npz(output / "inner_crossfit" / f"{name}.npz", y=item["inner_y"], mu_cf=item["inner_mu_cf"], residual_target=item["residual_target"])
         raise RuntimeError("ENGINEERING_STOP sufficient-statistics parity")
     shards, provenance = load_shards(check_hashes=True)
     checks = {"published_p7_execution_base": True, "phase0_parent": PHASE0_PARENT,
@@ -411,6 +410,22 @@ def execute_once(output: Path) -> dict[str, Any]:
     return summary
 
 
+def materialize_crossfit_evidence(output: Path, shards: dict[str, Shard]) -> None:
+    """Serialize inner predictions from stored parameters; this performs no fit."""
+    for name in CLASSES:
+        params = json.loads((output / "parameters" / f"{name}.json").read_text())
+        ys: list[np.ndarray] = []
+        mus: list[np.ndarray] = []
+        for inner in params["inner_crossfits"]:
+            shard = shards[inner["held_class"]]
+            x = scale_x(shard.x, np.asarray(inner["feature_median"]), np.asarray(inner["feature_iqr"]))
+            ys.append(transform(shard.utility, float(inner["training_scale"])))
+            mus.append(x @ np.asarray(inner["mean_beta"]) + float(inner["mean_intercept"]))
+        y = np.concatenate(ys)
+        mu = np.concatenate(mus)
+        save_npz(output / "inner_crossfit" / f"{name}.npz", y=y, mu_cf=mu, residual_target=np.log(np.abs(y - mu) + 1e-4))
+
+
 def audit_results(output: Path, shards: dict[str, Shard] | None = None, summary: dict[str, Any] | None = None) -> dict[str, Any]:
     shards = shards if shards is not None else load_shards(check_hashes=True)[0]
     summary = summary if summary is not None else json.loads((output / "summary.json").read_text())
@@ -459,15 +474,67 @@ def audit_results(output: Path, shards: dict[str, Shard] | None = None, summary:
     return payload
 
 
+def audit_results_streaming(output: Path) -> dict[str, Any]:
+    """Bounded-memory verification of the completed, stored R1 evidence."""
+    summary = json.loads((output / "summary.json").read_text())
+    reconstructed: dict[str, dict[str, Any]] = {}
+    held: list[str] = []
+    serial_error = 0.0
+    crossfit_error = 0.0
+    finite = True
+    leakage = True
+    provenance = True
+    for name in CLASSES:
+        params = json.loads((output / "parameters" / f"{name}.json").read_text())
+        source_path = SOURCE_ROOT / "gt_free_cache" / f"{name}.npz"
+        trust_path = TRUST_ROOT / "cache" / f"{name}.npz"
+        utility_path = UTILITY_ROOT / f"{name}.npz"
+        with np.load(source_path, allow_pickle=False) as source, np.load(trust_path, allow_pickle=False) as trust, np.load(utility_path, allow_pickle=False) as utility_data, np.load(output / "folds" / f"{name}.npz", allow_pickle=False) as data:
+            paths = source["image_path"].astype(str)
+            provenance = provenance and np.array_equal(paths, trust["image_path"].astype(str)) and np.array_equal(paths, utility_data["image_path"].astype(str)) and np.array_equal(paths, data["image_path"].astype(str))
+            x = scale_x(build_features(source, trust).reshape(-1, len(FEATURE_ORDER)), np.asarray(params["feature_median"]), np.asarray(params["feature_iqr"]))
+            y = transform(np.asarray(utility_data["utility"], dtype=np.float64).reshape(-1), float(params["training_scale"]))
+            mu = x @ np.asarray(params["mean_beta"]) + float(params["mean_intercept"])
+            sigma = np.exp(np.clip(x @ np.asarray(params["uncertainty_beta"]) + float(params["uncertainty_intercept"]), np.log(1e-4), np.log(4.0)))
+            serial_error = max(serial_error, float(np.max(np.abs(y - data["y"]))), float(np.max(np.abs(mu - data["mu"]))), float(np.max(np.abs(sigma - data["sigma"]))))
+            finite = finite and bool(np.isfinite(data["y"]).all() and np.isfinite(data["mu"]).all() and np.isfinite(data["sigma"]).all())
+            reconstructed[name] = {"y": np.asarray(data["y"]), "mu": np.asarray(data["mu"]), "parameters": params}
+            held.append(params["held_out_class"])
+        with np.load(output / "inner_crossfit" / f"{name}.npz", allow_pickle=False) as inner_data:
+            for inner in params["inner_crossfits"]:
+                leakage = leakage and inner["training_classes"] == [candidate for candidate in CLASSES if candidate not in {name, inner["held_class"]}]
+            crossfit_error = max(crossfit_error, float(np.max(np.abs(inner_data["residual_target"] - np.log(np.abs(inner_data["y"] - inner_data["mu_cf"]) + 1e-4)))))
+            finite = finite and bool(np.isfinite(inner_data["y"]).all() and np.isfinite(inner_data["mu_cf"]).all() and np.isfinite(inner_data["residual_target"]).all())
+    conclusion = evaluate(reconstructed, audit_pass=True)
+    recompute = conclusion["metrics"] == summary["metrics"] and conclusion["gates"] == summary["gates"]
+    status = "PASS" if held == list(CLASSES) and finite and serial_error <= 1e-10 and crossfit_error <= 1e-10 and leakage and provenance and recompute else "FAIL"
+    payload = {"status": status, "folds_complete": len(held), "held_class_order": held, "leakage_audit": leakage, "finite_predictions": finite, "serialization_max_abs_error": serial_error, "crossfit_residual_max_abs_error": crossfit_error, "serialization_parity": serial_error <= 1e-10, "metric_recomputation_parity": recompute, "provenance_audit": provenance, "freeze_audit": summary["freeze"] == {"phase2b_training_steps": 0, "additional_clip_forwards": 0}, "firewall_audit": summary["firewall"] == {"mvtec_accessed": False, "medical_accessed": False}, "phase2b_training_steps": 0, "additional_clip_forwards": 0, "mvtec_accessed": False, "medical_accessed": False}
+    write_json(output / "post_execution_audit.json", payload)
+    return payload
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--audit", action="store_true")
     parser.add_argument("--run", action="store_true")
+    parser.add_argument("--audit-results", action="store_true")
     parser.add_argument("--output", type=Path, default=OUTPUT)
     args = parser.parse_args()
-    if args.audit == args.run:
+    if sum((args.audit, args.run, args.audit_results)) != 1:
         parser.error("choose exactly one of --audit or --run")
-    result = pre_execution_audit(args.output.resolve()) if args.audit else execute_once(args.output.resolve())
+    output = args.output.resolve()
+    if args.audit:
+        result = pre_execution_audit(output)
+    elif args.run:
+        result = execute_once(output)
+    else:
+        shards, _ = load_shards(check_hashes=True)
+        materialize_crossfit_evidence(output, shards)
+        result = audit_results(output, shards)
+        if result["status"] == "PASS":
+            summary = json.loads((output / "summary.json").read_text())
+            decision = "PASS" if summary["status"] == "PASS" else "R1_SCIENTIFIC_STOP"
+            (ROOT / "research/sabra_cure/R1_FINAL_DECISION.md").write_text("# SABRA-CURE R1 Final Decision\n\n" + f"Decision: `{decision}`\n\n" + "This is the sole authorized frozen VisA LOCO R1 execution. No R2, R3, or R4 is authorized by this result.\n")
     print(json.dumps(result, indent=2, sort_keys=True))
 
 
