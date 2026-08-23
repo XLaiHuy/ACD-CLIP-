@@ -1,0 +1,72 @@
+{
+  "base_r2_sha": "7785fb2d984a226f14eccfc387bd537ff7d7957b",
+  "conditions": {
+    "D0_NATIVE": {
+      "label": "OBSERVED_RECONSTRUCTION",
+      "mean_loss": 0.4945596257183056,
+      "per_image_ap_mean": 0.5031580009288886,
+      "pixel_ap": 0.5699400925375667,
+      "pixel_auroc": 0.9707623684180294
+    },
+    "D1_PERSISTED_R2": {
+      "label": "OBSERVED_RECONSTRUCTION",
+      "mean_loss": 0.48407371120318116,
+      "per_image_ap_mean": 0.4991329803268556,
+      "pixel_ap": 0.5655672459760029,
+      "pixel_auroc": 0.9623900892532772
+    },
+    "D2_SIGN_CORRECT_ONLY": {
+      "label": "POST_HOC_ORACLE_DIAGNOSTIC",
+      "mean_loss": 0.4782238062833101,
+      "per_image_ap_mean": 0.5112269268712691,
+      "pixel_ap": 0.5759674989435714,
+      "pixel_auroc": 0.9745519478570466
+    },
+    "D3_SIGN_WRONG_ONLY": {
+      "label": "POST_HOC_ORACLE_DIAGNOSTIC",
+      "mean_loss": 0.5006179823664095,
+      "per_image_ap_mean": 0.4887034606258395,
+      "pixel_ap": 0.5517790908221053,
+      "pixel_auroc": 0.9502155122117909
+    },
+    "D4_BOOST_ONLY": {
+      "label": "POST_HOC_ORACLE_DIAGNOSTIC",
+      "mean_loss": 0.4804855935440892,
+      "per_image_ap_mean": 0.5048651749504397,
+      "pixel_ap": 0.5678749774965484,
+      "pixel_auroc": 0.9706963151958125
+    },
+    "D5_SUPPRESS_ONLY": {
+      "label": "POST_HOC_ORACLE_DIAGNOSTIC",
+      "mean_loss": 0.4988916367457741,
+      "per_image_ap_mean": 0.49752046087679963,
+      "pixel_ap": 0.5676038733868266,
+      "pixel_auroc": 0.9624496086290021
+    }
+  },
+  "diagnostic_execution_sha": "44a0bbe4ba7597ba7621ff272201ceba82913f7d",
+  "firewall": {
+    "medical_accessed": false,
+    "mvtec_accessed": false
+  },
+  "freeze": {
+    "additional_clip_forwards": 0,
+    "phase2b_training_steps": 0
+  },
+  "patches": 2959778,
+  "pre_execution_audit": "PASS",
+  "root_cause": {
+    "hypotheses": {
+      "H1_WRONG_SIGN_TARGET_TOO_NARROW": "WEAK",
+      "H2_BOOST_SUPPRESS_ASYMMETRY": "WEAK",
+      "H3_ACTIONABILITY_MISMATCH": "WEAK",
+      "H4_TARGET_LOSS_RANKING_MISMATCH": "PLAUSIBLE",
+      "H5_FIXED_ALPHA_SUBSET_MISMATCH": "INSUFFICIENT_EVIDENCE",
+      "H6_SPATIAL_RANKING_COUPLING": "PLAUSIBLE"
+    },
+    "primary_root_cause": "MIXED_FAILURE",
+    "recommended_next_formulation": "explicit user review before any new preregistration",
+    "retained_harm_ratio_D2_over_D1": -1.3783713471641137
+  },
+  "status": "POST_R2_DIAGNOSTIC_COMPLETE"
+}
