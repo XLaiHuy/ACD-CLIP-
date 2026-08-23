@@ -283,7 +283,9 @@ def classify(rows: list[dict[str, Any]], conditions: dict[str, Any], target: dic
 def execute(out: Path) -> dict[str, Any]:
     if (out / "ATTEMPT_STARTED.json").exists() or (out / "summary.json").exists():
         raise RuntimeError("DIAGNOSTIC_ENGINEERING_STOP attempt already started")
-    pre_audit(out)
+    pre_path = out / "pre_execution_audit.json"
+    if not pre_path.exists() or json.loads(pre_path.read_text()).get("status") != "PASS":
+        raise RuntimeError("DIAGNOSTIC_ENGINEERING_STOP missing passing pre-execution audit")
     write(out / "ATTEMPT_STARTED.json", {"status": "ATTEMPT_STARTED", "parent_terminal_sha": PARENT, "execution_base_sha": git("rev-parse", "HEAD"), "runs": 1})
     bounds = pooled_bounds()
     per_class, class_rows, ranking, all_images = {}, [], {}, []

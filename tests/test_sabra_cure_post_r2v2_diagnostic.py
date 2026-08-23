@@ -1,6 +1,7 @@
 import numpy as np
+import pytest
 
-from tools.sabra_cure.post_r2v2_diagnostic import assign, correlation, masks_for, qbounds, rank_stats
+from tools.sabra_cure.post_r2v2_diagnostic import assign, correlation, execute, masks_for, qbounds, rank_stats
 
 
 def test_masks_partition_and_oracle_rejected_cohorts():
@@ -31,3 +32,8 @@ def test_ranking_fixture_improves_positive_ordering_without_patch_ap_attribution
 def test_correlations_null_for_undefined_and_finite_for_valid_inputs():
     assert correlation(np.ones(3), np.arange(3))["pearson"] is None
     assert correlation(np.arange(4), np.arange(4))["spearman"] == 1.0
+
+
+def test_execution_requires_the_prior_clean_preaudit(tmp_path):
+    with pytest.raises(RuntimeError, match="missing passing pre-execution audit"):
+        execute(tmp_path)
