@@ -1,0 +1,684 @@
+{
+  "comparison": {
+    "non_regressing_count": 5,
+    "non_regressing_mean_coverage": 0.1808607728341492,
+    "regressing_count": 7,
+    "regressing_mean_coverage": 0.16521101188204862
+  },
+  "per_class_conditions": {
+    "candle": {
+      "D0_NATIVE": {
+        "mean_loss": 0.4435807155072689,
+        "per_image_ap_mean": 0.4505604650383491,
+        "pixel_ap": 0.5018832185269125,
+        "pixel_auroc": 0.9903713315794395
+      },
+      "D1_PERSISTED_HARM_AWARE": {
+        "mean_loss": 0.4436712086200714,
+        "per_image_ap_mean": 0.4495030555543334,
+        "pixel_ap": 0.5009047812967465,
+        "pixel_auroc": 0.9903768997122459
+      },
+      "D2_ACCEPTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.44340139158070085,
+        "per_image_ap_mean": 0.4510780744789994,
+        "pixel_ap": 0.5023154642004154,
+        "pixel_auroc": 0.9905837413918895
+      },
+      "D3_ACCEPTED_SIGN_WRONG_ONLY": {
+        "mean_loss": 0.44385062746703624,
+        "per_image_ap_mean": 0.4486726899809521,
+        "pixel_ap": 0.500320070705859,
+        "pixel_auroc": 0.9889998985622176
+      },
+      "D4_REJECTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.3924913211911917,
+        "per_image_ap_mean": 0.45778606826250207,
+        "pixel_ap": 0.5607854078043274,
+        "pixel_auroc": 0.9914556348301647
+      }
+    },
+    "capsules": {
+      "D0_NATIVE": {
+        "mean_loss": 0.5080386855639517,
+        "per_image_ap_mean": 0.652889651040608,
+        "pixel_ap": 0.7553772262426603,
+        "pixel_auroc": 0.9864547480692382
+      },
+      "D1_PERSISTED_HARM_AWARE": {
+        "mean_loss": 0.5085785759147257,
+        "per_image_ap_mean": 0.6514043670482476,
+        "pixel_ap": 0.7543396686054658,
+        "pixel_auroc": 0.9859810658556609
+      },
+      "D2_ACCEPTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.5078388481400907,
+        "per_image_ap_mean": 0.6530065582639114,
+        "pixel_ap": 0.7559490052590007,
+        "pixel_auroc": 0.9865428118026188
+      },
+      "D3_ACCEPTED_SIGN_WRONG_ONLY": {
+        "mean_loss": 0.5087782096583396,
+        "per_image_ap_mean": 0.6511950028970225,
+        "pixel_ap": 0.753722377254245,
+        "pixel_auroc": 0.9851972766389794
+      },
+      "D4_REJECTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.4463409513235092,
+        "per_image_ap_mean": 0.6610486648611356,
+        "pixel_ap": 0.7753486754749849,
+        "pixel_auroc": 0.9903490736783436
+      }
+    },
+    "cashew": {
+      "D0_NATIVE": {
+        "mean_loss": 0.6018261840442817,
+        "per_image_ap_mean": 0.5697836944376806,
+        "pixel_ap": 0.9462302788208623,
+        "pixel_auroc": 0.9979280831739195
+      },
+      "D1_PERSISTED_HARM_AWARE": {
+        "mean_loss": 0.6003263249496619,
+        "per_image_ap_mean": 0.5708212360940008,
+        "pixel_ap": 0.9487461966329247,
+        "pixel_auroc": 0.998058959623579
+      },
+      "D2_ACCEPTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.6000887226561705,
+        "per_image_ap_mean": 0.5698890512203922,
+        "pixel_ap": 0.9487090243004852,
+        "pixel_auroc": 0.9980122846925022
+      },
+      "D3_ACCEPTED_SIGN_WRONG_ONLY": {
+        "mean_loss": 0.6020684755841891,
+        "per_image_ap_mean": 0.5690922771552239,
+        "pixel_ap": 0.9462197115533996,
+        "pixel_auroc": 0.9978372684858791
+      },
+      "D4_REJECTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.5543715195854505,
+        "per_image_ap_mean": 0.5749888479209586,
+        "pixel_ap": 0.9624328444595126,
+        "pixel_auroc": 0.9984395258941352
+      }
+    },
+    "chewinggum": {
+      "D0_NATIVE": {
+        "mean_loss": 0.4025714199741681,
+        "per_image_ap_mean": 0.7681488728844593,
+        "pixel_ap": 0.8675453097042375,
+        "pixel_auroc": 0.9962813843892224
+      },
+      "D1_PERSISTED_HARM_AWARE": {
+        "mean_loss": 0.3985563791791598,
+        "per_image_ap_mean": 0.7640456978997286,
+        "pixel_ap": 0.8649961392532105,
+        "pixel_auroc": 0.9959099494416486
+      },
+      "D2_ACCEPTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.39797101229429244,
+        "per_image_ap_mean": 0.7681364499866089,
+        "pixel_ap": 0.8663907360773061,
+        "pixel_auroc": 0.9965274265204409
+      },
+      "D3_ACCEPTED_SIGN_WRONG_ONLY": {
+        "mean_loss": 0.4031267487009366,
+        "per_image_ap_mean": 0.7639579195908525,
+        "pixel_ap": 0.8661715980408988,
+        "pixel_auroc": 0.9938184798410732
+      },
+      "D4_REJECTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.3594996112088362,
+        "per_image_ap_mean": 0.7760388229247025,
+        "pixel_ap": 0.8784766096861413,
+        "pixel_auroc": 0.9969565969655451
+      }
+    },
+    "fryum": {
+      "D0_NATIVE": {
+        "mean_loss": 0.5678830889860789,
+        "per_image_ap_mean": 0.41718734998831736,
+        "pixel_ap": 0.793714806189584,
+        "pixel_auroc": 0.992974325222131
+      },
+      "D1_PERSISTED_HARM_AWARE": {
+        "mean_loss": 0.5672940784692764,
+        "per_image_ap_mean": 0.4169854916095187,
+        "pixel_ap": 0.7933051744978278,
+        "pixel_auroc": 0.9929870000788389
+      },
+      "D2_ACCEPTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.5671020938952764,
+        "per_image_ap_mean": 0.4171418930302985,
+        "pixel_ap": 0.7941112231344916,
+        "pixel_auroc": 0.9929899990870584
+      },
+      "D3_ACCEPTED_SIGN_WRONG_ONLY": {
+        "mean_loss": 0.5680738945802053,
+        "per_image_ap_mean": 0.41693444594794365,
+        "pixel_ap": 0.7928882828527372,
+        "pixel_auroc": 0.99295003423042
+      },
+      "D4_REJECTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.48604052503903705,
+        "per_image_ap_mean": 0.4558472182955017,
+        "pixel_ap": 0.8646652385082748,
+        "pixel_auroc": 0.9956657037891279
+      }
+    },
+    "macaroni1": {
+      "D0_NATIVE": {
+        "mean_loss": 0.4937265449762344,
+        "per_image_ap_mean": 0.34734048933108697,
+        "pixel_ap": 0.18401190785727511,
+        "pixel_auroc": 0.9815430628365839
+      },
+      "D1_PERSISTED_HARM_AWARE": {
+        "mean_loss": 0.49347521424293517,
+        "per_image_ap_mean": 0.34536532596978065,
+        "pixel_ap": 0.18383843728459473,
+        "pixel_auroc": 0.9785138341159625
+      },
+      "D2_ACCEPTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.49345644414424894,
+        "per_image_ap_mean": 0.3473812544009773,
+        "pixel_ap": 0.1843204764811707,
+        "pixel_auroc": 0.9820086892631844
+      },
+      "D3_ACCEPTED_SIGN_WRONG_ONLY": {
+        "mean_loss": 0.49374539256095884,
+        "per_image_ap_mean": 0.34497800425122915,
+        "pixel_ap": 0.18340047314397717,
+        "pixel_auroc": 0.9735829257888374
+      },
+      "D4_REJECTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.47655926153063777,
+        "per_image_ap_mean": 0.3447619297710638,
+        "pixel_ap": 0.18347216341441308,
+        "pixel_auroc": 0.9853542669718606
+      }
+    },
+    "macaroni2": {
+      "D0_NATIVE": {
+        "mean_loss": 0.5085300758481026,
+        "per_image_ap_mean": 0.26967642073293924,
+        "pixel_ap": 0.07304654637561636,
+        "pixel_auroc": 0.9781018645425139
+      },
+      "D1_PERSISTED_HARM_AWARE": {
+        "mean_loss": 0.5081993064284325,
+        "per_image_ap_mean": 0.25449156494773734,
+        "pixel_ap": 0.07239865834275677,
+        "pixel_auroc": 0.9578012095394272
+      },
+      "D2_ACCEPTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.5081746381521225,
+        "per_image_ap_mean": 0.2696788370203336,
+        "pixel_ap": 0.07314115807960524,
+        "pixel_auroc": 0.9788942888231728
+      },
+      "D3_ACCEPTED_SIGN_WRONG_ONLY": {
+        "mean_loss": 0.5085547944903374,
+        "per_image_ap_mean": 0.24816503944086604,
+        "pixel_ap": 0.07218635581649,
+        "pixel_auroc": 0.9382474599713281
+      },
+      "D4_REJECTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.49496843189001083,
+        "per_image_ap_mean": 0.3063566796838154,
+        "pixel_ap": 0.09881730498144733,
+        "pixel_auroc": 0.9841521699734717
+      }
+    },
+    "pcb1": {
+      "D0_NATIVE": {
+        "mean_loss": 0.4674649982154369,
+        "per_image_ap_mean": 0.5247101121703053,
+        "pixel_ap": 0.6014313272807373,
+        "pixel_auroc": 0.9675620612587641
+      },
+      "D1_PERSISTED_HARM_AWARE": {
+        "mean_loss": 0.46743895806372165,
+        "per_image_ap_mean": 0.5236611149365511,
+        "pixel_ap": 0.6019945572132576,
+        "pixel_auroc": 0.9697538874143576
+      },
+      "D2_ACCEPTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.4671095007658005,
+        "per_image_ap_mean": 0.524725653751462,
+        "pixel_ap": 0.6017906827257604,
+        "pixel_auroc": 0.9691098501240432
+      },
+      "D3_ACCEPTED_SIGN_WRONG_ONLY": {
+        "mean_loss": 0.46779434211552146,
+        "per_image_ap_mean": 0.5226218986324629,
+        "pixel_ap": 0.6014066244679362,
+        "pixel_auroc": 0.9641552384862305
+      },
+      "D4_REJECTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.3982826094701886,
+        "per_image_ap_mean": 0.5260812445672081,
+        "pixel_ap": 0.6204249125546477,
+        "pixel_auroc": 0.9774359517391566
+      }
+    },
+    "pcb2": {
+      "D0_NATIVE": {
+        "mean_loss": 0.47172777116298675,
+        "per_image_ap_mean": 0.48321585839357184,
+        "pixel_ap": 0.2601609850972927,
+        "pixel_auroc": 0.8936735391355806
+      },
+      "D1_PERSISTED_HARM_AWARE": {
+        "mean_loss": 0.4716095846891403,
+        "per_image_ap_mean": 0.4811786184773404,
+        "pixel_ap": 0.26030235384036254,
+        "pixel_auroc": 0.9024515791448372
+      },
+      "D2_ACCEPTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.4714976060390472,
+        "per_image_ap_mean": 0.4832175429222956,
+        "pixel_ap": 0.2602402579231992,
+        "pixel_auroc": 0.9022746227965108
+      },
+      "D3_ACCEPTED_SIGN_WRONG_ONLY": {
+        "mean_loss": 0.4718397918343544,
+        "per_image_ap_mean": 0.48083832956304995,
+        "pixel_ap": 0.259894894404599,
+        "pixel_auroc": 0.8730326088970468
+      },
+      "D4_REJECTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.3991645605862141,
+        "per_image_ap_mean": 0.4869399820252262,
+        "pixel_ap": 0.2582169220452734,
+        "pixel_auroc": 0.9170988996378
+      }
+    },
+    "pcb3": {
+      "D0_NATIVE": {
+        "mean_loss": 0.46034773368740556,
+        "per_image_ap_mean": 0.4782297478427313,
+        "pixel_ap": 0.46132777046179446,
+        "pixel_auroc": 0.8850379239347008
+      },
+      "D1_PERSISTED_HARM_AWARE": {
+        "mean_loss": 0.46016883946473325,
+        "per_image_ap_mean": 0.47856383589597196,
+        "pixel_ap": 0.4616384971122544,
+        "pixel_auroc": 0.9064558904387954
+      },
+      "D2_ACCEPTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.46010287877042494,
+        "per_image_ap_mean": 0.47823534591127825,
+        "pixel_ap": 0.46154359296397685,
+        "pixel_auroc": 0.9025628287736129
+      },
+      "D3_ACCEPTED_SIGN_WRONG_ONLY": {
+        "mean_loss": 0.4604137834180054,
+        "per_image_ap_mean": 0.47772143023186403,
+        "pixel_ap": 0.4610944492782098,
+        "pixel_auroc": 0.849468952681124
+      },
+      "D4_REJECTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.3753696064747388,
+        "per_image_ap_mean": 0.48577806940122525,
+        "pixel_ap": 0.4672291633910537,
+        "pixel_auroc": 0.9189645325446726
+      }
+    },
+    "pcb4": {
+      "D0_NATIVE": {
+        "mean_loss": 0.4040377607096487,
+        "per_image_ap_mean": 0.49553277736491697,
+        "pixel_ap": 0.5094529989458313,
+        "pixel_auroc": 0.9819559397840584
+      },
+      "D1_PERSISTED_HARM_AWARE": {
+        "mean_loss": 0.4040919700961801,
+        "per_image_ap_mean": 0.4951378832997785,
+        "pixel_ap": 0.5087498297317162,
+        "pixel_auroc": 0.9818051044575624
+      },
+      "D2_ACCEPTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.4037705855583077,
+        "per_image_ap_mean": 0.49560273464453686,
+        "pixel_ap": 0.5096165250133909,
+        "pixel_auroc": 0.982038806670823
+      },
+      "D3_ACCEPTED_SIGN_WRONG_ONLY": {
+        "mean_loss": 0.4043593316232387,
+        "per_image_ap_mean": 0.49503502306782027,
+        "pixel_ap": 0.5085543929153966,
+        "pixel_auroc": 0.9814667777147349
+      },
+      "D4_REJECTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.32027536222887276,
+        "per_image_ap_mean": 0.6044049899310265,
+        "pixel_ap": 0.6185198077365637,
+        "pixel_auroc": 0.9910940129355416
+      }
+    },
+    "pipe_fryum": {
+      "D0_NATIVE": {
+        "mean_loss": 0.604980529944102,
+        "per_image_ap_mean": 0.5806205719216971,
+        "pixel_ap": 0.8850987349479963,
+        "pixel_auroc": 0.9972641570901992
+      },
+      "D1_PERSISTED_HARM_AWARE": {
+        "mean_loss": 0.6045136214792728,
+        "per_image_ap_mean": 0.580352609640343,
+        "pixel_ap": 0.8866856183478469,
+        "pixel_auroc": 0.997329588193882
+      },
+      "D2_ACCEPTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.6042983441054821,
+        "per_image_ap_mean": 0.5806919886351325,
+        "pixel_ap": 0.8866886814937579,
+        "pixel_auroc": 0.9972963500939828
+      },
+      "D3_ACCEPTED_SIGN_WRONG_ONLY": {
+        "mean_loss": 0.6051956063012282,
+        "per_image_ap_mean": 0.5802749156957439,
+        "pixel_ap": 0.8849160669258294,
+        "pixel_auroc": 0.997265537221624
+      },
+      "D4_REJECTED_SIGN_CORRECT_ONLY": {
+        "mean_loss": 0.5625451873739561,
+        "per_image_ap_mean": 0.6063169419217699,
+        "pixel_ap": 0.9058558661325625,
+        "pixel_auroc": 0.9977558187039554
+      }
+    }
+  },
+  "rows": [
+    {
+      "accepted_wrong_sign": 0.0090837627740414,
+      "boost_fraction": 0.0,
+      "class": "candle",
+      "coverage": 0.125445580715851,
+      "delta_pap": -0.000978437230165996,
+      "delta_pauroc": 5.568132806388348e-06,
+      "harm_aware_pap": 0.5009047812967465,
+      "harm_aware_pauroc": 0.9903768997122459,
+      "keep_fraction": 0.874554419284149,
+      "loss_delta": 9.049311280251437e-05,
+      "mean_abs_mu": 0.3845930269287139,
+      "mean_harm_risk": 0.02375064762444899,
+      "median_abs_mu": 0.38779650309282854,
+      "median_harm_risk": 0.015535019371458424,
+      "native_pap": 0.5018832185269125,
+      "native_pauroc": 0.9903713315794395,
+      "oracle_rejected_correct_only_pap": 0.5607854078043274,
+      "oracle_sign_correct_only_pap": 0.5023154642004154,
+      "oracle_sign_wrong_only_pap": 0.500320070705859,
+      "sign_correct_accepted_fraction": 0.609485544589047,
+      "suppress_fraction": 0.125445580715851,
+      "weighted_harm_reduction": 0.11269715450549667
+    },
+    {
+      "accepted_wrong_sign": 0.015871379985571473,
+      "boost_fraction": 2.2826880934989044e-05,
+      "class": "capsules",
+      "coverage": 0.08859569028487947,
+      "delta_pap": -0.0010375576371945971,
+      "delta_pauroc": -0.00047368221357724227,
+      "harm_aware_pap": 0.7543396686054658,
+      "harm_aware_pauroc": 0.9859810658556609,
+      "keep_fraction": 0.9114043097151205,
+      "loss_delta": 0.0005398903507739528,
+      "mean_abs_mu": 0.32744511225212863,
+      "mean_harm_risk": 0.040384651893255664,
+      "median_abs_mu": 0.330714339850143,
+      "median_harm_risk": 0.02143581979008321,
+      "native_pap": 0.7553772262426603,
+      "native_pauroc": 0.9864547480692382,
+      "oracle_rejected_correct_only_pap": 0.7753486754749849,
+      "oracle_sign_correct_only_pap": 0.7559490052590007,
+      "oracle_sign_wrong_only_pap": 0.753722377254245,
+      "sign_correct_accepted_fraction": 0.6277955271565495,
+      "suppress_fraction": 0.08857286340394449,
+      "weighted_harm_reduction": -0.2298225760250565
+    },
+    {
+      "accepted_wrong_sign": 0.007951254166894366,
+      "boost_fraction": 0.00038957876795714635,
+      "class": "cashew",
+      "coverage": 0.17822254687119551,
+      "delta_pap": 0.002515917812062396,
+      "delta_pauroc": 0.00013087644965958933,
+      "harm_aware_pap": 0.9487461966329247,
+      "harm_aware_pauroc": 0.998058959623579,
+      "keep_fraction": 0.8217774531288045,
+      "loss_delta": -0.0014998590946198043,
+      "mean_abs_mu": 0.387162206179703,
+      "mean_harm_risk": 0.03187461219046218,
+      "median_abs_mu": 0.37314999157895407,
+      "median_harm_risk": 0.010255956880287766,
+      "native_pap": 0.9462302788208623,
+      "native_pauroc": 0.9979280831739195,
+      "oracle_rejected_correct_only_pap": 0.9624328444595126,
+      "oracle_sign_correct_only_pap": 0.9487090243004852,
+      "oracle_sign_wrong_only_pap": 0.9462197115533996,
+      "sign_correct_accepted_fraction": 0.5083884365265862,
+      "suppress_fraction": 0.17783296810323837,
+      "weighted_harm_reduction": 0.041095713746581386
+    },
+    {
+      "accepted_wrong_sign": 0.01063053198284515,
+      "boost_fraction": 0.0005210616021426832,
+      "class": "chewinggum",
+      "coverage": 0.21346968590211834,
+      "delta_pap": -0.002549170451026983,
+      "delta_pauroc": -0.00037143494757385653,
+      "harm_aware_pap": 0.8649961392532105,
+      "harm_aware_pauroc": 0.9959099494416486,
+      "keep_fraction": 0.7865303140978817,
+      "loss_delta": -0.004015040795008307,
+      "mean_abs_mu": 0.37742458941142365,
+      "mean_harm_risk": 0.01683662112529586,
+      "median_abs_mu": 0.3798412000223491,
+      "median_harm_risk": 0.009194339292948706,
+      "native_pap": 0.8675453097042375,
+      "native_pauroc": 0.9962813843892224,
+      "oracle_rejected_correct_only_pap": 0.8784766096861413,
+      "oracle_sign_correct_only_pap": 0.8663907360773061,
+      "oracle_sign_wrong_only_pap": 0.8661715980408988,
+      "sign_correct_accepted_fraction": 0.4269322018432339,
+      "suppress_fraction": 0.21294862429997566,
+      "weighted_harm_reduction": 0.2562124865507881
+    },
+    {
+      "accepted_wrong_sign": 0.015383063499268674,
+      "boost_fraction": 0.00036036036036036037,
+      "class": "fryum",
+      "coverage": 0.09655222790357926,
+      "delta_pap": -0.00040963169175622927,
+      "delta_pauroc": 1.2674856707861615e-05,
+      "harm_aware_pap": 0.7933051744978278,
+      "harm_aware_pauroc": 0.9929870000788389,
+      "keep_fraction": 0.9034477720964208,
+      "loss_delta": -0.0005890105168024906,
+      "mean_abs_mu": 0.34897317684116064,
+      "mean_harm_risk": 0.05666952951348735,
+      "median_abs_mu": 0.31790267853739596,
+      "median_harm_risk": 0.017520507543410804,
+      "native_pap": 0.793714806189584,
+      "native_pauroc": 0.992974325222131,
+      "oracle_rejected_correct_only_pap": 0.8646652385082748,
+      "oracle_sign_correct_only_pap": 0.7941112231344916,
+      "oracle_sign_wrong_only_pap": 0.7928882828527372,
+      "sign_correct_accepted_fraction": 0.5464770262772987,
+      "suppress_fraction": 0.0961918675432189,
+      "weighted_harm_reduction": 0.11908804924530292
+    },
+    {
+      "accepted_wrong_sign": 0.0031503076085701563,
+      "boost_fraction": 0.0,
+      "class": "macaroni1",
+      "coverage": 0.2214353542731921,
+      "delta_pap": -0.00017347057268038424,
+      "delta_pauroc": -0.003029228720621391,
+      "harm_aware_pap": 0.18383843728459473,
+      "harm_aware_pauroc": 0.9785138341159625,
+      "keep_fraction": 0.7785646457268078,
+      "loss_delta": -0.0002513307332992487,
+      "mean_abs_mu": 0.3686672265626781,
+      "mean_harm_risk": 0.019614022497668606,
+      "median_abs_mu": 0.3631259317894786,
+      "median_harm_risk": 0.009401507334514274,
+      "native_pap": 0.18401190785727511,
+      "native_pauroc": 0.9815430628365839,
+      "oracle_rejected_correct_only_pap": 0.18347216341441308,
+      "oracle_sign_correct_only_pap": 0.1843204764811707,
+      "oracle_sign_wrong_only_pap": 0.18340047314397717,
+      "sign_correct_accepted_fraction": 0.6638572300384304,
+      "suppress_fraction": 0.2214353542731921,
+      "weighted_harm_reduction": 0.22059740436865105
+    },
+    {
+      "accepted_wrong_sign": 0.004740603446739498,
+      "boost_fraction": 0.0,
+      "class": "macaroni2",
+      "coverage": 0.20493425858290723,
+      "delta_pap": -0.0006478880328595893,
+      "delta_pauroc": -0.020300655003086754,
+      "harm_aware_pap": 0.07239865834275677,
+      "harm_aware_pauroc": 0.9578012095394272,
+      "keep_fraction": 0.7950657414170927,
+      "loss_delta": -0.0003307694196701405,
+      "mean_abs_mu": 0.39057153246092235,
+      "mean_harm_risk": 0.018612724948217675,
+      "median_abs_mu": 0.37857384023738766,
+      "median_harm_risk": 0.009609998743251073,
+      "native_pap": 0.07304654637561636,
+      "native_pauroc": 0.9781018645425139,
+      "oracle_rejected_correct_only_pap": 0.09881730498144733,
+      "oracle_sign_correct_only_pap": 0.07314115807960524,
+      "oracle_sign_wrong_only_pap": 0.07218635581649,
+      "sign_correct_accepted_fraction": 0.5991873251234161,
+      "suppress_fraction": 0.20493425858290723,
+      "weighted_harm_reduction": 0.4533036521310214
+    },
+    {
+      "accepted_wrong_sign": 0.009213061305142519,
+      "boost_fraction": 7.3046018991964936e-06,
+      "class": "pcb1",
+      "coverage": 0.1478670562454346,
+      "delta_pap": 0.0005632299325202261,
+      "delta_pauroc": 0.002191826155593546,
+      "harm_aware_pap": 0.6019945572132576,
+      "harm_aware_pauroc": 0.9697538874143576,
+      "keep_fraction": 0.8521329437545654,
+      "loss_delta": -2.604015171525642e-05,
+      "mean_abs_mu": 0.3469687760047392,
+      "mean_harm_risk": 0.03192248540368958,
+      "median_abs_mu": 0.3432413150024015,
+      "median_harm_risk": 0.012145968149106422,
+      "native_pap": 0.6014313272807373,
+      "native_pauroc": 0.9675620612587641,
+      "oracle_rejected_correct_only_pap": 0.6204249125546477,
+      "oracle_sign_correct_only_pap": 0.6017906827257604,
+      "oracle_sign_wrong_only_pap": 0.6014066244679362,
+      "sign_correct_accepted_fraction": 0.6578323371041842,
+      "suppress_fraction": 0.14785975164353543,
+      "weighted_harm_reduction": 0.09064981562633867
+    },
+    {
+      "accepted_wrong_sign": 0.004979014072915809,
+      "boost_fraction": 0.0,
+      "class": "pcb2",
+      "coverage": 0.1775164353542732,
+      "delta_pap": 0.00014136874306985847,
+      "delta_pauroc": 0.008778040009256638,
+      "harm_aware_pap": 0.26030235384036254,
+      "harm_aware_pauroc": 0.9024515791448372,
+      "keep_fraction": 0.8224835646457268,
+      "loss_delta": -0.00011818647384642667,
+      "mean_abs_mu": 0.34252180320950953,
+      "mean_harm_risk": 0.02756741354037172,
+      "median_abs_mu": 0.33921370579648136,
+      "median_harm_risk": 0.01215661791889407,
+      "native_pap": 0.2601609850972927,
+      "native_pauroc": 0.8936735391355806,
+      "oracle_rejected_correct_only_pap": 0.2582169220452734,
+      "oracle_sign_correct_only_pap": 0.2602402579231992,
+      "oracle_sign_wrong_only_pap": 0.259894894404599,
+      "sign_correct_accepted_fraction": 0.6467163196444737,
+      "suppress_fraction": 0.1775164353542732,
+      "weighted_harm_reduction": 0.10811881255945599
+    },
+    {
+      "accepted_wrong_sign": 0.005005857918841197,
+      "boost_fraction": 0.0,
+      "class": "pcb3",
+      "coverage": 0.20472509621359963,
+      "delta_pap": 0.0003107266504599471,
+      "delta_pauroc": 0.021417966504094554,
+      "harm_aware_pap": 0.4616384971122544,
+      "harm_aware_pauroc": 0.9064558904387954,
+      "keep_fraction": 0.7952749037864003,
+      "loss_delta": -0.00017889422267231003,
+      "mean_abs_mu": 0.30167000621893186,
+      "mean_harm_risk": 0.030191712352552233,
+      "median_abs_mu": 0.29938943809580915,
+      "median_harm_risk": 0.010215409107864379,
+      "native_pap": 0.46132777046179446,
+      "native_pauroc": 0.8850379239347008,
+      "oracle_rejected_correct_only_pap": 0.4672291633910537,
+      "oracle_sign_correct_only_pap": 0.46154359296397685,
+      "oracle_sign_wrong_only_pap": 0.4610944492782098,
+      "sign_correct_accepted_fraction": 0.5817800972769553,
+      "suppress_fraction": 0.20472509621359963,
+      "weighted_harm_reduction": 0.10819530641245956
+    },
+    {
+      "accepted_wrong_sign": 0.007884015027250118,
+      "boost_fraction": 0.0,
+      "class": "pcb4",
+      "coverage": 0.20604428551181275,
+      "delta_pap": -0.0007031692141150625,
+      "delta_pauroc": -0.0001508353264959572,
+      "harm_aware_pap": 0.5087498297317162,
+      "harm_aware_pauroc": 0.9818051044575624,
+      "keep_fraction": 0.7939557144881872,
+      "loss_delta": 5.4209386531389736e-05,
+      "mean_abs_mu": 0.3240403712567588,
+      "mean_harm_risk": 0.0466046884186407,
+      "median_abs_mu": 0.3173506444443334,
+      "median_harm_risk": 0.011402710207738819,
+      "native_pap": 0.5094529989458313,
+      "native_pauroc": 0.9819559397840584,
+      "oracle_rejected_correct_only_pap": 0.6185198077365637,
+      "oracle_sign_correct_only_pap": 0.5096165250133909,
+      "oracle_sign_wrong_only_pap": 0.5085543929153966,
+      "sign_correct_accepted_fraction": 0.721025803834418,
+      "suppress_fraction": 0.20604428551181275,
+      "weighted_harm_reduction": -0.049928445522870346
+    },
+    {
+      "accepted_wrong_sign": 0.005889222970454489,
+      "boost_fraction": 0.00010226442658875092,
+      "class": "pipe_fryum",
+      "coverage": 0.195972729486243,
+      "delta_pap": 0.0015868833998505805,
+      "delta_pauroc": 6.543110368273375e-05,
+      "harm_aware_pap": 0.8866856183478469,
+      "harm_aware_pauroc": 0.997329588193882,
+      "keep_fraction": 0.804027270513757,
+      "loss_delta": -0.00046690846482921877,
+      "mean_abs_mu": 0.36877349949971927,
+      "mean_harm_risk": 0.029816543749439955,
+      "median_abs_mu": 0.35804156673652576,
+      "median_harm_risk": 0.011257251876482598,
+      "native_pap": 0.8850987349479963,
+      "native_pauroc": 0.9972641570901992,
+      "oracle_rejected_correct_only_pap": 0.9058558661325625,
+      "oracle_sign_correct_only_pap": 0.8866886814937579,
+      "oracle_sign_wrong_only_pap": 0.8849160669258294,
+      "sign_correct_accepted_fraction": 0.48309022687175407,
+      "suppress_fraction": 0.19587046505965425,
+      "weighted_harm_reduction": 0.16527324262882992
+    }
+  ]
+}

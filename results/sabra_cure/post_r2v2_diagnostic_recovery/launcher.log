@@ -1,0 +1,138 @@
+/home/ai4/caohuy/ACD-CLIP-sabra-cure-postr2v2-diagnostic-recovery-v1/model/tokenizer.py:10: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+{
+  "class_comparison": {
+    "non_regressing_count": 5,
+    "non_regressing_mean_coverage": 0.1808607728341492,
+    "regressing_count": 7,
+    "regressing_mean_coverage": 0.16521101188204862
+  },
+  "class_count": 12,
+  "conditions": {
+    "D0_NATIVE": {
+      "evidence_label": "OBSERVED_RECONSTRUCTION",
+      "mean_loss": 0.4945596257183056,
+      "per_image_ap_mean": 0.5031580009288886,
+      "pixel_ap": 0.5699400925375667,
+      "pixel_auroc": 0.9707623684180294
+    },
+    "D1_PERSISTED_HARM_AWARE": {
+      "evidence_label": "OBSERVED_RECONSTRUCTION",
+      "mean_loss": 0.49399367179977594,
+      "per_image_ap_mean": 0.5009592334477777,
+      "pixel_ap": 0.5698249926799137,
+      "pixel_auroc": 0.9714520806680665
+    },
+    "D2_ACCEPTED_SIGN_CORRECT_ONLY": {
+      "evidence_label": "POST_HOC_ORACLE_DIAGNOSTIC",
+      "mean_loss": 0.49373433884183043,
+      "per_image_ap_mean": 0.5032321153555189,
+      "pixel_ap": 0.57040140230438,
+      "pixel_auroc": 0.9732368083366535
+    },
+    "D3_ACCEPTED_SIGN_WRONG_ONLY": {
+      "evidence_label": "POST_HOC_ORACLE_DIAGNOSTIC",
+      "mean_loss": 0.4948167498611959,
+      "per_image_ap_mean": 0.4999572480379193,
+      "pixel_ap": 0.5692312747799648,
+      "pixel_auroc": 0.9613352048766245
+    },
+    "D4_REJECTED_SIGN_CORRECT_ONLY": {
+      "evidence_label": "POST_HOC_ORACLE_DIAGNOSTIC",
+      "mean_loss": 0.4388257456585536,
+      "per_image_ap_mean": 0.5238624549638445,
+      "pixel_ap": 0.5995204096824335,
+      "pixel_auroc": 0.9787268489719811
+    }
+  },
+  "d1_published_parity_max_abs_error": 0.0,
+  "firewall": {
+    "medical_accessed": false,
+    "mvtec_accessed": false
+  },
+  "freeze": {
+    "additional_clip_forwards": 0,
+    "alpha": 0.25,
+    "new_r2v3_run": false,
+    "new_r3_run": false,
+    "new_r4_run": false,
+    "phase2b_training_steps": 0
+  },
+  "p12_diagnostic_attempt_count": 1,
+  "p12_scientific_contract_hashes": {
+    "research/sabra_cure/post_r2v2_diagnostic/POST_R2V2_ANALYSIS_CONTRACT.md": "c585a76e50b3d4ca17c0bc6283490af42b8df068dac297216f30766e41ec844c",
+    "research/sabra_cure/post_r2v2_diagnostic/POST_R2V2_DIAGNOSTIC_PREREGISTRATION.md": "9b796d63aa12c14d40c41006f41c53e25aab774560fe06481b33151724845f3a"
+  },
+  "p12_terminal_sha": "cad96634c820950d459f6a170b8f629abd2e8040",
+  "r2v2_fail_preserved": true,
+  "recovery_attempt_count": 1,
+  "recovery_execution_base_sha": "dc9b8a38534f16449bed9c7be3519e0a724d2268",
+  "root_cause": {
+    "conditions_are_post_hoc": true,
+    "hypotheses": {
+      "H1_RESIDUAL_WRONG_SIGN_HARM": "SUPPORTED",
+      "H2_SAFE_ACTIONS_LOW_BENEFIT": "SUPPORTED",
+      "H3_HARM_REDUCTION_NOT_PAP": "SUPPORTED",
+      "H4_OVER_ABSTENTION": "SUPPORTED",
+      "H5_RANKING_REGIME_DEPENDENCE": "PLAUSIBLE",
+      "H6_SPATIAL_ACTION_COUPLING": "WEAK",
+      "H7_TARGET_LOSS_RANKING_MISMATCH": "WEAK"
+    },
+    "primary_root_cause": "OVER_ABSTENTION_MISSES_USEFUL_ACTIONS",
+    "r2v2_fail_preserved": true
+  },
+  "status": "POST_R2V2_ACTIONABILITY_DIAGNOSTIC_COMPLETE",
+  "target_identifiability": {
+    "T0_abs_y_vs_pap": {
+      "n": 12,
+      "pearson": -0.1320265895464883,
+      "spearman": -0.16783216783216784
+    },
+    "T1_loss_delta_vs_pap": {
+      "n": 12,
+      "pearson": 0.272482365932238,
+      "spearman": -0.27272727272727276
+    },
+    "T2_pauroc_delta_vs_pap": {
+      "n": 12,
+      "pearson": 0.1920211765332936,
+      "spearman": 0.6573426573426573
+    },
+    "T3_image_action_density_vs_ap_delta": {
+      "n": 1200,
+      "pearson": -0.11931869850525094,
+      "spearman": -0.061873244356419686
+    },
+    "benefit_target_identifiability": "IMAGE_LEVEL_ONLY",
+    "candidate_classification": {
+      "T0_abs_y": "NOT_SUPPORTED",
+      "T1_local_loss": "WEAK",
+      "T2_ranking_aligned": "IMAGE_LEVEL_ONLY",
+      "T3_image_cohort_value": "PLAUSIBLE"
+    },
+    "coverage_vs_pap": {
+      "n": 12,
+      "pearson": 0.08144588775262944,
+      "spearman": -0.02097902097902098
+    },
+    "harm_vs_pap": {
+      "n": 12,
+      "pearson": -0.1029165923476398,
+      "spearman": -0.1258741258741259
+    },
+    "rationale": "P12's exact aggregate ranking evidence supplies no leakage-safe patch-level benefit label with demonstrated cross-class pAP alignment.",
+    "regime_native_score_correct_rates": [
+      0.9998028311132503,
+      0.9990834197173878,
+      0.9781161155169834,
+      0.9106575603557815,
+      0.7139401270033263
+    ],
+    "regime_variation": 0.285862704109924,
+    "wrong_sign_vs_pap": {
+      "n": 12,
+      "pearson": -0.33636745127901635,
+      "spearman": -0.3706293706293707
+    }
+  }
+}

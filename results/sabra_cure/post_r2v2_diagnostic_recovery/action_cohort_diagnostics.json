@@ -1,0 +1,2855 @@
+{
+  "bounds": {
+    "abs_mu": [
+      7.448866059522885e-07,
+      0.2535625332170227,
+      0.32096435239890925,
+      0.3804603549949011,
+      0.4531116958208008,
+      2.4249407600109905
+    ],
+    "harm_risk": [
+      -0.28614233997080485,
+      -0.0008673388549080464,
+      0.00790787900413829,
+      0.01719426696944037,
+      0.03705232414430338,
+      1.6700069989487367
+    ],
+    "native_score": [
+      2.436046697695815e-09,
+      2.789298791938677e-09,
+      3.33883756198361e-09,
+      5.142872794294817e-09,
+      1.6758408349915042e-08,
+      0.999961793422699
+    ],
+    "native_score_rank": [
+      0.0,
+      0.19956140350877194,
+      0.39985380116959063,
+      0.6001461988304093,
+      0.8004385964912281,
+      1.0
+    ],
+    "peer_support": [
+      -19.838107426961265,
+      -19.762642097473144,
+      -19.726381937662758,
+      -19.66848659515381,
+      -19.508734385172524,
+      -7.173571586608887
+    ],
+    "sigma": [
+      0.02901313465729378,
+      0.2745560103707144,
+      0.29339421405147786,
+      0.3132241548021857,
+      0.34620109442991287,
+      2.0553339558223223
+    ],
+    "signed_native_margin": [
+      -19.85615348815918,
+      -19.736230850219727,
+      -19.649842071533204,
+      -19.409268442789713,
+      -18.347719192504883,
+      17.22800890604655
+    ],
+    "stage_disagreement": [
+      -30.72727394104004,
+      -0.2321838378906249,
+      -0.025516510009765625,
+      0.14272308349609375,
+      1.7966560363769535,
+      39.060699462890625
+    ]
+  },
+  "per_class": {
+    "candle": {
+      "accepted": {
+        "mean_abs_utility": 6.780354273572662e-07,
+        "mean_abs_y": 0.43802645422077724,
+        "mean_harm_risk": -0.010493122755231912
+      },
+      "accepted_correct": {
+        "mean_abs_utility": 5.801438505175099e-07,
+        "mean_abs_y": 0.708726514741963,
+        "mean_harm_risk": -0.01028107719139518
+      },
+      "accepted_near_zero": {
+        "mean_abs_utility": 5.847000371544302e-10,
+        "mean_abs_y": 0.0009778105253413524,
+        "mean_harm_risk": -0.010823315976138915
+      },
+      "accepted_wrong": {
+        "mean_abs_utility": 3.569260032538369e-05,
+        "mean_abs_y": 0.626934191731686,
+        "mean_harm_risk": -0.010855624185538263
+      },
+      "counts": {
+        "accepted": 34347,
+        "accepted_correct": 20934,
+        "accepted_near_zero": 13101,
+        "accepted_wrong": 312,
+        "rejected": 239453,
+        "rejected_correct": 122573,
+        "rejected_wrong": 6330
+      },
+      "fixed_bins": {
+        "abs_mu": {
+          "correct_counts": [
+            1928,
+            4503,
+            5850,
+            6761,
+            1892
+          ],
+          "counts": [
+            7794,
+            8681,
+            8175,
+            7721,
+            1976
+          ],
+          "wrong_counts": [
+            159,
+            98,
+            40,
+            12,
+            3
+          ]
+        },
+        "harm_risk": {
+          "correct_counts": [
+            20934,
+            0,
+            0,
+            0,
+            0
+          ],
+          "counts": [
+            34347,
+            0,
+            0,
+            0,
+            0
+          ],
+          "wrong_counts": [
+            312,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "native_score": {
+          "correct_counts": [
+            8492,
+            9002,
+            3277,
+            129,
+            34
+          ],
+          "counts": [
+            8972,
+            11907,
+            9482,
+            3550,
+            436
+          ],
+          "wrong_counts": [
+            0,
+            8,
+            77,
+            122,
+            105
+          ]
+        },
+        "native_score_rank": {
+          "correct_counts": [
+            6535,
+            6776,
+            5743,
+            1489,
+            391
+          ],
+          "counts": [
+            12073,
+            11049,
+            8435,
+            2132,
+            658
+          ],
+          "wrong_counts": [
+            31,
+            36,
+            63,
+            51,
+            131
+          ]
+        },
+        "peer_support": {
+          "correct_counts": [
+            11768,
+            3911,
+            1923,
+            1639,
+            1693
+          ],
+          "counts": [
+            12194,
+            4349,
+            3443,
+            5847,
+            8514
+          ],
+          "wrong_counts": [
+            2,
+            1,
+            19,
+            93,
+            197
+          ]
+        },
+        "sigma": {
+          "correct_counts": [
+            8477,
+            8807,
+            3378,
+            272,
+            0
+          ],
+          "counts": [
+            18734,
+            11818,
+            3518,
+            277,
+            0
+          ],
+          "wrong_counts": [
+            236,
+            73,
+            3,
+            0,
+            0
+          ]
+        },
+        "signed_native_margin": {
+          "correct_counts": [
+            10594,
+            6258,
+            3261,
+            807,
+            14
+          ],
+          "counts": [
+            11697,
+            9340,
+            8879,
+            4051,
+            380
+          ],
+          "wrong_counts": [
+            12,
+            55,
+            154,
+            80,
+            11
+          ]
+        },
+        "stage_disagreement": {
+          "correct_counts": [
+            5765,
+            9442,
+            4882,
+            762,
+            83
+          ],
+          "counts": [
+            6247,
+            10388,
+            6605,
+            9176,
+            1931
+          ],
+          "wrong_counts": [
+            6,
+            9,
+            18,
+            243,
+            36
+          ]
+        }
+      },
+      "rejected": {
+        "mean_abs_utility": 1.5453947751168035e-05,
+        "mean_abs_y": 0.4163769847393869,
+        "mean_harm_risk": 0.0286625542668001
+      },
+      "rejected_correct": {
+        "mean_abs_utility": 2.1128777717066926e-05,
+        "mean_abs_y": 0.7756195765274392,
+        "mean_harm_risk": 0.019233970607894915
+      },
+      "rejected_wrong": {
+        "mean_abs_utility": 0.00017544953588032202,
+        "mean_abs_y": 0.710486450210162,
+        "mean_harm_risk": 0.09862373770184955
+      }
+    },
+    "capsules": {
+      "accepted": {
+        "mean_abs_utility": 1.7363206021057832e-06,
+        "mean_abs_y": 0.481976025525101,
+        "mean_harm_risk": -0.010129992422077313
+      },
+      "accepted_correct": {
+        "mean_abs_utility": 7.780744557828399e-07,
+        "mean_abs_y": 0.7479535666727473,
+        "mean_harm_risk": -0.009901748812843196
+      },
+      "accepted_near_zero": {
+        "mean_abs_utility": 4.839098641403953e-10,
+        "mean_abs_y": 0.0008059388425744246,
+        "mean_harm_risk": -0.010501315179622644
+      },
+      "accepted_wrong": {
+        "mean_abs_utility": 7.861172166542844e-05,
+        "mean_abs_y": 0.7640759138624246,
+        "mean_harm_risk": -0.010821534704133504
+      },
+      "counts": {
+        "accepted": 19406,
+        "accepted_correct": 12183,
+        "accepted_near_zero": 6915,
+        "accepted_wrong": 308,
+        "rejected": 199634,
+        "rejected_correct": 84231,
+        "rejected_wrong": 14919
+      },
+      "fixed_bins": {
+        "abs_mu": {
+          "correct_counts": [
+            1452,
+            1723,
+            2271,
+            3358,
+            3379
+          ],
+          "counts": [
+            4840,
+            3208,
+            3580,
+            4160,
+            3618
+          ],
+          "wrong_counts": [
+            143,
+            65,
+            65,
+            33,
+            2
+          ]
+        },
+        "harm_risk": {
+          "correct_counts": [
+            12183,
+            0,
+            0,
+            0,
+            0
+          ],
+          "counts": [
+            19406,
+            0,
+            0,
+            0,
+            0
+          ],
+          "wrong_counts": [
+            308,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "native_score": {
+          "correct_counts": [
+            1489,
+            7948,
+            2215,
+            275,
+            256
+          ],
+          "counts": [
+            1538,
+            8452,
+            4038,
+            3613,
+            1765
+          ],
+          "wrong_counts": [
+            0,
+            1,
+            9,
+            111,
+            187
+          ]
+        },
+        "native_score_rank": {
+          "correct_counts": [
+            2630,
+            3110,
+            3127,
+            2153,
+            1163
+          ],
+          "counts": [
+            4930,
+            5276,
+            4753,
+            2976,
+            1471
+          ],
+          "wrong_counts": [
+            18,
+            54,
+            43,
+            70,
+            123
+          ]
+        },
+        "peer_support": {
+          "correct_counts": [
+            64,
+            3264,
+            6721,
+            1769,
+            365
+          ],
+          "counts": [
+            64,
+            3397,
+            7626,
+            4901,
+            3418
+          ],
+          "wrong_counts": [
+            0,
+            0,
+            35,
+            148,
+            125
+          ]
+        },
+        "sigma": {
+          "correct_counts": [
+            6239,
+            3919,
+            1517,
+            475,
+            33
+          ],
+          "counts": [
+            12615,
+            4679,
+            1600,
+            479,
+            33
+          ],
+          "wrong_counts": [
+            276,
+            30,
+            2,
+            0,
+            0
+          ]
+        },
+        "signed_native_margin": {
+          "correct_counts": [
+            1792,
+            5631,
+            4047,
+            632,
+            81
+          ],
+          "counts": [
+            1870,
+            6728,
+            6604,
+            3653,
+            551
+          ],
+          "wrong_counts": [
+            1,
+            37,
+            99,
+            149,
+            22
+          ]
+        },
+        "stage_disagreement": {
+          "correct_counts": [
+            2374,
+            4509,
+            3933,
+            1131,
+            236
+          ],
+          "counts": [
+            2457,
+            4766,
+            4737,
+            5120,
+            2326
+          ],
+          "wrong_counts": [
+            2,
+            7,
+            37,
+            164,
+            98
+          ]
+        }
+      },
+      "rejected": {
+        "mean_abs_utility": 1.7508149544319818e-05,
+        "mean_abs_y": 0.3449785956780267,
+        "mean_harm_risk": 0.04529507390345107
+      },
+      "rejected_correct": {
+        "mean_abs_utility": 3.0834440063174814e-05,
+        "mean_abs_y": 0.7062124044127623,
+        "mean_harm_risk": 0.03187114086286586
+      },
+      "rejected_wrong": {
+        "mean_abs_utility": 6.0185700936507384e-05,
+        "mean_abs_y": 0.618341751075526,
+        "mean_harm_risk": 0.13429390837014563
+      }
+    },
+    "cashew": {
+      "accepted": {
+        "mean_abs_utility": 2.000249307073232e-06,
+        "mean_abs_y": 0.3728648690608706,
+        "mean_harm_risk": -0.009187573680401413
+      },
+      "accepted_correct": {
+        "mean_abs_utility": 3.5575051327763296e-06,
+        "mean_abs_y": 0.7227959612503548,
+        "mean_harm_risk": -0.009307637118516439
+      },
+      "accepted_near_zero": {
+        "mean_abs_utility": 2.84532966615907e-10,
+        "mean_abs_y": 0.00046724771832538795,
+        "mean_harm_risk": -0.00903260272175807
+      },
+      "accepted_wrong": {
+        "mean_abs_utility": 2.4086416226074517e-05,
+        "mean_abs_y": 0.6511892474349201,
+        "mean_harm_risk": -0.01093754141022174
+      },
+      "counts": {
+        "accepted": 36598,
+        "accepted_correct": 18606,
+        "accepted_near_zero": 17701,
+        "accepted_wrong": 291,
+        "rejected": 168752,
+        "rejected_correct": 57655,
+        "rejected_wrong": 9452
+      },
+      "fixed_bins": {
+        "abs_mu": {
+          "correct_counts": [
+            572,
+            2542,
+            4309,
+            5598,
+            5585
+          ],
+          "counts": [
+            5204,
+            8146,
+            8221,
+            8371,
+            6656
+          ],
+          "wrong_counts": [
+            137,
+            77,
+            35,
+            15,
+            27
+          ]
+        },
+        "harm_risk": {
+          "correct_counts": [
+            18606,
+            0,
+            0,
+            0,
+            0
+          ],
+          "counts": [
+            36598,
+            0,
+            0,
+            0,
+            0
+          ],
+          "wrong_counts": [
+            291,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "native_score": {
+          "correct_counts": [
+            13418,
+            2779,
+            544,
+            568,
+            1297
+          ],
+          "counts": [
+            15605,
+            7350,
+            6451,
+            4556,
+            2636
+          ],
+          "wrong_counts": [
+            0,
+            2,
+            38,
+            69,
+            182
+          ]
+        },
+        "native_score_rank": {
+          "correct_counts": [
+            4408,
+            4541,
+            4452,
+            3416,
+            1789
+          ],
+          "counts": [
+            9906,
+            9506,
+            8831,
+            6254,
+            2101
+          ],
+          "wrong_counts": [
+            30,
+            35,
+            64,
+            125,
+            37
+          ]
+        },
+        "peer_support": {
+          "correct_counts": [
+            12286,
+            5266,
+            822,
+            105,
+            127
+          ],
+          "counts": [
+            14522,
+            10971,
+            7234,
+            2983,
+            888
+          ],
+          "wrong_counts": [
+            19,
+            38,
+            54,
+            104,
+            76
+          ]
+        },
+        "sigma": {
+          "correct_counts": [
+            8824,
+            5443,
+            2404,
+            1062,
+            873
+          ],
+          "counts": [
+            23002,
+            8680,
+            2796,
+            1168,
+            952
+          ],
+          "wrong_counts": [
+            242,
+            22,
+            1,
+            8,
+            18
+          ]
+        },
+        "signed_native_margin": {
+          "correct_counts": [
+            10189,
+            5289,
+            1347,
+            461,
+            1320
+          ],
+          "counts": [
+            14422,
+            12649,
+            5578,
+            2439,
+            1510
+          ],
+          "wrong_counts": [
+            15,
+            49,
+            137,
+            59,
+            31
+          ]
+        },
+        "stage_disagreement": {
+          "correct_counts": [
+            4326,
+            7028,
+            6273,
+            931,
+            48
+          ],
+          "counts": [
+            5130,
+            9297,
+            11925,
+            9244,
+            1002
+          ],
+          "wrong_counts": [
+            23,
+            9,
+            31,
+            193,
+            35
+          ]
+        }
+      },
+      "rejected": {
+        "mean_abs_utility": 1.619158983327268e-05,
+        "mean_abs_y": 0.29074329265665155,
+        "mean_harm_risk": 0.040779951851632815
+      },
+      "rejected_correct": {
+        "mean_abs_utility": 3.0488135458361474e-05,
+        "mean_abs_y": 0.7378035528709898,
+        "mean_harm_risk": 0.03513894152426274
+      },
+      "rejected_wrong": {
+        "mean_abs_utility": 0.0001031009029924088,
+        "mean_abs_y": 0.6799564398421262,
+        "mean_harm_risk": 0.1471770977174502
+      }
+    },
+    "chewinggum": {
+      "accepted": {
+        "mean_abs_utility": 5.036829513603911e-06,
+        "mean_abs_y": 0.327228298293277,
+        "mean_harm_risk": -0.01162721036661992
+      },
+      "accepted_correct": {
+        "mean_abs_utility": 1.0910381098191355e-05,
+        "mean_abs_y": 0.752006819779755,
+        "mean_harm_risk": -0.012369821203534416
+      },
+      "accepted_near_zero": {
+        "mean_abs_utility": 1.0753431916858738e-10,
+        "mean_abs_y": 0.000177507034297171,
+        "mean_harm_risk": -0.011090239110525382
+      },
+      "accepted_wrong": {
+        "mean_abs_utility": 3.563095503658953e-05,
+        "mean_abs_y": 0.5712352272003823,
+        "mean_harm_risk": -0.010213185701718714
+      },
+      "counts": {
+        "accepted": 43836,
+        "accepted_correct": 18715,
+        "accepted_near_zero": 24655,
+        "accepted_wrong": 466,
+        "rejected": 161514,
+        "rejected_correct": 52620,
+        "rejected_wrong": 10267
+      },
+      "fixed_bins": {
+        "abs_mu": {
+          "correct_counts": [
+            760,
+            2748,
+            4838,
+            5883,
+            4486
+          ],
+          "counts": [
+            5401,
+            8977,
+            11531,
+            11834,
+            6093
+          ],
+          "wrong_counts": [
+            73,
+            99,
+            142,
+            121,
+            31
+          ]
+        },
+        "harm_risk": {
+          "correct_counts": [
+            18715,
+            0,
+            0,
+            0,
+            0
+          ],
+          "counts": [
+            43836,
+            0,
+            0,
+            0,
+            0
+          ],
+          "wrong_counts": [
+            466,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "native_score": {
+          "correct_counts": [
+            5885,
+            8686,
+            2645,
+            1374,
+            125
+          ],
+          "counts": [
+            6207,
+            21790,
+            12634,
+            2848,
+            357
+          ],
+          "wrong_counts": [
+            0,
+            12,
+            148,
+            201,
+            105
+          ]
+        },
+        "native_score_rank": {
+          "correct_counts": [
+            4668,
+            4492,
+            4054,
+            3601,
+            1900
+          ],
+          "counts": [
+            12389,
+            11642,
+            10047,
+            7296,
+            2462
+          ],
+          "wrong_counts": [
+            9,
+            17,
+            36,
+            178,
+            226
+          ]
+        },
+        "peer_support": {
+          "correct_counts": [
+            2454,
+            7412,
+            4759,
+            1404,
+            2686
+          ],
+          "counts": [
+            2713,
+            11437,
+            12647,
+            10349,
+            6690
+          ],
+          "wrong_counts": [
+            3,
+            52,
+            97,
+            162,
+            152
+          ]
+        },
+        "sigma": {
+          "correct_counts": [
+            8580,
+            5871,
+            3368,
+            891,
+            5
+          ],
+          "counts": [
+            25897,
+            12842,
+            4163,
+            925,
+            9
+          ],
+          "wrong_counts": [
+            282,
+            159,
+            25,
+            0,
+            0
+          ]
+        },
+        "signed_native_margin": {
+          "correct_counts": [
+            6427,
+            5554,
+            4326,
+            2211,
+            197
+          ],
+          "counts": [
+            8807,
+            12473,
+            15469,
+            6787,
+            300
+          ],
+          "wrong_counts": [
+            13,
+            74,
+            214,
+            158,
+            7
+          ]
+        },
+        "stage_disagreement": {
+          "correct_counts": [
+            8811,
+            6552,
+            2221,
+            826,
+            305
+          ],
+          "counts": [
+            11943,
+            10005,
+            6294,
+            14075,
+            1519
+          ],
+          "wrong_counts": [
+            155,
+            33,
+            46,
+            207,
+            25
+          ]
+        }
+      },
+      "rejected": {
+        "mean_abs_utility": 2.7351772654215066e-05,
+        "mean_abs_y": 0.3076946125784907,
+        "mean_harm_risk": 0.02456189891718771
+      },
+      "rejected_correct": {
+        "mean_abs_utility": 2.991454183648096e-05,
+        "mean_abs_y": 0.792237646649792,
+        "mean_harm_risk": 0.017879938328793223
+      },
+      "rejected_wrong": {
+        "mean_abs_utility": 0.0002769622349938268,
+        "mean_abs_y": 0.7769398052829346,
+        "mean_harm_risk": 0.10083162558336256
+      }
+    },
+    "fryum": {
+      "accepted": {
+        "mean_abs_utility": 1.8580295333638194e-06,
+        "mean_abs_y": 0.4210142388694252,
+        "mean_harm_risk": -0.009152439313682788
+      },
+      "accepted_correct": {
+        "mean_abs_utility": 2.887233691085889e-06,
+        "mean_abs_y": 0.7500760696965124,
+        "mean_harm_risk": -0.00888182097540133
+      },
+      "accepted_near_zero": {
+        "mean_abs_utility": 5.551001670536942e-10,
+        "mean_abs_y": 0.0009267268373619066,
+        "mean_harm_risk": -0.009436123669536231
+      },
+      "accepted_wrong": {
+        "mean_abs_utility": 1.8200499540779142e-05,
+        "mean_abs_y": 0.696146304479405,
+        "mean_harm_risk": -0.010686156349685198
+      },
+      "counts": {
+        "accepted": 19827,
+        "accepted_correct": 10835,
+        "accepted_near_zero": 8687,
+        "accepted_wrong": 305,
+        "rejected": 185523,
+        "rejected_correct": 78050,
+        "rejected_wrong": 14891
+      },
+      "fixed_bins": {
+        "abs_mu": {
+          "correct_counts": [
+            1575,
+            3676,
+            2976,
+            1930,
+            678
+          ],
+          "counts": [
+            6712,
+            6091,
+            3930,
+            2348,
+            746
+          ],
+          "wrong_counts": [
+            239,
+            46,
+            6,
+            7,
+            7
+          ]
+        },
+        "harm_risk": {
+          "correct_counts": [
+            10835,
+            0,
+            0,
+            0,
+            0
+          ],
+          "counts": [
+            19827,
+            0,
+            0,
+            0,
+            0
+          ],
+          "wrong_counts": [
+            305,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "native_score": {
+          "correct_counts": [
+            0,
+            9233,
+            831,
+            402,
+            369
+          ],
+          "counts": [
+            0,
+            11726,
+            3721,
+            2740,
+            1640
+          ],
+          "wrong_counts": [
+            0,
+            0,
+            16,
+            56,
+            233
+          ]
+        },
+        "native_score_rank": {
+          "correct_counts": [
+            3237,
+            3014,
+            2452,
+            2014,
+            118
+          ],
+          "counts": [
+            6335,
+            5666,
+            4476,
+            3210,
+            140
+          ],
+          "wrong_counts": [
+            42,
+            65,
+            74,
+            104,
+            20
+          ]
+        },
+        "peer_support": {
+          "correct_counts": [
+            0,
+            0,
+            5564,
+            5097,
+            174
+          ],
+          "counts": [
+            0,
+            0,
+            6535,
+            11291,
+            2001
+          ],
+          "wrong_counts": [
+            0,
+            0,
+            1,
+            124,
+            180
+          ]
+        },
+        "sigma": {
+          "correct_counts": [
+            7346,
+            2938,
+            399,
+            38,
+            114
+          ],
+          "counts": [
+            15399,
+            3818,
+            437,
+            40,
+            133
+          ],
+          "wrong_counts": [
+            267,
+            20,
+            0,
+            0,
+            18
+          ]
+        },
+        "signed_native_margin": {
+          "correct_counts": [
+            2,
+            6580,
+            3975,
+            143,
+            135
+          ],
+          "counts": [
+            2,
+            8239,
+            9848,
+            1458,
+            280
+          ],
+          "wrong_counts": [
+            0,
+            11,
+            171,
+            88,
+            35
+          ]
+        },
+        "stage_disagreement": {
+          "correct_counts": [
+            6638,
+            3840,
+            93,
+            167,
+            97
+          ],
+          "counts": [
+            8299,
+            7190,
+            1362,
+            2449,
+            527
+          ],
+          "wrong_counts": [
+            18,
+            43,
+            42,
+            154,
+            48
+          ]
+        }
+      },
+      "rejected": {
+        "mean_abs_utility": 3.804974304257014e-05,
+        "mean_abs_y": 0.3878119747235529,
+        "mean_harm_risk": 0.06370397902075224
+      },
+      "rejected_correct": {
+        "mean_abs_utility": 7.43875513360707e-05,
+        "mean_abs_y": 0.7691190588623517,
+        "mean_harm_risk": 0.06873645195084853
+      },
+      "rejected_wrong": {
+        "mean_abs_utility": 8.415023082657983e-05,
+        "mean_abs_y": 0.7921839761887143,
+        "mean_harm_risk": 0.1899132687292104
+      }
+    },
+    "macaroni1": {
+      "accepted": {
+        "mean_abs_utility": 3.9071147368579364e-07,
+        "mean_abs_y": 0.46773765146091806,
+        "mean_harm_risk": -0.010063186685879045
+      },
+      "accepted_correct": {
+        "mean_abs_utility": 5.69121115394237e-07,
+        "mean_abs_y": 0.7024279619671951,
+        "mean_harm_risk": -0.009801397675879554
+      },
+      "accepted_near_zero": {
+        "mean_abs_utility": 3.048104813136528e-10,
+        "mean_abs_y": 0.0005027711517530948,
+        "mean_harm_risk": -0.010578395659383294
+      },
+      "accepted_wrong": {
+        "mean_abs_utility": 4.061446836576405e-06,
+        "mean_abs_y": 0.3994376043121321,
+        "mean_harm_risk": -0.010770997666989392
+      },
+      "counts": {
+        "accepted": 60629,
+        "accepted_correct": 40249,
+        "accepted_near_zero": 20189,
+        "accepted_wrong": 191,
+        "rejected": 213171,
+        "rejected_correct": 100000,
+        "rejected_wrong": 7100
+      },
+      "fixed_bins": {
+        "abs_mu": {
+          "correct_counts": [
+            1961,
+            7000,
+            7525,
+            10239,
+            13524
+          ],
+          "counts": [
+            9392,
+            13221,
+            10466,
+            12439,
+            15111
+          ],
+          "wrong_counts": [
+            48,
+            68,
+            54,
+            15,
+            6
+          ]
+        },
+        "harm_risk": {
+          "correct_counts": [
+            40249,
+            0,
+            0,
+            0,
+            0
+          ],
+          "counts": [
+            60629,
+            0,
+            0,
+            0,
+            0
+          ],
+          "wrong_counts": [
+            191,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "native_score": {
+          "correct_counts": [
+            27567,
+            7504,
+            4124,
+            933,
+            121
+          ],
+          "counts": [
+            32519,
+            13784,
+            9486,
+            3694,
+            1146
+          ],
+          "wrong_counts": [
+            0,
+            19,
+            64,
+            60,
+            48
+          ]
+        },
+        "native_score_rank": {
+          "correct_counts": [
+            9349,
+            10194,
+            9674,
+            9174,
+            1858
+          ],
+          "counts": [
+            16362,
+            16081,
+            14068,
+            11888,
+            2230
+          ],
+          "wrong_counts": [
+            7,
+            29,
+            40,
+            57,
+            58
+          ]
+        },
+        "peer_support": {
+          "correct_counts": [
+            38056,
+            1463,
+            378,
+            234,
+            118
+          ],
+          "counts": [
+            48098,
+            4558,
+            2831,
+            2992,
+            2150
+          ],
+          "wrong_counts": [
+            70,
+            25,
+            22,
+            38,
+            36
+          ]
+        },
+        "sigma": {
+          "correct_counts": [
+            11979,
+            13186,
+            8808,
+            5162,
+            1114
+          ],
+          "counts": [
+            26011,
+            17697,
+            9998,
+            5722,
+            1201
+          ],
+          "wrong_counts": [
+            144,
+            36,
+            6,
+            3,
+            2
+          ]
+        },
+        "signed_native_margin": {
+          "correct_counts": [
+            28008,
+            7359,
+            3092,
+            1415,
+            375
+          ],
+          "counts": [
+            37678,
+            11352,
+            7084,
+            3914,
+            601
+          ],
+          "wrong_counts": [
+            42,
+            59,
+            44,
+            40,
+            6
+          ]
+        },
+        "stage_disagreement": {
+          "correct_counts": [
+            2672,
+            16331,
+            19406,
+            1756,
+            84
+          ],
+          "counts": [
+            2900,
+            18379,
+            26869,
+            10951,
+            1530
+          ],
+          "wrong_counts": [
+            2,
+            17,
+            50,
+            96,
+            26
+          ]
+        }
+      },
+      "rejected": {
+        "mean_abs_utility": 3.865862382411014e-06,
+        "mean_abs_y": 0.3735356910397871,
+        "mean_harm_risk": 0.028054661775944314
+      },
+      "rejected_correct": {
+        "mean_abs_utility": 5.3940710139219745e-06,
+        "mean_abs_y": 0.7586076822040647,
+        "mean_harm_risk": 0.016248304665114295
+      },
+      "rejected_wrong": {
+        "mean_abs_utility": 4.008710305475911e-05,
+        "mean_abs_y": 0.515533334691642,
+        "mean_harm_risk": 0.11460123574584188
+      }
+    },
+    "macaroni2": {
+      "accepted": {
+        "mean_abs_utility": 4.850216518271806e-07,
+        "mean_abs_y": 0.4529772889248636,
+        "mean_harm_risk": -0.009888059232849493
+      },
+      "accepted_correct": {
+        "mean_abs_utility": 7.788245872578476e-07,
+        "mean_abs_y": 0.7533270127702705,
+        "mean_harm_risk": -0.0097773782373219
+      },
+      "accepted_near_zero": {
+        "mean_abs_utility": 2.0587791625771492e-10,
+        "mean_abs_y": 0.00034052638849648125,
+        "mean_harm_risk": -0.010047363142346616
+      },
+      "accepted_wrong": {
+        "mean_abs_utility": 3.855688070180174e-06,
+        "mean_abs_y": 0.30764400020978383,
+        "mean_harm_risk": -0.010567892563560898
+      },
+      "counts": {
+        "accepted": 56111,
+        "accepted_correct": 33621,
+        "accepted_near_zero": 22224,
+        "accepted_wrong": 266,
+        "rejected": 217689,
+        "rejected_correct": 104614,
+        "rejected_wrong": 4869
+      },
+      "fixed_bins": {
+        "abs_mu": {
+          "correct_counts": [
+            2781,
+            5813,
+            6237,
+            7747,
+            11043
+          ],
+          "counts": [
+            8583,
+            11220,
+            10613,
+            11749,
+            13946
+          ],
+          "wrong_counts": [
+            33,
+            48,
+            64,
+            40,
+            81
+          ]
+        },
+        "harm_risk": {
+          "correct_counts": [
+            33621,
+            0,
+            0,
+            0,
+            0
+          ],
+          "counts": [
+            56111,
+            0,
+            0,
+            0,
+            0
+          ],
+          "wrong_counts": [
+            266,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "native_score": {
+          "correct_counts": [
+            14354,
+            9773,
+            5968,
+            3257,
+            269
+          ],
+          "counts": [
+            18931,
+            16585,
+            13081,
+            6750,
+            764
+          ],
+          "wrong_counts": [
+            0,
+            6,
+            69,
+            123,
+            68
+          ]
+        },
+        "native_score_rank": {
+          "correct_counts": [
+            6713,
+            6975,
+            7395,
+            8226,
+            4312
+          ],
+          "counts": [
+            13091,
+            13044,
+            12651,
+            11959,
+            5366
+          ],
+          "wrong_counts": [
+            5,
+            21,
+            33,
+            84,
+            123
+          ]
+        },
+        "peer_support": {
+          "correct_counts": [
+            3295,
+            25450,
+            4225,
+            470,
+            181
+          ],
+          "counts": [
+            4257,
+            35185,
+            11856,
+            3157,
+            1656
+          ],
+          "wrong_counts": [
+            1,
+            89,
+            94,
+            54,
+            28
+          ]
+        },
+        "sigma": {
+          "correct_counts": [
+            17233,
+            8740,
+            4261,
+            2271,
+            1116
+          ],
+          "counts": [
+            33995,
+            12750,
+            5384,
+            2672,
+            1310
+          ],
+          "wrong_counts": [
+            149,
+            58,
+            29,
+            17,
+            13
+          ]
+        },
+        "signed_native_margin": {
+          "correct_counts": [
+            12931,
+            12293,
+            4372,
+            2273,
+            1752
+          ],
+          "counts": [
+            17987,
+            21591,
+            8713,
+            5612,
+            2208
+          ],
+          "wrong_counts": [
+            13,
+            72,
+            97,
+            46,
+            38
+          ]
+        },
+        "stage_disagreement": {
+          "correct_counts": [
+            4056,
+            14127,
+            13825,
+            1476,
+            137
+          ],
+          "counts": [
+            4859,
+            18365,
+            22905,
+            8551,
+            1431
+          ],
+          "wrong_counts": [
+            51,
+            37,
+            53,
+            114,
+            11
+          ]
+        }
+      },
+      "rejected": {
+        "mean_abs_utility": 6.165552529359924e-06,
+        "mean_abs_y": 0.38182834052502956,
+        "mean_harm_risk": 0.02595901943798914
+      },
+      "rejected_correct": {
+        "mean_abs_utility": 8.232580163341776e-06,
+        "mean_abs_y": 0.7669270896933886,
+        "mean_harm_risk": 0.01885148592999279
+      },
+      "rejected_wrong": {
+        "mean_abs_utility": 9.876381621474899e-05,
+        "mean_abs_y": 0.5766687081052169,
+        "mean_harm_risk": 0.09882816194727659
+      }
+    },
+    "pcb1": {
+      "accepted": {
+        "mean_abs_utility": 8.766789521072623e-07,
+        "mean_abs_y": 0.4883987768901369,
+        "mean_harm_risk": -0.009495679363220337
+      },
+      "accepted_correct": {
+        "mean_abs_utility": 8.246865794642878e-07,
+        "mean_abs_y": 0.7337215471688993,
+        "mean_harm_risk": -0.009217285425593262
+      },
+      "accepted_near_zero": {
+        "mean_abs_utility": 3.060739797018142e-10,
+        "mean_abs_y": 0.0005068189682741653,
+        "mean_harm_risk": -0.009993953291211511
+      },
+      "accepted_wrong": {
+        "mean_abs_utility": 3.6260644790605533e-05,
+        "mean_abs_y": 0.6039544121513531,
+        "mean_harm_risk": -0.011366277731855568
+      },
+      "counts": {
+        "accepted": 40486,
+        "accepted_correct": 26633,
+        "accepted_near_zero": 13480,
+        "accepted_wrong": 373,
+        "rejected": 233314,
+        "rejected_correct": 123996,
+        "rejected_wrong": 11620
+      },
+      "fixed_bins": {
+        "abs_mu": {
+          "correct_counts": [
+            1761,
+            6109,
+            6697,
+            6011,
+            6055
+          ],
+          "counts": [
+            7245,
+            11275,
+            8773,
+            6842,
+            6351
+          ],
+          "wrong_counts": [
+            134,
+            152,
+            54,
+            27,
+            6
+          ]
+        },
+        "harm_risk": {
+          "correct_counts": [
+            26633,
+            0,
+            0,
+            0,
+            0
+          ],
+          "counts": [
+            40486,
+            0,
+            0,
+            0,
+            0
+          ],
+          "wrong_counts": [
+            373,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "native_score": {
+          "correct_counts": [
+            11973,
+            9899,
+            2443,
+            2116,
+            202
+          ],
+          "counts": [
+            13048,
+            12399,
+            5933,
+            6732,
+            2374
+          ],
+          "wrong_counts": [
+            0,
+            10,
+            26,
+            114,
+            223
+          ]
+        },
+        "native_score_rank": {
+          "correct_counts": [
+            6744,
+            6576,
+            6065,
+            4169,
+            3079
+          ],
+          "counts": [
+            11422,
+            10674,
+            9616,
+            5583,
+            3191
+          ],
+          "wrong_counts": [
+            6,
+            36,
+            112,
+            185,
+            34
+          ]
+        },
+        "peer_support": {
+          "correct_counts": [
+            313,
+            18761,
+            6920,
+            575,
+            64
+          ],
+          "counts": [
+            321,
+            20551,
+            13730,
+            4791,
+            1093
+          ],
+          "wrong_counts": [
+            0,
+            15,
+            158,
+            138,
+            62
+          ]
+        },
+        "sigma": {
+          "correct_counts": [
+            10706,
+            8210,
+            4023,
+            2091,
+            1603
+          ],
+          "counts": [
+            22280,
+            10064,
+            4334,
+            2173,
+            1635
+          ],
+          "wrong_counts": [
+            316,
+            51,
+            4,
+            2,
+            0
+          ]
+        },
+        "signed_native_margin": {
+          "correct_counts": [
+            8531,
+            10781,
+            4462,
+            1972,
+            887
+          ],
+          "counts": [
+            9480,
+            17398,
+            8008,
+            4286,
+            1314
+          ],
+          "wrong_counts": [
+            7,
+            104,
+            108,
+            131,
+            23
+          ]
+        },
+        "stage_disagreement": {
+          "correct_counts": [
+            8666,
+            12474,
+            4659,
+            698,
+            136
+          ],
+          "counts": [
+            9278,
+            14616,
+            8891,
+            6107,
+            1594
+          ],
+          "wrong_counts": [
+            1,
+            15,
+            73,
+            204,
+            80
+          ]
+        }
+      },
+      "rejected": {
+        "mean_abs_utility": 1.868374177748729e-05,
+        "mean_abs_y": 0.4199886845156213,
+        "mean_harm_risk": 0.039109605845468104
+      },
+      "rejected_correct": {
+        "mean_abs_utility": 2.183990984912488e-05,
+        "mean_abs_y": 0.7268589649718491,
+        "mean_harm_risk": 0.029494815399710703
+      },
+      "rejected_wrong": {
+        "mean_abs_utility": 0.00014208636919573375,
+        "mean_abs_y": 0.6660930358490028,
+        "mean_harm_risk": 0.15386541056582084
+      }
+    },
+    "pcb2": {
+      "accepted": {
+        "mean_abs_utility": 4.647839973824336e-07,
+        "mean_abs_y": 0.4549084952187103,
+        "mean_harm_risk": -0.009761379689273495
+      },
+      "accepted_correct": {
+        "mean_abs_utility": 5.713228254203397e-07,
+        "mean_abs_y": 0.699141441874771,
+        "mean_harm_risk": -0.009549774339447334
+      },
+      "accepted_near_zero": {
+        "mean_abs_utility": 2.021047655081095e-10,
+        "mean_abs_y": 0.0003335218504875969,
+        "mean_harm_risk": -0.010127980419705834
+      },
+      "accepted_wrong": {
+        "mean_abs_utility": 1.9126238040342882e-05,
+        "mean_abs_y": 0.5314601973289919,
+        "mean_harm_risk": -0.011601078844631334
+      },
+      "counts": {
+        "accepted": 48604,
+        "accepted_correct": 31433,
+        "accepted_near_zero": 16929,
+        "accepted_wrong": 242,
+        "rejected": 225196,
+        "rejected_correct": 115879,
+        "rejected_wrong": 9698
+      },
+      "fixed_bins": {
+        "abs_mu": {
+          "correct_counts": [
+            2936,
+            9331,
+            8975,
+            6474,
+            3717
+          ],
+          "counts": [
+            10444,
+            14880,
+            11436,
+            7556,
+            4288
+          ],
+          "wrong_counts": [
+            113,
+            81,
+            30,
+            8,
+            10
+          ]
+        },
+        "harm_risk": {
+          "correct_counts": [
+            31433,
+            0,
+            0,
+            0,
+            0
+          ],
+          "counts": [
+            48604,
+            0,
+            0,
+            0,
+            0
+          ],
+          "wrong_counts": [
+            242,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "native_score": {
+          "correct_counts": [
+            20661,
+            9324,
+            1118,
+            264,
+            66
+          ],
+          "counts": [
+            23484,
+            12468,
+            5504,
+            5292,
+            1856
+          ],
+          "wrong_counts": [
+            12,
+            6,
+            30,
+            68,
+            126
+          ]
+        },
+        "native_score_rank": {
+          "correct_counts": [
+            9602,
+            9192,
+            8053,
+            4022,
+            564
+          ],
+          "counts": [
+            15656,
+            14293,
+            12504,
+            5486,
+            665
+          ],
+          "wrong_counts": [
+            5,
+            40,
+            64,
+            96,
+            37
+          ]
+        },
+        "peer_support": {
+          "correct_counts": [
+            8620,
+            19045,
+            3292,
+            404,
+            72
+          ],
+          "counts": [
+            9547,
+            23110,
+            8828,
+            5201,
+            1918
+          ],
+          "wrong_counts": [
+            12,
+            29,
+            94,
+            55,
+            52
+          ]
+        },
+        "sigma": {
+          "correct_counts": [
+            17764,
+            8954,
+            3091,
+            1147,
+            477
+          ],
+          "counts": [
+            32363,
+            10845,
+            3550,
+            1315,
+            531
+          ],
+          "wrong_counts": [
+            213,
+            19,
+            3,
+            2,
+            5
+          ]
+        },
+        "signed_native_margin": {
+          "correct_counts": [
+            16238,
+            10688,
+            3913,
+            508,
+            86
+          ],
+          "counts": [
+            19031,
+            17710,
+            8103,
+            3254,
+            506
+          ],
+          "wrong_counts": [
+            27,
+            78,
+            59,
+            63,
+            15
+          ]
+        },
+        "stage_disagreement": {
+          "correct_counts": [
+            3980,
+            10323,
+            14761,
+            2303,
+            66
+          ],
+          "counts": [
+            4616,
+            12234,
+            19171,
+            10677,
+            1906
+          ],
+          "wrong_counts": [
+            5,
+            8,
+            47,
+            133,
+            49
+          ]
+        }
+      },
+      "rejected": {
+        "mean_abs_utility": 1.9260922939898645e-05,
+        "mean_abs_y": 0.40023855902990046,
+        "mean_harm_risk": 0.03562407825081807
+      },
+      "rejected_correct": {
+        "mean_abs_utility": 2.616496131447231e-05,
+        "mean_abs_y": 0.7266865394938126,
+        "mean_harm_risk": 0.026781902872337206
+      },
+      "rejected_wrong": {
+        "mean_abs_utility": 0.000134608633328897,
+        "mean_abs_y": 0.5974944417603748,
+        "mean_harm_risk": 0.13983828692472122
+      }
+    },
+    "pcb3": {
+      "accepted": {
+        "mean_abs_utility": 3.8215967269647433e-07,
+        "mean_abs_y": 0.40027619824814564,
+        "mean_harm_risk": -0.010237868672228475
+      },
+      "accepted_correct": {
+        "mean_abs_utility": 5.746485430171993e-07,
+        "mean_abs_y": 0.6834661091454906,
+        "mean_harm_risk": -0.00958296029574933
+      },
+      "accepted_near_zero": {
+        "mean_abs_utility": 2.9903017923216316e-10,
+        "mean_abs_y": 0.0004916527594783733,
+        "mean_harm_risk": -0.011137796209643214
+      },
+      "accepted_wrong": {
+        "mean_abs_utility": 9.532236979877053e-06,
+        "mean_abs_y": 0.48863970936735046,
+        "mean_harm_risk": -0.012065719433885102
+      },
+      "counts": {
+        "accepted": 56334,
+        "accepted_correct": 32774,
+        "accepted_near_zero": 23278,
+        "accepted_wrong": 282,
+        "rejected": 218835,
+        "rejected_correct": 116534,
+        "rejected_wrong": 14635
+      },
+      "fixed_bins": {
+        "abs_mu": {
+          "correct_counts": [
+            6429,
+            9156,
+            7727,
+            5828,
+            3634
+          ],
+          "counts": [
+            21883,
+            14082,
+            9560,
+            6787,
+            4022
+          ],
+          "wrong_counts": [
+            174,
+            57,
+            23,
+            18,
+            10
+          ]
+        },
+        "harm_risk": {
+          "correct_counts": [
+            32774,
+            0,
+            0,
+            0,
+            0
+          ],
+          "counts": [
+            56334,
+            0,
+            0,
+            0,
+            0
+          ],
+          "wrong_counts": [
+            282,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "native_score": {
+          "correct_counts": [
+            25544,
+            4626,
+            1021,
+            1023,
+            560
+          ],
+          "counts": [
+            29083,
+            8873,
+            7414,
+            7993,
+            2971
+          ],
+          "wrong_counts": [
+            22,
+            11,
+            35,
+            71,
+            143
+          ]
+        },
+        "native_score_rank": {
+          "correct_counts": [
+            8953,
+            8743,
+            7670,
+            5674,
+            1734
+          ],
+          "counts": [
+            17208,
+            15721,
+            13157,
+            8355,
+            1893
+          ],
+          "wrong_counts": [
+            10,
+            18,
+            61,
+            169,
+            24
+          ]
+        },
+        "peer_support": {
+          "correct_counts": [
+            24399,
+            6725,
+            1157,
+            282,
+            211
+          ],
+          "counts": [
+            27928,
+            11918,
+            8495,
+            3572,
+            4421
+          ],
+          "wrong_counts": [
+            30,
+            54,
+            63,
+            45,
+            90
+          ]
+        },
+        "sigma": {
+          "correct_counts": [
+            17587,
+            9568,
+            3533,
+            1309,
+            777
+          ],
+          "counts": [
+            38266,
+            11784,
+            4013,
+            1439,
+            832
+          ],
+          "wrong_counts": [
+            237,
+            30,
+            11,
+            3,
+            1
+          ]
+        },
+        "signed_native_margin": {
+          "correct_counts": [
+            21255,
+            7840,
+            2259,
+            575,
+            845
+          ],
+          "counts": [
+            27899,
+            18075,
+            5396,
+            3350,
+            1614
+          ],
+          "wrong_counts": [
+            67,
+            81,
+            53,
+            60,
+            21
+          ]
+        },
+        "stage_disagreement": {
+          "correct_counts": [
+            3872,
+            13386,
+            12717,
+            2614,
+            185
+          ],
+          "counts": [
+            4392,
+            15966,
+            20087,
+            13360,
+            2529
+          ],
+          "wrong_counts": [
+            2,
+            10,
+            62,
+            150,
+            58
+          ]
+        }
+      },
+      "rejected": {
+        "mean_abs_utility": 2.43085630119695e-05,
+        "mean_abs_y": 0.42317908060394616,
+        "mean_harm_risk": 0.040599371170611485
+      },
+      "rejected_correct": {
+        "mean_abs_utility": 3.576678820160633e-05,
+        "mean_abs_y": 0.7249751147467032,
+        "mean_harm_risk": 0.031282536228835846
+      },
+      "rejected_wrong": {
+        "mean_abs_utility": 7.867884037581122e-05,
+        "mean_abs_y": 0.5490646437530587,
+        "mean_harm_risk": 0.17394504038672265
+      }
+    },
+    "pcb4": {
+      "accepted": {
+        "mean_abs_utility": 6.462668436550044e-07,
+        "mean_abs_y": 0.49370552161394804,
+        "mean_harm_risk": -0.0065806466347096745
+      },
+      "accepted_correct": {
+        "mean_abs_utility": 5.717584914920798e-07,
+        "mean_abs_y": 0.6770818488045989,
+        "mean_harm_risk": -0.006457644341744884
+      },
+      "accepted_near_zero": {
+        "mean_abs_utility": 7.675285137092227e-10,
+        "mean_abs_y": 0.0012767880227223458,
+        "mean_harm_risk": -0.006876081955147526
+      },
+      "accepted_wrong": {
+        "mean_abs_utility": 2.9655720781333e-05,
+        "mean_abs_y": 0.6552388096303478,
+        "mean_harm_risk": -0.007671234691243916
+      },
+      "counts": {
+        "accepted": 56697,
+        "accepted_correct": 40880,
+        "accepted_near_zero": 15370,
+        "accepted_wrong": 447,
+        "rejected": 218472,
+        "rejected_correct": 108479,
+        "rejected_wrong": 37585
+      },
+      "fixed_bins": {
+        "abs_mu": {
+          "correct_counts": [
+            3522,
+            9337,
+            12099,
+            10332,
+            5590
+          ],
+          "counts": [
+            15866,
+            12448,
+            12444,
+            10348,
+            5591
+          ],
+          "wrong_counts": [
+            352,
+            86,
+            9,
+            0,
+            0
+          ]
+        },
+        "harm_risk": {
+          "correct_counts": [
+            39498,
+            1382,
+            0,
+            0,
+            0
+          ],
+          "counts": [
+            54758,
+            1939,
+            0,
+            0,
+            0
+          ],
+          "wrong_counts": [
+            431,
+            16,
+            0,
+            0,
+            0
+          ]
+        },
+        "native_score": {
+          "correct_counts": [
+            32865,
+            4226,
+            1458,
+            1042,
+            1289
+          ],
+          "counts": [
+            32868,
+            4461,
+            3471,
+            8059,
+            7838
+          ],
+          "wrong_counts": [
+            0,
+            0,
+            7,
+            70,
+            370
+          ]
+        },
+        "native_score_rank": {
+          "correct_counts": [
+            11970,
+            12311,
+            11123,
+            4140,
+            1336
+          ],
+          "counts": [
+            18865,
+            17638,
+            14305,
+            4539,
+            1350
+          ],
+          "wrong_counts": [
+            27,
+            78,
+            185,
+            143,
+            14
+          ]
+        },
+        "peer_support": {
+          "correct_counts": [
+            38422,
+            1137,
+            291,
+            538,
+            492
+          ],
+          "counts": [
+            38425,
+            2267,
+            3400,
+            7306,
+            5299
+          ],
+          "wrong_counts": [
+            0,
+            27,
+            89,
+            171,
+            160
+          ]
+        },
+        "sigma": {
+          "correct_counts": [
+            15640,
+            15846,
+            6499,
+            1789,
+            1106
+          ],
+          "counts": [
+            29124,
+            17718,
+            6732,
+            1979,
+            1144
+          ],
+          "wrong_counts": [
+            363,
+            61,
+            11,
+            11,
+            1
+          ]
+        },
+        "signed_native_margin": {
+          "correct_counts": [
+            31950,
+            5001,
+            2136,
+            940,
+            853
+          ],
+          "counts": [
+            32801,
+            9918,
+            9653,
+            3029,
+            1296
+          ],
+          "wrong_counts": [
+            41,
+            172,
+            172,
+            46,
+            16
+          ]
+        },
+        "stage_disagreement": {
+          "correct_counts": [
+            4686,
+            22616,
+            11079,
+            2319,
+            180
+          ],
+          "counts": [
+            4689,
+            22652,
+            11658,
+            16068,
+            1630
+          ],
+          "wrong_counts": [
+            0,
+            0,
+            24,
+            385,
+            38
+          ]
+        }
+      },
+      "rejected": {
+        "mean_abs_utility": 3.1605911837655566e-05,
+        "mean_abs_y": 0.49482800615325323,
+        "mean_harm_risk": 0.06040713880825496
+      },
+      "rejected_correct": {
+        "mean_abs_utility": 5.495981773571618e-05,
+        "mean_abs_y": 0.7792217985419609,
+        "mean_harm_risk": 0.03578080887611144
+      },
+      "rejected_wrong": {
+        "mean_abs_utility": 2.5088191854754693e-05,
+        "mean_abs_y": 0.6237089116718519,
+        "mean_harm_risk": 0.15989901409209278
+      }
+    },
+    "pipe_fryum": {
+      "accepted": {
+        "mean_abs_utility": 8.423308256803784e-07,
+        "mean_abs_y": 0.35114985423674117,
+        "mean_harm_risk": -0.0103417616135548
+      },
+      "accepted_correct": {
+        "mean_abs_utility": 1.4106130118839733e-06,
+        "mean_abs_y": 0.7191775290693323,
+        "mean_harm_risk": -0.010586405630937875
+      },
+      "accepted_near_zero": {
+        "mean_abs_utility": 1.4156582328859846e-10,
+        "mean_abs_y": 0.00023317678384953634,
+        "mean_harm_risk": -0.01011846460497332
+      },
+      "accepted_wrong": {
+        "mean_abs_utility": 2.7304981234865894e-05,
+        "mean_abs_y": 0.6118057419933405,
+        "mean_harm_risk": -0.009649688362642357
+      },
+      "counts": {
+        "accepted": 40243,
+        "accepted_correct": 19441,
+        "accepted_near_zero": 20565,
+        "accepted_wrong": 237,
+        "rejected": 165107,
+        "rejected_correct": 53666,
+        "rejected_wrong": 10458
+      },
+      "fixed_bins": {
+        "abs_mu": {
+          "correct_counts": [
+            1423,
+            5308,
+            5055,
+            4735,
+            2920
+          ],
+          "counts": [
+            9406,
+            13578,
+            8239,
+            5894,
+            3126
+          ],
+          "wrong_counts": [
+            134,
+            66,
+            26,
+            9,
+            2
+          ]
+        },
+        "harm_risk": {
+          "correct_counts": [
+            19441,
+            0,
+            0,
+            0,
+            0
+          ],
+          "counts": [
+            40243,
+            0,
+            0,
+            0,
+            0
+          ],
+          "wrong_counts": [
+            237,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "native_score": {
+          "correct_counts": [
+            10159,
+            8561,
+            503,
+            84,
+            134
+          ],
+          "counts": [
+            10573,
+            18375,
+            8343,
+            1923,
+            1029
+          ],
+          "wrong_counts": [
+            0,
+            9,
+            66,
+            60,
+            102
+          ]
+        },
+        "native_score_rank": {
+          "correct_counts": [
+            5516,
+            5162,
+            4668,
+            3539,
+            556
+          ],
+          "counts": [
+            13382,
+            11106,
+            8988,
+            5897,
+            870
+          ],
+          "wrong_counts": [
+            14,
+            29,
+            54,
+            81,
+            59
+          ]
+        },
+        "peer_support": {
+          "correct_counts": [
+            3057,
+            8354,
+            6612,
+            1329,
+            89
+          ],
+          "counts": [
+            3101,
+            11609,
+            16730,
+            7267,
+            1536
+          ],
+          "wrong_counts": [
+            0,
+            10,
+            77,
+            86,
+            64
+          ]
+        },
+        "sigma": {
+          "correct_counts": [
+            9611,
+            6882,
+            2490,
+            439,
+            19
+          ],
+          "counts": [
+            27225,
+            10019,
+            2541,
+            439,
+            19
+          ],
+          "wrong_counts": [
+            222,
+            15,
+            0,
+            0,
+            0
+          ]
+        },
+        "signed_native_margin": {
+          "correct_counts": [
+            8491,
+            7363,
+            3375,
+            185,
+            27
+          ],
+          "counts": [
+            11130,
+            18103,
+            9224,
+            1696,
+            90
+          ],
+          "wrong_counts": [
+            18,
+            73,
+            99,
+            44,
+            3
+          ]
+        },
+        "stage_disagreement": {
+          "correct_counts": [
+            9065,
+            10107,
+            114,
+            135,
+            20
+          ],
+          "counts": [
+            10664,
+            15879,
+            7377,
+            5838,
+            485
+          ],
+          "wrong_counts": [
+            15,
+            28,
+            72,
+            110,
+            12
+          ]
+        }
+      },
+      "rejected": {
+        "mean_abs_utility": 2.31102055503244e-05,
+        "mean_abs_y": 0.2964385441125119,
+        "mean_harm_risk": 0.039604685274166336
+      },
+      "rejected_correct": {
+        "mean_abs_utility": 3.4177635872314006e-05,
+        "mean_abs_y": 0.7675779105878024,
+        "mean_harm_risk": 0.03492808102702873
+      },
+      "rejected_wrong": {
+        "mean_abs_utility": 0.00018946689922744257,
+        "mean_abs_y": 0.7356865167759443,
+        "mean_harm_risk": 0.15018428653223767
+      }
+    }
+  },
+  "post_hoc_oracle_label": "POST_HOC_ORACLE_DIAGNOSTIC"
+}

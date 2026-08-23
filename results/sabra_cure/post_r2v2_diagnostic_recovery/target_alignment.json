@@ -1,0 +1,53 @@
+{
+  "T0_abs_y_vs_pap": {
+    "n": 12,
+    "pearson": -0.1320265895464883,
+    "spearman": -0.16783216783216784
+  },
+  "T1_loss_delta_vs_pap": {
+    "n": 12,
+    "pearson": 0.272482365932238,
+    "spearman": -0.27272727272727276
+  },
+  "T2_pauroc_delta_vs_pap": {
+    "n": 12,
+    "pearson": 0.1920211765332936,
+    "spearman": 0.6573426573426573
+  },
+  "T3_image_action_density_vs_ap_delta": {
+    "n": 1200,
+    "pearson": -0.11931869850525094,
+    "spearman": -0.061873244356419686
+  },
+  "benefit_target_identifiability": "IMAGE_LEVEL_ONLY",
+  "candidate_classification": {
+    "T0_abs_y": "NOT_SUPPORTED",
+    "T1_local_loss": "WEAK",
+    "T2_ranking_aligned": "IMAGE_LEVEL_ONLY",
+    "T3_image_cohort_value": "PLAUSIBLE"
+  },
+  "coverage_vs_pap": {
+    "n": 12,
+    "pearson": 0.08144588775262944,
+    "spearman": -0.02097902097902098
+  },
+  "harm_vs_pap": {
+    "n": 12,
+    "pearson": -0.1029165923476398,
+    "spearman": -0.1258741258741259
+  },
+  "rationale": "P12's exact aggregate ranking evidence supplies no leakage-safe patch-level benefit label with demonstrated cross-class pAP alignment.",
+  "regime_native_score_correct_rates": [
+    0.9998028311132503,
+    0.9990834197173878,
+    0.9781161155169834,
+    0.9106575603557815,
+    0.7139401270033263
+  ],
+  "regime_variation": 0.285862704109924,
+  "wrong_sign_vs_pap": {
+    "n": 12,
+    "pearson": -0.33636745127901635,
+    "spearman": -0.3706293706293707
+  }
+}
