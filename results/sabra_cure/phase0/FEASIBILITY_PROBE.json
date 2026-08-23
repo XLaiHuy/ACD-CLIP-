@@ -1,0 +1,229 @@
+{
+  "alpha": 1.0,
+  "cannot_satisfy_scientific_gate": true,
+  "feature_order": [
+    "margin_within_image_rank",
+    "robust_margin_normalization",
+    "D_rank",
+    "deployment_sensitivity",
+    "E",
+    "peer_coherence",
+    "query_support_mean",
+    "peer_eigen_entropy",
+    "stage_query_profile_disagreement",
+    "supported_p9_stability",
+    "supported_p16_stability",
+    "signed_native_margin",
+    "cross_stage_signed_margin_difference",
+    "robust_peer_signed_margin_consensus"
+  ],
+  "folds": [
+    {
+      "held_out_class": "candle",
+      "high_uncertainty_mae": 0.40404631998492113,
+      "informative_sign_accuracy": 0.9638671875,
+      "low_uncertainty_mae": 0.3297978400509656,
+      "mean_absolute_error": 0.36692208001794335,
+      "mean_target_pearson": 0.4565052520661239,
+      "rows": 2048,
+      "target_scale": 5.980915460668257e-07,
+      "uncertainty_residual_pearson": 0.346300013415582
+    },
+    {
+      "held_out_class": "capsules",
+      "high_uncertainty_mae": 0.3703475627855436,
+      "informative_sign_accuracy": 0.87109375,
+      "low_uncertainty_mae": 0.33262299602695933,
+      "mean_absolute_error": 0.3514852794062514,
+      "mean_target_pearson": 0.3009582952949179,
+      "rows": 2048,
+      "target_scale": 5.999449683713465e-07,
+      "uncertainty_residual_pearson": -0.009150376068123554
+    },
+    {
+      "held_out_class": "cashew",
+      "high_uncertainty_mae": 0.3957961565493553,
+      "informative_sign_accuracy": 0.8955078125,
+      "low_uncertainty_mae": 0.3285288826464068,
+      "mean_absolute_error": 0.3621625195978811,
+      "mean_target_pearson": 0.4174019643855319,
+      "rows": 2048,
+      "target_scale": 6.095439886166787e-07,
+      "uncertainty_residual_pearson": 0.24572900563007496
+    },
+    {
+      "held_out_class": "chewinggum",
+      "high_uncertainty_mae": 0.44006959389780365,
+      "informative_sign_accuracy": 0.87890625,
+      "low_uncertainty_mae": 0.36580295857393064,
+      "mean_absolute_error": 0.40293627623586714,
+      "mean_target_pearson": 0.3275967056496951,
+      "rows": 2048,
+      "target_scale": 6.051061802736513e-07,
+      "uncertainty_residual_pearson": 0.17446739936605396
+    },
+    {
+      "held_out_class": "fryum",
+      "high_uncertainty_mae": 0.4324521678486647,
+      "informative_sign_accuracy": 0.8564453125,
+      "low_uncertainty_mae": 0.3414725420893796,
+      "mean_absolute_error": 0.38696235496902215,
+      "mean_target_pearson": 0.4279968882393321,
+      "rows": 2048,
+      "target_scale": 5.975534662638893e-07,
+      "uncertainty_residual_pearson": 0.21573986725065109
+    },
+    {
+      "held_out_class": "macaroni1",
+      "high_uncertainty_mae": 0.3738364535276207,
+      "informative_sign_accuracy": 0.974609375,
+      "low_uncertainty_mae": 0.30602293847386364,
+      "mean_absolute_error": 0.3399296960007422,
+      "mean_target_pearson": 0.45602367916303044,
+      "rows": 2048,
+      "target_scale": 6.049839527122458e-07,
+      "uncertainty_residual_pearson": 0.3087936175220285
+    },
+    {
+      "held_out_class": "macaroni2",
+      "high_uncertainty_mae": 0.40737686829215297,
+      "informative_sign_accuracy": 0.9736328125,
+      "low_uncertainty_mae": 0.33490630639042634,
+      "mean_absolute_error": 0.37114158734128966,
+      "mean_target_pearson": 0.27117523457847437,
+      "rows": 2048,
+      "target_scale": 6.038603004299148e-07,
+      "uncertainty_residual_pearson": 0.33906099025711744
+    },
+    {
+      "held_out_class": "pcb1",
+      "high_uncertainty_mae": 0.3749965797299386,
+      "informative_sign_accuracy": 0.9521484375,
+      "low_uncertainty_mae": 0.32753958923069804,
+      "mean_absolute_error": 0.3512680844803184,
+      "mean_target_pearson": 0.5519211105319716,
+      "rows": 2048,
+      "target_scale": 6.030958701330746e-07,
+      "uncertainty_residual_pearson": 0.2269608146188757
+    },
+    {
+      "held_out_class": "pcb2",
+      "high_uncertainty_mae": 0.3761514948073681,
+      "informative_sign_accuracy": 0.955078125,
+      "low_uncertainty_mae": 0.31487154563785613,
+      "mean_absolute_error": 0.3455115202226121,
+      "mean_target_pearson": 0.5084320749412703,
+      "rows": 2048,
+      "target_scale": 6.048787781764986e-07,
+      "uncertainty_residual_pearson": 0.20249801859691324
+    },
+    {
+      "held_out_class": "pcb3",
+      "high_uncertainty_mae": 0.386950601154321,
+      "informative_sign_accuracy": 0.9375,
+      "low_uncertainty_mae": 0.307277621827148,
+      "mean_absolute_error": 0.34711411149073457,
+      "mean_target_pearson": 0.4434057684438532,
+      "rows": 2048,
+      "target_scale": 6.075358243151641e-07,
+      "uncertainty_residual_pearson": 0.3167699392840248
+    },
+    {
+      "held_out_class": "pcb4",
+      "high_uncertainty_mae": 0.3781178828418449,
+      "informative_sign_accuracy": 0.8525390625,
+      "low_uncertainty_mae": 0.42851138995816773,
+      "mean_absolute_error": 0.4033146364000063,
+      "mean_target_pearson": 0.4416479688635258,
+      "rows": 2048,
+      "target_scale": 6.005342783055312e-07,
+      "uncertainty_residual_pearson": -0.17755653448831588
+    },
+    {
+      "held_out_class": "pipe_fryum",
+      "high_uncertainty_mae": 0.4262950510376584,
+      "informative_sign_accuracy": 0.8662109375,
+      "low_uncertainty_mae": 0.3277032511889758,
+      "mean_absolute_error": 0.3769991511133171,
+      "mean_target_pearson": 0.3616001518819007,
+      "rows": 2048,
+      "target_scale": 6.070088005571961e-07,
+      "uncertainty_residual_pearson": 0.3806461637120783
+    }
+  ],
+  "label": "PROBE_ONLY_NOT_SCIENTIFIC_RESULT",
+  "model": "closed-form ridge mean plus separate ridge log-absolute-residual probe",
+  "purpose": "pathology and formulation discrimination only",
+  "seed": 0,
+  "subset_contract": {
+    "candle": [
+      0,
+      273799,
+      2048
+    ],
+    "capsules": [
+      0,
+      219039,
+      2048
+    ],
+    "cashew": [
+      0,
+      205349,
+      2048
+    ],
+    "chewinggum": [
+      0,
+      205349,
+      2048
+    ],
+    "fryum": [
+      0,
+      205349,
+      2048
+    ],
+    "macaroni1": [
+      0,
+      273799,
+      2048
+    ],
+    "macaroni2": [
+      0,
+      273799,
+      2048
+    ],
+    "pcb1": [
+      0,
+      273799,
+      2048
+    ],
+    "pcb2": [
+      0,
+      273799,
+      2048
+    ],
+    "pcb3": [
+      0,
+      275168,
+      2048
+    ],
+    "pcb4": [
+      0,
+      275168,
+      2048
+    ],
+    "pipe_fryum": [
+      0,
+      205349,
+      2048
+    ]
+  },
+  "subset_rule": "2048 evenly spaced flattened patches per VisA class",
+  "summary": {
+    "folds": 12,
+    "low_uncertainty_has_lower_mae_folds": 11,
+    "median_mean_target_pearson": 0.43482242855142894,
+    "median_uncertainty_residual_pearson": 0.23634491012447534,
+    "positive_mean_target_correlation_folds": 12
+  },
+  "target": "T2_tanh_robust_scaled"
+}

@@ -1,0 +1,11 @@
+{
+  "evidence_class": "DERIVED",
+  "canonical_artifact": "results/sabra_cure/phase0/UTILITY_AUDIT.json",
+  "sha256": "dad69a55754ef0678a263b9f1eff8314a1b39048e0722e9bf925692a48ffc90d",
+  "source_definition": "u_q = -dL/d(delta_q)",
+  "alignment": "PASS",
+  "finite": true,
+  "selected_target": "T2_tanh_robust_scaled",
+  "scale_rule": "P75(abs(training-fold utility)), floored at 1e-8; training classes only",
+  "target_stable": true
+}

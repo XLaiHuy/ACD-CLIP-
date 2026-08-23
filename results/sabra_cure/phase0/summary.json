@@ -1,0 +1,31 @@
+{
+  "additional_clip_forward_required": false,
+  "classes": 12,
+  "confidence_safety_relation": "CLASS_DEPENDENT_NONMONOTONIC",
+  "existing_feature_count": 11,
+  "final_feature_count": 14,
+  "medical_access_count": 0,
+  "mvtec_access_count": 0,
+  "new_full_r1_run": false,
+  "parent_sha": "48cd72b4609200d0a03d9ba3818f61b887c8ab1e",
+  "patches": 2959778,
+  "phase2b_training_steps": 0,
+  "probe_label": "PROBE_ONLY_NOT_SCIENTIFIC_RESULT",
+  "probe_summary": {
+    "folds": 12,
+    "low_uncertainty_has_lower_mae_folds": 11,
+    "median_mean_target_pearson": 0.43482242855142894,
+    "median_uncertainty_residual_pearson": 0.23634491012447534,
+    "positive_mean_target_correlation_folds": 12
+  },
+  "r0_continuous_utility_valid": true,
+  "r1_v2_primary_failure": "confidence-conditioned abstention worsened rather than controlled opposite-sign risk; no frozen threshold qualified",
+  "selected_utility_target": "T2_tanh_robust_scaled",
+  "signed_feature_candidates_audited": 5,
+  "signed_features_retained": [
+    "signed_native_margin",
+    "cross_stage_signed_margin_difference",
+    "robust_peer_signed_margin_consensus"
+  ],
+  "status": "DIAGNOSTICS_COMPLETE"
+}

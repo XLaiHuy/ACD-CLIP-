@@ -1,0 +1,4664 @@
+{
+  "action_order": [
+    "SUPPRESS",
+    "KEEP",
+    "BOOST"
+  ],
+  "concentration": {
+    "class": {
+      "candle": {
+        "boost": {
+          "oracle": 7255,
+          "precision": 0.27190644079456533,
+          "predicted": 11629,
+          "recall": 0.4358373535492764,
+          "true_positive": 3162
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            104369,
+            36667,
+            1858
+          ],
+          [
+            46883,
+            70159,
+            6609
+          ],
+          [
+            2651,
+            1442,
+            3162
+          ]
+        ],
+        "coverage": 0.604572680788897,
+        "keep": {
+          "oracle_fraction": 0.4516106647187728,
+          "precision": 0.6480123397495104,
+          "predicted_fraction": 0.39542731921110297,
+          "recall": 0.5673953304057388
+        },
+        "opposite_sign_errors": 4509,
+        "opposite_sign_rate": 0.027239446149385012,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 142894,
+          "precision": 0.6781479243419557,
+          "predicted": 153903,
+          "recall": 0.7303945582039834,
+          "true_positive": 104369
+        }
+      },
+      "capsules": {
+        "boost": {
+          "oracle": 8285,
+          "precision": 0.14497585651873995,
+          "predicted": 26094,
+          "recall": 0.45660832830416415,
+          "true_positive": 3783
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            45967,
+            47274,
+            10115
+          ],
+          [
+            16780,
+            78423,
+            12196
+          ],
+          [
+            2431,
+            2071,
+            3783
+          ]
+        ],
+        "coverage": 0.41669101533966396,
+        "keep": {
+          "oracle_fraction": 0.49031683710737767,
+          "precision": 0.6137921858368293,
+          "predicted_fraction": 0.583308984660336,
+          "recall": 0.7302023296306297
+        },
+        "opposite_sign_errors": 12546,
+        "opposite_sign_rate": 0.13745727057586116,
+        "patches": 219040,
+        "suppress": {
+          "oracle": 103356,
+          "precision": 0.7052533063303569,
+          "predicted": 65178,
+          "recall": 0.4447443786524246,
+          "true_positive": 45967
+        }
+      },
+      "cashew": {
+        "boost": {
+          "oracle": 10561,
+          "precision": 0.2926734820322181,
+          "predicted": 25824,
+          "recall": 0.7156519269008617,
+          "true_positive": 7558
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            48870,
+            20554,
+            6019
+          ],
+          [
+            34368,
+            72731,
+            12247
+          ],
+          [
+            2140,
+            863,
+            7558
+          ]
+        ],
+        "coverage": 0.5415242269296323,
+        "keep": {
+          "oracle_fraction": 0.5811833455076698,
+          "precision": 0.7725177380294855,
+          "predicted_fraction": 0.4584757730703677,
+          "recall": 0.6094129673386623
+        },
+        "opposite_sign_errors": 8159,
+        "opposite_sign_rate": 0.07337098253628532,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 75443,
+          "precision": 0.5723956991262386,
+          "predicted": 85378,
+          "recall": 0.6477738159935316,
+          "true_positive": 48870
+        }
+      },
+      "chewinggum": {
+        "boost": {
+          "oracle": 11495,
+          "precision": 0.4586752637749121,
+          "predicted": 13648,
+          "recall": 0.5445846020008699,
+          "true_positive": 6260
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            34048,
+            33916,
+            2609
+          ],
+          [
+            27069,
+            91434,
+            4779
+          ],
+          [
+            2913,
+            2322,
+            6260
+          ]
+        ],
+        "coverage": 0.37827124421719016,
+        "keep": {
+          "oracle_fraction": 0.6003506208911614,
+          "precision": 0.7161632934394385,
+          "predicted_fraction": 0.6217287557828098,
+          "recall": 0.7416654499440307
+        },
+        "opposite_sign_errors": 5522,
+        "opposite_sign_rate": 0.07108833904065501,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 70573,
+          "precision": 0.5317507418397626,
+          "predicted": 64030,
+          "recall": 0.48245079563005683,
+          "true_positive": 34048
+        }
+      },
+      "fryum": {
+        "boost": {
+          "oracle": 15620,
+          "precision": 0.364880670143828,
+          "predicted": 31635,
+          "recall": 0.7389884763124199,
+          "true_positive": 11543
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            45541,
+            26263,
+            16657
+          ],
+          [
+            22889,
+            74945,
+            3435
+          ],
+          [
+            2500,
+            1577,
+            11543
+          ]
+        ],
+        "coverage": 0.4994643291940589,
+        "keep": {
+          "oracle_fraction": 0.49315315315315317,
+          "precision": 0.7291433574937978,
+          "predicted_fraction": 0.5005356708059411,
+          "recall": 0.7400586556596787
+        },
+        "opposite_sign_errors": 19157,
+        "opposite_sign_rate": 0.18677911568273778,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 88461,
+          "precision": 0.6420555477231072,
+          "predicted": 70930,
+          "recall": 0.514814438000927,
+          "true_positive": 45541
+        }
+      },
+      "macaroni1": {
+        "boost": {
+          "oracle": 6113,
+          "precision": 0.15901164947688654,
+          "predicted": 13477,
+          "recall": 0.35056437101259613,
+          "true_positive": 2143
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            96946,
+            40141,
+            4340
+          ],
+          [
+            36590,
+            82676,
+            6994
+          ],
+          [
+            1976,
+            1994,
+            2143
+          ]
+        ],
+        "coverage": 0.5441526661796932,
+        "keep": {
+          "oracle_fraction": 0.46113951789627466,
+          "precision": 0.6624095632596486,
+          "predicted_fraction": 0.4558473338203068,
+          "recall": 0.6548075399968319
+        },
+        "opposite_sign_errors": 6316,
+        "opposite_sign_rate": 0.04239239138459886,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 141427,
+          "precision": 0.7154052777613791,
+          "predicted": 135512,
+          "recall": 0.6854843841699251,
+          "true_positive": 96946
+        }
+      },
+      "macaroni2": {
+        "boost": {
+          "oracle": 5161,
+          "precision": 0.12480244154994823,
+          "predicted": 18349,
+          "recall": 0.44371245882580895,
+          "true_positive": 2290
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            90183,
+            42382,
+            5644
+          ],
+          [
+            54491,
+            65524,
+            10415
+          ],
+          [
+            1957,
+            914,
+            2290
+          ]
+        ],
+        "coverage": 0.6025566106647188,
+        "keep": {
+          "oracle_fraction": 0.47636961285609936,
+          "precision": 0.6021319610365742,
+          "predicted_fraction": 0.3974433893352812,
+          "recall": 0.5023690868665185
+        },
+        "opposite_sign_errors": 7601,
+        "opposite_sign_rate": 0.04607225118196145,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 138209,
+          "precision": 0.6150336559117785,
+          "predicted": 146631,
+          "recall": 0.6525117756441332,
+          "true_positive": 90183
+        }
+      },
+      "pcb1": {
+        "boost": {
+          "oracle": 11045,
+          "precision": 0.218609275396222,
+          "predicted": 34198,
+          "recall": 0.6768673607967406,
+          "true_positive": 7476
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            91880,
+            44077,
+            15620
+          ],
+          [
+            26757,
+            73319,
+            11102
+          ],
+          [
+            1969,
+            1600,
+            7476
+          ]
+        ],
+        "coverage": 0.565390796201607,
+        "keep": {
+          "oracle_fraction": 0.4060555149744339,
+          "precision": 0.6161467612356718,
+          "predicted_fraction": 0.43460920379839296,
+          "recall": 0.6594739966540143
+        },
+        "opposite_sign_errors": 17589,
+        "opposite_sign_rate": 0.1136210950621431,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 151577,
+          "precision": 0.7618194783012454,
+          "predicted": 120606,
+          "recall": 0.606160565257262,
+          "true_positive": 91880
+        }
+      },
+      "pcb2": {
+        "boost": {
+          "oracle": 9695,
+          "precision": 0.19778429455848812,
+          "predicted": 33759,
+          "recall": 0.6887055183084064,
+          "true_positive": 6677
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            77813,
+            54441,
+            15303
+          ],
+          [
+            22535,
+            82234,
+            11779
+          ],
+          [
+            1562,
+            1456,
+            6677
+          ]
+        ],
+        "coverage": 0.49550401753104456,
+        "keep": {
+          "oracle_fraction": 0.4256683710737765,
+          "precision": 0.5953334153810513,
+          "predicted_fraction": 0.5044959824689554,
+          "recall": 0.7055805333424855
+        },
+        "opposite_sign_errors": 16865,
+        "opposite_sign_rate": 0.12430990130390877,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 147557,
+          "precision": 0.7635462663134138,
+          "predicted": 101910,
+          "recall": 0.527341976321015,
+          "true_positive": 77813
+        }
+      },
+      "pcb3": {
+        "boost": {
+          "oracle": 9415,
+          "precision": 0.1952475140217303,
+          "predicted": 36907,
+          "recall": 0.7653744025491237,
+          "true_positive": 7206
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            55311,
+            76618,
+            22881
+          ],
+          [
+            12690,
+            91434,
+            6820
+          ],
+          [
+            713,
+            1496,
+            7206
+          ]
+        ],
+        "coverage": 0.38384047621643425,
+        "keep": {
+          "oracle_fraction": 0.4031849517932616,
+          "precision": 0.5392809116002548,
+          "predicted_fraction": 0.6161595237835658,
+          "recall": 0.824145514854341
+        },
+        "opposite_sign_errors": 23594,
+        "opposite_sign_rate": 0.22338360742655344,
+        "patches": 275169,
+        "suppress": {
+          "oracle": 154810,
+          "precision": 0.8049451349070058,
+          "predicted": 68714,
+          "recall": 0.3572831212453976,
+          "true_positive": 55311
+        }
+      },
+      "pcb4": {
+        "boost": {
+          "oracle": 14418,
+          "precision": 0.2159933316780761,
+          "predicted": 56386,
+          "recall": 0.8447080038840339,
+          "true_positive": 12179
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            75146,
+            56420,
+            41407
+          ],
+          [
+            5287,
+            79691,
+            2800
+          ],
+          [
+            722,
+            1517,
+            12179
+          ]
+        ],
+        "coverage": 0.4998419153320323,
+        "keep": {
+          "oracle_fraction": 0.3189966893072984,
+          "precision": 0.5790318830470543,
+          "predicted_fraction": 0.5001580846679677,
+          "recall": 0.9078698534940418
+        },
+        "opposite_sign_errors": 42129,
+        "opposite_sign_rate": 0.30630139376622245,
+        "patches": 275169,
+        "suppress": {
+          "oracle": 172973,
+          "precision": 0.9259565029881092,
+          "predicted": 81155,
+          "recall": 0.4344377446191024,
+          "true_positive": 75146
+        }
+      },
+      "pipe_fryum": {
+        "boost": {
+          "oracle": 11699,
+          "precision": 0.4588809104457391,
+          "predicted": 14762,
+          "recall": 0.5790238481921531,
+          "true_positive": 6774
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            46651,
+            21619,
+            3833
+          ],
+          [
+            47698,
+            69695,
+            4155
+          ],
+          [
+            3714,
+            1211,
+            6774
+          ]
+        ],
+        "coverage": 0.549427806184563,
+        "keep": {
+          "oracle_fraction": 0.5919065010956903,
+          "precision": 0.7532558767900568,
+          "predicted_fraction": 0.45057219381543706,
+          "recall": 0.5733948728074506
+        },
+        "opposite_sign_errors": 7547,
+        "opposite_sign_rate": 0.06689120319078218,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 72103,
+          "precision": 0.4757247891661483,
+          "predicted": 98063,
+          "recall": 0.6470049789883916,
+          "true_positive": 46651
+        }
+      }
+    },
+    "low_high_margin_regions": [
+      {
+        "coverage": 0.19994594192811627,
+        "lower": -3.7800958156585693,
+        "opposite_sign_rate_when_acted": 0.034052274770360054,
+        "patch_fraction": 0.2500001689315888,
+        "quartile": 1,
+        "upper": -0.8958395421504974
+      },
+      {
+        "coverage": 0.4143430231141741,
+        "lower": -0.8958395421504974,
+        "opposite_sign_rate_when_acted": 0.016322650822012223,
+        "patch_fraction": 0.2496315602048532,
+        "quartile": 2,
+        "upper": 0.0
+      },
+      {
+        "coverage": 0.5771057738241431,
+        "lower": 0.0,
+        "opposite_sign_rate_when_acted": 0.09541102056564287,
+        "patch_fraction": 0.25036810193196923,
+        "quartile": 3,
+        "upper": 1.959703952074051
+      },
+      {
+        "coverage": 0.847272432410517,
+        "lower": 1.959703952074051,
+        "opposite_sign_rate_when_acted": 0.19251756561685024,
+        "patch_fraction": 0.2500001689315888,
+        "quartile": 4,
+        "upper": 393.3778991699219
+      }
+    ],
+    "relational_disagreement_regions": [
+      {
+        "coverage": 0.30479022089479624,
+        "lower": 1.4689320593230804e-10,
+        "opposite_sign_rate_when_acted": 0.013687879110354368,
+        "patch_fraction": 0.2500001689315888,
+        "quartile": 1,
+        "upper": 1.297552394419199e-07
+      },
+      {
+        "coverage": 0.5168337063345334,
+        "lower": 1.297552394419199e-07,
+        "opposite_sign_rate_when_acted": 0.013168491846831299,
+        "patch_fraction": 0.2499998310684112,
+        "quartile": 2,
+        "upper": 1.5991265058801218e-06
+      },
+      {
+        "coverage": 0.6249162098753419,
+        "lower": 1.5991265058801218e-06,
+        "opposite_sign_rate_when_acted": 0.07157393009993447,
+        "patch_fraction": 0.2499998310684112,
+        "quartile": 3,
+        "upper": 1.3660872127729817e-05
+      },
+      {
+        "coverage": 0.5923670002500185,
+        "lower": 1.3660872127729817e-05,
+        "opposite_sign_rate_when_acted": 0.29730629974972567,
+        "patch_fraction": 0.2500001689315888,
+        "quartile": 4,
+        "upper": 1.4312243461608887
+      }
+    ],
+    "spatial": {
+      "candle": {
+        "acted_patch_opposite_rate": 0.027239446149385012,
+        "adjacency_enrichment": 24.101949788141606,
+        "adjacent_acted_pairs": 246039,
+        "adjacent_opposite_pair_rate": 0.017883343697543887,
+        "adjacent_opposite_pairs": 4400,
+        "independent_expected_pair_rate": 0.0007419874265252459
+      },
+      "capsules": {
+        "acted_patch_opposite_rate": 0.13745727057586116,
+        "adjacency_enrichment": 5.030927314622517,
+        "adjacent_acted_pairs": 110618,
+        "adjacent_opposite_pair_rate": 0.09505686235513208,
+        "adjacent_opposite_pairs": 10515,
+        "independent_expected_pair_rate": 0.018894501234165504
+      },
+      "cashew": {
+        "acted_patch_opposite_rate": 0.07337098253628532,
+        "adjacency_enrichment": 12.16993253142251,
+        "adjacent_acted_pairs": 151066,
+        "adjacent_opposite_pair_rate": 0.06551441091973045,
+        "adjacent_opposite_pairs": 9897,
+        "independent_expected_pair_rate": 0.005383301078339886
+      },
+      "chewinggum": {
+        "acted_patch_opposite_rate": 0.07108833904065501,
+        "adjacency_enrichment": 10.596197422527423,
+        "adjacent_acted_pairs": 82318,
+        "adjacent_opposite_pair_rate": 0.05354843412133434,
+        "adjacent_opposite_pairs": 4408,
+        "independent_expected_pair_rate": 0.005053551947559115
+      },
+      "fryum": {
+        "acted_patch_opposite_rate": 0.18677911568273778,
+        "adjacency_enrichment": 5.498662526224737,
+        "adjacent_acted_pairs": 149769,
+        "adjacent_opposite_pair_rate": 0.19182874960772925,
+        "adjacent_opposite_pairs": 28730,
+        "independent_expected_pair_rate": 0.03488643805522554
+      },
+      "macaroni1": {
+        "acted_patch_opposite_rate": 0.04239239138459886,
+        "adjacency_enrichment": 13.234980625529488,
+        "adjacent_acted_pairs": 212657,
+        "adjacent_opposite_pair_rate": 0.023784780185933215,
+        "adjacent_opposite_pairs": 5058,
+        "independent_expected_pair_rate": 0.0017971148473050118
+      },
+      "macaroni2": {
+        "acted_patch_opposite_rate": 0.04607225118196145,
+        "adjacency_enrichment": 15.15792507736972,
+        "adjacent_acted_pairs": 236519,
+        "adjacent_opposite_pair_rate": 0.032175004967888415,
+        "adjacent_opposite_pairs": 7610,
+        "independent_expected_pair_rate": 0.002122652328973748
+      },
+      "pcb1": {
+        "acted_patch_opposite_rate": 0.1136210950621431,
+        "adjacency_enrichment": 7.388442344622985,
+        "adjacent_acted_pairs": 222199,
+        "adjacent_opposite_pair_rate": 0.09538296752010585,
+        "adjacent_opposite_pairs": 21194,
+        "independent_expected_pair_rate": 0.01290975324312056
+      },
+      "pcb2": {
+        "acted_patch_opposite_rate": 0.12430990130390877,
+        "adjacency_enrichment": 6.149689025881046,
+        "adjacent_acted_pairs": 181057,
+        "adjacent_opposite_pair_rate": 0.09503084663945609,
+        "adjacent_opposite_pairs": 17206,
+        "independent_expected_pair_rate": 0.01545295156218754
+      },
+      "pcb3": {
+        "acted_patch_opposite_rate": 0.22338360742655344,
+        "adjacency_enrichment": 4.569850948718081,
+        "adjacent_acted_pairs": 136022,
+        "adjacent_opposite_pair_rate": 0.22803664113158165,
+        "adjacent_opposite_pairs": 31018,
+        "independent_expected_pair_rate": 0.04990023606690054
+      },
+      "pcb4": {
+        "acted_patch_opposite_rate": 0.30630139376622245,
+        "adjacency_enrichment": 3.3079867035454806,
+        "adjacent_acted_pairs": 204922,
+        "adjacent_opposite_pair_rate": 0.3103571114863216,
+        "adjacent_opposite_pairs": 63599,
+        "independent_expected_pair_rate": 0.09382054382313046
+      },
+      "pipe_fryum": {
+        "acted_patch_opposite_rate": 0.06689120319078218,
+        "adjacency_enrichment": 13.334272606138574,
+        "adjacent_acted_pairs": 152841,
+        "adjacent_opposite_pair_rate": 0.05966331023743629,
+        "adjacent_opposite_pairs": 9119,
+        "independent_expected_pair_rate": 0.004474433064310508
+      }
+    },
+    "stability_evidence_regions": [
+      {
+        "coverage": 0.3927658123543786,
+        "lower": 0.1332845687866211,
+        "opposite_sign_rate_when_acted": 0.02848943961582318,
+        "patch_fraction": 0.24970589010391997,
+        "quartile": 1,
+        "upper": 0.5804093480110168
+      },
+      {
+        "coverage": 0.43077380068320215,
+        "lower": 0.5804093480110168,
+        "opposite_sign_rate_when_acted": 0.04882712102405938,
+        "patch_fraction": 0.25023160520822846,
+        "quartile": 2,
+        "upper": 0.6649609804153442
+      },
+      {
+        "coverage": 0.5002584832581342,
+        "lower": 0.6649609804153442,
+        "opposite_sign_rate_when_acted": 0.09224031120994226,
+        "patch_fraction": 0.2496558863536387,
+        "quartile": 3,
+        "upper": 0.7553606033325195
+      },
+      {
+        "coverage": 0.7146980090346328,
+        "lower": 0.7553606033325195,
+        "opposite_sign_rate_when_acted": 0.21444146370472175,
+        "patch_fraction": 0.2504066183342129,
+        "quartile": 4,
+        "upper": 1.0
+      }
+    ],
+    "trust_evidence_regions": [
+      {
+        "coverage": 0.3989036984968098,
+        "lower": 0.19602826237678528,
+        "opposite_sign_rate_when_acted": 0.03135960527698048,
+        "patch_fraction": 0.2499376642437372,
+        "quartile": 1,
+        "upper": 0.6052631735801697
+      },
+      {
+        "coverage": 0.4427423256015069,
+        "lower": 0.6052631735801697,
+        "opposite_sign_rate_when_acted": 0.05449634524118356,
+        "patch_fraction": 0.2500383474706549,
+        "quartile": 2,
+        "upper": 0.6851851344108582
+      },
+      {
+        "coverage": 0.5050839301307682,
+        "lower": 0.6851851344108582,
+        "opposite_sign_rate_when_acted": 0.09767912389067902,
+        "patch_fraction": 0.2499450972336439,
+        "quartile": 3,
+        "upper": 0.7690058350563049
+      },
+      {
+        "coverage": 0.6921010891974633,
+        "lower": 0.7690058350563049,
+        "opposite_sign_rate_when_acted": 0.21067857686646704,
+        "patch_fraction": 0.250078891051964,
+        "quartile": 4,
+        "upper": 1.0
+      }
+    ]
+  },
+  "confidence_distributions": {
+    "correct_signed_actions": {
+      "count": 889776,
+      "mean": 0.5357754926073353,
+      "q10": 0.43034350872039795,
+      "q25": 0.4660199210047722,
+      "q50": 0.5094713270664215,
+      "q75": 0.5667840391397476,
+      "q90": 0.6426180005073547
+    },
+    "false_boost": {
+      "count": 239617,
+      "mean": 0.5694700838974321,
+      "q10": 0.38370571136474607,
+      "q25": 0.42434731125831604,
+      "q50": 0.5035955905914307,
+      "q75": 0.6622526049613953,
+      "q90": 0.9257898807525634
+    },
+    "false_suppress": {
+      "count": 379285,
+      "mean": 0.47910232314883444,
+      "q10": 0.3998721778392792,
+      "q25": 0.4342714250087738,
+      "q50": 0.47043678164482117,
+      "q75": 0.5138140916824341,
+      "q90": 0.5638461232185364
+    },
+    "opposite_sign_errors": {
+      "count": 171534,
+      "mean": 0.6150281172737555,
+      "q10": 0.39663122594356537,
+      "q25": 0.44721363484859467,
+      "q50": 0.5523375272750854,
+      "q75": 0.7591366171836853,
+      "q90": 0.970825982093811
+    },
+    "oracle_keep": {
+      "count": 1379633,
+      "mean": 0.5204689948969677,
+      "q10": 0.4134624481201172,
+      "q25": 0.45528218150138855,
+      "q50": 0.5078460574150085,
+      "q75": 0.5767710208892822,
+      "q90": 0.6435350179672241
+    }
+  },
+  "confidence_opposite_error_correlation": {
+    "global_acted_patches": 0.2458998318657899,
+    "per_class": {
+      "candle": 0.08406232202433667,
+      "capsules": 0.11877147595974295,
+      "cashew": 0.23197963470675584,
+      "chewinggum": 0.07733259731349061,
+      "fryum": 0.37718287498820263,
+      "macaroni1": -0.07904883423750352,
+      "macaroni2": -0.04475067093748824,
+      "pcb1": 0.12403726076764433,
+      "pcb2": -0.017082423793393326,
+      "pcb3": 0.17770189683795445,
+      "pcb4": 0.4051055018501675,
+      "pipe_fryum": 0.22054704611267958
+    },
+    "positive_means_confidence_associated_with_more_opposite_sign_error": true
+  },
+  "dense_curve": {
+    "label": "POST_HOC_DIAGNOSTIC_ONLY",
+    "not_for_threshold_selection": true,
+    "path": "results/sabra_cure/phase0/risk_coverage_posthoc_diagnostic.csv",
+    "points": 201
+  },
+  "evidence_class": "DERIVED",
+  "global_and_threshold_conditioned": {
+    "0.5": {
+      "boost": {
+        "oracle": 120762,
+        "precision": 0.35494828260203487,
+        "predicted": 189298,
+        "recall": 0.5563919113628459,
+        "true_positive": 67191
+      },
+      "confusion_labels": [
+        "SUPPRESS",
+        "KEEP",
+        "BOOST"
+      ],
+      "confusion_matrix": [
+        [
+          423947,
+          944193,
+          91243
+        ],
+        [
+          106115,
+          1242654,
+          30864
+        ],
+        [
+          13670,
+          39901,
+          67191
+        ]
+      ],
+      "coverage": 0.24766384505864966,
+      "keep": {
+        "oracle_fraction": 0.4661271892689249,
+        "precision": 0.5580577595668661,
+        "predicted_fraction": 0.7523361549413503,
+        "recall": 0.900713450606067
+      },
+      "opposite_sign_errors": 104913,
+      "opposite_sign_rate": 0.14312238244000927,
+      "patches": 2959778,
+      "suppress": {
+        "oracle": 1459383,
+        "precision": 0.7796984543856165,
+        "predicted": 543732,
+        "recall": 0.2904974225408957,
+        "true_positive": 423947
+      }
+    },
+    "0.6": {
+      "boost": {
+        "oracle": 120762,
+        "precision": 0.4300319063094542,
+        "predicted": 135083,
+        "recall": 0.4810288004504728,
+        "true_positive": 58090
+      },
+      "confusion_labels": [
+        "SUPPRESS",
+        "KEEP",
+        "BOOST"
+      ],
+      "confusion_matrix": [
+        [
+          85768,
+          1307296,
+          66319
+        ],
+        [
+          12709,
+          1356250,
+          10674
+        ],
+        [
+          6530,
+          56142,
+          58090
+        ]
+      ],
+      "coverage": 0.08111757030425931,
+      "keep": {
+        "oracle_fraction": 0.4661271892689249,
+        "precision": 0.49867852488961967,
+        "predicted_fraction": 0.9188824296957407,
+        "recall": 0.9830512897270506
+      },
+      "opposite_sign_errors": 72849,
+      "opposite_sign_rate": 0.3034237161064601,
+      "patches": 2959778,
+      "suppress": {
+        "oracle": 1459383,
+        "precision": 0.8167836429952289,
+        "predicted": 105007,
+        "recall": 0.05877004186015597,
+        "true_positive": 85768
+      }
+    },
+    "0.7": {
+      "boost": {
+        "oracle": 120762,
+        "precision": 0.4922078176023152,
+        "predicted": 102282,
+        "recall": 0.4168861065566983,
+        "true_positive": 50344
+      },
+      "confusion_labels": [
+        "SUPPRESS",
+        "KEEP",
+        "BOOST"
+      ],
+      "confusion_matrix": [
+        [
+          10792,
+          1399559,
+          49032
+        ],
+        [
+          1536,
+          1375191,
+          2906
+        ],
+        [
+          3163,
+          67255,
+          50344
+        ]
+      ],
+      "coverage": 0.03979116001267663,
+      "keep": {
+        "oracle_fraction": 0.4661271892689249,
+        "precision": 0.4838805702312276,
+        "predicted_fraction": 0.9602088399873234,
+        "recall": 0.9967803031675815
+      },
+      "opposite_sign_errors": 52195,
+      "opposite_sign_rate": 0.4431830725208664,
+      "patches": 2959778,
+      "suppress": {
+        "oracle": 1459383,
+        "precision": 0.6966625782712543,
+        "predicted": 15491,
+        "recall": 0.007394905929423599,
+        "true_positive": 10792
+      }
+    },
+    "0.8": {
+      "boost": {
+        "oracle": 120762,
+        "precision": 0.5376111124866912,
+        "predicted": 80774,
+        "recall": 0.3595915933820241,
+        "true_positive": 43425
+      },
+      "confusion_labels": [
+        "SUPPRESS",
+        "KEEP",
+        "BOOST"
+      ],
+      "confusion_matrix": [
+        [
+          1366,
+          1421200,
+          36817
+        ],
+        [
+          144,
+          1378957,
+          532
+        ],
+        [
+          763,
+          76574,
+          43425
+        ]
+      ],
+      "coverage": 0.028058523308167032,
+      "keep": {
+        "oracle_fraction": 0.4661271892689249,
+        "precision": 0.47934860784689287,
+        "predicted_fraction": 0.971941476691833,
+        "recall": 0.99951001461983
+      },
+      "opposite_sign_errors": 37580,
+      "opposite_sign_rate": 0.4525148409936542,
+      "patches": 2959778,
+      "suppress": {
+        "oracle": 1459383,
+        "precision": 0.6009678838539375,
+        "predicted": 2273,
+        "recall": 0.0009360119995916082,
+        "true_positive": 1366
+      }
+    },
+    "0.9": {
+      "boost": {
+        "oracle": 120762,
+        "precision": 0.5702318456702462,
+        "predicted": 62671,
+        "recall": 0.295929183021149,
+        "true_positive": 35737
+      },
+      "confusion_labels": [
+        "SUPPRESS",
+        "KEEP",
+        "BOOST"
+      ],
+      "confusion_matrix": [
+        [
+          176,
+          1432362,
+          26845
+        ],
+        [
+          18,
+          1379526,
+          89
+        ],
+        [
+          44,
+          84981,
+          35737
+        ]
+      ],
+      "coverage": 0.0212546346381384,
+      "keep": {
+        "oracle_fraction": 0.4661271892689249,
+        "precision": 0.4762127662659237,
+        "predicted_fraction": 0.9787453653618616,
+        "recall": 0.9999224431424879
+      },
+      "opposite_sign_errors": 26889,
+      "opposite_sign_rate": 0.4274269182469917,
+      "patches": 2959778,
+      "suppress": {
+        "oracle": 1459383,
+        "precision": 0.7394957983193278,
+        "predicted": 238,
+        "recall": 0.000120598910635522,
+        "true_positive": 176
+      }
+    },
+    "unfiltered": {
+      "boost": {
+        "oracle": 120762,
+        "precision": 0.2433179228719037,
+        "predicted": 316668,
+        "recall": 0.6380401119557477,
+        "true_positive": 77051
+      },
+      "confusion_labels": [
+        "SUPPRESS",
+        "KEEP",
+        "BOOST"
+      ],
+      "confusion_matrix": [
+        [
+          812725,
+          500372,
+          146286
+        ],
+        [
+          354037,
+          932265,
+          93331
+        ],
+        [
+          25248,
+          18463,
+          77051
+        ]
+      ],
+      "coverage": 0.5097267430192399,
+      "keep": {
+        "oracle_fraction": 0.4661271892689249,
+        "precision": 0.6424540004134794,
+        "predicted_fraction": 0.49027325698076,
+        "recall": 0.6757340539114388
+      },
+      "opposite_sign_errors": 171534,
+      "opposite_sign_rate": 0.11369821790998477,
+      "patches": 2959778,
+      "suppress": {
+        "oracle": 1459383,
+        "precision": 0.6818105552805765,
+        "predicted": 1192010,
+        "recall": 0.5568963048082649,
+        "true_positive": 812725
+      }
+    }
+  },
+  "oracle_action_counts": {
+    "BOOST": 120762,
+    "KEEP": 1379633,
+    "SUPPRESS": 1459383
+  },
+  "per_class_and_threshold_conditioned": {
+    "0.5": {
+      "candle": {
+        "boost": {
+          "oracle": 7255,
+          "precision": 0.5462711510340506,
+          "predicted": 4787,
+          "recall": 0.36044107512060647,
+          "true_positive": 2615
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            59936,
+            82030,
+            928
+          ],
+          [
+            12126,
+            110281,
+            1244
+          ],
+          [
+            1356,
+            3284,
+            2615
+          ]
+        ],
+        "coverage": 0.28562819576333087,
+        "keep": {
+          "oracle_fraction": 0.4516106647187728,
+          "precision": 0.5638232061146757,
+          "predicted_fraction": 0.7143718042366691,
+          "recall": 0.8918730944351441
+        },
+        "opposite_sign_errors": 2284,
+        "opposite_sign_rate": 0.02920529377917013,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 142894,
+          "precision": 0.8163665586096053,
+          "predicted": 73418,
+          "recall": 0.419443783503856,
+          "true_positive": 59936
+        }
+      },
+      "capsules": {
+        "boost": {
+          "oracle": 8285,
+          "precision": 0.25348036915376193,
+          "predicted": 12786,
+          "recall": 0.3911888955944478,
+          "true_positive": 3241
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            17629,
+            80973,
+            4754
+          ],
+          [
+            2965,
+            99643,
+            4791
+          ],
+          [
+            1534,
+            3510,
+            3241
+          ]
+        ],
+        "coverage": 0.1593955441928415,
+        "keep": {
+          "oracle_fraction": 0.49031683710737767,
+          "precision": 0.5411674614122938,
+          "predicted_fraction": 0.8406044558071585,
+          "recall": 0.9277833126937867
+        },
+        "opposite_sign_errors": 6288,
+        "opposite_sign_rate": 0.1800996734834164,
+        "patches": 219040,
+        "suppress": {
+          "oracle": 103356,
+          "precision": 0.7966829356471439,
+          "predicted": 22128,
+          "recall": 0.17056581137040908,
+          "true_positive": 17629
+        }
+      },
+      "cashew": {
+        "boost": {
+          "oracle": 10561,
+          "precision": 0.42831719817767655,
+          "predicted": 14048,
+          "recall": 0.5697377142316069,
+          "true_positive": 6017
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            28957,
+            42372,
+            4114
+          ],
+          [
+            9413,
+            106016,
+            3917
+          ],
+          [
+            1162,
+            3382,
+            6017
+          ]
+        ],
+        "coverage": 0.2609203798392988,
+        "keep": {
+          "oracle_fraction": 0.5811833455076698,
+          "precision": 0.6985306714106873,
+          "predicted_fraction": 0.7390796201607013,
+          "recall": 0.8883079449667354
+        },
+        "opposite_sign_errors": 5276,
+        "opposite_sign_rate": 0.0984695782008212,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 75443,
+          "precision": 0.7324951937670747,
+          "predicted": 39532,
+          "recall": 0.3838261999125167,
+          "true_positive": 28957
+        }
+      },
+      "chewinggum": {
+        "boost": {
+          "oracle": 11495,
+          "precision": 0.7416862149855112,
+          "predicted": 7247,
+          "recall": 0.4675946063505872,
+          "true_positive": 5375
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            11137,
+            58396,
+            1040
+          ],
+          [
+            4731,
+            117719,
+            832
+          ],
+          [
+            1594,
+            4526,
+            5375
+          ]
+        ],
+        "coverage": 0.12032627221816411,
+        "keep": {
+          "oracle_fraction": 0.6003506208911614,
+          "precision": 0.6516737617705837,
+          "predicted_fraction": 0.8796737277818358,
+          "recall": 0.954875813176295
+        },
+        "opposite_sign_errors": 2634,
+        "opposite_sign_rate": 0.10660083370431826,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 70573,
+          "precision": 0.6377849043637613,
+          "predicted": 17462,
+          "recall": 0.15780822694231506,
+          "true_positive": 11137
+        }
+      },
+      "fryum": {
+        "boost": {
+          "oracle": 15620,
+          "precision": 0.3998375075064467,
+          "predicted": 28309,
+          "recall": 0.7246478873239437,
+          "true_positive": 11319
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            28736,
+            45001,
+            14724
+          ],
+          [
+            8992,
+            90011,
+            2266
+          ],
+          [
+            2110,
+            2191,
+            11319
+          ]
+        ],
+        "coverage": 0.33185780374969565,
+        "keep": {
+          "oracle_fraction": 0.49315315315315317,
+          "precision": 0.6560425063591904,
+          "predicted_fraction": 0.6681421962503044,
+          "recall": 0.8888307379355973
+        },
+        "opposite_sign_errors": 16834,
+        "opposite_sign_rate": 0.24702481400501855,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 88461,
+          "precision": 0.7213213514734675,
+          "predicted": 39838,
+          "recall": 0.3248437164400131,
+          "true_positive": 28736
+        }
+      },
+      "macaroni1": {
+        "boost": {
+          "oracle": 6113,
+          "precision": 0.31075503763049284,
+          "predicted": 4119,
+          "recall": 0.2093898249631932,
+          "true_positive": 1280
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            56619,
+            83519,
+            1289
+          ],
+          [
+            10485,
+            114225,
+            1550
+          ],
+          [
+            511,
+            4322,
+            1280
+          ]
+        ],
+        "coverage": 0.26199415631848066,
+        "keep": {
+          "oracle_fraction": 0.46113951789627466,
+          "precision": 0.5652855997545356,
+          "predicted_fraction": 0.7380058436815193,
+          "recall": 0.9046808173610011
+        },
+        "opposite_sign_errors": 1800,
+        "opposite_sign_rate": 0.025092703599408926,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 141427,
+          "precision": 0.8373733638985432,
+          "predicted": 67615,
+          "recall": 0.4003408118676066,
+          "true_positive": 56619
+        }
+      },
+      "macaroni2": {
+        "boost": {
+          "oracle": 5161,
+          "precision": 0.22520440810522574,
+          "predicted": 5626,
+          "recall": 0.2454950590970742,
+          "true_positive": 1267
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            56264,
+            80054,
+            1891
+          ],
+          [
+            23236,
+            104726,
+            2468
+          ],
+          [
+            839,
+            3055,
+            1267
+          ]
+        ],
+        "coverage": 0.31397005113221327,
+        "keep": {
+          "oracle_fraction": 0.47636961285609936,
+          "precision": 0.5575425240237443,
+          "predicted_fraction": 0.6860299488677867,
+          "recall": 0.8029287740550487
+        },
+        "opposite_sign_errors": 2730,
+        "opposite_sign_rate": 0.03175711045192811,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 138209,
+          "precision": 0.7003323417020376,
+          "predicted": 80339,
+          "recall": 0.407093604613303,
+          "true_positive": 56264
+        }
+      },
+      "pcb1": {
+        "boost": {
+          "oracle": 11045,
+          "precision": 0.3397151651103344,
+          "predicted": 19169,
+          "recall": 0.5895880488909009,
+          "true_positive": 6512
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            44226,
+            98766,
+            8585
+          ],
+          [
+            7724,
+            99382,
+            4072
+          ],
+          [
+            1006,
+            3527,
+            6512
+          ]
+        ],
+        "coverage": 0.26342220598977356,
+        "keep": {
+          "oracle_fraction": 0.4060555149744339,
+          "precision": 0.4927829428536011,
+          "predicted_fraction": 0.7365777940102265,
+          "recall": 0.8938998722768893
+        },
+        "opposite_sign_errors": 9591,
+        "opposite_sign_rate": 0.13297746967071059,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 151577,
+          "precision": 0.8351461590754589,
+          "predicted": 52956,
+          "recall": 0.29177249846612613,
+          "true_positive": 44226
+        }
+      },
+      "pcb2": {
+        "boost": {
+          "oracle": 9695,
+          "precision": 0.37079620580626615,
+          "predicted": 13916,
+          "recall": 0.5322331098504384,
+          "true_positive": 5160
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            31941,
+            110227,
+            5389
+          ],
+          [
+            5530,
+            107651,
+            3367
+          ],
+          [
+            681,
+            3854,
+            5160
+          ]
+        ],
+        "coverage": 0.19016800584368151,
+        "keep": {
+          "oracle_fraction": 0.4256683710737765,
+          "precision": 0.48550051413418,
+          "predicted_fraction": 0.8098319941563185,
+          "recall": 0.9236623537083434
+        },
+        "opposite_sign_errors": 6070,
+        "opposite_sign_rate": 0.1165783206576016,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 147557,
+          "precision": 0.8372038163136926,
+          "predicted": 38152,
+          "recall": 0.21646550146722962,
+          "true_positive": 31941
+        }
+      },
+      "pcb3": {
+        "boost": {
+          "oracle": 9415,
+          "precision": 0.2890648930118584,
+          "predicted": 22853,
+          "recall": 0.7016463090812534,
+          "true_positive": 6606
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            21852,
+            119718,
+            13240
+          ],
+          [
+            3582,
+            104355,
+            3007
+          ],
+          [
+            277,
+            2532,
+            6606
+          ]
+        ],
+        "coverage": 0.17648790379730275,
+        "keep": {
+          "oracle_fraction": 0.4031849517932616,
+          "precision": 0.46051499304957966,
+          "predicted_fraction": 0.8235120962026973,
+          "recall": 0.940609676954139
+        },
+        "opposite_sign_errors": 13517,
+        "opposite_sign_rate": 0.2783337451610246,
+        "patches": 275169,
+        "suppress": {
+          "oracle": 154810,
+          "precision": 0.8499085994321497,
+          "predicted": 25711,
+          "recall": 0.14115367224339512,
+          "true_positive": 21852
+        }
+      },
+      "pcb4": {
+        "boost": {
+          "oracle": 14418,
+          "precision": 0.25962657927644345,
+          "predicted": 46382,
+          "recall": 0.8352059925093633,
+          "true_positive": 12042
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            38571,
+            102094,
+            32308
+          ],
+          [
+            1323,
+            84423,
+            2032
+          ],
+          [
+            591,
+            1785,
+            12042
+          ]
+        ],
+        "coverage": 0.3156859966057223,
+        "keep": {
+          "oracle_fraction": 0.3189966893072984,
+          "precision": 0.4483383076122399,
+          "predicted_fraction": 0.6843140033942777,
+          "recall": 0.9617785777757525
+        },
+        "opposite_sign_errors": 32899,
+        "opposite_sign_rate": 0.37872840088871496,
+        "patches": 275169,
+        "suppress": {
+          "oracle": 172973,
+          "precision": 0.9527232308262319,
+          "predicted": 40485,
+          "recall": 0.22298855890803768,
+          "true_positive": 38571
+        }
+      },
+      "pipe_fryum": {
+        "boost": {
+          "oracle": 11699,
+          "precision": 0.5724940334128878,
+          "predicted": 10056,
+          "recall": 0.4920933413112232,
+          "true_positive": 5757
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            28079,
+            41043,
+            2981
+          ],
+          [
+            16008,
+            104222,
+            1318
+          ],
+          [
+            2009,
+            3933,
+            5757
+          ]
+        ],
+        "coverage": 0.273445337229121,
+        "keep": {
+          "oracle_fraction": 0.5919065010956903,
+          "precision": 0.6985482379120364,
+          "predicted_fraction": 0.726554662770879,
+          "recall": 0.8574554908348965
+        },
+        "opposite_sign_errors": 4990,
+        "opposite_sign_rate": 0.08886593531842142,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 72103,
+          "precision": 0.6091417910447762,
+          "predicted": 46096,
+          "recall": 0.38942901127553636,
+          "true_positive": 28079
+        }
+      }
+    },
+    "0.6": {
+      "candle": {
+        "boost": {
+          "oracle": 7255,
+          "precision": 0.6581841030474396,
+          "predicted": 3183,
+          "recall": 0.28876636802205374,
+          "true_positive": 2095
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            8887,
+            133370,
+            637
+          ],
+          [
+            717,
+            122483,
+            451
+          ],
+          [
+            544,
+            4616,
+            2095
+          ]
+        ],
+        "coverage": 0.04868882395909423,
+        "keep": {
+          "oracle_fraction": 0.4516106647187728,
+          "precision": 0.47024022052528325,
+          "predicted_fraction": 0.9513111760409058,
+          "recall": 0.9905540594091434
+        },
+        "opposite_sign_errors": 1181,
+        "opposite_sign_rate": 0.08859050333808416,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 142894,
+          "precision": 0.8757390618841151,
+          "predicted": 10148,
+          "recall": 0.062192954217811805,
+          "true_positive": 8887
+        }
+      },
+      "capsules": {
+        "boost": {
+          "oracle": 8285,
+          "precision": 0.38927259368111683,
+          "predicted": 6805,
+          "recall": 0.3197344598672299,
+          "true_positive": 2649
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            1701,
+            99289,
+            2366
+          ],
+          [
+            93,
+            105516,
+            1790
+          ],
+          [
+            844,
+            4792,
+            2649
+          ]
+        ],
+        "coverage": 0.043110847333820305,
+        "keep": {
+          "oracle_fraction": 0.49031683710737767,
+          "precision": 0.5034232360195995,
+          "predicted_fraction": 0.9568891526661797,
+          "recall": 0.9824672482984013
+        },
+        "opposite_sign_errors": 3210,
+        "opposite_sign_rate": 0.33993434289950225,
+        "patches": 219040,
+        "suppress": {
+          "oracle": 103356,
+          "precision": 0.6448066717210008,
+          "predicted": 2638,
+          "recall": 0.016457680250783698,
+          "true_positive": 1701
+        }
+      },
+      "cashew": {
+        "boost": {
+          "oracle": 10561,
+          "precision": 0.5287538250501214,
+          "predicted": 9477,
+          "recall": 0.47448158318341066,
+          "true_positive": 5011
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            7290,
+            64962,
+            3191
+          ],
+          [
+            1253,
+            116818,
+            1275
+          ],
+          [
+            661,
+            4889,
+            5011
+          ]
+        ],
+        "coverage": 0.09097151205259313,
+        "keep": {
+          "oracle_fraction": 0.5811833455076698,
+          "precision": 0.6258028917495674,
+          "predicted_fraction": 0.9090284879474069,
+          "recall": 0.9788178908384026
+        },
+        "opposite_sign_errors": 3852,
+        "opposite_sign_rate": 0.20619881162678658,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 75443,
+          "precision": 0.7920469361147328,
+          "predicted": 9204,
+          "recall": 0.09662924326975332,
+          "true_positive": 7290
+        }
+      },
+      "chewinggum": {
+        "boost": {
+          "oracle": 11495,
+          "precision": 0.7985692771084337,
+          "predicted": 5312,
+          "recall": 0.3690300130491518,
+          "true_positive": 4242
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            1119,
+            68787,
+            667
+          ],
+          [
+            169,
+            122710,
+            403
+          ],
+          [
+            614,
+            6639,
+            4242
+          ]
+        ],
+        "coverage": 0.03513026540053567,
+        "keep": {
+          "oracle_fraction": 0.6003506208911614,
+          "precision": 0.6193220818023983,
+          "predicted_fraction": 0.9648697345994643,
+          "recall": 0.9953602310150711
+        },
+        "opposite_sign_errors": 1281,
+        "opposite_sign_rate": 0.17757138896589963,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 70573,
+          "precision": 0.5883280757097792,
+          "predicted": 1902,
+          "recall": 0.01585592223654939,
+          "true_positive": 1119
+        }
+      },
+      "fryum": {
+        "boost": {
+          "oracle": 15620,
+          "precision": 0.4461326543390241,
+          "predicted": 23957,
+          "recall": 0.6842509603072984,
+          "true_positive": 10688
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            9567,
+            66605,
+            12289
+          ],
+          [
+            1403,
+            98886,
+            980
+          ],
+          [
+            1488,
+            3444,
+            10688
+          ]
+        ],
+        "coverage": 0.17733138543949356,
+        "keep": {
+          "oracle_fraction": 0.49315315315315317,
+          "precision": 0.5853493947376209,
+          "predicted_fraction": 0.8226686145605064,
+          "recall": 0.9764686132972578
+        },
+        "opposite_sign_errors": 13777,
+        "opposite_sign_rate": 0.378333104489908,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 88461,
+          "precision": 0.7679402793385777,
+          "predicted": 12458,
+          "recall": 0.10814935395258927,
+          "true_positive": 9567
+        }
+      },
+      "macaroni1": {
+        "boost": {
+          "oracle": 6113,
+          "precision": 0.43653395784543325,
+          "predicted": 2135,
+          "recall": 0.15246196630132505,
+          "true_positive": 932
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            13397,
+            127319,
+            711
+          ],
+          [
+            1605,
+            124163,
+            492
+          ],
+          [
+            130,
+            5051,
+            932
+          ]
+        ],
+        "coverage": 0.06306428049671294,
+        "keep": {
+          "oracle_fraction": 0.46113951789627466,
+          "precision": 0.4840040072817142,
+          "predicted_fraction": 0.936935719503287,
+          "recall": 0.9833914145414224
+        },
+        "opposite_sign_errors": 841,
+        "opposite_sign_rate": 0.048705623443562863,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 141427,
+          "precision": 0.8853423209093312,
+          "predicted": 15132,
+          "recall": 0.09472731515198654,
+          "true_positive": 13397
+        }
+      },
+      "macaroni2": {
+        "boost": {
+          "oracle": 5161,
+          "precision": 0.3042347696879643,
+          "predicted": 2692,
+          "recall": 0.15869017632241814,
+          "true_positive": 819
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            17518,
+            119621,
+            1070
+          ],
+          [
+            4999,
+            124628,
+            803
+          ],
+          [
+            309,
+            4033,
+            819
+          ]
+        ],
+        "coverage": 0.09319941563184807,
+        "keep": {
+          "oracle_fraction": 0.47636961285609936,
+          "precision": 0.501961479285651,
+          "predicted_fraction": 0.9068005843681519,
+          "recall": 0.9555163689335275
+        },
+        "opposite_sign_errors": 1379,
+        "opposite_sign_rate": 0.054040285288815736,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 138209,
+          "precision": 0.7674581617453781,
+          "predicted": 22826,
+          "recall": 0.1267500669276241,
+          "true_positive": 17518
+        }
+      },
+      "pcb1": {
+        "boost": {
+          "oracle": 11045,
+          "precision": 0.4487382360289831,
+          "predicted": 12007,
+          "recall": 0.48782254413761883,
+          "true_positive": 5388
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            6131,
+            140307,
+            5139
+          ],
+          [
+            528,
+            109170,
+            1480
+          ],
+          [
+            468,
+            5189,
+            5388
+          ]
+        ],
+        "coverage": 0.06988312636961286,
+        "keep": {
+          "oracle_fraction": 0.4060555149744339,
+          "precision": 0.42867913266788654,
+          "predicted_fraction": 0.9301168736303872,
+          "recall": 0.9819388727985753
+        },
+        "opposite_sign_errors": 5607,
+        "opposite_sign_rate": 0.29303857008466605,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 151577,
+          "precision": 0.8602497544548898,
+          "predicted": 7127,
+          "recall": 0.040448089090033446,
+          "true_positive": 6131
+        }
+      },
+      "pcb2": {
+        "boost": {
+          "oracle": 9695,
+          "precision": 0.5450061652281134,
+          "predicted": 7299,
+          "recall": 0.4103145951521403,
+          "true_positive": 3978
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            3472,
+            141699,
+            2386
+          ],
+          [
+            381,
+            115232,
+            935
+          ],
+          [
+            262,
+            5455,
+            3978
+          ]
+        ],
+        "coverage": 0.04168736303871439,
+        "keep": {
+          "oracle_fraction": 0.4256683710737765,
+          "precision": 0.439169772777511,
+          "predicted_fraction": 0.9583126369612857,
+          "recall": 0.9887085149466315
+        },
+        "opposite_sign_errors": 2648,
+        "opposite_sign_rate": 0.23199579463816367,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 147557,
+          "precision": 0.8437424058323207,
+          "predicted": 4115,
+          "recall": 0.023529890144147685,
+          "true_positive": 3472
+        }
+      },
+      "pcb3": {
+        "boost": {
+          "oracle": 9415,
+          "precision": 0.38359390331654347,
+          "predicted": 15287,
+          "recall": 0.6228359001593202,
+          "true_positive": 5864
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            3006,
+            143461,
+            8343
+          ],
+          [
+            293,
+            109571,
+            1080
+          ],
+          [
+            95,
+            3456,
+            5864
+          ]
+        ],
+        "coverage": 0.0678891880989501,
+        "keep": {
+          "oracle_fraction": 0.4031849517932616,
+          "precision": 0.4271973737562771,
+          "predicted_fraction": 0.9321108119010499,
+          "recall": 0.9876243870781656
+        },
+        "opposite_sign_errors": 8438,
+        "opposite_sign_rate": 0.45168888175151223,
+        "patches": 275169,
+        "suppress": {
+          "oracle": 154810,
+          "precision": 0.8856806128461991,
+          "predicted": 3394,
+          "recall": 0.019417350300368192,
+          "true_positive": 3006
+        }
+      },
+      "pcb4": {
+        "boost": {
+          "oracle": 14418,
+          "precision": 0.2956351227462565,
+          "predicted": 39268,
+          "recall": 0.8051740879456235,
+          "true_positive": 11609
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            7387,
+            138535,
+            27051
+          ],
+          [
+            42,
+            87128,
+            608
+          ],
+          [
+            454,
+            2355,
+            11609
+          ]
+        ],
+        "coverage": 0.17135287768607654,
+        "keep": {
+          "oracle_fraction": 0.3189966893072984,
+          "precision": 0.3821101842836969,
+          "predicted_fraction": 0.8286471223139235,
+          "recall": 0.992594955455809
+        },
+        "opposite_sign_errors": 27505,
+        "opposite_sign_rate": 0.5833386354478166,
+        "patches": 275169,
+        "suppress": {
+          "oracle": 172973,
+          "precision": 0.9370797919573767,
+          "predicted": 7883,
+          "recall": 0.042706087077173896,
+          "true_positive": 7387
+        }
+      },
+      "pipe_fryum": {
+        "boost": {
+          "oracle": 11699,
+          "precision": 0.6285080276726276,
+          "predicted": 7661,
+          "recall": 0.41157363877254466,
+          "true_positive": 4815
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            6293,
+            63341,
+            2469
+          ],
+          [
+            1226,
+            119945,
+            377
+          ],
+          [
+            661,
+            6223,
+            4815
+          ]
+        ],
+        "coverage": 0.07714146579011444,
+        "keep": {
+          "oracle_fraction": 0.5919065010956903,
+          "precision": 0.6329250853521469,
+          "predicted_fraction": 0.9228585342098855,
+          "recall": 0.9868117945173923
+        },
+        "opposite_sign_errors": 3130,
+        "opposite_sign_rate": 0.19758853607726784,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 72103,
+          "precision": 0.7693154034229829,
+          "predicted": 8180,
+          "recall": 0.08727792186178106,
+          "true_positive": 6293
+        }
+      }
+    },
+    "0.7": {
+      "candle": {
+        "boost": {
+          "oracle": 7255,
+          "precision": 0.7274678111587983,
+          "predicted": 2330,
+          "recall": 0.23363197794624396,
+          "true_positive": 1695
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            86,
+            142323,
+            485
+          ],
+          [
+            1,
+            123500,
+            150
+          ],
+          [
+            215,
+            5345,
+            1695
+          ]
+        ],
+        "coverage": 0.009612856099342586,
+        "keep": {
+          "oracle_fraction": 0.4516106647187728,
+          "precision": 0.4554372197309417,
+          "predicted_fraction": 0.9903871439006574,
+          "recall": 0.9987788210366273
+        },
+        "opposite_sign_errors": 700,
+        "opposite_sign_rate": 0.26595744680851063,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 142894,
+          "precision": 0.2847682119205298,
+          "predicted": 302,
+          "recall": 0.0006018447240611922,
+          "true_positive": 86
+        }
+      },
+      "capsules": {
+        "boost": {
+          "oracle": 8285,
+          "precision": 0.6005502063273728,
+          "predicted": 3635,
+          "recall": 0.2634882317441159,
+          "true_positive": 2183
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            64,
+            102320,
+            972
+          ],
+          [
+            0,
+            106919,
+            480
+          ],
+          [
+            387,
+            5715,
+            2183
+          ]
+        ],
+        "coverage": 0.018654127100073047,
+        "keep": {
+          "oracle_fraction": 0.49031683710737767,
+          "precision": 0.4974040957600231,
+          "predicted_fraction": 0.9813458728999269,
+          "recall": 0.9955306846432462
+        },
+        "opposite_sign_errors": 1359,
+        "opposite_sign_rate": 0.33259911894273125,
+        "patches": 219040,
+        "suppress": {
+          "oracle": 103356,
+          "precision": 0.1419068736141907,
+          "predicted": 451,
+          "recall": 0.0006192190100236078,
+          "true_positive": 64
+        }
+      },
+      "cashew": {
+        "boost": {
+          "oracle": 10561,
+          "precision": 0.5915647753812336,
+          "predicted": 7279,
+          "recall": 0.4077265410472493,
+          "true_positive": 4306
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            1792,
+            71119,
+            2532
+          ],
+          [
+            218,
+            118687,
+            441
+          ],
+          [
+            377,
+            5878,
+            4306
+          ]
+        ],
+        "coverage": 0.047070854638422206,
+        "keep": {
+          "oracle_fraction": 0.5811833455076698,
+          "precision": 0.6065237832423703,
+          "predicted_fraction": 0.9529291453615778,
+          "recall": 0.9944782397399159
+        },
+        "opposite_sign_errors": 2909,
+        "opposite_sign_rate": 0.3009517897786054,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 75443,
+          "precision": 0.750733137829912,
+          "predicted": 2387,
+          "recall": 0.023753032090452396,
+          "true_positive": 1792
+        }
+      },
+      "chewinggum": {
+        "boost": {
+          "oracle": 11495,
+          "precision": 0.8348825831702544,
+          "predicted": 4088,
+          "recall": 0.29691170073945194,
+          "true_positive": 3413
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            77,
+            69999,
+            497
+          ],
+          [
+            3,
+            123101,
+            178
+          ],
+          [
+            202,
+            7880,
+            3413
+          ]
+        ],
+        "coverage": 0.02128074019965912,
+        "keep": {
+          "oracle_fraction": 0.6003506208911614,
+          "precision": 0.6125037317145985,
+          "predicted_fraction": 0.9787192598003409,
+          "recall": 0.9985318213526712
+        },
+        "opposite_sign_errors": 699,
+        "opposite_sign_rate": 0.15995423340961099,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 70573,
+          "precision": 0.2730496453900709,
+          "predicted": 282,
+          "recall": 0.001091068822354158,
+          "true_positive": 77
+        }
+      },
+      "fryum": {
+        "boost": {
+          "oracle": 15620,
+          "precision": 0.4858214772948743,
+          "predicted": 20524,
+          "recall": 0.638348271446863,
+          "true_positive": 9971
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            3280,
+            74964,
+            10217
+          ],
+          [
+            266,
+            100667,
+            336
+          ],
+          [
+            906,
+            4743,
+            9971
+          ]
+        ],
+        "coverage": 0.12162649135622108,
+        "keep": {
+          "oracle_fraction": 0.49315315315315317,
+          "precision": 0.5581015002162174,
+          "predicted_fraction": 0.8783735086437789,
+          "recall": 0.9940554365106795
+        },
+        "opposite_sign_errors": 11123,
+        "opposite_sign_rate": 0.445347533632287,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 88461,
+          "precision": 0.7367475292003594,
+          "predicted": 4452,
+          "recall": 0.03707848656470083,
+          "true_positive": 3280
+        }
+      },
+      "macaroni1": {
+        "boost": {
+          "oracle": 6113,
+          "precision": 0.6038047973531845,
+          "predicted": 1209,
+          "recall": 0.11941763454932112,
+          "true_positive": 730
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            503,
+            140552,
+            372
+          ],
+          [
+            44,
+            126109,
+            107
+          ],
+          [
+            36,
+            5347,
+            730
+          ]
+        ],
+        "coverage": 0.006544923301680059,
+        "keep": {
+          "oracle_fraction": 0.46113951789627466,
+          "precision": 0.4636223934590159,
+          "predicted_fraction": 0.9934550766983199,
+          "recall": 0.9988040551243466
+        },
+        "opposite_sign_errors": 408,
+        "opposite_sign_rate": 0.22767857142857142,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 141427,
+          "precision": 0.8627787307032591,
+          "predicted": 583,
+          "recall": 0.0035566051744009277,
+          "true_positive": 503
+        }
+      },
+      "macaroni2": {
+        "boost": {
+          "oracle": 5161,
+          "precision": 0.42492260061919507,
+          "predicted": 1292,
+          "recall": 0.1063747335787638,
+          "true_positive": 549
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            3304,
+            134388,
+            517
+          ],
+          [
+            938,
+            129266,
+            226
+          ],
+          [
+            130,
+            4482,
+            549
+          ]
+        ],
+        "coverage": 0.02068663257852447,
+        "keep": {
+          "oracle_fraction": 0.47636961285609936,
+          "precision": 0.4820911776113614,
+          "predicted_fraction": 0.9793133674214756,
+          "recall": 0.9910756727746685
+        },
+        "opposite_sign_errors": 647,
+        "opposite_sign_rate": 0.11423022598870057,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 138209,
+          "precision": 0.7557182067703568,
+          "predicted": 4372,
+          "recall": 0.023905823788610003,
+          "true_positive": 3304
+        }
+      },
+      "pcb1": {
+        "boost": {
+          "oracle": 11045,
+          "precision": 0.6119037325263006,
+          "predicted": 6939,
+          "recall": 0.38442734268899953,
+          "true_positive": 4246
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            230,
+            148970,
+            2377
+          ],
+          [
+            22,
+            110840,
+            316
+          ],
+          [
+            210,
+            6589,
+            4246
+          ]
+        ],
+        "coverage": 0.027030679327976627,
+        "keep": {
+          "oracle_fraction": 0.4060555149744339,
+          "precision": 0.41606762788148605,
+          "predicted_fraction": 0.9729693206720234,
+          "recall": 0.9969598301822303
+        },
+        "opposite_sign_errors": 2587,
+        "opposite_sign_rate": 0.3495473584650723,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 151577,
+          "precision": 0.49783549783549785,
+          "predicted": 462,
+          "recall": 0.0015173806052369422,
+          "true_positive": 230
+        }
+      },
+      "pcb2": {
+        "boost": {
+          "oracle": 9695,
+          "precision": 0.7494293685011413,
+          "predicted": 3943,
+          "recall": 0.3047962867457452,
+          "true_positive": 2955
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            75,
+            146649,
+            833
+          ],
+          [
+            0,
+            116393,
+            155
+          ],
+          [
+            103,
+            6637,
+            2955
+          ]
+        ],
+        "coverage": 0.015051132213294375,
+        "keep": {
+          "oracle_fraction": 0.4256683710737765,
+          "precision": 0.43159830761757495,
+          "predicted_fraction": 0.9849488677867057,
+          "recall": 0.9986700758485774
+        },
+        "opposite_sign_errors": 936,
+        "opposite_sign_rate": 0.22712933753943218,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 147557,
+          "precision": 0.42134831460674155,
+          "predicted": 178,
+          "recall": 0.0005082781569156326,
+          "true_positive": 75
+        }
+      },
+      "pcb3": {
+        "boost": {
+          "oracle": 9415,
+          "precision": 0.4818716780561883,
+          "predicted": 10536,
+          "recall": 0.5392458842272969,
+          "true_positive": 5077
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            285,
+            149350,
+            5175
+          ],
+          [
+            32,
+            110628,
+            284
+          ],
+          [
+            34,
+            4304,
+            5077
+          ]
+        ],
+        "coverage": 0.03956477655549862,
+        "keep": {
+          "oracle_fraction": 0.4031849517932616,
+          "precision": 0.4185983154357845,
+          "predicted_fraction": 0.9604352234445014,
+          "recall": 0.9971517161811364
+        },
+        "opposite_sign_errors": 5209,
+        "opposite_sign_rate": 0.47846054927895654,
+        "patches": 275169,
+        "suppress": {
+          "oracle": 154810,
+          "precision": 0.811965811965812,
+          "predicted": 351,
+          "recall": 0.0018409663458432918,
+          "true_positive": 285
+        }
+      },
+      "pcb4": {
+        "boost": {
+          "oracle": 14418,
+          "precision": 0.3235319856480266,
+          "predicted": 34281,
+          "recall": 0.7692467748647523,
+          "true_positive": 11091
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            600,
+            149330,
+            23043
+          ],
+          [
+            1,
+            87630,
+            147
+          ],
+          [
+            322,
+            3005,
+            11091
+          ]
+        ],
+        "coverage": 0.12793592301458376,
+        "keep": {
+          "oracle_fraction": 0.3189966893072984,
+          "precision": 0.36517825516221114,
+          "predicted_fraction": 0.8720640769854162,
+          "recall": 0.9983139283191688
+        },
+        "opposite_sign_errors": 23365,
+        "opposite_sign_rate": 0.6637029882967844,
+        "patches": 275169,
+        "suppress": {
+          "oracle": 172973,
+          "precision": 0.6500541711809318,
+          "predicted": 923,
+          "recall": 0.0034687494580078974,
+          "true_positive": 600
+        }
+      },
+      "pipe_fryum": {
+        "boost": {
+          "oracle": 11699,
+          "precision": 0.6630260199164792,
+          "predicted": 6226,
+          "recall": 0.35285067099752115,
+          "true_positive": 4128
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            496,
+            69595,
+            2012
+          ],
+          [
+            11,
+            121451,
+            86
+          ],
+          [
+            241,
+            7330,
+            4128
+          ]
+        ],
+        "coverage": 0.03396152909666423,
+        "keep": {
+          "oracle_fraction": 0.5919065010956903,
+          "precision": 0.6122262773722628,
+          "predicted_fraction": 0.9660384709033357,
+          "recall": 0.9992019613650575
+        },
+        "opposite_sign_errors": 2253,
+        "opposite_sign_rate": 0.32305706911385146,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 72103,
+          "precision": 0.6631016042780749,
+          "predicted": 748,
+          "recall": 0.006879048028514764,
+          "true_positive": 496
+        }
+      }
+    },
+    "0.8": {
+      "candle": {
+        "boost": {
+          "oracle": 7255,
+          "precision": 0.7863296955772544,
+          "predicted": 1741,
+          "recall": 0.18869745003445898,
+          "true_positive": 1369
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            3,
+            142556,
+            335
+          ],
+          [
+            0,
+            123614,
+            37
+          ],
+          [
+            39,
+            5847,
+            1369
+          ]
+        ],
+        "coverage": 0.006512052593133674,
+        "keep": {
+          "oracle_fraction": 0.4516106647187728,
+          "precision": 0.45443483311704785,
+          "predicted_fraction": 0.9934879474068663,
+          "recall": 0.9997007707175841
+        },
+        "opposite_sign_errors": 374,
+        "opposite_sign_rate": 0.20975883342680876,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 142894,
+          "precision": 0.07142857142857142,
+          "predicted": 42,
+          "recall": 2.099458339748345e-05,
+          "true_positive": 3
+        }
+      },
+      "capsules": {
+        "boost": {
+          "oracle": 8285,
+          "precision": 0.8017857142857143,
+          "predicted": 2240,
+          "recall": 0.2167773083886542,
+          "true_positive": 1796
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            10,
+            102968,
+            378
+          ],
+          [
+            0,
+            107333,
+            66
+          ],
+          [
+            56,
+            6433,
+            1796
+          ]
+        ],
+        "coverage": 0.010527757487216946,
+        "keep": {
+          "oracle_fraction": 0.49031683710737767,
+          "precision": 0.4952291749333284,
+          "predicted_fraction": 0.9894722425127831,
+          "recall": 0.9993854691384464
+        },
+        "opposite_sign_errors": 434,
+        "opposite_sign_rate": 0.18820468343451865,
+        "patches": 219040,
+        "suppress": {
+          "oracle": 103356,
+          "precision": 0.15151515151515152,
+          "predicted": 66,
+          "recall": 9.675297031618871e-05,
+          "true_positive": 10
+        }
+      },
+      "cashew": {
+        "boost": {
+          "oracle": 10561,
+          "precision": 0.6561415683553088,
+          "predicted": 5764,
+          "recall": 0.35811002745952086,
+          "true_positive": 3782
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            297,
+            73259,
+            1887
+          ],
+          [
+            33,
+            119218,
+            95
+          ],
+          [
+            105,
+            6674,
+            3782
+          ]
+        ],
+        "coverage": 0.030187484782079377,
+        "keep": {
+          "oracle_fraction": 0.5811833455076698,
+          "precision": 0.5986311893989987,
+          "predicted_fraction": 0.9698125152179207,
+          "recall": 0.9989274881437166
+        },
+        "opposite_sign_errors": 1992,
+        "opposite_sign_rate": 0.32134215195999355,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 75443,
+          "precision": 0.6827586206896552,
+          "predicted": 435,
+          "recall": 0.003936746948026987,
+          "true_positive": 297
+        }
+      },
+      "chewinggum": {
+        "boost": {
+          "oracle": 11495,
+          "precision": 0.8609756097560975,
+          "predicted": 3280,
+          "recall": 0.24567203131796433,
+          "true_positive": 2824
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            14,
+            70175,
+            384
+          ],
+          [
+            0,
+            123210,
+            72
+          ],
+          [
+            17,
+            8654,
+            2824
+          ]
+        ],
+        "coverage": 0.016123691258826393,
+        "keep": {
+          "oracle_fraction": 0.6003506208911614,
+          "precision": 0.6098327550621415,
+          "predicted_fraction": 0.9838763087411736,
+          "recall": 0.9994159731347642
+        },
+        "opposite_sign_errors": 401,
+        "opposite_sign_rate": 0.12111144669284205,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 70573,
+          "precision": 0.45161290322580644,
+          "predicted": 31,
+          "recall": 0.00019837614951893784,
+          "true_positive": 14
+        }
+      },
+      "fryum": {
+        "boost": {
+          "oracle": 15620,
+          "precision": 0.5214241590385803,
+          "predicted": 17807,
+          "recall": 0.5944302176696543,
+          "true_positive": 9285
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            353,
+            79666,
+            8442
+          ],
+          [
+            3,
+            101186,
+            80
+          ],
+          [
+            291,
+            6044,
+            9285
+          ]
+        ],
+        "coverage": 0.08986608229851473,
+        "keep": {
+          "oracle_fraction": 0.49315315315315317,
+          "precision": 0.5414027052478384,
+          "predicted_fraction": 0.9101339177014852,
+          "recall": 0.9991804007149275
+        },
+        "opposite_sign_errors": 8733,
+        "opposite_sign_rate": 0.47323073588381925,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 88461,
+          "precision": 0.5455950540958269,
+          "predicted": 647,
+          "recall": 0.003990459072359571,
+          "true_positive": 353
+        }
+      },
+      "macaroni1": {
+        "boost": {
+          "oracle": 6113,
+          "precision": 0.7779291553133515,
+          "predicted": 734,
+          "recall": 0.09340749222967447,
+          "true_positive": 571
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            10,
+            141267,
+            150
+          ],
+          [
+            0,
+            126247,
+            13
+          ],
+          [
+            6,
+            5536,
+            571
+          ]
+        ],
+        "coverage": 0.002739225712198685,
+        "keep": {
+          "oracle_fraction": 0.46113951789627466,
+          "precision": 0.46235854239150337,
+          "predicted_fraction": 0.9972607742878014,
+          "recall": 0.9998970378583875
+        },
+        "opposite_sign_errors": 156,
+        "opposite_sign_rate": 0.208,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 141427,
+          "precision": 0.625,
+          "predicted": 16,
+          "recall": 7.070785634991904e-05,
+          "true_positive": 10
+        }
+      },
+      "macaroni2": {
+        "boost": {
+          "oracle": 5161,
+          "precision": 0.5921875,
+          "predicted": 640,
+          "recall": 0.07343538074016663,
+          "true_positive": 379
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            432,
+            137553,
+            224
+          ],
+          [
+            101,
+            130292,
+            37
+          ],
+          [
+            35,
+            4747,
+            379
+          ]
+        ],
+        "coverage": 0.0044119795471146825,
+        "keep": {
+          "oracle_fraction": 0.47636961285609936,
+          "precision": 0.4779744086400188,
+          "predicted_fraction": 0.9955880204528853,
+          "recall": 0.9989419612052441
+        },
+        "opposite_sign_errors": 259,
+        "opposite_sign_rate": 0.2144039735099338,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 138209,
+          "precision": 0.7605633802816901,
+          "predicted": 568,
+          "recall": 0.0031257009311984026,
+          "true_positive": 432
+        }
+      },
+      "pcb1": {
+        "boost": {
+          "oracle": 11045,
+          "precision": 0.771040504487024,
+          "predicted": 4123,
+          "recall": 0.2878225441376188,
+          "true_positive": 3179
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            14,
+            150638,
+            925
+          ],
+          [
+            6,
+            111153,
+            19
+          ],
+          [
+            49,
+            7817,
+            3179
+          ]
+        ],
+        "coverage": 0.015310445580715851,
+        "keep": {
+          "oracle_fraction": 0.4060555149744339,
+          "precision": 0.41227634194831014,
+          "predicted_fraction": 0.9846895544192842,
+          "recall": 0.9997751353685081
+        },
+        "opposite_sign_errors": 974,
+        "opposite_sign_rate": 0.23234732824427481,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 151577,
+          "precision": 0.2028985507246377,
+          "predicted": 69,
+          "recall": 9.236229771007475e-05,
+          "true_positive": 14
+        }
+      },
+      "pcb2": {
+        "boost": {
+          "oracle": 9695,
+          "precision": 0.8753564154786151,
+          "predicted": 2455,
+          "recall": 0.2216606498194946,
+          "true_positive": 2149
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            17,
+            147243,
+            297
+          ],
+          [
+            0,
+            116539,
+            9
+          ],
+          [
+            25,
+            7521,
+            2149
+          ]
+        ],
+        "coverage": 0.009119795471146823,
+        "keep": {
+          "oracle_fraction": 0.4256683710737765,
+          "precision": 0.4295529352790054,
+          "predicted_fraction": 0.9908802045288532,
+          "recall": 0.9999227785976593
+        },
+        "opposite_sign_errors": 322,
+        "opposite_sign_rate": 0.1289547456948338,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 147557,
+          "precision": 0.40476190476190477,
+          "predicted": 42,
+          "recall": 0.00011520971556754338,
+          "true_positive": 17
+        }
+      },
+      "pcb3": {
+        "boost": {
+          "oracle": 9415,
+          "precision": 0.5837799717912553,
+          "predicted": 7090,
+          "recall": 0.4396176314391928,
+          "true_positive": 4139
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            57,
+            151843,
+            2910
+          ],
+          [
+            1,
+            110902,
+            41
+          ],
+          [
+            3,
+            5273,
+            4139
+          ]
+        ],
+        "coverage": 0.02598766576176822,
+        "keep": {
+          "oracle_fraction": 0.4031849517932616,
+          "precision": 0.41378564126290024,
+          "predicted_fraction": 0.9740123342382317,
+          "recall": 0.9996214306316701
+        },
+        "opposite_sign_errors": 2913,
+        "opposite_sign_rate": 0.4073556145993567,
+        "patches": 275169,
+        "suppress": {
+          "oracle": 154810,
+          "precision": 0.9344262295081968,
+          "predicted": 61,
+          "recall": 0.00036819326916865834,
+          "true_positive": 57
+        }
+      },
+      "pcb4": {
+        "boost": {
+          "oracle": 14418,
+          "precision": 0.34920314026752924,
+          "predicted": 29679,
+          "recall": 0.7188236926064642,
+          "true_positive": 10364
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            100,
+            153604,
+            19269
+          ],
+          [
+            0,
+            87732,
+            46
+          ],
+          [
+            104,
+            3950,
+            10364
+          ]
+        ],
+        "coverage": 0.10859871569835265,
+        "keep": {
+          "oracle_fraction": 0.3189966893072984,
+          "precision": 0.3576722682908931,
+          "predicted_fraction": 0.8914012843016473,
+          "recall": 0.9994759506937957
+        },
+        "opposite_sign_errors": 19373,
+        "opposite_sign_rate": 0.6482950172338788,
+        "patches": 275169,
+        "suppress": {
+          "oracle": 172973,
+          "precision": 0.49019607843137253,
+          "predicted": 204,
+          "recall": 0.0005781249096679828,
+          "true_positive": 100
+        }
+      },
+      "pipe_fryum": {
+        "boost": {
+          "oracle": 11699,
+          "precision": 0.6872246696035242,
+          "predicted": 5221,
+          "recall": 0.30669287973331055,
+          "true_positive": 3588
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            59,
+            70428,
+            1616
+          ],
+          [
+            0,
+            121531,
+            17
+          ],
+          [
+            33,
+            8078,
+            3588
+          ]
+        ],
+        "coverage": 0.02587289992695398,
+        "keep": {
+          "oracle_fraction": 0.5919065010956903,
+          "precision": 0.6075426046181457,
+          "predicted_fraction": 0.974127100073046,
+          "recall": 0.9998601375588245
+        },
+        "opposite_sign_errors": 1649,
+        "opposite_sign_rate": 0.3103707886316582,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 72103,
+          "precision": 0.6413043478260869,
+          "predicted": 92,
+          "recall": 0.0008182738582305868,
+          "true_positive": 59
+        }
+      }
+    },
+    "0.9": {
+      "candle": {
+        "boost": {
+          "oracle": 7255,
+          "precision": 0.8145424836601307,
+          "predicted": 1224,
+          "recall": 0.1374224672639559,
+          "true_positive": 997
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            0,
+            142672,
+            222
+          ],
+          [
+            0,
+            123646,
+            5
+          ],
+          [
+            0,
+            6258,
+            997
+          ]
+        ],
+        "coverage": 0.004470416362308254,
+        "keep": {
+          "oracle_fraction": 0.4516106647187728,
+          "precision": 0.4536202747123738,
+          "predicted_fraction": 0.9955295836376917,
+          "recall": 0.9999595636104843
+        },
+        "opposite_sign_errors": 222,
+        "opposite_sign_rate": 0.18137254901960784,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 142894,
+          "precision": null,
+          "predicted": 0,
+          "recall": 0.0,
+          "true_positive": 0
+        }
+      },
+      "capsules": {
+        "boost": {
+          "oracle": 8285,
+          "precision": 0.8816040738383195,
+          "predicted": 1571,
+          "recall": 0.16716958358479178,
+          "true_positive": 1385
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            2,
+            103173,
+            181
+          ],
+          [
+            0,
+            107394,
+            5
+          ],
+          [
+            0,
+            6900,
+            1385
+          ]
+        ],
+        "coverage": 0.007181336742147553,
+        "keep": {
+          "oracle_fraction": 0.49031683710737767,
+          "precision": 0.49384044475713557,
+          "predicted_fraction": 0.9928186632578524,
+          "recall": 0.9999534446317004
+        },
+        "opposite_sign_errors": 181,
+        "opposite_sign_rate": 0.11506675143038779,
+        "patches": 219040,
+        "suppress": {
+          "oracle": 103356,
+          "precision": 1.0,
+          "predicted": 2,
+          "recall": 1.9350594063237743e-05,
+          "true_positive": 2
+        }
+      },
+      "cashew": {
+        "boost": {
+          "oracle": 10561,
+          "precision": 0.700382490437739,
+          "predicted": 4706,
+          "recall": 0.31209165798693306,
+          "true_positive": 3296
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            21,
+            74029,
+            1393
+          ],
+          [
+            7,
+            119322,
+            17
+          ],
+          [
+            13,
+            7252,
+            3296
+          ]
+        ],
+        "coverage": 0.023116630143657172,
+        "keep": {
+          "oracle_fraction": 0.5811833455076698,
+          "precision": 0.5948166278669811,
+          "predicted_fraction": 0.9768833698563428,
+          "recall": 0.9997989040269468
+        },
+        "opposite_sign_errors": 1406,
+        "opposite_sign_rate": 0.29618706551506213,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 75443,
+          "precision": 0.5121951219512195,
+          "predicted": 41,
+          "recall": 0.000278355844809989,
+          "true_positive": 21
+        }
+      },
+      "chewinggum": {
+        "boost": {
+          "oracle": 11495,
+          "precision": 0.8820333721381451,
+          "predicted": 2577,
+          "recall": 0.19773814702044368,
+          "true_positive": 2273
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            2,
+            70284,
+            287
+          ],
+          [
+            0,
+            123265,
+            17
+          ],
+          [
+            1,
+            9221,
+            2273
+          ]
+        ],
+        "coverage": 0.01256391526661797,
+        "keep": {
+          "oracle_fraction": 0.6003506208911614,
+          "precision": 0.6079055087044435,
+          "predicted_fraction": 0.9874360847333821,
+          "recall": 0.9998621047679305
+        },
+        "opposite_sign_errors": 288,
+        "opposite_sign_rate": 0.11162790697674418,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 70573,
+          "precision": 0.6666666666666666,
+          "predicted": 3,
+          "recall": 2.8339449931276834e-05,
+          "true_positive": 2
+        }
+      },
+      "fryum": {
+        "boost": {
+          "oracle": 15620,
+          "precision": 0.555019556714472,
+          "predicted": 15340,
+          "recall": 0.5450704225352113,
+          "true_positive": 8514
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            6,
+            81636,
+            6819
+          ],
+          [
+            0,
+            101262,
+            7
+          ],
+          [
+            0,
+            7106,
+            8514
+          ]
+        ],
+        "coverage": 0.0747309471633796,
+        "keep": {
+          "oracle_fraction": 0.49315315315315317,
+          "precision": 0.5329466748068462,
+          "predicted_fraction": 0.9252690528366204,
+          "recall": 0.9999308771687289
+        },
+        "opposite_sign_errors": 6819,
+        "opposite_sign_rate": 0.44435031930144664,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 88461,
+          "precision": 1.0,
+          "predicted": 6,
+          "recall": 6.782649981347713e-05,
+          "true_positive": 6
+        }
+      },
+      "macaroni1": {
+        "boost": {
+          "oracle": 6113,
+          "precision": 0.8859470468431772,
+          "predicted": 491,
+          "recall": 0.07115982332733518,
+          "true_positive": 435
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            4,
+            141369,
+            54
+          ],
+          [
+            0,
+            126258,
+            2
+          ],
+          [
+            1,
+            5677,
+            435
+          ]
+        ],
+        "coverage": 0.0018115412710007304,
+        "keep": {
+          "oracle_fraction": 0.46113951789627466,
+          "precision": 0.46196908936568803,
+          "predicted_fraction": 0.9981884587289993,
+          "recall": 0.9999841596705211
+        },
+        "opposite_sign_errors": 55,
+        "opposite_sign_rate": 0.11088709677419355,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 141427,
+          "precision": 0.8,
+          "predicted": 5,
+          "recall": 2.8283142539967615e-05,
+          "true_positive": 4
+        }
+      },
+      "macaroni2": {
+        "boost": {
+          "oracle": 5161,
+          "precision": 0.7378378378378379,
+          "predicted": 370,
+          "recall": 0.05289672544080604,
+          "true_positive": 273
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            45,
+            138071,
+            93
+          ],
+          [
+            7,
+            130419,
+            4
+          ],
+          [
+            21,
+            4867,
+            273
+          ]
+        ],
+        "coverage": 0.0016179693206720234,
+        "keep": {
+          "oracle_fraction": 0.47636961285609936,
+          "precision": 0.47710137292990484,
+          "predicted_fraction": 0.998382030679328,
+          "recall": 0.999915663574331
+        },
+        "opposite_sign_errors": 114,
+        "opposite_sign_rate": 0.25733634311512416,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 138209,
+          "precision": 0.6164383561643836,
+          "predicted": 73,
+          "recall": 0.0003255938469998336,
+          "true_positive": 45
+        }
+      },
+      "pcb1": {
+        "boost": {
+          "oracle": 11045,
+          "precision": 0.8538907284768212,
+          "predicted": 2416,
+          "recall": 0.18678134902670893,
+          "true_positive": 2063
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            4,
+            151220,
+            353
+          ],
+          [
+            3,
+            111175,
+            0
+          ],
+          [
+            1,
+            8981,
+            2063
+          ]
+        ],
+        "coverage": 0.00885317750182615,
+        "keep": {
+          "oracle_fraction": 0.4060555149744339,
+          "precision": 0.4096714521549437,
+          "predicted_fraction": 0.9911468224981739,
+          "recall": 0.999973016244221
+        },
+        "opposite_sign_errors": 354,
+        "opposite_sign_rate": 0.14603960396039603,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 151577,
+          "precision": 0.5,
+          "predicted": 8,
+          "recall": 2.6389227917164214e-05,
+          "true_positive": 4
+        }
+      },
+      "pcb2": {
+        "boost": {
+          "oracle": 9695,
+          "precision": 0.9327902240325866,
+          "predicted": 1473,
+          "recall": 0.14172253739040744,
+          "true_positive": 1374
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            8,
+            147451,
+            98
+          ],
+          [
+            0,
+            116547,
+            1
+          ],
+          [
+            6,
+            8315,
+            1374
+          ]
+        ],
+        "coverage": 0.005430971512052593,
+        "keep": {
+          "oracle_fraction": 0.4256683710737765,
+          "precision": 0.42798911546639345,
+          "predicted_fraction": 0.9945690284879474,
+          "recall": 0.9999914198441844
+        },
+        "opposite_sign_errors": 104,
+        "opposite_sign_rate": 0.0699394754539341,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 147557,
+          "precision": 0.5714285714285714,
+          "predicted": 14,
+          "recall": 5.421633673766748e-05,
+          "true_positive": 8
+        }
+      },
+      "pcb3": {
+        "boost": {
+          "oracle": 9415,
+          "precision": 0.6838970938542163,
+          "predicted": 4198,
+          "recall": 0.30493892724376,
+          "true_positive": 2871
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            20,
+            153467,
+            1323
+          ],
+          [
+            1,
+            110939,
+            4
+          ],
+          [
+            0,
+            6544,
+            2871
+          ]
+        ],
+        "coverage": 0.015332395727716422,
+        "keep": {
+          "oracle_fraction": 0.4031849517932616,
+          "precision": 0.4094445469643846,
+          "predicted_fraction": 0.9846676042722836,
+          "recall": 0.999954932218056
+        },
+        "opposite_sign_errors": 1323,
+        "opposite_sign_rate": 0.31358141739748757,
+        "patches": 275169,
+        "suppress": {
+          "oracle": 154810,
+          "precision": 0.9523809523809523,
+          "predicted": 21,
+          "recall": 0.00012919062076093276,
+          "true_positive": 20
+        }
+      },
+      "pcb4": {
+        "boost": {
+          "oracle": 14418,
+          "precision": 0.3837359702924855,
+          "predicted": 23967,
+          "recall": 0.6378832015536136,
+          "true_positive": 9197
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            54,
+            158171,
+            14748
+          ],
+          [
+            0,
+            87756,
+            22
+          ],
+          [
+            1,
+            5220,
+            9197
+          ]
+        ],
+        "coverage": 0.08729907802114337,
+        "keep": {
+          "oracle_fraction": 0.3189966893072984,
+          "precision": 0.34942085710759035,
+          "predicted_fraction": 0.9127009219788567,
+          "recall": 0.9997493677231197
+        },
+        "opposite_sign_errors": 14749,
+        "opposite_sign_rate": 0.6139788527183415,
+        "patches": 275169,
+        "suppress": {
+          "oracle": 172973,
+          "precision": 0.9818181818181818,
+          "predicted": 55,
+          "recall": 0.00031218745122071076,
+          "true_positive": 54
+        }
+      },
+      "pipe_fryum": {
+        "boost": {
+          "oracle": 11699,
+          "precision": 0.7051636698939604,
+          "predicted": 4338,
+          "recall": 0.26147533977263016,
+          "true_positive": 3059
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            10,
+            70819,
+            1274
+          ],
+          [
+            0,
+            121543,
+            5
+          ],
+          [
+            0,
+            8640,
+            3059
+          ]
+        ],
+        "coverage": 0.021173606038470905,
+        "keep": {
+          "oracle_fraction": 0.5919065010956903,
+          "precision": 0.604685525517159,
+          "predicted_fraction": 0.9788263939615292,
+          "recall": 0.9999588639878896
+        },
+        "opposite_sign_errors": 1274,
+        "opposite_sign_rate": 0.29300827966881327,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 72103,
+          "precision": 1.0,
+          "predicted": 10,
+          "recall": 0.00013869048444586216,
+          "true_positive": 10
+        }
+      }
+    },
+    "unfiltered": {
+      "candle": {
+        "boost": {
+          "oracle": 7255,
+          "precision": 0.27190644079456533,
+          "predicted": 11629,
+          "recall": 0.4358373535492764,
+          "true_positive": 3162
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            104369,
+            36667,
+            1858
+          ],
+          [
+            46883,
+            70159,
+            6609
+          ],
+          [
+            2651,
+            1442,
+            3162
+          ]
+        ],
+        "coverage": 0.604572680788897,
+        "keep": {
+          "oracle_fraction": 0.4516106647187728,
+          "precision": 0.6480123397495104,
+          "predicted_fraction": 0.39542731921110297,
+          "recall": 0.5673953304057388
+        },
+        "opposite_sign_errors": 4509,
+        "opposite_sign_rate": 0.027239446149385012,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 142894,
+          "precision": 0.6781479243419557,
+          "predicted": 153903,
+          "recall": 0.7303945582039834,
+          "true_positive": 104369
+        }
+      },
+      "capsules": {
+        "boost": {
+          "oracle": 8285,
+          "precision": 0.14497585651873995,
+          "predicted": 26094,
+          "recall": 0.45660832830416415,
+          "true_positive": 3783
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            45967,
+            47274,
+            10115
+          ],
+          [
+            16780,
+            78423,
+            12196
+          ],
+          [
+            2431,
+            2071,
+            3783
+          ]
+        ],
+        "coverage": 0.41669101533966396,
+        "keep": {
+          "oracle_fraction": 0.49031683710737767,
+          "precision": 0.6137921858368293,
+          "predicted_fraction": 0.583308984660336,
+          "recall": 0.7302023296306297
+        },
+        "opposite_sign_errors": 12546,
+        "opposite_sign_rate": 0.13745727057586116,
+        "patches": 219040,
+        "suppress": {
+          "oracle": 103356,
+          "precision": 0.7052533063303569,
+          "predicted": 65178,
+          "recall": 0.4447443786524246,
+          "true_positive": 45967
+        }
+      },
+      "cashew": {
+        "boost": {
+          "oracle": 10561,
+          "precision": 0.2926734820322181,
+          "predicted": 25824,
+          "recall": 0.7156519269008617,
+          "true_positive": 7558
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            48870,
+            20554,
+            6019
+          ],
+          [
+            34368,
+            72731,
+            12247
+          ],
+          [
+            2140,
+            863,
+            7558
+          ]
+        ],
+        "coverage": 0.5415242269296323,
+        "keep": {
+          "oracle_fraction": 0.5811833455076698,
+          "precision": 0.7725177380294855,
+          "predicted_fraction": 0.4584757730703677,
+          "recall": 0.6094129673386623
+        },
+        "opposite_sign_errors": 8159,
+        "opposite_sign_rate": 0.07337098253628532,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 75443,
+          "precision": 0.5723956991262386,
+          "predicted": 85378,
+          "recall": 0.6477738159935316,
+          "true_positive": 48870
+        }
+      },
+      "chewinggum": {
+        "boost": {
+          "oracle": 11495,
+          "precision": 0.4586752637749121,
+          "predicted": 13648,
+          "recall": 0.5445846020008699,
+          "true_positive": 6260
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            34048,
+            33916,
+            2609
+          ],
+          [
+            27069,
+            91434,
+            4779
+          ],
+          [
+            2913,
+            2322,
+            6260
+          ]
+        ],
+        "coverage": 0.37827124421719016,
+        "keep": {
+          "oracle_fraction": 0.6003506208911614,
+          "precision": 0.7161632934394385,
+          "predicted_fraction": 0.6217287557828098,
+          "recall": 0.7416654499440307
+        },
+        "opposite_sign_errors": 5522,
+        "opposite_sign_rate": 0.07108833904065501,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 70573,
+          "precision": 0.5317507418397626,
+          "predicted": 64030,
+          "recall": 0.48245079563005683,
+          "true_positive": 34048
+        }
+      },
+      "fryum": {
+        "boost": {
+          "oracle": 15620,
+          "precision": 0.364880670143828,
+          "predicted": 31635,
+          "recall": 0.7389884763124199,
+          "true_positive": 11543
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            45541,
+            26263,
+            16657
+          ],
+          [
+            22889,
+            74945,
+            3435
+          ],
+          [
+            2500,
+            1577,
+            11543
+          ]
+        ],
+        "coverage": 0.4994643291940589,
+        "keep": {
+          "oracle_fraction": 0.49315315315315317,
+          "precision": 0.7291433574937978,
+          "predicted_fraction": 0.5005356708059411,
+          "recall": 0.7400586556596787
+        },
+        "opposite_sign_errors": 19157,
+        "opposite_sign_rate": 0.18677911568273778,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 88461,
+          "precision": 0.6420555477231072,
+          "predicted": 70930,
+          "recall": 0.514814438000927,
+          "true_positive": 45541
+        }
+      },
+      "macaroni1": {
+        "boost": {
+          "oracle": 6113,
+          "precision": 0.15901164947688654,
+          "predicted": 13477,
+          "recall": 0.35056437101259613,
+          "true_positive": 2143
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            96946,
+            40141,
+            4340
+          ],
+          [
+            36590,
+            82676,
+            6994
+          ],
+          [
+            1976,
+            1994,
+            2143
+          ]
+        ],
+        "coverage": 0.5441526661796932,
+        "keep": {
+          "oracle_fraction": 0.46113951789627466,
+          "precision": 0.6624095632596486,
+          "predicted_fraction": 0.4558473338203068,
+          "recall": 0.6548075399968319
+        },
+        "opposite_sign_errors": 6316,
+        "opposite_sign_rate": 0.04239239138459886,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 141427,
+          "precision": 0.7154052777613791,
+          "predicted": 135512,
+          "recall": 0.6854843841699251,
+          "true_positive": 96946
+        }
+      },
+      "macaroni2": {
+        "boost": {
+          "oracle": 5161,
+          "precision": 0.12480244154994823,
+          "predicted": 18349,
+          "recall": 0.44371245882580895,
+          "true_positive": 2290
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            90183,
+            42382,
+            5644
+          ],
+          [
+            54491,
+            65524,
+            10415
+          ],
+          [
+            1957,
+            914,
+            2290
+          ]
+        ],
+        "coverage": 0.6025566106647188,
+        "keep": {
+          "oracle_fraction": 0.47636961285609936,
+          "precision": 0.6021319610365742,
+          "predicted_fraction": 0.3974433893352812,
+          "recall": 0.5023690868665185
+        },
+        "opposite_sign_errors": 7601,
+        "opposite_sign_rate": 0.04607225118196145,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 138209,
+          "precision": 0.6150336559117785,
+          "predicted": 146631,
+          "recall": 0.6525117756441332,
+          "true_positive": 90183
+        }
+      },
+      "pcb1": {
+        "boost": {
+          "oracle": 11045,
+          "precision": 0.218609275396222,
+          "predicted": 34198,
+          "recall": 0.6768673607967406,
+          "true_positive": 7476
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            91880,
+            44077,
+            15620
+          ],
+          [
+            26757,
+            73319,
+            11102
+          ],
+          [
+            1969,
+            1600,
+            7476
+          ]
+        ],
+        "coverage": 0.565390796201607,
+        "keep": {
+          "oracle_fraction": 0.4060555149744339,
+          "precision": 0.6161467612356718,
+          "predicted_fraction": 0.43460920379839296,
+          "recall": 0.6594739966540143
+        },
+        "opposite_sign_errors": 17589,
+        "opposite_sign_rate": 0.1136210950621431,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 151577,
+          "precision": 0.7618194783012454,
+          "predicted": 120606,
+          "recall": 0.606160565257262,
+          "true_positive": 91880
+        }
+      },
+      "pcb2": {
+        "boost": {
+          "oracle": 9695,
+          "precision": 0.19778429455848812,
+          "predicted": 33759,
+          "recall": 0.6887055183084064,
+          "true_positive": 6677
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            77813,
+            54441,
+            15303
+          ],
+          [
+            22535,
+            82234,
+            11779
+          ],
+          [
+            1562,
+            1456,
+            6677
+          ]
+        ],
+        "coverage": 0.49550401753104456,
+        "keep": {
+          "oracle_fraction": 0.4256683710737765,
+          "precision": 0.5953334153810513,
+          "predicted_fraction": 0.5044959824689554,
+          "recall": 0.7055805333424855
+        },
+        "opposite_sign_errors": 16865,
+        "opposite_sign_rate": 0.12430990130390877,
+        "patches": 273800,
+        "suppress": {
+          "oracle": 147557,
+          "precision": 0.7635462663134138,
+          "predicted": 101910,
+          "recall": 0.527341976321015,
+          "true_positive": 77813
+        }
+      },
+      "pcb3": {
+        "boost": {
+          "oracle": 9415,
+          "precision": 0.1952475140217303,
+          "predicted": 36907,
+          "recall": 0.7653744025491237,
+          "true_positive": 7206
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            55311,
+            76618,
+            22881
+          ],
+          [
+            12690,
+            91434,
+            6820
+          ],
+          [
+            713,
+            1496,
+            7206
+          ]
+        ],
+        "coverage": 0.38384047621643425,
+        "keep": {
+          "oracle_fraction": 0.4031849517932616,
+          "precision": 0.5392809116002548,
+          "predicted_fraction": 0.6161595237835658,
+          "recall": 0.824145514854341
+        },
+        "opposite_sign_errors": 23594,
+        "opposite_sign_rate": 0.22338360742655344,
+        "patches": 275169,
+        "suppress": {
+          "oracle": 154810,
+          "precision": 0.8049451349070058,
+          "predicted": 68714,
+          "recall": 0.3572831212453976,
+          "true_positive": 55311
+        }
+      },
+      "pcb4": {
+        "boost": {
+          "oracle": 14418,
+          "precision": 0.2159933316780761,
+          "predicted": 56386,
+          "recall": 0.8447080038840339,
+          "true_positive": 12179
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            75146,
+            56420,
+            41407
+          ],
+          [
+            5287,
+            79691,
+            2800
+          ],
+          [
+            722,
+            1517,
+            12179
+          ]
+        ],
+        "coverage": 0.4998419153320323,
+        "keep": {
+          "oracle_fraction": 0.3189966893072984,
+          "precision": 0.5790318830470543,
+          "predicted_fraction": 0.5001580846679677,
+          "recall": 0.9078698534940418
+        },
+        "opposite_sign_errors": 42129,
+        "opposite_sign_rate": 0.30630139376622245,
+        "patches": 275169,
+        "suppress": {
+          "oracle": 172973,
+          "precision": 0.9259565029881092,
+          "predicted": 81155,
+          "recall": 0.4344377446191024,
+          "true_positive": 75146
+        }
+      },
+      "pipe_fryum": {
+        "boost": {
+          "oracle": 11699,
+          "precision": 0.4588809104457391,
+          "predicted": 14762,
+          "recall": 0.5790238481921531,
+          "true_positive": 6774
+        },
+        "confusion_labels": [
+          "SUPPRESS",
+          "KEEP",
+          "BOOST"
+        ],
+        "confusion_matrix": [
+          [
+            46651,
+            21619,
+            3833
+          ],
+          [
+            47698,
+            69695,
+            4155
+          ],
+          [
+            3714,
+            1211,
+            6774
+          ]
+        ],
+        "coverage": 0.549427806184563,
+        "keep": {
+          "oracle_fraction": 0.5919065010956903,
+          "precision": 0.7532558767900568,
+          "predicted_fraction": 0.45057219381543706,
+          "recall": 0.5733948728074506
+        },
+        "opposite_sign_errors": 7547,
+        "opposite_sign_rate": 0.06689120319078218,
+        "patches": 205350,
+        "suppress": {
+          "oracle": 72103,
+          "precision": 0.4757247891661483,
+          "predicted": 98063,
+          "recall": 0.6470049789883916,
+          "true_positive": 46651
+        }
+      }
+    }
+  },
+  "predicted_action_counts": {
+    "BOOST": 316668,
+    "KEEP": 1451100,
+    "SUPPRESS": 1192010
+  },
+  "source": "existing committed R1-v2 OOF probabilities and R0 oracle actions"
+}

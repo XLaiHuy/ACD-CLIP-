@@ -1,0 +1,16 @@
+{
+  "evidence_class": "DERIVED",
+  "canonical_artifact": "results/sabra_cure/phase0/FEATURE_AUDIT.json",
+  "sha256": "26fa17b364f4f3935f162c9ddbb8e20846013ebac72fd84f037fdd128a12e104",
+  "existing_feature_count": 11,
+  "signed_candidates_audited": 5,
+  "retained_signed_features": [
+    "signed_native_margin",
+    "cross_stage_signed_margin_difference",
+    "robust_peer_signed_margin_consensus"
+  ],
+  "final_feature_count": 14,
+  "deployment_sensitivity_classification": "magnitude evidence",
+  "deployment_sensitivity_reason": "gradient.detach().abs() explicitly removes sign; IQR is below the 1e-6 scaler floor in all 12 R1-v2 folds",
+  "additional_clip_forward_required": false
+}
