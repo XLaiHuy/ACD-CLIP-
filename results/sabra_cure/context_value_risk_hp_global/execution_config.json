@@ -1,0 +1,9 @@
+{
+  "inner_ap_workers": 4,
+  "selection": "fastest fixture worker with exact value parity, <=12 GiB, and >=10% improvement over one worker; otherwise 1",
+  "thread_env": {
+    "MKL_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1"
+  }
+}

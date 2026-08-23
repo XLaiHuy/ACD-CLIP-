@@ -1,0 +1,94 @@
+{
+  "fixtures": [
+    {
+      "absolute_difference": 0.0,
+      "fixture_class": "candle",
+      "image_index": 0,
+      "optimized_ap": 0.5009019141522216,
+      "optimized_seconds": 0.2697710948996246,
+      "reference_ap": 0.5009019141522216,
+      "reference_seconds": 4.4255451881326735,
+      "speedup": 16.404816052584557
+    },
+    {
+      "absolute_difference": 0.0,
+      "fixture_class": "candle",
+      "image_index": 199,
+      "optimized_ap": 0.500905006322201,
+      "optimized_seconds": 0.2736469400115311,
+      "reference_ap": 0.500905006322201,
+      "reference_seconds": 4.376371368998662,
+      "speedup": 15.992765600866019
+    },
+    {
+      "absolute_difference": 0.0,
+      "fixture_class": "capsules",
+      "image_index": 0,
+      "optimized_ap": 0.7543389085185161,
+      "optimized_seconds": 0.4047504479531199,
+      "reference_ap": 0.7543389085185161,
+      "reference_seconds": 3.546807035803795,
+      "speedup": 8.762947771251394
+    },
+    {
+      "absolute_difference": 0.0,
+      "fixture_class": "capsules",
+      "image_index": 159,
+      "optimized_ap": 0.7543396713103225,
+      "optimized_seconds": 0.38825936196371913,
+      "reference_ap": 0.7543396713103225,
+      "reference_seconds": 3.5046466081403196,
+      "speedup": 9.026560468277417
+    },
+    {
+      "absolute_difference": 0.0,
+      "fixture_class": "cashew",
+      "image_index": 0,
+      "optimized_ap": 0.9487430690728097,
+      "optimized_seconds": 0.3521930892020464,
+      "reference_ap": 0.9487430690728097,
+      "reference_seconds": 3.2487981759477407,
+      "speedup": 9.224480194396909
+    },
+    {
+      "absolute_difference": 0.0,
+      "fixture_class": "cashew",
+      "image_index": 149,
+      "optimized_ap": 0.9487464027178844,
+      "optimized_seconds": 0.35948625300079584,
+      "reference_ap": 0.9487464027178844,
+      "reference_seconds": 3.235615228069946,
+      "speedup": 9.000664701531113
+    }
+  ],
+  "full_runtime_gate": true,
+  "inner_worker_fixture": [
+    {
+      "peak_rss_bytes": 4770877440,
+      "seconds": 62.80194341484457,
+      "value_max_abs_error": 0.0,
+      "workers": 1
+    },
+    {
+      "peak_rss_bytes": 4904689664,
+      "seconds": 40.198407507967204,
+      "value_max_abs_error": 0.0,
+      "workers": 2
+    },
+    {
+      "peak_rss_bytes": 5038583808,
+      "seconds": 29.296227123122662,
+      "value_max_abs_error": 0.0,
+      "workers": 4
+    }
+  ],
+  "max_abs_error": 0.0,
+  "median_speedup": 9.125520331337164,
+  "pass": true,
+  "projected_audit_hours": 2.3507164050372213,
+  "projected_global_minutes": 1.0,
+  "projected_hours": 2.3507164050372213,
+  "projected_science_hours": 2.3507164050372213,
+  "projected_total_hours": 4.701432810074443,
+  "selected_inner_ap_workers": 4
+}
