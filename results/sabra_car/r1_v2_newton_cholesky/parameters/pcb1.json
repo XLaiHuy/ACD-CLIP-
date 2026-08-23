@@ -1,0 +1,127 @@
+{
+  "classes": [
+    -1,
+    0,
+    1
+  ],
+  "coefficient": [
+    [
+      0.17704189795580538,
+      0.06337713664290712,
+      0.1190271894730588,
+      76.0961901624543,
+      -0.17619691809608456,
+      0.25616393509634444,
+      0.08293939653647449,
+      0.3169589520912762,
+      3.333620035461923e-06,
+      0.014703806715017385,
+      -0.04920942532444608
+    ],
+    [
+      0.005314769146577509,
+      -0.06702973562414977,
+      -0.048980574665822625,
+      -152.70629684398094,
+      -0.5486985704635924,
+      -0.12683559774014252,
+      -0.02563608151751164,
+      -0.28572364120548943,
+      -1.6174541873728564e-05,
+      -0.042012950609562144,
+      -0.051080911245359954
+    ],
+    [
+      -0.18235666612559046,
+      0.003652615554029971,
+      -0.07004661547067441,
+      76.61010668178744,
+      0.7248954872409618,
+      -0.12932833651299463,
+      -0.05730332045237388,
+      -0.03123531162619778,
+      -2.0462087720587567e-05,
+      0.027309144065440855,
+      0.10029033638239149
+    ]
+  ],
+  "converged": true,
+  "feature_order": [
+    "margin_within_image_rank",
+    "robust_margin_normalization",
+    "D_rank",
+    "deployment_sensitivity",
+    "E",
+    "peer_coherence",
+    "query_support_mean",
+    "peer_eigen_entropy",
+    "stage_query_profile_disagreement",
+    "supported_p9_stability",
+    "supported_p16_stability"
+  ],
+  "finite_coefficient_check": true,
+  "finite_intercept_check": true,
+  "finite_probability_check": true,
+  "fit_elapsed_seconds": 162.87927766889334,
+  "held_out_class": "pcb1",
+  "held_out_patches": 273800,
+  "intercept": [
+    0.31525459080864227,
+    0.32609222147103,
+    -0.6413468122796724
+  ],
+  "iqr": [
+    0.5,
+    2.791450470685959,
+    0.14518050849437714,
+    1e-06,
+    0.3837719261646271,
+    0.002893805503845215,
+    0.021248623728752136,
+    0.1108795702457428,
+    1.3351139923400979e-05,
+    0.170321524143219,
+    0.1705651879310608
+  ],
+  "max_iter": 100,
+  "median": [
+    0.5,
+    0.0,
+    0.16390939056873322,
+    5.182502105412212e-13,
+    0.49074074625968933,
+    0.9980777502059937,
+    0.9950804114341736,
+    0.6606954336166382,
+    1.662390047840745e-06,
+    0.6868908405303955,
+    0.6851851940155029
+  ],
+  "n_iter": [
+    14
+  ],
+  "probability_normalization_check": true,
+  "solver": "newton-cholesky",
+  "training_class_counts": {
+    "-1": 1307806,
+    "0": 1268455,
+    "1": 109717
+  },
+  "training_classes": [
+    "candle",
+    "capsules",
+    "cashew",
+    "chewinggum",
+    "fryum",
+    "macaroni1",
+    "macaroni2",
+    "pcb2",
+    "pcb3",
+    "pcb4",
+    "pipe_fryum"
+  ],
+  "training_patches": 2685978,
+  "warnings": [
+    "'multi_class' was deprecated in version 1.5 and will be removed in 1.8. From then on, it will always use 'multinomial'. Leave it to its default value to avoid this warning."
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "confidence_range": [
+    0.33334827423095703,
+    1.0
+  ],
+  "max_recovery_attempts": 1,
+  "medical_reads": 0,
+  "mvtec_reads": 0,
+  "original_max_iter": 1000,
+  "original_r1_status": "INCONCLUSIVE_SOLVER_FAILURE_BEFORE_SCIENTIFIC_RESULT",
+  "phase2b_training_steps": 0,
+  "protocol_prereg_sha": "fefeab35b58d4aa6be4ceddfaaa0994fa456d180",
+  "recovery_max_iter": 100,
+  "recovery_protocol": "SABRA-CAR R1 Scalable Solver Protocol v2",
+  "selected_threshold": null,
+  "solver": "newton-cholesky",
+  "status": "RISK_GATE_FAIL",
+  "threshold_rows": [
+    {
+      "acted_patches": 1508678,
+      "coverage": 0.5097267430192399,
+      "opposite_sign_errors": 171534,
+      "opposite_sign_rate": 0.11369821790998477,
+      "relative_opposite_sign_reduction": null,
+      "risk_gate_pass": false,
+      "threshold": "unfiltered"
+    },
+    {
+      "acted_patches": 733030,
+      "coverage": 0.24766384505864966,
+      "opposite_sign_errors": 104913,
+      "opposite_sign_rate": 0.14312238244000927,
+      "relative_opposite_sign_reduction": -0.2587917829399904,
+      "risk_gate_pass": false,
+      "threshold": 0.5
+    },
+    {
+      "acted_patches": 240090,
+      "coverage": 0.08111757030425931,
+      "opposite_sign_errors": 72849,
+      "opposite_sign_rate": 0.3034237161064601,
+      "relative_opposite_sign_reduction": -1.6686760943490033,
+      "risk_gate_pass": false,
+      "threshold": 0.6
+    },
+    {
+      "acted_patches": 117773,
+      "coverage": 0.03979116001267663,
+      "opposite_sign_errors": 52195,
+      "opposite_sign_rate": 0.4431830725208664,
+      "relative_opposite_sign_reduction": -2.897889348377789,
+      "risk_gate_pass": false,
+      "threshold": 0.7
+    },
+    {
+      "acted_patches": 83047,
+      "coverage": 0.028058523308167032,
+      "opposite_sign_errors": 37580,
+      "opposite_sign_rate": 0.4525148409936542,
+      "relative_opposite_sign_reduction": -2.9799642361317535,
+      "risk_gate_pass": false,
+      "threshold": 0.8
+    },
+    {
+      "acted_patches": 62909,
+      "coverage": 0.0212546346381384,
+      "opposite_sign_errors": 26889,
+      "opposite_sign_rate": 0.4274269182469917,
+      "relative_opposite_sign_reduction": -2.7593106216087477,
+      "risk_gate_pass": false,
+      "threshold": 0.9
+    }
+  ],
+  "unfiltered_argmax_action_counts": {
+    "-1": 1192010,
+    "0": 1451100,
+    "1": 316668
+  }
+}
