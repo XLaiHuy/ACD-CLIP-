@@ -543,8 +543,8 @@ def candle_parity(output: Path, count: int = 128) -> dict[str, Any]:
     return result
 
 
-def performance_benchmark(output: Path) -> dict[str, Any]:
-    parity = candle_parity(output, 128)
+def performance_benchmark(output: Path, parity: dict[str, Any] | None = None) -> dict[str, Any]:
+    parity = candle_parity(output, 128) if parity is None else parity
     seconds_per_target = float(parity["elapsed_seconds"]) / max(1, int(parity["count"]))
     projected_target_seconds = seconds_per_target * TARGET_PATCHES_PER_CLASS * len(r1.CLASSES)
     # Q1 uses 12 R2-v2 nested folds plus one 22k-row pairwise ranker per fold; this is deliberately conservative.
@@ -563,7 +563,7 @@ def pre_execution_audit(output: Path) -> dict[str, Any]:
     _verify_start(require_clean=True)
     if not (output / "panel_membership.json").is_file() or any(not (output / "panels" / f"{name}.npz").is_file() for name in r1.CLASSES):
         raise RuntimeError("P25R_ENGINEERING_STOP committed panel membership absent")
-    parity = candle_parity(output, 128); benchmark = performance_benchmark(output)
+    parity = candle_parity(output, 128); benchmark = performance_benchmark(output, parity)
     payload = {"status": "PASS" if parity["status"] == "PASS" and benchmark["status"] == "PASS" else benchmark["status"],
                "parent_sha": PARENT, "branch": BRANCH, "audited_head": git("rev-parse", "HEAD"),
                "local_equals_remote": True, "worktree_clean": True, "panel_membership_sha256": sha256(output / "panel_membership.json"),
