@@ -1,0 +1,29 @@
+{
+  "status": "P25R_ENGINEERING_STOP",
+  "stage": "pre_marker_exact_target_parity",
+  "attempt_started": false,
+  "scientific_folds": 0,
+  "targets_generated": 0,
+  "q1_executed": false,
+  "q2_executed": false,
+  "fixture": {
+    "class": "candle",
+    "required_candidates": 128,
+    "first_failure_row": 15,
+    "image_index": 1,
+    "patch_index": 907,
+    "action_sign": -1,
+    "direct_pap": 0.501883222367168,
+    "fast_pap": 0.5018832223692163,
+    "absolute_error": 2.048361480433414e-12,
+    "tolerance": 1e-12
+  },
+  "root_cause": "Sparse-basis post-deployment addition is not bit-identical to frozen float32 native-logit addition before blur/resize.",
+  "rejected_repair": "Per-candidate full three-stage deployment would violate the frozen P25R execution contract.",
+  "firewall": {
+    "mvtec_accessed": false,
+    "medical_accessed": false,
+    "additional_clip_forwards": 0,
+    "phase2b_training_steps": 0
+  }
+}

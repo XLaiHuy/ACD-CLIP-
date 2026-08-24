@@ -199,17 +199,23 @@ def _deployed_margin(native_logits: np.ndarray, device: torch.device) -> np.ndar
     return (logits[0, 1] - logits[0, 0]).reshape(-1).cpu().numpy().astype(np.float32)
 
 
-def candidate_support_scores(margin: np.ndarray, patch: int, sign: int, basis: Basis) -> tuple[np.ndarray, np.ndarray]:
+def candidate_support_scores(margin: np.ndarray, patch: int, sign: int, basis: Basis, device: torch.device | None = None) -> tuple[np.ndarray, np.ndarray]:
     index, values = basis.support(patch)
-    shifted = np.asarray(margin, dtype=np.float32)[index] + np.float32(sign * ALPHA * MARGIN_SCALE) * values
-    # Frozen deployment uses Torch float32 sigmoid; NumPy float64 followed by a
-    # cast is not bit-identical near score-group boundaries.
-    probability = torch.sigmoid(torch.from_numpy(shifted)).numpy().astype(np.float32, copy=False)
+    # Use the same Torch float32 addition/sigmoid arithmetic as deployment.
+    # CPU NumPy addition can differ by one ULP from a CUDA deployment at a
+    # score-group boundary, which is material to the strict 1e-12 AP parity.
+    target = torch.device("cpu") if device is None else device
+    with torch.no_grad():
+        base = torch.from_numpy(np.asarray(margin, dtype=np.float32)).to(target)
+        local_index = torch.from_numpy(index.astype(np.int64, copy=False)).to(target)
+        local_basis = torch.from_numpy(values).to(target)
+        shifted = base[local_index] + float(sign * ALPHA * MARGIN_SCALE) * local_basis
+        probability = torch.sigmoid(shifted).cpu().numpy().astype(np.float32, copy=False)
     return index, probability
 
 
-def _candidate_delta(base_image: np.ndarray, labels_image: np.ndarray, margin: np.ndarray, patch: int, sign: int, basis: Basis) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    index, candidate = candidate_support_scores(margin, patch, sign, basis)
+def _candidate_delta(base_image: np.ndarray, labels_image: np.ndarray, margin: np.ndarray, patch: int, sign: int, basis: Basis, device: torch.device | None = None) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    index, candidate = candidate_support_scores(margin, patch, sign, basis, device)
     return p15.delta_groups(np.asarray(base_image, dtype=np.float32).reshape(-1)[index], candidate, np.asarray(labels_image, dtype=np.uint8).reshape(-1)[index])
 
 
@@ -240,7 +246,7 @@ def target_class(class_name: str, panel: dict[str, np.ndarray], output: Path, ba
             patch = int(panel["patch_index"][row]); sign = int(np.sign(utility[image, patch]))
             if sign == 0:
                 values[row] = 0.0; continue
-            cs, cp, ct = _candidate_delta(scores[image], masks[image], margin, patch, sign, basis)
+            cs, cp, ct = _candidate_delta(scores[image], masks[image], margin, patch, sign, basis, device)
             values[row] = p15.ap_with_delta(base_s, base_p, base_t, cs, cp, ct) - base_ap
             if row < direct_check:
                 correction = torch.zeros((1, PATCHES), device=device); correction[0, patch] = float(sign * ALPHA * MARGIN_SCALE)
@@ -531,7 +537,7 @@ def candle_parity(output: Path, count: int = 128) -> dict[str, Any]:
         image, patch = int(panel["image_index"][row]), int(panel["patch_index"][row]); sign = int(np.sign(utility[image, patch]))
         if sign == 0: continue
         margin = cache.setdefault(image, _deployed_margin(logits[image], device))
-        cs, cp, ct = _candidate_delta(scores[image], masks[image], margin, patch, sign, basis)
+        cs, cp, ct = _candidate_delta(scores[image], masks[image], margin, patch, sign, basis, device)
         fast = p15.ap_with_delta(base_s, base_p, base_t, cs, cp, ct)
         correction = torch.zeros((1, PATCHES), device=device); correction[0, patch] = float(sign * ALPHA * MARGIN_SCALE)
         native = torch.from_numpy(logits[image:image + 1]).permute(1, 0, 2, 3).to(device)
@@ -568,7 +574,7 @@ def performance_benchmark(output: Path, parity: dict[str, Any] | None = None) ->
         image, patch = int(panel["image_index"][row]), int(panel["patch_index"][row]); sign = int(np.sign(utility[image, patch]))
         if sign == 0: continue
         margin = margin_cache.setdefault(image, _deployed_margin(logits[image], device))
-        cs, cp, ct = _candidate_delta(scores[image], masks[image], margin, patch, sign, basis)
+        cs, cp, ct = _candidate_delta(scores[image], masks[image], margin, patch, sign, basis, device)
         p15.ap_with_delta(base_s, base_p, base_t, cs, cp, ct)
     seconds_per_target = (time.perf_counter() - started) / timing_rows
     projected_target_seconds = seconds_per_target * TARGET_PATCHES_PER_CLASS * len(r1.CLASSES)
