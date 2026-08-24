@@ -13,5 +13,5 @@
   "p14_gate_evaluation": "NOT_RUN",
   "scientific_result_interpretable": false,
   "status": "P19_ENGINEERING_STOP",
-  "terminal_reason": "The capsules science child wrote FAILED before its outer-fold checkpoint. Its parent did not persist child stderr, so the exact Python exception cannot be recovered without a prohibited rerun. The partial target/map cache is temporary-only and excluded from historical evidence."
+  "terminal_reason": "Capsules selected NO_EXPANSION, so the frozen controller represented value_threshold as float('inf'). Its atomic JSON writer uses allow_nan=false; serializing that non-finite scalar raised before the outer-fold checkpoint. The forensic tempfile is truncated exactly at value_threshold, which establishes this root cause without a rerun. The partial target/map cache is temporary-only and excluded from historical evidence."
 }
