@@ -1,0 +1,14 @@
+{
+  "evidence_type": "ARITHMETIC_DERIVATION",
+  "inputs": {"native":0.5699400925375667,"p20_image_oracle":0.5704510229600025,"p23_A0":0.5714254921884309,"p23_A1":0.571445277366835,"p13_D4_rejected_sign_correct_only":0.5995204096824335},
+  "differences": {
+    "p20_image_oracle_vs_native":{"raw":0.0005109304224357736,"percentage_points":0.05109304224357736},
+    "p23_A0_vs_native":{"raw":0.0014853996508641387,"percentage_points":0.14853996508641387},
+    "p23_A1_vs_native":{"raw":0.0015051848292683134,"percentage_points":0.15051848292683134},
+    "p23_A1_minus_A0":{"raw":0.000019785178404174708,"percentage_points":0.0019785178404174708},
+    "p13_D4_vs_native":{"raw":0.029580317144866752,"percentage_points":2.958031714486675}
+  },
+  "h3":{"required_pap":0.5724400925375667,"A0_margin":{"raw":-0.001014600349135808,"percentage_points":-0.1014600349135808},"A1_margin":{"raw":-0.0009948151707316333,"percentage_points":-0.09948151707316333}},
+  "qualitative_order_verified":"P23_A1 > P23_A0 > P20_image_oracle > native",
+  "rounding_policy":"All calculations use persisted decimal inputs in float64; gate conclusions use unrounded raw values."
+}

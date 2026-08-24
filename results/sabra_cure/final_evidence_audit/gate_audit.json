@@ -1,0 +1,8 @@
+{
+  "status":"PASS",
+  "frozen_H3_requirement":{"expression":"macro_pAP >= native + 0.0025","native":0.5699400925375667,"required":0.5724400925375667},
+  "A0":{"macro_pAP":0.5714254921884309,"delta_vs_native":0.0014853996508641387,"improving_classes":12,"nonregressing_classes":12,"gates":{"H1_wrong_sign":"PASS","H2_weighted_harm":"PASS","H3_macro_pAP":"FAIL","H4_nonregressing":"PASS","H5_improving":"PASS","H6_pauroc_guardrail":"PASS"}},
+  "A1":{"macro_pAP":0.571445277366835,"delta_vs_native":0.0015051848292683134,"incremental_vs_A0":0.000019785178404174708,"improving_classes":12,"nonregressing_classes":12,"gates":{"H1_wrong_sign":"PASS","H2_weighted_harm":"PASS","H3_macro_pAP":"FAIL","H4_nonregressing":"PASS","H5_improving":"PASS","H6_pauroc_guardrail":"PASS"}},
+  "stage_D":"CORRECTLY_SKIPPED: frozen routing requires H3 headroom before Stage D.",
+  "interpretation":"Both families improved all 12 classes safely and broadly, but their macro pAP headroom was below the preregistered threshold. pAUROC is supporting/guardrail evidence and cannot replace the primary pAP H3 gate."
+}
