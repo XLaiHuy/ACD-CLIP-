@@ -16,7 +16,10 @@
     "direct_pap": 0.501883222367168,
     "fast_pap": 0.5018832223692163,
     "absolute_error": 2.048361480433414e-12,
-    "tolerance": 1e-12
+    "tolerance": 1e-12,
+    "stable_support_score_order_identical": false,
+    "fast_support_score_groups": 13075,
+    "direct_support_score_groups": 13032
   },
   "root_cause": "Sparse-basis post-deployment addition is not bit-identical to frozen float32 native-logit addition before blur/resize.",
   "rejected_repair": "Per-candidate full three-stage deployment would violate the frozen P25R execution contract.",

@@ -9,6 +9,11 @@ permitted sparse-basis engine.  The first deterministic mismatch is panel row
 `0.501883222367168` and fast pAP is `0.5018832223692163`, an absolute error of
 `2.048361480433414e-12`.
 
+This is not an irrelevant reduction-order discrepancy.  The fast and direct
+candidate support vectors have different stable score ordering, and their
+float32 score-group inventories differ (13,075 versus 13,032 groups).  The
+P25R clause permitting tiny numerical differences therefore does not apply.
+
 The cause is float32 operation order: frozen deployment adds the correction to
 native logits before Gaussian blur and bilinear resize, whereas the sparse
 basis adds the independently deployed basis after the native deployment.  The
