@@ -1,0 +1,21 @@
+/home/ai4/caohuy/ACD-CLIP-sabra-p21-exact-performance-recovery-v1/model/tokenizer.py:10: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ai4/caohuy/ACD-CLIP-sabra-p21-exact-performance-recovery-v1/tools/sabra_cure/native_anchor_performance_recovery.py", line 341, in <module>
+    if __name__=="__main__": main()
+                             ^^^^^^
+  File "/home/ai4/caohuy/ACD-CLIP-sabra-p21-exact-performance-recovery-v1/tools/sabra_cure/native_anchor_performance_recovery.py", line 339, in main
+    result=exactness() if args.exactness else benchmark() if args.benchmark else real_slice_parity() if args.trajectory_parity else pre_audit() if args.pre_audit else execute_once(); print(json.dumps(result,indent=2,sort_keys=True,allow_nan=False,default=p21.json_default))
+                                                                                                                                                                       ^^^^^^^^^^^^^^
+  File "/home/ai4/caohuy/ACD-CLIP-sabra-p21-exact-performance-recovery-v1/tools/sabra_cure/native_anchor_performance_recovery.py", line 285, in execute_once
+    a0=run_action_space(A0);p21.atomic(OUT/"action_space_A0.json",a0);a1=None;probes=None;active=A0
+       ^^^^^^^^^^^^^^^^^^^^
+  File "/home/ai4/caohuy/ACD-CLIP-sabra-p21-exact-performance-recovery-v1/tools/sabra_cure/native_anchor_performance_recovery.py", line 221, in run_action_space
+    row = witness(held, family, seed)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ai4/caohuy/ACD-CLIP-sabra-p21-exact-performance-recovery-v1/tools/sabra_cure/native_anchor_performance_recovery.py", line 208, in witness
+    runs = coordinate_two_lanes(engine, np.full(cache.n_images, "NATIVE", dtype="<U16"), seed2, family)
+                                                ^^^^^^^^^^^^^^
+AttributeError: 'ClassCache' object has no attribute 'n_images'
