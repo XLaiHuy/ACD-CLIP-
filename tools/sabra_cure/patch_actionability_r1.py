@@ -540,12 +540,30 @@ def candle_parity(output: Path, count: int = 128) -> dict[str, Any]:
               "max_abs_error": float(max_error), "elapsed_seconds": time.perf_counter() - started, "base_pap": float(base_ap),
               "uses_target_labels": False, "firewall": {"mvtec": 0, "medical": 0, "clip": 0, "phase2b_steps": 0}}
     if result["status"] != "PASS": raise RuntimeError("P25R_ENGINEERING_STOP candle parity")
+    if int(count) == 128:
+        atomic_json(output / "candle_parity.json", result)
     return result
 
 
 def performance_benchmark(output: Path, parity: dict[str, Any] | None = None) -> dict[str, Any]:
     parity = candle_parity(output, 128) if parity is None else parity
-    seconds_per_target = float(parity["elapsed_seconds"]) / max(1, int(parity["count"]))
+    # Measure the actual production delta/AP path separately from the intentionally
+    # expensive independent full-map reference used above for correctness.
+    panel = _load_panel(output, "candle"); basis = load_basis()
+    source_path = r1.SOURCE_ROOT / "gt_free_cache/candle.npz"; utility_path = r1.UTILITY_ROOT / "candle.npz"
+    with np.load(source_path, allow_pickle=False) as source, np.load(utility_path, allow_pickle=False) as utility_data:
+        logits = np.asarray(source["native_logits"], dtype=np.float32); scores = np.asarray(source["native_pixel_probability"], dtype=np.float32)
+        paths = source["image_path"].astype(str); utility = np.asarray(utility_data["utility"], dtype=np.float64)
+    metadata, data_root = metadata_and_root(r2.DATA_ROOT); masks = load_masks(paths, metadata, data_root)
+    base_s, base_p, base_t = p15.score_groups(scores, masks); device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    margin_cache: dict[int, np.ndarray] = {}; timing_rows = 16; started = time.perf_counter()
+    for row in range(timing_rows):
+        image, patch = int(panel["image_index"][row]), int(panel["patch_index"][row]); sign = int(np.sign(utility[image, patch]))
+        if sign == 0: continue
+        margin = margin_cache.setdefault(image, _deployed_margin(logits[image], device))
+        cs, cp, ct = _candidate_delta(scores[image], masks[image], margin, patch, sign, basis)
+        p15.ap_with_delta(base_s, base_p, base_t, cs, cp, ct)
+    seconds_per_target = (time.perf_counter() - started) / timing_rows
     projected_target_seconds = seconds_per_target * TARGET_PATCHES_PER_CLASS * len(r1.CLASSES)
     # Q1 uses 12 R2-v2 nested folds plus one 22k-row pairwise ranker per fold; this is deliberately conservative.
     projected_q1_seconds = 12.0 * 240.0
@@ -553,6 +571,7 @@ def performance_benchmark(output: Path, parity: dict[str, Any] | None = None) ->
     result = {"status": "PASS" if projected_total_hours <= 4.0 else "P25R_PERFORMANCE_NO_GO",
               "target_seconds_per_patch": seconds_per_target, "projected_target_hours": projected_target_seconds / 3600.0,
               "projected_q1_hours": projected_q1_seconds / 3600.0, "projected_total_hours": projected_total_hours,
+              "fast_timing_rows": timing_rows,
               "preferred_hours": 2.0, "hard_no_go_hours": 4.0, "parity": parity,
               "additional_clip_forwards": 0, "phase2b_training_steps": 0}
     atomic_json(output / "performance_benchmark.json", result)
@@ -618,6 +637,7 @@ def main() -> None:
     parser.add_argument("--pre-audit", action="store_true")
     parser.add_argument("--run-once", action="store_true")
     parser.add_argument("--candle-parity", action="store_true")
+    parser.add_argument("--candle-count", type=int, default=128)
     parser.add_argument("--output", type=Path, default=OUT)
     args = parser.parse_args()
     if sum((args.build_panels, args.pre_audit, args.run_once, args.candle_parity)) != 1:
@@ -625,7 +645,7 @@ def main() -> None:
     output = args.output.resolve()
     if args.build_panels: result = build_all_panels(output)
     elif args.pre_audit: result = pre_execution_audit(output)
-    elif args.candle_parity: result = candle_parity(output)
+    elif args.candle_parity: result = candle_parity(output, args.candle_count)
     else: result = execute_once(output)
     print(json.dumps(result, indent=2, sort_keys=True, default=_json_default))
 
