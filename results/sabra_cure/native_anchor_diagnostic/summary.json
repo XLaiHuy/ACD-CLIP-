@@ -1,0 +1,64 @@
+{
+  "attempt_created": false,
+  "completed_folds": 0,
+  "exactness": {
+    "cpu_fixture": {
+      "error": 0.0,
+      "pap": 0.8333333333333333,
+      "reference": 0.8333333333333333,
+      "state": [
+        "SAFE20",
+        "NATIVE"
+      ]
+    },
+    "gpu": {
+      "ap_error": 0.0,
+      "available": true,
+      "trajectory_error": 0.0,
+      "trajectory_match": true
+    },
+    "no_scalar_ap_delta_composition": true,
+    "status": "PASS"
+  },
+  "firewall": {
+    "additional_clip_forwards": 0,
+    "medical_accessed": false,
+    "mvtec_accessed": false,
+    "phase2b_training_steps": 0,
+    "r2v3_run": false,
+    "r3_run": false,
+    "r4_run": false
+  },
+  "performance": {
+    "candidate_evaluations_per_second": 8.624521510614015,
+    "candidate_seconds": 0.11594846146181226,
+    "delta_cache_seconds": 60.95263936696574,
+    "firewall": {
+      "clip": 0,
+      "medical": 0,
+      "mvtec": 0,
+      "phase2b_steps": 0
+    },
+    "fixture_ap_error": 0.0,
+    "gpu_ap_selected": false,
+    "gpu_candidate_error": 1.1102230246251565e-16,
+    "gpu_candidate_seconds": 0.06234582234174013,
+    "gpu_path": "CPU grouped AP; GPU rejected by parity/speed gate",
+    "hard_three_hour_gate": false,
+    "projected_full_minutes": 401.0350766777992,
+    "projected_stage_a_minutes": 185.5175383388996,
+    "projected_stage_b_minutes": 185.5175383388996,
+    "ranknet": "CPU float64 PyTorch LBFGS only",
+    "real_class": "candle",
+    "real_deploy_seconds": 15.387536284979433,
+    "real_rss_delta_bytes": 1819582464,
+    "real_union_build_seconds": 5.148127726279199,
+    "real_union_score_count": 6272003,
+    "selected_class_workers": 1,
+    "status": "FAIL",
+    "wall_seconds": 81.8777680080384,
+    "worker_selection": "1: 31 GiB host RAM with existing swap use; 2/4 rejected pre-marker to preserve no-swap-growth safety"
+  },
+  "reason": "even with exact compressed disk-backed deltas, measured candidate throughput projects above the frozen three-hour hard ceiling",
+  "status": "P21_PERFORMANCE_NO_GO"
+}
