@@ -1,0 +1,32 @@
+{
+  "checks": {
+    "clean": true,
+    "nan_rejection": true,
+    "p14_hash_unchanged": true,
+    "p19_partial_excluded": true,
+    "parent_ancestor": true,
+    "parent_array_firewall": true,
+    "parity": true,
+    "published": true,
+    "speed": true,
+    "strict_json": true,
+    "synthetic": true
+  },
+  "firewall": {
+    "clip": 0,
+    "medical": 0,
+    "mvtec": 0,
+    "phase2b": 0
+  },
+  "freeze": {
+    "inner_ap_workers": 4,
+    "selection": "fastest fixture worker with exact value parity, <=12 GiB, and >=10% improvement over one worker; otherwise 1",
+    "thread_env": {
+      "MKL_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1"
+    }
+  },
+  "parent": "be0bf68e4949cb4576b9f23c0f5da85cd5a56980",
+  "status": "PASS"
+}
