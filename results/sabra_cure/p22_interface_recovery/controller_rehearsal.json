@@ -1,0 +1,68 @@
+{
+  "cases": [
+    {
+      "A0": {
+        "headroom_strong": true
+      },
+      "A1": null,
+      "selected": "A0",
+      "selected_audit": {
+        "status": "PASS"
+      },
+      "stage_d": true,
+      "summary": {
+        "status": "STUB"
+      }
+    },
+    {
+      "A0": {
+        "headroom_strong": false
+      },
+      "A1": {
+        "headroom_strong": true
+      },
+      "selected": "A1",
+      "selected_audit": {
+        "status": "PASS"
+      },
+      "stage_d": true,
+      "summary": {
+        "status": "STUB"
+      }
+    },
+    {
+      "A0": {
+        "headroom_strong": false
+      },
+      "A1": {
+        "headroom_strong": false
+      },
+      "selected": "A1",
+      "selected_audit": {
+        "status": "PASS"
+      },
+      "stage_d": false,
+      "summary": {
+        "status": "STUB"
+      }
+    }
+  ],
+  "firewall": {
+    "clip": 0,
+    "medical": 0,
+    "mvtec": 0,
+    "phase2b_steps": 0
+  },
+  "marker_absent": true,
+  "real_scientific_outcomes": false,
+  "route": [
+    "Stage A",
+    "A0",
+    "conditional A1",
+    "conditional Stage D",
+    "selected audit",
+    "summary",
+    "terminal"
+  ],
+  "status": "PASS"
+}

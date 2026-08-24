@@ -1,0 +1,111 @@
+{
+  "alignment": {
+    "expand": 200,
+    "native": 200,
+    "paths": 200,
+    "safe": 200,
+    "seed2": 200
+  },
+  "canonical_image_count": 200,
+  "entries": [
+    {
+      "exists": true,
+      "expected_shape_type": "(N,) ndarray",
+      "object_type": "p15.ClassCache",
+      "production_callsite": "cache_count/witness/opportunity",
+      "referenced_attribute": "paths"
+    },
+    {
+      "exists": true,
+      "expected_shape_type": "(N,H,W) ndarray",
+      "object_type": "p15.ClassCache",
+      "production_callsite": "cache_count/_engine_for",
+      "referenced_attribute": "native"
+    },
+    {
+      "exists": true,
+      "expected_shape_type": "(N,H,W) ndarray",
+      "object_type": "p15.ClassCache",
+      "production_callsite": "cache_count",
+      "referenced_attribute": "safe"
+    },
+    {
+      "exists": true,
+      "expected_shape_type": "(N,H,W) ndarray",
+      "object_type": "p15.ClassCache",
+      "production_callsite": "cache_count",
+      "referenced_attribute": "expand"
+    },
+    {
+      "exists": true,
+      "expected_shape_type": "(N,H,W) ndarray",
+      "object_type": "p15.ClassCache",
+      "production_callsite": "witness",
+      "referenced_attribute": "masks"
+    },
+    {
+      "exists": true,
+      "expected_shape_type": "ndarray",
+      "object_type": "p15.ClassCache",
+      "production_callsite": "P15 cache only",
+      "referenced_attribute": "base_scores"
+    },
+    {
+      "exists": true,
+      "expected_shape_type": "ndarray",
+      "object_type": "p15.ClassCache",
+      "production_callsite": "P15 cache only",
+      "referenced_attribute": "base_positive"
+    },
+    {
+      "exists": true,
+      "expected_shape_type": "ndarray",
+      "object_type": "p15.ClassCache",
+      "production_callsite": "P15 cache only",
+      "referenced_attribute": "base_total"
+    },
+    {
+      "exists": true,
+      "expected_shape_type": "int",
+      "object_type": "P22.RecoveryEngine",
+      "production_callsite": "flat store/coordinate",
+      "referenced_attribute": "n_images"
+    },
+    {
+      "exists": true,
+      "expected_shape_type": "tuple[str,...]",
+      "object_type": "P22.RecoveryEngine",
+      "production_callsite": "flat store/coordinate",
+      "referenced_attribute": "names"
+    },
+    {
+      "exists": true,
+      "expected_shape_type": "float32 ndarray",
+      "object_type": "P22.RecoveryEngine",
+      "production_callsite": "flat store/coordinate",
+      "referenced_attribute": "union"
+    },
+    {
+      "exists": true,
+      "expected_shape_type": "float64 ndarray",
+      "object_type": "P22.RecoveryEngine",
+      "production_callsite": "flat store/coordinate",
+      "referenced_attribute": "base_positive"
+    },
+    {
+      "exists": true,
+      "expected_shape_type": "float64 ndarray",
+      "object_type": "P22.RecoveryEngine",
+      "production_callsite": "flat store/coordinate",
+      "referenced_attribute": "base_total"
+    }
+  ],
+  "firewall": {
+    "clip": 0,
+    "medical": 0,
+    "mvtec": 0,
+    "phase2b_steps": 0
+  },
+  "forbidden_classcache_n_images_reference": false,
+  "status": "PASS"
+}
