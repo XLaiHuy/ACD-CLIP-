@@ -1,0 +1,87 @@
+{
+  "checks": {
+    "exactness": true,
+    "marker_absent": true,
+    "p20_immutable": true,
+    "parent": true,
+    "performance": true,
+    "trajectory": true
+  },
+  "exactness": {
+    "apply_revert_exact": true,
+    "gpu_trajectory_error": 0.0,
+    "p15_p21_fixture_error": 0.0,
+    "status": "PASS",
+    "trajectory_match": true
+  },
+  "firewall": {
+    "clip": 0,
+    "medical": 0,
+    "mvtec": 0,
+    "phase2b_steps": 0
+  },
+  "performance": {
+    "a0_candidates": 86480,
+    "a1_candidates": 129720,
+    "ap_error": 0.0,
+    "backend": "cuda_batch4",
+    "cpu_candidate_seconds": 0.09225018881261349,
+    "exact_inventory_images": 2162,
+    "firewall": {
+      "clip": 0,
+      "medical": 0,
+      "mvtec": 0,
+      "phase2b_steps": 0
+    },
+    "gpu_candidate_seconds": 0.012088451068848372,
+    "gpu_peak_vram_bytes": 1509949952,
+    "projected_max_route_minutes": 114.86548024529282,
+    "stage_d_candidates": 6486,
+    "status": "PASS"
+  },
+  "status": "PASS",
+  "trajectory": {
+    "family": [
+      "NATIVE",
+      "SAFE20",
+      "EXPAND40"
+    ],
+    "firewall": {
+      "clip": 0,
+      "medical": 0,
+      "mvtec": 0,
+      "phase2b_steps": 0
+    },
+    "first_image_coordinates": 8,
+    "held": "candle",
+    "max_candidate_ap_error": 0.0,
+    "scalar_decisions": [
+      [
+        "NATIVE",
+        "EXPAND40",
+        "EXPAND40",
+        "EXPAND40",
+        "EXPAND40",
+        "EXPAND40",
+        "NATIVE",
+        "EXPAND40"
+      ],
+      [
+        "NATIVE",
+        "EXPAND40",
+        "EXPAND40",
+        "EXPAND40",
+        "EXPAND40",
+        "EXPAND40",
+        "NATIVE",
+        "EXPAND40"
+      ]
+    ],
+    "seed_count": 2,
+    "state_match": [
+      true,
+      true
+    ],
+    "status": "PASS"
+  }
+}
