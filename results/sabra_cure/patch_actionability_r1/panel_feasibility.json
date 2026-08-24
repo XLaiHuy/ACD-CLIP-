@@ -1,0 +1,24 @@
+{
+  "status":"PASS",
+  "parent_sha":"c0dd9ee86806346276f07bad8a7d1ea56327590d",
+  "target_patches_per_class":2000,
+  "max_target_patches_per_image":16,
+  "strata":"GT-free margin_within_image_rank quintile x GT-free deployment_sensitivity quintile",
+  "selection_uses_gt":false,
+  "all_25_strata_nonempty":true,
+  "classes":[
+    {"name":"candle","images":200,"selected":2000,"max_selected_per_image":16},
+    {"name":"capsules","images":160,"selected":2000,"max_selected_per_image":16},
+    {"name":"cashew","images":150,"selected":2000,"max_selected_per_image":16},
+    {"name":"chewinggum","images":150,"selected":2000,"max_selected_per_image":16},
+    {"name":"fryum","images":150,"selected":2000,"max_selected_per_image":16},
+    {"name":"macaroni1","images":200,"selected":2000,"max_selected_per_image":16},
+    {"name":"macaroni2","images":200,"selected":2000,"max_selected_per_image":16},
+    {"name":"pcb1","images":200,"selected":2000,"max_selected_per_image":16},
+    {"name":"pcb2","images":200,"selected":2000,"max_selected_per_image":16},
+    {"name":"pcb3","images":201,"selected":2000,"max_selected_per_image":16},
+    {"name":"pcb4","images":201,"selected":2000,"max_selected_per_image":16},
+    {"name":"pipe_fryum","images":150,"selected":2000,"max_selected_per_image":16}
+  ],
+  "firewall":{"mvtec_accessed":0,"medical_accessed":0,"additional_clip_forwards":0,"phase2b_training_steps":0}
+}
