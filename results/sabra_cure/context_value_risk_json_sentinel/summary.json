@@ -1,0 +1,73 @@
+{
+  "execution_base_sha": "3bdd7660cd17492e141da39979948e239d0c5138",
+  "firewall": {
+    "medical_accessed": false,
+    "mvtec_accessed": false
+  },
+  "folds_completed": 12,
+  "freeze": {
+    "additional_clip_forwards": 0,
+    "alpha": 0.25,
+    "phase2b_training_steps": 0
+  },
+  "gates": {
+    "G10_POLICY_VALUE": false,
+    "G11_SELECTION": true,
+    "G1_AUDIT": true,
+    "G2_SAFETY": true,
+    "G3_WEIGHTED_HARM": true,
+    "G4_RECOVERY_COVERAGE": false,
+    "G5_CONTEXT_USAGE": false,
+    "G6_PAP_NATIVE": false,
+    "G7_BREADTH": false,
+    "G8_POSITIVE_BREADTH": false,
+    "G9_AUROC": true
+  },
+  "metrics": {
+    "coverage_delta_vs_r2v2": 0.010172213861985607,
+    "expand40_fraction": 0.0666049953746531,
+    "improving_classes": 5,
+    "macro_pap": {
+      "always_expand40": 0.56944157483888,
+      "context": 0.5697706390335403,
+      "image_oracle": 0.5704510229600025,
+      "native": 0.5699400925375667,
+      "safe20": 0.5698249926799137
+    },
+    "macro_pauroc": {
+      "always_expand40": 0.9695760272947451,
+      "context": 0.9714339111060807,
+      "image_oracle": 0.9770241267177431,
+      "native": 0.9707623684180294,
+      "safe20": 0.9714520806680665
+    },
+    "no_expansion_folds": 9,
+    "nonregressing_classes": 5,
+    "safety": {
+      "coverage": 0.1835722138619856,
+      "harm_density": 0.0045035934305290405,
+      "relative_weighted_harm_reduction": 0.990198220836975,
+      "wrong_rate": 0.01213804425646887
+    },
+    "value_prediction": {
+      "pearson": 0.033900621243688034,
+      "sign_accuracy_nonzero": 0.41956967213114754,
+      "spearman": 0.15709011175213658
+    }
+  },
+  "selected_q": {
+    "candle": 0.8,
+    "capsules": null,
+    "cashew": null,
+    "chewinggum": 0.8,
+    "fryum": null,
+    "macaroni1": 0.9,
+    "macaroni2": null,
+    "pcb1": null,
+    "pcb2": null,
+    "pcb3": null,
+    "pcb4": null,
+    "pipe_fryum": null
+  },
+  "status": "P14_SCIENCE_RECOVERED_STOP"
+}
