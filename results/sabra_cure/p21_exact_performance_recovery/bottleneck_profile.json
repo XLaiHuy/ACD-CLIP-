@@ -1,0 +1,35 @@
+{
+  "status": "PASS",
+  "scope": "pre-preregistration engineering profile; no P21 scientific attempt",
+  "held_class": "candle",
+  "image_count": 200,
+  "union_score_count": 6272003,
+  "delta": {"image": 0, "action": "SAFE20", "nnz": 316170, "compressed_npz_bytes": 558185},
+  "latency_seconds": {
+    "T1_delta_lookup_file_open": {"mean": 0.0000718672, "median": 0.0000741938, "p90": 0.0000871377},
+    "T2_decompression": {"mean": 0.0056326402, "median": 0.0055525270, "p90": 0.0057775629},
+    "T3_host_delta_decode": {"mean": 0.0004146638, "median": 0.0004714942, "p90": 0.0004797997},
+    "T4_current_state_copy": {"mean": 0.0116937342, "median": 0.0116937342, "p90": 0.0116937342},
+    "T5_cpu_sparse_apply_revert": {"mean": 0.0037719831, "median": 0.0037719831, "p90": 0.0037719831},
+    "T6_cpu_exact_ap": {"mean": 0.0776275150, "median": 0.0776275150, "p90": 0.0776275150},
+    "T7_gpu_h2d_sparse": {"mean": 0.0006294558, "median": 0.0006294558, "p90": 0.0006294558},
+    "T8_gpu_scratch_copy_batch2": {"mean": 0.0012310450, "median": 0.0012310450, "p90": 0.0012310450},
+    "T9_gpu_sparse_index_add_batch2": {"mean": 0.0654950929, "median": 0.0654950929, "p90": 0.0654950929},
+    "T10_gpu_cumsum_ap_batch2": {"mean": 0.0371211916, "median": 0.0371211916, "p90": 0.0371211916},
+    "T11_gpu_synchronization": {"mean": 0.0, "median": 0.0, "p90": 0.0},
+    "T12_decision_commit_revert": {"mean": 0.0, "median": 0.0, "p90": 0.0}
+  },
+  "prototypes": {
+    "p21_cpu_candidate_seconds": 0.1159484615,
+    "direct_cpu_candidate_seconds": 0.1501253122,
+    "cpu_in_place_lower_path_seconds": 0.0813994980,
+    "gpu_indexed_unique_batch2_seconds_per_candidate": 0.0235647210,
+    "gpu_indexed_unique_batch4_seconds_per_candidate": 0.0120573795,
+    "gpu_batch4_unique_indices": true,
+    "gpu_batch4_exact_float64_grouped_ap": true,
+    "gpu_peak_vram_bytes_batch2": 812896256
+  },
+  "historical_delta_cache_build_seconds": 60.952639367,
+  "bottleneck": "Repeated full grouped-AP scans and candidate state materialization. Compressed-NPZ decompression is material but not dominant on a warm per-delta read. Unique-index batched GPU sparse updates remove the measured index_add bottleneck without changing grouped-count arithmetic.",
+  "firewall": {"mvtec": 0, "medical": 0, "additional_clip_forwards": 0, "phase2b_training_steps": 0}
+}
