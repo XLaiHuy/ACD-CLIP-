@@ -1,0 +1,24 @@
+{
+  "status": "P25R2_ENGINEERING_STOP",
+  "stage": "Q1_AGGREGATION",
+  "attempt_uuid": "5612ca2385e94924a37a1dd81727d6e6",
+  "runs": 1,
+  "cause": "Frozen Q1 aggregation rejects undefined metrics. The chewinggum held-class ranker output was constant, so Pearson and Spearman were undefined.",
+  "evidence": {
+    "held_class": "chewinggum",
+    "target_count": 2000,
+    "target_finite": true,
+    "target_unique_count": 1868,
+    "score_finite": true,
+    "score_unique_count": 1,
+    "score_variance": 0.0,
+    "pearson": null,
+    "spearman": null,
+    "sign_auc": 0.5,
+    "bc20": 0.1618885979031331
+  },
+  "completed": {"target_classes": 12, "q1_folds": 12, "q2_folds": 0},
+  "scientific_interpretation": "NONE. Q1 gates were not validly aggregated and Q2 was not entered.",
+  "recovery_policy": "No code change, retry, rerun, or Q2 execution is authorized after the marker.",
+  "firewall": {"mvtec_accessed": false, "medical_accessed": false, "additional_clip_forwards": 0, "phase2b_training_steps": 0}
+}
