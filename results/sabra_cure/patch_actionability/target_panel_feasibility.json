@@ -1,0 +1,25 @@
+{
+  "status": "P25_TARGET_PANEL_NO_GO",
+  "reason": "The frozen requirement TARGET_PATCHES_PER_CLASS=4096 is incompatible with MAX_TARGET_PATCHES_PER_IMAGE=16 and the immutable exact VisA image inventory.",
+  "required_panel_patches_per_class": 4096,
+  "max_target_patches_per_image": 16,
+  "per_class": [
+    {"class_name":"candle","images":200,"max_allowed_panel_patches":3200,"shortfall":896},
+    {"class_name":"capsules","images":160,"max_allowed_panel_patches":2560,"shortfall":1536},
+    {"class_name":"cashew","images":150,"max_allowed_panel_patches":2400,"shortfall":1696},
+    {"class_name":"chewinggum","images":150,"max_allowed_panel_patches":2400,"shortfall":1696},
+    {"class_name":"fryum","images":150,"max_allowed_panel_patches":2400,"shortfall":1696},
+    {"class_name":"macaroni1","images":200,"max_allowed_panel_patches":3200,"shortfall":896},
+    {"class_name":"macaroni2","images":200,"max_allowed_panel_patches":3200,"shortfall":896},
+    {"class_name":"pcb1","images":200,"max_allowed_panel_patches":3200,"shortfall":896},
+    {"class_name":"pcb2","images":200,"max_allowed_panel_patches":3200,"shortfall":896},
+    {"class_name":"pcb3","images":201,"max_allowed_panel_patches":3216,"shortfall":880},
+    {"class_name":"pcb4","images":201,"max_allowed_panel_patches":3216,"shortfall":880},
+    {"class_name":"pipe_fryum","images":150,"max_allowed_panel_patches":2400,"shortfall":1696}
+  ],
+  "totals":{"images":2162,"required_panel_patches":49152,"max_allowed_panel_patches":34592,"shortfall":14560},
+  "resolution":"No deterministic redistribution can create capacity above the per-image cap. Changing the quota or cap would change the frozen P25 protocol and is forbidden.",
+  "scientific_attempt_created":false,
+  "target_values_computed":0,
+  "firewall":{"mvtec_accessed":0,"medical_accessed":0,"additional_clip_forwards":0,"phase2b_training_steps":0}
+}
