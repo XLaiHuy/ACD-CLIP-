@@ -202,7 +202,9 @@ def _deployed_margin(native_logits: np.ndarray, device: torch.device) -> np.ndar
 def candidate_support_scores(margin: np.ndarray, patch: int, sign: int, basis: Basis) -> tuple[np.ndarray, np.ndarray]:
     index, values = basis.support(patch)
     shifted = np.asarray(margin, dtype=np.float32)[index] + np.float32(sign * ALPHA * MARGIN_SCALE) * values
-    probability = (1.0 / (1.0 + np.exp(-shifted.astype(np.float64)))).astype(np.float32)
+    # Frozen deployment uses Torch float32 sigmoid; NumPy float64 followed by a
+    # cast is not bit-identical near score-group boundaries.
+    probability = torch.sigmoid(torch.from_numpy(shifted)).numpy().astype(np.float32, copy=False)
     return index, probability
 
 
@@ -535,7 +537,12 @@ def candle_parity(output: Path, count: int = 128) -> dict[str, Any]:
         native = torch.from_numpy(logits[image:image + 1]).permute(1, 0, 2, 3).to(device)
         with torch.no_grad(): probability, _ = deploy_correction(native, correction)
         direct = scores.copy(); direct[image] = probability[0, 1].cpu().numpy().astype(np.float32)
-        max_error = max(max_error, abs(float(exact_metrics(direct.reshape(-1), masks.reshape(-1))["pAP"]) - fast))
+        error = abs(float(exact_metrics(direct.reshape(-1), masks.reshape(-1))["pAP"]) - fast)
+        max_error = max(max_error, error)
+        if error > 1e-12:
+            atomic_json(output / "candle_parity_failure.json", {"row": row, "image": image, "patch": patch, "sign": sign,
+                                                                   "error": error, "fast": fast, "direct": float(exact_metrics(direct.reshape(-1), masks.reshape(-1))["pAP"])})
+            raise RuntimeError(f"P25R_ENGINEERING_STOP candle parity row={row} error={error}")
     result = {"status": "PASS" if max_error <= 1e-12 else "FAIL", "class": name, "count": int(min(count, len(panel["patch_index"]))),
               "max_abs_error": float(max_error), "elapsed_seconds": time.perf_counter() - started, "base_pap": float(base_ap),
               "uses_target_labels": False, "firewall": {"mvtec": 0, "medical": 0, "clip": 0, "phase2b_steps": 0}}
