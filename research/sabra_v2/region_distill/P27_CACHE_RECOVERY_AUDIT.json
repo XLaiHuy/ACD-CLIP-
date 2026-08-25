@@ -1,0 +1,63 @@
+{
+  "schema_version": "P27_CACHE_RECOVERY_AUDIT_V1",
+  "status": "READY",
+  "frozen_parent_sha": "1151373f2c4968268f52cdc3e538c7ebcef7b8f0",
+  "recovery_branch": "research/p27-cache-performance-recovery-v1",
+  "protocol_sha256": "992c58ff7cf8b612a701e63a04013703900e37f8222d39e2c4282d6d7536aca7",
+  "asset_hashes": {
+    "phase2b_checkpoint": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+    "clip_asset": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+    "config": "edf5745686e3d3d0d3b4142341569da06ad5b54025a779b78d83f74303ce67fc"
+  },
+  "environment": {
+    "python": "3.10.20",
+    "torch": "2.5.1+cu121",
+    "torchvision": "0.20.1+cu121",
+    "cuda_available": true,
+    "gpu": "NVIDIA GeForce RTX 3070",
+    "gpu_memory_mib": 8192,
+    "setuptools_repaired_from": "84.0.0",
+    "setuptools_repaired_to": "80.10.2"
+  },
+  "dataset": {
+    "root": "/workspace/data/source/visa_unpack",
+    "classes": 12,
+    "records": 2162,
+    "images_verified": 2162,
+    "anomaly_masks_verified": 1200
+  },
+  "tests": {
+    "directly_relevant_p27": "31 passed",
+    "real_gpu_tensor_forward_loss_parity": "PASS",
+    "real_gpu_backward_optimizer_tolerance": "PASS",
+    "metadata_loco_audit": "PASS",
+    "repository_wide_collection": "NOT_APPLICABLE_TO_P27_GATE: unrelated historical/future tests require absent branch APIs and optional sklearn/scipy dependencies"
+  },
+  "firewall": {
+    "held_gt_reads_before_scoring": 0,
+    "held_mask_reads_before_scoring": 0,
+    "mvtec_reads": 0,
+    "medical_reads": 0,
+    "fold_local_source_only_cache": "PASS"
+  },
+  "rejection_tests": {
+    "wrong_fold": "PASS",
+    "wrong_p26_hash": "PASS",
+    "wrong_clip_hash": "PASS",
+    "wrong_config_hash": "PASS",
+    "incomplete_cache": "PASS",
+    "source_inventory_mismatch": "PASS",
+    "stale_source_file_inventory": "PASS",
+    "corrupt_tensor_checksum": "PASS"
+  },
+  "performance_recovery_gates": {
+    "all_exact_and_provenance_tests": true,
+    "loco_firewall": true,
+    "scientific_semantics_unchanged": true,
+    "meaningful_speedup": true,
+    "storage_practical_with_sequential_fold_cleanup": true,
+    "reliability_regression": false,
+    "assets_exact": true,
+    "approved_diff_only": true
+  }
+}

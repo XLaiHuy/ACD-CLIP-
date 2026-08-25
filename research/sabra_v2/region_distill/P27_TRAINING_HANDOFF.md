@@ -7,7 +7,9 @@ refuses substitutions. `REGION_TEACHER_HEADROOM=NOT_CHECKED` is intentional.
 Use the prepared environment:
 
 ```bash
-source /workspace/venvs/acdclip/bin/activate
+source /workspace/miniconda3/etc/profile.d/conda.sh
+conda activate /workspace/venvs/acdclip
+export PYTHONPATH=/workspace/ACD-CLIP-sabra${PYTHONPATH:+:$PYTHONPATH}
 ```
 
 First run the metadata-only preflight for the planned fold:
@@ -30,7 +32,8 @@ for HELD in candle capsules cashew chewinggum fryum macaroni1 macaroni2 pcb1 pcb
   python -m tools.sabra_v2.train_region_distill \
     --held-class "${HELD}" --visa-root "${VISA_ROOT}" \
     --p26-checkpoint "${P26_CHECKPOINT}" --clip-asset "${CLIP_ASSET}" \
-    --output "${OUT}" --epochs 20 --batch-size 1 --learning-rate 0.001
+    --output "${OUT}" --cache-dir "/workspace/p27_cache/${HELD}" \
+    --epochs 20 --batch-size 1 --learning-rate 0.001 --seed 0
   python -m tools.sabra_v2.evaluate_region_distill \
     --held-class "${HELD}" --visa-root "${VISA_ROOT}" \
     --p26-checkpoint "${P26_CHECKPOINT}" --clip-asset "${CLIP_ASSET}" \
@@ -42,7 +45,9 @@ done
 ```
 
 The train entrypoint reads masks only from the 11 source classes. The teacher
-is source-GT-only. The prediction entrypoint uses `VisaEvidenceDataset`, has no
+is source-GT-only. It first writes a lossless fold-local FP32 memory-mapped
+cache with per-file SHA-256 provenance and reuses the exact frozen tensors for
+all 20 epochs. The prediction entrypoint uses `VisaEvidenceDataset`, has no
 GT/mask input, and rejects engineering-only checkpoints. The scorer runs only
 after saved held predictions and performs zero fitting or teacher steps.
 

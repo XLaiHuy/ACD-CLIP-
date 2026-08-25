@@ -13,7 +13,7 @@ from tools.sabra_v2.audit_region_distill import PROTOCOL_PATH, audit_protocol
 from tools.sabra_v2.data_protocol import loco_inventory
 from tools.sabra_v2.region_adapter import RegionResidualAdapter
 from tools.sabra_v2.student_forward import assert_frozen_phase2b, forward_region_student
-from tools.sabra_v2.train_region_distill import ROOT, _load_frozen_phase2b
+from tools.sabra_v2.train_region_distill import ROOT, _load_frozen_phase2b, _sha256
 
 
 def make_parser() -> argparse.ArgumentParser:
@@ -37,6 +37,15 @@ def run(args: argparse.Namespace) -> dict[str, object]:
         raise RuntimeError("held prediction rejects engineering-smoke or incomplete adapter checkpoints")
     if checkpoint.get("held_class") != args.held_class:
         raise RuntimeError("adapter checkpoint held class mismatch")
+    expected_hashes = {
+        "p26_checkpoint_sha256": _sha256(args.p26_checkpoint),
+        "clip_asset_sha256": _sha256(args.clip_asset),
+        "config_sha256": _sha256(ROOT / "configs/phase2b_canonical_v1.json"),
+        "protocol_sha256": _sha256(PROTOCOL_PATH),
+    }
+    for key, expected in expected_hashes.items():
+        if checkpoint.get(key) != expected:
+            raise RuntimeError(f"adapter checkpoint {key} mismatch")
     inventory = loco_inventory(read_visa_metadata(args.metadata), args.held_class)
     device = torch.device(args.device)
     phase2b, config = _load_frozen_phase2b(args.p26_checkpoint, args.clip_asset, device)
@@ -53,11 +62,20 @@ def run(args: argparse.Namespace) -> dict[str, object]:
             frozen = forward_phase2b(phase2b, batch["image"], batch["class_name"], device, config, domain="Industrial", require_grad=False)
             student = forward_region_student(adapter, frozen.seg_features, frozen.native_logits)
             for index, image_path in enumerate(batch["image_path"]):
-                records.append({"image_path": image_path, "class_name": args.held_class, "abnormal_probability": student.deployed_probability[index, 1].detach().cpu()})
+                records.append({
+                    "image_path": image_path,
+                    "class_name": args.held_class,
+                    "native_abnormal_probability": student.native_probability[index, 1].detach().cpu(),
+                    "p27_abnormal_probability": student.deployed_probability[index, 1].detach().cpu(),
+                })
     args.output.mkdir(parents=True, exist_ok=True)
     output_path = args.output / "p27_held_predictions.pt"
-    torch.save({"held_class": args.held_class, "gt_used": False, "records": records}, output_path)
-    return {"prediction_path": str(output_path), "records": len(records), "gt_used": False}
+    if output_path.exists():
+        raise RuntimeError("immutable held prediction artifact already exists")
+    temporary = args.output / "p27_held_predictions.pt.tmp"
+    torch.save({"schema_version": "P27_HELD_PREDICTIONS_V1", "held_class": args.held_class, "gt_used": False, "records": records, **expected_hashes}, temporary)
+    temporary.replace(output_path)
+    return {"prediction_path": str(output_path), "prediction_sha256": _sha256(output_path), "records": len(records), "gt_used": False}
 
 
 def main() -> None:

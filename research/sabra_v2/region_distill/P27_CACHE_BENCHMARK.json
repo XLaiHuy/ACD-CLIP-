@@ -1,0 +1,69 @@
+{
+  "cache": {
+    "build_seconds": 1.130045039812103,
+    "bytes": 41169540,
+    "bytes_per_sample": 13723180.0,
+    "dtype": "float32",
+    "estimated_bytes_per_fold": {
+      "candle": 26924879160,
+      "capsules": 27473806360,
+      "cashew": 27611038160,
+      "chewinggum": 27611038160,
+      "fryum": 27611038160,
+      "macaroni1": 26924879160,
+      "macaroni2": 26924879160,
+      "pcb1": 26924879160,
+      "pcb2": 26924879160,
+      "pcb3": 26911155980,
+      "pcb4": 26911155980,
+      "pipe_fryum": 27611038160
+    },
+    "format": "memory-mapped raw fixed-shape tensors with SHA-256 manifest",
+    "manifest": "runs/sabra_v2/p27_cache_engineering/benchmark_cache/manifest.json",
+    "seconds_per_sample": 0.3766816799373676
+  },
+  "label": "MEASURED ENGINEERING",
+  "memory": {
+    "cached_gpu": {
+      "peak_allocated_bytes": 1906535936,
+      "peak_reserved_bytes": 3743416320
+    },
+    "host_peak_rss_kib": 3267080,
+    "uncached_gpu": {
+      "peak_allocated_bytes": 2138233344,
+      "peak_reserved_bytes": 3743416320
+    }
+  },
+  "parity": {
+    "cuda_parity_tolerance": 1e-07,
+    "distillation_loss_exact": true,
+    "gradient_and_step_within_tolerance": true,
+    "localization_loss_exact": true,
+    "max_gradient_abs_error": 7.450580596923828e-09,
+    "max_optimizer_parameter_abs_error": 1.1641532182693481e-10,
+    "student_forward_exact": true,
+    "tensor_exact": {
+      "native_logits": true,
+      "seg_features": true,
+      "source_mask": true,
+      "teacher_region": true
+    },
+    "tolerance_justification": "Frozen adaptive_average_pool2d CUDA backward is nondeterministic in torch 2.5.1; exact inputs/forward/loss are required and backward drift is bounded independently.",
+    "total_loss_exact": true
+  },
+  "projection": {
+    "cache_build_seconds_12_folds": 8958.243712270476,
+    "cached_training_seconds_12_folds": 5381.766714369878,
+    "label": "PROJECTED ENGINEERING",
+    "source_samples_across_12_folds": 23782,
+    "total_seconds_12_folds": 14340.010426640354
+  },
+  "timing": {
+    "cached_read_seconds": 0.0038820940535515547,
+    "cached_read_throughput_bytes_per_second": 3534994209.4899206,
+    "cached_training_step_seconds": 0.011314789997413754,
+    "measured_step_speedup": 26.846552004311903,
+    "uncached_forward_seconds": 0.23224763595499098,
+    "uncached_full_step_seconds": 0.3037630980834365
+  }
+}
