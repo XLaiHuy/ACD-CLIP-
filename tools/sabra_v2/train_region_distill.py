@@ -16,7 +16,7 @@ from tools.sabra_v2.audit_region_distill import PROTOCOL_PATH, audit_protocol
 from tools.sabra_v2.correction_teacher import build_source_teacher_region_target
 from tools.sabra_v2.data_protocol import loco_inventory
 from tools.sabra_v2.region_adapter import RegionResidualAdapter
-from tools.sabra_v2.student_forward import assert_frozen_phase2b, forward_region_student
+from tools.sabra_v2.student_forward import assert_frozen_phase2b, forward_region_student, materialize_frozen_inputs
 from tools.sabra_v2.p26_parent import verify_p26_parent
 
 
@@ -86,7 +86,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             frozen = forward_phase2b(phase2b, batch["image"], batch["class_name"], device, config, domain="Industrial", require_grad=False)
             source_mask = batch["mask"].to(device=device, dtype=torch.float32)
             teacher_region = build_source_teacher_region_target(frozen.native_logits, source_mask)
-            student = forward_region_student(adapter, frozen.seg_features, frozen.native_logits)
+            seg_features, native_logits = materialize_frozen_inputs(frozen.seg_features, frozen.native_logits)
+            student = forward_region_student(adapter, seg_features, native_logits)
             distillation = F.smooth_l1_loss(student.region_residual, teacher_region.unsqueeze(0).expand(3, -1, -1, -1))
             localization = calculate_seg_loss(student.deployed_probability, source_mask)
             loss = distillation + localization

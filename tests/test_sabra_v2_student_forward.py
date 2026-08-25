@@ -6,7 +6,7 @@ from torch import nn
 
 from tools.sabra_v2.data_protocol import loco_inventory
 from tools.sabra_v2.region_adapter import RegionResidualAdapter
-from tools.sabra_v2.student_forward import assert_frozen_phase2b, forward_region_student
+from tools.sabra_v2.student_forward import assert_frozen_phase2b, forward_region_student, materialize_frozen_inputs
 
 
 def test_zero_initialized_region_student_is_native_p26_deployment_parity() -> None:
@@ -59,3 +59,17 @@ def test_frozen_parameter_audit_rejects_trainable_phase2b() -> None:
 
     with pytest.raises(RuntimeError, match="frozen"):
         assert_frozen_phase2b(phase2b, RegionResidualAdapter())
+
+
+def test_student_accepts_cloned_frozen_phase2b_inference_tensors_for_backward() -> None:
+    """P26 inference-mode outputs must be copied at the P27 train boundary."""
+    adapter = RegionResidualAdapter()
+    with torch.inference_mode():
+        frozen_features = torch.randn((3, 1, 1369, 768))
+        frozen_logits = torch.randn((3, 1, 1369, 2))
+
+    features, logits = materialize_frozen_inputs(frozen_features, frozen_logits)
+    output = forward_region_student(adapter, features, logits)
+    output.corrected_logits.mean().backward()
+
+    assert adapter.output.bias.grad is not None

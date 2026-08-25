@@ -6,6 +6,7 @@ import pytest
 
 from tools.sabra_v2.audit_region_distill import audit_protocol, write_audit_report
 from tools.sabra_v2.evaluate_region_distill import make_parser as make_evaluate_parser
+from tools.sabra_v2.score_region_distill import make_parser as make_score_parser
 from tools.sabra_v2.train_region_distill import make_parser as make_train_parser
 
 
@@ -51,3 +52,11 @@ def test_train_and_gt_free_evaluation_parsers_require_frozen_asset_arguments() -
     )
 
     assert train.held_class == evaluate.held_class == "candle"
+
+
+def test_post_prediction_scoring_parser_is_a_separate_held_gt_stage() -> None:
+    score = make_score_parser().parse_args(
+        ["--held-class", "candle", "--visa-root", "/data/visa", "--predictions", "/runs/p27/predictions.pt", "--output", "/runs/p27/metrics"]
+    )
+
+    assert score.held_class == "candle"

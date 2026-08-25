@@ -33,6 +33,16 @@ def assert_frozen_phase2b(phase2b: nn.Module, adapter: RegionResidualAdapter) ->
         raise RuntimeError(f"P27 adapter must remain trainable; frozen parameters: {frozen_adapter}")
 
 
+def materialize_frozen_inputs(seg_features: torch.Tensor, native_logits: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    """Copy P26 inference-mode outputs into ordinary non-trainable tensors.
+
+    Phase2B intentionally returns inference tensors.  The copies preserve
+    values while allowing autograd to retain P27 adapter intermediates; they
+    never re-enable gradients for the frozen parent.
+    """
+    return seg_features.detach().clone(), native_logits.detach().clone()
+
+
 def forward_region_student(
     adapter: RegionResidualAdapter, seg_features: torch.Tensor, native_logits: torch.Tensor
 ) -> RegionStudentForward:

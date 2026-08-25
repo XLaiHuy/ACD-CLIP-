@@ -30,10 +30,10 @@
 - Produces `pool_patch_map`, `upsample_region_map`, `symmetric_margin_delta`.
 - Accepts `[B,37,37]` or `[S,B,37,37]` maps and `[S,B,1369,2]` logits.
 
-- [ ] Write failing shape, deterministic, and margin-semantics tests.
-- [ ] Run `pytest -q tests/test_sabra_v2_region_pool.py` and confirm failure.
-- [ ] Implement adaptive pooling, bilinear upsampling, and two-class integration.
-- [ ] Re-run the focused tests and commit the tested utility.
+- [x] Write failing shape, deterministic, and margin-semantics tests.
+- [x] Run `pytest -q tests/test_sabra_v2_region_pool.py` and confirm failure.
+- [x] Implement adaptive pooling, bilinear upsampling, and two-class integration.
+- [x] Re-run the focused tests and commit the tested utility.
 
 ### Task 2: Teacher and small region adapter
 
@@ -47,10 +47,10 @@
 - `build_region_teacher(...)` returns `[B,9,9]`.
 - `RegionResidualAdapter.forward(features)` returns `[3,B,9,9]`.
 
-- [ ] Write controlled positive/negative teacher, adapter shape, zero-output, and serialization tests.
-- [ ] Run the tests to confirm missing symbols fail.
-- [ ] Implement R0 utility/action semantics and the fixed convolutional adapter.
-- [ ] Re-run focused tests and commit the tested components.
+- [x] Write controlled positive/negative teacher, adapter shape, zero-output, and serialization tests.
+- [x] Run the tests to confirm missing symbols fail.
+- [x] Implement R0 utility/action semantics and the fixed convolutional adapter.
+- [x] Re-run focused tests and commit the tested components.
 
 ### Task 3: Frozen Phase2B student forward and source-only LOCO inventory
 
@@ -64,10 +64,10 @@
 - `loco_inventory(rows, held_class)` returns disjoint fit/held records.
 - `assert_frozen_phase2b(model, adapter)` validates gradient ownership.
 
-- [ ] Write failing parity, held-class exclusion, frozen-parameter, and backward tests.
-- [ ] Run focused tests and confirm failure.
-- [ ] Implement frozen interface and LOCO filtering without target data paths.
-- [ ] Re-run focused tests and commit.
+- [x] Write failing parity, held-class exclusion, frozen-parameter, and backward tests.
+- [x] Run focused tests and confirm failure.
+- [x] Implement frozen interface and LOCO filtering without target data paths.
+- [x] Re-run focused tests and commit.
 
 ### Task 4: Training, evaluation, and pre-training audit entrypoints
 
@@ -81,10 +81,10 @@
 - Train accepts one `--held-class`, `--visa-root`, `--output`, and frozen P26 assets.
 - Audit emits machine-readable JSON and Markdown, with no external reads.
 
-- [ ] Write failing config, audit, and parser tests.
-- [ ] Run focused tests and confirm failure.
-- [ ] Implement one-fold orchestration, held-only prediction evaluation, and audit checks.
-- [ ] Re-run all P27 tests and commit.
+- [x] Write failing config, audit, and parser tests.
+- [x] Run focused tests and confirm failure.
+- [x] Implement one-fold orchestration, held-only prediction evaluation, and audit checks.
+- [x] Re-run all P27 tests and commit.
 
 ### Task 5: Engineering smoke and handoff
 
@@ -92,6 +92,6 @@
 - Create: `research/sabra_v2/region_distill/P27_TRAINING_HANDOFF.md`
 - Modify: `research/sabra_v2/region_distill/P27_PROTOCOL.json`
 
-- [ ] Run P26 regression tests, P27 tests, audit, and one tiny source GPU forward/backward/save-reload smoke.
-- [ ] Record engineering-only resource observations and syntactically validate handoff commands.
-- [ ] Inspect status and staged diff, commit explicit paths, push, and verify remote equals local.
+- [x] Run P26 regression tests, P27 tests, audit, and one tiny source GPU forward/backward/save-reload smoke.
+- [x] Record engineering-only resource observations and syntactically validate handoff commands.
+- [x] Inspect status and staged diff, commit explicit paths, push, and verify remote equals local.
