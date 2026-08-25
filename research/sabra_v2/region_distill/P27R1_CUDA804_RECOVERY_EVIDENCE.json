@@ -1,0 +1,104 @@
+{
+  "schema_version": "P27R1_CUDA804_RECOVERY_EVIDENCE_V1",
+  "status": "PASS",
+  "root_cause_class": "HOST_RUNTIME_CUDA_PROPAGATION",
+  "terminal_parent_sha": "f319a55bf8dc70cd17e0bf42c412622bd3095940",
+  "recovery_preregistration_commit": "def40bad5a2bce152a5215fba9fa67916ada7682",
+  "original_attempt": {
+    "uuid": "60dd4d8d-15cd-403e-b2b3-4b38f4e7da1a",
+    "status": "P27_ENGINEERING_STOP",
+    "completed_folds": 0,
+    "training_steps": 0,
+    "predictions": 0,
+    "scores": 0
+  },
+  "reproduction": {
+    "error_804_reproduced": true,
+    "parent": {
+      "ld_library_path": "/usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/local/cuda/lib64",
+      "resolved_libcuda": "/usr/lib/x86_64-linux-gnu/libcuda.so.570.172.08",
+      "torch_cuda_is_available": true
+    },
+    "direct_child": {
+      "resolved_libcuda": "/usr/lib/x86_64-linux-gnu/libcuda.so.570.172.08",
+      "torch_cuda_is_available": true
+    },
+    "bash_c_child": {
+      "resolved_libcuda": "/usr/lib/x86_64-linux-gnu/libcuda.so.570.172.08",
+      "torch_cuda_is_available": true
+    },
+    "bash_lc_child": {
+      "resolved_libcuda": "/usr/lib/x86_64-linux-gnu/libcuda.so.570.172.08",
+      "torch_cuda_is_available": true
+    },
+    "python_subprocess_child": {
+      "resolved_libcuda": "/usr/lib/x86_64-linux-gnu/libcuda.so.570.172.08",
+      "torch_cuda_is_available": true
+    },
+    "exact_runner_child_from_parent": {
+      "resolved_libcuda": "/usr/lib/x86_64-linux-gnu/libcuda.so.570.172.08",
+      "torch_cuda_is_available": true
+    },
+    "interactive_tmux_shell_and_created_child": {
+      "ld_library_path": "/usr/local/cuda/lib64",
+      "resolved_libcuda": "/usr/local/cuda-12.9/compat/libcuda.so.575.57.08",
+      "torch_cuda_is_available": false,
+      "cuda_error": 804
+    }
+  },
+  "causal_evidence": {
+    "tmux_server_started_utc": "2026-08-25T14:15:10+00:00",
+    "host_driver_profile_sanitizer_installed_utc": "2026-08-25T14:45:26+00:00",
+    "tmux_server_predated_sanitizer": true,
+    "tmux_server_ld_library_path": "/usr/local/cuda/lib64",
+    "ldconfig_first_libcuda": "/usr/local/cuda-12.9/compat/libcuda.so.1",
+    "host_driver_libcuda_sha256": "4c8d21d94409c54ed05d396b92cec8a610d801926356cb88f019126956b7cb56",
+    "compat_libcuda_sha256": "f2470aa637fa72422534edeaeb9de19afe3d0646388baf7ffb5337b2edafc59e",
+    "runner_before_recovery": "copied inherited os.environ and set only CUBLAS_WORKSPACE_CONFIG"
+  },
+  "runtime_fix": {
+    "version": "HOST_DRIVER_FIRST_V1",
+    "host_driver_directory": "/usr/lib/x86_64-linux-gnu",
+    "rule": "remove exact compat/stubs path components, deduplicate paths, prepend verified host driver, propagate to every subprocess, and fail before marker unless child probe passes",
+    "cuda_home_removed": false,
+    "cuda_path_removed": false,
+    "driver_cuda_pytorch_changed": false
+  },
+  "qualification": {
+    "direct_recovered_child_repetitions": 3,
+    "direct_recovered_child_passes": 3,
+    "stale_tmux_recovered_child_repetitions": 3,
+    "stale_tmux_recovered_child_passes": 3,
+    "fixed_resolved_libcuda": "/usr/lib/x86_64-linux-gnu/libcuda.so.570.172.08",
+    "compat_precedence": false,
+    "stub_precedence": false,
+    "error_804_eliminated": true,
+    "exact_path_smoke": "PASS",
+    "exact_path_smoke_seg_features": [3, 1, 1369, 768],
+    "exact_path_smoke_native_logits": [3, 1, 1369, 2],
+    "exact_path_smoke_dtype": "torch.float32",
+    "exact_path_smoke_gt_reads": 0,
+    "exact_path_smoke_training_steps": 0,
+    "focused_tests": "27 passed",
+    "cache_tensor_parity": "PASS",
+    "loss_parity": "PASS",
+    "gradient_parity": "PASS",
+    "optimizer_step_parity": "PASS",
+    "loco_firewall": "PASS",
+    "held_supervision_exclusion": "PASS",
+    "scoring_barrier": "PASS"
+  },
+  "reused_engineering_evidence": {
+    "exactness_evidence_sha256": "6027eb1ecec73a40a2e13c1991d6bdcf02b96a45d2ff15744e966cc50efc97cb",
+    "measured_speedup": 9.047519426007115,
+    "projected_cache_gib": 49.2494,
+    "reason_reused": "only runtime environment construction and audit/marker metadata changed"
+  },
+  "raw_probe_hashes": {
+    "failing_tmux": "0ed3211d7f30cd900a7f280a74c8a01510200466a93bf5ae8735b4847366eee0",
+    "pre_fix_exact_runner": "ef11f7a65f642e27a08282619a41ffdad8c0f2b32d5b324f42ea245e44292799",
+    "fixed_tmux_repetitions": "61ea53d878bcef3049c061d59bc8c8bb06644cdf80c25e4679bbbec0b3c251de",
+    "exact_path_smoke": "b1b9a441da12c12bc22b50254d4aa726b2584e81d44c2a0406fcd6b9f6d28561"
+  },
+  "p27r1_recovery_scientific_attempts_consumed": 0
+}

@@ -15,12 +15,15 @@ from typing import Any
 
 from tools.sabra.data import EXPECTED_VISA_CLASSES, read_visa_metadata
 from tools.sabra_v2.audit_region_distill import PROTOCOL_PATH, audit_protocol
+from tools.sabra_v2.cuda_runtime import build_p27_cuda_environment, probe_cuda_subprocess
 from tools.sabra_v2.p26_parent import verify_p26_parent
 from tools.sabra_v2.region_cache import atomic_write_json, sha256_file
 from tools.sabra_v2.train_region_distill import ROOT
 
 
 EXACT_HELD_ORDER = tuple(EXPECTED_VISA_CLASSES)
+ORIGINAL_P27_ATTEMPT_UUID = "60dd4d8d-15cd-403e-b2b3-4b38f4e7da1a"
+ORIGINAL_P27_ATTEMPT_SHA256 = "bb6584fe9dd412b387b6c79aba5acff7712d0005ec7685b0dfaf80a60f088fbd"
 
 
 def make_parser() -> argparse.ArgumentParser:
@@ -33,6 +36,8 @@ def make_parser() -> argparse.ArgumentParser:
     parser.add_argument("--metadata", type=Path, default=ROOT / "dataset/hub/VisA.jsonl")
     parser.add_argument("--execution-base-sha", required=True)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--recovery-parent-attempt-uuid", required=True)
+    parser.add_argument("--original-attempt-marker", type=Path, required=True)
     return parser
 
 
@@ -101,8 +106,17 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     rows = read_visa_metadata(args.metadata)
     if tuple(sorted({str(row["class_name"]) for row in rows})) != tuple(sorted(EXACT_HELD_ORDER)):
         raise RuntimeError("exact VisA class inventory failed")
+    if args.recovery_parent_attempt_uuid != ORIGINAL_P27_ATTEMPT_UUID:
+        raise RuntimeError("P27R1 recovery parent attempt UUID mismatch")
+    if sha256_file(args.original_attempt_marker) != ORIGINAL_P27_ATTEMPT_SHA256:
+        raise RuntimeError("original consumed P27 attempt marker changed")
+    original_attempt = json.loads(args.original_attempt_marker.read_text())
+    if original_attempt.get("attempt_uuid") != ORIGINAL_P27_ATTEMPT_UUID or original_attempt.get("completion_status") != "ATTEMPT_CONSUMED":
+        raise RuntimeError("original consumed P27 attempt provenance mismatch")
+    environment = build_p27_cuda_environment(os.environ)
+    runtime_probe = probe_cuda_subprocess(environment, sys.executable)
     args.run_root.mkdir(parents=True, exist_ok=True)
-    attempt_path = args.run_root / "P27_ATTEMPT.json"
+    attempt_path = args.run_root / "P27R1_ATTEMPT.json"
     if attempt_path.exists():
         raise RuntimeError("P27 attempt marker already exists; automatic rerun is forbidden")
     if any((args.run_root / class_name).exists() for class_name in EXACT_HELD_ORDER):
@@ -115,9 +129,14 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     ).stdout.strip()
     attempt_uuid = str(uuid.uuid4())
     attempt = {
-        "schema_version": "P27_SCIENTIFIC_ATTEMPT_V1",
+        "schema_version": "P27R1_SCIENTIFIC_RECOVERY_ATTEMPT_V1",
         "completion_status": "ATTEMPT_CONSUMED",
         "attempt_uuid": attempt_uuid,
+        "recovery_attempt_number": 1,
+        "recovery_root_cause": "HOST_RUNTIME_CUDA_PROPAGATION",
+        "original_p27_attempt_uuid": ORIGINAL_P27_ATTEMPT_UUID,
+        "original_p27_attempt_marker_sha256": ORIGINAL_P27_ATTEMPT_SHA256,
+        "original_p27_attempt_status": "P27_ENGINEERING_STOP",
         "utc_timestamp": _utc(),
         "scientific_execution_base_sha": args.execution_base_sha,
         "branch": branch,
@@ -146,10 +165,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "p27_full_scientific_runs_consumed": 1,
         "mvtec_reads": 0,
         "medical_reads": 0,
+        "qualified_cuda_child_probe": runtime_probe,
     }
     atomic_write_json(attempt_path, attempt)
-    environment = dict(os.environ)
-    environment["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
     common = [
         "--visa-root", str(args.visa_root),
         "--p26-checkpoint", str(args.p26_checkpoint),
@@ -198,14 +216,14 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             )
         predictions = _prediction_gate(args.run_root)
         scoring_gate = {
-            "schema_version": "P27_SCORING_GATE_V1",
+            "schema_version": "P27R1_SCORING_GATE_V1",
             "completion_status": "PASS",
             "utc_timestamp": _utc(),
             "prediction_count": len(predictions),
             "predictions": predictions,
             "fit_or_teacher_steps_after_gate": 0,
         }
-        atomic_write_json(args.run_root / "P27_SCORING_GATE.json", scoring_gate)
+        atomic_write_json(args.run_root / "P27R1_SCORING_GATE.json", scoring_gate)
         for held_class in EXACT_HELD_ORDER:
             fold_root = args.run_root / held_class
             _run(
@@ -225,7 +243,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             environment,
         )
         result = {
-            "schema_version": "P27_SCIENTIFIC_RUN_COMPLETE_V1",
+            "schema_version": "P27R1_SCIENTIFIC_RUN_COMPLETE_V1",
             "completion_status": "COMPLETE",
             "attempt_uuid": attempt_uuid,
             "utc_timestamp": _utc(),
@@ -237,13 +255,13 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "mvtec_reads": 0,
             "medical_reads": 0,
         }
-        atomic_write_json(args.run_root / "P27_RUN_COMPLETE.json", result)
+        atomic_write_json(args.run_root / "P27R1_RUN_COMPLETE.json", result)
         return result
     except BaseException as exc:
         atomic_write_json(
-            args.run_root / "P27_ATTEMPT_FAILURE.json",
+            args.run_root / "P27R1_ATTEMPT_FAILURE.json",
             {
-                "schema_version": "P27_ATTEMPT_FAILURE_V1",
+                "schema_version": "P27R1_ATTEMPT_FAILURE_V1",
                 "attempt_uuid": attempt_uuid,
                 "utc_timestamp": _utc(),
                 "error_type": type(exc).__name__,

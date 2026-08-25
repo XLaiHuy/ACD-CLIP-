@@ -40,18 +40,22 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         args.clip_asset,
         ROOT / "configs/phase2b_canonical_v1.json",
     )
-    attempt_path = args.run_root / "P27_ATTEMPT.json"
-    complete_path = args.run_root / "P27_RUN_COMPLETE.json"
-    scoring_gate_path = args.run_root / "P27_SCORING_GATE.json"
+    attempt_path = args.run_root / "P27R1_ATTEMPT.json"
+    complete_path = args.run_root / "P27R1_RUN_COMPLETE.json"
+    scoring_gate_path = args.run_root / "P27R1_SCORING_GATE.json"
     if not attempt_path.is_file() or not complete_path.is_file() or not scoring_gate_path.is_file():
         raise RuntimeError("attempt, scoring gate, and run completion evidence are all required")
-    if (args.run_root / "P27_ATTEMPT_FAILURE.json").exists():
+    if (args.run_root / "P27R1_ATTEMPT_FAILURE.json").exists():
         raise RuntimeError("attempt failure marker exists")
     attempt = json.loads(attempt_path.read_text())
     complete = json.loads(complete_path.read_text())
     scoring_gate = json.loads(scoring_gate_path.read_text())
     if attempt.get("attempt_uuid") != complete.get("attempt_uuid"):
         raise RuntimeError("attempt UUID mismatch")
+    if attempt.get("recovery_root_cause") != "HOST_RUNTIME_CUDA_PROPAGATION":
+        raise RuntimeError("P27R1 root-cause linkage mismatch")
+    if attempt.get("original_p27_attempt_uuid") != "60dd4d8d-15cd-403e-b2b3-4b38f4e7da1a":
+        raise RuntimeError("original consumed P27 attempt linkage mismatch")
     if attempt.get("scientific_execution_base_sha") != args.execution_base_sha:
         raise RuntimeError("attempt execution-base mismatch")
     if scoring_gate.get("prediction_count") != 12 or scoring_gate.get("completion_status") != "PASS":
@@ -121,10 +125,14 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     remote = remote_fields[0] if len(remote_fields) == 2 else ""
     worktree_clean = not bool(_git("status", "--porcelain"))
     result = {
-        "schema_version": "P27_POST_RUN_AUDIT_V1",
+        "schema_version": "P27R1_POST_RUN_AUDIT_V1",
         "status": "PASS",
         "attempt_uuid": attempt["attempt_uuid"],
         "attempt_count": 1,
+        "original_p27_attempt_count": 1,
+        "original_p27_attempt_uuid": attempt["original_p27_attempt_uuid"],
+        "original_p27_attempt_status": attempt["original_p27_attempt_status"],
+        "recovery_root_cause": attempt["recovery_root_cause"],
         "fold_count": len(folds),
         "duplicate_scientific_folds": 0,
         "rerun_poor_folds": 0,
