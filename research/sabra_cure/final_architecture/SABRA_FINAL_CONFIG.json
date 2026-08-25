@@ -1,0 +1,142 @@
+{
+  "schema_version": "SABRA_FINAL_CONFIG_V1",
+  "study": "P26",
+  "status": "P26_FINAL_ARCHITECTURE_FROZEN",
+  "architecture_name": "SABRA-FINAL-NATIVE-PHASE2B-V1",
+  "parent_terminal_sha": "c8f505aa69b581afffead83db9b146df53179ce4",
+  "architecture": {
+    "base_detector": "Frozen Phase2B canonical adapter",
+    "policy": "NATIVE_ONLY",
+    "intervention_enabled": false,
+    "reachable_actions": ["KEEP"],
+    "native_fallback": "ALWAYS",
+    "correction_direction": "DISABLED",
+    "risk_safety_policy": "NO_CORRECTION_REACHABLE",
+    "coverage_fraction": 0.0,
+    "abstention_policy": "KEEP_EVERY_PATCH",
+    "historical_actuator_alpha": 0.25,
+    "historical_actuator_reachable": false,
+    "active_thresholds": [],
+    "retained_learned_heads": ["phase2b_image_adapter", "phase2b_text_adapter", "phase2b_soft_prompt"],
+    "dropped_heads": [
+      "sabra_r1_magnitude",
+      "sabra_r1_uncertainty",
+      "sabra_r2_selective_risk",
+      "sabra_r2v2_harm_gate",
+      "p14_image_value_ridge",
+      "p21_image_ranknet",
+      "p25_patch_benefit_ranknet"
+    ]
+  },
+  "model": {
+    "protocol_version": "PHASE2B_CANONICAL_V1",
+    "model_name": "ViT-L-14-336",
+    "visual_backbone": "OpenAI CLIP ViT-L/14@336px",
+    "text_backbone": "OpenAI CLIP text transformer",
+    "checkpoint_path": "runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+    "checkpoint_sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+    "clip_asset_path": "model/ViT-L-14-336px.pt",
+    "clip_asset_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+    "canonical_config_path": "configs/phase2b_canonical_v1.json",
+    "canonical_config_sha256": "edf5745686e3d3d0d3b4142341569da06ad5b54025a779b78d83f74303ce67fc",
+    "producing_config_path": "runs/phase4/k1/short64_seed0_attempt5/config.json",
+    "producing_config_sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4",
+    "checkpoint_epoch": 5,
+    "precision": "fp32",
+    "device_type": "cuda",
+    "device_index": 0,
+    "n_groups": 3,
+    "visual_stages": [8, 16, 24],
+    "text_stages": [4, 8, 12],
+    "patch_grid": [37, 37],
+    "patch_count": 1369,
+    "projected_patch_dimension": 768,
+    "h6_enabled": false,
+    "legacy_branch_enabled": false
+  },
+  "preprocessing": {
+    "input_color": "RGB",
+    "resize": [518, 518],
+    "resize_interpolation": "BICUBIC",
+    "tensor_dtype": "float32",
+    "tensor_scale": "uint8_to_[0,1]",
+    "normalize_mean": [0.48145466, 0.4578275, 0.40821073],
+    "normalize_std": [0.26862954, 0.26130258, 0.27577711],
+    "test_time_augmentation": false
+  },
+  "postprocessing": {
+    "input_native_logits_shape": [3, "B", 1369, 2],
+    "per_stage_order": ["reshape_37x37", "gaussian_blur", "bilinear_resize_518x518"],
+    "gaussian_kernel": [7, 7],
+    "gaussian_sigma": [1.0, 1.0],
+    "interpolation": "bilinear",
+    "align_corners": true,
+    "stage_aggregation": "mean_logits",
+    "probability": "softmax_after_stage_mean",
+    "anomaly_channel": 1,
+    "classification_aggregation": "mean_stage_classification_logits_then_softmax",
+    "inference_order": [
+      "preprocess",
+      "frozen_visual_and_text_forward",
+      "native_stage_logits",
+      "per_stage_gaussian_blur",
+      "per_stage_bilinear_resize",
+      "mean_stage_logits",
+      "softmax",
+      "return_anomaly_channel"
+    ]
+  },
+  "determinism": {
+    "seed": 0,
+    "python_seed": 0,
+    "numpy_seed": 0,
+    "torch_seed": 0,
+    "cudnn_benchmark": false,
+    "runtime_tuning": false
+  },
+  "source_only_learned_quantities": ["phase2b_checkpoint_parameters"],
+  "forbidden_runtime_behavior": [
+    "target_domain_training",
+    "target_domain_calibration",
+    "target_domain_threshold_selection",
+    "test_time_adaptation",
+    "prompt_tuning",
+    "adapter_training",
+    "alpha_tuning",
+    "action_threshold_tuning",
+    "architecture_selection_after_external_results"
+  ],
+  "required_artifacts": [
+    {
+      "path": "configs/phase2b_canonical_v1.json",
+      "sha256": "edf5745686e3d3d0d3b4142341569da06ad5b54025a779b78d83f74303ce67fc"
+    },
+    {
+      "path": "runs/phase4/k1/short64_seed0_attempt5/config.json",
+      "sha256": "377ce1c0ae1dd870f82ddcb828d8d8809fa46c007e61567f2150ec11354b23a4"
+    },
+    {
+      "path": "runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+      "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34"
+    },
+    {
+      "path": "model/ViT-L-14-336px.pt",
+      "sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02"
+    }
+  ],
+  "external_validation": {
+    "status": "NOT_RUN",
+    "authorized": false,
+    "allowed_future_dataset_after_explicit_authorization": "MVTec",
+    "architecture_revision_after_result": false,
+    "medical_forbidden": true
+  },
+  "firewall": {
+    "additional_clip_forwards_in_p26": 0,
+    "medical_reads_in_p26": 0,
+    "mvtec_reads_in_p26": 0,
+    "new_scientific_fits_in_p26": 0,
+    "phase2b_steps_in_p26": 0,
+    "scientific_attempt_markers_in_p26": 0
+  }
+}

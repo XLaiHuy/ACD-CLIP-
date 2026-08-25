@@ -1,0 +1,25 @@
+{
+  "schema_version": "P26_REPRODUCIBILITY_AUDIT_V1",
+  "status": "PASS",
+  "checks": {
+    "architecture_fully_specified": true,
+    "config_has_no_open_scientific_choice": true,
+    "entrypoint_loads_canonical_config": true,
+    "checkpoint_exists_and_hash_matches": true,
+    "clip_asset_exists_and_hash_matches": true,
+    "canonical_config_hash_matches": true,
+    "producing_config_hash_matches": true,
+    "native_postprocessing_contract_matches_code": true,
+    "check_only_no_science": true,
+    "dry_run_synthetic_only": true,
+    "external_run_locked": true,
+    "p26_attempt_marker_absent": true,
+    "mvtec_reads": 0,
+    "medical_reads": 0,
+    "additional_clip_forwards": 0,
+    "phase2b_steps": 0,
+    "new_scientific_fits": 0
+  },
+  "tests": "tests/test_sabra_final.py: 7 passed",
+  "result": "REPRODUCIBLE_ARCHITECTURE_CONTRACT"
+}

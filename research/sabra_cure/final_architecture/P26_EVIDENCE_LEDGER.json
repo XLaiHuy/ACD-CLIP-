@@ -1,0 +1,30 @@
+{
+  "schema_version": "P26_EVIDENCE_LEDGER_V1",
+  "status": "PASS",
+  "terminal_parent": "c8f505aa69b581afffead83db9b146df53179ce4",
+  "lineage": [
+    {"study": "R0", "terminal_sha": "571c26b07209c3005837deebfc306f1e3d1b433b", "status": "SIGNED_DIRECTION_GATE_CERTIFIED", "evidence_type": "PREREGISTERED_SCIENCE"},
+    {"study": "R1", "terminal_sha": "4a18ff820ed8416fafe1b3e95fa9da6a38a01957", "status": "R1_SCIENTIFIC_STOP", "evidence_type": "PREREGISTERED_SCIENCE"},
+    {"study": "R2", "terminal_sha": "7785fb2d984a226f14eccfc387bd537ff7d7957b", "status": "R2_SCIENTIFIC_STOP", "evidence_type": "PREREGISTERED_SCIENCE"},
+    {"study": "R2V2", "terminal_sha": "f097be019de365a9598551b4c3c97e33e3d39583", "status": "R2V2_SCIENTIFIC_STOP", "evidence_type": "PREREGISTERED_SCIENCE"},
+    {"study": "P13", "terminal_sha": "ed867055a2459ccfcf1fccb12d5e8990a8a3117e", "status": "POST_R2V2_ACTIONABILITY_DIAGNOSTIC_COMPLETE", "evidence_type": "POST_HOC_DIAGNOSTIC"},
+    {"study": "P20", "terminal_sha": "fcbd218c28cdd5c58f54e5d187f8d8ff9bdaa63f", "status": "P14_SCIENCE_RECOVERED_STOP", "evidence_type": "PREREGISTERED_SCIENCE"},
+    {"study": "P23", "terminal_sha": "7a7afe0cb6f7d7b6edddbafb4479175a50abbaf9", "status": "P21_CONTEXTUAL_ACTION_SPACE_INSUFFICIENT", "evidence_type": "PREREGISTERED_SCIENCE"},
+    {"study": "P24", "terminal_sha": "bcde7349ad7ba8e6f863959da4239010e6c870be", "status": "P24_PATCH_LEVEL_STUDY_JUSTIFIED", "evidence_type": "EVIDENCE_AUDIT"},
+    {"study": "P25R3", "terminal_sha": "c8f505aa69b581afffead83db9b146df53179ce4", "status": "P25_PATCH_BENEFIT_NOT_IDENTIFIABLE", "evidence_type": "PREREGISTERED_SCIENCE"}
+  ],
+  "claims": [
+    {"id": "E1", "claim": "Signed direction has transferable structure.", "status": "SUPPORTED", "deployable_effect": "NONE_WITHOUT_BENEFIT_GATE", "source": "R0/R1"},
+    {"id": "E2", "claim": "Exact magnitude transfer is sufficient.", "status": "NOT_SUPPORTED", "source": "R1_G3_FAIL"},
+    {"id": "E3", "claim": "Harm-aware selection can reduce wrong-sign harm.", "status": "SUPPORTED", "deployable_effect": "SAFETY_COMPONENT_ONLY", "source": "R2V2/P20/P23"},
+    {"id": "E4", "claim": "Image-level contextual value is predictively sufficient.", "status": "NOT_SUPPORTED", "source": "P20"},
+    {"id": "E5", "claim": "The tested coarse image action space has required headroom.", "status": "NOT_SUPPORTED", "source": "P23_H3_FAIL"},
+    {"id": "E6", "claim": "Patch-level oracle diagnostics indicate latent opportunity.", "status": "SUPPORTED_POST_HOC_ONLY", "source": "P13"},
+    {"id": "E7", "claim": "A GT-free patch-benefit selector is identifiable with the frozen P25 features/model.", "status": "NOT_SUPPORTED", "source": "P25R3_G2_TO_G6_FAIL"},
+    {"id": "E8", "claim": "Any tested SABRA/CURE correction is ready for untouched external deployment.", "status": "NOT_SUPPORTED", "source": "R1_TO_P25R3"},
+    {"id": "E9", "claim": "Frozen native Phase2B is the only fully specified deployable path surviving adjudication.", "status": "SUPPORTED", "source": "P24_COMPONENT_LEDGER_PLUS_P25R3"}
+  ],
+  "engineering_stops": ["P15", "P16", "P17", "P18", "P19", "P21", "P22", "P25", "P25R", "P25R2"],
+  "engineering_stops_scientifically_interpreted": false,
+  "firewall": {"mvtec_reads": 0, "medical_reads": 0, "additional_clip_forwards": 0, "phase2b_steps": 0, "new_fits": 0}
+}
