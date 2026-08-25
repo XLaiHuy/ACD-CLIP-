@@ -1,0 +1,425 @@
+{
+  "attempt": {
+    "attempt_uuid": "d262e07accdc4a83a889de29431b6669",
+    "execution_base_sha": "9c02c8e12e51fcf80d6c97f4ac9bfbbd10c14580",
+    "forensic_sha": "2d80a02366d19275b47ca5621e34090aeaf18ddd",
+    "p25r2_terminal_sha": "99ad3ab6292ca3b95fbda0cb8c6985ed9afe3253",
+    "p25r3_prereg_sha": "9b641d1b1deff64421736cdaa9dc6a5db8736bc7",
+    "runs": 1,
+    "solver": "deterministic-float64-damped-newton",
+    "status": "ATTEMPT_STARTED",
+    "target_generation_runs": 0
+  },
+  "firewall": {
+    "additional_clip_forwards": 0,
+    "medical_accessed": false,
+    "mvtec_accessed": false,
+    "phase2b_training_steps": 0
+  },
+  "post_execution_audit": {
+    "firewall": {
+      "additional_clip": 0,
+      "medical": 0,
+      "mvtec": 0,
+      "phase2b_steps": 0
+    },
+    "fold_count": 12,
+    "folds": {
+      "candle": {
+        "fold_sha256": "bb370c9377e317b6537f8404558fd134356781f20eb34109586c5b4d28916f7d",
+        "parameter_sha256": "254b12e3e1e44a17a1f1d7a59a5b3879767473b5d4d994ce583011bbe2483446",
+        "prediction_max_abs_error": 0.0
+      },
+      "capsules": {
+        "fold_sha256": "3154a398a714949efbec09d58070510c16fa3af9332f53c81d2a09adb2d4bd96",
+        "parameter_sha256": "ef721cfc4bbaf8136d3574fab1e2c42eb9d862e45ce4f4b511642a420e56ceaa",
+        "prediction_max_abs_error": 0.0
+      },
+      "cashew": {
+        "fold_sha256": "e49cae1fac4be311d9d2e84617f9e3c96dcb89cce147a304e3c19df1dc954572",
+        "parameter_sha256": "94008f2e87c2b0a8aa30873c54a3c9cdddc866a42621562943e5918103db18ac",
+        "prediction_max_abs_error": 0.0
+      },
+      "chewinggum": {
+        "fold_sha256": "3f5b216413216343adedf3669ec9fd4ca29a83bfac0240f69e66d7c79942d564",
+        "parameter_sha256": "08ce3fb5f9ed18d69c3e7e766d0b66894c9fa4624b347162e4c52a5f4144db7d",
+        "prediction_max_abs_error": 0.0
+      },
+      "fryum": {
+        "fold_sha256": "468779f9b04f64120b712834516be272243a9ae29d95969800b2e6a3afeea57e",
+        "parameter_sha256": "274782746bdd31a793ae6695710616f6ba4faf9f0be7443de4610ca7e589aede",
+        "prediction_max_abs_error": 0.0
+      },
+      "macaroni1": {
+        "fold_sha256": "63d19c0493799fd4a23e9bf28ab00a6c8ac2c72262f4555e7c70778739032b44",
+        "parameter_sha256": "a1c87b6c4f050f084ad21bf96a651e78a214c8469902fedbf7bd20d5ae11f946",
+        "prediction_max_abs_error": 0.0
+      },
+      "macaroni2": {
+        "fold_sha256": "4c235a1dad816d809ec47eabd24c0261061465e19411088bedb636fb6d2513d8",
+        "parameter_sha256": "cfe30511f3f5343e6d434eb872211076de00fe44a6b74d1cbc092ce12714bd3d",
+        "prediction_max_abs_error": 0.0
+      },
+      "pcb1": {
+        "fold_sha256": "1e87e7ec27fd896f96b9b4decd7f8431cfe0900ba322c8a0a431dd53c838b674",
+        "parameter_sha256": "ca45c4ea344b5c30b9c4499fe915a5cea011a675494160839c448bba3b26068c",
+        "prediction_max_abs_error": 0.0
+      },
+      "pcb2": {
+        "fold_sha256": "cc2f4f18f50294159e1555634e3f6e880c6bc85b3f96ac1cd84d741679ea8e7a",
+        "parameter_sha256": "eff81148bec545501d9f5eadedf57fdc998447f16f80b797fca4b310600093a4",
+        "prediction_max_abs_error": 0.0
+      },
+      "pcb3": {
+        "fold_sha256": "19a71db29169178956035d5b5fdcb5c19437791c2fb9f69606dbd7d7e27f48dc",
+        "parameter_sha256": "c864d6117ea4b19f97affa29e2de3ccd91cb3067755e21045181f681476fd745",
+        "prediction_max_abs_error": 0.0
+      },
+      "pcb4": {
+        "fold_sha256": "bd2dc2f5b2979cd81c560c4007376ccfe9bbb20530ad7515433e1b0efdbbbcbe",
+        "parameter_sha256": "d3b55c32fcbe285ae496da23fa3c6351102fa0d1765eabe625d741470b5b59d6",
+        "prediction_max_abs_error": 0.0
+      },
+      "pipe_fryum": {
+        "fold_sha256": "9c18d6e8e78be5cb0699fce05a1f1ad632f54b6a7f46e50f9a1ac5220ef66d46",
+        "parameter_sha256": "62976032a2189608875e2ab86de358a04e6794cd6d56e60be3dc2779d86d658b",
+        "prediction_max_abs_error": 0.0
+      }
+    },
+    "max_prediction_abs_error": 0.0,
+    "status": "PASS",
+    "target_hashes_verified": true
+  },
+  "provenance": {
+    "artifacts": {
+      "candle": {
+        "r1_v2_fold": "4cdb41d357696c7f30f682a8d2c6d1148c791f31b2caf0d512f24b702cf30273",
+        "source": "9c10be54d8268179eac8e5c8b8af6c46cad621f9a08819655756c62acac92c40",
+        "trust": "63cc28c545d83d01de9fa039698a6968b270203faeaccef64cf96d91219ccc2e",
+        "utility": "56635bd7f1440e8a774269d45fc290bf0f2db83e844918fa52d3acac8019ebb1"
+      },
+      "capsules": {
+        "r1_v2_fold": "ddcfdc21fb2a7c9a5f04a0769a1065dad01d3e5281842cb42ddd3fe26e3df494",
+        "source": "a66cc15fd255b028b748e681876415d63f46454ff19db2b09bc7942b779cfeb8",
+        "trust": "6456d2e4fb330c94b24134cc8273c39b434aa2fab8dfa7dac17a54bd46efacb7",
+        "utility": "8ced612159e2139d9e60570bf9b45e0e74a14576f6a731f2ef1c6d9a6069520e"
+      },
+      "cashew": {
+        "r1_v2_fold": "9f30937b1abbf9336efcbc86413b19cb1cd39c566fc34dc6548b4a8465ee7f5a",
+        "source": "f88eba5895e5f5bebfed7e8d0d1865e59bd9fe2bf59a1a9df679a0d0311148ff",
+        "trust": "815737ff61e30fb7e88caa0574d4f904b77a7a8418f473aa683b4f2a1ee687d3",
+        "utility": "f25ffc837585c7c8526a92b7378ad60f2f7d3764caae9d59b0628403d208129f"
+      },
+      "chewinggum": {
+        "r1_v2_fold": "272df74da6693bc9b5ba94e1d62ade57432649b2ab447a87526f237f2f256dc1",
+        "source": "1a64da3a1617f5224748bbe9b03e096f29c0c9b0c6b2ec147dff54a93fe2c01e",
+        "trust": "d6ddb75421ca02d9a79c33b540f8b4c3640f7c0af976c27f30813d4be0c30fb3",
+        "utility": "f482bc4176688cc7088c6bcbe7b79db13383aa92be0d55e89290420a41638ccd"
+      },
+      "fryum": {
+        "r1_v2_fold": "eca3fbc49a3396379b0a50001816ed0c807364850dead36a0952d58245d5f898",
+        "source": "9025e9c417533fcda769897cf6105fb54eca01b8282c7a804684370edb79dbc9",
+        "trust": "a07ad15c951b4b41149062d1b92f6a8f6e665eac41de6c6ff8e310d3922e5d1f",
+        "utility": "6c34bf75f208ed4979c14c0b02c65d2c6038315a50ecd1b390029161232f490b"
+      },
+      "macaroni1": {
+        "r1_v2_fold": "96b45f7ab1a42dbca6721d007cd57e5ebf182fe4777384cf1d009fb04eb804a4",
+        "source": "811db1670443a2a33831874f78dadc5bd9a5d9b721e51087c1f45315f276e155",
+        "trust": "630c7e80aabe163e6aa998dd2256a26ef728f858f6e416cae9ce61fa6011852a",
+        "utility": "1bc37bf680bc8f1d6f326e7a44ef4d3e2b4e35de14ec088eb56059c1fea2a1f0"
+      },
+      "macaroni2": {
+        "r1_v2_fold": "b68fed4dd4c9809e215fd0446f03dc201d7b9f896ec73e0a506b2e409d2d574c",
+        "source": "f1c283b2450c33b71e421e68c533969ae6a7842dcf01a27d1ad589cc41986d4a",
+        "trust": "b8d0996d51185efa262643d2da3bb75eeda6e9d07830fcc69ea6c6757ba81fea",
+        "utility": "b9017fcbd5188b6d91e9d5d1aa102826b200d542b627b812f6d8d3bffb65f10d"
+      },
+      "pcb1": {
+        "r1_v2_fold": "10cb24ffd87f8189f0082baf662b56cd65eea2f556f68b7b9ce726a93a7fcda9",
+        "source": "3dda26e629c1e9c512728c5f81628425a8c1609c46dda52acb7ce0ceffa1548b",
+        "trust": "e3c6dd567ade0420c1ae842dba86b6f89bd9e2986592372d94cc32e43de392d8",
+        "utility": "617e631d84ed236cfd5dcb7f4b42064475329fed02985d351c76e8778e1bf42d"
+      },
+      "pcb2": {
+        "r1_v2_fold": "829d2072b64b61ab94217b768446dc8eace026e1fb1175ba8a21c5011702b42f",
+        "source": "bf2897d5c01f4e1c85cf1f84481fd6ff3727dc7d7281d54eebdfb91cd70eb104",
+        "trust": "7530eb77a54ff44d38a9cf9efd9773ad886ad6abc968fe096dd3d975f1a9ee27",
+        "utility": "9dae08bb7ddbdd83a3a056ceafc46bdf705382a284579507e9cef53cadd119f2"
+      },
+      "pcb3": {
+        "r1_v2_fold": "f7c5928e686ed453c9a2b03513fe5fdd400a6249737c97f270a499a7bcef4656",
+        "source": "82de5d21120ffc46e973a13c9cd8182b05de961ec56d84f877a060afdd2a7bbf",
+        "trust": "ca500e01366016dd4cded7198a5e2c5124a5e3483a98f4b6c1c2d60653bef7a2",
+        "utility": "a077bceb9ed10489417b2903f0d70c2e6a097be507386a33053f8cce4d624863"
+      },
+      "pcb4": {
+        "r1_v2_fold": "a955e2789da2fbc2db4e31fde0e70689d58d15704cdc9f6b4d4d786590d9578c",
+        "source": "f095331c2d48886ba21009b89175edffebf739c19e7d299d513289d3f4a7f92e",
+        "trust": "18f68894022647c0325d6141181eb9edbf7c7476502b89ff1f373509f23e57bd",
+        "utility": "1013a72e5e6814f92e7b269cc5975c737832a10fbe84235da097e0e842553785"
+      },
+      "pipe_fryum": {
+        "r1_v2_fold": "b22827577572a53e5c67b3f726f138d1105c820b6a4d6c94f54419807016807b",
+        "source": "ae728da53a53af41fed06609b8fc5b1d4b82ffcba8c7fbf4f96bd60dab64b726",
+        "trust": "f59e642488fac0a59af5a406995d373091d2607f0beacb230ace52cc394785a9",
+        "utility": "0daacaa033cdefe9c2459df66e2d1cc7dfd33fa0fedc6eb658fb7c94ee33c048"
+      }
+    },
+    "phase0_provenance_sha256": "79338c26ea811c41aef84c93897aa766a5a147792e1fd9da818dc805c07d2744",
+    "source_manifest_sha256": "ef967f29a6d2f42dd5f0e4e9de3189ce2d20778a465185c5021fc83d3f469f34",
+    "trust_manifest_sha256": "3e6f31a031100b9635a27a78f974ee2a7146f6faee0d0bcfadf0b256cae4df16"
+  },
+  "q1": {
+    "gates": {
+      "G1_SUPPORT": true,
+      "G2_MEDIAN_SPEARMAN": false,
+      "G3_POSITIVE_SPEARMAN": false,
+      "G4_SIGN_AUC": false,
+      "G5_BC20": false,
+      "G6_BC20_BREADTH": false
+    },
+    "metrics": {
+      "bc20_gt_20_classes": 1,
+      "macro_bc20": 0.05882424259186242,
+      "macro_sign_auc": 0.5561461672078503,
+      "median_spearman": -0.08423862954688308,
+      "per_class": {
+        "candle": {
+          "bc20": 0.004689454971451765,
+          "near_zero_count": 604,
+          "negative_count": 38,
+          "pearson": -0.012732836955253573,
+          "positive_benefit_total": 0.004325235738649069,
+          "positive_count": 1358,
+          "score_variance": 849.8350897298088,
+          "sign_auc": 0.48601162057994657,
+          "spearman": -0.16722681664788488,
+          "support": true,
+          "top20_count": 400
+        },
+        "capsules": {
+          "bc20": 0.07731773230311176,
+          "near_zero_count": 822,
+          "negative_count": 44,
+          "pearson": -0.0058527684478458675,
+          "positive_benefit_total": 0.0014537397380430805,
+          "positive_count": 1134,
+          "score_variance": 1293.5149035870425,
+          "sign_auc": 0.4571903967927727,
+          "spearman": -0.1915705120984864,
+          "support": true,
+          "top20_count": 400
+        },
+        "cashew": {
+          "bc20": 0.032526976580998145,
+          "near_zero_count": 985,
+          "negative_count": 53,
+          "pearson": -0.02711568212858711,
+          "positive_benefit_total": 0.00035312463250580794,
+          "positive_count": 962,
+          "score_variance": 102.4638115425953,
+          "sign_auc": 0.5077185200417138,
+          "spearman": -0.08124059511875463,
+          "support": true,
+          "top20_count": 400
+        },
+        "chewinggum": {
+          "bc20": 0.020880929553545487,
+          "near_zero_count": 629,
+          "negative_count": 94,
+          "pearson": -0.0004514535102487776,
+          "positive_benefit_total": 0.00045381635755370464,
+          "positive_count": 1277,
+          "score_variance": 7336.35473078658,
+          "sign_auc": 0.5479043275922408,
+          "spearman": -0.11597672236452093,
+          "support": true,
+          "top20_count": 400
+        },
+        "fryum": {
+          "bc20": 0.012590920499463816,
+          "near_zero_count": 999,
+          "negative_count": 41,
+          "pearson": -0.006970538241202652,
+          "positive_benefit_total": 0.0012657997541994925,
+          "positive_count": 960,
+          "score_variance": 6223.153586579223,
+          "sign_auc": 0.4520006561973364,
+          "spearman": -0.2027245095465827,
+          "support": true,
+          "top20_count": 400
+        },
+        "macaroni1": {
+          "bc20": 0.17556655290564543,
+          "near_zero_count": 1038,
+          "negative_count": 33,
+          "pearson": -0.06278874707202288,
+          "positive_benefit_total": 0.0006430179738740049,
+          "positive_count": 929,
+          "score_variance": 0.5732310366224186,
+          "sign_auc": 0.6196221180236167,
+          "spearman": 0.26041497266544444,
+          "support": true,
+          "top20_count": 400
+        },
+        "macaroni2": {
+          "bc20": 0.03725759748637834,
+          "near_zero_count": 1123,
+          "negative_count": 22,
+          "pearson": 0.024429876380113257,
+          "positive_benefit_total": 0.00022781473039408529,
+          "positive_count": 855,
+          "score_variance": 499.2692733957278,
+          "sign_auc": 0.495017819220204,
+          "spearman": -0.08186939144179926,
+          "support": true,
+          "top20_count": 400
+        },
+        "pcb1": {
+          "bc20": 0.014332601987203942,
+          "near_zero_count": 122,
+          "negative_count": 56,
+          "pearson": -0.00022739141611687535,
+          "positive_benefit_total": 0.0011958186264311443,
+          "positive_count": 1822,
+          "score_variance": 36340.265160559175,
+          "sign_auc": 0.6905607443446146,
+          "spearman": -0.1305448799142609,
+          "support": true,
+          "top20_count": 400
+        },
+        "pcb2": {
+          "bc20": 0.025494395446287458,
+          "near_zero_count": 6,
+          "negative_count": 35,
+          "pearson": 0.015066930564486387,
+          "positive_benefit_total": 0.0004587141782442794,
+          "positive_count": 1959,
+          "score_variance": 287740.2493061408,
+          "sign_auc": 0.5945619774627409,
+          "spearman": -0.0866078676519669,
+          "support": true,
+          "top20_count": 400
+        },
+        "pcb3": {
+          "bc20": 0.01174080139822637,
+          "near_zero_count": 6,
+          "negative_count": 23,
+          "pearson": -0.24819313482527294,
+          "positive_benefit_total": 0.0007141291456853049,
+          "positive_count": 1971,
+          "score_variance": 1.0193792467076506,
+          "sign_auc": 0.7675881330958193,
+          "spearman": -0.06315777378944343,
+          "support": true,
+          "top20_count": 400
+        },
+        "pcb4": {
+          "bc20": 0.025822406853187013,
+          "near_zero_count": 1061,
+          "negative_count": 42,
+          "pearson": -0.051920653589291973,
+          "positive_benefit_total": 0.0019971463942501932,
+          "positive_count": 897,
+          "score_variance": 18657.756062466076,
+          "sign_auc": 0.5561592914333074,
+          "spearman": 0.003321096444445302,
+          "support": true,
+          "top20_count": 400
+        },
+        "pipe_fryum": {
+          "bc20": 0.26767054111684957,
+          "near_zero_count": 1507,
+          "negative_count": 80,
+          "pearson": -0.01422786586875604,
+          "positive_benefit_total": 0.0008002927002415117,
+          "positive_count": 413,
+          "score_variance": 18653.811386187564,
+          "sign_auc": 0.499418401709889,
+          "spearman": -0.013283460711540481,
+          "support": true,
+          "top20_count": 400
+        }
+      },
+      "positive_spearman_classes": 2,
+      "support_classes": 12
+    },
+    "pass": false
+  },
+  "q1_folds_completed": 12,
+  "q2": {
+    "status": "NOT_ENTERED_Q1_ROUTING_STOP"
+  },
+  "q2_folds_completed": 0,
+  "scientific_validity": "VALID",
+  "status": "P25_PATCH_BENEFIT_NOT_IDENTIFIABLE",
+  "target_summary": {
+    "class_count": 12,
+    "classes": {
+      "candle": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/candle.npz",
+        "sha256": "c6322a27c470c374626a51a9beb2f8402fed12e226a475f52d5fbf6131a7e146"
+      },
+      "capsules": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/capsules.npz",
+        "sha256": "235003955b3374232859eb7df706e579861e199f57999c89ccf7b76f47f28a39"
+      },
+      "cashew": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/cashew.npz",
+        "sha256": "5f67cd2b84ad8b9b5ef0fbcde74de051b6f7107b4f38a6b5100333e316735617"
+      },
+      "chewinggum": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/chewinggum.npz",
+        "sha256": "80bf2ff802297fa5be25dd2175a200c712ffdefa94856c3eb801083bf7c8897d"
+      },
+      "fryum": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/fryum.npz",
+        "sha256": "851cbb1a2fa358313e3786842c705eccdef4556a92d59e9544b696ccafb260b4"
+      },
+      "macaroni1": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/macaroni1.npz",
+        "sha256": "f17ae04814d84dca6b0b907e822853529e7940865f5ab558d81dbd7b9b7b8bff"
+      },
+      "macaroni2": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/macaroni2.npz",
+        "sha256": "4bc332ecdd61f46114c039a20f372d8c4f19e361ef6099f0aa9ececef7c6ce37"
+      },
+      "pcb1": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/pcb1.npz",
+        "sha256": "435caf83b3f09520f0c403966a1a85a6bb9ef2ab7a840b4e99a5510ada83347e"
+      },
+      "pcb2": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/pcb2.npz",
+        "sha256": "5b0c2162916b4d04d04227202202473cc66dba32fd0de1f626bdaa421bc4747c"
+      },
+      "pcb3": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/pcb3.npz",
+        "sha256": "359b1c2ab204b0bfe99b08faa8759a0e8887843c39e8bc93b57844feff01fbaf"
+      },
+      "pcb4": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/pcb4.npz",
+        "sha256": "be64886f65acccfacfc11a35e6177e4cba3916a5c699215550f533a545d0985a"
+      },
+      "pipe_fryum": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/pipe_fryum.npz",
+        "sha256": "301437a97059d8c823a6fd393e19442ef02b8c0bf6bed341aebcd486beab1ad4"
+      }
+    },
+    "generation_runs": 0,
+    "hashes_verified": true,
+    "status": "REUSED_IMMUTABLE_P25R2_TARGETS",
+    "targets": 24000
+  }
+}
