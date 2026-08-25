@@ -1,0 +1,34 @@
+{
+  "schema_version": "P26_CHECKPOINT_MANIFEST_V1",
+  "status": "PASS",
+  "checkpoints": [
+    {
+      "logical_name": "phase2b_adapter_epoch5",
+      "path": "runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+      "size_bytes": 56451915,
+      "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+      "git_lfs_oid": "sha256:a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+      "tracked_in_git_lfs": true,
+      "remote_source_branch": "origin/artifacts/p5-runtime-inputs",
+      "remote_source_commit": "316ce9d4a9ddf742cf17f1c98c5011891c90ab08",
+      "required": true,
+      "external_transfer_required": false
+    },
+    {
+      "logical_name": "openai_clip_vitl14_336",
+      "path": "model/ViT-L-14-336px.pt",
+      "size_bytes": 934088680,
+      "sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+      "git_lfs_oid": "sha256:3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+      "tracked_in_git_lfs": true,
+      "remote_source_branch": "origin/research/p26-sabra-cure-final-architecture-freeze-v1",
+      "remote_source_commit": "a28b7839f65376eb9c422f36a5e7f7a18f992012",
+      "required": true,
+      "external_transfer_required": false
+    }
+  ],
+  "required_checkpoint_count": 2,
+  "tracked_checkpoint_count": 2,
+  "external_transfer_checkpoint_count": 0,
+  "missing_required_checkpoints": []
+}
