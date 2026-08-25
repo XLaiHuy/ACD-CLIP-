@@ -1,0 +1,31 @@
+{
+  "schema_version": "P27_REGION_DISTILL_V1",
+  "status": "P27_PREREGISTERED",
+  "parent": {
+    "p26_handoff_sha": "ae2388f7cd96a60a92fae75bd1c0f9e11284fd28",
+    "p26_scientific_architecture_sha": "a28b7839f65376eb9c422f36a5e7f7a18f992012",
+    "p26_tag": "sabra-final-p26-v1"
+  },
+  "geometry": {"patch_grid": [37, 37], "region_grid": [9, 9], "visual_dim": 768, "projection_dim": 64, "stages": 3},
+  "student": {
+    "name": "RegionResidualAdapter",
+    "shared_stage_projection": true,
+    "context": ["conv1x1", "gelu", "depthwise_conv3x3", "gelu", "conv1x1"],
+    "output": "three_region_margin_residual_maps",
+    "attention": false,
+    "transformer": false,
+    "extra_prediction_heads": false
+  },
+  "teacher": {
+    "implementation": "R0 signed utility action semantics",
+    "source_gt_only": true,
+    "historical_alpha": 0.25,
+    "r0_margin_scale": 19.840438842773438,
+    "patch_to_region": "adaptive_average_pool2d",
+    "headroom": "NOT_CHECKED_HISTORICAL_CACHE_CHECKPOINT_INCOMPATIBLE"
+  },
+  "residual": {"normal_scale": -0.5, "anomaly_scale": 0.5, "application": "before_unchanged_phase2b_deployment"},
+  "losses": {"distillation": "SmoothL1", "localization": "canonical_focal_dice", "distillation_weight": 1.0, "localization_weight": 1.0},
+  "training": {"dataset": "VisA", "protocol": "12_class_LOCO", "trainable": ["p27_region_adapter"], "frozen": ["clip", "phase2b_image_adapter", "phase2b_text_adapter", "phase2b_soft_prompt", "phase2b_checkpoint"]},
+  "firewall": {"mvtec_opened": false, "mvtec_data_reads": 0, "medical_reads": 0, "full_scientific_training_runs": 0}
+}
