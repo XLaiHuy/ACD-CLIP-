@@ -1,0 +1,428 @@
+{
+  "audited_head": "9b641d1b1deff64421736cdaa9dc6a5db8736bc7",
+  "elapsed_seconds": 101.35776326339692,
+  "firewall": {
+    "additional_clip": 0,
+    "medical": 0,
+    "mvtec": 0,
+    "phase2b_steps": 0
+  },
+  "forensic_sha": "2d80a02366d19275b47ca5621e34090aeaf18ddd",
+  "known_failure_regression": {
+    "elapsed_seconds": 101.23492325283587,
+    "held_excluded": "chewinggum",
+    "held_prediction_computed": false,
+    "held_target_read": false,
+    "historical_zero_certificate_valid": false,
+    "historical_zero_gradient_inf": 1747535.9091769257,
+    "historical_zero_gradient_l2": 1750236.1845595562,
+    "pair_count": 89942,
+    "pair_design_max_abs": 9435578848.964195,
+    "recovered_beta_norm": 0.2611863873446141,
+    "recovered_optimizer": {
+      "beta_norm": 0.2611863873446141,
+      "certificate": {
+        "finite": true,
+        "gradient_inf": 3.3443178520442466e-05,
+        "gradient_l2": 3.717243224014837e-05,
+        "initial_gradient_inf": 1747535.9091769257,
+        "relative_gradient_inf": 1.913733408556618e-11,
+        "relative_gradient_inf_tolerance": 1e-07,
+        "valid": true
+      },
+      "function_evaluations": 23,
+      "gradient_evaluations": 12,
+      "iterations": 11,
+      "line_search_evaluations": 11,
+      "message": "original-beta certificate satisfied",
+      "objective_final": 0.3607803493865582,
+      "objective_initial": 0.6931471805599453,
+      "prediction_max": 7.70838889925043,
+      "prediction_min": -1020.5852797707586,
+      "prediction_std": 6.969846769867823,
+      "prediction_unique_count": 22000,
+      "solver": "deterministic-float64-damped-newton",
+      "status": 0,
+      "success": true
+    },
+    "source_classes": [
+      "candle",
+      "capsules",
+      "cashew",
+      "fryum",
+      "macaroni1",
+      "macaroni2",
+      "pcb1",
+      "pcb2",
+      "pcb3",
+      "pcb4",
+      "pipe_fryum"
+    ],
+    "status": "PASS",
+    "training_rows": 22000
+  },
+  "no_attempt_marker": true,
+  "objective": "frozen P25R2 beta-space weighted pairwise logistic plus 0.5 L2",
+  "objective_gradient_parity": {
+    "max_chain_rule_gradient_error": 4.336808689942018e-18,
+    "max_finite_difference_gradient_error": 1.419812050047764e-10,
+    "max_objective_error": 0.0,
+    "status": "PASS",
+    "vectors": 3
+  },
+  "p25r2_execution_base_sha": "a50d9a6d0f7c1cea007f6d18ea9cafbb6b8711d0",
+  "p25r2_prereg_sha": "233d16b0b29286c8ea73b7886a8d929ca263e5d7",
+  "p25r2_terminal_sha": "99ad3ab6292ca3b95fbda0cb8c6985ed9afe3253",
+  "p25r3_prereg_sha": "9b641d1b1deff64421736cdaa9dc6a5db8736bc7",
+  "relative_gradient_inf_tolerance": 1e-07,
+  "runner_sha256": "2a4a80f2a77adae2c7dfea3ef30fde66ac12b711a6f4fde5ff8d71b213d90463",
+  "runtime_benchmark": {
+    "peak_memory": "bounded by one outer fold; measured externally in test command",
+    "projected_q1_seconds_conservative": 1518.523848792538,
+    "projected_q2_seconds": null,
+    "source_only_recovery_seconds": 101.23492325283587
+  },
+  "scipy_version_for_expit": "1.16.3",
+  "solver": "deterministic-float64-damped-newton",
+  "static_interface_audit": {
+    "references": [
+      {
+        "exists": true,
+        "expected_shape_type": "module",
+        "object_type": "patch_actionability_r2",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "r2v2_harm"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "patch_actionability_r2",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "feature_rows_for_outer"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "patch_actionability_r2",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "load_target"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "patch_actionability_r2",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "load_panel"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "patch_actionability_r2",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "atomic_npz"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "patch_actionability_r2",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "atomic_json"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "patch_actionability_r2",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "select_source_policy"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "patch_actionability_r2",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "class_state"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "patch_actionability_r2",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "exact_metrics"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "patch_actionability_r2",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "_policy_metrics"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "patch_actionability_r2",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "evaluate_q1"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "patch_actionability_r2",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "evaluate_q2"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "patch_actionability_r2",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "_default"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "float",
+        "object_type": "patch_actionability_r2",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "BENEFIT_EPS"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "int",
+        "object_type": "patch_actionability_r2",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "PATCHES"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "float",
+        "object_type": "patch_actionability_r2",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "ALPHA"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "float",
+        "object_type": "patch_actionability_r2",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "MARGIN_SCALE"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "r2v2_harm",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "outer"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "r2v2_harm",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "direction_group"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "r2v2_harm",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "scaler"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "r2v2_harm",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "ridge"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "r2v2_harm",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "pred"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "r2v2_harm",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "harm_features"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "r2v2_harm",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "wrong"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "tuple",
+        "object_type": "r1",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "CLASSES"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "type",
+        "object_type": "r1",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "Shard"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "r1",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "pearson"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "r1",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "load_shards"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "float",
+        "object_type": "patch_actionability_r1",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "PAIR_L2"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "tuple",
+        "object_type": "patch_actionability_r1",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "FEATURE_ORDER"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "int",
+        "object_type": "patch_actionability_r1",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "PAIR_CAP"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "patch_actionability_r1",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "_feature_scaler"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "patch_actionability_r1",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "_deterministic_pairs"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "patch_actionability_r1",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "rank_predict"
+      },
+      {
+        "exists": true,
+        "expected_shape_type": "callable",
+        "object_type": "patch_actionability_r1",
+        "production_callsite": "tools/sabra_cure/patch_actionability_r3.py",
+        "referenced_attribute": "q1_metrics"
+      }
+    ],
+    "status": "PASS"
+  },
+  "status": "PASS",
+  "synthetic_production_rehearsal": {
+    "beta_norm": 0.4592730921697172,
+    "certificate": {
+      "finite": true,
+      "gradient_inf": 7.190860684680445e-10,
+      "gradient_l2": 1.141968736004298e-09,
+      "initial_gradient_inf": 0.6459767835962024,
+      "relative_gradient_inf": 7.190860684680445e-10,
+      "relative_gradient_inf_tolerance": 1e-07,
+      "valid": true
+    },
+    "feature_count": 32,
+    "pair_count": 1728,
+    "prediction_std": 0.40390779864581705,
+    "prediction_unique_count": 120,
+    "q1_pass_route": true,
+    "q1_stop_route": true,
+    "status": "PASS",
+    "strict_json": true,
+    "training_rows": 120
+  },
+  "target_artifacts": {
+    "class_count": 12,
+    "classes": {
+      "candle": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/candle.npz",
+        "sha256": "c6322a27c470c374626a51a9beb2f8402fed12e226a475f52d5fbf6131a7e146"
+      },
+      "capsules": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/capsules.npz",
+        "sha256": "235003955b3374232859eb7df706e579861e199f57999c89ccf7b76f47f28a39"
+      },
+      "cashew": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/cashew.npz",
+        "sha256": "5f67cd2b84ad8b9b5ef0fbcde74de051b6f7107b4f38a6b5100333e316735617"
+      },
+      "chewinggum": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/chewinggum.npz",
+        "sha256": "80bf2ff802297fa5be25dd2175a200c712ffdefa94856c3eb801083bf7c8897d"
+      },
+      "fryum": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/fryum.npz",
+        "sha256": "851cbb1a2fa358313e3786842c705eccdef4556a92d59e9544b696ccafb260b4"
+      },
+      "macaroni1": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/macaroni1.npz",
+        "sha256": "f17ae04814d84dca6b0b907e822853529e7940865f5ab558d81dbd7b9b7b8bff"
+      },
+      "macaroni2": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/macaroni2.npz",
+        "sha256": "4bc332ecdd61f46114c039a20f372d8c4f19e361ef6099f0aa9ececef7c6ce37"
+      },
+      "pcb1": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/pcb1.npz",
+        "sha256": "435caf83b3f09520f0c403966a1a85a6bb9ef2ab7a840b4e99a5510ada83347e"
+      },
+      "pcb2": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/pcb2.npz",
+        "sha256": "5b0c2162916b4d04d04227202202473cc66dba32fd0de1f626bdaa421bc4747c"
+      },
+      "pcb3": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/pcb3.npz",
+        "sha256": "359b1c2ab204b0bfe99b08faa8759a0e8887843c39e8bc93b57844feff01fbaf"
+      },
+      "pcb4": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/pcb4.npz",
+        "sha256": "be64886f65acccfacfc11a35e6177e4cba3916a5c699215550f533a545d0985a"
+      },
+      "pipe_fryum": {
+        "count": 2000,
+        "path": "results/sabra_cure/patch_actionability_r2/targets/pipe_fryum.npz",
+        "sha256": "301437a97059d8c823a6fd393e19442ef02b8c0bf6bed341aebcd486beab1ad4"
+      }
+    },
+    "status": "PASS",
+    "total_rows": 24000
+  },
+  "target_generation": 0,
+  "tests_sha256": "d4bb27a348d869bf4e5a9e171c43bfb28dfd2f185c35e97dc154632036acd151"
+}
