@@ -36,9 +36,11 @@ the exact original-objective optimum zero. For active columns, optimize
 `mean(w * softplus(-D beta)) + 0.5 * ||beta||_2^2`.
 
 The penalty is evaluated through beta and is never replaced by isotropic
-z-space regularization. The sole production solver is float64 SciPy
-L-BFGS-B, unbounded, zero-init, analytic gradient, `maxiter=1000`,
-`maxls=100`, `maxcor=20`, `ftol=1e-15`, and `gtol=1e-12`.
+z-space regularization. As frozen by the published pre-marker numerical
+amendment, the sole production solver is deterministic float64 damped Newton
+in z coordinates, zero initialized, with the exact analytic Hessian of the
+same objective, Armijo constant `1e-4`, halving backtracking, minimum step
+`2^-30`, and at most 50 Newton iterations. No solver fallback is permitted.
 
 ## Fit validity
 

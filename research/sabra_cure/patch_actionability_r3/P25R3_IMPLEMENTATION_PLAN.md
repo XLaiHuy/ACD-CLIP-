@@ -6,7 +6,7 @@
 
 **Architecture:** A new `patch_actionability_r3.py` imports immutable P25R2 feature/metric/policy functions, replaces only ranker fitting, reads immutable P25R2 targets, and writes isolated P25R3 artifacts. The optimizer exposes pure beta-space objective/gradient functions plus a diagonal source-design reparameterization.
 
-**Tech Stack:** Python 3.11, NumPy float64, SciPy L-BFGS-B, PyTorch only through inherited frozen feature construction, pytest, Git.
+**Tech Stack:** Python 3.11, NumPy float64, deterministic damped Newton, PyTorch only through inherited frozen feature construction, pytest, Git.
 
 **Spec:** `research/sabra_cure/patch_actionability_r3/P25R3_PREREGISTRATION.md`
 
@@ -60,19 +60,16 @@ g_z = g_beta[active] / scale[active]
 
 - [ ] Write failing tests showing historical zero beta with nonzero gradient is rejected and an ill-conditioned fixture produces a certified nonzero fit.
 - [ ] Run focused tests and verify the expected certificate failures.
-- [ ] Implement the single frozen SciPy solver and persist all diagnostics.
+- [ ] Implement the single frozen damped-Newton solver and persist all diagnostics.
 
 ```python
-result = scipy.optimize.minimize(
-    transformed_fun_and_jac,
-    np.zeros(problem.active_count, dtype=np.float64),
-    jac=True,
-    method="L-BFGS-B",
-    options={"maxiter": 1000, "maxls": 100, "maxcor": 20,
-             "ftol": 1e-15, "gtol": 1e-12},
-)
-valid = bool(result.success and finite and final <= initial and
-             relative_gradient_inf <= 1e-7)
+z = np.zeros(problem.active_count, dtype=np.float64)
+for iteration in range(50):
+    direction = np.linalg.solve(exact_hessian_z(z), -gradient_z(z))
+    step = armijo_halving_step(z, direction, c1=1e-4, minimum=2**-30)
+    z += step * direction
+    if original_beta_certificate(z).valid:
+        break
 ```
 
 - [ ] Verify nonzero-beta recovery, constant-column handling, strict JSON-safe diagnostics, and deterministic repeat parity.
