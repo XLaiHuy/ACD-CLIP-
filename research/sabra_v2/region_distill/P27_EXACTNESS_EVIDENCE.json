@@ -1,0 +1,24 @@
+{
+  "schema_version": "P27_CACHE_EXACTNESS_EVIDENCE_V1",
+  "status": "PASS",
+  "sample_count": 5,
+  "seg_features_max_absolute_difference": 0.0,
+  "native_logits_max_absolute_difference": 0.0,
+  "teacher_region_max_absolute_difference": 0.0,
+  "source_mask_max_absolute_difference": 0.0,
+  "total_loss_max_absolute_difference": 0.0,
+  "adapter_gradient_max_absolute_difference": 0.0,
+  "optimizer_state_max_absolute_difference": 0.0,
+  "uncached_median_seconds_per_step": 0.29772132309153676,
+  "cached_median_seconds_per_step": 0.03290640329942107,
+  "measured_speedup": 9.047519426007115,
+  "projected_runtime_hours_tier_a_plus_training": 4.501055148001502,
+  "frozen_loader_configuration": {
+    "num_workers": 0,
+    "pin_memory": false,
+    "non_blocking": false,
+    "prefetch_factor": null,
+    "seed": 0,
+    "cublas_workspace_config": ":4096:8"
+  }
+}
