@@ -1,0 +1,281 @@
+{
+  "attempt_count": 1,
+  "attempt_uuid": "bcfd6874-7927-4be4-bb07-73c079a9ff76",
+  "clip_unchanged": true,
+  "fold_count": 12,
+  "immutable_prediction_count": 12,
+  "mechanism_failure": {
+    "code_or_protocol_patch_forbidden_after_execution_base": true,
+    "error": "element 0 of tensors does not require grad and does not have a grad_fn",
+    "error_type": "RuntimeError",
+    "execution_count": 1,
+    "first_failure": "frozen R0 utility action computation invoked under torch.no_grad()",
+    "rerun_forbidden": true,
+    "runner_post_run_audit_status": "PASS",
+    "scientific_runner_completed_before_failure": true,
+    "stage": "P29_LIGHTWEIGHT_POSTHOC_MECHANISM_AUDIT",
+    "terminal_status": "P29_ENGINEERING_STOP"
+  },
+  "p26_unchanged": true,
+  "p29_execution_base_unchanged": true,
+  "p29_protocol_unchanged": true,
+  "phase2b_unchanged": true,
+  "reason": "required one-shot P29 lightweight post-hoc mechanism audit failed before output; rerun is forbidden",
+  "schema_version": "P29_POST_RUN_AUDIT_V1",
+  "scientific_runner_audit": {
+    "aggregate": {
+      "best_delta_pAP": 0.05121688207990277,
+      "classes": [
+        {
+          "class": "candle",
+          "delta_pAP": -0.0236370737322954,
+          "delta_pAUROC": -0.010626846305601956,
+          "native_pAP": 0.5141403049313743,
+          "native_pAUROC": 0.9806671435137679,
+          "p29_pAP": 0.4905032311990789,
+          "p29_pAUROC": 0.970040297208166
+        },
+        {
+          "class": "capsules",
+          "delta_pAP": -0.004425091198365871,
+          "delta_pAUROC": -0.004852964357013323,
+          "native_pAP": 0.6978763719543614,
+          "native_pAUROC": 0.9849781994223002,
+          "p29_pAP": 0.6934512807559955,
+          "p29_pAUROC": 0.9801252350652869
+        },
+        {
+          "class": "cashew",
+          "delta_pAP": 0.042981970827967064,
+          "delta_pAUROC": -0.0035758294296969195,
+          "native_pAP": 0.7655127373381572,
+          "native_pAUROC": 0.9930016112103482,
+          "p29_pAP": 0.8084947081661242,
+          "p29_pAUROC": 0.9894257817806513
+        },
+        {
+          "class": "chewinggum",
+          "delta_pAP": 0.0015876860450790842,
+          "delta_pAUROC": -0.003777540077238184,
+          "native_pAP": 0.8701427461982091,
+          "native_pAUROC": 0.9919411142492301,
+          "p29_pAP": 0.8717304322432882,
+          "p29_pAUROC": 0.988163574171992
+        },
+        {
+          "class": "fryum",
+          "delta_pAP": 0.05121688207990277,
+          "delta_pAUROC": -0.0037022883286151886,
+          "native_pAP": 0.38722106980321297,
+          "native_pAUROC": 0.9550680178782014,
+          "p29_pAP": 0.43843795188311574,
+          "p29_pAUROC": 0.9513657295495862
+        },
+        {
+          "class": "macaroni1",
+          "delta_pAP": -0.03228475297639197,
+          "delta_pAUROC": -0.05488490743006402,
+          "native_pAP": 0.21142488696990241,
+          "native_pAUROC": 0.9495230825357774,
+          "p29_pAP": 0.17914013399351045,
+          "p29_pAUROC": 0.8946381751057134
+        },
+        {
+          "class": "macaroni2",
+          "delta_pAP": -0.011834540212974864,
+          "delta_pAUROC": -0.055367308501702905,
+          "native_pAP": 0.08945279365105367,
+          "native_pAUROC": 0.8960057743401866,
+          "p29_pAP": 0.07761825343807881,
+          "p29_pAUROC": 0.8406384658384837
+        },
+        {
+          "class": "pcb1",
+          "delta_pAP": 0.02006656181082228,
+          "delta_pAUROC": -0.0051140269388531,
+          "native_pAP": 0.20393199937319814,
+          "native_pAUROC": 0.7888956748738319,
+          "p29_pAP": 0.22399856118402042,
+          "p29_pAUROC": 0.7837816479349788
+        },
+        {
+          "class": "pcb2",
+          "delta_pAP": -0.006104364444428939,
+          "delta_pAUROC": -0.049295353893370586,
+          "native_pAP": 0.21508170345189906,
+          "native_pAUROC": 0.8373864177550956,
+          "p29_pAP": 0.20897733900747012,
+          "p29_pAUROC": 0.788091063861725
+        },
+        {
+          "class": "pcb3",
+          "delta_pAP": -0.004617955562996046,
+          "delta_pAUROC": -0.009116678367376951,
+          "native_pAP": 0.4848358824527739,
+          "native_pAUROC": 0.8999823086902708,
+          "p29_pAP": 0.4802179268897779,
+          "p29_pAUROC": 0.8908656303228939
+        },
+        {
+          "class": "pcb4",
+          "delta_pAP": -0.02472087295866382,
+          "delta_pAUROC": -0.0006074216846048142,
+          "native_pAP": 0.45237185870288704,
+          "native_pAUROC": 0.9820203966878155,
+          "p29_pAP": 0.4276509857442232,
+          "p29_pAUROC": 0.9814129750032107
+        },
+        {
+          "class": "pipe_fryum",
+          "delta_pAP": 0.03260563978183029,
+          "delta_pAUROC": 0.016515405811760253,
+          "native_pAP": 0.5382668859929559,
+          "native_pAUROC": 0.9553108535618902,
+          "p29_pAP": 0.5708725257747862,
+          "p29_pAUROC": 0.9718262593736504
+        }
+      ],
+      "delta_macro_pAP": 0.0034028407882903816,
+      "delta_macro_pAUROC": -0.015367146625198141,
+      "fold_count": 12,
+      "improving_class_count": 5,
+      "median_delta_pAP": -0.0045215233806809585,
+      "native_macro_pAP": 0.4525216034016654,
+      "native_macro_pAUROC": 0.9345650495598931,
+      "non_regressing_class_count": 5,
+      "p29_macro_pAP": 0.45592444418995576,
+      "p29_macro_pAUROC": 0.9191979029346949,
+      "regressing_class_count": 7,
+      "schema_version": "P29_AGGREGATE_V1",
+      "top_1_positive_gain_concentration": 0.34499068152993445,
+      "top_2_positive_gain_concentration": 0.6345120035484549,
+      "worst_delta_pAP": -0.03228475297639197
+    },
+    "assets": {
+      "checkpoint": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+      "clip_asset": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+      "config": "edf5745686e3d3d0d3b4142341569da06ad5b54025a779b78d83f74303ce67fc"
+    },
+    "attempt_count": 1,
+    "attempt_uuid": "bcfd6874-7927-4be4-bb07-73c079a9ff76",
+    "clip_optimization_steps": 0,
+    "duplicate_scientific_folds": 0,
+    "fold_count": 12,
+    "folds": [
+      {
+        "checkpoint_sha256": "99de12e9d406f6049957d51d1cb32ede9a9afe4230b7ea2894ffe46b2e0e0ec1",
+        "fit_records": 1962,
+        "held_class": "candle",
+        "prediction_sha256": "069b140393defec9a25e2ae00449cad8f31c7eb79d2895e7c60ec055a96be721",
+        "steps": 39240
+      },
+      {
+        "checkpoint_sha256": "69d417c8438f353f420bae420430397a49fd9b84233d9fe0a4b73e1adb4c627f",
+        "fit_records": 2002,
+        "held_class": "capsules",
+        "prediction_sha256": "212c1210bb6b57460c3b7d3165defc2a6e7faf3fb58c8d0264ad3ab38ef2cb3a",
+        "steps": 40040
+      },
+      {
+        "checkpoint_sha256": "0fa37cea086c391a920a0faafae17e983bb120ccef2b27a2cdf5d9ddd33e3761",
+        "fit_records": 2012,
+        "held_class": "cashew",
+        "prediction_sha256": "4f89ac7f8856f21bc6f80d99960023fb2ce0e3a8cc8783803473777afc16ee7d",
+        "steps": 40240
+      },
+      {
+        "checkpoint_sha256": "4913427be5f52f3ac340063e584562b6494f8b94c97de77b05a26b30e069f399",
+        "fit_records": 2012,
+        "held_class": "chewinggum",
+        "prediction_sha256": "43de85a2f78335d1521a0ac1f330b042fc4bce5d6dddc331f3051f1a086cfb0f",
+        "steps": 40240
+      },
+      {
+        "checkpoint_sha256": "cdbfaa622842ace0d302c2cfe6a33937ea54c7e84af282efb8bdfd8fa1938b4e",
+        "fit_records": 2012,
+        "held_class": "fryum",
+        "prediction_sha256": "48067dcee24a02c7869de3e1238838ee3f5e0329f31a72756831040eaa81f5a7",
+        "steps": 40240
+      },
+      {
+        "checkpoint_sha256": "d614dfc5255bf1d36b318add2bfe7a32d40df3e4a8f1ef7bc64346c04c50ef5c",
+        "fit_records": 1962,
+        "held_class": "macaroni1",
+        "prediction_sha256": "6ba92dfca9cde6e5ea9231d642a75601995881399aad0c5839f67f2932e03905",
+        "steps": 39240
+      },
+      {
+        "checkpoint_sha256": "e9544c6956d0c9d0f3227505df9903eb2ece3d5f0a54ffe26b1a31b082844a44",
+        "fit_records": 1962,
+        "held_class": "macaroni2",
+        "prediction_sha256": "5950a9ad73b397f81f64d098e6bd20282871a72047d2bfac152a5b28691bef58",
+        "steps": 39240
+      },
+      {
+        "checkpoint_sha256": "6de8a9fe3db9f9e9c7be78213ea27504865401362fff2fac66c2d51436c75311",
+        "fit_records": 1962,
+        "held_class": "pcb1",
+        "prediction_sha256": "d643f207b29c4f6b16a99add5325c9ddaa9a3e8a10ae2598864b1e4c02802adb",
+        "steps": 39240
+      },
+      {
+        "checkpoint_sha256": "f0d000b87f0e170e78785218763eb7b4e2ad0127571581b93972282904f8bb05",
+        "fit_records": 1962,
+        "held_class": "pcb2",
+        "prediction_sha256": "764ecc5064965638b6eceecd8747caa230639d9a78efe7a576164e7e5bb06afb",
+        "steps": 39240
+      },
+      {
+        "checkpoint_sha256": "358665a0053521a88df542637d7aa5f1e20bef67081481fa18dab21870a0fa72",
+        "fit_records": 1961,
+        "held_class": "pcb3",
+        "prediction_sha256": "cc24f6abd2fec30c9a626c9076854a5eae732e8c2761890f17bc6f734aae3bc9",
+        "steps": 39220
+      },
+      {
+        "checkpoint_sha256": "825a13724f268e4bb232954e1b07813b2204d2a6cc9a21e64982fd512d49ba84",
+        "fit_records": 1961,
+        "held_class": "pcb4",
+        "prediction_sha256": "99d1ae93a49e4b92915dd0d3b5264dd27ab9b689d4a8365d05ff906c04ce6d13",
+        "steps": 39220
+      },
+      {
+        "checkpoint_sha256": "95d20db9428d1194d76ca714c7eed955a1f33e884535231092116f3712a96c36",
+        "fit_records": 2012,
+        "held_class": "pipe_fryum",
+        "prediction_sha256": "6312f4116d3a64830b869a9e46302a17d0649dc36cfb835a0254427cea73221d",
+        "steps": 40240
+      }
+    ],
+    "held_gt_reads_before_scoring": 0,
+    "held_mask_reads_before_scoring": 0,
+    "local_sha": "24135127c246d024636ec752c656e9bb828f8cdf",
+    "medical_reads": 0,
+    "mvtec_reads": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "only_region_residual_adapter_trained": true,
+    "optimizer_steps": 475640,
+    "phase2b_optimization_steps": 0,
+    "predictions_frozen_before_scoring": true,
+    "protocol": {
+      "cache_execution_base": "de41b380449dcbc0b124f71f4f8fbb789e1a96f0",
+      "protocol_sha256": "e94341d9b9f9c3596ccd85b7b8878d65d032234341214b5693749da383c400dc",
+      "status": "PASS"
+    },
+    "protocol_sha256": "e94341d9b9f9c3596ccd85b7b8878d65d032234341214b5693749da383c400dc",
+    "remote_equals_local": true,
+    "remote_sha": "24135127c246d024636ec752c656e9bb828f8cdf",
+    "rerun_poor_folds": 0,
+    "schema_version": "P29_POST_RUN_AUDIT_V1",
+    "scientific_execution_base_sha": "24135127c246d024636ec752c656e9bb828f8cdf",
+    "status": "PASS",
+    "terminal_status": "P29_MIXED",
+    "training_steps": 475640,
+    "worktree_clean": true
+  },
+  "scientific_runner_audit_status": "PASS",
+  "scored_fold_count": 12,
+  "status": "FAIL",
+  "terminal_status": "P29_ENGINEERING_STOP"
+}

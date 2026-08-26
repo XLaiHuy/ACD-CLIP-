@@ -1,0 +1,29 @@
+{
+  "attempt_uuid": "bcfd6874-7927-4be4-bb07-73c079a9ff76",
+  "execution_base_sha": "24135127c246d024636ec752c656e9bb828f8cdf",
+  "mechanism_diagnostic_status": "FAILED_NO_RERUN",
+  "mechanism_failure": {
+    "code_or_protocol_patch_forbidden_after_execution_base": true,
+    "error": "element 0 of tensors does not require grad and does not have a grad_fn",
+    "error_type": "RuntimeError",
+    "execution_count": 1,
+    "first_failure": "frozen R0 utility action computation invoked under torch.no_grad()",
+    "rerun_forbidden": true,
+    "runner_post_run_audit_status": "PASS",
+    "scientific_runner_completed_before_failure": true,
+    "stage": "P29_LIGHTWEIGHT_POSTHOC_MECHANISM_AUDIT",
+    "terminal_status": "P29_ENGINEERING_STOP"
+  },
+  "prereg_sha": "7d39df9c7201680ee9b9259481267e824ee0802b",
+  "runner_audit_status": "PASS",
+  "schema_version": "P29_TERMINAL_EVIDENCE_V1",
+  "scientific_runner_complete": true,
+  "terminal_status": "P29_ENGINEERING_STOP",
+  "uncommitted_artifact_sha256": {
+    "aggregate": "77a537a18363663f423478b05296f898dfe610e949cd8a3a8f21fd3d5a179e17",
+    "attempt": "9a62374e3cda6c47b4e996f41db52fae08d090eef21db731c7e0a67a1d4c0b3a",
+    "class_table": "ea480e15a0a63bfd6009acaab9082b952716773a376cfeca5a1f52771b4557db",
+    "runner_audit": "27e4bf65a92804bc6fe7b5eb612f453f7e70c6639f70d2a27d7c8acad884a4af",
+    "runtime": "4aef903fb70ac732315a33ca8e9fb26b80bfd831f03b85d3566f61ff7528354b"
+  }
+}
