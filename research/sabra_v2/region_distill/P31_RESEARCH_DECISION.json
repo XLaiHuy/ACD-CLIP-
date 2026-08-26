@@ -1,0 +1,240 @@
+{
+  "schema_version": "P31_RESEARCH_DECISION_V1",
+  "artifact_type": "research_decision",
+  "status": "RESEARCH_DECISION_COMPLETE",
+  "protocol_id": "P31",
+  "draft_only": true,
+  "execution_authorized": false,
+  "entry_condition": {
+    "forensic_report": "research/sabra_v2/region_distill/P30R1_FORENSIC/P30R1_CAUSAL_FORENSIC_REPORT.md",
+    "forensic_json": "research/sabra_v2/region_distill/P30R1_FORENSIC/P30R1_CAUSAL_FORENSIC.json",
+    "forensic_status": "FORENSIC_COMPLETE",
+    "forensic_commit": "0800cf86d6896b164885768a0b6653a8f1953a76",
+    "branch": "research/p29r1-fast-objective-forensic-v1",
+    "worktree_clean_at_entry": true
+  },
+  "forensic": {
+    "primary_mechanism": "TEACHER_DIRECTION_NOT_CAUSAL",
+    "secondary_mechanism": "SPARSE_SELECTIVE_CORRECTION",
+    "ranked_hypotheses": [
+      "TEACHER_DIRECTION_NOT_CAUSAL",
+      "SPARSE_SELECTIVE_CORRECTION",
+      "DO_NO_HARM_NATIVE_PRESERVATION",
+      "DIRECTION_METRIC_ILL_CONDITIONED_BY_ABSTENTION",
+      "TEACHER_SCALE_REWEIGHTING"
+    ],
+    "native_counterfactual": {
+      "type": "EXACT_FROZEN_COUNTERFACTUAL",
+      "pap_approx": 0.51414,
+      "pauroc_approx": 0.980667,
+      "comparison": "native slightly exceeds P30R1 on both reported outcomes"
+    },
+    "p30r1": {
+      "pap_approx": 0.511514,
+      "pauroc_approx": 0.980535,
+      "directional_cosine_approx": -0.070148,
+      "sign_agreement_approx": 0.119691,
+      "residual_effective_support_fraction_approx": 0.056409,
+      "anomaly_delta_mass_enrichment_approx": 291.876,
+      "teacher_inverse_weight_q99_over_q01_approx": 24.562
+    },
+    "recommended_next_question": "What downstream-relevant invariant should be transferred instead of raw teacher correction direction?"
+  },
+  "route": {
+    "name": "ROUTE_C_TEACHER_DIRECTION_NOT_CAUSAL",
+    "central_question": "What downstream-relevant effect should be transferred instead of raw teacher correction direction?",
+    "null_gate": "Test whether any teacher intervention is needed before proposing a learned downstream-effect transfer."
+  },
+  "literature": [
+    {
+      "paper": "Hinton, Vinyals, and Dean (2015), Distilling the Knowledge in a Neural Network",
+      "url": "https://arxiv.org/abs/1503.02531",
+      "problem": "Compress a large teacher or ensemble.",
+      "mechanism": "Soft output/logit matching.",
+      "equation": "L_KD = T^2 KL(softmax(z_T/T) || softmax(z_S/T)).",
+      "relevance": "Foundational function/output transfer alternative to internal-vector matching.",
+      "limitation": "Transfers all teacher output behavior and is not anomaly-residual specific."
+    },
+    {
+      "paper": "Park et al. (2019), Relational Knowledge Distillation",
+      "url": "https://openaccess.thecvf.com/content_CVPR_2019/html/Park_Relational_Knowledge_Distillation_CVPR_2019_paper.html",
+      "problem": "Pointwise output matching can omit inter-example structure.",
+      "mechanism": "Distance-wise and angle-wise relational matching.",
+      "equation": "L_RKD = lambda_D L_distance + lambda_A L_angle.",
+      "relevance": "Prior art for transferring a structural invariant rather than a per-example direction.",
+      "limitation": "Pairwise structure and multiple terms; no anomaly residual/logit result in the reviewed setting."
+    },
+    {
+      "paper": "Chen, Wang, and Zhang (2018), DarkRank",
+      "url": "https://ojs.aaai.org/index.php/AAAI/article/view/11783",
+      "problem": "Transfer metric-learning similarity structure.",
+      "mechanism": "Learning-to-rank transfer of cross-sample similarities.",
+      "equation": "L_rank is a teacher-ordered listwise/log-softmax loss over student similarities.",
+      "relevance": "Direct prior art for rank-preserving transfer.",
+      "limitation": "Metric-learning pair/list construction; no teacher-student anomaly or residual-logit intervention."
+    },
+    {
+      "paper": "Zheng et al. (2022), Localization Distillation for Dense Object Detection",
+      "url": "https://arxiv.org/abs/2204.05957",
+      "problem": "Feature imitation can miss localization information.",
+      "mechanism": "Prediction-head localization-distribution distillation over valuable regions.",
+      "equation": "L_LD = mean_i w_i KL(p_T,i || p_S,i).",
+      "relevance": "Shows task logits/distributions can be more useful than feature imitation and reports no inference-speed sacrifice.",
+      "limitation": "Detection-specific box distributions and region weighting; not SABRA anomaly residual intervention."
+    },
+    {
+      "paper": "Wang et al. (2024), CrossKD",
+      "url": "https://openaccess.thecvf.com/content/CVPR2024/html/Wang_CrossKD_Cross-Head_Knowledge_Distillation_for_Object_Detection_CVPR_2024_paper.html",
+      "problem": "Feature imitation can conflict with annotation supervision.",
+      "mechanism": "Teacher-head prediction mimicking from student-head features.",
+      "equation": "L_CrossKD = mean_r S(r) D_pred(p_hat_S(r), p_T(r)).",
+      "relevance": "Closest general precedent for task-oriented prediction transfer.",
+      "limitation": "Detection teacher head and task-specific losses; teacher prediction may still be an unhelpful target."
+    },
+    {
+      "paper": "Lan and Tian (2024), Gradient-Guided Knowledge Distillation for Object Detectors",
+      "url": "https://openaccess.thecvf.com/content/WACV2024/html/Lan_Gradient-Guided_Knowledge_Distillation_for_Object_Detectors_WACV_2024_paper.html",
+      "problem": "Plain feature imitation does not identify task-important features.",
+      "mechanism": "Feature imitation weighted by task-loss gradients, plus BMFI.",
+      "equation": "L_GKD is approximately mean_i |dL_task/df_i| D(f_S,i, f_T,i), with an additional BMFI path.",
+      "relevance": "Downstream-aware weighting precedent.",
+      "limitation": "Extra task-gradient/feature machinery and detection supervision; no anomaly residual/logit result."
+    },
+    {
+      "paper": "Bergmann et al. (2020), Uninformed Students",
+      "url": "https://openaccess.thecvf.com/content_CVPR_2020/html/Bergmann_Uninformed_Students_Student-Teacher_Anomaly_Detection_With_Discriminative_Latent_Embeddings_CVPR_2020_paper.html",
+      "problem": "Unsupervised pixel anomaly detection without anomaly labels.",
+      "mechanism": "Students regress teacher features on normal data; discrepancy is the anomaly score.",
+      "equation": "A(x) = d(f_T(x), f_S(x)).",
+      "relevance": "Direct teacher-student anomaly-detection precedent.",
+      "limitation": "Teacher/student discrepancy remains at inference and is not a native-relative logit effect."
+    },
+    {
+      "paper": "Gu et al. (2023), Remembering Normality",
+      "url": "https://openaccess.thecvf.com/content/ICCV2023/html/Gu_Remembering_Normality_Memory-guided_Knowledge_Distillation_for_Unsupervised_Anomaly_Detection_ICCV_2023_paper.html",
+      "problem": "Student-teacher AD suffers normality forgetting.",
+      "mechanism": "Normality-recall memory modulates student features before discrepancy scoring.",
+      "equation": "A(x) = d(f_T(x), M(f_S(x), memory_normal)) with a normality-embedding objective.",
+      "relevance": "AD literature targets downstream anomaly behavior rather than raw teacher direction.",
+      "limitation": "Adds memory and auxiliary normality learning; still feature-discrepancy based."
+    }
+  ],
+  "prior_art_overlap": {
+    "exact_sabra_match_in_targeted_set": false,
+    "novelty_claim": "none",
+    "anomaly_detection_present": true,
+    "teacher_student_anomaly_present": true,
+    "prediction_or_logit_distillation_present": true,
+    "direct_native_relative_anomaly_residual_logit_intervention_present": false,
+    "extra_inference_cost": "Varies: standard KD/LD/CrossKD can discard teacher paths; Uninformed Students retains teacher/student discrepancy; MemKD adds a memory path.",
+    "multiple_weighted_losses": "Common in RKD, GKD/BMFI, MemKD, and detector training combinations; absent in the selected null control.",
+    "category_specific_parameters": "Not a defining feature of the reviewed methods; complexity is generally in relations, regions, heads, gradients, or memory."
+  },
+  "candidates": [
+    {
+      "rank": 1,
+      "name": "P31_NATIVE_ZERO_ADAPTER_CONTROL",
+      "mechanism_match": "highest",
+      "exact_formulation": "r_S(x) = 0; logits and anomaly map equal frozen native outputs.",
+      "scientific_question": "Does teacher intervention provide any downstream benefit over the frozen detector?",
+      "expected_detection_effect": "No adapter-induced change; native should be non-inferior if teacher imitation is unnecessary.",
+      "expected_residual_behavior": "Exactly zero.",
+      "teacher_fidelity_matters": false,
+      "objective_count": 0,
+      "new_hyperparameter_count": 0,
+      "training_overhead_percent": 0,
+      "inference_overhead_percent": 0,
+      "novelty_risk": "control/no method claim",
+      "overconstraint_risk": "low",
+      "main_failure_mode": "Native misses a systematic anomaly effect recoverable by teacher intervention on another locked class.",
+      "cheapest_falsification": "Cached native versus P30R1 pAP/pAUROC comparison."
+    },
+    {
+      "rank": 2,
+      "name": "DOWNSTREAM_LOGIT_EFFECT_TRANSFER",
+      "mechanism_match": "high but unvalidated",
+      "exact_formulation": "Delta-l_T = l_T - l_0; Delta-l_S = l_S - l_0; L = mean SmoothL1(Delta-l_S, stopgrad(Delta-l_T), beta=1).",
+      "scientific_question": "Can a native-relative output effect transfer useful behavior without raw residual-direction fidelity?",
+      "expected_detection_effect": "Preserve useful teacher-induced deployment-logit changes if they exist.",
+      "expected_residual_behavior": "Direction may differ; deployed-logit effect should match target.",
+      "teacher_fidelity_matters": "Only at deployed-logit effect.",
+      "objective_count": 1,
+      "new_hyperparameter_count": 0,
+      "training_overhead_target_percent": "<10, to be measured",
+      "inference_overhead_percent": 0,
+      "novelty_risk": "medium/partial prior art",
+      "overconstraint_risk": "medium",
+      "main_failure_mode": "Teacher effect is useless, unstable, or collapses to native.",
+      "cheapest_falsification": "Frozen finite/nonzero target audit without held-label selection."
+    },
+    {
+      "rank": 3,
+      "name": "DOWNSTREAM_RANK_OR_MARGIN_TRANSFER",
+      "mechanism_match": "medium",
+      "exact_formulation": "Teacher-derived pairwise ordering/margin of native-relative effects with one ranking objective.",
+      "scientific_question": "Is anomaly ordering rather than effect magnitude the useful teacher invariant?",
+      "expected_detection_effect": "Possible ranking/pAP improvement without calibrated magnitude guarantee.",
+      "expected_residual_behavior": "Many residuals can differ while ordering is preserved.",
+      "teacher_fidelity_matters": "Only for teacher-derived ordering.",
+      "objective_count": 1,
+      "new_hyperparameter_count": "at least tie and pair convention",
+      "training_overhead_target_percent": "potentially high",
+      "inference_overhead_percent": 0,
+      "novelty_risk": "low-medium/known family",
+      "overconstraint_risk": "high",
+      "main_failure_mode": "Metric chasing, unstable pairs, and recurrence of P29-style overconstraint.",
+      "cheapest_falsification": "Frozen count of finite non-tied teacher-effect pairs."
+    }
+  ],
+  "selected_next_hypothesis": {
+    "name": "P31_NATIVE_ZERO_ADAPTER_CONTROL",
+    "causal_claim": "The frozen native detector is non-inferior to P30R1 on the locked comparison, so raw teacher imitation is not necessary as SABRA's default component.",
+    "why_selected": [
+      "P30 direction fidelity and downstream performance are decoupled.",
+      "P30R1 is near-native and the exact native counterfactual is slightly better on both reported outcomes.",
+      "The control has zero objectives, zero hyperparameters, zero training cost, zero inference cost, and immediate falsifiability.",
+      "A future logit-effect method is not justified until the null control fails."
+    ],
+    "falsifier": "Native is worse than P30R1 on a locked primary comparison.",
+    "does_not_authorize_followup_training": true
+  },
+  "cheapest_falsification_sequence": [
+    "Validate forensic status, input identities, tensor shapes, and native reconstruction tolerance.",
+    "Compare cached native and P30R1 held predictions using inherited deterministic pAP primary and pAUROC secondary metrics with zero non-inferiority margin.",
+    "If native is non-inferior, accept and stop; if P30R1 wins, mark the control falsified and require a new research decision without automatically implementing another method."
+  ],
+  "overconstraint_risk": {
+    "selected": "LOW",
+    "reason": "No loss, weights, gate, auxiliary network, category parameter, or teacher-at-inference path is introduced."
+  },
+  "runtime": {
+    "training_required": false,
+    "new_training_runs": 0,
+    "optimizer_steps": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0,
+    "stage2_runs": 0,
+    "stage3_runs": 0,
+    "full_12_class_runs": 0,
+    "new_objectives": 0,
+    "new_hyperparameters": 0,
+    "training_overhead_percent": 0,
+    "inference_overhead_percent": 0
+  },
+  "artifacts_created": [
+    "research/sabra_v2/region_distill/P31_RESEARCH_DECISION.md",
+    "research/sabra_v2/region_distill/P31_RESEARCH_DECISION.json",
+    "research/sabra_v2/region_distill/P31_PREREGISTRATION_DRAFT.md"
+  ],
+  "artifacts_not_created": [
+    "scientific UUID",
+    "execution marker",
+    "final preregistration hash",
+    "trainer",
+    "runner",
+    "checkpoint",
+    "scientific model implementation"
+  ],
+  "no_new_scientific_run_started": true
+}
