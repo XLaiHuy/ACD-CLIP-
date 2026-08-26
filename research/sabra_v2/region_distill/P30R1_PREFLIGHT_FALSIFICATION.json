@@ -1,0 +1,687 @@
+{
+  "engineering_smoke": {
+    "reason": "P30R1 implementation is forbidden in this phase",
+    "status": "NOT_RUN"
+  },
+  "final_gate": "PASS_TO_IMPLEMENTATION",
+  "formulation": "P30R1 teacher-relative SmoothL1: t_bar=t/C, s_bar=s/C; a_t=stop_gradient(sqrt(mean(t_bar^2)+eps^2)); z_t=t_bar/a_t; z_s=s_bar/a_t; L=F.smooth_l1_loss(z_s,z_t,beta=1.0,reduction=mean) over B*243 coordinates; exact-zero teacher samples remain active.",
+  "formulation_sha256": "290aae42e04d9faae5a10b929eb58aa0da066b5dbd248b3fee40f20e9094781c",
+  "mathematical_analysis": {
+    "cases": {
+      "A": {
+        "beta_collapse_or_explode": "neither; beta=alpha is the target and is identifiable",
+        "condition": "v=u, beta=0.1*alpha",
+        "gradient_explosion": "no; epsilon and bounded SmoothL1 derivative give the fixed bound",
+        "loss_behavior": "positive radial error; below the beta=alpha minimum and materially nonzero",
+        "normalization_bias": "if alpha is small, epsilon makes the target less than unit RMS; otherwise a_t tracks alpha",
+        "small_teacher_domination": "possible only as bounded weighting through 1/a_t; capped by 1/epsilon",
+        "student_gradient_direction": "coordinatewise toward +u, increasing beta toward alpha"
+      },
+      "B": {
+        "beta_collapse_or_explode": "neither; no radial drift remains at the match",
+        "condition": "v=u, beta=alpha",
+        "gradient_explosion": "none",
+        "loss_behavior": "exactly zero, the unique minimum for fixed teacher and direction",
+        "normalization_bias": "none for the exact match; both sides share the same teacher denominator",
+        "small_teacher_domination": "no mismatch gradient at the exact match",
+        "student_gradient_direction": "zero at the optimum"
+      },
+      "C": {
+        "beta_collapse_or_explode": "neither; the radial error is penalized rather than ignored",
+        "condition": "v=u, beta=10*alpha",
+        "gradient_explosion": "no; the tail derivative is clipped to magnitude one",
+        "loss_behavior": "large positive radial error; SmoothL1 becomes linear on coordinates beyond beta=1",
+        "normalization_bias": "large alpha cancels in a_t approximately, leaving the relative beta/alpha error identifiable",
+        "small_teacher_domination": "not caused by this case; larger a_t reduces the raw gradient weight",
+        "student_gradient_direction": "coordinatewise toward -u, decreasing beta toward alpha"
+      },
+      "D": {
+        "beta_collapse_or_explode": "neither as an objective property; updates oppose the excess radius",
+        "condition": "v=u, beta=100*alpha",
+        "gradient_explosion": "no from the loss derivative, although an external optimizer could still be misconfigured",
+        "loss_behavior": "very large positive radial error, approximately linear in the normalized excess in the SmoothL1 tail",
+        "normalization_bias": "same teacher-relative denominator retains beta/alpha dependence; epsilon matters only for near-zero alpha",
+        "small_teacher_domination": "bounded by epsilon, not unbounded",
+        "student_gradient_direction": "coordinatewise toward -u; it cannot be mistaken for a low-loss directional match"
+      },
+      "E": {
+        "beta_collapse_or_explode": "neither is required; direction and magnitude both move toward teacher",
+        "condition": "v=-u, beta=alpha",
+        "gradient_explosion": "no; bounded SmoothL1 derivative and a_t floor",
+        "loss_behavior": "positive directional and radial residual, materially above the correct-direction match",
+        "normalization_bias": "shared teacher denominator does not erase the sign mismatch",
+        "small_teacher_domination": "only bounded by 1/epsilon for near-zero teachers",
+        "student_gradient_direction": "toward +u and away from -u, coordinatewise through the residual"
+      },
+      "F": {
+        "beta_collapse_or_explode": "the loss supplies a restoring force; it does not reward unbounded beta",
+        "condition": "v=u with catastrophic beta/alpha, such as 100",
+        "gradient_explosion": "SmoothL1 prevents quadratic tail gradient growth, while the denominator floor caps scale",
+        "loss_behavior": "tail loss grows with the residual rather than remaining direction-only invariant",
+        "normalization_bias": "teacher-relative scaling intentionally makes the target strength depend on alpha through a_t",
+        "small_teacher_domination": "risk is explicit and bounded; the mixed-scale gate tests it rather than hiding it",
+        "student_gradient_direction": "radial correction toward the teacher magnitude"
+      },
+      "G": {
+        "beta_collapse_or_explode": "beta is restored toward zero, not left unconstrained",
+        "condition": "t=0, s!=0",
+        "gradient_explosion": "no; |psi|<=1 and a_t=epsilon",
+        "loss_behavior": "finite positive loss with a_t=epsilon and z_t=0",
+        "normalization_bias": "epsilon is the deliberate zero-target scale, not a learned target statistic",
+        "small_teacher_domination": "zero samples receive the maximum bounded per-coordinate weight; their fraction is measured",
+        "student_gradient_direction": "toward zero; the gradient dot student is positive"
+      },
+      "H": {
+        "beta_collapse_or_explode": "no objective-level collapse or explosion; epsilon prevents a singular denominator",
+        "condition": "||t|| approximately zero but nonzero",
+        "gradient_explosion": "no under the fixed analytic bound, verified at 1e-8, 1e-6, and 1e-4 scales",
+        "loss_behavior": "finite; z_t is attenuated when teacher RMS is below epsilon and radial mismatch remains identifiable",
+        "normalization_bias": "yes, a known epsilon-floor bias for tiny targets; no empirical epsilon tuning is allowed",
+        "small_teacher_domination": "bounded but potentially stronger than large-target samples; source and mixed-scale gates quantify it",
+        "student_gradient_direction": "toward the small teacher target, or toward zero when the student is larger"
+      },
+      "I": {
+        "beta_collapse_or_explode": "neither; large teacher scale is not a route to scale-invariant student output",
+        "condition": "large teacher residual, alpha much larger than C*epsilon",
+        "gradient_explosion": "no; denominator is large and SmoothL1 is bounded",
+        "loss_behavior": "relative residual is compared after a_t approximately tracks teacher RMS",
+        "normalization_bias": "minimal epsilon bias in this regime; the intended relative normalization dominates",
+        "small_teacher_domination": "large targets do not dominate solely due to raw magnitude",
+        "student_gradient_direction": "toward teacher coordinatewise, with smaller raw weight 1/a_t"
+      },
+      "J": {
+        "beta_collapse_or_explode": "no scale invariance; per-sample radial errors remain observable in one batch",
+        "condition": "one batch contains teacher scales 0, 0.01, 0.1, 1, 10, and 100",
+        "gradient_explosion": "finite and bounded; the fixed mixed-scale max/median gradient ratio gate is 100",
+        "loss_behavior": "each sample retains its own beta/alpha radial minimum; batch loss is the mean over all coordinates",
+        "normalization_bias": "only the declared teacher-relative weighting and epsilon floor; no student norm or class scale is introduced",
+        "small_teacher_domination": "the principal remaining risk; the deterministic mixed batch must stay below the fixed bound and source cache must be non-pathological",
+        "student_gradient_direction": "each sample receives a residual-directed gradient toward its own teacher"
+      }
+    },
+    "notation": {
+      "absolute_gradient_bound": "|dL/ds_j| <= 1/(B*n*C*eps); per-sample L2 <= 1/(B*C*eps*sqrt(n))",
+      "assumption": "t=alpha*u, s=beta*v, ||u||_2=||v||_2=1",
+      "bound_at_B1": {
+        "gradient_l2": 1.2933187701808124,
+        "gradient_max_abs": 0.08296643779020978
+      },
+      "n": 243,
+      "normalized_residual": "delta=(beta*v-alpha*u)/(C*a_t)",
+      "per_coordinate_gradient": "dL/ds_j=psi(delta_j)/(B*n*C*a_t), psi(x)=x for |x|<1 else sign(x)",
+      "teacher_rms": "q_u=sqrt(mean(u^2)); a_t=sqrt((alpha/C)^2*q_u^2+eps^2)"
+    }
+  },
+  "p30_counterfactual": {
+    "exact_zero_teacher_count": 0,
+    "held_class": "candle",
+    "held_mask_reads_post_freeze": 100,
+    "observed_data_used_for_tuning": false,
+    "p30_residual_global_q99_abs": 25.929798946380703,
+    "p30_sample_q99_abs": {
+      "max": 61.361743316650376,
+      "min": 0.5842720556259141,
+      "q50": 2.618100197315183,
+      "q90": 34.62694544601438,
+      "q95": 39.820660049438274,
+      "q99": 51.471676509857055
+    },
+    "radial_ratio": {
+      "max": 12.9849827948868,
+      "min": 0.08480501540827673,
+      "q50": 0.3551334244701442,
+      "q90": 8.09886503791097,
+      "q95": 9.566490979711384,
+      "q99": 12.736232346972178
+    },
+    "radial_ratio_vs_sample_q99": {
+      "pearson": 0.9623820815515381,
+      "spearman": 0.8782119552988826
+    },
+    "ratio_definition": "||s_P30||_2 / (||t||_2 + 0.01), raw staged [3,9,9] residual units",
+    "sample_count": 200,
+    "schema_version": "P30R1_P30_COUNTERFACTUAL_V1",
+    "source": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P30/qualification/stage2_one_class/candle/predictions/p30_held_predictions.pt",
+    "status": "PASS",
+    "student_l2": {
+      "max": 243.93453684147786,
+      "min": 6.04342863276373,
+      "q50": 13.381176842838384,
+      "q90": 136.11043341321164,
+      "q95": 146.58296998084543,
+      "q99": 199.0752864546491
+    },
+    "teacher_l2": {
+      "max": 77.32048800295263,
+      "min": 5.279197999824502,
+      "q50": 77.2830506066318,
+      "q90": 77.32048800295263,
+      "q95": 77.32048800295263,
+      "q99": 77.32048800295263
+    },
+    "top_radial_ratio_paths": [
+      "candle/Data/Images/Anomaly/065.JPG",
+      "candle/Data/Images/Anomaly/097.JPG",
+      "candle/Data/Images/Anomaly/088.JPG",
+      "candle/Data/Images/Anomaly/042.JPG",
+      "candle/Data/Images/Anomaly/075.JPG"
+    ],
+    "top_sample_q99_paths": [
+      "candle/Data/Images/Anomaly/088.JPG",
+      "candle/Data/Images/Anomaly/097.JPG",
+      "candle/Data/Images/Anomaly/067.JPG",
+      "candle/Data/Images/Anomaly/096.JPG",
+      "candle/Data/Images/Anomaly/068.JPG"
+    ]
+  },
+  "prohibited_actions_confirmed": {
+    "held_labels_used_for_tuning": false,
+    "p29_or_p27_rerun": false,
+    "p30_full_training_started": false,
+    "p30r1_stage2_started": false,
+    "p30r1_trainer_created": false
+  },
+  "schema_version": "P30R1_PREFLIGHT_FALSIFICATION_V1",
+  "source_cache": {
+    "cache_root": "/workspace/p27r1_cache_v1",
+    "category_specific_C_in_code": false,
+    "checks": {
+      "all_observed_values_finite": true,
+      "denominator_floor": true,
+      "near_ten_epsilon_fraction_within_fixed_bound": true,
+      "q99_over_median_within_fixed_bound": true
+    },
+    "correction_scale_C": 4.960109710693359,
+    "cross_source_class": {
+      "candle": {
+        "count": 200,
+        "mean": 0.6149968436739891,
+        "rms_quantiles": {
+          "max": 1.0000003845375898,
+          "min": 0.06827685864674031,
+          "q50": 0.9995161996639055,
+          "q90": 1.0000003845375898,
+          "q95": 1.0000003845375898,
+          "q99": 1.0000003845375898
+        },
+        "std": 0.39782536067066815
+      },
+      "capsules": {
+        "count": 160,
+        "mean": 0.5565442899488684,
+        "rms_quantiles": {
+          "max": 1.0000003845375898,
+          "min": 0.05425135766647421,
+          "q50": 0.3144000908244707,
+          "q90": 1.0000003845375898,
+          "q95": 1.0000003845375898,
+          "q99": 1.0000003845375898
+        },
+        "std": 0.3692862921482224
+      },
+      "cashew": {
+        "count": 150,
+        "mean": 0.47953031872877183,
+        "rms_quantiles": {
+          "max": 1.0000003845375898,
+          "min": 0.032049344937419864,
+          "q50": 0.23025479921300518,
+          "q90": 1.0000003845375898,
+          "q95": 1.0000003845375898,
+          "q99": 1.0000003845375898
+        },
+        "std": 0.3816427032146565
+      },
+      "chewinggum": {
+        "count": 150,
+        "mean": 0.4853479488540866,
+        "rms_quantiles": {
+          "max": 1.0000003845375898,
+          "min": 0.0586262494656312,
+          "q50": 0.26069087979937305,
+          "q90": 1.0000003845375898,
+          "q95": 1.0000003845375898,
+          "q99": 1.0000003845375898
+        },
+        "std": 0.3668397098098405
+      },
+      "fryum": {
+        "count": 150,
+        "mean": 0.5612280364798018,
+        "rms_quantiles": {
+          "max": 1.0000003845375898,
+          "min": 0.05067446214912591,
+          "q50": 0.47373969140379335,
+          "q90": 1.0000003845375898,
+          "q95": 1.0000003845375898,
+          "q99": 1.0000003845375898
+        },
+        "std": 0.3405947865677
+      },
+      "macaroni1": {
+        "count": 200,
+        "mean": 0.579089669667604,
+        "rms_quantiles": {
+          "max": 1.0000003845375898,
+          "min": 0.0,
+          "q50": 0.6624506002599875,
+          "q90": 1.0000003845375898,
+          "q95": 1.0000003845375898,
+          "q99": 1.0000003845375898
+        },
+        "std": 0.4231355509602638
+      },
+      "macaroni2": {
+        "count": 200,
+        "mean": 0.5868812796048999,
+        "rms_quantiles": {
+          "max": 1.0000003845375898,
+          "min": 0.0,
+          "q50": 0.9607297848164648,
+          "q90": 1.0000003845375898,
+          "q95": 1.0000003845375898,
+          "q99": 1.0000003845375898
+        },
+        "std": 0.42291498194919175
+      },
+      "pcb1": {
+        "count": 200,
+        "mean": 0.6397088558767802,
+        "rms_quantiles": {
+          "max": 1.0000003845375898,
+          "min": 0.03583225695720478,
+          "q50": 0.8939859748479079,
+          "q90": 1.0000003845375898,
+          "q95": 1.0000003845375898,
+          "q99": 1.0000003845375898
+        },
+        "std": 0.3704127214771841
+      },
+      "pcb2": {
+        "count": 200,
+        "mean": 0.6270443030078896,
+        "rms_quantiles": {
+          "max": 1.0000003845375898,
+          "min": 0.032049344937419864,
+          "q50": 0.817428227926433,
+          "q90": 1.0000003845375898,
+          "q95": 1.0000003845375898,
+          "q99": 1.0000003845375898
+        },
+        "std": 0.3801033586465646
+      },
+      "pcb3": {
+        "count": 201,
+        "mean": 0.6541789129890143,
+        "rms_quantiles": {
+          "max": 1.0000003845375898,
+          "min": 0.05674286850607507,
+          "q50": 0.5182879560918334,
+          "q90": 1.0000003845375898,
+          "q95": 1.0000003845375898,
+          "q99": 1.0000003845375898
+        },
+        "std": 0.3517465939712537
+      },
+      "pcb4": {
+        "count": 201,
+        "mean": 0.677809051704908,
+        "rms_quantiles": {
+          "max": 1.0000003845375898,
+          "min": 0.19816445736919516,
+          "q50": 0.5012184138412412,
+          "q90": 1.0000003845375898,
+          "q95": 1.0000003845375898,
+          "q99": 1.0000003845375898
+        },
+        "std": 0.32090263826492355
+      },
+      "pipe_fryum": {
+        "count": 150,
+        "mean": 0.49634127070026596,
+        "rms_quantiles": {
+          "max": 1.0000003845375898,
+          "min": 0.11683059148875215,
+          "q50": 0.2424766834822913,
+          "q90": 1.0000003845375898,
+          "q95": 1.0000003845375898,
+          "q99": 1.0000003845375898
+        },
+        "std": 0.3674966123087088
+      }
+    },
+    "duplicate_cache_exposures_not_counted": 21620,
+    "epsilon_floor_is_active_for_all_targets": true,
+    "exact_zero_count": 9,
+    "exact_zero_fraction": 0.004162812210915819,
+    "fixed_thresholds": {
+      "all_observed_values_finite": true,
+      "denominator_min_must_equal_or_exceed_epsilon": true,
+      "near_ten_epsilon_nonzero_fraction_max": 0.1,
+      "q99_over_median_normalized_rms_max": 100.0
+    },
+    "held_labels_used_for_tuning": false,
+    "min_nonzero_normalized_rms": 0.004444444404388445,
+    "near_epsilon_nonzero_count": 2,
+    "near_epsilon_nonzero_fraction": 0.0009289363678588017,
+    "near_ten_epsilon_nonzero_count": 77,
+    "near_ten_epsilon_nonzero_fraction": 0.035764050162563864,
+    "normalization_epsilon": 0.01,
+    "normalized_teacher_rms": {
+      "max": 1.0000003845375898,
+      "min": 0.0,
+      "q50": 0.41468132206920105,
+      "q90": 1.0000003845375898,
+      "q95": 1.0000003845375898,
+      "q99": 1.0000003845375898
+    },
+    "observed_data": "immutable Tier-B teacher_region.npy only",
+    "q99_over_median_normalized_rms": 2.411491261645761,
+    "raw_rms": {
+      "max": 4.960111618041992,
+      "min": 0.0,
+      "q50": 2.0568648524386046,
+      "q90": 4.960111618041992,
+      "q95": 4.960111618041992,
+      "q99": 4.960111618041992
+    },
+    "schema_version": "P30R1_SOURCE_CACHE_RADIAL_STATS_V1",
+    "status": "PASS",
+    "teacher_denominator_a_t": {
+      "max": 1.0000503832684269,
+      "min": 0.01,
+      "q50": 0.41480187906411536,
+      "q90": 1.0000503832684269,
+      "q95": 1.0000503832684269,
+      "q99": 1.0000503832684269
+    },
+    "teacher_l2": {
+      "max": 44.64100456237793,
+      "min": 0.0,
+      "q50": 18.51178367194744,
+      "q90": 44.64100456237793,
+      "q95": 44.64100456237793,
+      "q99": 44.64100456237793
+    },
+    "tier_b_shard_sample_counts": {
+      "candle": 1962,
+      "capsules": 2002,
+      "cashew": 2012,
+      "chewinggum": 2012,
+      "fryum": 2012,
+      "macaroni1": 1962,
+      "macaroni2": 1962,
+      "pcb1": 1962,
+      "pcb2": 1962,
+      "pcb3": 1961,
+      "pcb4": 1961,
+      "pipe_fryum": 2012
+    },
+    "unique_source_sample_count": 2162
+  },
+  "speed_profile": {
+    "reason": "P30R1 implementation and engineering profile are forbidden in this phase",
+    "status": "NOT_RUN"
+  },
+  "synthetic": {
+    "checks": {
+      "gross_scale_errors_materially_penalized": true,
+      "heavy_tail_detected": true,
+      "mixed_scales_finite": true,
+      "mixed_scales_no_trivial_gradient_dominance": true,
+      "mixed_scales_retain_scale_identifiability": true,
+      "near_zero_finite_and_bounded": true,
+      "opposite_direction_penalized": true,
+      "scale_1x_unique_clear_minimum": true,
+      "smooth_l1_is_bounded_and_robust": true,
+      "teacher_gradients_none": true,
+      "zero_teacher_restoring_force": true
+    },
+    "correction_scale_C": 4.960109710693359,
+    "direction_sensitivity": {
+      "opposite": {
+        "gradient": {
+          "finite": true,
+          "l2": 0.01075658481568098,
+          "max_abs": 0.0006902968161739409,
+          "nonzero_fraction": 1.0,
+          "teacher_grad_status": "NONE"
+        },
+        "loss": 1.4214874505996704,
+        "teacher_detached": true
+      }
+    },
+    "fixed_thresholds": {
+      "gross_scale_100x_loss_gt_10x": true,
+      "gross_scale_10x_loss_min": 0.1,
+      "heavy_tail_loss_margin_over_1x": 0.01,
+      "mixed_nonzero_gradient_max_to_median_max": 100.0,
+      "near_zero_gradient_l2_max": 1000.0,
+      "near_zero_gradient_max_abs_max": 100.0,
+      "opposite_loss_margin_over_1x": 0.1,
+      "scale_1x_loss_max": 1e-07,
+      "zero_teacher_gradient_l2_min": 1e-08
+    },
+    "formulation_sha256": "290aae42e04d9faae5a10b929eb58aa0da066b5dbd248b3fee40f20e9094781c",
+    "heavy_tail_student_corruption": {
+      "10.0": {
+        "corrupted_coordinate_count": 2,
+        "gradient": {
+          "finite": true,
+          "l2": 0.0009762271074578166,
+          "max_abs": 0.0006902968161739409,
+          "nonzero_fraction": 0.008230452425777912,
+          "teacher_grad_status": "NONE"
+        },
+        "loss": 0.10175522416830063,
+        "teacher_detached": true
+      },
+      "100.0": {
+        "corrupted_coordinate_count": 2,
+        "gradient": {
+          "finite": true,
+          "l2": 0.0009762271074578166,
+          "max_abs": 0.0006902968161739409,
+          "nonzero_fraction": 0.008230452425777912,
+          "teacher_grad_status": "NONE"
+        },
+        "loss": 1.1604596376419067,
+        "teacher_detached": true
+      }
+    },
+    "mixed_batch_scales": {
+      "gradient": {
+        "finite": true,
+        "l2": 0.22215136885643005,
+        "max_abs": 0.013827740214765072,
+        "nonzero_fraction": 1.0,
+        "teacher_grad_status": "NONE"
+      },
+      "loss": 9.63475227355957,
+      "nonzero_scale_gradient_l2_ratio_max_to_median": 59.09512710571289,
+      "nonzero_scale_gradient_l2_ratio_max_to_min": 5909.1044921875,
+      "per_sample_gradient_l2": [
+        0.2155531793832779,
+        0.052990056574344635,
+        0.008905873633921146,
+        0.0008966908208094537,
+        8.967520989244804e-05,
+        8.967527719505597e-06
+      ],
+      "scales": [
+        0.0,
+        0.01,
+        0.1,
+        1.0,
+        10.0,
+        100.0
+      ],
+      "teacher_detached": true
+    },
+    "near_zero_teacher": {
+      "0.0001": {
+        "gradient": {
+          "finite": true,
+          "l2": 1.2932251691818237,
+          "max_abs": 0.08296044915914536,
+          "nonzero_fraction": 1.0,
+          "teacher_grad_status": "NONE"
+        },
+        "loss": 57.21980667114258,
+        "teacher_detached": true
+      },
+      "1e-06": {
+        "gradient": {
+          "finite": true,
+          "l2": 1.2933186292648315,
+          "max_abs": 0.08296643942594528,
+          "nonzero_fraction": 1.0,
+          "teacher_grad_status": "NONE"
+        },
+        "loss": 57.23540496826172,
+        "teacher_detached": true
+      },
+      "1e-08": {
+        "gradient": {
+          "finite": true,
+          "l2": 1.2933186292648315,
+          "max_abs": 0.08296643942594528,
+          "nonzero_fraction": 1.0,
+          "teacher_grad_status": "NONE"
+        },
+        "loss": 57.23551559448242,
+        "teacher_detached": true
+      }
+    },
+    "normalization_epsilon": 0.01,
+    "objective_count": 1,
+    "observed_data_used": false,
+    "robust_loss_comparison": {
+      "gradient_bounds": {
+        "L1": {
+          "finite": true,
+          "max_abs": 0.1111111119389534
+        },
+        "L2_MSE": {
+          "finite": true,
+          "max_abs": 22.22222328186035
+        },
+        "SmoothL1_beta_1": {
+          "finite": true,
+          "max_abs": 0.1111111119389534
+        }
+      },
+      "losses": {
+        "L1": 24.77777862548828,
+        "L2_MSE": 2244.72216796875,
+        "SmoothL1_beta_1": 24.36111068725586
+      }
+    },
+    "scale_identifiability": {
+      "cases": {
+        "0.01": {
+          "gradient": {
+            "finite": true,
+            "l2": 0.00938955508172512,
+            "max_abs": 0.0006902968161739409,
+            "nonzero_fraction": 1.0,
+            "teacher_grad_status": "NONE"
+          },
+          "loss": 0.47640496492385864,
+          "teacher_detached": true
+        },
+        "0.1": {
+          "gradient": {
+            "finite": true,
+            "l2": 0.008989091031253338,
+            "max_abs": 0.0006902968161739409,
+            "nonzero_fraction": 1.0,
+            "teacher_grad_status": "NONE"
+          },
+          "loss": 0.3999238610267639,
+          "teacher_detached": true
+        },
+        "0.5": {
+          "gradient": {
+            "finite": true,
+            "l2": 0.005380145274102688,
+            "max_abs": 0.0004953506286256015,
+            "nonzero_fraction": 1.0,
+            "teacher_grad_status": "NONE"
+          },
+          "loss": 0.12499135732650757,
+          "teacher_detached": true
+        },
+        "1.0": {
+          "gradient": {
+            "finite": true,
+            "l2": 0.0,
+            "max_abs": 0.0,
+            "nonzero_fraction": 0.0,
+            "teacher_grad_status": "NONE"
+          },
+          "loss": 0.0,
+          "teacher_detached": true
+        },
+        "10.0": {
+          "gradient": {
+            "finite": true,
+            "l2": 0.010760662145912647,
+            "max_abs": 0.0006902968161739409,
+            "nonzero_fraction": 1.0,
+            "teacher_grad_status": "NONE"
+          },
+          "loss": 8.146671295166016,
+          "teacher_detached": true
+        },
+        "100.0": {
+          "gradient": {
+            "finite": true,
+            "l2": 0.010760662145912647,
+            "max_abs": 0.0006902968161739409,
+            "nonzero_fraction": 1.0,
+            "teacher_grad_status": "NONE"
+          },
+          "loss": 94.61338806152344,
+          "teacher_detached": true
+        },
+        "2.0": {
+          "gradient": {
+            "finite": true,
+            "l2": 0.009427906014025211,
+            "max_abs": 0.0006902968161739409,
+            "nonzero_fraction": 1.0,
+            "teacher_grad_status": "NONE"
+          },
+          "loss": 0.4850783050060272,
+          "teacher_detached": true
+        }
+      },
+      "scales": [
+        0.01,
+        0.1,
+        0.5,
+        1.0,
+        2.0,
+        10.0,
+        100.0
+      ]
+    },
+    "schema_version": "P30R1_SYNTHETIC_FALSIFICATION_V1",
+    "smooth_l1_beta": 1.0,
+    "smooth_l1_reduction": "mean over all batch and 243 coordinates",
+    "status": "PASS",
+    "zero_teacher_restoring_force": {
+      "gradient": {
+        "finite": true,
+        "l2": 1.2933186292648315,
+        "max_abs": 0.08296643942594528,
+        "nonzero_fraction": 1.0,
+        "teacher_grad_status": "NONE"
+      },
+      "gradient_toward_zero_dot": 57.73551940917969,
+      "loss": 57.23551559448242,
+      "teacher_detached": true
+    }
+  }
+}

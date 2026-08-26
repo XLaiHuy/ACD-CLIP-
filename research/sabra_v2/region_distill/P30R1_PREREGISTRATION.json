@@ -1,0 +1,391 @@
+{
+  "schema_version": "P30R1_TEACHER_RELATIVE_RADIAL_STABILIZATION_V1",
+  "status": "P30R1_PREREGISTERED_DESIGN_ONLY",
+  "experiment": {
+    "name": "P30R1_TEACHER_SCALE_NORMALIZED_SINGLE_RESIDUAL_REGRESSION",
+    "working_name": "TSNRD",
+    "uuid": "7374c95c-2ada-41f3-89e7-24d7e48338af",
+    "created_utc": "2026-08-26",
+    "branch": "research/p29r1-fast-objective-forensic-v1",
+    "parent_commit": "3cf91fb4325b9d3aea3b8a65d131cdea14d8ceba",
+    "preregistration_hash_file": "research/sabra_v2/region_distill/P30R1_PREREGISTRATION_SHA256.txt"
+  },
+  "phase_scope": {
+    "purpose": "Freeze and cheaply falsify the mathematical design before a separate implementation prompt.",
+    "scientific_training_executed_now": false,
+    "stage_2_executed_now": false,
+    "stage_3_executed_now": false,
+    "full_12_class_execution_executed_now": false,
+    "execution_marker_created_now": false,
+    "pass_meaning": "PASS_TO_IMPLEMENTATION means only that the formulation survived this preflight; it does not authorize Stage 2.",
+    "novelty_position": "Mechanism-driven teacher-relative radial stabilization; no novelty claim is made."
+  },
+  "scientific_hypothesis": {
+    "primary": "P30's failure is caused primarily by radial non-identifiability under self-normalized directional loss.",
+    "p30_failure_label": "HEAVY_TAIL_RESIDUAL_SCALE_INSTABILITY",
+    "downstream_failure_label": "LOGIT / ANOMALY_SCORE_SATURATION",
+    "candidate": "A single robust vector-regression loss using a frozen teacher-only radial denominator restores beta/alpha identifiability without reintroducing P29's mixed-objective conflict.",
+    "required_outcome": "Teacher-relative normalization removes cross-sample teacher-scale domination while retaining radial identifiability of the student."
+  },
+  "established_parent_evidence": {
+    "p30_stage2_class": "candle",
+    "p30_pAP": 0.14461806417860867,
+    "p29_pAP": 0.4905032311990789,
+    "p30_pAUROC": 0.9729044193436347,
+    "p29_pAUROC": 0.970040297208166,
+    "p30_directional_cosine": 0.7369235739966037,
+    "p29_directional_cosine": 0.7085491737886378,
+    "p30_sign_agreement": 0.5695679012345679,
+    "p29_sign_agreement": 0.5654938271604938,
+    "p30_mean_abs_residual": 1.5424903257706284,
+    "p29_mean_abs_residual": 2.0366827585423986,
+    "p30_residual_abs_q99": 25.929798946380703,
+    "p29_residual_abs_q99": 4.321676936149597,
+    "p30_normal_score_q99_shift": 0.9986907839775085,
+    "p29_normal_score_q99_shift": 1.1587851122384847e-06,
+    "p30_stage3_or_full_executed": false,
+    "p30_full_marker_exists": false,
+    "evidence_paths": [
+      "research/sabra_v2/region_distill/P30/P30_FINAL_REPORT.md",
+      "research/sabra_v2/region_distill/P30/P30_STAGE2_QUALIFICATION.json",
+      "research/sabra_v2/region_distill/P30/P30_POST_RUN_AUDIT.json",
+      "research/sabra_v2/region_distill/P30/qualification/stage2_one_class/P30_TRANSFER_DIAGNOSTIC.json",
+      "research/sabra_v2/region_distill/P30/qualification/stage2_one_class/P30_STABILITY_DIAGNOSTIC.json"
+    ]
+  },
+  "local_definition_audit": {
+    "p30r1_research_report": {
+      "path": "research/sabra_v2/region_distill/P30R1_RESEARCH_REPORT.md",
+      "status": "ABSENT",
+      "ambiguity": false,
+      "resolution": "The supplied P30 final report, stage-2 qualification, audit, mechanism note, and code make the required definitions unambiguous."
+    },
+    "correction_scale_C": {
+      "value": 4.960109710693359,
+      "source": "tools/sabra_v2/p29_objective.py",
+      "status": "one frozen global code constant; not category-specific"
+    },
+    "epsilon": {
+      "value": 0.01,
+      "source": "P30_NORMALIZATION_EPSILON in tools/sabra_v2/p30_objective.py",
+      "status": "inherited and frozen; no sweep or empirical tuning"
+    },
+    "smooth_l1": {
+      "torch_version": "2.5.1+cu121",
+      "function": "torch.nn.functional.smooth_l1_loss",
+      "beta": 1.0,
+      "reduction": "mean",
+      "existing_project_convention": "P29 calls F.smooth_l1_loss(normalized_student, normalized_teacher) with these defaults"
+    },
+    "tensor_contract": {
+      "student_region": "[3,B,9,9]",
+      "teacher_region_input": "[B,9,9]",
+      "teacher_staging": "teacher_region.detach().unsqueeze(0).expand_as(student_region)",
+      "flattened_per_sample": "[B,243] from staged [3,9,9]",
+      "objective_reduction": "mean over B*243 scalar coordinates"
+    },
+    "teacher_detachment": "Teacher tensors are cached and detached before staging; P30R1 must preserve teacher_grad=None/zero.",
+    "zero_targets": {
+      "p30_behavior": "P30 excludes exact-zero teacher samples from its directional valid set, removing their restoring gradient.",
+      "p30r1_behavior": "Exact-zero teacher remains active with a_t=epsilon and z_t=0."
+    },
+    "source_cache_observations": {
+      "cache": "/workspace/p27r1_cache_v1/tier_b",
+      "unique_samples": 2162,
+      "exact_zero_count": 9,
+      "exact_zero_fraction": 0.004162812210915819,
+      "min_nonzero_normalized_rms": 0.004444444404388445,
+      "near_epsilon_nonzero_count": 2,
+      "near_epsilon_nonzero_fraction": 0.0009289363678588017,
+      "normalized_rms_q99_over_median": 2.411491261645761,
+      "interpretation": "Exact-zero and small nonzero targets exist, but the fixed denominator floor is active and the aggregate radial distribution is not pathological under the predeclared bounds."
+    },
+    "p30_residual_q99_visibility": "The residual absolute q99 is already 25.929798946380703 in the frozen P30 transfer diagnostic before the residual-to-logit/anomaly-score construction; the score saturation is downstream."
+  },
+  "objective": {
+    "name": "P30R1_TEACHER_RELATIVE_SMOOTHL1_V1",
+    "objective_count": 1,
+    "equation": [
+      "t_bar = t/C",
+      "s_bar = s/C",
+      "a_t = stop_gradient(sqrt(mean(t_bar^2) + epsilon^2)) per sample over 243 coordinates",
+      "z_t = t_bar/a_t",
+      "z_s = s_bar/a_t",
+      "L_P30R1 = F.smooth_l1_loss(z_s, z_t, beta=1.0, reduction=mean)"
+    ],
+    "dimensions": {
+      "t_raw": "[B,9,9] staged to [3,B,9,9]",
+      "s_raw": "[3,B,9,9]",
+      "t_and_s_vectors": "[B,243]",
+      "a_t": "[B,1]",
+      "z_t_and_z_s": "[B,243]"
+    },
+    "same_teacher_denominator": true,
+    "student_self_normalization": false,
+    "exact_zero_teacher_active": true,
+    "teacher_gradient": "None/zero",
+    "additional_losses": [],
+    "lambda_weighted_terms": [],
+    "forbidden_additions": [
+      "cosine loss",
+      "sign loss",
+      "normal-region loss",
+      "magnitude loss beyond the single residual regression",
+      "ranking loss",
+      "feature loss",
+      "segmentation loss",
+      "calibration loss",
+      "class-specific scaling",
+      "learned calibration network",
+      "extra head or decoder"
+    ],
+    "formulation_hash": "290aae42e04d9faae5a10b929eb58aa0da066b5dbd248b3fee40f20e9094781c",
+    "formulation_hash_source": "P30R1_PREFLIGHT_FALSIFICATION.json and tools/sabra_v2/p30r1_preflight.py canonical formulation text"
+  },
+  "frozen_scalars": {
+    "new_tuned_hyperparameter_count": 0,
+    "correction_scale_C": {
+      "value": 4.960109710693359,
+      "kind": "inherited/frozen"
+    },
+    "normalization_epsilon": {
+      "value": 0.01,
+      "kind": "inherited/frozen from P30"
+    },
+    "smooth_l1_beta": {
+      "value": 1.0,
+      "kind": "inherited/frozen from P29"
+    },
+    "region_stages": 3,
+    "region_grid_height": 9,
+    "region_grid_width": 9,
+    "flattened_coordinate_count": 243,
+    "synthetic_bounds_are_diagnostics_not_training_parameters": true
+  },
+  "optimizer_and_training": {
+    "optimizer": "torch.optim.AdamW(adapter.parameters(), lr=0.001)",
+    "learning_rate": 0.001,
+    "adamw_betas": [0.9, 0.999],
+    "adamw_eps": 1e-08,
+    "adamw_weight_decay": 0.01,
+    "adamw_amsgrad": false,
+    "epochs": 20,
+    "batch_size": 1,
+    "seed": 0,
+    "precision": "canonical FP32",
+    "deterministic_algorithms": "torch deterministic algorithms warn_only",
+    "teacher_trainable": false,
+    "phase2b_optimization_steps": 0,
+    "clip_optimization_steps": 0,
+    "hyperparameter_sweeps": false,
+    "posthoc_tuning": false,
+    "expected_stage2_optimizer_steps": 39240
+  },
+  "architecture_cache_and_inference": {
+    "adapter": "unchanged RegionResidualAdapter exactly as P27/P29/P30",
+    "adapter_initialization": "unchanged zero output head",
+    "teacher_semantics": "historical R0 signed utility, source-only masks, adaptive average 37x37 to 9x9",
+    "cache_root": "/workspace/p27r1_cache_v1",
+    "cache_dtype": "float32",
+    "dataset": "VisA development universe only",
+    "folding": "12 fixed leave-one-class-out folds",
+    "deployment": "unchanged P26 canonical symmetric-margin integration from residual to deployed logits/probability",
+    "inference_overhead_target_percent": 0.0,
+    "inference_changes": [],
+    "teacher_at_inference": false,
+    "iterative_inference": false,
+    "category_specific_calibration": false,
+    "source_mask_used_by_training_loss": false
+  },
+  "class_order": [
+    "candle",
+    "capsules",
+    "cashew",
+    "chewinggum",
+    "fryum",
+    "macaroni1",
+    "macaroni2",
+    "pcb1",
+    "pcb2",
+    "pcb3",
+    "pcb4",
+    "pipe_fryum"
+  ],
+  "stage_protocol": {
+    "stage_0_preflight": {
+      "status_now": "PASS",
+      "required": [
+        "compile/import pass",
+        "isolated P30R1 unit tests pass",
+        "synthetic falsification pass",
+        "source-cache radial gate pass",
+        "teacher detached",
+        "finite nonzero mismatch gradients",
+        "no hidden objective terms",
+        "no P30R1 trainer or scientific marker"
+      ]
+    },
+    "stage_1_tiny_engineering_smoke": {
+      "status_now": "NOT_RUN",
+      "class": "candle",
+      "max_steps": 1,
+      "scientific_result": false,
+      "allowed_only_after": "Stage 0 PASS",
+      "must_verify": [
+        "forward/backward/one optimizer update",
+        "finite loss and gradients",
+        "student parameters change",
+        "teacher remains unchanged/detached",
+        "no held mask or GT read",
+        "no new CLIP or Phase2B forward",
+        "cache compatibility"
+      ]
+    },
+    "stage_2_one_class": {
+      "status_now": "NOT_RUN",
+      "class": "candle",
+      "selection_rule": "same first canonical class as P30; fixed before any P30R1 scientific result",
+      "fit_records": 1962,
+      "held_records": 200,
+      "schedule": "exact frozen optimizer/training schedule above",
+      "prediction_freeze_before_scoring": true,
+      "allowed_only_after": "Stage 1 PASS",
+      "scientific_result": "qualification only"
+    },
+    "stage_3_small_subset": {
+      "status_now": "FORBIDDEN_NOW",
+      "classes": ["candle", "chewinggum", "macaroni2", "pcb3"],
+      "selection_rule": "indices 0, 3, 6, and 9 of the frozen class order",
+      "allowed_only_if": "Stage 2 PASS under every frozen gate and a later explicit execution prompt"
+    },
+    "stage_4_full": {
+      "status_now": "FORBIDDEN_NOW",
+      "classes": "all 12 in frozen canonical order",
+      "allowed_only_if": "Stage 2 and Stage 3 pass and a later explicit execution prompt",
+      "one_execution_marker": true,
+      "marker_now": false,
+      "one_attempt": true
+    },
+    "hard_dependency": "No Stage 3 or full 12-class process may be launched unless Stage 2 has a recorded PASS for every gate below."
+  },
+  "stage_2_frozen_gates": {
+    "reference_values": {
+      "native_pAP": 0.5141403049313743,
+      "native_pAUROC": 0.9806671435137679,
+      "frozen_P29_directional_cosine": 0.7085491737886378,
+      "frozen_P29_sign_agreement": 0.5654938271604938,
+      "frozen_P29_residual_abs_q99": 4.321676936149597,
+      "frozen_P29_normal_score_q99_shift": 1.1587851122384847e-06,
+      "frozen_P30_median_step_seconds": 0.006860554218292236,
+      "frozen_P30_training_seconds": 1258.7385224550962
+    },
+    "metrics": {
+      "pAP": {
+        "minimum": 0.4641403049313743,
+        "rule": "pAP >= native candle pAP - 0.05",
+        "finite_required": true
+      },
+      "pAUROC": {
+        "minimum": 0.9306671435137679,
+        "rule": "pAUROC >= native candle pAUROC - 0.05",
+        "finite_required": true
+      },
+      "directional_cosine": {
+        "minimum": 0.6985491737886378,
+        "rule": "staged directional cosine >= frozen P29 candle value - 0.01",
+        "finite_required": true
+      },
+      "sign_agreement": {
+        "minimum": 0.5554938271604938,
+        "rule": "sign agreement >= frozen P29 candle value - 0.01",
+        "finite_required": true
+      },
+      "residual_abs_q99": {
+        "maximum": 8.643353872299194,
+        "rule": "global absolute residual q99 <= 2.0 * frozen P29 candle q99",
+        "units": "raw staged residual units",
+        "finite_required": true
+      },
+      "normal_score_q99_shift": {
+        "maximum": 0.0010011587851122385,
+        "rule": "existing normal anomaly-score/effective-margin q99 shift <= frozen P29 q99 + 0.001",
+        "finite_required": true
+      }
+    },
+    "gradient_and_provenance": {
+      "nonfinite_gradient_count_max": 0,
+      "nonfinite_loss_count_max": 0,
+      "teacher_gradient_status": "None/zero throughout",
+      "held_GT_reads_before_prediction_freeze": 0,
+      "held_mask_reads_before_prediction_freeze": 0,
+      "new_clip_forwards": 0,
+      "new_phase2b_forwards": 0,
+      "prediction_identity_and_cache_provenance": "must match frozen manifests/checksums"
+    },
+    "runtime": {
+      "preferred_overhead_percent_max": 10.0,
+      "hard_overhead_percent_max": 15.0,
+      "median_step_seconds_max": 0.007889637351036071,
+      "training_seconds_max": 1447.5493008233607,
+      "overhead_formula": "100 * (P30R1 - frozen P30) / frozen P30",
+      "inference_overhead_percent_max": 0.0,
+      "engineering_stop": ">15% without a preregistered measurement artifact"
+    },
+    "pass_rule": "Every metric, gradient, provenance, and runtime criterion passes; otherwise stop before Stage 3."
+  },
+  "synthetic_and_cache_preflight": {
+    "synthetic_artifact": "research/sabra_v2/region_distill/P30R1_PREFLIGHT_FALSIFICATION.json",
+    "synthetic_fixed_bounds": {
+      "scale_1x_loss_max": 1e-07,
+      "gross_scale_10x_loss_min": 0.1,
+      "opposite_loss_margin_over_1x": 0.1,
+      "zero_teacher_gradient_l2_min": 1e-08,
+      "near_zero_gradient_max_abs_max": 100.0,
+      "near_zero_gradient_l2_max": 1000.0,
+      "mixed_nonzero_gradient_max_to_median_max": 100.0,
+      "heavy_tail_loss_margin_over_1x": 0.01
+    },
+    "source_cache_fixed_bounds": {
+      "q99_over_median_normalized_rms_max": 100.0,
+      "near_ten_epsilon_nonzero_fraction_max": 0.1,
+      "denominator_floor": "a_t >= epsilon",
+      "all_observed_values_finite": true
+    },
+    "engineering_smoke_now": "NOT_RUN",
+    "speed_profile_now": "NOT_RUN"
+  },
+  "single_objective_audit": {
+    "scientific_loss_terms": 1,
+    "auxiliary_weights": 0,
+    "hidden_regularization_terms": 0,
+    "per_class_coefficients": 0,
+    "dual_teacher_student_normalization": false,
+    "posthoc_calibration": false,
+    "extra_heads": 0,
+    "extra_decoders": 0,
+    "ranking_or_feature_losses": false,
+    "optimizer_weight_decay": "unchanged AdamW regularization, not a second scientific loss"
+  },
+  "stopping_rules": [
+    "scale invariance or weak penalty at 10x/100x",
+    "zero-teacher student gradient is zero",
+    "near-zero target NaN/Inf or catastrophic gradient",
+    "mixed-scale gradient domination beyond the fixed bound",
+    "heavy-tail corruption is not detected",
+    "source radial distribution fails fixed cache bounds",
+    "any tuned epsilon, lambda, beta, or category-specific scale",
+    "objective count differs from one",
+    "held-label tuning or prohibited data read",
+    "nonfinite training gradient/loss",
+    "residual q99, normal q99, metric, provenance, or runtime Stage 2 gate failure",
+    "attempt to launch Stage 3/full without Stage 2 PASS",
+    "scientific execution marker or training run created during this preflight"
+  ],
+  "expected_artifacts": [
+    "research/sabra_v2/region_distill/P30R1_PREREGISTRATION.md",
+    "research/sabra_v2/region_distill/P30R1_PREREGISTRATION.json",
+    "research/sabra_v2/region_distill/P30R1_PREREGISTRATION_SHA256.txt",
+    "research/sabra_v2/region_distill/P30R1_PREFLIGHT_FALSIFICATION.json",
+    "research/sabra_v2/region_distill/P30R1_DESIGN_NOTE.md"
+  ]
+}

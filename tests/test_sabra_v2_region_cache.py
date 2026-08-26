@@ -136,6 +136,34 @@ def test_cached_source_inventory_structurally_rejects_held_class_and_records_zer
         CachedSourceDataset([source, held], "candle", tmp_path, provenance)
 
 
+def test_cached_source_can_omit_unused_mask_and_native_logit_copies(tmp_path: Path) -> None:
+    source = _row("capsules", "source")
+    provenance = _provenance()
+    _write_a(tmp_path, [source], [_frozen(9)], provenance)
+    source_mask = torch.zeros((1, 518, 518), dtype=torch.float32)
+    teacher = torch.ones((9, 9), dtype=torch.float32)
+    write_tier_b_shard(
+        tmp_path,
+        "candle",
+        [source],
+        [(source_mask, teacher)],
+        provenance,
+        source_mask_file_reads=1,
+    )
+
+    cached = CachedSourceDataset(
+        [source],
+        "candle",
+        tmp_path,
+        provenance,
+        load_source_mask=False,
+        load_native_logits=False,
+    )[0]
+    assert "mask" not in cached
+    assert "native_logits" not in cached
+    assert torch.equal(cached["teacher_region"], teacher)
+
+
 def test_cache_rejects_wrong_provenance_and_incomplete_shards(tmp_path: Path) -> None:
     row = _row("candle", "sample")
     expected = _provenance("expected")

@@ -1,0 +1,726 @@
+{
+  "CLIP_forward_count": 0,
+  "P30_comparison": {
+    "P29_median_step_time": 0.010768339969217777,
+    "P30_median_step_time": 0.006899061845615506,
+    "hard_overhead_percent_max": 15.0,
+    "overhead_vs_P29_percent": -59.19534401846949,
+    "overhead_vs_P30_percent": -36.31041179673685,
+    "preferred_overhead_percent_max": 10.0
+  },
+  "Phase2B_forward_count": 0,
+  "base_commit": "3cf91fb4325b9d3aea3b8a65d131cdea14d8ceba",
+  "branch": "research/p29r1-fast-objective-forensic-v1",
+  "cache_rebuild_count": 0,
+  "checkpoint_reload": {
+    "checkpoint": "research/sabra_v2/region_distill/P30R1_ENGINEERING_QUALIFICATION_20260826/smoke/p30r1_region_adapter.pt",
+    "checkpoint_sha256": "a07b1f35fb38476429e3589122aac9d7ee1733ca85820d04f5492e3583639ef6",
+    "future_prediction_probe": "one frozen Tier-A fit sample, adapter-only residual forward",
+    "future_prediction_probe_finite": true,
+    "future_prediction_probe_shape": [
+      3,
+      1,
+      9,
+      9
+    ],
+    "held_GT_read_count": 0,
+    "held_mask_read_count": 0,
+    "input_audit_cache_root": "/workspace/p27r1_cache_v1",
+    "status": "PASS",
+    "strict_state_dict_reload": true
+  },
+  "engineering_incidents": [],
+  "final_commit": null,
+  "final_commit_explanation": "filled by the handoff after the evidence commit; no scientific result is encoded here",
+  "final_gate": "PASS_TO_STAGE2_PROTOCOL",
+  "formulation_hash": "290aae42e04d9faae5a10b929eb58aa0da066b5dbd248b3fee40f20e9094781c",
+  "formulation_identifier": "P30R1_TEACHER_RELATIVE_SMOOTHL1_V1",
+  "held_GT_read_count": 0,
+  "held_mask_read_count": 0,
+  "inference_overhead_percent": 0.0,
+  "input_audit": {
+    "cache_provenance": {
+      "cache_implementation_version": "P27_CACHE_V1",
+      "clip_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+      "config_sha256": "edf5745686e3d3d0d3b4142341569da06ad5b54025a779b78d83f74303ce67fc",
+      "metadata_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+      "p26_sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+      "parent_execution_sha": "1151373f2c4968268f52cdc3e538c7ebcef7b8f0",
+      "scientific_execution_base_sha": "de41b380449dcbc0b124f71f4f8fbb789e1a96f0"
+    },
+    "cache_root": "/workspace/p27r1_cache_v1",
+    "clip_asset": {
+      "path": "/workspace/ACD-CLIP-sabra/model/ViT-L-14-336px.pt",
+      "sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02"
+    },
+    "config": {
+      "path": "/workspace/ACD-CLIP-sabra/configs/phase2b_canonical_v1.json",
+      "sha256": "edf5745686e3d3d0d3b4142341569da06ad5b54025a779b78d83f74303ce67fc"
+    },
+    "fold_counts": {
+      "candle": {
+        "fit_records": 1962,
+        "held_records": 200
+      },
+      "capsules": {
+        "fit_records": 2002,
+        "held_records": 160
+      },
+      "cashew": {
+        "fit_records": 2012,
+        "held_records": 150
+      },
+      "chewinggum": {
+        "fit_records": 2012,
+        "held_records": 150
+      },
+      "fryum": {
+        "fit_records": 2012,
+        "held_records": 150
+      },
+      "macaroni1": {
+        "fit_records": 1962,
+        "held_records": 200
+      },
+      "macaroni2": {
+        "fit_records": 1962,
+        "held_records": 200
+      },
+      "pcb1": {
+        "fit_records": 1962,
+        "held_records": 200
+      },
+      "pcb2": {
+        "fit_records": 1962,
+        "held_records": 200
+      },
+      "pcb3": {
+        "fit_records": 1961,
+        "held_records": 201
+      },
+      "pcb4": {
+        "fit_records": 1961,
+        "held_records": 201
+      },
+      "pipe_fryum": {
+        "fit_records": 2012,
+        "held_records": 150
+      }
+    },
+    "metadata": {
+      "path": "/workspace/ACD-CLIP-sabra/dataset/hub/VisA.jsonl",
+      "records": 2162,
+      "sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842"
+    },
+    "objective": "P30R1_TEACHER_RELATIVE_SMOOTHL1_V1",
+    "p26": {
+      "checkpoint": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+      "clip_asset": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+      "config": "edf5745686e3d3d0d3b4142341569da06ad5b54025a779b78d83f74303ce67fc"
+    },
+    "p26_checkpoint": {
+      "path": "/workspace/ACD-CLIP-sabra/runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+      "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34"
+    },
+    "preregistration_sha256": "ceff5944e3602f8b640e7ace02a5b99962244f71eeefe6cb4882c4cf3af92a43",
+    "visa_root": "/workspace/data/source/visa_unpack"
+  },
+  "label": "ENGINEERING_QUALIFICATION_ONLY",
+  "median_step_time": 0.004393984079360962,
+  "microprofile": {
+    "forward_median_seconds": 0.00042495998740196226,
+    "label": "5-step micro-profile",
+    "mean_step_seconds": 0.07248117275238038,
+    "measured_steps": 5,
+    "median_step_seconds": 0.004944896221160889,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "objective_fraction_of_step_median": 0.04390142669875477,
+    "objective_median_seconds": 0.0002170879989862442,
+    "objective_only_overhead_interpretation": "objective timing is reported separately; end-to-end timing includes cached tensor transfer after DataLoader yield and adapter/backward/optimizer",
+    "optimizer_steps": 5,
+    "overhead_vs_p29_percent": -54.07930808930347,
+    "overhead_vs_p30_percent": -28.325092138382978,
+    "p29_frozen_median_step_seconds": 0.010768339969217777,
+    "p30_frozen_median_step_seconds": 0.006899061845615506,
+    "p90_step_seconds": 0.20808986072540286,
+    "peak_gpu_allocated_bytes": 43564032,
+    "peak_gpu_reserved_bytes": 54525952,
+    "peak_process_rss_kib": 1308236,
+    "startup_training_seconds": 0.47202217439189553,
+    "status": "PASS",
+    "teacher_forward_count": 0,
+    "warmup_steps": 0
+  },
+  "microprofile_step_count": 5,
+  "nonfinite_gradient_count": 0,
+  "objective_count": 1,
+  "objective_time": 0.00022779200226068496,
+  "p90_step_time": 0.0050072447776794435,
+  "preregistration_deviation": false,
+  "preregistration_sha256": "ceff5944e3602f8b640e7ace02a5b99962244f71eeefe6cb4882c4cf3af92a43",
+  "production_outputs": {
+    "microprofile": {
+      "batch_size": 1,
+      "checkpoint": "research/sabra_v2/region_distill/P30R1_ENGINEERING_QUALIFICATION_20260826/microprofile/p30r1_region_adapter.pt",
+      "checkpoint_sha256": "29784d56f7561f3b40b9d41d85cbb64161a3f06f3f98aa1c350ada060e60fd98",
+      "clip_optimization_steps": 0,
+      "component_time_ms": {
+        "forward_mean": 16.337471657991408,
+        "forward_median": 0.4249599874019623,
+        "objective_fraction_of_step_median": 0.04390142669875477,
+        "objective_mean": 8.273920053243637,
+        "objective_median": 0.2170879989862442
+      },
+      "epochs": 20,
+      "exact_zero_teacher_records_observed": 0,
+      "fit_records": 1962,
+      "gradient_finite": true,
+      "gradient_health": {
+        "global_zero_fraction": 0.4984375834465027,
+        "l2_max": 0.15055090188980103,
+        "l2_min": 0.0973384901881218,
+        "max_abs_max": 0.06719943135976791,
+        "missing_gradient_elements_max": 0,
+        "nonfinite_count_max": 0,
+        "per_parameter": {
+          "context_1x1.bias": {
+            "max_abs_max": 0.0001400024484610185,
+            "median_abs_median": 1.0458825272507966e-05,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.0003198376507498324,
+            "norm_median": 0.0001599188253749162,
+            "norm_min": 0.0,
+            "zero_fraction_mean": 0.5
+          },
+          "context_1x1.weight": {
+            "max_abs_max": 9.34567469812464e-06,
+            "median_abs_median": 1.2924539305458893e-07,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.00011152785737067461,
+            "norm_median": 5.5763928685337305e-05,
+            "norm_min": 0.0,
+            "zero_fraction_mean": 0.5
+          },
+          "context_depthwise.bias": {
+            "max_abs_max": 0.00025118645862676203,
+            "median_abs_median": 7.397013541776687e-05,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.0013629499590024352,
+            "norm_median": 0.0006814749795012176,
+            "norm_min": 0.0,
+            "zero_fraction_mean": 0.5
+          },
+          "context_depthwise.weight": {
+            "max_abs_max": 9.54180086409906e-06,
+            "median_abs_median": 1.1641666333161993e-06,
+            "nonfinite_count_max": 0,
+            "norm_max": 7.878839824115857e-05,
+            "norm_median": 3.939419912057929e-05,
+            "norm_min": 0.0,
+            "zero_fraction_mean": 0.5
+          },
+          "output.bias": {
+            "max_abs_max": 0.06719943135976791,
+            "median_abs_median": 0.05525040626525879,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.1163928285241127,
+            "norm_median": 0.09569651260972023,
+            "norm_min": 0.07500019669532776,
+            "zero_fraction_mean": 0.0
+          },
+          "output.weight": {
+            "max_abs_max": 0.013904578052461147,
+            "median_abs_median": 0.004507727106101811,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.09547904878854752,
+            "norm_median": 0.07876271568238735,
+            "norm_min": 0.06204638257622719,
+            "zero_fraction_mean": 0.0
+          },
+          "stage_projection.bias": {
+            "max_abs_max": 5.271824556984939e-05,
+            "median_abs_median": 6.422078058676561e-06,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.00016427261289209127,
+            "norm_median": 8.213630644604564e-05,
+            "norm_min": 0.0,
+            "zero_fraction_mean": 0.5
+          },
+          "stage_projection.weight": {
+            "max_abs_max": 5.653852895193268e-06,
+            "median_abs_median": 1.3785606256533356e-07,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.00016302402946166694,
+            "norm_median": 8.151201473083347e-05,
+            "norm_min": 0.0,
+            "zero_fraction_mean": 0.5
+          }
+        },
+        "sample_count": 2,
+        "sampled_steps": [
+          1,
+          5
+        ]
+      },
+      "held_GT_read_count": 0,
+      "held_class": "candle",
+      "held_mask_read_count": 0,
+      "held_records_not_read": 200,
+      "last_loss": 0.5021417140960693,
+      "learning_rate": 0.001,
+      "loss_finite": true,
+      "measured_steps": 5,
+      "native_logits_loaded": false,
+      "new_clip_forwards": 0,
+      "new_phase2b_forwards": 0,
+      "optimizer_steps": 5,
+      "p30r1_execution_base_sha": "3cf91fb4325b9d3aea3b8a65d131cdea14d8ceba",
+      "p30r1_preregistration_sha256": "ceff5944e3602f8b640e7ace02a5b99962244f71eeefe6cb4882c4cf3af92a43",
+      "p30r1_uuid": "7374c95c-2ada-41f3-89e7-24d7e48338af",
+      "peak_gpu_allocated_bytes": 43564032,
+      "peak_gpu_reserved_bytes": 54525952,
+      "peak_process_rss_kib": 1308236,
+      "phase2b_optimization_steps": 0,
+      "schema_version": "P30R1_TRAINING_COMPLETE_V1",
+      "seed": 0,
+      "source_mask_loaded": false,
+      "stage": "engineering_microprofile",
+      "status": "ENGINEERING_QUALIFICATION_ONLY",
+      "step_time_ms": {
+        "dataloader_wait_included": false,
+        "includes": "cache tensor transfer after DataLoader yield, adapter forward, P30R1 objective, backward, and AdamW step",
+        "mean": 72.48117275238037,
+        "median": 4.944896221160889,
+        "p90": 208.08986072540287,
+        "samples": 5
+      },
+      "steps": 5,
+      "student_parameter_delta": {
+        "l2": 0.3202311904323775,
+        "max_abs": 0.003349830862134695
+      },
+      "teacher_forward_count": 0,
+      "teacher_parameter_delta": 0.0,
+      "teacher_scale_detached": true,
+      "training_seconds": 0.47202217439189553,
+      "warmup_steps": 0
+    },
+    "profile": {
+      "batch_size": 1,
+      "checkpoint": "research/sabra_v2/region_distill/P30R1_ENGINEERING_QUALIFICATION_20260826/profile/p30r1_region_adapter.pt",
+      "checkpoint_sha256": "d892b4c5f6ae8d8314e225db5124b18262a65b9ec43734e26c5661263b61f828",
+      "clip_optimization_steps": 0,
+      "component_time_ms": {
+        "forward_mean": 0.4455632001161575,
+        "forward_median": 0.44601599872112274,
+        "objective_fraction_of_step_median": 0.05184179053598525,
+        "objective_mean": 0.22788159996271135,
+        "objective_median": 0.22779200226068497
+      },
+      "epochs": 20,
+      "exact_zero_teacher_records_observed": 0,
+      "fit_records": 1962,
+      "gradient_finite": true,
+      "gradient_health": {
+        "global_zero_fraction": 0.0,
+        "l2_max": 0.2079428732395172,
+        "l2_min": 0.07575744390487671,
+        "max_abs_max": 0.06526307016611099,
+        "missing_gradient_elements_max": 0,
+        "nonfinite_count_max": 0,
+        "per_parameter": {
+          "context_1x1.bias": {
+            "max_abs_max": 0.0034302687272429466,
+            "median_abs_median": 2.5207727503584465e-05,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.004720610566437244,
+            "norm_median": 0.002418056843453087,
+            "norm_min": 0.00011550312046892941,
+            "zero_fraction_mean": 0.0
+          },
+          "context_1x1.weight": {
+            "max_abs_max": 0.001450391486287117,
+            "median_abs_median": 4.705890795264622e-06,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.018591923639178276,
+            "norm_median": 0.009320088929598569,
+            "norm_min": 4.8254220018861815e-05,
+            "zero_fraction_mean": 0.0
+          },
+          "context_depthwise.bias": {
+            "max_abs_max": 0.0033460846170783043,
+            "median_abs_median": 0.0005245840438874438,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.011141287162899971,
+            "norm_median": 0.005803167921840213,
+            "norm_min": 0.00046504868078045547,
+            "zero_fraction_mean": 0.0
+          },
+          "context_depthwise.weight": {
+            "max_abs_max": 0.002698719734326005,
+            "median_abs_median": 0.00011184023153987255,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.013189632445573807,
+            "norm_median": 0.006609460854633653,
+            "norm_min": 2.928926369349938e-05,
+            "zero_fraction_mean": 0.0
+          },
+          "output.bias": {
+            "max_abs_max": 0.06526307016611099,
+            "median_abs_median": 0.04962299019098282,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.11303895711898804,
+            "norm_median": 0.08594954200088978,
+            "norm_min": 0.05886012688279152,
+            "zero_fraction_mean": 0.0
+          },
+          "output.weight": {
+            "max_abs_max": 0.03877461701631546,
+            "median_abs_median": 0.005583020159974694,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.1724657416343689,
+            "norm_median": 0.11007840000092983,
+            "norm_min": 0.04769105836749077,
+            "zero_fraction_mean": 0.0
+          },
+          "stage_projection.bias": {
+            "max_abs_max": 0.0013305051252245903,
+            "median_abs_median": 0.0002861620032490464,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.005128128454089165,
+            "norm_median": 0.0025932747394108446,
+            "norm_min": 5.842102473252453e-05,
+            "zero_fraction_mean": 0.0
+          },
+          "stage_projection.weight": {
+            "max_abs_max": 0.00014568636834155768,
+            "median_abs_median": 5.386945446161917e-06,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.005066260229796171,
+            "norm_median": 0.0025616318380343728,
+            "norm_min": 5.7003446272574365e-05,
+            "zero_fraction_mean": 0.0
+          }
+        },
+        "sample_count": 2,
+        "sampled_steps": [
+          6,
+          45
+        ]
+      },
+      "held_GT_read_count": 0,
+      "held_class": "candle",
+      "held_mask_read_count": 0,
+      "held_records_not_read": 200,
+      "last_loss": 0.4716032147407532,
+      "learning_rate": 0.001,
+      "loss_finite": true,
+      "measured_steps": 40,
+      "native_logits_loaded": false,
+      "new_clip_forwards": 0,
+      "new_phase2b_forwards": 0,
+      "optimizer_steps": 45,
+      "p30r1_execution_base_sha": "3cf91fb4325b9d3aea3b8a65d131cdea14d8ceba",
+      "p30r1_preregistration_sha256": "ceff5944e3602f8b640e7ace02a5b99962244f71eeefe6cb4882c4cf3af92a43",
+      "p30r1_uuid": "7374c95c-2ada-41f3-89e7-24d7e48338af",
+      "peak_gpu_allocated_bytes": 43625472,
+      "peak_gpu_reserved_bytes": 54525952,
+      "peak_process_rss_kib": 1819816,
+      "phase2b_optimization_steps": 0,
+      "schema_version": "P30R1_TRAINING_COMPLETE_V1",
+      "seed": 0,
+      "source_mask_loaded": false,
+      "stage": "engineering_profile",
+      "status": "ENGINEERING_QUALIFICATION_ONLY",
+      "step_time_ms": {
+        "dataloader_wait_included": false,
+        "includes": "cache tensor transfer after DataLoader yield, adapter forward, P30R1 objective, backward, and AdamW step",
+        "mean": 6.552517700195312,
+        "median": 4.393984079360962,
+        "p90": 5.0072447776794435,
+        "samples": 40
+      },
+      "steps": 45,
+      "student_parameter_delta": {
+        "l2": 3.4341957266982086,
+        "max_abs": 0.03152713179588318
+      },
+      "teacher_forward_count": 0,
+      "teacher_parameter_delta": 0.0,
+      "teacher_scale_detached": true,
+      "training_seconds": 1.8345992779359221,
+      "warmup_steps": 5
+    },
+    "smoke": {
+      "batch_size": 1,
+      "checkpoint": "research/sabra_v2/region_distill/P30R1_ENGINEERING_QUALIFICATION_20260826/smoke/p30r1_region_adapter.pt",
+      "checkpoint_sha256": "a07b1f35fb38476429e3589122aac9d7ee1733ca85820d04f5492e3583639ef6",
+      "clip_optimization_steps": 0,
+      "component_time_ms": {
+        "forward_mean": 121.99219512939453,
+        "forward_median": 121.99219512939453,
+        "objective_fraction_of_step_median": 0.09307063629915317,
+        "objective_mean": 61.01708984375,
+        "objective_median": 61.01708984375
+      },
+      "epochs": 20,
+      "exact_zero_teacher_records_observed": 0,
+      "fit_records": 1962,
+      "gradient_finite": true,
+      "gradient_health": {
+        "global_zero_fraction": 0.9968751668930054,
+        "l2_max": 0.0973384901881218,
+        "l2_min": 0.0973384901881218,
+        "max_abs_max": 0.043301381170749664,
+        "missing_gradient_elements_max": 0,
+        "nonfinite_count_max": 0,
+        "per_parameter": {
+          "context_1x1.bias": {
+            "max_abs_max": 0.0,
+            "median_abs_median": 0.0,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.0,
+            "norm_median": 0.0,
+            "norm_min": 0.0,
+            "zero_fraction_mean": 1.0
+          },
+          "context_1x1.weight": {
+            "max_abs_max": 0.0,
+            "median_abs_median": 0.0,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.0,
+            "norm_median": 0.0,
+            "norm_min": 0.0,
+            "zero_fraction_mean": 1.0
+          },
+          "context_depthwise.bias": {
+            "max_abs_max": 0.0,
+            "median_abs_median": 0.0,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.0,
+            "norm_median": 0.0,
+            "norm_min": 0.0,
+            "zero_fraction_mean": 1.0
+          },
+          "context_depthwise.weight": {
+            "max_abs_max": 0.0,
+            "median_abs_median": 0.0,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.0,
+            "norm_median": 0.0,
+            "norm_min": 0.0,
+            "zero_fraction_mean": 1.0
+          },
+          "output.bias": {
+            "max_abs_max": 0.043301381170749664,
+            "median_abs_median": 0.043301381170749664,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.07500019669532776,
+            "norm_median": 0.07500019669532776,
+            "norm_min": 0.07500019669532776,
+            "zero_fraction_mean": 0.0
+          },
+          "output.weight": {
+            "max_abs_max": 0.008967258967459202,
+            "median_abs_median": 0.003567056031897664,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.06204638257622719,
+            "norm_median": 0.06204638257622719,
+            "norm_min": 0.06204638257622719,
+            "zero_fraction_mean": 0.0
+          },
+          "stage_projection.bias": {
+            "max_abs_max": 0.0,
+            "median_abs_median": 0.0,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.0,
+            "norm_median": 0.0,
+            "norm_min": 0.0,
+            "zero_fraction_mean": 1.0
+          },
+          "stage_projection.weight": {
+            "max_abs_max": 0.0,
+            "median_abs_median": 0.0,
+            "nonfinite_count_max": 0,
+            "norm_max": 0.0,
+            "norm_median": 0.0,
+            "norm_min": 0.0,
+            "zero_fraction_mean": 1.0
+          }
+        },
+        "sample_count": 1,
+        "sampled_steps": [
+          1
+        ]
+      },
+      "held_GT_read_count": 0,
+      "held_class": "candle",
+      "held_mask_read_count": 0,
+      "held_records_not_read": 200,
+      "last_loss": 0.2768383324146271,
+      "learning_rate": 0.001,
+      "loss_finite": true,
+      "measured_steps": 1,
+      "native_logits_loaded": false,
+      "new_clip_forwards": 0,
+      "new_phase2b_forwards": 0,
+      "optimizer_steps": 1,
+      "p30r1_execution_base_sha": "3cf91fb4325b9d3aea3b8a65d131cdea14d8ceba",
+      "p30r1_preregistration_sha256": "ceff5944e3602f8b640e7ace02a5b99962244f71eeefe6cb4882c4cf3af92a43",
+      "p30r1_uuid": "7374c95c-2ada-41f3-89e7-24d7e48338af",
+      "peak_gpu_allocated_bytes": 32009216,
+      "peak_gpu_reserved_bytes": 39845888,
+      "peak_process_rss_kib": 1243600,
+      "phase2b_optimization_steps": 0,
+      "schema_version": "P30R1_TRAINING_COMPLETE_V1",
+      "seed": 0,
+      "source_mask_loaded": false,
+      "stage": "engineering_smoke",
+      "status": "ENGINEERING_QUALIFICATION_ONLY",
+      "step_time_ms": {
+        "dataloader_wait_included": false,
+        "includes": "cache tensor transfer after DataLoader yield, adapter forward, P30R1 objective, backward, and AdamW step",
+        "mean": 655.5997924804688,
+        "median": 655.5997924804688,
+        "p90": 655.5997924804688,
+        "samples": 1
+      },
+      "steps": 1,
+      "student_parameter_delta": {
+        "l2": 0.013964357747584784,
+        "max_abs": 0.000999999581836164
+      },
+      "teacher_forward_count": 0,
+      "teacher_parameter_delta": 0.0,
+      "teacher_scale_detached": true,
+      "training_seconds": 0.719233388081193,
+      "warmup_steps": 0
+    }
+  },
+  "production_reference_parity": {
+    "cases": [
+      {
+        "case": "ordinary_random",
+        "errors": {
+          "loss": 0.0,
+          "normalized_student": 0.0,
+          "normalized_teacher": 0.0,
+          "student_gradient": 0.0,
+          "teacher_scale": 0.0
+        },
+        "teacher_grad_none": true
+      },
+      {
+        "case": "scale_mismatch",
+        "errors": {
+          "loss": 0.0,
+          "normalized_student": 0.0,
+          "normalized_teacher": 0.0,
+          "student_gradient": 0.0,
+          "teacher_scale": 0.0
+        },
+        "teacher_grad_none": true
+      },
+      {
+        "case": "zero_teacher",
+        "errors": {
+          "loss": 0.0,
+          "normalized_student": 0.0,
+          "normalized_teacher": 0.0,
+          "student_gradient": 0.0,
+          "teacher_scale": 0.0
+        },
+        "teacher_grad_none": true
+      },
+      {
+        "case": "near_zero_teacher",
+        "errors": {
+          "loss": 0.0,
+          "normalized_student": 0.0,
+          "normalized_teacher": 0.0,
+          "student_gradient": 0.0,
+          "teacher_scale": 0.0
+        },
+        "teacher_grad_none": true
+      },
+      {
+        "case": "heavy_tail_corruption",
+        "errors": {
+          "loss": 0.0,
+          "normalized_student": 0.0,
+          "normalized_teacher": 0.0,
+          "student_gradient": 0.0,
+          "teacher_scale": 0.0
+        },
+        "teacher_grad_none": true
+      }
+    ],
+    "max_abs_errors": {
+      "loss": 0.0,
+      "normalized_student": 0.0,
+      "normalized_teacher": 0.0,
+      "student_gradient": 0.0,
+      "teacher_scale": 0.0
+    },
+    "production": "tools.sabra_v2.p30r1_objective.p30r1_teacher_relative_components",
+    "reference": "tools.sabra_v2.p30r1_preflight.teacher_relative_components",
+    "status": "PASS",
+    "teacher_gradients_not_backpropagated": true,
+    "tolerance": {
+      "atol": 1e-07,
+      "rtol": 1e-06
+    }
+  },
+  "profile": {
+    "forward_median_seconds": 0.00044601599872112275,
+    "label": "40-step warmed profile",
+    "mean_step_seconds": 0.006552517700195312,
+    "measured_steps": 40,
+    "median_step_seconds": 0.004393984079360962,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "objective_fraction_of_step_median": 0.05184179053598525,
+    "objective_median_seconds": 0.00022779200226068496,
+    "objective_only_overhead_interpretation": "objective timing is reported separately; end-to-end timing includes cached tensor transfer after DataLoader yield and adapter/backward/optimizer",
+    "optimizer_steps": 45,
+    "overhead_vs_p29_percent": -59.19534401846949,
+    "overhead_vs_p30_percent": -36.31041179673685,
+    "p29_frozen_median_step_seconds": 0.010768339969217777,
+    "p30_frozen_median_step_seconds": 0.006899061845615506,
+    "p90_step_seconds": 0.0050072447776794435,
+    "peak_gpu_allocated_bytes": 43625472,
+    "peak_gpu_reserved_bytes": 54525952,
+    "peak_process_rss_kib": 1819816,
+    "startup_training_seconds": 1.8345992779359221,
+    "status": "PASS",
+    "teacher_forward_count": 0,
+    "warmup_steps": 5
+  },
+  "profile_step_count": 40,
+  "regression_test_count": 59,
+  "regression_test_count_explanation": "relevant cache, P29, P30, P30R1, and execution-contract regression group",
+  "schema_version": "P30R1_ENGINEERING_QUALIFICATION_V1",
+  "scientific_execution": {
+    "execution_marker_created": false,
+    "full_started": false,
+    "stage2_scored": false,
+    "stage2_started": false,
+    "stage3_started": false
+  },
+  "smoke_nonfinite_gradient_count": 0,
+  "smoke_optimizer_steps": 1,
+  "smoke_student_parameter_delta": {
+    "l2": 0.013964357747584784,
+    "max_abs": 0.000999999581836164
+  },
+  "smoke_teacher_parameter_delta": 0.0,
+  "smoke_zero_target_gradient_status": "static production objective parity and preflight zero-target gate pass; source fit exact-zero count is recorded in training output",
+  "status": "PASS",
+  "teacher_forward_count": 0,
+  "training_overhead_percent": -36.31041179673685,
+  "unit_test_count": 17,
+  "unit_test_count_explanation": "P30R1 preflight, objective, and execution-contract tests",
+  "utc_timestamp": "2026-08-26T17:01:19.956582+00:00",
+  "zero_target_gradient_status": "preserved by production objective; no zero-target filtering code"
+}

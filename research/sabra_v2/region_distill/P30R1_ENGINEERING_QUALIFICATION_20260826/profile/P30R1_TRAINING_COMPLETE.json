@@ -1,0 +1,146 @@
+{
+  "batch_size": 1,
+  "checkpoint": "research/sabra_v2/region_distill/P30R1_ENGINEERING_QUALIFICATION_20260826/profile/p30r1_region_adapter.pt",
+  "checkpoint_sha256": "d892b4c5f6ae8d8314e225db5124b18262a65b9ec43734e26c5661263b61f828",
+  "clip_optimization_steps": 0,
+  "component_time_ms": {
+    "forward_mean": 0.4455632001161575,
+    "forward_median": 0.44601599872112274,
+    "objective_fraction_of_step_median": 0.05184179053598525,
+    "objective_mean": 0.22788159996271135,
+    "objective_median": 0.22779200226068497
+  },
+  "epochs": 20,
+  "exact_zero_teacher_records_observed": 0,
+  "fit_records": 1962,
+  "gradient_finite": true,
+  "gradient_health": {
+    "global_zero_fraction": 0.0,
+    "l2_max": 0.2079428732395172,
+    "l2_min": 0.07575744390487671,
+    "max_abs_max": 0.06526307016611099,
+    "missing_gradient_elements_max": 0,
+    "nonfinite_count_max": 0,
+    "per_parameter": {
+      "context_1x1.bias": {
+        "max_abs_max": 0.0034302687272429466,
+        "median_abs_median": 2.5207727503584465e-05,
+        "nonfinite_count_max": 0,
+        "norm_max": 0.004720610566437244,
+        "norm_median": 0.002418056843453087,
+        "norm_min": 0.00011550312046892941,
+        "zero_fraction_mean": 0.0
+      },
+      "context_1x1.weight": {
+        "max_abs_max": 0.001450391486287117,
+        "median_abs_median": 4.705890795264622e-06,
+        "nonfinite_count_max": 0,
+        "norm_max": 0.018591923639178276,
+        "norm_median": 0.009320088929598569,
+        "norm_min": 4.8254220018861815e-05,
+        "zero_fraction_mean": 0.0
+      },
+      "context_depthwise.bias": {
+        "max_abs_max": 0.0033460846170783043,
+        "median_abs_median": 0.0005245840438874438,
+        "nonfinite_count_max": 0,
+        "norm_max": 0.011141287162899971,
+        "norm_median": 0.005803167921840213,
+        "norm_min": 0.00046504868078045547,
+        "zero_fraction_mean": 0.0
+      },
+      "context_depthwise.weight": {
+        "max_abs_max": 0.002698719734326005,
+        "median_abs_median": 0.00011184023153987255,
+        "nonfinite_count_max": 0,
+        "norm_max": 0.013189632445573807,
+        "norm_median": 0.006609460854633653,
+        "norm_min": 2.928926369349938e-05,
+        "zero_fraction_mean": 0.0
+      },
+      "output.bias": {
+        "max_abs_max": 0.06526307016611099,
+        "median_abs_median": 0.04962299019098282,
+        "nonfinite_count_max": 0,
+        "norm_max": 0.11303895711898804,
+        "norm_median": 0.08594954200088978,
+        "norm_min": 0.05886012688279152,
+        "zero_fraction_mean": 0.0
+      },
+      "output.weight": {
+        "max_abs_max": 0.03877461701631546,
+        "median_abs_median": 0.005583020159974694,
+        "nonfinite_count_max": 0,
+        "norm_max": 0.1724657416343689,
+        "norm_median": 0.11007840000092983,
+        "norm_min": 0.04769105836749077,
+        "zero_fraction_mean": 0.0
+      },
+      "stage_projection.bias": {
+        "max_abs_max": 0.0013305051252245903,
+        "median_abs_median": 0.0002861620032490464,
+        "nonfinite_count_max": 0,
+        "norm_max": 0.005128128454089165,
+        "norm_median": 0.0025932747394108446,
+        "norm_min": 5.842102473252453e-05,
+        "zero_fraction_mean": 0.0
+      },
+      "stage_projection.weight": {
+        "max_abs_max": 0.00014568636834155768,
+        "median_abs_median": 5.386945446161917e-06,
+        "nonfinite_count_max": 0,
+        "norm_max": 0.005066260229796171,
+        "norm_median": 0.0025616318380343728,
+        "norm_min": 5.7003446272574365e-05,
+        "zero_fraction_mean": 0.0
+      }
+    },
+    "sample_count": 2,
+    "sampled_steps": [
+      6,
+      45
+    ]
+  },
+  "held_GT_read_count": 0,
+  "held_class": "candle",
+  "held_mask_read_count": 0,
+  "held_records_not_read": 200,
+  "last_loss": 0.4716032147407532,
+  "learning_rate": 0.001,
+  "loss_finite": true,
+  "measured_steps": 40,
+  "native_logits_loaded": false,
+  "new_clip_forwards": 0,
+  "new_phase2b_forwards": 0,
+  "optimizer_steps": 45,
+  "p30r1_execution_base_sha": "3cf91fb4325b9d3aea3b8a65d131cdea14d8ceba",
+  "p30r1_preregistration_sha256": "ceff5944e3602f8b640e7ace02a5b99962244f71eeefe6cb4882c4cf3af92a43",
+  "p30r1_uuid": "7374c95c-2ada-41f3-89e7-24d7e48338af",
+  "peak_gpu_allocated_bytes": 43625472,
+  "peak_gpu_reserved_bytes": 54525952,
+  "peak_process_rss_kib": 1819816,
+  "phase2b_optimization_steps": 0,
+  "schema_version": "P30R1_TRAINING_COMPLETE_V1",
+  "seed": 0,
+  "source_mask_loaded": false,
+  "stage": "engineering_profile",
+  "status": "ENGINEERING_QUALIFICATION_ONLY",
+  "step_time_ms": {
+    "dataloader_wait_included": false,
+    "includes": "cache tensor transfer after DataLoader yield, adapter forward, P30R1 objective, backward, and AdamW step",
+    "mean": 6.552517700195312,
+    "median": 4.393984079360962,
+    "p90": 5.0072447776794435,
+    "samples": 40
+  },
+  "steps": 45,
+  "student_parameter_delta": {
+    "l2": 3.4341957266982086,
+    "max_abs": 0.03152713179588318
+  },
+  "teacher_forward_count": 0,
+  "teacher_parameter_delta": 0.0,
+  "teacher_scale_detached": true,
+  "training_seconds": 1.8345992779359221,
+  "warmup_steps": 5
+}

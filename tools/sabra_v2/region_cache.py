@@ -295,11 +295,13 @@ class TierADataset(Dataset):
         provenance: CacheProvenance,
         *,
         load_seg_features: bool = True,
+        load_native_logits: bool = True,
     ) -> None:
         self.rows = tuple(rows)
         self.root = Path(root)
         self.provenance = provenance
         self.load_seg_features = bool(load_seg_features)
+        self.load_native_logits = bool(load_native_logits)
         self.locations: list[tuple[str, int]] = []
         by_class: dict[str, list[Mapping[str, Any]]] = {}
         for row in self.rows:
@@ -318,7 +320,7 @@ class TierADataset(Dataset):
             if sample_id not in indices[class_name]:
                 raise RuntimeError(f"missing Tier-A sample: {sample_id}")
             self.locations.append((class_name, indices[class_name][sample_id]))
-        self._arrays: dict[str, tuple[np.memmap, np.memmap]] = {}
+        self._arrays: dict[str, tuple[np.memmap, np.memmap | None]] = {}
 
     def __getstate__(self) -> dict[str, Any]:
         state = dict(self.__dict__)
@@ -328,12 +330,14 @@ class TierADataset(Dataset):
     def __len__(self) -> int:
         return len(self.rows)
 
-    def _class_arrays(self, class_name: str) -> tuple[np.memmap, np.memmap]:
+    def _class_arrays(self, class_name: str) -> tuple[np.memmap, np.memmap | None]:
         if class_name not in self._arrays:
             shard = self.root / "tier_a" / class_name
             self._arrays[class_name] = (
                 np.load(shard / "seg_features.npy", mmap_mode="r", allow_pickle=False),
-                np.load(shard / "native_logits.npy", mmap_mode="r", allow_pickle=False),
+                np.load(shard / "native_logits.npy", mmap_mode="r", allow_pickle=False)
+                if self.load_native_logits
+                else None,
             )
         return self._arrays[class_name]
 
@@ -342,12 +346,15 @@ class TierADataset(Dataset):
         seg, native = self._class_arrays(class_name)
         row = self.rows[index]
         result = {
-            "native_logits": torch.from_numpy(np.array(native[shard_index], copy=True)),
             "class_name": class_name,
             "image_path": str(row["image_path"]),
             "sample_id": stable_sample_id(row),
             "index": index,
         }
+        if self.load_native_logits:
+            if native is None:
+                raise RuntimeError("native-logit cache was not loaded")
+            result["native_logits"] = torch.from_numpy(np.array(native[shard_index], copy=True))
         if self.load_seg_features:
             result["seg_features"] = torch.from_numpy(np.array(seg[shard_index], copy=True))
         return result
@@ -362,13 +369,22 @@ class CachedSourceDataset(Dataset):
         held_class: str,
         root: Path,
         provenance: CacheProvenance,
+        *,
+        load_source_mask: bool = True,
+        load_native_logits: bool = True,
     ) -> None:
         if any(str(row["class_name"]) == held_class for row in rows):
             raise RuntimeError("held class reached cached source dataset")
         self.rows = tuple(rows)
         self.held_class = held_class
         self.root = Path(root)
-        self.tier_a = TierADataset(self.rows, self.root, provenance)
+        self.load_source_mask = bool(load_source_mask)
+        self.tier_a = TierADataset(
+            self.rows,
+            self.root,
+            provenance,
+            load_native_logits=load_native_logits,
+        )
         tier_b_manifest = _manifest(self.root / "tier_b" / held_class)
         all_ids = list(tier_b_manifest.get("sample_ids", []))
         all_rows = [
@@ -398,12 +414,16 @@ class CachedSourceDataset(Dataset):
         return len(self.rows)
 
     def __getitem__(self, index: int) -> dict[str, Any]:
-        if self._mask is None or self._teacher is None:
+        if self._teacher is None or (self.load_source_mask and self._mask is None):
             shard = self.root / "tier_b" / self.held_class
-            self._mask = np.load(shard / "source_mask.npy", mmap_mode="r", allow_pickle=False)
             self._teacher = np.load(shard / "teacher_region.npy", mmap_mode="r", allow_pickle=False)
+            if self.load_source_mask:
+                self._mask = np.load(shard / "source_mask.npy", mmap_mode="r", allow_pickle=False)
         result = self.tier_a[index]
         tier_b_index = self.tier_b_locations[index]
-        result["mask"] = torch.from_numpy(np.array(self._mask[tier_b_index], copy=True))
+        if self.load_source_mask:
+            if self._mask is None:
+                raise RuntimeError("source mask cache was not loaded")
+            result["mask"] = torch.from_numpy(np.array(self._mask[tier_b_index], copy=True))
         result["teacher_region"] = torch.from_numpy(np.array(self._teacher[tier_b_index], copy=True))
         return result

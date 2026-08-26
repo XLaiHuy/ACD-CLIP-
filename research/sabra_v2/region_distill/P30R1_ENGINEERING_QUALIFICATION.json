@@ -1,0 +1,128 @@
+{
+  "schema_version": "P30R1_ENGINEERING_QUALIFICATION_V1",
+  "status": "PASS",
+  "label": "ENGINEERING_QUALIFICATION_ONLY",
+  "branch": "research/p29r1-fast-objective-forensic-v1",
+  "base_commit": "3cf91fb4325b9d3aea3b8a65d131cdea14d8ceba",
+  "final_commit": null,
+  "final_commit_explanation": "The final handoff commit SHA is reported after the evidence commit; this artifact contains no scientific result.",
+  "preregistration_sha256": "ceff5944e3602f8b640e7ace02a5b99962244f71eeefe6cb4882c4cf3af92a43",
+  "formulation_identifier": "P30R1_TEACHER_RELATIVE_SMOOTHL1_V1",
+  "formulation_hash": "290aae42e04d9faae5a10b929eb58aa0da066b5dbd248b3fee40f20e9094781c",
+  "objective_count": 1,
+  "production_reference_parity": {
+    "status": "PASS",
+    "cases": [
+      "ordinary_random",
+      "scale_mismatch",
+      "zero_teacher",
+      "near_zero_teacher",
+      "heavy_tail_corruption"
+    ],
+    "max_abs_errors": {
+      "loss": 0.0,
+      "normalized_student": 0.0,
+      "normalized_teacher": 0.0,
+      "teacher_scale": 0.0,
+      "student_gradient": 0.0
+    },
+    "tolerance": {
+      "rtol": 1e-06,
+      "atol": 1e-07
+    },
+    "teacher_gradients_not_backpropagated": true,
+    "detailed_evidence": "P30R1_ENGINEERING_QUALIFICATION_20260826/P30R1_ENGINEERING_QUALIFICATION.json"
+  },
+  "unit_test_count": 17,
+  "regression_test_count": 59,
+  "test_commands": [
+    "pytest -q tests/test_p30r1_preflight.py tests/test_p30r1_objective.py tests/test_p30r1_execution_contract.py",
+    "pytest -q tests/test_sabra_v2_region_cache.py tests/test_p30_objective.py tests/test_p30_execution_contract.py tests/test_p29_objective.py tests/test_p29_execution_contract.py tests/test_p30r1_preflight.py tests/test_p30r1_objective.py tests/test_p30r1_execution_contract.py"
+  ],
+  "smoke_optimizer_steps": 1,
+  "smoke_student_parameter_delta": {
+    "l2": 0.013964357747584784,
+    "max_abs": 0.000999999581836164
+  },
+  "smoke_teacher_parameter_delta": 0.0,
+  "zero_target_gradient_status": "PASS: production zero-teacher parity and preflight restoring-force checks; exact-zero source records remain active and are not filtered",
+  "nonfinite_gradient_count": 0,
+  "CLIP_forward_count": 0,
+  "Phase2B_forward_count": 0,
+  "teacher_forward_count": 0,
+  "held_GT_read_count": 0,
+  "held_mask_read_count": 0,
+  "microprofile_step_count": 5,
+  "profile_step_count": 40,
+  "median_step_time": 0.004393984079360962,
+  "p90_step_time": 0.0050072447776794435,
+  "objective_time": 0.00022779200226068496,
+  "microprofile": {
+    "status": "PASS",
+    "measured_steps": 5,
+    "optimizer_steps": 5,
+    "warmup_steps": 0,
+    "median_step_seconds": 0.004944896221160889,
+    "p90_step_seconds": 0.20808986072540287,
+    "mean_step_seconds": 0.07248117275238038,
+    "objective_median_seconds": 0.0002170879989862442,
+    "objective_fraction_of_step_median": 0.04390142669875477,
+    "overhead_vs_P30_percent": -28.325092138382978,
+    "overhead_vs_P29_percent": -54.07930808930347
+  },
+  "profile": {
+    "status": "PASS",
+    "measured_steps": 40,
+    "optimizer_steps": 45,
+    "warmup_steps": 5,
+    "median_step_seconds": 0.004393984079360962,
+    "p90_step_seconds": 0.0050072447776794435,
+    "mean_step_seconds": 0.006552517700195312,
+    "objective_median_seconds": 0.00022779200226068496,
+    "objective_fraction_of_step_median": 0.05184179053598525,
+    "overhead_vs_P30_percent": -36.31041179673685,
+    "overhead_vs_P29_percent": -59.19534401846949
+  },
+  "P30_comparison": {
+    "P30_median_step_time": 0.006899061845615506,
+    "P29_median_step_time": 0.010768339969217777,
+    "preferred_overhead_percent_max": 10.0,
+    "hard_overhead_percent_max": 15.0,
+    "observed_overhead_vs_P30_percent": -36.31041179673685,
+    "observed_overhead_vs_P29_percent": -59.19534401846949
+  },
+  "training_overhead_percent": -36.31041179673685,
+  "inference_overhead_percent": 0.0,
+  "cache_rebuild_count": 0,
+  "preregistration_deviation": false,
+  "engineering_incidents": [],
+  "checkpoint_reload": {
+    "status": "PASS",
+    "strict_state_dict_reload": true,
+    "future_prediction_probe_shape": [3, 1, 9, 9],
+    "future_prediction_probe_finite": true,
+    "held_GT_read_count": 0,
+    "held_mask_read_count": 0,
+    "checkpoint": "P30R1_ENGINEERING_QUALIFICATION_20260826/smoke/p30r1_region_adapter.pt",
+    "checkpoint_sha256": "a07b1f35fb38476429e3589122aac9d7ee1733ca85820d04f5492e3583639ef6"
+  },
+  "source_cache_audit": {
+    "cache_root": "/workspace/p27r1_cache_v1",
+    "candle_fit_records": 1962,
+    "candle_held_records_not_read": 200,
+    "source_unique_records": 2162,
+    "exact_zero_teacher_records": 9,
+    "exact_zero_fraction": 0.004162812210915819,
+    "source_masks_loaded_by_trainer": false,
+    "native_logits_loaded_by_trainer": false
+  },
+  "scientific_execution": {
+    "stage2_started": false,
+    "stage2_scored": false,
+    "stage3_started": false,
+    "full_started": false,
+    "execution_marker_created": false
+  },
+  "evidence_run": "P30R1_ENGINEERING_QUALIFICATION_20260826/",
+  "final_gate": "PASS_TO_STAGE2_PROTOCOL"
+}

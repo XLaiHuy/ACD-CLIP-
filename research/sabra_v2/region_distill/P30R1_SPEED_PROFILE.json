@@ -1,0 +1,36 @@
+{
+  "schema_version": "P30R1_SPEED_PROFILE_V1",
+  "status": "PASS",
+  "source": "P30R1_ENGINEERING_QUALIFICATION_20260826/P30R1_ENGINEERING_QUALIFICATION.json",
+  "timing_method": "CUDA events after one final synchronize; 5 warmup steps omitted from the 40-step profile; DataLoader wait excluded",
+  "baseline": {
+    "P30_median_step_seconds": 0.006899061845615506,
+    "P29_median_step_seconds": 0.010768339969217777,
+    "preferred_overhead_percent_max": 10.0,
+    "hard_overhead_percent_max": 15.0
+  },
+  "microprofile": {
+    "measured_steps": 5,
+    "median_step_seconds": 0.004944896221160889,
+    "p90_step_seconds": 0.20808986072540287,
+    "mean_step_seconds": 0.07248117275238038,
+    "objective_median_seconds": 0.0002170879989862442,
+    "objective_fraction_of_step_median": 0.04390142669875477,
+    "overhead_vs_P30_percent": -28.325092138382978,
+    "status": "PASS"
+  },
+  "warmed_profile": {
+    "warmup_steps": 5,
+    "measured_steps": 40,
+    "optimizer_steps": 45,
+    "median_step_seconds": 0.004393984079360962,
+    "p90_step_seconds": 0.0050072447776794435,
+    "mean_step_seconds": 0.006552517700195312,
+    "objective_median_seconds": 0.00022779200226068496,
+    "objective_fraction_of_step_median": 0.05184179053598525,
+    "overhead_vs_P30_percent": -36.31041179673685,
+    "overhead_vs_P29_percent": -59.19534401846949,
+    "status": "PASS"
+  },
+  "inference_overhead_percent": 0.0
+}
