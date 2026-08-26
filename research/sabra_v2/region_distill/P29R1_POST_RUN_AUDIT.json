@@ -1,0 +1,41 @@
+{
+  "schema_version": "P29R1_POST_RUN_AUDIT_V1",
+  "status": "FAIL",
+  "terminal_status": "P29R1_ENGINEERING_STOP",
+  "reason": "The single consumed forensic attempt failed before completing the first held class because the frozen runner referenced an unimported helper.",
+  "forensic_uuid": "4a5f1f85-5b1a-4edc-8a3a-b4bbf8489b7d",
+  "forensic_attempt_count": 1,
+  "p29r1_execution_base_sha": "6d10578b6759849cddd009217fae544c953c8868",
+  "p29r1_prereg_sha": "4b9ce972a02649085ace72f883f38de3cf8de324",
+  "p29_terminal_sha": "7eeee454538cb997496f8cd1107f66fa73a9c876",
+  "attempt_marker_sha256": "7ebf76d5035d195d8bc0a9a303585ac4a4496c9eb70b3fc9e5a92f05926fe5c0",
+  "failure_marker_sha256": "8bbb9aaf0bb4077cd36ab2433245ccf85effde70580700efe5fafe2ffc3b0420",
+  "first_failure": {
+    "error_type": "NameError",
+    "error": "name 'residual_magnitude_summary' is not defined",
+    "location": "_held_class_result while constructing the first held-class result",
+    "completed_held_classes": 0,
+    "completed_gradient_probes": 0
+  },
+  "completed_outputs": [],
+  "rerun_forbidden": true,
+  "training_steps": 0,
+  "optimizer_steps": 0,
+  "new_clip_forwards": 0,
+  "new_phase2b_forwards": 0,
+  "mvtec_reads": 0,
+  "medical_reads": 0,
+  "p29_predictions_unchanged": true,
+  "p29_checkpoints_unchanged": true,
+  "p29_scores_unchanged": true,
+  "input_artifacts_unchanged": true,
+  "protocol_unchanged_after_execution_base": true,
+  "execution_base_unchanged_since_marker": true,
+  "no_pairwise_explosion": true,
+  "preserved_evidence": [
+    "P29R1_FORENSIC_ATTEMPT.json",
+    "P29R1_FORENSIC_FAILURE.json",
+    "P29R1_PRE_AUDIT.json",
+    "P29R1_ENGINEERING_PREFLIGHT.json"
+  ]
+}
