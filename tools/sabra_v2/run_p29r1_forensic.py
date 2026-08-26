@@ -33,6 +33,7 @@ from tools.sabra_v2.p29r1_forensic import (
     forensic_utility_for_batch,
     gradient_summary,
     normal_guard_conflict,
+    residual_magnitude_summary,
     select_probe_source_classes,
     sign_alignment,
     vectorized_pixel_shifts,
@@ -70,6 +71,8 @@ FORENSIC_OUTPUTS = (
     "P29R1_POST_RUN_AUDIT.json",
     "P29R1_FINAL_REPORT.md",
 )
+ORIGINAL_ATTEMPT_PATH = OUTPUT_ROOT / "P29R1_FORENSIC_ATTEMPT.json"
+ORIGINAL_FAILURE_PATH = OUTPUT_ROOT / "P29R1_FORENSIC_FAILURE.json"
 
 
 def _atomic_json(path: Path, payload: Mapping[str, Any]) -> None:
@@ -164,6 +167,47 @@ def _protocol_payload(path: Path) -> dict[str, Any]:
     ):
         raise RuntimeError("P29R1 attempt-marker contract drift")
     return protocol
+
+
+def _validate_recovery_preregistration(
+    path: Path,
+    *,
+    base_protocol_path: Path,
+    recovery_uuid: str,
+    original_attempt_uuid: str,
+) -> dict[str, Any]:
+    payload = _read_json(path)
+    if payload.get("schema_version") != "P29R1_RECOVERY_PREREGISTRATION_V1":
+        raise RuntimeError("P29R1 recovery preregistration schema drift")
+    if payload.get("status") != "P29R1_RECOVERY_PREREGISTERED":
+        raise RuntimeError("P29R1 recovery preregistration is not frozen")
+    if payload.get("recovery_label") != "P29R1_RECOVERY":
+        raise RuntimeError("P29R1 recovery label drift")
+    if payload.get("recovery_attempt_uuid") != recovery_uuid:
+        raise RuntimeError("P29R1 recovery UUID drift")
+    if payload.get("original_attempt_uuid") != original_attempt_uuid:
+        raise RuntimeError("P29R1 original-attempt linkage drift")
+    if recovery_uuid == original_attempt_uuid:
+        raise RuntimeError("P29R1 recovery must use a new UUID")
+    if Path(str(payload.get("base_protocol_path", ""))).resolve() != base_protocol_path.resolve():
+        raise RuntimeError("P29R1 recovery base-protocol path drift")
+    if payload.get("base_protocol_sha256") != sha256_file(base_protocol_path):
+        raise RuntimeError("P29R1 recovery base-protocol hash drift")
+    if Path(str(payload.get("original_failure_path", ""))).resolve() != ORIGINAL_FAILURE_PATH.resolve():
+        raise RuntimeError("P29R1 original-failure path drift")
+    if payload.get("original_failure_sha256") != sha256_file(ORIGINAL_FAILURE_PATH):
+        raise RuntimeError("P29R1 original-failure hash drift")
+    original_attempt = _read_json(ORIGINAL_ATTEMPT_PATH)
+    if original_attempt.get("status") != "CONSUMED" or original_attempt.get("forensic_attempt_count") != 1:
+        raise RuntimeError("P29R1 original attempt is not terminalized")
+    if original_attempt.get("forensic_uuid") != original_attempt_uuid:
+        raise RuntimeError("P29R1 original-attempt artifact drift")
+    original_failure = _read_json(ORIGINAL_FAILURE_PATH)
+    if original_failure.get("status") != "P29R1_ENGINEERING_STOP" or original_failure.get("rerun_forbidden") is not True:
+        raise RuntimeError("P29R1 original failure artifact drift")
+    if payload.get("one_recovery_attempt_only") is not True:
+        raise RuntimeError("P29R1 recovery attempt-count contract drift")
+    return payload
 
 
 def validate_runner_execution_contract() -> None:
@@ -741,7 +785,7 @@ def _decision(class_results: Sequence[Mapping[str, Any]], gradients: Mapping[str
     }
 
 
-def _write_report(metrics: Mapping[str, Any], gradient: Mapping[str, Any], decision: Mapping[str, Any], runtime: Mapping[str, Any]) -> None:
+def _write_report(output_dir: Path, metrics: Mapping[str, Any], gradient: Mapping[str, Any], decision: Mapping[str, Any], runtime: Mapping[str, Any]) -> None:
     zero = gradient["zero_init"]
     recovery = metrics["output_recovery"]["macro_mean"]
     lines = [
@@ -777,7 +821,7 @@ def _write_report(metrics: Mapping[str, Any], gradient: Mapping[str, Any], decis
         "", "All reported quantities use frozen P27/P29 artifacts, the P28R1-compatible held teacher definition, and bounded source-only gradient probes. No model was trained or updated.",
         "", "## STATUS", "", "`P29R1_FORENSIC_COMPLETE`",
     ])
-    _atomic_text(OUTPUT_ROOT / "P29R1_FINAL_REPORT.md", "\n".join(lines) + "\n")
+    _atomic_text(output_dir / "P29R1_FINAL_REPORT.md", "\n".join(lines) + "\n")
 
 
 def pre_audit(args: argparse.Namespace) -> dict[str, Any]:
@@ -943,6 +987,20 @@ def _post_run_audit(
         raise RuntimeError("execution base changed after forensic marker")
     if sha256_file(args.protocol) != marker.get("protocol_sha256"):
         raise RuntimeError("protocol changed after forensic marker")
+    recovery_label = marker.get("recovery_label")
+    if recovery_label:
+        if recovery_label != "P29R1_RECOVERY":
+            raise RuntimeError("unknown P29R1 recovery label")
+        recovery_protocol_path = Path(str(marker.get("recovery_protocol_path", "")))
+        recovery_protocol_sha256 = marker.get("recovery_protocol_sha256")
+        if not recovery_protocol_path.is_file() or sha256_file(recovery_protocol_path) != recovery_protocol_sha256:
+            raise RuntimeError("P29R1 recovery preregistration changed after marker")
+        _validate_recovery_preregistration(
+            recovery_protocol_path,
+            base_protocol_path=args.protocol,
+            recovery_uuid=str(marker["forensic_uuid"]),
+            original_attempt_uuid=str(marker.get("original_attempt_uuid", "")),
+        )
     csv_rows = list(csv.DictReader((args.output_dir / "P29R1_SIGN_ALIGNMENT.csv").open(encoding="utf-8")))
     if len(csv_rows) != len(CLASS_NAMES) or {row.get("class") for row in csv_rows} != set(CLASS_NAMES):
         raise RuntimeError("sign-alignment CSV is incomplete")
@@ -973,6 +1031,10 @@ def _post_run_audit(
         "decision_recommendation": decision["optimal_next_research_direction"],
         "input_inventory": input_inventory,
         "metrics_schema": metrics["schema_version"],
+        "recovery_label": recovery_label,
+        "original_attempt_uuid": marker.get("original_attempt_uuid"),
+        "original_failure_preserved": True if recovery_label else None,
+        "recovery_preregistration_unchanged": True if recovery_label else None,
     }
     _atomic_json(args.output_dir / "P29R1_POST_RUN_AUDIT.json", audit)
     return audit
@@ -992,6 +1054,19 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         raise RuntimeError("P29R1 execution base is not synchronized with origin")
     if _git("status", "--porcelain"):
         raise RuntimeError("P29R1 execution base must have a clean worktree before the attempt marker")
+    recovery_label = getattr(args, "recovery_label", None)
+    recovery_protocol_path = getattr(args, "recovery_protocol", None)
+    original_attempt_uuid = getattr(args, "original_attempt_uuid", None)
+    recovery_preregistration = None
+    if recovery_label or recovery_protocol_path or original_attempt_uuid:
+        if recovery_label != "P29R1_RECOVERY" or recovery_protocol_path is None or not original_attempt_uuid:
+            raise RuntimeError("recovery mode requires the recovery label, preregistration, and original UUID")
+        recovery_preregistration = _validate_recovery_preregistration(
+            recovery_protocol_path,
+            base_protocol_path=args.protocol,
+            recovery_uuid=args.forensic_uuid,
+            original_attempt_uuid=original_attempt_uuid,
+        )
     output = args.output_dir
     marker_path = output / "P29R1_FORENSIC_ATTEMPT.json"
     if marker_path.exists():
@@ -1022,6 +1097,16 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "mvtec_reads": 0,
         "medical_reads": 0,
     }
+    if recovery_preregistration is not None:
+        attempt.update({
+            "attempt_kind": "P29R1_RECOVERY",
+            "recovery_label": recovery_label,
+            "original_attempt_uuid": original_attempt_uuid,
+            "original_failure_path": str(ORIGINAL_FAILURE_PATH.resolve()),
+            "original_failure_sha256": sha256_file(ORIGINAL_FAILURE_PATH),
+            "recovery_protocol_path": str(recovery_protocol_path.resolve()),
+            "recovery_protocol_sha256": sha256_file(recovery_protocol_path),
+        })
     _atomic_json(marker_path, attempt)
     started = time.perf_counter()
     device = torch.device(args.device)
@@ -1057,10 +1142,13 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         _atomic_json(output / "P29R1_DECISION_TREE.json", decision)
         post_inventory = _artifact_inventory(args.cache_root, args.metadata)
         audit = _post_run_audit(args=args, marker=attempt, input_inventory=input_inventory, post_inventory=post_inventory, classes=class_results, probe_records=probe_records, metrics=metrics, decision=decision)
-        _write_report(metrics, gradient, decision, runtime)
+        _write_report(output, metrics, gradient, decision, runtime)
         return {"status": "P29R1_FORENSIC_COMPLETE", "metrics": metrics, "audit": audit}
     except Exception as exc:
-        _atomic_json(output / "P29R1_FORENSIC_FAILURE.json", {"schema_version": "P29R1_FORENSIC_FAILURE_V1", "forensic_uuid": args.forensic_uuid, "error_type": type(exc).__name__, "error": str(exc), "status": "P29R1_ENGINEERING_STOP", "rerun_forbidden": True})
+        failure = {"schema_version": "P29R1_FORENSIC_FAILURE_V1", "forensic_uuid": args.forensic_uuid, "error_type": type(exc).__name__, "error": str(exc), "status": "P29R1_ENGINEERING_STOP", "rerun_forbidden": True}
+        if recovery_preregistration is not None:
+            failure.update({"attempt_kind": "P29R1_RECOVERY", "recovery_label": recovery_label, "original_attempt_uuid": original_attempt_uuid, "recovery_protocol_sha256": sha256_file(recovery_protocol_path)})
+        _atomic_json(output / "P29R1_FORENSIC_FAILURE.json", failure)
         raise
 
 
@@ -1079,7 +1167,7 @@ def audit_completed_run(args: argparse.Namespace) -> dict[str, Any]:
     gradient = _read_json(args.output_dir / "P29R1_GRADIENT_DIAGNOSTIC.json")
     decision = _read_json(args.output_dir / "P29R1_DECISION_TREE.json")
     audit = _post_run_audit(args=args, marker=marker, input_inventory=input_inventory, post_inventory=post_inventory, classes=metrics["classes"], probe_records=gradient["records"], metrics=metrics, decision=decision)
-    _write_report(metrics, gradient, decision, metrics["runtime"])
+    _write_report(args.output_dir, metrics, gradient, decision, metrics["runtime"])
     return {"status": audit["terminal_status"], "audit": audit}
 
 
@@ -1097,6 +1185,9 @@ def make_parser() -> argparse.ArgumentParser:
     parser.add_argument("--prereg-sha")
     parser.add_argument("--forensic-uuid")
     parser.add_argument("--utc-started")
+    parser.add_argument("--recovery-label")
+    parser.add_argument("--recovery-protocol", type=Path)
+    parser.add_argument("--original-attempt-uuid")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     return parser
 

@@ -1,0 +1,64 @@
+{
+  "schema_version": "P29R1_RECOVERY_PREREGISTRATION_V1",
+  "status": "P29R1_RECOVERY_PREREGISTERED",
+  "recovery_label": "P29R1_RECOVERY",
+  "recovery_attempt_uuid": "b9f4a9e6-6d3a-4d10-9c2a-4b2a69c5e8f1",
+  "one_recovery_attempt_only": true,
+  "base_protocol_path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P29R1_FORENSIC_PROTOCOL.json",
+  "base_protocol_sha256": "db769ca9a5de9d4888bfd73aed4c89eb52c932ae1e5f9f71256bce90b120b650",
+  "original_attempt_path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P29R1_FORENSIC_ATTEMPT.json",
+  "original_attempt_uuid": "4a5f1f85-5b1a-4edc-8a3a-b4bbf8489b7d",
+  "original_attempt_sha256": "7ebf76d5035d195d8bc0a9a303585ac4a4496c9eb70b3fc9e5a92f05926fe5c0",
+  "original_failure_path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P29R1_FORENSIC_FAILURE.json",
+  "original_failure_sha256": "8bbb9aaf0bb4077cd36ab2433245ccf85effde70580700efe5fafe2ffc3b0420",
+  "original_terminal_evidence_path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P29R1_TERMINAL_EVIDENCE.json",
+  "original_terminal_commit": "7bc4bae5ad9cb1372dc65d1a8b38f1e5b19755b7",
+  "original_execution_base": "6d10578b6759849cddd009217fae544c953c8868",
+  "recovery_reason": "The terminalized original run failed before producing scientific outputs because the production runner called residual_magnitude_summary without importing it.",
+  "allowed_engineering_changes": [
+    "Add the missing residual_magnitude_summary import to the production runner.",
+    "Route the final report through the explicit output directory so recovery cannot overwrite the original report.",
+    "Add recovery identity and preservation metadata to the attempt marker and audit path.",
+    "Add an exact regression test for the original entrypoint failure path."
+  ],
+  "scientific_contract": {
+    "base_protocol_unchanged": true,
+    "metric_definitions_unchanged": true,
+    "thresholds_unchanged": true,
+    "frozen_p27_p29_inputs_unchanged": true,
+    "no_training": true,
+    "no_optimizer_steps": true,
+    "no_new_clip_forwards": true,
+    "no_new_phase2b_forwards": true,
+    "no_mvtec_or_medical_reads": true,
+    "one_12_class_recovery_only": true
+  },
+  "qualification_evidence": {
+    "root_cause_note": "research/sabra_v2/region_distill/P29R1_RECOVERY_ROOT_CAUSE.md",
+    "exact_regression": "tests/test_p29r1_root_cause.py",
+    "pre_fix_result": "Exact test passed by catching NameError: name 'residual_magnitude_summary' is not defined.",
+    "post_fix_result": "Exact test passed after reaching a sentinel immediately after _held_class_result; 13 forensic tests passed in the combined suite.",
+    "cached_held_class_smoke": "candle; actual frozen records/cache/adapters; 200 held samples; no marker or scientific output",
+    "cached_gradient_smoke": "candle; 8 bounded records across zero_init and p29_checkpoint; two samples per source class; finite gradients",
+    "engineering_preflight": "research/sabra_v2/region_distill/P29R1_RECOVERY/P29R1_ENGINEERING_PREFLIGHT.json"
+  },
+  "execution": {
+    "output_dir": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P29R1_RECOVERY",
+    "attempt_marker": "P29R1_FORENSIC_ATTEMPT.json",
+    "attempt_marker_is_created_immediately_before_real_computation": true,
+    "recovery_protocol_hash_is_recorded_in_marker": true,
+    "crash_terminal_status": "P29R1_ENGINEERING_STOP",
+    "no_second_recovery_attempt": true
+  },
+  "recovery_outputs": [
+    "P29R1_RECOVERY/P29R1_FORENSIC_ATTEMPT.json",
+    "P29R1_RECOVERY/P29R1_FORENSIC_METRICS.json",
+    "P29R1_RECOVERY/P29R1_GRADIENT_DIAGNOSTIC.json",
+    "P29R1_RECOVERY/P29R1_SIGN_ALIGNMENT.csv",
+    "P29R1_RECOVERY/P29R1_NORMALITY_DIAGNOSTIC.json",
+    "P29R1_RECOVERY/P29R1_DECISION_TREE.json",
+    "P29R1_RECOVERY/P29R1_POST_RUN_AUDIT.json",
+    "P29R1_RECOVERY/P29R1_FINAL_REPORT.md"
+  ],
+  "p30_gate": "Do not start P30 unless this recovery completes, the audit passes, the output set is complete, and the P29R1 decision tree explicitly supplies enough evidence. Otherwise stop after P29R1 recovery."
+}

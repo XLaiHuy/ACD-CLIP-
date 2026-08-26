@@ -1,0 +1,52 @@
+{
+  "schema_version": "P29R1_RECOVERY_ENGINEERING_SMOKE_V1",
+  "status": "PASS",
+  "scientific_result": false,
+  "purpose": "Cheap post-fix path qualification before the one recovery attempt.",
+  "exact_regression": {
+    "test": "tests/test_p29r1_root_cause.py",
+    "before_fix": "PASS by catching the exact residual_magnitude_summary NameError",
+    "after_fix": "PASS by reaching the synthetic stop after _held_class_result",
+    "combined_forensic_tests": "13 passed"
+  },
+  "held_class_smoke": {
+    "class": "candle",
+    "sample_count": 200,
+    "held_mask_reads": 100,
+    "runtime_seconds": 13.883591697085649,
+    "peak_rss_kib": 6472776,
+    "functions_reached": [
+      "_prediction_records",
+      "_held_class_result",
+      "_native_cache_probability",
+      "_teacher_regions",
+      "_student_regions",
+      "residual_magnitude_summary",
+      "vectorized_pixel_shifts"
+    ],
+    "marker_created": false,
+    "scientific_outputs_written": false
+  },
+  "gradient_smoke": {
+    "held_class": "candle",
+    "source_classes": ["capsules", "fryum", "pcb1", "pcb4"],
+    "states": ["zero_init", "p29_checkpoint"],
+    "record_count": 8,
+    "samples_per_record": 2,
+    "runtime_seconds": 1.215719051193446,
+    "finite_gradients": true,
+    "training_steps": 0,
+    "optimizer_steps": 0
+  },
+  "preflight": {
+    "status": "PASS",
+    "decision": "PROCEED",
+    "projected_runtime_minutes": 8.954433309736972,
+    "projected_peak_gpu_bytes": 110409216,
+    "projected_peak_rss_kib": 1192120,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "training_steps": 0,
+    "optimizer_steps": 0
+  }
+}
