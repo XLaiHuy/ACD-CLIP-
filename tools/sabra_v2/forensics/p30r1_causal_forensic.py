@@ -886,7 +886,7 @@ def _render_report(result: Mapping[str, Any]) -> str:
                 lines.append(f"| {method.upper()} {item['bin']} | {item['count']} | {item['student_norm_l2']['quantiles']['q50']:.9f} | {item['directional_cosine']['mean']:.9f} | {item['sign_agreement']['mean']:.9f} | {item['score_delta_abs_mean_global']['mean']:.9f} |")
     lines.extend([
         "",
-        f"The inherited raw coordinate epsilon threshold is `{result['low_norm']['p30r1']['coordinate_raw_epsilon_threshold']:.9f}` and the corresponding 243-coordinate L2 threshold is `{result['low_norm']['p30r1']['vector_l2_epsilon_threshold']:.9f}`. Exact and thresholded near-zero fractions are reported without an outcome-tuned cutoff.",
+        f"The inherited raw coordinate epsilon threshold is `{result['low_norm_fraction']['p30r1']['coordinate_raw_epsilon_threshold']:.9f}` and the corresponding 243-coordinate L2 threshold is `{result['low_norm_fraction']['p30r1']['vector_l2_epsilon_threshold']:.9f}`. Exact and thresholded near-zero fractions are reported without an outcome-tuned cutoff.",
         "",
         "## 8. Teacher-scale normalization reweighting",
         "",
