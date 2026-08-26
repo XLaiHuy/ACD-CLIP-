@@ -1,0 +1,279 @@
+{
+  "schema_version": "P31_FAST_OBJECTIVE_SCREEN_V1",
+  "artifact_type": "read_only_fast_objective_screen",
+  "status": "PASS",
+  "decision": "KEEP_CURRENT",
+  "screen_mode": "existing_frozen_artifact_reuse",
+  "protocol_id": "P31",
+  "selected_hypothesis": "P31_NATIVE_ZERO_ADAPTER_CONTROL",
+  "primary_mechanism": "TEACHER_DIRECTION_NOT_CAUSAL",
+  "secondary_mechanism": "SPARSE_SELECTIVE_CORRECTION",
+  "qualification": {
+    "status": "PASS_TO_SCIENTIFIC_PROTOCOL",
+    "artifact": "research/sabra_v2/region_distill/P31_ENGINEERING_QUALIFICATION.json",
+    "preregistration_sha256": "f42f0add36c0de2e303e6f25b0d48b63c33eda7d4c56d2a7ccb368ca76c865e3"
+  },
+  "frozen_inputs": [
+    {
+      "path": "research/sabra_v2/region_distill/P30R1_FORENSIC/P30R1_CAUSAL_FORENSIC.json",
+      "sha256": "07f3cc371b6d85d5b819e6e9262bfbc61936c801b888615e51c4e6b32ae9fb9d"
+    },
+    {
+      "path": "research/sabra_v2/region_distill/P30R1/candle/metrics/P30R1_HELD_METRICS.json",
+      "sha256": "8cb46bfa0a65f2561d0531da5bc131e383a2783eb6778f282aab0d39bb1cabf4"
+    },
+    {
+      "path": "research/sabra_v2/region_distill/P30R1/P30R1_TRANSFER_DIAGNOSTIC.json",
+      "sha256": "76cdb09d817799927b916e233c3e86005e1233a5c95b3f0282d7d738e4e76b96"
+    },
+    {
+      "path": "research/sabra_v2/region_distill/P30R1/P30R1_STABILITY_DIAGNOSTIC.json",
+      "sha256": "0ec7ab90ab05dc4ff7376d89e0f6e03defb6fc12097e68915b79e96e8994572c"
+    },
+    {
+      "path": "research/sabra_v2/region_distill/P27R1_AGGREGATE.json",
+      "sha256": "53afb324fbd05c188b18dd96bada011b33730bf393d432e2baadc32337216daa"
+    },
+    {
+      "path": "research/sabra_v2/region_distill/P27R1_SCIENTIFIC_METRICS.csv",
+      "sha256": "8f11fa5fb08fea073ce9ef0fe5e50561e3906da24f7e87818102a9b13ab14e0b"
+    },
+    {
+      "path": "research/sabra_v2/region_distill/P29_METRICS.json",
+      "sha256": "62726793127f38fc3c9014320258c1c97aef16eaf3420d13816e2a9076012ff7"
+    },
+    {
+      "path": "research/sabra_v2/region_distill/P29_CLASS_TABLE.csv",
+      "sha256": "ea480e15a0a63bfd6009acaab9082b952716773a376cfeca5a1f52771b4557db"
+    }
+  ],
+  "screen_scope": {
+    "new_predictions": 0,
+    "new_scoring": 0,
+    "held_gt_reads_current_turn": 0,
+    "held_mask_reads_current_turn": 0,
+    "model_forwards_current_turn": 0,
+    "cache_rebuilds_current_turn": 0,
+    "method_or_hyperparameter_search": false,
+    "metrics_recomputed": false,
+    "note": "All numeric results below are reused from immutable P27/P29/P30/P30R1 artifacts; P31 identity values are analytic copies of native values."
+  },
+  "gates": {
+    "engineering": {
+      "status": "PASS",
+      "evidence": "P31_ENGINEERING_QUALIFICATION.json",
+      "focused_tests_passed": 15,
+      "synthetic_cases_passed": 15,
+      "production_reference_max_abs_error": 0.0,
+      "new_clip_forwards": 0,
+      "new_phase2b_forwards": 0,
+      "optimizer_steps": 0
+    },
+    "direction": {
+      "status": "NOT_APPLICABLE_NULL_CONTROL",
+      "p31_teacher_student_sign_agreement": null,
+      "p31_ranking_agreement": null,
+      "reason": "P31 instantiates no student residual and has no teacher target. Existing P30/P30R1 transfer evidence is retained as a falsification of raw direction as a downstream proxy."
+    },
+    "normality": {
+      "status": "PASS",
+      "p31_normal_score_shift": 0.0,
+      "p31_residual_on_normal": 0.0,
+      "reason": "The control is identical to native by construction; no normal score can be inflated by P31."
+    },
+    "scientific_proxy": {
+      "status": "PASS_FOR_NULL_CONTROL",
+      "reason": "The pre-existing locked candle comparison favors native/P31 over P30R1 on both primary and secondary metrics. P31 is neutral by construction versus native and is not a claim of improvement over native."
+    },
+    "scale": {
+      "status": "NOT_AUTHORIZED",
+      "reason": "P31 is a null/control result, not a learned mechanism that warrants scale-up; a new learned follow-up would require a new research decision and preregistration."
+    }
+  },
+  "locked_one_class_comparison": {
+    "class": "candle",
+    "sample_count": 200,
+    "p31_native_control": {
+      "pAP": 0.5141403049313743,
+      "pAUROC": 0.9806671435137679,
+      "source": "research/sabra_v2/region_distill/P30R1/candle/metrics/P30R1_HELD_METRICS.json",
+      "new_evaluation": false
+    },
+    "p30r1": {
+      "pAP": 0.5115137342243291,
+      "pAUROC": 0.9805347089543165,
+      "source": "research/sabra_v2/region_distill/P30R1/candle/metrics/P30R1_HELD_METRICS.json",
+      "new_evaluation": false
+    },
+    "p31_minus_p30r1": {
+      "pAP": 0.002626570707045195,
+      "pAUROC": 0.00013243455945144422
+    },
+    "p31_minus_native": {
+      "pAP": 0.0,
+      "pAUROC": 0.0
+    },
+    "interpretation": "This is the already frozen P31 native counterfactual comparison. It supports the null/control claim and does not authorize another candle run."
+  },
+  "twelve_category_reference": {
+    "native": {
+      "macro_pAP": 0.4525216034016654,
+      "macro_pAUROC": 0.9345650495598931
+    },
+    "p27r1": {
+      "macro_pAP": 0.4613875663344724,
+      "macro_pAUROC": 0.9203411938735945,
+      "delta_pAP": 0.008865962932807,
+      "delta_pAUROC": -0.014223855686298553,
+      "pAP_improving_categories": 8,
+      "pAP_neutral_categories": 0,
+      "pAP_regressing_categories": 4,
+      "pAUROC_improving_categories": 1,
+      "pAUROC_neutral_categories": 0,
+      "pAUROC_regressing_categories": 11
+    },
+    "p29": {
+      "macro_pAP": 0.45592444418995576,
+      "macro_pAUROC": 0.9191979029346949,
+      "delta_pAP": 0.0034028407882903816,
+      "delta_pAUROC": -0.015367146625198141,
+      "pAP_improving_categories": 5,
+      "pAP_neutral_categories": 0,
+      "pAP_regressing_categories": 7,
+      "pAUROC_improving_categories": 1,
+      "pAUROC_neutral_categories": 0,
+      "pAUROC_regressing_categories": 11
+    },
+    "p31_control": {
+      "macro_pAP": 0.4525216034016654,
+      "macro_pAUROC": 0.9345650495598931,
+      "delta_vs_native_pAP": 0.0,
+      "delta_vs_native_pAUROC": 0.0,
+      "new_12_category_evaluation": false,
+      "interpretation": "P31 has no correction, so its 12-category identity projection is exactly native; no new 12-category predictions were generated."
+    }
+  },
+  "per_category_reference": [
+    {"class": "candle", "native_pAP": 0.5141403049313743, "native_pAUROC": 0.9806671435137679, "p27_delta_pAP": 0.00015704814065076178, "p27_delta_pAUROC": -0.0095617045296027, "p29_delta_pAP": -0.0236370737322954, "p29_delta_pAUROC": -0.010626846305601956, "p31_delta_vs_native_pAP": 0.0, "p31_delta_vs_native_pAUROC": 0.0},
+    {"class": "capsules", "native_pAP": 0.6978763719543614, "native_pAUROC": 0.9849781994223002, "p27_delta_pAP": -0.008640883350895301, "p27_delta_pAUROC": -0.0053896533251485135, "p29_delta_pAP": -0.004425091198365871, "p29_delta_pAUROC": -0.004852964357013323, "p31_delta_vs_native_pAP": 0.0, "p31_delta_vs_native_pAUROC": 0.0},
+    {"class": "cashew", "native_pAP": 0.7655127373381572, "native_pAUROC": 0.9930016112103482, "p27_delta_pAP": 0.07648288409745618, "p27_delta_pAUROC": -0.0039109743453930035, "p29_delta_pAP": 0.042981970827967064, "p29_delta_pAUROC": -0.0035758294296969195, "p31_delta_vs_native_pAP": 0.0, "p31_delta_vs_native_pAUROC": 0.0},
+    {"class": "chewinggum", "native_pAP": 0.8701427461982091, "native_pAUROC": 0.9919411142492301, "p27_delta_pAP": 0.001541839968297598, "p27_delta_pAUROC": -0.0032489702715990942, "p29_delta_pAP": 0.0015876860450790842, "p29_delta_pAUROC": -0.003777540077238184, "p31_delta_vs_native_pAP": 0.0, "p31_delta_vs_native_pAUROC": 0.0},
+    {"class": "fryum", "native_pAP": 0.38722106980321297, "native_pAUROC": 0.9550680178782014, "p27_delta_pAP": 0.05647038478106686, "p27_delta_pAUROC": -0.009364113022593656, "p29_delta_pAP": 0.05121688207990277, "p29_delta_pAUROC": -0.0037022883286151886, "p31_delta_vs_native_pAP": 0.0, "p31_delta_vs_native_pAUROC": 0.0},
+    {"class": "macaroni1", "native_pAP": 0.21142488696990241, "native_pAUROC": 0.9495230825357774, "p27_delta_pAP": -0.04416896324530384, "p27_delta_pAUROC": -0.05394516311264508, "p29_delta_pAP": -0.03228475297639197, "p29_delta_pAUROC": -0.05488490743006402, "p31_delta_vs_native_pAP": 0.0, "p31_delta_vs_native_pAUROC": 0.0},
+    {"class": "macaroni2", "native_pAP": 0.08945279365105367, "native_pAUROC": 0.8960057743401866, "p27_delta_pAP": -0.019145976080096452, "p27_delta_pAUROC": -0.057512460068702905, "p29_delta_pAP": -0.011834540212974864, "p29_delta_pAUROC": -0.055367308501702905, "p31_delta_vs_native_pAP": 0.0, "p31_delta_vs_native_pAUROC": 0.0},
+    {"class": "pcb1", "native_pAP": 0.20393199937319814, "native_pAUROC": 0.7888956748738319, "p27_delta_pAP": 0.016016738321852242, "p27_delta_pAUROC": -0.0143101782755638, "p29_delta_pAP": 0.02006656181082228, "p29_delta_pAUROC": -0.0051140269388531, "p31_delta_vs_native_pAP": 0.0, "p31_delta_vs_native_pAUROC": 0.0},
+    {"class": "pcb2", "native_pAP": 0.21508170345189906, "native_pAUROC": 0.8373864177550956, "p27_delta_pAP": 0.005094984720286161, "p27_delta_pAUROC": -0.029086216449285662, "p29_delta_pAP": -0.006104364444428939, "p29_delta_pAUROC": -0.049295353893370586, "p31_delta_vs_native_pAP": 0.0, "p31_delta_vs_native_pAUROC": 0.0},
+    {"class": "pcb3", "native_pAP": 0.4848358824527739, "native_pAUROC": 0.8999823086902708, "p27_delta_pAP": 0.0007519913636142017, "p27_delta_pAUROC": -0.0034511553684368756, "p29_delta_pAP": -0.004617955562996046, "p29_delta_pAUROC": -0.009116678367376951, "p31_delta_vs_native_pAP": 0.0, "p31_delta_vs_native_pAUROC": 0.0},
+    {"class": "pcb4", "native_pAP": 0.45237185870288704, "native_pAUROC": 0.9820203966878155, "p27_delta_pAP": -0.014117900255021576, "p27_delta_pAUROC": -0.0022078696666896214, "p29_delta_pAP": -0.02472087295866382, "p29_delta_pAUROC": -0.0006074216846048142, "p31_delta_vs_native_pAP": 0.0, "p31_delta_vs_native_pAUROC": 0.0},
+    {"class": "pipe_fryum", "native_pAP": 0.5382668859929559, "native_pAUROC": 0.9553108535618902, "p27_delta_pAP": 0.035949406731777156, "p27_delta_pAUROC": 0.02130219020007751, "p29_delta_pAP": 0.03260563978183029, "p29_delta_pAUROC": 0.016515405811760253, "p31_delta_vs_native_pAP": 0.0, "p31_delta_vs_native_pAUROC": 0.0}
+  ],
+  "direction_and_ranking_diagnostics": {
+    "p30": {
+      "directional_cosine": 0.7369235739966037,
+      "sign_agreement": 0.5695679012345679,
+      "spearman": 0.7142337500114273,
+      "pAP": 0.14461806417860867,
+      "pAUROC": 0.9729044193436347
+    },
+    "p30r1": {
+      "directional_cosine": -0.07014822472997172,
+      "sign_agreement": 0.11969135802469136,
+      "spearman": 0.05456509396360184,
+      "pAP": 0.5115137342243291,
+      "pAUROC": 0.9805347089543165
+    },
+    "p31": {
+      "directional_cosine": null,
+      "sign_agreement": null,
+      "spearman": null,
+      "reason": "No student residual and no teacher target."
+    },
+    "conclusion": "P30 has stronger direction metrics but much worse pAP; P30R1 has weak direction/ranking but recovers pAP/AUROC. Raw teacher direction is therefore not a validated downstream proxy."
+  },
+  "residual_and_correction_diagnostics": {
+    "p31": {
+      "residual_mean_abs": 0.0,
+      "residual_q99_abs": 0.0,
+      "score_delta_mean_abs": 0.0,
+      "score_delta_q99_abs": 0.0,
+      "effective_support_fraction": 0.0,
+      "anomaly_enrichment": null,
+      "reason": "Exact identity control; no correction exists."
+    },
+    "p30": {
+      "residual_mean_abs": 1.5424903257706284,
+      "residual_q99_abs": 25.929798946380703,
+      "normal_score_delta_q99": 0.9986907839775085,
+      "effective_support_fraction": 0.10947257517354214
+    },
+    "p30r1": {
+      "residual_mean_abs": 0.1787438652449414,
+      "residual_q99_abs": 4.528306531906242,
+      "normal_score_delta_q99": 7.328280098590611e-06,
+      "normal_score_delta_mean": 0.0006754871574230492,
+      "effective_support_fraction": 0.056409297805681394,
+      "anomaly_mass_enrichment": 291.87570037082986,
+      "anomaly_mean_abs_score_delta": 0.32526370882987976,
+      "normal_mean_abs_score_delta": 0.0006754871574230492
+    }
+  },
+  "normality": {
+    "native_p31_score_statistics": {
+      "normal_count": 53592235,
+      "normal_mean": 0.00014337572713729306,
+      "normal_median": 4.979154422102283e-09,
+      "normal_q95": 2.3316150787877632e-08,
+      "normal_q99": 3.778775123919331e-07,
+      "normal_max": 0.9925965070724487
+    },
+    "p31_shift_vs_native": {
+      "mean": 0.0,
+      "median": 0.0,
+      "q95": 0.0,
+      "q99": 0.0,
+      "false_positive_change": "not newly computed; identity implies zero"
+    },
+    "interpretation": "P31 cannot forget normality because it does not alter native scores. P30R1 reduced, but did not make exactly zero, its normal score shift; P30 showed severe upper-tail inflation."
+  },
+  "runtime_memory_cost": {
+    "p31_training_overhead_percent": 0.0,
+    "p31_inference_overhead_percent": 0.0,
+    "p31_objective_count": 0,
+    "p31_new_hyperparameter_count": 0,
+    "p31_warmed_median_control_seconds": 1.0229647159576416e-05,
+    "p31_warmed_p90_control_seconds": 1.0454049333930016e-05,
+    "p31_rss_max_bytes": 155475968,
+    "p31_new_model_memory_bytes": 0,
+    "p27r1_scientific_wall_seconds": 25124.037862170022,
+    "p30r1_training_wall_seconds": 1215.836871,
+    "objective_overhead": "0; P31 has no objective",
+    "inference_cost": "0%; existing native path is reused"
+  },
+  "mechanism_conclusion": {
+    "student_preserved_teacher_direction": "NOT_APPLICABLE_P31_NULL; existing P30/P30R1 contrast rejects raw direction as a sufficient downstream target",
+    "normality_inflation": "P31 exact zero; no inflation",
+    "cross_category_transfer": "NO_CORRECTION_CLAIM; identity is category-independent, while prior learned transfer had broad AUROC regressions",
+    "objective_level_constraint_sufficient": "YES_FOR_THE_NULL_QUESTION; zero objectives are sufficient to test whether intervention is necessary",
+    "feature_level_consistency_necessary": "NOT_ESTABLISHED",
+    "candidate_outcome": "P31 succeeds as the cheapest causal control and supports keeping native; it does not establish a new learned publishable mechanism."
+  },
+  "terminal_rationale": {
+    "new_stage2_required": false,
+    "reason": "The exact P31 native/P30R1 candle comparison is already present in the frozen P30R1 metrics and forensic artifacts. A new Stage-2 attempt would duplicate the answered comparison and is not needed for the null-control decision.",
+    "future_follow_up": "Only if a future research decision identifies a specific downstream-effect hypothesis should a new protocol and preregistration be created; do not automatically implement ranking, gating, or another loss."
+  },
+  "counts": {
+    "new_scientific_stage2_attempts": 0,
+    "new_stage3_attempts": 0,
+    "full_runs": 0,
+    "full_12_class_runs": 0,
+    "held_result_tuning_iterations": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "cache_rebuilds": 0,
+    "optimizer_steps": 0,
+    "scientific_uuid_created": false,
+    "execution_marker_created": false
+  },
+  "terminal": "FAST_SCREEN_COMPLETE_KEEP_CURRENT_NO_NEW_STAGE2"
+}
