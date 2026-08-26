@@ -1,0 +1,125 @@
+{
+  "batch_size": 1,
+  "checkpoint": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P30/qualification/stage1_smoke/candle/training/p30_region_adapter.pt",
+  "checkpoint_sha256": "6c83a26379d8e9a3e06a3167aedcb2271ae97d6bc94808895467a5abdda98ac0",
+  "clip_optimization_steps": 0,
+  "epochs": 1,
+  "fit_records": 1962,
+  "gradient_health": {
+    "global_zero_fraction_mean": 0.9968751502331619,
+    "nonfinite_count_max": 0,
+    "per_parameter": {
+      "context_1x1.bias": {
+        "max_abs_max": 0.0,
+        "median_abs_median": 0.0,
+        "nonfinite_count_max": 0,
+        "norm_max": 0.0,
+        "norm_median": 0.0,
+        "norm_min": 0.0,
+        "zero_fraction_mean": 1.0
+      },
+      "context_1x1.weight": {
+        "max_abs_max": 0.0,
+        "median_abs_median": 0.0,
+        "nonfinite_count_max": 0,
+        "norm_max": 0.0,
+        "norm_median": 0.0,
+        "norm_min": 0.0,
+        "zero_fraction_mean": 1.0
+      },
+      "context_depthwise.bias": {
+        "max_abs_max": 0.0,
+        "median_abs_median": 0.0,
+        "nonfinite_count_max": 0,
+        "norm_max": 0.0,
+        "norm_median": 0.0,
+        "norm_min": 0.0,
+        "zero_fraction_mean": 1.0
+      },
+      "context_depthwise.weight": {
+        "max_abs_max": 0.0,
+        "median_abs_median": 0.0,
+        "nonfinite_count_max": 0,
+        "norm_max": 0.0,
+        "norm_median": 0.0,
+        "norm_min": 0.0,
+        "zero_fraction_mean": 1.0
+      },
+      "output.bias": {
+        "max_abs_max": 2.4618911743164062,
+        "median_abs_median": 2.4618911743164062,
+        "nonfinite_count_max": 0,
+        "norm_max": 4.264120578765869,
+        "norm_median": 4.264120578765869,
+        "norm_min": 4.264120578765869,
+        "zero_fraction_mean": 0.0
+      },
+      "output.weight": {
+        "max_abs_max": 0.5098317861557007,
+        "median_abs_median": 0.2026233971118927,
+        "nonfinite_count_max": 0,
+        "norm_max": 3.5274434089660645,
+        "norm_median": 3.5274434089660645,
+        "norm_min": 3.5274434089660645,
+        "zero_fraction_mean": 0.0
+      },
+      "stage_projection.bias": {
+        "max_abs_max": 0.0,
+        "median_abs_median": 0.0,
+        "nonfinite_count_max": 0,
+        "norm_max": 0.0,
+        "norm_median": 0.0,
+        "norm_min": 0.0,
+        "zero_fraction_mean": 1.0
+      },
+      "stage_projection.weight": {
+        "max_abs_max": 0.0,
+        "median_abs_median": 0.0,
+        "nonfinite_count_max": 0,
+        "norm_max": 0.0,
+        "norm_median": 0.0,
+        "norm_min": 0.0,
+        "zero_fraction_mean": 1.0
+      }
+    },
+    "sample_count": 1,
+    "sampled_steps": [
+      1
+    ]
+  },
+  "held_class": "candle",
+  "held_gt_reads": 0,
+  "held_mask_reads": 0,
+  "held_records_not_read": 200,
+  "last_terms": {
+    "directional": 1.0,
+    "total": 1.0,
+    "valid_count": 1
+  },
+  "learning_rate": 0.001,
+  "mean_step_seconds": 0.4066335610114038,
+  "median_step_seconds": 0.4066335610114038,
+  "new_clip_forwards": 0,
+  "new_phase2b_forwards": 0,
+  "optimizer_steps": 1,
+  "p30_execution_base_sha": "2360a04cfe2624f6794dc666299a78dab4e17ae0",
+  "p30_preregistration_sha256": "86ede5f23c7edd50ed848fa1e6c6aab987e7a9ded35a1c7c3a57f12ec1badde6",
+  "p30_uuid": "71a16efe-2388-458a-9106-bd87f882805a",
+  "peak_gpu_allocated_bytes": 32006656,
+  "peak_gpu_reserved_bytes": 39845888,
+  "peak_process_rss_kib": 1281856,
+  "phase2b_optimization_steps": 0,
+  "schema_version": "P30_TRAINING_COMPLETE_V1",
+  "seed": 0,
+  "source_mask_used_by_loss": false,
+  "stage": "smoke",
+  "status": "ENGINEERING_SMOKE_ONLY",
+  "steps": 1,
+  "student_parameter_delta": {
+    "l2": 0.013964475053857938,
+    "max_abs": 0.0010000000474974513
+  },
+  "teacher_parameter_delta": 0.0,
+  "teacher_trainable": false,
+  "training_seconds": 0.42523242719471455
+}

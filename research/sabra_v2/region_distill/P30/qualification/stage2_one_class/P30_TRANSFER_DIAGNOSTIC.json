@@ -1,0 +1,72 @@
+{
+  "classes": [
+    {
+      "class": "candle",
+      "delta": {
+        "directional_cosine": 0.02837440020796589,
+        "sign_agreement": 0.004074074074074119
+      },
+      "held_mask_reads": 100,
+      "p29": {
+        "alignment": {
+          "mae": 1.1974825518288545,
+          "pearson": 0.7699572036462712,
+          "robust_relative_magnitude_ratio": 0.23213513549384515,
+          "sign_agreement": 0.5654938271604938,
+          "spearman": 0.7174181563446916
+        },
+        "directional_cosine": {
+          "mean": 0.7085491737886378,
+          "valid_sample_count": 200,
+          "zero_student_sample_count": 0
+        },
+        "magnitude": {
+          "mean_abs": 2.0366827585423986,
+          "median_abs": 1.1514161825180054,
+          "q90_abs": 4.141722345352173,
+          "q99_abs": 4.321676936149597
+        }
+      },
+      "p30": {
+        "alignment": {
+          "mae": 3.2437247553283783,
+          "pearson": 0.3782087860018243,
+          "robust_relative_magnitude_ratio": 0.15421900541714945,
+          "sign_agreement": 0.5695679012345679,
+          "spearman": 0.7142337500114273
+        },
+        "directional_cosine": {
+          "mean": 0.7369235739966037,
+          "valid_sample_count": 200,
+          "zero_student_sample_count": 0
+        },
+        "magnitude": {
+          "mean_abs": 1.5424903257706284,
+          "median_abs": 0.7649434804916382,
+          "q90_abs": 0.8936572849750519,
+          "q99_abs": 25.929798946380703
+        }
+      },
+      "sample_count": 200
+    }
+  ],
+  "held_mask_reads_post_freeze": 100,
+  "macro": {
+    "p29_directional_cosine": 0.7085491737886378,
+    "p29_mean_abs_residual": 2.0366827585423986,
+    "p29_pearson": 0.7699572036462712,
+    "p29_sign_agreement": 0.5654938271604938,
+    "p29_spearman": 0.7174181563446916,
+    "p30_directional_cosine": 0.7369235739966037,
+    "p30_mean_abs_residual": 1.5424903257706284,
+    "p30_pearson": 0.3782087860018243,
+    "p30_sign_agreement": 0.5695679012345679,
+    "p30_spearman": 0.7142337500114273
+  },
+  "new_clip_forwards": 0,
+  "new_phase2b_forwards": 0,
+  "p30_uuid": "71a16efe-2388-458a-9106-bd87f882805a",
+  "peak_process_rss_kib": 5232084,
+  "runtime_seconds": 15.707998793106526,
+  "schema_version": "P30_TRANSFER_DIAGNOSTIC_V1"
+}

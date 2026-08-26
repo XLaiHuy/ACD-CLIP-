@@ -1,0 +1,11 @@
+{
+  "error": "P30 Stage 2 gate failed: {'schema_version': 'P30_STAGE_GATE_V1', 'status': 'STOP', 'stage': 'one_class', 'classes': ['candle'], 'overhead_percent': -35.9319833387777, 'thresholds': {'catastrophic_metric_drop': -0.05, 'subset_drop_count_over_0.02_max': 1, 'directional_cosine_drop_max': 0.01, 'sign_agreement_drop_max': 0.01, 'normal_q99_inflation_max': 0.001, 'training_overhead_investigate_max': 15.0}, 'counts': {'pAP_drops_over_0.02': 1, 'pAUROC_drops_over_0.02': 0, 'pAP_drops_over_0.05': 1, 'pAUROC_drops_over_0.05': 0}, 'class_checks': [{'class': 'candle', 'pAP_drop_from_native': -0.36952224075276563, 'pAUROC_drop_from_native': -0.0077627241701332395, 'p29_directional_cosine': 0.7085491737886378, 'p30_directional_cosine': 0.7369235739966037, 'p29_sign_agreement': 0.5654938271604938, 'p30_sign_agreement': 0.5695679012345679, 'p29_normal_q99': 1.1587851122384847e-06, 'p30_normal_q99': 0.9986907839775085, 'finite': True}], 'failures': ['catastrophic primary-metric regression for candle', 'normal q99 inflation for candle']}",
+  "error_type": "RuntimeError",
+  "full_marker_created": false,
+  "p30_preregistration_sha256": "86ede5f23c7edd50ed848fa1e6c6aab987e7a9ded35a1c7c3a57f12ec1badde6",
+  "p30_uuid": "71a16efe-2388-458a-9106-bd87f882805a",
+  "schema_version": "P30_QUALIFICATION_FAILURE_V1",
+  "scientific_full_rerun_automatic": false,
+  "status": "STOP",
+  "utc_timestamp": "2026-08-26T15:00:12.245297+00:00"
+}
