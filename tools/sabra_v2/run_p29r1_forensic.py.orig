@@ -1,0 +1,63 @@
+"""Execute the one-shot, zero-training P29R1 fast objective forensic."""
+from __future__ import annotations
+
+import argparse, csv, json, os, resource, subprocess, time, uuid
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Mapping, Sequence
+
+import numpy as np
+import torch
+import torch.nn.functional as F
+
+from model.phase2b_runtime import deploy_native_logits
+from tools.sabra.data import EXPECTED_VISA_CLASSES, read_visa_metadata
+from tools.sabra_car.r0_direction import classify_actions
+from tools.sabra_v2.data_protocol import loco_inventory
+from tools.sabra_v2.p28_mechanism_diagnostic import _load_masks, _load_tier_a, enforce_data_firewall, patch_correction_from_actions
+from tools.sabra_v2.p29_objective import p29_sign_guarded_loss
+from tools.sabra_v2.p29r1_forensic import CLASS_NAMES, estimate_forensic_runtime, forensic_utility_for_batch, gradient_summary, normal_guard_conflict, prediction_hash, residual_magnitude_summary, select_probe_source_classes, sign_alignment, vectorized_pixel_shifts
+from tools.sabra_v2.region_adapter import RegionResidualAdapter
+from tools.sabra_v2.region_cache import sha256_file, stable_sample_id
+from tools.sabra_v2.region_pool import symmetric_margin_delta, upsample_region_map
+from utils import calculate_seg_loss
+
+ROOT = Path(__file__).resolve().parents[2]
+IMAGE_SIZE = 518
+P29_ROOT = Path("/workspace/p29_science_v1")
+P27_ROOT = Path("/workspace/p27r1_science_v1")
+OUTPUT_ROOT = ROOT / "research/sabra_v2/region_distill"
+
+
+def _atomic_json(path: Path, payload: Mapping[str, Any]) -> None:
+    temporary = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary.write_text(json.dumps(payload, indent=2, sort_keys=True, allow_nan=False) + "\n", encoding="utf-8")
+    os.replace(temporary, path)
+
+
+def _read_json(path: Path) -> dict[str, Any]:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _git(*args: str) -> str:
+    return subprocess.run(["git", *args], cwd=ROOT, check=True, text=True, capture_output=True).stdout.strip()
+
+
+def _prediction_records(path: Path, held_class: str, expected_hash: str, schema: str, student_key: str) -> list[dict[str, Any]]:
+    prediction_hash(path, expected_hash)
+    payload = torch.load(path, map_location="cpu", weights_only=True)
+    if payload.get("schema_version") != schema or payload.get("held_class") != held_class:
+        raise RuntimeError(f"immutable prediction schema/class mismatch: {path}")
+    if payload.get("gt_used") is not False or int(payload.get("mask_reads", -1)) != 0:
+        raise RuntimeError(f"immutable prediction firewall mismatch: {path}")
+    records = payload.get("records")
+    if not isinstance(records, list) or not records:
+        raise RuntimeError(f"immutable prediction records missing: {path}")
+    paths = [str(record.get("image_path", "")) for record in records]
+    if not all(paths) or len(paths) != len(set(paths)):
+        raise RuntimeError(f"immutable prediction identities invalid: {path}")
+        raise RuntimeError(f"immutable prediction identities invalid: {path}")
+    if any(not isinstance(record.get("native_abnormal_probability"), torch.Tensor) or not isinstance(record.get(student_key), torch.Tensor) for record in records):
+        raise RuntimeError(f"immutable prediction tensors missing: {path}")
+    return records

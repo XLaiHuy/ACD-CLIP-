@@ -1,0 +1,152 @@
+from __future__ import annotations
+
+import hashlib
+import inspect
+from pathlib import Path
+
+import numpy as np
+import pytest
+import torch
+
+from tools.sabra_car.r0_direction import utility_for_batch
+from tools.sabra_v2.p29_objective import CORRECTION_SCALE, p29_sign_guarded_loss
+from tools.sabra_v2.run_p29r1_forensic import validate_runner_execution_contract
+from tools.sabra_v2.p29r1_forensic import (
+    CLASS_NAMES,
+    estimate_forensic_runtime,
+    forensic_utility_for_batch,
+    gradient_summary,
+    normal_guard_conflict,
+    prediction_hash,
+    residual_magnitude_summary,
+    select_probe_source_classes,
+    sign_alignment,
+    validate_forensic_path_source,
+    vectorized_pixel_shifts,
+)
+
+
+def _native_logits() -> torch.Tensor:
+    return torch.zeros((3, 1, 1369, 2), dtype=torch.float32)
+
+
+def test_historical_r0_fails_under_no_grad_but_forensic_wrapper_recovers() -> None:
+    native = _native_logits()
+    mask = torch.zeros((1, 1, 518, 518), dtype=torch.float32)
+
+    with torch.no_grad(), pytest.raises(RuntimeError, match="does not require grad"):
+        utility_for_batch(native, mask)
+
+    utility, loss = forensic_utility_for_batch(native, mask)
+
+    assert utility.shape == (1, 1369)
+    assert loss.shape == (1,)
+    assert utility.requires_grad is False
+    assert loss.requires_grad is False
+
+
+def test_sign_alignment_matches_reference_fixture() -> None:
+    teacher = np.asarray([[-1.0, 0.0, 2.0]], dtype=np.float32)
+    student = np.asarray([[-2.0, 3.0, 1.0]], dtype=np.float32)
+
+    result = sign_alignment(teacher, student)
+
+    assert result["sign_agreement"] == pytest.approx(2.0 / 3.0)
+    assert result["mae"] == pytest.approx(5.0 / 3.0)
+    assert result["pearson"] is not None
+    assert result["spearman"] is not None
+
+
+def test_residual_magnitude_summary_uses_fixed_quantiles() -> None:
+    result = residual_magnitude_summary(np.asarray([-4.0, -1.0, 0.0, 2.0, 8.0], dtype=np.float32))
+
+    assert result["mean_abs"] == pytest.approx(3.0)
+    assert result["median_abs"] == pytest.approx(2.0)
+    assert result["q90_abs"] == pytest.approx(6.4)
+    assert result["q99_abs"] == pytest.approx(7.84)
+
+
+def test_gradient_summary_norms_and_cosines_match_orthogonal_fixture() -> None:
+    result = gradient_summary({"a": [torch.tensor([3.0, 4.0])], "b": [torch.tensor([4.0, -3.0])], "zero": [torch.zeros(2)]})
+
+    assert result["norms"]["a"] == pytest.approx(5.0)
+    assert result["norms"]["b"] == pytest.approx(5.0)
+    assert result["cosines"]["a__b"] == pytest.approx(0.0)
+    assert result["cosines"]["a__zero"] is None
+
+
+def test_zero_initialized_sign_and_normal_gradients_are_zero_but_value_is_nonzero() -> None:
+    student = torch.zeros((3, 1, 9, 9), dtype=torch.float32, requires_grad=True)
+    teacher = torch.full_like(student, CORRECTION_SCALE)
+    mask = torch.zeros((1, 1, 518, 518), dtype=torch.float32)
+    terms = p29_sign_guarded_loss(student, teacher, mask)
+
+    value = torch.autograd.grad(terms.value, student, retain_graph=True)[0]
+    sign = torch.autograd.grad(terms.sign, student, retain_graph=True)[0]
+    normal = torch.autograd.grad(terms.normal, student)[0]
+
+    assert torch.linalg.vector_norm(value).item() > 0.0
+    assert torch.linalg.vector_norm(sign).item() == 0.0
+    assert torch.linalg.vector_norm(normal).item() == 0.0
+
+
+def test_normal_guard_conflict_reports_teacher_positive_activity_inside_pure_normal_regions() -> None:
+    source_mask = torch.zeros((1, 1, 518, 518), dtype=torch.float32)
+    source_mask[:, :, 0, 0] = 1.0
+    teacher = torch.zeros((1, 9, 9), dtype=torch.float32)
+    teacher[:, 0, 0] = 4.0
+    teacher[:, 8, 8] = 2.0
+
+    result = normal_guard_conflict(source_mask, teacher)
+
+    assert result["pure_normal_region_count"] == 80
+    assert result["teacher_positive_fraction"] == pytest.approx(1.0 / 80.0)
+    assert result["positive_strength_mass"] == pytest.approx(1.0)
+
+
+def test_pixel_shifts_are_vectorized_by_normal_and_anomaly_strata() -> None:
+    native = np.asarray([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+    state = np.asarray([[0.2, 0.1], [0.5, 0.6]], dtype=np.float32)
+    mask = np.asarray([[0, 1], [0, 1]], dtype=np.uint8)
+
+    result = vectorized_pixel_shifts(native, state, mask)
+
+    assert result["normal"]["mean"] == pytest.approx(0.15)
+    assert result["anomaly"]["mean"] == pytest.approx(0.05)
+    assert result["normal"]["q99"] is not None
+
+
+def test_bounded_source_inventory_uses_fixed_positions_after_held_exclusion() -> None:
+    assert tuple(CLASS_NAMES) == (
+        "candle", "capsules", "cashew", "chewinggum", "fryum", "macaroni1",
+        "macaroni2", "pcb1", "pcb2", "pcb3", "pcb4", "pipe_fryum",
+    )
+    assert select_probe_source_classes("candle") == ("capsules", "fryum", "pcb1", "pcb4")
+    assert select_probe_source_classes("pcb4") == ("candle", "chewinggum", "macaroni2", "pcb3")
+
+
+def test_runtime_estimator_is_linear_and_fail_closed() -> None:
+    result = estimate_forensic_runtime(seconds_per_class=90.0, classes=12, fixed_seconds=60.0)
+
+    assert result["projected_seconds"] == pytest.approx(1140.0)
+    assert result["projected_minutes"] == pytest.approx(19.0)
+    assert result["decision"] == "PROCEED"
+    assert estimate_forensic_runtime(seconds_per_class=600.0, classes=12, fixed_seconds=0.0)["decision"] == "PERFORMANCE_STOP"
+
+
+def test_prediction_hash_is_exact(tmp_path: Path) -> None:
+    path = tmp_path / "frozen.pt"
+    path.write_bytes(b"immutable")
+    expected = hashlib.sha256(b"immutable").hexdigest()
+
+    assert prediction_hash(path, expected) == expected
+    with pytest.raises(RuntimeError, match="hash mismatch"):
+        prediction_hash(path, "0" * 64)
+
+
+def test_forensic_source_has_no_optimizer_clip_or_phase2b_forward_path() -> None:
+    source = inspect.getsource(validate_forensic_path_source)
+    validate_forensic_path_source()
+
+    assert "optimizer.step" not in source
+
