@@ -156,6 +156,10 @@ def _summary(values: Iterable[float] | np.ndarray) -> dict[str, Any]:
     return result
 
 
+def _summary_optional(values: Iterable[float | None]) -> dict[str, Any]:
+    return _summary([float(value) for value in values if value is not None])
+
+
 def _rank_values(values: np.ndarray) -> np.ndarray:
     values = np.asarray(values, dtype=np.float64).reshape(-1)
     order = np.argsort(values, kind="mergesort")
@@ -463,6 +467,8 @@ def _direction_rows(
     anomaly = masks > 0
     rows: list[dict[str, Any]] = []
     for index, path in enumerate(paths):
+        normal_delta = np.abs(score_delta[index][normal[index]])
+        anomaly_delta = np.abs(score_delta[index][anomaly[index]])
         rows.append({
             "method": method,
             "image_path": path,
@@ -472,8 +478,8 @@ def _direction_rows(
             "directional_cosine": float(cosine[index]),
             "sign_agreement": float(sign[index]),
             "score_delta_abs_mean_global": float(np.abs(score_delta[index]).mean()),
-            "score_delta_abs_mean_normal": float(np.abs(score_delta[index][normal[index]]).mean()),
-            "score_delta_abs_mean_anomaly": float(np.abs(score_delta[index][anomaly[index]]).mean()),
+            "score_delta_abs_mean_normal": float(normal_delta.mean()) if normal_delta.size else None,
+            "score_delta_abs_mean_anomaly": float(anomaly_delta.mean()) if anomaly_delta.size else None,
         })
     summary = {
         "sample_count": len(rows),
@@ -483,8 +489,8 @@ def _direction_rows(
         "directional_cosine": _summary(cosine),
         "sign_agreement": _summary(sign),
         "score_delta_abs_mean_global": _summary([row["score_delta_abs_mean_global"] for row in rows]),
-        "score_delta_abs_mean_normal": _summary([row["score_delta_abs_mean_normal"] for row in rows]),
-        "score_delta_abs_mean_anomaly": _summary([row["score_delta_abs_mean_anomaly"] for row in rows]),
+        "score_delta_abs_mean_normal": _summary_optional([row["score_delta_abs_mean_normal"] for row in rows]),
+        "score_delta_abs_mean_anomaly": _summary_optional([row["score_delta_abs_mean_anomaly"] for row in rows]),
         "student_norm_vs_directional_cosine": {
             "pearson": _correlation(student_norm, cosine),
             "spearman": _correlation(student_norm, cosine, rank=True),
