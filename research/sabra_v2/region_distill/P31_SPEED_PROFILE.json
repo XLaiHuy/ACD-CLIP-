@@ -1,0 +1,88 @@
+{
+  "artifact_type": "engineering_speed_profile",
+  "counts": {
+    "cache_rebuilds": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_scientific_held_predictions": 0,
+    "new_teacher_forwards": 0,
+    "new_training_runs": 0,
+    "optimizer_steps": 0
+  },
+  "input_cache_note": "resident synthetic arrays; no cache I/O or model path is part of P31",
+  "memory_gate": {
+    "duplicate_teacher_tensor": false,
+    "new_model_memory_bytes": 0,
+    "retained_graph": false
+  },
+  "microprofile_5_step": {
+    "array_bytes": 32856,
+    "array_shape": [
+      3,
+      1369,
+      2
+    ],
+    "backward_seconds": 0.0,
+    "control_copy_seconds_median": 5.920883268117905e-06,
+    "control_copy_seconds_total": 5.771825090050697e-05,
+    "delta_validation_seconds_median": 5.370937287807465e-06,
+    "delta_validation_seconds_total": 5.258852615952492e-05,
+    "finite": true,
+    "forward_seconds": 0.0,
+    "input_cache_seconds": 0.0,
+    "mean_step_seconds": 2.2446364164352416e-05,
+    "median_step_seconds": 1.1592172086238861e-05,
+    "new_model_forwards": 0,
+    "objective_only_median_seconds": 0.0,
+    "objective_seconds": 0.0,
+    "optimizer_seconds": 0.0,
+    "optimizer_steps": 0,
+    "p90_step_seconds": 4.266239702701569e-05,
+    "rss_max_bytes": 155475968,
+    "startup_seconds": 4.6100467443466187e-07,
+    "steps": 5,
+    "total_seconds": 0.00011223182082176208,
+    "warmup_steps": 0
+  },
+  "mode": "offline_identity_control",
+  "preregistration_sha256": "f42f0add36c0de2e303e6f25b0d48b63c33eda7d4c56d2a7ccb368ca76c865e3",
+  "protocol_id": "P31",
+  "schema_version": "P31_SPEED_PROFILE_V1",
+  "speed_gates": {
+    "inference_overhead_percent": 0,
+    "objective_overhead_percent": 0,
+    "preferred_end_to_end_overhead_met": true,
+    "training_overhead_percent": 0,
+    "unexplained_overhead_percent": 0
+  },
+  "status": "SPEED_PROFILE_COMPLETE",
+  "warmed_profile_40_step": {
+    "array_bytes": 32856,
+    "array_shape": [
+      3,
+      1369,
+      2
+    ],
+    "backward_seconds": 0.0,
+    "control_copy_seconds_median": 4.949048161506653e-06,
+    "control_copy_seconds_total": 0.0001994841732084751,
+    "delta_validation_seconds_median": 4.9995724111795425e-06,
+    "delta_validation_seconds_total": 0.00020339293405413628,
+    "finite": true,
+    "forward_seconds": 0.0,
+    "input_cache_seconds": 0.0,
+    "mean_step_seconds": 1.0438147000968456e-05,
+    "median_step_seconds": 1.0229647159576416e-05,
+    "new_model_forwards": 0,
+    "objective_only_median_seconds": 0.0,
+    "objective_seconds": 0.0,
+    "optimizer_seconds": 0.0,
+    "optimizer_steps": 0,
+    "p90_step_seconds": 1.0454049333930016e-05,
+    "rss_max_bytes": 155475968,
+    "startup_seconds": 3.198999911546707e-05,
+    "steps": 40,
+    "total_seconds": 0.00041752588003873825,
+    "warmup_steps": 5
+  }
+}

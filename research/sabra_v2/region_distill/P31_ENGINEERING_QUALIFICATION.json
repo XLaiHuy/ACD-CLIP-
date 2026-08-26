@@ -1,0 +1,143 @@
+{
+  "schema_version": "P31_ENGINEERING_QUALIFICATION_V1",
+  "artifact_type": "engineering_qualification",
+  "status": "PASS_TO_SCIENTIFIC_PROTOCOL",
+  "protocol_id": "P31",
+  "selected_hypothesis": "P31_NATIVE_ZERO_ADAPTER_CONTROL",
+  "primary_mechanism": "TEACHER_DIRECTION_NOT_CAUSAL",
+  "secondary_mechanism": "SPARSE_SELECTIVE_CORRECTION",
+  "authoritative_preregistration": "research/sabra_v2/region_distill/P31_PREREGISTRATION.md",
+  "preregistration_sha256": "f42f0add36c0de2e303e6f25b0d48b63c33eda7d4c56d2a7ccb368ca76c865e3",
+  "implementation": {
+    "module": "tools/sabra_v2/p31_native_control.py",
+    "test_module": "tests/test_p31_native_control.py",
+    "mode": "offline_identity_control",
+    "trainer_created": false,
+    "scientific_runner_created": false,
+    "checkpoint_created": false,
+    "model_or_adapter_instantiated": false,
+    "formula": {
+      "residual": "exact zero",
+      "output": "independent exact copy of native output",
+      "delta": "exact zero",
+      "objective_count": 0,
+      "new_hyperparameter_count": 0,
+      "normalization": "none",
+      "teacher_target": "none",
+      "teacher_at_inference": false
+    }
+  },
+  "entry": {
+    "branch": "research/p29r1-fast-objective-forensic-v1",
+    "parent_forensic_commit": "0800cf86d6896b164885768a0b6653a8f1953a76",
+    "worktree_clean_before_changes": true,
+    "forensic_status": "FORENSIC_COMPLETE"
+  },
+  "fast_fail_gates": {
+    "import_compile": "PASS",
+    "p31_unit_tests": {"status": "PASS", "passed": 8, "failed": 0},
+    "prior_contract_regressions": {"status": "PASS", "passed": 7, "failed": 0},
+    "production_reference_parity": {
+      "status": "PASS",
+      "cases": 15,
+      "max_abs_output_error": 0.0,
+      "max_abs_delta": 0.0,
+      "max_abs_gradient": 0.0,
+      "all_finite": true
+    },
+    "cached_batch_forward": "NOT_APPLICABLE_NO_MODEL_PATH",
+    "backward": "NOT_APPLICABLE_ZERO_OBJECTIVE",
+    "optimizer_step": "NOT_APPLICABLE_ZERO_OBJECTIVE",
+    "checkpoint_save_reload": "NOT_APPLICABLE_NO_CHECKPOINT",
+    "microprofile": "PASS",
+    "warmed_profile": "PASS"
+  },
+  "data_access_audit": {
+    "source_cache": "/workspace/p27r1_cache_v1",
+    "source_arrays_audited": 24,
+    "source_cache_audit_streaming": true,
+    "source_labels_read": 0,
+    "source_masks_read": 0,
+    "held_labels_read": 0,
+    "held_masks_read": 0,
+    "new_scientific_held_predictions": 0,
+    "cache_rebuilds": 0,
+    "source_arrays_all_finite": true
+  },
+  "model_and_gradient_audit": {
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0,
+    "adapter_forwards": 0,
+    "optimizer_steps": 0,
+    "student_parameter_delta": 0.0,
+    "frozen_parameter_delta": 0.0,
+    "student_gradient_l2": 0.0,
+    "student_gradient_max_abs": 0.0,
+    "retained_graph": false,
+    "duplicate_teacher_tensor": false
+  },
+  "tests": {
+    "focused_total_passed": 15,
+    "focused_total_failed": 0,
+    "preexisting_warnings": 1,
+    "warning": "pkg_resources deprecation only"
+  },
+  "speed": {
+    "artifact": "research/sabra_v2/region_distill/P31_SPEED_PROFILE.json",
+    "profile_input": "resident synthetic FP32 [3,1369,2] arrays",
+    "microprofile_5_step": {
+      "steps": 5,
+      "warmup_steps": 0,
+      "median_step_seconds": 1.1592172086238861e-05,
+      "p90_step_seconds": 4.266239702701569e-05,
+      "mean_step_seconds": 2.2446364164352416e-05,
+      "control_copy_seconds_median": 5.920883268117905e-06,
+      "delta_validation_seconds_median": 5.370937287807465e-06,
+      "rss_max_bytes": 155475968
+    },
+    "warmed_profile_40_step": {
+      "steps": 40,
+      "warmup_steps": 5,
+      "median_step_seconds": 1.0229647159576416e-05,
+      "p90_step_seconds": 1.0454049333930016e-05,
+      "mean_step_seconds": 1.0438147000968456e-05,
+      "control_copy_seconds_median": 4.949048161506653e-06,
+      "delta_validation_seconds_median": 4.9995724111795425e-06,
+      "rss_max_bytes": 155475968
+    },
+    "input_cache_seconds": 0.0,
+    "forward_seconds": 0.0,
+    "objective_seconds": 0.0,
+    "backward_seconds": 0.0,
+    "optimizer_seconds": 0.0,
+    "training_overhead_percent": 0,
+    "inference_overhead_percent": 0,
+    "objective_overhead_percent": 0,
+    "new_model_memory_bytes": 0
+  },
+  "scientific_safety": {
+    "new_training_runs": 0,
+    "new_scientific_stage2_attempts": 0,
+    "new_stage3_attempts": 0,
+    "full_runs": 0,
+    "full_12_class_runs": 0,
+    "held_result_tuning_iterations": 0,
+    "scientific_uuid_created": false,
+    "execution_marker_created": false,
+    "scientific_deviations": 0,
+    "future_stage2_authorized_now": false
+  },
+  "incidents": [
+    {
+      "type": "engineering_test_assertion",
+      "resolution": "used pytest.approx for a floating-point metric delta; scientific semantics unchanged"
+    },
+    {
+      "type": "source_audit_memory",
+      "resolution": "streamed one source array at a time; scientific semantics unchanged"
+    }
+  ],
+  "final_gate": "PASS_TO_SCIENTIFIC_PROTOCOL",
+  "no_new_scientific_run_started": true
+}

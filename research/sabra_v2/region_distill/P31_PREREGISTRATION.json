@@ -1,0 +1,139 @@
+{
+  "schema_version": "P31_PREREGISTRATION_V1",
+  "artifact_type": "authoritative_preregistration",
+  "status": "FROZEN_AUTHORITATIVE_PREREGISTRATION",
+  "protocol_id": "P31",
+  "hypothesis": "P31_NATIVE_ZERO_ADAPTER_CONTROL",
+  "execution_authorized": false,
+  "scientific_uuid_created": false,
+  "authoritative_markdown": "research/sabra_v2/region_distill/P31_PREREGISTRATION.md",
+  "authoritative_markdown_sha256": "f42f0add36c0de2e303e6f25b0d48b63c33eda7d4c56d2a7ccb368ca76c865e3",
+  "hash_scope": "SHA-256 of the authoritative Markdown preregistration; no scientific semantics may change after this hash.",
+  "inherited_forensic": {
+    "status": "FORENSIC_COMPLETE",
+    "primary_mechanism": "TEACHER_DIRECTION_NOT_CAUSAL",
+    "secondary_mechanism": "SPARSE_SELECTIVE_CORRECTION",
+    "forensic_json": "research/sabra_v2/region_distill/P30R1_FORENSIC/P30R1_CAUSAL_FORENSIC.json",
+    "forensic_commit": "0800cf86d6896b164885768a0b6653a8f1953a76"
+  },
+  "causal_claim": "On the locked SABRA one-class comparison, the frozen native detector is non-inferior to the P30R1 teacher-residual intervention, so raw teacher residual imitation is not necessary as a default component.",
+  "scope": "Locked native versus existing P30R1 comparison only; not a universal claim over classes or datasets.",
+  "formulation": {
+    "conceptual_residual": "R_P31(x) = 0",
+    "control_output": "C_P31(N) = copy(N)",
+    "diagnostic_delta": "Delta_P31(N) = C_P31(N) - N = 0",
+    "objective": "undefined; zero objectives",
+    "objective_count": 0,
+    "learnable_parameter_count": 0,
+    "new_hyperparameter_count": 0,
+    "normalization": "none",
+    "detach_behavior": "none; no computational graph",
+    "teacher_target": "none",
+    "teacher_at_inference": false,
+    "category_specific_parameters": false,
+    "native_logits_shape": [3, "B", 1369, 2],
+    "native_anomaly_map_shape": ["B", 518, 518],
+    "finite_input_required": true,
+    "dtype_behavior": "preserve input dtype",
+    "non_inferiority_margin": 0.0,
+    "native_reconstruction_max_abs_tolerance": 2e-5
+  },
+  "frozen_model_and_architecture": {
+    "native_model": "unchanged frozen CLIP/P26/Phase2B deployment path",
+    "adapter": "none",
+    "deployment_operator": "unchanged",
+    "checkpoint": "none",
+    "optimizer": "none",
+    "schedule": "none",
+    "precision": "FP32 for stored arrays; no model computation",
+    "seed_policy": "inherited seed 0 only if a host framework requires it; no RNG operation or sampling"
+  },
+  "data_policy": {
+    "source_cache": "/workspace/p27r1_cache_v1",
+    "source_cache_use": "read-only finite-value and shape audit only",
+    "allowed": [
+      "P30R1 forensic report and JSON",
+      "immutable native and P30R1 outputs and provenance metadata",
+      "source-only Tier-A/Tier-B arrays",
+      "held labels after preregistration lock for final predeclared pAP/pAUROC calculation only"
+    ],
+    "forbidden": [
+      "held labels or masks for method selection or tuning",
+      "new scientific held predictions in this phase",
+      "new classes or 12-class expansion",
+      "cache rebuild",
+      "source-mask read",
+      "teacher reconstruction or teacher forward",
+      "CLIP, Phase2B, adapter, native-model, or deployment-model forward in this phase",
+      "changed metric, postprocessing, threshold, coefficient, loss, or sample subset"
+    ]
+  },
+  "execution_counts": {
+    "new_training_runs": 0,
+    "optimizer_steps": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0,
+    "adapter_forwards": 0,
+    "cache_rebuilds": 0,
+    "stage2_runs": 0,
+    "stage3_runs": 0,
+    "full_12_class_runs": 0,
+    "scientific_markers": 0
+  },
+  "controls": {
+    "p31": "native zero-adapter output",
+    "comparator": "existing frozen P30R1 output",
+    "native_identity_delta": "exact zero",
+    "future_scientific_primary_metric": "pAP",
+    "future_scientific_secondary_metric": "pAUROC",
+    "support_rule": "native pAP >= P30R1 pAP and native pAUROC >= P30R1 pAUROC",
+    "falsification_rule": "either native-minus-P30R1 locked metric difference is negative"
+  },
+  "preflight": {
+    "artifact": "research/sabra_v2/region_distill/P31_PREFLIGHT_FALSIFICATION.json",
+    "synthetic_suite": "P31_NATIVE_ZERO_ADAPTER_SYNTHETIC_V1",
+    "case_count": 15,
+    "all_finite": true,
+    "all_output_deltas_exact_zero": true,
+    "all_gradients_exact_zero": true,
+    "all_batch_dominance_flags_false": true,
+    "source_only_audit_finite": true,
+    "held_result_used_for_formulation": false,
+    "held_result_used_for_tuning": false
+  },
+  "engineering_gates": {
+    "import_compile": true,
+    "objective_unit_tests": true,
+    "production_reference_parity": true,
+    "gradient_tests": true,
+    "cached_batch_smoke": "offline identity operation only",
+    "checkpoint_save_reload": "not applicable; no checkpoint",
+    "microprofile": "required, offline control operation",
+    "warmed_profile": "required, offline control operation",
+    "inference_overhead_percent": 0,
+    "training_overhead_percent": 0
+  },
+  "future_stage2": {
+    "mode": "evaluation-only",
+    "new_model_forwards": 0,
+    "primary": "Delta_pAP = pAP(native) - pAP(P30R1)",
+    "secondary": "Delta_pAUROC = pAUROC(native) - pAUROC(P30R1)",
+    "non_inferiority_margin": 0.0,
+    "success": "Delta_pAP >= 0 and Delta_pAUROC >= 0",
+    "stop_if_supported": "record native-control support and stop teacher-imitation continuation",
+    "stop_if_falsified": "record control falsification and require a new research decision",
+    "automatic_followup": false
+  },
+  "no_rerun_rule": "One locked comparison; repeat only for documented integrity/reproducibility failure with identical frozen inputs and code. Changed science requires a new preregistration.",
+  "scientific_deviation_state": "none",
+  "implementation_allowed_after_hash": "offline pure-array identity/metric contract only",
+  "not_created": [
+    "scientific UUID",
+    "execution marker",
+    "final experiment result",
+    "trainer",
+    "scientific runner",
+    "checkpoint"
+  ]
+}
