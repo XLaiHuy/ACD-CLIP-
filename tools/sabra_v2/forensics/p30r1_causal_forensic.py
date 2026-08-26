@@ -167,8 +167,8 @@ def _rank_values(values: np.ndarray) -> np.ndarray:
     starts = np.r_[0, np.flatnonzero(sorted_values[1:] != sorted_values[:-1]) + 1]
     ends = np.r_[starts[1:], values.size]
     ranks = np.empty(values.size, dtype=np.float64)
-    for start, end in zip(starts, ends):
-        ranks[order[start:end]] = (float(start) + float(end - 1)) / 2.0 + 1.0
+    group_ranks = (starts.astype(np.float64) + ends.astype(np.float64) - 1.0) / 2.0 + 1.0
+    ranks[order] = np.repeat(group_ranks, ends - starts)
     return ranks
 
 
