@@ -1,0 +1,94 @@
+{
+  "category_correlations_exploratory": {
+    "OP_minus_N_pAP_headroom": {
+      "S_minus_N_pAP": {
+        "pearson": 0.37166313668623585,
+        "spearman": 0.4125874125874127
+      },
+      "S_minus_N_pAUROC": {
+        "pearson": 0.49545097379105923,
+        "spearman": 0.41958041958041964
+      }
+    },
+    "OR_minus_OP_pAP_regionization_gap": {
+      "S_minus_N_pAP": {
+        "pearson": 0.8033273246293087,
+        "spearman": 0.8251748251748254
+      },
+      "S_minus_N_pAUROC": {
+        "pearson": 0.505858581842026,
+        "spearman": 0.32867132867132864
+      }
+    },
+    "S_minus_OR_pAP_student_approximation_gap": {
+      "S_minus_N_pAP": {
+        "pearson": 0.051505630274678395,
+        "spearman": -0.06293706293706294
+      },
+      "S_minus_N_pAUROC": {
+        "pearson": -0.258784751078866,
+        "spearman": -0.31468531468531474
+      }
+    },
+    "abnormal_image_count": {
+      "S_minus_N_pAP": {
+        "pearson": null,
+        "spearman": null
+      },
+      "S_minus_N_pAUROC": {
+        "pearson": null,
+        "spearman": null
+      }
+    },
+    "anomaly_pixel_prevalence": {
+      "S_minus_N_pAP": {
+        "pearson": 0.7851519269514909,
+        "spearman": 0.7412587412587414
+      },
+      "S_minus_N_pAUROC": {
+        "pearson": 0.5001040617034551,
+        "spearman": 0.7202797202797203
+      }
+    },
+    "median_anomaly_area_fraction_per_abnormal_image": {
+      "S_minus_N_pAP": {
+        "pearson": -0.11661284496303777,
+        "spearman": 0.22377622377622378
+      },
+      "S_minus_N_pAUROC": {
+        "pearson": 0.359355397475516,
+        "spearman": 0.5314685314685316
+      }
+    },
+    "native_pAP": {
+      "S_minus_N_pAP": {
+        "pearson": 0.38208990950227584,
+        "spearman": 0.3426573426573427
+      },
+      "S_minus_N_pAUROC": {
+        "pearson": 0.6988152740580601,
+        "spearman": 0.7342657342657343
+      }
+    },
+    "native_pAUROC": {
+      "S_minus_N_pAP": {
+        "pearson": 0.10654772375910587,
+        "spearman": 0.1188811188811189
+      },
+      "S_minus_N_pAUROC": {
+        "pearson": 0.33443352128172443,
+        "spearman": 0.6083916083916086
+      }
+    }
+  },
+  "decision_basis": "complete N -> OP -> OR -> S decomposition, macro effects, class breadth, strict pair-order changes, residual tails, and alignment",
+  "hypothesis_classifications": {
+    "H1_teacher_objective_conflict": "NOT_SUPPORTED",
+    "H2_regionization_loss": "PLAUSIBLE",
+    "H3_student_transfer_failure": "SUPPORTED",
+    "H4_normal_score_inflation": "SUPPORTED",
+    "H5_heterogeneous_category_actionability": "SUPPORTED"
+  },
+  "primary_mechanism": "STUDENT_TRANSFER_FAILURE",
+  "secondary_mechanism": "HETEROGENEOUS_ACTIONABILITY"
+}

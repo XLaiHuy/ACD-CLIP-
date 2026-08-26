@@ -1,0 +1,576 @@
+{
+  "alignment_macro": {
+    "mae": 0.9880948008402778,
+    "pearson": 0.7492951999031571,
+    "robust_relative_magnitude_ratio": 435012175391.82745,
+    "sign_agreement": 0.5228332296849088,
+    "spearman": 0.6949611922372113
+  },
+  "audit": {
+    "cache_provenance_valid": true,
+    "clip_unchanged": true,
+    "diagnostic_execution_count": 1,
+    "duplicate_scientific_folds": 0,
+    "execution_base_unchanged_since_marker": true,
+    "held_gt_reads_before_p27_scoring": 0,
+    "held_gt_reads_before_scoring": 0,
+    "held_mask_reads_before_p27_scoring": 0,
+    "held_mask_reads_before_scoring": 0,
+    "immutable_prediction_count": 12,
+    "intended_fold_count": 12,
+    "medical_reads": 0,
+    "mvtec_reads": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "no_scientific_rerun": true,
+    "only_region_residual_adapter_evaluated": true,
+    "optimizer_steps": 0,
+    "p26_checkpoint_unchanged": true,
+    "p27_attempt_uuid": "884f7327-1135-491b-8c12-dc188455be2c",
+    "p27_protocol_unchanged": true,
+    "p27_terminal_sha": "cdf06234bee861bbe81a7f07e382530f9a66c207",
+    "p28_attempt_uuid": "1c41fbc7-1d70-42a4-bbda-ca512c82f73f",
+    "p28_execution_base_sha": "3ed8e9f5624fa858f2baf26f29970ec22d2e1eac",
+    "p28_original_failed_attempt_uuid": "47fa52ee-a5cd-45ce-aa11-47737f3462f7",
+    "p28_posthoc_held_mask_file_reads": 1200,
+    "p28_prereg_sha": "1e1e4fb4ae96342d04ce4206bbdc4091103b28e7",
+    "p28_terminal_sha": "44be25f74ab8a590086e33390858d423954852fa",
+    "p28r1_attempt_uuid": "1c41fbc7-1d70-42a4-bbda-ca512c82f73f",
+    "p28r1_execution_base_sha": "3ed8e9f5624fa858f2baf26f29970ec22d2e1eac",
+    "p28r1_prereg_sha": "1e1e4fb4ae96342d04ce4206bbdc4091103b28e7",
+    "phase2b_config_unchanged": true,
+    "posthoc_held_mask_file_reads": 1200,
+    "result_driven_reruns": 0,
+    "root_cause": "STUDENT_TRANSFER_FAILURE",
+    "schema_version": "P28R1_POST_RUN_AUDIT_V1",
+    "status": "PASS",
+    "terminal_status": "P28R1_DIAGNOSTIC_COMPLETE",
+    "training_steps": 0,
+    "worktree_clean_at_execution_base": true
+  },
+  "four_state_macro": {
+    "N": {
+      "pAP": 0.4525216034016654,
+      "pAUROC": 0.9345650495598931
+    },
+    "OP": {
+      "pAP": 0.5162420888262426,
+      "pAUROC": 0.9907472530334084
+    },
+    "OR": {
+      "pAP": 0.5255948881429562,
+      "pAUROC": 0.9855550133828542
+    },
+    "S": {
+      "pAP": 0.4613875663344724,
+      "pAUROC": 0.9203411938735945
+    }
+  },
+  "full_class_table": [
+    {
+      "P27_pAP": 0.5142973530720251,
+      "P27_pAUROC": 0.9711054389841652,
+      "class": "candle",
+      "delta_pAP": 0.00015704814065076178,
+      "delta_pAUROC": -0.0095617045296027,
+      "native_pAP": 0.5141403049313743,
+      "native_pAUROC": 0.9806671435137679
+    },
+    {
+      "P27_pAP": 0.6892354886034661,
+      "P27_pAUROC": 0.9795885460971517,
+      "class": "capsules",
+      "delta_pAP": -0.008640883350895301,
+      "delta_pAUROC": -0.0053896533251485135,
+      "native_pAP": 0.6978763719543614,
+      "native_pAUROC": 0.9849781994223002
+    },
+    {
+      "P27_pAP": 0.8419956214356134,
+      "P27_pAUROC": 0.9890906368649552,
+      "class": "cashew",
+      "delta_pAP": 0.07648288409745618,
+      "delta_pAUROC": -0.0039109743453930035,
+      "native_pAP": 0.7655127373381572,
+      "native_pAUROC": 0.9930016112103482
+    },
+    {
+      "P27_pAP": 0.8716845861665067,
+      "P27_pAUROC": 0.988692143977631,
+      "class": "chewinggum",
+      "delta_pAP": 0.001541839968297598,
+      "delta_pAUROC": -0.0032489702715990942,
+      "native_pAP": 0.8701427461982091,
+      "native_pAUROC": 0.9919411142492301
+    },
+    {
+      "P27_pAP": 0.44369145458427983,
+      "P27_pAUROC": 0.9457039048556077,
+      "class": "fryum",
+      "delta_pAP": 0.05647038478106686,
+      "delta_pAUROC": -0.009364113022593656,
+      "native_pAP": 0.38722106980321297,
+      "native_pAUROC": 0.9550680178782014
+    },
+    {
+      "P27_pAP": 0.16725592372459858,
+      "P27_pAUROC": 0.8955779194231324,
+      "class": "macaroni1",
+      "delta_pAP": -0.04416896324530384,
+      "delta_pAUROC": -0.05394516311264508,
+      "native_pAP": 0.21142488696990241,
+      "native_pAUROC": 0.9495230825357774
+    },
+    {
+      "P27_pAP": 0.07030681757095722,
+      "P27_pAUROC": 0.8384933142714844,
+      "class": "macaroni2",
+      "delta_pAP": -0.019145976080096452,
+      "delta_pAUROC": -0.05751246006870214,
+      "native_pAP": 0.08945279365105367,
+      "native_pAUROC": 0.8960057743401866
+    },
+    {
+      "P27_pAP": 0.21994873769505038,
+      "P27_pAUROC": 0.7745854965982681,
+      "class": "pcb1",
+      "delta_pAP": 0.016016738321852242,
+      "delta_pAUROC": -0.0143101782755638,
+      "native_pAP": 0.20393199937319814,
+      "native_pAUROC": 0.7888956748738319
+    },
+    {
+      "P27_pAP": 0.22017668817218522,
+      "P27_pAUROC": 0.8083002013058099,
+      "class": "pcb2",
+      "delta_pAP": 0.005094984720286161,
+      "delta_pAUROC": -0.029086216449285662,
+      "native_pAP": 0.21508170345189906,
+      "native_pAUROC": 0.8373864177550956
+    },
+    {
+      "P27_pAP": 0.4855878738163881,
+      "P27_pAUROC": 0.896531153321834,
+      "class": "pcb3",
+      "delta_pAP": 0.0007519913636142017,
+      "delta_pAUROC": -0.0034511553684368756,
+      "native_pAP": 0.4848358824527739,
+      "native_pAUROC": 0.8999823086902708
+    },
+    {
+      "P27_pAP": 0.43825395844786547,
+      "P27_pAUROC": 0.9798125270211259,
+      "class": "pcb4",
+      "delta_pAP": -0.014117900255021576,
+      "delta_pAUROC": -0.0022078696666896214,
+      "native_pAP": 0.45237185870288704,
+      "native_pAUROC": 0.9820203966878155
+    },
+    {
+      "P27_pAP": 0.5742162927247331,
+      "P27_pAUROC": 0.9766130437619677,
+      "class": "pipe_fryum",
+      "delta_pAP": 0.035949406731777156,
+      "delta_pAUROC": 0.02130219020007751,
+      "native_pAP": 0.5382668859929559,
+      "native_pAUROC": 0.9553108535618902
+    }
+  ],
+  "hypotheses": {
+    "H1_teacher_objective_conflict": {
+      "classification": "NOT_SUPPORTED",
+      "evidence": {
+        "OP_minus_N_macro_pAP": 0.06372048542457714,
+        "OP_minus_N_macro_pAUROC": 0.056182203473515324,
+        "OP_minus_N_pAUROC_breadth": {
+          "best_class": [
+            "pcb1",
+            0.19253965740752377
+          ],
+          "median_class_delta": 0.033864065316990544,
+          "negative_count": 0,
+          "non_regressing_count": 12,
+          "positive_count": 12,
+          "top1_positive_gain_concentration": 0.285588148179176,
+          "top2_positive_gain_concentration": 0.4987602389994772,
+          "worst_class": [
+            "cashew",
+            0.0038118100412352085
+          ]
+        }
+      }
+    },
+    "H2_regionization_loss": {
+      "classification": "PLAUSIBLE",
+      "evidence": {
+        "OR_minus_OP_pAUROC_breadth": {
+          "best_class": [
+            "fryum",
+            0.001700822830575377
+          ],
+          "median_class_delta": -0.0013703974722042989,
+          "negative_count": 8,
+          "non_regressing_count": 4,
+          "positive_count": 4,
+          "top1_positive_gain_concentration": 0.5354299122089062,
+          "top2_positive_gain_concentration": 0.920568196876171,
+          "worst_class": [
+            "macaroni2",
+            -0.02239259216745082
+          ]
+        },
+        "OR_pair_net": 6346091167278
+      }
+    },
+    "H3_student_transfer_failure": {
+      "classification": "SUPPORTED",
+      "evidence": {
+        "OR_minus_N_macro_pAP": 0.07307328474129077,
+        "S_minus_OR_macro_pAP": -0.06420732180848376,
+        "S_minus_OR_macro_pAUROC": -0.06521381950925975,
+        "S_minus_OR_pAUROC_breadth": {
+          "best_class": [
+            "chewinggum",
+            -0.007477947948548391
+          ],
+          "median_class_delta": -0.03384687983276374,
+          "negative_count": 12,
+          "non_regressing_count": 0,
+          "positive_count": 0,
+          "top1_positive_gain_concentration": null,
+          "top2_positive_gain_concentration": null,
+          "worst_class": [
+            "pcb1",
+            -0.19875543682785712
+          ]
+        }
+      }
+    },
+    "H4_normal_score_inflation": {
+      "classification": "SUPPORTED",
+      "evidence": {
+        "S_normal_q99_effective_margin_mean": 3.5766170040766365,
+        "S_pair_ordering": {
+          "base_strict": 133332365462246,
+          "gained": 1361725068537,
+          "lost": 1984224948617,
+          "net": -622499880080,
+          "state_strict": 132709865582166
+        }
+      }
+    },
+    "H5_heterogeneous_category_actionability": {
+      "classification": "SUPPORTED",
+      "evidence": {
+        "S_minus_N_pAP_breadth": {
+          "best_class": [
+            "cashew",
+            0.07648288409745618
+          ],
+          "median_class_delta": 0.0011469156659558999,
+          "negative_count": 4,
+          "non_regressing_count": 8,
+          "positive_count": 8,
+          "top1_positive_gain_concentration": 0.3973853613625963,
+          "top2_positive_gain_concentration": 0.6907909321294482,
+          "worst_class": [
+            "macaroni1",
+            -0.04416896324530384
+          ]
+        }
+      }
+    }
+  },
+  "macro_transition_deltas": {
+    "OP-N": {
+      "pAP": 0.06372048542457714,
+      "pAUROC": 0.056182203473515324
+    },
+    "OR-N": {
+      "pAP": 0.07307328474129077,
+      "pAUROC": 0.05098996382296117
+    },
+    "OR-OP": {
+      "pAP": 0.009352799316713623,
+      "pAUROC": -0.0051922396505541535
+    },
+    "S-N": {
+      "pAP": 0.008865962932807003,
+      "pAUROC": -0.014223855686298581
+    },
+    "S-OR": {
+      "pAP": -0.06420732180848376,
+      "pAUROC": -0.06521381950925975
+    }
+  },
+  "p26_remains_deployable": true,
+  "p27_breadth": {
+    "best_pAP_delta": [
+      "cashew",
+      0.07648288409745618
+    ],
+    "counts": {
+      "improving": 8,
+      "non_regressing": 8,
+      "regressing": 4
+    },
+    "improving": [
+      "candle",
+      "cashew",
+      "chewinggum",
+      "fryum",
+      "pcb1",
+      "pcb2",
+      "pcb3",
+      "pipe_fryum"
+    ],
+    "median_pAP_delta": 0.0011469156659558999,
+    "non_regressing": [
+      "candle",
+      "cashew",
+      "chewinggum",
+      "fryum",
+      "pcb1",
+      "pcb2",
+      "pcb3",
+      "pipe_fryum"
+    ],
+    "regressing": [
+      "capsules",
+      "macaroni1",
+      "macaroni2",
+      "pcb4"
+    ],
+    "worst_pAP_delta": [
+      "macaroni1",
+      -0.04416896324530384
+    ]
+  },
+  "p27_scientific_execution_base_sha": "de41b380449dcbc0b124f71f4f8fbb789e1a96f0",
+  "p27_terminal_sha": "cdf06234bee861bbe81a7f07e382530f9a66c207",
+  "p28_original_failed_attempt_uuid": "47fa52ee-a5cd-45ce-aa11-47737f3462f7",
+  "p28_terminal_sha": "44be25f74ab8a590086e33390858d423954852fa",
+  "p28r1_attempt_uuid": "1c41fbc7-1d70-42a4-bbda-ca512c82f73f",
+  "p28r1_execution_base_sha": "3ed8e9f5624fa858f2baf26f29970ec22d2e1eac",
+  "p28r1_prereg_sha": "1e1e4fb4ae96342d04ce4206bbdc4091103b28e7",
+  "pAUROC_breadth": {
+    "best": [
+      "pipe_fryum",
+      0.02130219020007751
+    ],
+    "improving": 1,
+    "median_delta": -0.007376883173871085,
+    "non_regressing": 1,
+    "regressing": 11,
+    "worst": [
+      "macaroni2",
+      -0.05751246006870214
+    ]
+  },
+  "ranking_summary": {
+    "OP": {
+      "anomaly_shift_mean_across_classes": 0.19019111866752306,
+      "anomaly_shift_median_across_classes": 0.05897805059854969,
+      "normal_shift_mean_across_classes": 0.0006840224547583299,
+      "normal_shift_q99_across_classes": 0.0003325794713542025,
+      "pair_ordering_change": {
+        "base_strict": 133332365462246,
+        "gained": 6569144970633,
+        "lost": 10196991709,
+        "net": 6558947978924,
+        "state_strict": 139891313441170
+      }
+    },
+    "OR": {
+      "anomaly_shift_mean_across_classes": 0.1656915908679366,
+      "anomaly_shift_median_across_classes": 0.04429544882805203,
+      "normal_shift_mean_across_classes": 0.00046940539990221925,
+      "normal_shift_q99_across_classes": 0.00012077080445228189,
+      "pair_ordering_change": {
+        "base_strict": 133332365462246,
+        "gained": 6369708436440,
+        "lost": 23617269162,
+        "net": 6346091167278,
+        "state_strict": 139678456629524
+      }
+    },
+    "S": {
+      "anomaly_shift_mean_across_classes": 0.1850043044735988,
+      "anomaly_shift_median_across_classes": 0.05540046156265973,
+      "normal_shift_mean_across_classes": 0.0008240922670665896,
+      "normal_shift_q99_across_classes": 0.0007015705637864011,
+      "pair_ordering_change": {
+        "base_strict": 133332365462246,
+        "gained": 1361725068537,
+        "lost": 1984224948617,
+        "net": -622499880080,
+        "state_strict": 132709865582166
+      }
+    }
+  },
+  "recommendation_for_p29": "ROBUST_STUDENT_TRANSFER",
+  "root_cause": {
+    "category_correlations_exploratory": {
+      "OP_minus_N_pAP_headroom": {
+        "S_minus_N_pAP": {
+          "pearson": 0.37166313668623585,
+          "spearman": 0.4125874125874127
+        },
+        "S_minus_N_pAUROC": {
+          "pearson": 0.49545097379105923,
+          "spearman": 0.41958041958041964
+        }
+      },
+      "OR_minus_OP_pAP_regionization_gap": {
+        "S_minus_N_pAP": {
+          "pearson": 0.8033273246293087,
+          "spearman": 0.8251748251748254
+        },
+        "S_minus_N_pAUROC": {
+          "pearson": 0.505858581842026,
+          "spearman": 0.32867132867132864
+        }
+      },
+      "S_minus_OR_pAP_student_approximation_gap": {
+        "S_minus_N_pAP": {
+          "pearson": 0.051505630274678395,
+          "spearman": -0.06293706293706294
+        },
+        "S_minus_N_pAUROC": {
+          "pearson": -0.258784751078866,
+          "spearman": -0.31468531468531474
+        }
+      },
+      "abnormal_image_count": {
+        "S_minus_N_pAP": {
+          "pearson": null,
+          "spearman": null
+        },
+        "S_minus_N_pAUROC": {
+          "pearson": null,
+          "spearman": null
+        }
+      },
+      "anomaly_pixel_prevalence": {
+        "S_minus_N_pAP": {
+          "pearson": 0.7851519269514909,
+          "spearman": 0.7412587412587414
+        },
+        "S_minus_N_pAUROC": {
+          "pearson": 0.5001040617034551,
+          "spearman": 0.7202797202797203
+        }
+      },
+      "median_anomaly_area_fraction_per_abnormal_image": {
+        "S_minus_N_pAP": {
+          "pearson": -0.11661284496303777,
+          "spearman": 0.22377622377622378
+        },
+        "S_minus_N_pAUROC": {
+          "pearson": 0.359355397475516,
+          "spearman": 0.5314685314685316
+        }
+      },
+      "native_pAP": {
+        "S_minus_N_pAP": {
+          "pearson": 0.38208990950227584,
+          "spearman": 0.3426573426573427
+        },
+        "S_minus_N_pAUROC": {
+          "pearson": 0.6988152740580601,
+          "spearman": 0.7342657342657343
+        }
+      },
+      "native_pAUROC": {
+        "S_minus_N_pAP": {
+          "pearson": 0.10654772375910587,
+          "spearman": 0.1188811188811189
+        },
+        "S_minus_N_pAUROC": {
+          "pearson": 0.33443352128172443,
+          "spearman": 0.6083916083916086
+        }
+      }
+    },
+    "decision_basis": "complete N -> OP -> OR -> S decomposition, macro effects, class breadth, strict pair-order changes, residual tails, and alignment",
+    "hypothesis_classifications": {
+      "H1_teacher_objective_conflict": "NOT_SUPPORTED",
+      "H2_regionization_loss": "PLAUSIBLE",
+      "H3_student_transfer_failure": "SUPPORTED",
+      "H4_normal_score_inflation": "SUPPORTED",
+      "H5_heterogeneous_category_actionability": "SUPPORTED"
+    },
+    "primary_mechanism": "STUDENT_TRANSFER_FAILURE",
+    "secondary_mechanism": "HETEROGENEOUS_ACTIONABILITY"
+  },
+  "runtime": {
+    "batch_size": 1,
+    "cache_mode": "Tier-A memmap, one class at a time",
+    "class_timings": {
+      "candle": {
+        "sample_count": 200,
+        "seconds": 837.2613584976643,
+        "tier_a_manifest_sha256": "d2cb586ed963b21242b3c483c2a71ce65a69501dbf04f5954ebb8a3d1fd56698"
+      },
+      "capsules": {
+        "sample_count": 160,
+        "seconds": 654.9027135530487,
+        "tier_a_manifest_sha256": "7cbdbfe968bcd4550fbd140dd869a989bb0d9713db7a55cc00210ff7cf136d4a"
+      },
+      "cashew": {
+        "sample_count": 150,
+        "seconds": 617.7557937647216,
+        "tier_a_manifest_sha256": "6ade04a58f446014f7451c616daba0b5a9f2ea9be8e657c3e298cb52f9f81d7e"
+      },
+      "chewinggum": {
+        "sample_count": 150,
+        "seconds": 616.2985487380065,
+        "tier_a_manifest_sha256": "315e32db2893dbfae80483bae4c31cb0262a730eebf3e530ffb32be3a5859d8e"
+      },
+      "fryum": {
+        "sample_count": 150,
+        "seconds": 626.712548057083,
+        "tier_a_manifest_sha256": "d8ab28fcf9c9374c97b04823dbf518c7b61d8102c97e7527d4a17c0ca17ec2d7"
+      },
+      "macaroni1": {
+        "sample_count": 200,
+        "seconds": 814.9965609628707,
+        "tier_a_manifest_sha256": "483f293713719e720415c2c5aa9bfeb47410b82739c4904c8d20e799eefe7e5b"
+      },
+      "macaroni2": {
+        "sample_count": 200,
+        "seconds": 815.8493248228915,
+        "tier_a_manifest_sha256": "7eb1a1ae9f8d645fee6669ff0f13328af129020322f74ced43b0dbc365f024e6"
+      },
+      "pcb1": {
+        "sample_count": 200,
+        "seconds": 816.3854860230349,
+        "tier_a_manifest_sha256": "920a535f088696a1ad5418c569524a2dcd10bb64b04cf56fae1a2eeb4d3d821e"
+      },
+      "pcb2": {
+        "sample_count": 200,
+        "seconds": 814.7600160990842,
+        "tier_a_manifest_sha256": "da27cc0221ed501860bc3f77f66aa7714d2a736368bbb76679d31d8d09c9df88"
+      },
+      "pcb3": {
+        "sample_count": 201,
+        "seconds": 824.456709688995,
+        "tier_a_manifest_sha256": "bb7c6a31d119848228086cb9eaa39ee278ed559c5cbaf5eb3eec19aed9733fd2"
+      },
+      "pcb4": {
+        "sample_count": 201,
+        "seconds": 836.1762951221317,
+        "tier_a_manifest_sha256": "acf02909d224c00e0402e37d2f83076b4c6f6e3d67878a5ba88395537beff716"
+      },
+      "pipe_fryum": {
+        "sample_count": 150,
+        "seconds": 611.9251859299839,
+        "tier_a_manifest_sha256": "c86afb194e6680016693aac28b61176b204eb6e47d91d7a535841939dc7bbb7d"
+      }
+    },
+    "device": "cuda",
+    "wall_seconds": 8890.084347518627
+  },
+  "schema_version": "P28R1_TERMINAL_SUMMARY_V1",
+  "terminal_status": "P28R1_DIAGNOSTIC_COMPLETE"
+}
