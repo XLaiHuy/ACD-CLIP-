@@ -1,0 +1,90 @@
+{
+  "schema_version": "P28R1_STUDENT_PARITY_RECOVERY_V1",
+  "status": "PREREGISTERED",
+  "recovery_preregistration_uuid": "c166e08f-4ca5-423d-8e14-18655d21e85e",
+  "preregistered_utc": "2026-08-26T01:53:46Z",
+  "purpose": "Engineering-only recovery of the failed frozen P28 student replay parity gate.",
+  "authoritative_refs": {
+    "p27_terminal_sha": "cdf06234bee861bbe81a7f07e382530f9a66c207",
+    "p27_scientific_execution_base_sha": "de41b380449dcbc0b124f71f4f8fbb789e1a96f0",
+    "p28_prereg_sha": "651ee5a784d2d037ff13d5891671a679fd8691e3",
+    "p28_execution_base_sha": "0c6d4b27d06c33b9a691b72c354fff20e0df0e3a",
+    "p28_terminal_sha": "44be25f74ab8a590086e33390858d423954852fa",
+    "p28_failed_attempt_uuid": "47fa52ee-a5cd-45ce-aa11-47737f3462f7"
+  },
+  "failure_to_recover": {
+    "held_class": "candle",
+    "native_max_abs": 0.0,
+    "student_max_abs": 0.00022339820861816406,
+    "frozen_tolerance": 0.00002,
+    "failure": "P28 stopped at the frozen student-map parity gate; no complete four-state diagnostic exists."
+  },
+  "scientific_firewall": {
+    "mechanism_hypotheses_unchanged": true,
+    "mechanism_metrics_forbidden_before_recovery_freeze": true,
+    "held_gt_forbidden_during_forensics": true,
+    "held_masks_forbidden_during_forensics": true,
+    "new_scientific_attempt_forbidden_until_12_class_parity": true,
+    "no_scientific_mechanism_claim_before_parity": true,
+    "no_tolerance_relaxation": true,
+    "no_result_driven_changes": true,
+    "no_training": true,
+    "no_optimizer_steps": true,
+    "no_new_region_adapter_fit": true,
+    "no_new_clip_forwards": true,
+    "no_new_phase2b_forwards": true,
+    "mvtec_reads": 0,
+    "medical_reads": 0,
+    "p29_implementation": false
+  },
+  "forensic_scope": {
+    "engineering_class": "candle",
+    "engineering_replay_gt_free": true,
+    "required_compare_boundaries": [
+      "adapter_region_residual",
+      "upsampled_37x37_residual",
+      "corrected_stage_logits",
+      "post_blur_logits",
+      "resized_stage_logits",
+      "stage_mean_logits",
+      "softmax_anomaly_map"
+    ],
+    "first_divergence_required": true,
+    "metrics": ["max_abs", "mean_abs", "rmse"],
+    "root_cause_classes": [
+      "POSTPROCESS_ORDER_MISMATCH",
+      "STAGE_AGGREGATION_MISMATCH",
+      "SOFTMAX_ORDER_MISMATCH",
+      "INTERPOLATION_ALIGN_CORNERS_MISMATCH",
+      "GAUSSIAN_BLUR_ORDER_MISMATCH",
+      "ADAPTER_CHECKPOINT_OR_STATE_MISMATCH",
+      "DTYPE_OR_SERIALIZATION_MISMATCH",
+      "SAMPLE_ORDER_MISMATCH",
+      "OTHER_EXACTLY_IDENTIFIED_ENGINEERING_CAUSE"
+    ]
+  },
+  "parity_qualification": {
+    "classes": ["candle", "capsules", "cashew", "chewinggum", "fryum", "macaroni1", "macaroni2", "pcb1", "pcb2", "pcb3", "pcb4", "pipe_fryum"],
+    "native_required": "all 12 pass",
+    "student_required": "all 12 pass",
+    "student_max_abs_required": "<= 0.00002",
+    "preferred_target": "bit-exact",
+    "gt_reads": 0,
+    "mask_reads": 0,
+    "op_or_metrics": "forbidden"
+  },
+  "tdd_requirements": [
+    "immutable P27 student replay test",
+    "adapter residual parity",
+    "corrected stage-logit parity where reconstructable",
+    "final deployment-map parity",
+    "sample-order identity",
+    "checkpoint hash identity",
+    "no GT or mask read",
+    "no CLIP forward",
+    "no Phase2B forward",
+    "tolerance remains exactly 0.00002"
+  ],
+  "allowed_fix": "Only the minimal engineering replay discrepancy identified by first-divergence evidence; P27 artifacts, checkpoints, predictions, metrics, P28 scientific protocol, teacher semantics, region size, student architecture, and deployment semantics remain unchanged.",
+  "terminal_status": ["P28R1_DIAGNOSTIC_COMPLETE", "P28R1_PARITY_RECOVERY_STOP", "P28R1_ENGINEERING_STOP"]
+}
