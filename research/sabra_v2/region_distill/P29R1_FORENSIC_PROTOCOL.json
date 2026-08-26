@@ -1,0 +1,123 @@
+{
+  "schema_version": "P29R1_FAST_OBJECTIVE_TRANSFER_FORENSIC_V1",
+  "status": "P29R1_PREREGISTERED",
+  "identity": {
+    "parent_terminal_sha": "7eeee454538cb997496f8cd1107f66fa73a9c876",
+    "parent_execution_base_sha": "24135127c246d024636ec752c656e9bb828f8cdf",
+    "parent_attempt_uuid": "bcfd6874-7927-4be4-bb07-73c079a9ff76",
+    "branch": "research/p29r1-fast-objective-forensic-v1"
+  },
+  "purpose": "Zero-training post-hoc forensic of why frozen P29 underperformed P27 and did not restore native AUROC. This is not a new scientific train/predict/score attempt.",
+  "known_engineering_recovery": {
+    "failure": "R0 utility action computation was invoked under torch.no_grad(), producing RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn",
+    "permitted_fix": "Invoke the unchanged historical R0 utility only inside local torch.enable_grad(); cached P26 tensors remain detached and no optimizer is created or stepped.",
+    "historical_teacher_semantics_unchanged": true
+  },
+  "hard_prohibitions": {
+    "training": true,
+    "optimizer_step": true,
+    "p29_or_p27_rerun": true,
+    "scientific_12_fold_run": true,
+    "hyperparameter_or_loss_weight_sweep": true,
+    "lr_epoch_region_architecture_or_threshold_change": true,
+    "new_clip_forward": true,
+    "new_phase2b_forward": true,
+    "mvtec_reads": true,
+    "medical_reads": true,
+    "full_pair_ordering_recomputation": true,
+    "normal_anomaly_pair_matrix": true,
+    "giant_cache_build": true,
+    "p30_implementation": true
+  },
+  "frozen_references": {
+    "p27_sign_agreement": 0.5228332297,
+    "p27_macro_pap": 0.4613875663,
+    "p27_macro_pauroc": 0.9203411939,
+    "p28r1_or_macro_pap": 0.5255948881,
+    "p28r1_or_macro_pauroc": 0.9855550134,
+    "p29_native_macro_pap": 0.4525216034,
+    "p29_macro_pap": 0.4559244442,
+    "p29_native_macro_pauroc": 0.9345650496,
+    "p29_macro_pauroc": 0.9191979029
+  },
+  "inputs": {
+    "cache_root": "/workspace/p27r1_cache_v1",
+    "tier_a": ["seg_features", "native_logits", "sample identities/manifests"],
+    "tier_b": ["source teacher_region", "source_mask", "manifests"],
+    "frozen_artifacts": ["12 P29 adapter checkpoints", "12 P29 immutable held predictions", "retained P27 checkpoints/predictions", "P28R1 OR and alignment evidence"],
+    "reuse_only_when_semantics_match": true
+  },
+  "class_order": ["candle", "capsules", "cashew", "chewinggum", "fryum", "macaroni1", "macaroni2", "pcb1", "pcb2", "pcb3", "pcb4", "pipe_fryum"],
+  "analyses": {
+    "sign_alignment": {
+      "representation": "same P28R1 held 9x9 teacher/student definition",
+      "metrics": ["sign agreement", "Pearson", "Spearman", "MAE", "student absolute residual magnitude", "teacher absolute residual magnitude", "student/teacher robust magnitude ratio"],
+      "comparison": "P29 sign agreement minus frozen P27 sign agreement",
+      "no_calibration_rescaling_or_threshold_selection": true
+    },
+    "residual_magnitude": {
+      "states": ["frozen P27 student", "frozen P29 student"],
+      "per_class": ["mean absolute residual", "median absolute residual", "q90 absolute residual", "q99 absolute residual"],
+      "macro": "P29 residual magnitude / P27 residual magnitude"
+    },
+    "source_gradient_probe": {
+      "selection": "For each held fold, select the 1st, 4th, 7th, and 10th alphabetical source classes after excluding that held class; use at most the first 8 deterministic cached source samples for each selected class.",
+      "states": ["zero-initialized RegionResidualAdapter", "the fold's frozen P29 adapter checkpoint"],
+      "p29_gradients": ["g_value", "g_sign", "g_normal", "g_total"],
+      "p27_reference": "g_P27_distill on the same cached source batch",
+      "metrics": ["all gradient norms", "cos(g_value,g_sign)", "cos(g_value,g_normal)", "cos(g_sign,g_normal)", "norm(g_value)/norm(g_P27_distill)"],
+      "zero_init": ["record exact autograd gradient norms for L_value, L_sign, and L_normal", "classify L_sign and L_normal gradients as ZERO or NONZERO"],
+      "optimizer_steps": 0
+    },
+    "normal_guard_conflict": {
+      "data": "source only",
+      "mask": "exact P29 pure-normal adaptive-max source mask: 518->37->9",
+      "metrics": ["pure-normal region count", "pure-normal fraction", "teacher positive/zero/negative fractions in pure-normal regions", "sum(max(t,0))/sum(abs(t)) in pure-normal regions"]
+    },
+    "normality_score_shift": {
+      "data": "immutable held predictions plus post-hoc held GT only",
+      "states": ["native", "P27", "P29"],
+      "normal_metrics": ["mean shift", "median shift", "q95 shift", "q99 shift"],
+      "anomaly_metrics": ["mean shift", "median shift"],
+      "execution": "one vectorized pass per class; no pair matrix"
+    },
+    "segmentation_anchor_gradient": {
+      "data": "same deterministic source batches as source_gradient_probe",
+      "loss": "canonical P27 focal + normal Dice + abnormal Dice",
+      "metrics": ["g_seg", "cos(g_seg,g_P27_distill)", "cos(g_seg,g_P29_value)", "cos(g_seg,g_P29_total)", "norm(g_seg)/norm(g_P27_distill)", "norm(g_seg)/norm(g_P29_total)"],
+      "optimizer_steps": 0
+    },
+    "output_recovery": {
+      "definitions": ["R_AP=(P29_pAP-N_pAP)/(OR_pAP-N_pAP)", "R_AUROC=(P29_pAUROC-N_pAUROC)/(OR_pAUROC-N_pAUROC)"],
+      "comparison": "also report frozen P27 recovery ratios",
+      "descriptive_only": true
+    }
+  },
+  "performance": {
+    "target_minutes": 30,
+    "acceptable_minutes": 45,
+    "hard_stop_projected_minutes": 90,
+    "preflight": "one class, small cached subset, no scientific forensic output; measure seconds/sample, projected 12-class runtime, peak RAM/GPU, and I/O throughput",
+    "one_optimization_pass_if_projected_45_to_90_minutes": ["vectorize", "remove redundant I/O", "remove repeated reconstruction/copies/model construction"],
+    "precision_changes_forbidden": ["fp16", "bf16", "lossy conversion"],
+    "memory_discipline": "sequential memmap/shard access, one class at a time, bounded source batches"
+  },
+  "execution": {
+    "tests_before_real_attempt": ["R0 enable_grad recovery", "no optimizer.step reachable", "no CLIP forward", "no Phase2B forward", "frozen prediction hashes", "checkpoint hashes", "sign fixture", "residual-magnitude fixture", "gradient norm/cosine fixture", "zero-init gradient fixture", "pure-normal conflict fixture", "pixel shift fixture", "MVTec/Medical firewall", "bounded source inventory", "runtime estimator"],
+    "execution_base_freeze_required": true,
+    "exactly_one_attempt_marker": "P29R1_FORENSIC_ATTEMPT.json immediately before first real forensic computation",
+    "post_marker_policy": "No code, protocol, or metric changes. A crash terminalizes P29R1_ENGINEERING_STOP unless exact continuation requires no modification."
+  },
+  "decision_contract": {
+    "candidates": ["GRADIENT_STARVATION", "SEGMENTATION_ANCHOR_REMOVAL", "NORMAL_GUARD_CONFLICT", "SIGN_FIX_INSUFFICIENT", "NORMALITY_FIX_INSUFFICIENT", "MIXED_OBJECTIVE_CONFLICT", "STUDENT_CAPACITY_LIMIT", "REGION_REPRESENTATION_LIMIT"],
+    "ratings": ["SUPPORTED", "PLAUSIBLE", "WEAK", "NOT_SUPPORTED"],
+    "primary_rules": {"gradient_starvation": "P29 value gradient materially below P27 raw distillation, sign/normal near-zero at zero init, and residual suppression or weak sign improvement", "segmentation_anchor_removal": "g_seg meaningful and non-negative/aligned with teacher/value while P29 loses localization/breadth", "normal_guard_conflict": "meaningful positive teacher activity in pure-normal regions and/or g_normal conflicts", "sign_fix_insufficient": "sign improves materially but breadth worsens and pAUROC remains below P27/native", "normality_fix_insufficient": "normal q95/q99 inflation decreases yet AUROC remains poor", "none_clear": "INSUFFICIENT and targeted literature research"},
+    "next_direction_candidates": ["SINGLE_OBJECTIVE_DIRECTIONAL_DISTILLATION", "TEACHER_DISTILLATION_WITH_LIGHT_LOCALIZATION_ANCHOR", "TEACHER_CONSISTENT_NORMALITY_PRESERVATION", "RELATIONAL_OR_RANKING_DISTILLATION", "FEATURE_LEVEL_CONSISTENCY", "STOP_REGION_DISTILLATION_LINEAGE"],
+    "next_direction_weights": {"evidence_fit": 0.3, "simplicity": 0.15, "scientific_upside": 0.15, "cross_category_adaptability": 0.15, "novelty_potential": 0.1, "zero_inference_overhead": 0.05, "auditability": 0.05, "expected_training_cost": 0.05},
+    "one_recommendation_only": true,
+    "p30_implementation_forbidden": true
+  },
+  "outputs": ["P29R1_FORENSIC_METRICS.json", "P29R1_GRADIENT_DIAGNOSTIC.json", "P29R1_SIGN_ALIGNMENT.csv", "P29R1_NORMALITY_DIAGNOSTIC.json", "P29R1_DECISION_TREE.json", "P29R1_FINAL_REPORT.md", "P29R1_POST_RUN_AUDIT.json"],
+  "audit": {"training_steps": 0, "optimizer_steps": 0, "new_clip_forwards": 0, "new_phase2b_forwards": 0, "p29_predictions_unchanged": true, "p29_checkpoints_unchanged": true, "p29_scores_unchanged": true, "mvtec_reads": 0, "medical_reads": 0, "one_forensic_uuid": true, "no_result_driven_selection": true, "no_pairwise_explosion": true, "protocol_unchanged_after_execution_base": true},
+  "terminal_statuses": ["P29R1_FORENSIC_COMPLETE", "P29R1_PERFORMANCE_STOP", "P29R1_ENGINEERING_STOP"]
+}
