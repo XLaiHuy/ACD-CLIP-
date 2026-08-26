@@ -1,0 +1,218 @@
+{
+  "cache": {
+    "held_inventory_exclusion": [
+      "GT",
+      "mask",
+      "teacher target",
+      "normal-region target",
+      "training rows",
+      "fitting statistics",
+      "thresholds",
+      "normalization statistics",
+      "checkpoint selection"
+    ],
+    "lossy_dtype_forbidden": [
+      "fp16",
+      "bf16"
+    ],
+    "provenance_required": [
+      "P26 checkpoint hash",
+      "CLIP hash",
+      "config hash",
+      "shape",
+      "dtype",
+      "sample identity/order",
+      "complete status"
+    ],
+    "pure_normal_sidecar": "fold-local, source-only; no global all-class GT cache",
+    "tier_a_required": [
+      "seg_features",
+      "native_logits",
+      "sample_ids",
+      "class metadata"
+    ],
+    "tier_a_reuse": "GT-free exact float32 cache only",
+    "tier_a_root": "/workspace/p27r1_cache_v1",
+    "tier_b_teacher": "reuse exact P27 fold-local source-only targets only when provenance/semantics match"
+  },
+  "frozen_method": {
+    "geometry": {
+      "patch_grid": [
+        37,
+        37
+      ],
+      "patch_to_region": "adaptive_average_pool2d",
+      "region_grid": [
+        9,
+        9
+      ],
+      "stages": 3
+    },
+    "integration": {
+      "anomaly_logit_scale": 0.5,
+      "deployment": "unchanged P26 canonical deployment",
+      "normal_logit_scale": -0.5
+    },
+    "loss": {
+      "calculate_seg_loss_forbidden": true,
+      "focal_dice_forbidden": true,
+      "loss_weight_sweep_forbidden": true,
+      "normal": "mean_over_pure_normal(relu(s)^2), exact zero if no pure-normal positions",
+      "pure_normal": "not adaptive_max_pool2d(adaptive_max_pool2d(source_mask, 37x37), 9x9)",
+      "segmentation_localization_loss_forbidden": true,
+      "sign": "mean(abs(t) * relu(-sign(t) * s))",
+      "threshold_or_margin_forbidden": true,
+      "total": "L_value + L_sign + L_normal",
+      "value": "SmoothL1(s, t)",
+      "weights": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "normalization": {
+      "learned_scaling_forbidden": true,
+      "only_scale": "fixed global C",
+      "per_class_or_fold_statistics_forbidden": true,
+      "range_assertion_machine_epsilon_only": true,
+      "student_s": "student_region_residual / C",
+      "target_or_output_clipping_forbidden": true,
+      "teacher_t": "teacher_region_delta / C"
+    },
+    "student": {
+      "architecture_identity": "P27",
+      "capacity_increase_forbidden": true,
+      "input": "[3,B,1369,768]",
+      "name": "RegionResidualAdapter",
+      "output": "[3,B,9,9]"
+    },
+    "teacher": {
+      "alpha": 0.25,
+      "correction_scale_C": 4.960109710693359,
+      "historical_r0_semantics": true,
+      "margin_scale": 19.840438842773438
+    }
+  },
+  "frozen_training": {
+    "batch_size": 1,
+    "clip_optimization_steps": 0,
+    "epochs": 20,
+    "fold_order": [
+      "candle",
+      "capsules",
+      "cashew",
+      "chewinggum",
+      "fryum",
+      "macaroni1",
+      "macaroni2",
+      "pcb1",
+      "pcb2",
+      "pcb3",
+      "pcb4",
+      "pipe_fryum"
+    ],
+    "learning_rate": 0.001,
+    "loco_folds": 12,
+    "numerical_policy": "P27 canonical FP32, deterministic algorithms warn_only, CUDA batch-size-1 replay contract",
+    "only_trainable": [
+      "RegionResidualAdapter"
+    ],
+    "optimizer": "AdamW(adapter.parameters(), lr=0.001)",
+    "phase2b_optimization_steps": 0,
+    "seed": 0
+  },
+  "gates": {
+    "engineering_smoke": "source-only, labeled ENGINEERING_SMOKE_ONLY; no held GT/mask/teacher/scoring/metrics/full epoch/fold",
+    "execution_base_before_attempt_required": true,
+    "no_partial_scoring": true,
+    "one_attempt_marker_only": true,
+    "performance": {
+      "max_unprofiled_slowdown_factor": 2.0,
+      "one_engineering_profile_fix_pass_max": true,
+      "p27_cached_median_seconds_per_step": 0.0329064033
+    },
+    "prediction_freeze_before_scoring": "all 12 immutable predictions required",
+    "runner_failure_policy": "stop; no automatic rerun or post-marker patch unless exact preregistered recovery exists",
+    "targeted_tdd_required": true
+  },
+  "held_firewall": {
+    "per_fold_before_prediction": {
+      "held_gt_reads": 0,
+      "held_mask_reads": 0,
+      "held_teacher_reads": 0
+    },
+    "prediction_gt_free": true,
+    "scoring_after_all_predictions": true
+  },
+  "interpretation": {
+    "next_action": {
+      "P29_ENGINEERING_STOP": "PRESERVE_EVIDENCE_AND_STOP",
+      "P29_MIXED": "RETURN_TO_TARGETED_RESEARCH",
+      "P29_NOT_SUPPORTED": "RETURN_TO_TARGETED_RESEARCH",
+      "P29_SUPPORTED": "ARCHITECTURE_FREEZE_REVIEW_REQUIRED"
+    },
+    "no_result_driven_P29R2_or_next_phase": true,
+    "statuses": [
+      "P29_SUPPORTED",
+      "P29_MIXED",
+      "P29_NOT_SUPPORTED",
+      "P29_ENGINEERING_STOP"
+    ],
+    "supported_requires": [
+      "macro P29 pAP > native",
+      "macro P29 pAUROC >= native",
+      "median pAP delta > 0",
+      "pAP improves >=7/12",
+      "audit PASS"
+    ],
+    "visA_not_independent_external_confirmation": true
+  },
+  "metrics": {
+    "breadth": [
+      "improving",
+      "non_regressing",
+      "regressing",
+      "median pAP delta",
+      "best",
+      "worst",
+      "top1 concentration",
+      "top2 concentration"
+    ],
+    "oracle_reference": {
+      "OR_macro_pAP": 0.5255948881,
+      "OR_macro_pAUROC": 0.9855550134
+    },
+    "per_class_and_macro": [
+      "P26 native pAP",
+      "P29 pAP",
+      "delta pAP",
+      "P26 native pAUROC",
+      "P29 pAUROC",
+      "delta pAUROC"
+    ],
+    "posthoc_mechanism_only_after_prediction_freeze": [
+      "teacher/student region sign agreement",
+      "normal score shifts mean/median/q95/q99",
+      "anomaly score shifts mean/median",
+      "OR recovery ratios"
+    ]
+  },
+  "parent": {
+    "clip_asset_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+    "p26_checkpoint_sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+    "p27_terminal_sha": "cdf06234bee861bbe81a7f07e382530f9a66c207",
+    "p28r1_attempt_uuid": "1c41fbc7-1d70-42a4-bbda-ca512c82f73f",
+    "p28r1_execution_base_sha": "3ed8e9f5624fa858f2baf26f29970ec22d2e1eac",
+    "p28r1_terminal_sha": "feb7d5dcf5a0e0b4933e1069288cb4ab30dc8101",
+    "phase2b_config_sha256": "edf5745686e3d3d0d3b4142341569da06ad5b54025a779b78d83f74303ce67fc"
+  },
+  "schema_version": "P29_SABRA_SIGN_GUARDED_NORMALIZED_REGION_DISTILL_V1",
+  "scope": {
+    "dataset": "VisA development universe only",
+    "external_validation_claim_forbidden": true,
+    "medical_reads": 0,
+    "mvtec_reads": 0,
+    "published_acd_clip_superiority_claim_forbidden": true
+  },
+  "status": "P29_PREREGISTERED"
+}
