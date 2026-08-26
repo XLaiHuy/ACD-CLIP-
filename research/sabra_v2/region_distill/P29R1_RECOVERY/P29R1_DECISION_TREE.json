@@ -1,0 +1,129 @@
+{
+  "candidate_classifications": {
+    "GRADIENT_STARVATION": "SUPPORTED",
+    "MIXED_OBJECTIVE_CONFLICT": "SUPPORTED",
+    "NORMALITY_FIX_INSUFFICIENT": "SUPPORTED",
+    "NORMAL_GUARD_CONFLICT": "SUPPORTED",
+    "REGION_REPRESENTATION_LIMIT": "NOT_SUPPORTED",
+    "SEGMENTATION_ANCHOR_REMOVAL": "NOT_SUPPORTED",
+    "SIGN_FIX_INSUFFICIENT": "NOT_SUPPORTED",
+    "STUDENT_CAPACITY_LIMIT": "NOT_SUPPORTED"
+  },
+  "decision_thresholds": {
+    "material_sign_delta_min": 0.01,
+    "material_value_gradient_ratio_max": 0.9,
+    "meaningful_positive_fraction_min": 0.001,
+    "meaningful_positive_strength_mass_min": 0.01
+  },
+  "one_recommendation_only": true,
+  "optimal_next_research_direction": "SINGLE_OBJECTIVE_DIRECTIONAL_DISTILLATION",
+  "p27_normal_q95_shift": 4.778531755548555e-07,
+  "p27_normal_q99_shift": 0.0007015705637864011,
+  "p27_sign_macro": 0.5228332296849088,
+  "p29_normal_q95_shift": 8.877267858956934e-08,
+  "p29_normal_q99_shift": 0.0001596801139287361,
+  "p29_over_p27_residual_magnitude_ratio": 0.8723438446565194,
+  "primary_root_cause": "MIXED_OBJECTIVE_CONFLICT",
+  "ranked_next_direction_scores": [
+    {
+      "dimensions": {
+        "auditability": 9,
+        "cross_category_adaptability": 8,
+        "evidence_fit": 10,
+        "novelty_potential": 8,
+        "scientific_upside": 9,
+        "simplicity": 9,
+        "zero_inference_overhead": 10
+      },
+      "direction": "SINGLE_OBJECTIVE_DIRECTIONAL_DISTILLATION",
+      "score_0_to_10": 8.649999999999999
+    },
+    {
+      "dimensions": {
+        "auditability": 8,
+        "cross_category_adaptability": 9,
+        "evidence_fit": 8,
+        "novelty_potential": 8,
+        "scientific_upside": 8,
+        "simplicity": 5,
+        "zero_inference_overhead": 9
+      },
+      "direction": "RELATIONAL_OR_RANKING_DISTILLATION",
+      "score_0_to_10": 7.35
+    },
+    {
+      "dimensions": {
+        "auditability": 9,
+        "cross_category_adaptability": 8,
+        "evidence_fit": 7,
+        "novelty_potential": 7,
+        "scientific_upside": 7,
+        "simplicity": 8,
+        "zero_inference_overhead": 10
+      },
+      "direction": "TEACHER_CONSISTENT_NORMALITY_PRESERVATION",
+      "score_0_to_10": 7.2
+    },
+    {
+      "dimensions": {
+        "auditability": 8,
+        "cross_category_adaptability": 8,
+        "evidence_fit": 7,
+        "novelty_potential": 6,
+        "scientific_upside": 7,
+        "simplicity": 7,
+        "zero_inference_overhead": 10
+      },
+      "direction": "TEACHER_DISTILLATION_WITH_LIGHT_LOCALIZATION_ANCHOR",
+      "score_0_to_10": 6.9
+    },
+    {
+      "dimensions": {
+        "auditability": 6,
+        "cross_category_adaptability": 7,
+        "evidence_fit": 2,
+        "novelty_potential": 6,
+        "scientific_upside": 6,
+        "simplicity": 4,
+        "zero_inference_overhead": 8
+      },
+      "direction": "FEATURE_LEVEL_CONSISTENCY",
+      "score_0_to_10": 4.449999999999999
+    },
+    {
+      "dimensions": {
+        "auditability": 10,
+        "cross_category_adaptability": 1,
+        "evidence_fit": 1,
+        "novelty_potential": 1,
+        "scientific_upside": 1,
+        "simplicity": 10,
+        "zero_inference_overhead": 10
+      },
+      "direction": "STOP_REGION_DISTILLATION_LINEAGE",
+      "score_0_to_10": 3.2
+    }
+  ],
+  "rule_evidence": {
+    "AUROC_breadth_loss": false,
+    "pAP_breadth_loss": true,
+    "poor_pAUROC": true,
+    "teacher_positive_fraction_in_pure_normal": 0.06292696755068998,
+    "teacher_positive_strength_mass_in_pure_normal": 0.06275717619185646,
+    "zero_normal_gradient": 0.0,
+    "zero_sign_gradient": 0.0,
+    "zero_value_over_p27_distill": 0.2876094472747026
+  },
+  "score_summary": {
+    "native_pAUROC": 0.9345650495598931,
+    "p27_pAP": 0.4613875663344724,
+    "p27_pAUROC": 0.9203411938735945,
+    "p29_pAP": 0.45592444418995576,
+    "p29_pAUROC": 0.9191979029346949,
+    "p29_vs_p27_AUROC_non_regressing_classes": 6,
+    "p29_vs_p27_AUROC_regressing_classes": 6
+  },
+  "secondary_root_cause": "GRADIENT_STARVATION",
+  "sign_delta_vs_frozen_p27": -0.0032711250995455243,
+  "sign_macro": 0.5195621046004545
+}
