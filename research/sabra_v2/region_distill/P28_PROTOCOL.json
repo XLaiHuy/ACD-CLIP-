@@ -1,0 +1,147 @@
+{
+  "schema_version": "P28_MECHANISM_DIAGNOSTIC_V1",
+  "status": "PREREGISTERED",
+  "protocol_purpose": "Post-hoc, zero-training decomposition of the frozen P27 AP/AUROC tradeoff.",
+  "preregistration_uuid": "caf306c8-ba44-47e4-8589-1d98038c0ca3",
+  "preregistered_utc": "2026-08-26T01:16:09Z",
+  "p27_terminal_sha": "cdf06234bee861bbe81a7f07e382530f9a66c207",
+  "p27_scientific_execution_base_sha": "de41b380449dcbc0b124f71f4f8fbb789e1a96f0",
+  "p27_attempt_uuid": "884f7327-1135-491b-8c12-dc188455be2c",
+  "p27_protocol_sha256": "992c58ff7cf8b612a701e63a04013703900e37f8222d39e2c4282d6d7536aca7",
+  "frozen_assets": {
+    "p26_checkpoint_sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+    "clip_asset_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+    "phase2b_config_sha256": "edf5745686e3d3d0d3b4142341569da06ad5b54025a779b78d83f74303ce67fc",
+    "visa_metadata_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842"
+  },
+  "classes": ["candle", "capsules", "cashew", "chewinggum", "fryum", "macaroni1", "macaroni2", "pcb1", "pcb2", "pcb3", "pcb4", "pipe_fryum"],
+  "data_scope": {
+    "dataset": "VisA",
+    "held_root": "/workspace/data/source/VisA",
+    "held_gt_allowed": "post_hoc_only_after_p27_freeze",
+    "mvtec_reads": 0,
+    "medical_reads": 0,
+    "external_validation": false
+  },
+  "input_artifacts": {
+    "immutable_predictions": "/workspace/p27r1_science_v1/<class>/predictions/p27_held_predictions.pt",
+    "tier_a_native_logits": "/workspace/p27r1_cache_v1/tier_a/<class>/native_logits.npy",
+    "tier_a_seg_features": "/workspace/p27r1_cache_v1/tier_a/<class>/seg_features.npy",
+    "tier_a_manifests": "/workspace/p27r1_cache_v1/tier_a/<class>/manifest.json",
+    "p27_adapters": "/workspace/p27r1_science_v1/<class>/training/p27_region_adapter.pt",
+    "visa_metadata": "dataset/hub/VisA.jsonl"
+  },
+  "frozen_states": {
+    "N": {
+      "name": "NATIVE",
+      "definition": "Frozen P26 native abnormal probability from each immutable P27 prediction artifact; no residual."
+    },
+    "S": {
+      "name": "STUDENT",
+      "definition": "Frozen P27 abnormal probability from each immutable P27 prediction artifact; never regenerated."
+    },
+    "OP": {
+      "name": "HELD_PATCH_TEACHER_ORACLE",
+      "definition": "Held-GT post-hoc oracle: frozen Tier-A native logits, exact R0 signed utility, alpha=0.25, margin scale=19.840438842773438, abnormal-only shared patch correction. Not deployable."
+    },
+    "OR": {
+      "name": "HELD_REGION_TEACHER_ORACLE",
+      "definition": "OP patch correction adaptively averaged 37x37 to 9x9, aligned-bilinearly reconstructed to 37x37, then applied as the P27 symmetric two-class residual. No learning."
+    }
+  },
+  "frozen_semantics": {
+    "r0_teacher_alpha": 0.25,
+    "r0_margin_scale": 19.840438842773438,
+    "r0_utility": "negative gradient of calculate_seg_loss(deploy_with_delta(native, abnormal_only_shared_zero_correction), held_mask) * stage_count with respect to the shared patch correction",
+    "action_rule": "+1 if utility > 1e-8, -1 if utility < -1e-8, otherwise 0",
+    "patch_correction": "action * alpha * margin_scale",
+    "patch_grid": [37, 37],
+    "region_grid": [9, 9],
+    "pooling": "torch adaptive_average_pool2d",
+    "reconstruction": "torch interpolate mode=bilinear align_corners=True",
+    "symmetric_residual": {"normal": -0.5, "anomaly": 0.5},
+    "deployment": "Industrial P26 deploy_native_logits: 7x7 Gaussian blur sigma=1.0, aligned bilinear resize to 518, mean over three stages, softmax",
+    "mask_transform": "518x518 nearest-neighbor resize and binary >0"
+  },
+  "decomposition": {
+    "teacher_effect": "OP - N",
+    "regionization_effect": "OR - OP",
+    "student_transfer_effect": "S - OR",
+    "final_effect": "S - N"
+  },
+  "metrics": {
+    "primary": ["pAP", "pAUROC"],
+    "scope": "per_class_and_macro_for_N_OP_OR_S",
+    "deltas": ["OP-N", "OR-N", "S-N", "OR-OP", "S-OR"],
+    "breadth": ["median_class_delta", "positive_count", "non_regressing_count", "negative_count", "best_class", "worst_class", "top1_positive_gain_concentration", "top2_positive_gain_concentration"],
+    "metric_definition": "Exact float32 rank-group AP and AUROC with stable descending mergesort; tied scores use group-average pair credit for AUROC and group-end precision for AP, matching P27 exact_metrics."
+  },
+  "ranking_diagnostics": {
+    "relative_to": "N",
+    "states": ["OP", "OR", "S"],
+    "anomaly_shift_quantiles": [0.10, 0.50, 0.90],
+    "normal_shift_quantiles": [0.90, 0.95, 0.99],
+    "pair_ordering": "For every anomaly score and normal score, count orderings where anomaly > normal; compute gained, lost, and net versus N without materializing the Cartesian pair matrix. Exact ties are excluded from gained/lost and retain 0.5 AUROC credit.",
+    "top_rank_fractions": [0.001, 0.005, 0.01, 0.05],
+    "top_rank_metric": "anomaly fraction among the highest-scoring ceil(fraction * pixel_count) pixels, with stable descending order"
+  },
+  "residual_diagnostics": {
+    "states": ["OP", "OR", "S"],
+    "relative_to": "N",
+    "summary": ["mean", "median", "absolute_magnitude_mean", "positive_fraction", "negative_fraction"],
+    "gt_strata": ["anomaly_pixels", "normal_pixels"],
+    "tails": ["normal_upper_tail", "anomaly_lower_tail"]
+  },
+  "alignment": {
+    "teacher": "OR 9x9 region target before reconstruction, shared across stages",
+    "student": "P27 adapter output on frozen Tier-A seg_features for the held class, before reconstruction",
+    "metrics": ["Pearson", "Spearman", "sign_agreement", "MAE", "robust_relative_magnitude_ratio"],
+    "robust_ratio": "median(abs(student)+1e-12) / median(abs(teacher)+1e-12)",
+    "forbidden": ["calibration", "rescaling", "fitting", "optimized sign threshold"]
+  },
+  "category_descriptors": [
+    "anomaly_pixel_prevalence",
+    "median_anomaly_area_fraction_per_abnormal_image",
+    "number_of_abnormal_images",
+    "native_pAP",
+    "native_pAUROC",
+    "OP_minus_N_pAP_headroom",
+    "OR_minus_OP_pAP_regionization_gap",
+    "S_minus_OR_pAP_student_approximation_gap"
+  ],
+  "exploratory_correlations": {
+    "outcomes": ["S_minus_N_pAP", "S_minus_N_pAUROC"],
+    "descriptors": "category_descriptors",
+    "method": "Pearson and Spearman across 12 classes",
+    "interpretation": "exploratory only; no predictive selector or causal claim"
+  },
+  "hypotheses": {
+    "H1": "TEACHER_OBJECTIVE_CONFLICT: OP relative to N shows positive AP behavior with systematic AUROC degradation.",
+    "H2": "REGIONIZATION_LOSS: OP is materially safer than OR in AUROC/ranking behavior.",
+    "H3": "STUDENT_TRANSFER_FAILURE: OR retains useful oracle behavior but S loses it broadly.",
+    "H4": "NORMAL_SCORE_INFLATION: S residuals raise the high-score normal tail more than they improve useful anomaly ordering.",
+    "H5": "HETEROGENEOUS_CATEGORY_ACTIONABILITY: correction benefit is strongly category/regime dependent."
+  },
+  "classification_labels": ["SUPPORTED", "PLAUSIBLE", "WEAK", "NOT_SUPPORTED"],
+  "root_cause_labels": ["TEACHER_OBJECTIVE_CONFLICT", "REGIONIZATION_RANKING_LOSS", "STUDENT_TRANSFER_FAILURE", "HETEROGENEOUS_ACTIONABILITY", "MIXED_MECHANISM", "INSUFFICIENT"],
+  "root_cause_rule": "Use the complete N -> OP -> OR -> S decomposition mechanically; do not select from one class or from a single metric. If OP already has AP-up/AUROC-down, suspect teacher conflict; if OP is safe but OR loses ranking, suspect regionization; if OR remains useful but S loses it, suspect student transfer; if category dependence dominates without one transition, use heterogeneous or mixed; if evidence is inadequate, insufficient.",
+  "execution_constraints": {
+    "training": false,
+    "optimizer_steps": 0,
+    "new_region_adapter_fitting": false,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "teacher_tuning": false,
+    "alpha_sweep": false,
+    "region_size_sweep": false,
+    "thresholds": false,
+    "checkpoint_selection": false,
+    "result_driven_rerun": false,
+    "mvt_ec_reads": 0,
+    "medical_reads": 0,
+    "diagnostic_runs": 1
+  },
+  "required_outputs": ["P28_METRICS.json", "P28_CLASS_TABLE.csv", "P28_RANKING_DIAGNOSTIC.json", "P28_ALIGNMENT_DIAGNOSTIC.json", "P28_ROOT_CAUSE.json", "P28_FINAL_REPORT.md", "P28_POST_RUN_AUDIT.json"],
+  "allowed_p29_recommendations": ["RANKING_SAFE_TEACHER", "REGION_REPRESENTATION_REDESIGN", "ROBUST_STUDENT_TRANSFER", "CONDITIONAL / HETEROGENEOUS MODELING", "STOP SABRA-V2 REGION LINEAGE"],
+  "terminal_status": ["P28_DIAGNOSTIC_COMPLETE", "P28_ENGINEERING_STOP"]
+}
