@@ -1,0 +1,76 @@
+{
+  "delta_vs_p29": {
+    "directional_cosine": -0.7786973985186095,
+    "sign_agreement": -0.44580246913580246
+  },
+  "delta_vs_p30": {
+    "directional_cosine": -0.8070717987265754,
+    "sign_agreement": -0.4498765432098766
+  },
+  "held_class": "candle",
+  "held_mask_reads_post_freeze": 100,
+  "new_clip_forwards": 0,
+  "new_phase2b_forwards": 0,
+  "p29": {
+    "alignment": {
+      "mae": 1.1974825518288545,
+      "pearson": 0.7699572036462712,
+      "robust_relative_magnitude_ratio": 0.23213513549384515,
+      "sign_agreement": 0.5654938271604938,
+      "spearman": 0.7174181563446916
+    },
+    "directional_cosine": {
+      "mean": 0.7085491737886378,
+      "valid_sample_count": 200,
+      "zero_student_sample_count": 0
+    },
+    "magnitude": {
+      "mean_abs": 2.0366827585423986,
+      "median_abs": 1.1514161825180054,
+      "q90_abs": 4.141722345352173,
+      "q99_abs": 4.321676936149597
+    }
+  },
+  "p30": {
+    "alignment": {
+      "mae": 3.2437247553283783,
+      "pearson": 0.3782087860018243,
+      "robust_relative_magnitude_ratio": 0.15421900541714945,
+      "sign_agreement": 0.5695679012345679,
+      "spearman": 0.7142337500114273
+    },
+    "directional_cosine": {
+      "mean": 0.7369235739966037,
+      "valid_sample_count": 200,
+      "zero_student_sample_count": 0
+    },
+    "magnitude": {
+      "mean_abs": 1.5424903257706284,
+      "median_abs": 0.7649434804916382,
+      "q90_abs": 0.8936572849750519,
+      "q99_abs": 25.929798946380703
+    }
+  },
+  "p30r1": {
+    "alignment": {
+      "mae": 2.7123988902420497,
+      "pearson": 0.34990114619787166,
+      "robust_relative_magnitude_ratio": 0.001352817553804413,
+      "sign_agreement": 0.11969135802469136,
+      "spearman": 0.05456509396360184
+    },
+    "directional_cosine": {
+      "mean": -0.07014822472997172,
+      "valid_sample_count": 200,
+      "zero_student_sample_count": 0
+    },
+    "magnitude": {
+      "mean_abs": 0.1787438652449414,
+      "median_abs": 0.00671012606471777,
+      "q90_abs": 0.0989617668092236,
+      "q99_abs": 4.528306531906242
+    }
+  },
+  "schema_version": "P30R1_TRANSFER_DIAGNOSTIC_V1",
+  "status": "COMPLETE"
+}
