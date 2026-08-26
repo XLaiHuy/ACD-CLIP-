@@ -1,0 +1,352 @@
+{
+  "schema_version": "P30_SPEED_PERFORMANCE_DIRECTIONAL_DISTILLATION_V1",
+  "status": "P30_PREREGISTERED",
+  "experiment": {
+    "name": "P30_SPEED_PERFORMANCE_DIRECTIONAL_DISTILLATION",
+    "uuid": "71a16efe-2388-458a-9106-bd87f882805a",
+    "branch": "research/p29r1-fast-objective-forensic-v1",
+    "parent_commit": "e7af795015a2e47bb0fdd692e1a63dcdc3f819e5",
+    "preregistration_hash_file": "research/sabra_v2/region_distill/P30_PREREGISTRATION_SHA256.txt"
+  },
+  "hypothesis": "A single directional distillation objective can preserve useful teacher correction direction, sign, and relative spatial ordering while avoiding P29 mixed-objective interference and unnecessary magnitude transfer.",
+  "parent_evidence": {
+    "p29r1_recovery_uuid": "b9f4a9e6-6d3a-4d10-9c2a-4b2a69c5e8f1",
+    "p29r1_report": "research/sabra_v2/region_distill/P29R1_RECOVERY/P29R1_FINAL_REPORT.md",
+    "p29r1_audit": "research/sabra_v2/region_distill/P29R1_RECOVERY/P29R1_POST_RUN_AUDIT.json",
+    "p29r1_decision": "research/sabra_v2/region_distill/P29R1_RECOVERY/P29R1_DECISION_TREE.json",
+    "primary_mechanism": "MIXED_OBJECTIVE_CONFLICT",
+    "secondary_mechanism": "GRADIENT_STARVATION",
+    "recommended_direction": "SINGLE_OBJECTIVE_DIRECTIONAL_DISTILLATION",
+    "zero_init_sign_gradient": 0.0,
+    "zero_init_normal_gradient": 0.0,
+    "zero_init_value_over_p27_distill": 0.2876094472747026
+  },
+  "objective": {
+    "name": "P30_DIRECTIONAL_COSINE_V1",
+    "one_primary_objective_only": true,
+    "correction_scale_C": 4.960109710693359,
+    "normalization_epsilon": 0.01,
+    "teacher_input": "teacher_region [B,9,9] from immutable Tier-B source-only cache",
+    "student_input": "student_region [3,B,9,9] from the unchanged RegionResidualAdapter",
+    "staging": "T = teacher_region.unsqueeze(0).expand_as(student_region)",
+    "vectors": {
+      "s_b": "flatten((student_region[:,b]/C), [3,9,9]) into 243 coordinates",
+      "t_b": "flatten((T[:,b]/C), [3,9,9]) into 243 coordinates",
+      "r_s": "sqrt(mean(s_b^2) + epsilon^2)",
+      "r_t": "sqrt(mean(t_b^2) + epsilon^2)",
+      "s_hat": "s_b / r_s",
+      "t_hat": "t_b / r_t"
+    },
+    "valid_target": "sum(abs(t_b)) > 0; exact-zero teacher direction is undefined and contributes no directional loss",
+    "loss": "mean_valid_b(1 - mean_j(s_hat[b,j] * t_hat[b,j]))",
+    "empty_valid_set": "return student_region.sum() * 0.0 to preserve a finite autograd graph",
+    "teacher_detached": true,
+    "magnitude_invariance_intended": true,
+    "uses_source_mask": false,
+    "additional_losses": [],
+    "forbidden_additions": [
+      "SmoothL1 or L2 magnitude transfer",
+      "P29 sign penalty",
+      "P29 pure-normal penalty",
+      "segmentation localization loss",
+      "ranking or pairwise loss",
+      "feature consistency loss",
+      "calibration or threshold loss",
+      "learned or per-class normalization",
+      "loss-weight sweep"
+    ]
+  },
+  "frozen_components": {
+    "adapter_architecture": "RegionResidualAdapter exactly as P27/P29",
+    "adapter_state_initialization": "unchanged zero output head",
+    "teacher_semantics": "historical R0 signed utility, source-only masks, adaptive average 37x37 to 9x9",
+    "tier_a_cache": "/workspace/p27r1_cache_v1",
+    "tier_b_cache": "/workspace/p27r1_cache_v1",
+    "cache_dtype": "float32",
+    "cache_identity_and_provenance": "existing P27 Tier-A/Tier-B manifests and hashes",
+    "dataset": "VisA development universe only",
+    "folding": "12 fixed leave-one-class-out folds",
+    "class_order": [
+      "candle",
+      "capsules",
+      "cashew",
+      "chewinggum",
+      "fryum",
+      "macaroni1",
+      "macaroni2",
+      "pcb1",
+      "pcb2",
+      "pcb3",
+      "pcb4",
+      "pipe_fryum"
+    ],
+    "deployment": "unchanged P26 canonical symmetric margin deployment",
+    "inference_architecture": "unchanged; no P30 module at inference"
+  },
+  "trainable_components": ["RegionResidualAdapter"],
+  "training": {
+    "optimizer": "AdamW(adapter.parameters(), lr=0.001)",
+    "epochs": 20,
+    "batch_size": 1,
+    "learning_rate": 0.001,
+    "seed": 0,
+    "precision": "canonical FP32",
+    "deterministic_algorithms": "torch deterministic algorithms warn_only",
+    "phase2b_optimization_steps": 0,
+    "clip_optimization_steps": 0,
+    "teacher_training": false,
+    "hyperparameter_sweeps": false,
+    "posthoc_tuning": false
+  },
+  "stages": {
+    "stage_0_static": {
+      "required": [
+        "compile/import pass",
+        "relevant existing tests pass",
+        "new P30 unit tests pass",
+        "teacher is detached/frozen",
+        "student gradient is finite and non-zero",
+        "no NaN or Inf",
+        "directional synthetic tests pass",
+        "output schemas pass",
+        "unexpected dataset firewall pass"
+      ]
+    },
+    "stage_1_tiny_smoke": {
+      "class": "candle",
+      "selection_rule": "first class in the frozen canonical order, selected before P30 results",
+      "max_steps": 1,
+      "scientific_result": false,
+      "must_verify": [
+        "directional loss reached",
+        "finite backward",
+        "exactly one optimizer update",
+        "student parameter changed",
+        "teacher remained unchanged",
+        "checkpoint/save path works",
+        "GT-free evaluation path works"
+      ]
+    },
+    "stage_2_one_class": {
+      "classes": ["candle"],
+      "selection_rule": "first class in frozen order; fixed before observing P30 performance",
+      "full_schedule": true,
+      "scientific_result": "qualification only; not sufficient for final claim"
+    },
+    "stage_3_small_subset": {
+      "classes": ["candle", "chewinggum", "macaroni2", "pcb3"],
+      "selection_rule": "indices 0, 3, 6, and 9 of the frozen class order, fixed before observing P30 performance",
+      "full_schedule": true,
+      "scientific_result": "cross-category qualification only"
+    },
+    "stage_4_full": {
+      "classes": "all 12 frozen classes in canonical order",
+      "full_schedule": true,
+      "one_execution_marker": true,
+      "one_attempt": true
+    }
+  },
+  "gradient_gates": {
+    "before_training": {
+      "teacher_parameters": "none; teacher is cached and detached",
+      "student_output_gradient_l2_min": 1e-8,
+      "student_output_gradient_l2_max": 1000.0,
+      "student_output_gradient_max_abs_max": 100.0,
+      "nonfinite_gradient_count": 0,
+      "synthetic_zero_init_gradient": "finite and non-zero for a non-zero teacher direction",
+      "zero_teacher_case": "finite zero objective with no NaN/Inf"
+    },
+    "during_smoke": {
+      "all_trainable_gradients_finite": true,
+      "optimizer_steps_exact": 1,
+      "student_parameter_delta_nonzero": true,
+      "teacher_parameter_delta": 0.0
+    },
+    "record": [
+      "per-parameter gradient norm",
+      "median absolute gradient",
+      "maximum absolute gradient",
+      "zero-gradient fraction",
+      "non-finite count",
+      "directional-vs-P27-distill cosine diagnostic where defined"
+    ]
+  },
+  "synthetic_tests": {
+    "required_cases": [
+      "identical direction has low loss",
+      "opposite direction has high loss",
+      "same direction at 0.1x, 1x, 10x, and 100x has low loss",
+      "zero and near-zero targets remain finite",
+      "partial sign mismatch is monotonic",
+      "known spatial ordering is preserved by directional cosine",
+      "backpropagation reaches the student output"
+    ],
+    "directional_tolerance": "fixed tests use epsilon 0.01 and no observed-data fitting"
+  },
+  "metrics": {
+    "primary_performance": ["macro pixel AP", "macro pixel AUROC", "per-class pixel AP", "per-class pixel AUROC"],
+    "transfer_fidelity": [
+      "staged cosine directional agreement",
+      "sign agreement",
+      "Pearson correction correlation",
+      "Spearman correction ranking agreement",
+      "mean absolute correction error",
+      "residual magnitude summaries",
+      "P30/P29 direction deltas"
+    ],
+    "stability": [
+      "normal score mean/median/q95/q99 shift",
+      "anomaly score mean/median shift",
+      "per-category regressions",
+      "magnitude ratio stability"
+    ],
+    "engineering": [
+      "training wall time",
+      "median training seconds per step",
+      "evaluation time",
+      "inference benchmark time",
+      "training overhead percentage",
+      "peak GPU memory",
+      "peak RSS",
+      "implementation objective count"
+    ],
+    "scientific": ["mechanism clarity", "causal interpretability", "reproducibility", "simplicity", "publishability"]
+  },
+  "baseline": {
+    "p29_metrics": "research/sabra_v2/region_distill/P29_METRICS.json and P29_CLASS_TABLE.csv",
+    "native_macro_pAP": 0.4525216034016654,
+    "native_macro_pAUROC": 0.9345650495598931,
+    "p29_macro_pAP": 0.45592444418995576,
+    "p29_macro_pAUROC": 0.9191979029346949,
+    "p29_sign_agreement": 0.5195621046004545,
+    "p29_p27_residual_magnitude_ratio": 0.8723438446565194,
+    "p29_cached_median_seconds_per_step": 0.010768339969217777,
+    "p27_cached_median_seconds_per_step": 0.0329064033
+  },
+  "gates": {
+    "stage_1_to_stage_2": [
+      "all smoke gradient and save/evaluation checks pass",
+      "no forbidden dataset read",
+      "measured training timing is finite",
+      "no duplicate process"
+    ],
+    "stage_2_to_stage_3": [
+      "finite gradients throughout",
+      "no class pAP or pAUROC drop greater than 0.05 from native",
+      "P30 direction cosine and sign are not more than 0.01 below frozen P29 on the class",
+      "normal q99 shift is not materially worse than frozen P29 by more than 0.001",
+      "training overhead is <=15% or a clearly documented speed/performance benefit exists",
+      "no checkpoint or cache provenance violation"
+    ],
+    "stage_3_to_stage_4": [
+      "no subset class pAP or pAUROC drop greater than 0.05 from native",
+      "no more than one subset class has a drop greater than 0.02 from native for either primary metric",
+      "directional fidelity is stable across all four fixed classes",
+      "normal-score inflation is not materially worse than frozen P29",
+      "runtime projection is within the preregistered performance envelope",
+      "no ambiguity, NaN/Inf, forbidden read, or artifact drift"
+    ],
+    "full_success": {
+      "better": "macro pAP and macro pAUROC are both at least frozen P29, staged sign agreement improves by at least 0.01, normal q99 is not worse, category regressions do not increase, and training overhead is <=10%",
+      "equivalent_but_simpler": "macro pAP and macro pAUROC are each within 0.005 of frozen P29, direction/sign are not materially worse, normal q99 is not materially worse, inference overhead is 0%, and the single-objective implementation is faster or no more than 10% slower",
+      "faster": "equivalent_but_simpler plus training overhead is negative",
+      "slower_but_justified": "performance/stability gains are clear but training overhead is 10-15%; report explicit benefit",
+      "reject": "otherwise, including persistent starvation, severe conflict, widespread regression, material normal inflation, or unjustified complexity"
+    }
+  },
+  "speed": {
+    "baseline_p29_seconds_per_step": 0.010768339969217777,
+    "overhead_formula": "100 * (P30_median_step_seconds - P29_median_step_seconds) / P29_median_step_seconds",
+    "preferred_training_overhead_percent_max": 10.0,
+    "investigate_overhead_percent": 15.0,
+    "hard_unprofiled_slowdown_factor": 2.0,
+    "inference_overhead_target_percent": 0.0,
+    "teacher_forward": "zero; reuse cached Tier-B teacher",
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "allowed_optimizations": [
+      "direct adapter-only training forward because no deployment loss is used",
+      "reuse cached teacher/features/native logits",
+      "vectorized normalization and cosine",
+      "sequential memmap access",
+      "no duplicate model initialization"
+    ],
+    "forbidden_speed_changes": [
+      "skip required samples",
+      "drop classes",
+      "change evaluation semantics",
+      "change frozen teacher",
+      "lossy precision conversion",
+      "posthoc threshold or metric tuning"
+    ]
+  },
+  "firewall": {
+    "source_training_only": true,
+    "held_gt_before_prediction_freeze": 0,
+    "held_mask_before_prediction_freeze": 0,
+    "held_teacher_before_prediction_freeze": 0,
+    "scoring_after_all_12_predictions": true,
+    "mvtec_reads": 0,
+    "medical_reads": 0,
+    "p29_p27_rerun": false,
+    "teacher_trainable": false,
+    "phase2b_trainable": false,
+    "clip_trainable": false
+  },
+  "stopping_rules": [
+    "preregistration or hash mismatch",
+    "wrong commit, branch, or dirty worktree at marker",
+    "duplicate process or attempt marker",
+    "frozen cache/checkpoint/prediction provenance drift",
+    "teacher or Phase2B becomes trainable",
+    "unexpected dataset, MVTec, or Medical read",
+    "persistent NaN/Inf",
+    "student gradient remains effectively zero",
+    "severe directional gradient instability",
+    "normal-score inflation materially worsens",
+    "widespread category regression",
+    "runtime exceeds the hard envelope without a preregistered engineering explanation",
+    "output schema malformed"
+  ],
+  "prohibited": [
+    "P30 objective stacking",
+    "broad hyperparameter search",
+    "posthoc coefficient tuning",
+    "category-specific scale learning",
+    "new inference head",
+    "second teacher at inference",
+    "iterative inference",
+    "P29/P27 scientific rerun",
+    "MVTec or Medical data",
+    "automatic rerun after scientific failure"
+  ],
+  "execution": {
+    "full_output_root": "research/sabra_v2/region_distill/P30",
+    "qualification_root": "research/sabra_v2/region_distill/P30/qualification",
+    "attempt_marker": "research/sabra_v2/region_distill/P30/P30_EXECUTION_MARKER.json",
+    "post_run_audit": "research/sabra_v2/region_distill/P30/P30_POST_RUN_AUDIT.json",
+    "final_report": "research/sabra_v2/region_distill/P30/P30_FINAL_REPORT.md",
+    "marker_timing": "immediately before first full-stage P30 training computation",
+    "marker_status": "CONSUMED",
+    "one_full_attempt": true,
+    "crash_status": "P30_ENGINEERING_STOP",
+    "post_marker_code_changes": false,
+    "post_marker_protocol_changes": false,
+    "post_marker_metric_changes": false
+  },
+  "expected_artifacts": [
+    "P30_PREREGISTRATION.md",
+    "P30_PREREGISTRATION.json",
+    "P30_PREREGISTRATION_SHA256.txt",
+    "P30_MECHANISM_NOTE.md",
+    "P30_ENGINEERING_QUALIFICATION.json",
+    "P30_SYNTHETIC_GRADIENTS.json",
+    "P30_EXECUTION_MARKER.json",
+    "P30_RESULTS.json",
+    "P30_TRANSFER_DIAGNOSTIC.json",
+    "P30_STABILITY_DIAGNOSTIC.json",
+    "P30_POST_RUN_AUDIT.json",
+    "P30_FINAL_REPORT.md"
+  ],
+  "p30_not_started_until": "This artifact, its SHA256 hash, and the implementation execution base are committed and pushed; all Stage 0 and Stage 1 gates pass; Stage 2 and Stage 3 fixed qualification gates pass; then the full marker is created once."
+}
