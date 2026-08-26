@@ -1,0 +1,17 @@
+{
+  "schema_version": "P28_METRICS_V1",
+  "status": "P28_ENGINEERING_STOP",
+  "scientific_metrics_available": false,
+  "reason": "The single diagnostic stopped at the candle frozen-map parity gate before any P28 metric artifact was produced.",
+  "p28_attempt_uuid": "47fa52ee-a5cd-45ce-aa11-47737f3462f7",
+  "p28_execution_base_sha": "0c6d4b27d06c33b9a691b72c354fff20e0df0e3a",
+  "failure": {
+    "class": "candle",
+    "native_max_abs": 0.0,
+    "student_max_abs": 0.00022339820861816406,
+    "parity_tolerance": 0.00002,
+    "exception": "RuntimeError: frozen map parity failure for candle"
+  },
+  "completed_classes": [],
+  "scientific_outcomes": null
+}
