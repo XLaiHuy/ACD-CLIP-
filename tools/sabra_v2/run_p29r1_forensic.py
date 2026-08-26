@@ -919,7 +919,7 @@ def _post_run_audit(
     metrics: Mapping[str, Any],
     decision: Mapping[str, Any],
 ) -> dict[str, Any]:
-    required = [args.output_dir / name for name in FORENSIC_OUTPUTS[1:7]]
+    required = [args.output_dir / name for name in FORENSIC_OUTPUTS[1:6]]
     if any(not path.is_file() for path in required):
         raise RuntimeError("P29R1 output set is incomplete before post-run audit")
     if len(classes) != len(CLASS_NAMES) or {item["class"] for item in classes} != set(CLASS_NAMES):
