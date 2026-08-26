@@ -60,6 +60,14 @@ TOP_PIXEL_FRACTIONS = (0.001, 0.005, 0.01, 0.05)
 NORM_RATIO_THRESHOLDS = (0.1, 0.25, 0.5, 1.0)
 GAMMA_VALUES = (0.0, 0.5, 1.0)
 
+NEXT_RESEARCH_QUESTION = {
+    "DO_NO_HARM_NATIVE_PRESERVATION": "When should a learned residual intervene at all?",
+    "SPARSE_SELECTIVE_CORRECTION": "Can useful teacher corrections be transferred selectively without global teacher-direction matching?",
+    "TEACHER_DIRECTION_NOT_CAUSAL": "What downstream-relevant invariant should be transferred instead of raw teacher correction direction?",
+    "DIRECTION_METRIC_ILL_CONDITIONED_BY_ABSTENTION": "How should transfer fidelity be evaluated conditionally on meaningful correction support?",
+    "TEACHER_SCALE_REWEIGHTING": "Is the benefit coming from balanced sample weighting rather than explicit teacher residual fidelity?",
+}
+
 P29_PREDICTIONS = Path("/workspace/p29_science_v1/candle/predictions/p29_held_predictions.pt")
 P29_METRICS = Path("/workspace/p29_science_v1/candle/metrics/p29_held_metrics.json")
 P29_CHECKPOINT = Path("/workspace/p29_science_v1/candle/training/p29_region_adapter.pt")
@@ -698,7 +706,6 @@ def _gamma_sensitivity(native_logits: np.ndarray, residual: np.ndarray, native_s
         score = _deploy_from_native(native_logits, residual, gamma)
         result[str(gamma)] = {
             "gamma": gamma,
-            "score_similarity_to_native": _prediction_similarity(score, native_score),
             "score_change_unlabeled": _distribution(score - native_score),
             "recomputed_score_max_abs_error_vs_stored_actual": None,
         }
@@ -716,6 +723,8 @@ def _rank_hypotheses(analysis: Mapping[str, Any]) -> dict[str, Any]:
     similarity = analysis["prediction_similarity"]["p30r1_vs_native"]
     r1_delta = analysis["score_delta"]["p30r1"]
     direction = analysis["direction"]["p30r1"]
+    p30_direction = analysis["direction"]["p30"]
+    method_metrics = analysis["method_metrics"]
     bins = analysis["direction_by_norm_bin"]["p30r1"]["bins"]
     source = analysis["teacher_scale_distribution"]
     mean_abs_delta = float(r1_delta["global"]["absolute"]["mean"])
@@ -735,18 +744,51 @@ def _rank_hypotheses(analysis: Mapping[str, Any]) -> dict[str, Any]:
     )
     sparse_selective = bool(anomaly_enrichment > 1.25 and float(r1_delta["mean_absolute_delta_anomaly"]) > float(r1_delta["mean_absolute_delta_normal"]) * 1.25)
     high_norm_direction_recovers = bool(high_cosine > low_cosine + 0.20 and high_cosine > 0.30)
-    if near_native:
-        primary = "DO_NO_HARM_NATIVE_PRESERVATION"
-        secondary = "TEACHER_SCALE_REWEIGHTING"
+    p30r1_pap = float(method_metrics["p30r1"]["pAP"])
+    p30_pap = float(method_metrics["p30"]["pAP"])
+    direction_proxy_contrast = bool(
+        p30r1_pap > p30_pap
+        and float(direction["directional_cosine"]["mean"]) < float(p30_direction["directional_cosine"]["mean"])
+    )
+
+    # The cross-method contrast is the most causally discriminating frozen
+    # evidence here: P30 has better directional fidelity but much worse pAP,
+    # while P30R1 has the converse.  Selectivity, native preservation, norm
+    # conditioning, and scale reweighting remain ranked alternatives.  This
+    # ordering is descriptive and does not define a training gate.
+    if direction_proxy_contrast:
+        primary = "TEACHER_DIRECTION_NOT_CAUSAL"
+        secondary = "SPARSE_SELECTIVE_CORRECTION" if sparse_selective else "DO_NO_HARM_NATIVE_PRESERVATION"
     elif sparse_selective:
         primary = "SPARSE_SELECTIVE_CORRECTION"
-        secondary = "TEACHER_DIRECTION_NOT_CAUSAL"
+        secondary = "DO_NO_HARM_NATIVE_PRESERVATION" if near_native else "DIRECTION_METRIC_ILL_CONDITIONED_BY_ABSTENTION"
+    elif near_native:
+        primary = "DO_NO_HARM_NATIVE_PRESERVATION"
+        secondary = "TEACHER_SCALE_REWEIGHTING"
     elif high_norm_direction_recovers:
         primary = "DIRECTION_METRIC_ILL_CONDITIONED_BY_ABSTENTION"
         secondary = "TEACHER_SCALE_REWEIGHTING"
     else:
-        primary = "TEACHER_DIRECTION_NOT_CAUSAL"
-        secondary = "TEACHER_SCALE_REWEIGHTING"
+        primary = "TEACHER_SCALE_REWEIGHTING"
+        secondary = "DO_NO_HARM_NATIVE_PRESERVATION"
+
+    evidence_by_hypothesis = {
+        "DO_NO_HARM_NATIVE_PRESERVATION": "The exact native counterfactual is strong; P30R1 has high per-image similarity and top-1% overlap, but its global score correlation and anomaly-region deltas show that preservation is incomplete.",
+        "SPARSE_SELECTIVE_CORRECTION": "P30R1 score-change mass is strongly anomaly-enriched and its residual effective support is small; aggregate usefulness remains exploratory because native pAP is slightly higher.",
+        "TEACHER_DIRECTION_NOT_CAUSAL": "P30 has higher held directional cosine but far worse pAP, whereas P30R1 has collapsed direction and recovers pAP; this is a direct frozen cross-method proxy contrast, not a causal proof.",
+        "DIRECTION_METRIC_ILL_CONDITIONED_BY_ABSTENTION": "The lowest-norm quartile has cosine -0.774 and the highest has 0.622, while 46% of P30R1 vectors are below the inherited vector epsilon scale; high-norm sign agreement remains poor, so this is only partial.",
+        "TEACHER_SCALE_REWEIGHTING": "The frozen objective implies a 24.56x q99/q01 inverse-weight spread over the source cache; the mechanism is analytically clear, but individual training-step causality was not reconstructed.",
+    }
+    ordered = [primary, secondary]
+    for hypothesis in (
+        "DO_NO_HARM_NATIVE_PRESERVATION",
+        "SPARSE_SELECTIVE_CORRECTION",
+        "TEACHER_DIRECTION_NOT_CAUSAL",
+        "DIRECTION_METRIC_ILL_CONDITIONED_BY_ABSTENTION",
+        "TEACHER_SCALE_REWEIGHTING",
+    ):
+        if hypothesis not in ordered:
+            ordered.append(hypothesis)
     return {
         "primary_mechanism": primary,
         "secondary_mechanism": secondary,
@@ -758,14 +800,15 @@ def _rank_hypotheses(analysis: Mapping[str, Any]) -> dict[str, Any]:
             "p30r1_lowest_norm_bin_cosine": low_cosine,
             "p30r1_highest_norm_bin_cosine": high_cosine,
             "p30r1_global_cosine": r1_cosine,
+            "p30_directional_cosine": float(p30_direction["directional_cosine"]["mean"]),
+            "p30_pAP": p30_pap,
+            "p30r1_pAP": p30r1_pap,
+            "direction_proxy_contrast": direction_proxy_contrast,
             "inverse_teacher_scale_q99_over_q01": source["inverse_weight_q99_over_q01"],
         },
         "hypotheses_ranked": [
-            {"rank": 1, "hypothesis": primary, "evidence": "See fixed prediction similarity, score-delta, norm-bin, and source-weight summaries."},
-            {"rank": 2, "hypothesis": secondary, "evidence": "Teacher-scale distribution and analytic gradient coefficient are directly measured."},
-            {"rank": 3, "hypothesis": "SPARSE_SELECTIVE_CORRECTION", "evidence": "Score-delta anomaly enrichment is reported without adaptive thresholding."},
-            {"rank": 4, "hypothesis": "DIRECTION_METRIC_ILL_CONDITIONED_BY_ABSTENTION", "evidence": "Norm-conditioned cosine/sign summaries test whether low norms explain collapse."},
-            {"rank": 5, "hypothesis": "TEACHER_DIRECTION_NOT_CAUSAL", "evidence": "P30/P30R1 cross-method contrast and conditional held-sample direction summaries."},
+            {"rank": rank, "hypothesis": hypothesis, "evidence": evidence_by_hypothesis[hypothesis]}
+            for rank, hypothesis in enumerate(ordered, start=1)
         ],
     }
 
@@ -814,12 +857,15 @@ def _render_report(result: Mapping[str, Any]) -> str:
     score_delta = result["score_delta"]
     direction = result["direction"]
     source = result["teacher_scale_distribution"]
+    parent = result["frozen_parent_metrics"]
+    falsification = result["falsification_summary"]
+    p30r1_residual = result["correction_distribution"]["p30r1"]["residual"]["coordinate_distribution"]["absolute"]
     lines = [
         "# P30R1 Causal Forensic Report",
         "",
         "## 1. Executive finding",
         "",
-        f"The frozen candle result is best explained primarily by `{primary}`, with `{secondary}` as a secondary mechanism candidate. P30R1 kept detection close to the strong native detector while controlling the P30 heavy tail, but the student residual had strongly collapsed teacher-direction fidelity. This is post-hoc exploratory evidence only: P30R1 remains `STAGE2_SCIENTIFIC_STOP`, and no Stage 3 or full run was authorized.",
+        f"The frozen candle result is best explained primarily by `{primary}`, with `{secondary}` as a secondary mechanism candidate. P30 has higher teacher-direction fidelity but far worse pAP, while P30R1 has collapsed direction and recovers the learned-adapter detection metrics; this makes teacher direction a poor validated causal proxy on this class. P30R1 also makes sparse, anomaly-enriched changes while staying close to the native detector on most pixels. This is post-hoc exploratory evidence only: P30R1 remains `STAGE2_SCIENTIFIC_STOP`, and no Stage 3 or full run was authorized.",
         "",
         "## 2. Frozen-artifact inventory",
         "",
@@ -834,7 +880,7 @@ def _render_report(result: Mapping[str, Any]) -> str:
         "",
         "## 3. Native / zero-adapter comparison",
         "",
-        f"The zero-residual prediction reconstructed from frozen Tier-A native logits through the unchanged deterministic deployment operator is `{result['native_counterfactual_available']}` (`EXACT_FROZEN_COUNTERFACTUAL`). Its metrics are pAP `{metrics['native']['pAP']:.12f}` and pAUROC `{metrics['native']['pAUROC']:.12f}`, matching the frozen native reference within the recorded reconstruction tolerance. This is exploratory evidence and does not alter the P30R1 gate.",
+        f"The zero-residual prediction reconstructed from frozen Tier-A native logits through the unchanged deterministic deployment operator is `{result['native_counterfactual_available']}`. Its metrics are pAP `{metrics['native']['pAP']:.12f}` and pAUROC `{metrics['native']['pAUROC']:.12f}`, matching the frozen native reference within the recorded reconstruction tolerance. Native pAP is slightly above P30R1 (`{metrics['native']['pAP'] - metrics['p30r1']['pAP']:.12f}`), so the evidence supports preservation / damage avoidance more strongly than a claim that the learned correction improves the frozen detector. This is exploratory evidence and does not alter the P30R1 gate.",
         "",
         f"Native score statistics: global mean `{result['native_score_statistics']['global']['mean']:.8f}`, normal-pixel q99 `{result['native_score_statistics']['normal']['quantiles']['q99']:.8f}`, anomaly-pixel q99 `{result['native_score_statistics']['anomaly']['quantiles']['q99']:.8f}`.",
         "",
@@ -850,7 +896,7 @@ def _render_report(result: Mapping[str, Any]) -> str:
         lines.append(f"| {label} | {row['global_pearson']:.9f} | {row['global_absolute_difference']['mean']:.9f} | {row['global_absolute_difference']['quantiles']['q99']:.9f} | {row['top_pixel_overlap_mean']['0.01']:.6f} |")
     lines.extend([
         "",
-        f"P30R1 score-delta fixed-threshold fractions are `{json.dumps(score_delta['p30r1']['fixed_absolute_thresholds'], sort_keys=True)}`. Its gamma sensitivity (`{', '.join(str(value) for value in GAMMA_VALUES)}`) is recorded in the JSON using only unlabeled score changes.",
+        f"P30R1 score-delta fixed-threshold fractions are `{json.dumps(score_delta['p30r1']['fixed_absolute_thresholds'], sort_keys=True)}`. The global Pearson value is not near-perfect because a small set of anomaly-region changes carries most absolute delta mass; per-image Pearson is `{sim['p30r1_vs_native']['per_image_pearson']['mean']:.9f}` and top-1% overlap is `{sim['p30r1_vs_native']['top_pixel_overlap_mean']['0.01']:.6f}`. Its gamma sensitivity (`{', '.join(str(value) for value in GAMMA_VALUES)}`) is recorded in the JSON using only unlabeled score changes.",
         "",
         "## 5. Correction magnitude and sparsity",
         "",
@@ -871,7 +917,7 @@ def _render_report(result: Mapping[str, Any]) -> str:
         "",
         f"P30R1 staged directional cosine mean is `{direction['p30r1']['directional_cosine']['mean']:.9f}` and sign agreement mean is `{direction['p30r1']['sign_agreement']['mean']:.9f}`. Teacher residuals were reconstructed from frozen native logits and post-freeze masks with the exact deterministic R0 utility; no teacher neural forward occurred. The result therefore cannot be dismissed as a missing teacher tensor, but direction may still be ill-conditioned when the student norm is small.",
         "",
-        f"P30R1 student norm median is `{direction['p30r1']['student_norm_l2']['quantiles']['q50']:.9f}` and student/teacher norm-ratio median is `{direction['p30r1']['student_to_teacher_norm_ratio']['quantiles']['q50']:.9f}`. Norm/cosine and norm/sign correlations are `{direction['p30r1']['student_norm_vs_directional_cosine']}` and `{direction['p30r1']['student_norm_vs_sign_agreement']}`.",
+        f"P30R1 student norm median is `{direction['p30r1']['student_norm_l2']['quantiles']['q50']:.9f}` and student/teacher norm-ratio median is `{direction['p30r1']['student_to_teacher_norm_ratio']['quantiles']['q50']:.9f}`. Norm/cosine Pearson/Spearman correlations are `{direction['p30r1']['student_norm_vs_directional_cosine']['pearson']:.6f}` / `{direction['p30r1']['student_norm_vs_directional_cosine']['spearman']:.6f}`, while norm/sign correlations are `{direction['p30r1']['student_norm_vs_sign_agreement']['pearson']:.6f}` / `{direction['p30r1']['student_norm_vs_sign_agreement']['spearman']:.6f}`.",
         "",
         "## 7. Student-norm-conditioned direction analysis",
         "",
@@ -887,6 +933,7 @@ def _render_report(result: Mapping[str, Any]) -> str:
     lines.extend([
         "",
         f"The inherited raw coordinate epsilon threshold is `{result['low_norm_fraction']['p30r1']['coordinate_raw_epsilon_threshold']:.9f}` and the corresponding 243-coordinate L2 threshold is `{result['low_norm_fraction']['p30r1']['vector_l2_epsilon_threshold']:.9f}`. Exact and thresholded near-zero fractions are reported without an outcome-tuned cutoff.",
+        f"The lowest-norm cosine is `{result['hypothesis_decision_features']['p30r1_lowest_norm_bin_cosine']:.9f}` and the highest-norm cosine is `{result['hypothesis_decision_features']['p30r1_highest_norm_bin_cosine']:.9f}`, but the highest-norm sign agreement remains `{direction['p30r1']['sign_agreement']['mean']:.9f}` overall; low-norm abstention explains part of the collapse, not all of it.",
         "",
         "## 8. Teacher-scale normalization reweighting",
         "",
@@ -896,30 +943,58 @@ def _render_report(result: Mapping[str, Any]) -> str:
         "",
         "## 9. Sparse/selective correction analysis",
         "",
-        f"For P30R1, mean absolute score delta is `{score_delta['p30r1']['mean_absolute_delta_normal']:.9f}` on normal pixels and `{score_delta['p30r1']['mean_absolute_delta_anomaly']:.9f}` on anomaly pixels. Absolute delta mass in anomaly pixels is `{score_delta['p30r1']['spatial_enrichment']['absolute_delta_mass_fraction_in_anomaly']:.9f}`, an enrichment of `{score_delta['p30r1']['spatial_enrichment']['absolute_delta_mass_enrichment_over_area']:.9f}` over anomaly area. This directly tests whether small corrections are concentrated where labels matter; it is descriptive, not a tuning rule.",
+        f"For P30R1, mean absolute score delta is `{score_delta['p30r1']['mean_absolute_delta_normal']:.9f}` on normal pixels and `{score_delta['p30r1']['mean_absolute_delta_anomaly']:.9f}` on anomaly pixels. Absolute delta mass in anomaly pixels is `{score_delta['p30r1']['spatial_enrichment']['absolute_delta_mass_fraction_in_anomaly']:.9f}`, an enrichment of `{score_delta['p30r1']['spatial_enrichment']['absolute_delta_mass_enrichment_over_area']:.9f}` over anomaly area. This supports spatial selectivity, but aggregate pAP remains slightly below native, so “useful” correction is a hypothesis rather than an established causal result; the statistic is descriptive, not a tuning rule.",
         "",
-        "## 10. Causal hypothesis ranking",
+        "## 10. P29 → P30 → P30R1 mechanism table",
+        "",
+        "| Property | P29 | P30 | P30R1 |",
+        "|---|---|---|---|",
+        "| Objective count | 3 | 1 | 1 |",
+        "| Student self-normalized? | no | yes | no |",
+        "| Teacher-relative reweighting? | no | directional only | yes, via `1/a_t` |",
+        "| Exact zero teacher treatment | restoring term active | excluded from directional mean | retained by normalized SmoothL1 |",
+        f"| Mean residual | `{parent['p29_transfer']['magnitude']['mean_abs']:.9f}` | `{parent['p30_transfer']['magnitude']['mean_abs']:.9f}` | `{p30r1_residual['mean']:.9f}` |",
+        f"| Residual absolute q99 | `{parent['p29_transfer']['magnitude']['q99_abs']:.9f}` | `{parent['p30_transfer']['magnitude']['q99_abs']:.9f}` | `{p30r1_residual['quantiles']['q99']:.9f}` |",
+        f"| Directional cosine | `{parent['p29_transfer']['directional_cosine']['mean']:.9f}` | `{parent['p30_transfer']['directional_cosine']['mean']:.9f}` | `{direction['p30r1']['directional_cosine']['mean']:.9f}` |",
+        f"| pAP | `{metrics['p29']['pAP']:.9f}` | `{metrics['p30']['pAP']:.9f}` | `{metrics['p30r1']['pAP']:.9f}` |",
+        f"| pAUROC | `{metrics['p29']['pAUROC']:.9f}` | `{metrics['p30']['pAUROC']:.9f}` | `{metrics['p30r1']['pAUROC']:.9f}` |",
+        f"| Native top-1% overlap | `{sim['p29_vs_native']['top_pixel_overlap_mean']['0.01']:.6f}` | `{sim['p30_vs_native']['top_pixel_overlap_mean']['0.01']:.6f}` | `{sim['p30r1_vs_native']['top_pixel_overlap_mean']['0.01']:.6f}` |",
+        f"| Correction sparsity | residual unavailable | `{result['correction_sparsity']['p30']['effective_support_fraction']:.6f}` residual support | `{result['correction_sparsity']['p30r1']['effective_support_fraction']:.6f}` residual support |",
+        "| Main mechanism | mixed-objective conflict | radial non-identifiability | see ranked forensic hypotheses |",
+        "",
+        "## 11. Causal hypothesis ranking",
         "",
     ])
     for item in result["hypotheses_ranked"]:
         lines.append(f"{item['rank']}. `{item['hypothesis']}` — {item['evidence']}")
     lines.extend([
         "",
-        "## 11. Falsification evidence",
+        "## 12. Falsification evidence",
         "",
-        "Each hypothesis has an explicit falsifier in the JSON. In particular, native preservation would be falsified by strong non-native ranking changes; sparse selectivity by absent anomaly enrichment; abstention ill-conditioning by persistently poor high-norm direction; and scale reweighting by nearly constant weights.",
+        "Each hypothesis has an explicit falsifier. The observed evidence is descriptive and does not convert any hypothesis into a training gate.",
         "",
-        "## 12. SABRA-old overconstraint risk",
+    ])
+    for key in (
+        "H1_DO_NO_HARM_NATIVE_PRESERVATION",
+        "H2_SPARSE_SELECTIVE_CORRECTION",
+        "H3_TEACHER_DIRECTION_PROXY_FAILURE",
+        "H4_DIRECTION_METRIC_ILL_CONDITIONED_BY_ABSTENTION",
+        "H5_TEACHER_SCALE_REWEIGHTING",
+    ):
+        lines.append(f"- `{key}` — falsifier: {falsification[key]['falsifier']}")
+    lines.extend([
+        "",
+        "## 13. SABRA-old overconstraint risk",
         "",
         "Yes, the old failure pattern is a live risk. Adding cosine, sign, ranking, or gating terms solely to repair P30R1's failed internal fidelity metric would repeat P29's mixed-objective temptation without evidence that those terms improve detection. The current candle result instead says teacher fidelity must earn its place as a causal target; no rescue objective is implemented or recommended here.",
         "",
-        "## 13. Scientific interpretation",
+        "## 14. Scientific interpretation",
         "",
-        "P29's multiple objectives created conflict/starvation. P30 isolated direction and exposed radial non-identifiability. P30R1 restored radial control and native-like detection while direction collapsed. On this one class, downstream utility and teacher imitation quality are decoupled. The evidence is consistent with minimal intervention plus teacher-scale reweighting; it does not establish superiority across classes or prove that the teacher is useless.",
+        "P29's multiple objectives created conflict/starvation. P30 isolated direction and exposed radial non-identifiability. P30R1 restored radial control and learned-adapter detection while direction collapsed. On this one class, downstream utility and teacher imitation quality are decoupled: the cross-method contrast supports `TEACHER_DIRECTION_NOT_CAUSAL` as the primary forensic mechanism, with sparse anomaly-enriched intervention as a secondary candidate. Low-norm abstention and teacher-scale reweighting plausibly contribute, but neither is isolated as the sole cause. The exact native counterfactual remains slightly better than P30R1, so no superiority over the frozen detector is claimed and no result is generalized across classes.",
         "",
-        "## 14. Recommended next research question",
+        "## 15. Recommended next research question",
         "",
-        "When should a learned residual intervene at all, and can intervention usefulness be estimated without forcing global teacher-direction imitation?",
+        f"{NEXT_RESEARCH_QUESTION[primary]}",
         "",
         "## Required terminal state",
         "",
@@ -1027,10 +1102,14 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "native_reconstruction_max_abs_error_vs_stored_maps": stored_native_errors,
         "native_cache_identity": native_cache_info,
         "native_metrics": native_metrics,
+        "native_metrics_if_available": native_metrics,
         "native_score_statistics": native_statistics,
         "method_metrics": method_metrics,
         "frozen_parent_metrics": parent,
         "prediction_similarity": prediction_similarity,
+        "P29_native_prediction_similarity": prediction_similarity["p29_vs_native"],
+        "P30_native_prediction_similarity": prediction_similarity["p30_vs_native"],
+        "P30R1_native_prediction_similarity": prediction_similarity["p30r1_vs_native"],
         "gamma_sensitivity_unlabeled": gamma_sensitivity,
         "correction_distribution": correction_distribution,
         "correction_sparsity": {name: correction_distribution[name]["residual"]["sparsity"] if correction_distribution[name]["residual"] is not None else "UNAVAILABLE_WITHOUT_NEW_FORWARD" for name in methods},
@@ -1057,7 +1136,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "present": True,
             "decision": "Do not add internal-fidelity constraints without evidence that they causally improve downstream detection.",
         },
-        "recommended_next_question": "When should a learned residual intervene at all, and can intervention usefulness be estimated without forcing global teacher-direction imitation?",
+        "recommended_next_question": NEXT_RESEARCH_QUESTION[ranking["primary_mechanism"]],
         "new_training_runs": 0,
         "optimizer_steps": 0,
         "new_CLIP_forwards": 0,
