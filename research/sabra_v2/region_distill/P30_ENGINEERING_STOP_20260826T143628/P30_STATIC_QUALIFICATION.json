@@ -1,0 +1,28 @@
+{
+  "compile_paths": [
+    "tools/sabra_v2/p30_contract.py",
+    "tools/sabra_v2/p30_objective.py",
+    "tools/sabra_v2/train_region_distill_p30_cached.py",
+    "tools/sabra_v2/evaluate_region_distill_p30_cached.py",
+    "tools/sabra_v2/score_region_distill_p30.py",
+    "tools/sabra_v2/aggregate_region_distill_p30.py",
+    "tools/sabra_v2/analyze_p30_outputs.py",
+    "tools/sabra_v2/run_p30_directional_distillation.py"
+  ],
+  "new_p30_objective_count": 1,
+  "output_schemas_checked": true,
+  "schema_version": "P30_STATIC_QUALIFICATION_V1",
+  "status": "PASS",
+  "teacher_frozen": true,
+  "test_paths": [
+    "tests/test_p30_objective.py",
+    "tests/test_p30_execution_contract.py",
+    "tests/test_p29_objective.py",
+    "tests/test_p29_execution_contract.py",
+    "tests/test_p29r1_forensic.py",
+    "tests/test_p29r1_root_cause.py",
+    "tests/test_sabra_v2_region_pool.py",
+    "tests/test_sabra_v2_student_forward.py"
+  ],
+  "unexpected_dataset_reads": 0
+}

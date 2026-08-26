@@ -1,0 +1,49 @@
+{
+  "cases": {
+    "identical_direction_loss": 0.0017960071563720703,
+    "near_zero_target": {
+      "finite": true,
+      "loss": 1.0,
+      "valid_count": 1
+    },
+    "opposite_direction_loss": 1.998203992843628,
+    "partial_sign_mismatch_losses": [
+      0.0024541616439819336,
+      0.010664403438568115,
+      0.08455681800842285,
+      0.3308643698692322,
+      0.6674847602844238
+    ],
+    "same_direction_scale_losses": {
+      "0.1": 0.08022040128707886,
+      "1.0": 0.0017960071563720703,
+      "10.0": 0.0009073615074157715,
+      "100.0": 0.0008985400199890137
+    },
+    "spatial_ordering_losses": {
+      "matching": 1.0728836059570312e-06,
+      "reversed": 0.49079811573028564
+    },
+    "zero_target": {
+      "finite": true,
+      "loss": 0.0,
+      "valid_count": 0
+    }
+  },
+  "objective_count": 1,
+  "observed_data_used": false,
+  "schema_version": "P30_SYNTHETIC_GRADIENTS_V1",
+  "status": "PASS",
+  "student_output_backward": {
+    "gradient_finite": true,
+    "gradient_l2": 1.2921569347381592,
+    "gradient_max_abs": 0.14177128672599792,
+    "loss": 1.0,
+    "teacher_detached": true
+  },
+  "thresholds": {
+    "gradient_l2_max": 1000.0,
+    "gradient_l2_min": 1e-08,
+    "gradient_max_abs_max": 100.0
+  }
+}

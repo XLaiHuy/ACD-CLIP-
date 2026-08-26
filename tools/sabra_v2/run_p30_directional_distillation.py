@@ -239,8 +239,6 @@ def _common_fold_args(args: argparse.Namespace, prereg_hash: str, execution_sha:
         P30_UUID,
         "--device",
         args.device,
-        "--num-workers",
-        "0",
     ]
 
 
@@ -274,6 +272,8 @@ def _run_fold(
         str(P30_LEARNING_RATE),
         "--seed",
         str(P30_SEED),
+        "--num-workers",
+        "0",
     ]
     if engineering_smoke:
         train_args.append("--engineering-smoke")

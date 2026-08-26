@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+from types import SimpleNamespace
 
 from tools.sabra_v2 import evaluate_region_distill_p30_cached as evaluate
 from tools.sabra_v2 import run_p30_directional_distillation as runner
@@ -85,6 +86,19 @@ def test_p30_runner_has_fixed_stages_and_prediction_barrier() -> None:
     assert source.index("_prediction_gate") < source.index("score_region_distill_p30")
     assert "build_region_cache" not in source
     assert "run_region_distill_science" not in source
+
+
+def test_runner_does_not_pass_trainer_only_worker_flag_to_evaluator() -> None:
+    args = SimpleNamespace(
+        visa_root="/data/visa",
+        p26_checkpoint="/m/p26.pt",
+        clip_asset="/m/clip.pt",
+        cache_root="/cache",
+        metadata="/m/VisA.jsonl",
+        device="cuda",
+    )
+    common = runner._common_fold_args(args, "prereg", "base", "candle")
+    assert "--num-workers" not in common
 
 
 def test_p30_uses_the_unchanged_adapter_architecture() -> None:

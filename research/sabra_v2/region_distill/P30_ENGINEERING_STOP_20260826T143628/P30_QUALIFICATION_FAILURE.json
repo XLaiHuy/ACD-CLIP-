@@ -1,0 +1,11 @@
+{
+  "error": "Command '['/workspace/venvs/acdclip/bin/python', '-m', 'tools.sabra_v2.evaluate_region_distill_p30_cached', '--held-class', 'candle', '--visa-root', '/workspace/data/source/visa_unpack', '--p26-checkpoint', '/workspace/ACD-CLIP-sabra/runs/phase4v/v1_7/readiness_full/adapter_5.pth', '--clip-asset', '/workspace/ACD-CLIP-sabra/model/ViT-L-14-336px.pt', '--cache-root', '/workspace/p27r1_cache_v1', '--metadata', '/workspace/ACD-CLIP-sabra/dataset/hub/VisA.jsonl', '--p30-execution-base-sha', 'b69618fec083a69a07f9214928929cea72652889', '--p30-prereg-sha', '86ede5f23c7edd50ed848fa1e6c6aab987e7a9ded35a1c7c3a57f12ec1badde6', '--p30-uuid', '71a16efe-2388-458a-9106-bd87f882805a', '--device', 'cuda', '--num-workers', '0', '--adapter-checkpoint', '/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P30/qualification/stage1_smoke/candle/training/p30_region_adapter.pt', '--output', '/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P30/qualification/stage1_smoke/candle/predictions', '--stage', 'smoke', '--batch-size', '1']' returned non-zero exit status 2.",
+  "error_type": "CalledProcessError",
+  "full_marker_created": false,
+  "p30_preregistration_sha256": "86ede5f23c7edd50ed848fa1e6c6aab987e7a9ded35a1c7c3a57f12ec1badde6",
+  "p30_uuid": "71a16efe-2388-458a-9106-bd87f882805a",
+  "schema_version": "P30_QUALIFICATION_FAILURE_V1",
+  "scientific_full_rerun_automatic": false,
+  "status": "STOP",
+  "utc_timestamp": "2026-08-26T14:36:28.515521+00:00"
+}
