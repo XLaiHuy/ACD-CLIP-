@@ -1,0 +1,64 @@
+{
+  "batch_four_vs_batch_one": {
+    "corrected": {
+      "max_abs": 0.0006742477416992188,
+      "mean_abs": 4.211802619489217e-05,
+      "rmse": 6.350436672598058e-05
+    },
+    "final": {
+      "max_abs": 0.00022339820861816406,
+      "mean_abs": 7.979336747414301e-08,
+      "rmse": 2.163416401206815e-06
+    },
+    "patch": {
+      "max_abs": 0.001348257064819336,
+      "mean_abs": 8.423820574947379e-05,
+      "rmse": 0.0001270081155995859
+    },
+    "post_blur": {
+      "max_abs": 0.00058746337890625,
+      "mean_abs": 3.9415506317391294e-05,
+      "rmse": 5.879175197519164e-05
+    },
+    "region": {
+      "max_abs": 0.0014760494232177734,
+      "mean_abs": 0.00010125630799634957,
+      "rmse": 0.00015967764217909232
+    },
+    "resized": {
+      "max_abs": 0.00058746337890625,
+      "mean_abs": 3.9630310976819496e-05,
+      "rmse": 5.877749834080608e-05
+    },
+    "stage_mean": {
+      "max_abs": 0.0005869865417480469,
+      "mean_abs": 3.9628081850518165e-05,
+      "rmse": 5.877752324587815e-05
+    }
+  },
+  "batch_four_vs_immutable_final": {
+    "max_abs": 0.00022339820861816406,
+    "mean_abs": 7.979336747414314e-08,
+    "rmse": 2.1634164012067984e-06
+  },
+  "batch_one_vs_immutable_final": {
+    "native": {
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rmse": 0.0
+    },
+    "student": {
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rmse": 0.0
+    }
+  },
+  "first_divergence_stage": "adapter_region_residual",
+  "gt_reads": 0,
+  "held_class": "candle",
+  "incorrect_replay_batch_size": 4,
+  "mask_reads": 0,
+  "p27_batch_size": 1,
+  "root_cause": "P27 immutable evaluation used batch-size 1, while the failed P28 replay used batch-size 4; the adapter GPU path is numerically batch-size dependent.",
+  "root_cause_class": "OTHER_EXACTLY_IDENTIFIED_ENGINEERING_CAUSE"
+}

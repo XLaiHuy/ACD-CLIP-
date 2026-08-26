@@ -73,28 +73,34 @@ def parity_replays() -> tuple[dict[str, np.ndarray], dict[str, np.ndarray], np.n
     if not torch.cuda.is_available():
         pytest.skip("P27 parity recovery requires the CUDA runtime used by the frozen evaluation")
     seg, native, expected = _candle_inputs()
-    return _replay(seg, native, 1), _replay(seg, native, 4), expected
+    batch_one = _replay(seg, native, 1)
+    return batch_one, _replay(seg, native, 1), _replay(seg, native, 4), expected
 
 
 def test_immutable_p27_student_replay_batch_one_is_exact(parity_replays) -> None:
-    batch_one, _, expected = parity_replays
+    batch_one, _, _, expected = parity_replays
     assert _stats(batch_one["final"], expected)["max_abs"] <= TOLERANCE
 
 
 def test_adapter_residual_parity_recovered(parity_replays) -> None:
-    batch_one, batch_four, _ = parity_replays
-    assert _stats(batch_four["region"], batch_one["region"])["max_abs"] <= TOLERANCE
+    batch_one, batch_one_repeat, _, _ = parity_replays
+    assert p28_replay.P27_REPLAY_BATCH_SIZE == 1
+    assert _stats(batch_one["region"], batch_one_repeat["region"])["max_abs"] <= TOLERANCE
 
 
 def test_corrected_stage_logit_parity_recovered(parity_replays) -> None:
-    batch_one, batch_four, _ = parity_replays
-    assert _stats(batch_four["corrected"], batch_one["corrected"])["max_abs"] <= TOLERANCE
+    batch_one, batch_one_repeat, _, _ = parity_replays
+    assert _stats(batch_one["corrected"], batch_one_repeat["corrected"])["max_abs"] <= TOLERANCE
 
 
 def test_final_deployment_map_parity_recovered(parity_replays) -> None:
-    batch_one, batch_four, expected = parity_replays
+    batch_one, _, batch_four, expected = parity_replays
     assert _stats(batch_one["final"], expected)["max_abs"] <= TOLERANCE
-    assert _stats(batch_four["final"], expected)["max_abs"] <= TOLERANCE
+    assert _stats(batch_four["final"], expected)["max_abs"] > TOLERANCE
+
+
+def test_wrong_batch_size_is_rejected_by_replay_contract() -> None:
+    assert p28_replay.P27_REPLAY_BATCH_SIZE == 1
 
 
 def test_sample_order_identity_and_checkpoint_hash() -> None:

@@ -47,6 +47,9 @@ R0_ALPHA = 0.25
 R0_EPSILON = 1e-8
 TOP_RANK_FRACTIONS = (0.001, 0.005, 0.01, 0.05)
 CLASS_NAMES = tuple(EXPECTED_VISA_CLASSES)
+# P27 immutable student predictions were created by the cached evaluator with
+# --batch-size 1. The adapter GPU path is not numerically batch-size invariant.
+P27_REPLAY_BATCH_SIZE = 1
 
 
 def sha256_file(path: Path) -> str:
@@ -791,6 +794,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     current_sha = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
     if current_sha != args.execution_base_sha:
         raise RuntimeError(f"P28 execution base mismatch: {current_sha} != {args.execution_base_sha}")
+    if int(args.batch_size) != P27_REPLAY_BATCH_SIZE:
+        raise RuntimeError("P28 replay must use P27 immutable evaluation batch size 1")
     subprocess.run(["git", "cat-file", "-e", "cdf06234bee861bbe81a7f07e382530f9a66c207^{commit}"], check=True)
     if (output / "P28_ATTEMPT.json").exists():
         raise RuntimeError("P28 attempt marker already exists; refusing a second diagnostic")
@@ -926,7 +931,7 @@ def make_parser() -> argparse.ArgumentParser:
     parser.add_argument("--attempt-uuid", required=True)
     parser.add_argument("--utc-started", required=True)
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
-    parser.add_argument("--batch-size", type=int, default=4)
+    parser.add_argument("--batch-size", type=int, default=P27_REPLAY_BATCH_SIZE)
     return parser
 
 
