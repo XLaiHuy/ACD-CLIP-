@@ -1,0 +1,64 @@
+{
+  "code_sha": "4aa9b465ddeb072e9218b74982306d6324c62375",
+  "cuda": "13.0",
+  "development": "MVTecAD",
+  "effective_batch": 6,
+  "final": "Medical",
+  "gpu": "NVIDIA GeForce RTX 5060 Ti",
+  "grad_accumulation": 1,
+  "margin_scale": {
+    "definition": "P90(abs(native_margin))",
+    "value": 19.840438842773438
+  },
+  "need": {
+    "feature_order": [
+      "margin_within_image_rank",
+      "robust_margin_normalization",
+      "D_rank",
+      "deployment_sensitivity"
+    ],
+    "predictor": "LogisticRegression",
+    "settings": {
+      "C": 1.0,
+      "class_weight": "balanced",
+      "max_iter": 1000,
+      "random_state": 0,
+      "solver": "lbfgs"
+    }
+  },
+  "phase2b_batch": 6,
+  "phase2b_selected_checkpoint": "/home/ai4/caohuy/acdclip_runs/canonical_sabra_v1_seed0/phase2b/checkpoints/adapter_10.pth",
+  "phase2b_selected_checkpoint_sha256": "6643cd68eafabf9acdb724242ef5b2d1fbc4bf7e9d2ba7ad6c47776ea646da80",
+  "phase2b_selected_epoch": 10,
+  "precision": "fp32",
+  "python": "/home/ai4/ENTER/envs/torchhuy/bin/python",
+  "python_version": "3.11.15",
+  "s_m": 19.840438842773438,
+  "sabra_backend": "fast",
+  "sabra_freeze_sha256": "3c1ddda3f00751a7a39e8e2d39b87ba8e740f7388a6960255e616e68285471ff",
+  "scientific_code_sha": "4aa9b465ddeb072e9218b74982306d6324c62375",
+  "scientific_code_verified": true,
+  "selected_lambda": 0.565,
+  "source": "VisA",
+  "tf32": false,
+  "torch": "2.12.1+cu130",
+  "trust": {
+    "feature_order": [
+      "E",
+      "peer_coherence",
+      "query_support_mean",
+      "peer_eigen_entropy",
+      "stage_query_profile_disagreement"
+    ],
+    "predictor": "LogisticRegression",
+    "settings": {
+      "C": 1.0,
+      "class_weight": "balanced",
+      "max_iter": 1000,
+      "random_state": 0,
+      "solver": "lbfgs"
+    }
+  },
+  "vram_gib": 15.4681396484375,
+  "workflow_package_sha": "2707093c7d7ff17e11a22160e052dc392b316560"
+}
