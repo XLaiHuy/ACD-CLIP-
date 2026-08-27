@@ -94,6 +94,12 @@ The final status, measured profile values, memory, gradient audit, checkpoint
 identity, and incident/fix record are authoritative in the generated
 artifacts above. This report does not authorize P35 scientific execution.
 
+Production/reference parity was checked on CPU and CUDA over random, zero,
+near-zero, extreme-scale, and mixed-scale cases. The maximum component-output
+absolute error was `3.0517578125e-05`, maximum loss absolute error was
+`2.384185791015625e-07`, and maximum student-gradient absolute error was
+`2.9103830456733704e-10`.
+
 ## Scientific integrity
 
 P35 has zero new tuned hyperparameters, zero new learnable parameters, one
