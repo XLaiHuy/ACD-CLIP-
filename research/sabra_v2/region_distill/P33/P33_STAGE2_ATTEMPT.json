@@ -1,0 +1,132 @@
+{
+  "attempt_number": 1,
+  "attempt_uuid": "1a29ea4a-8952-4eeb-b75b-c574f6769261",
+  "automatic_rerun": false,
+  "batch_size": 1,
+  "branch": "research/p29r1-fast-objective-forensic-v1",
+  "cache_provenance": {
+    "cache_implementation_version": "P27_CACHE_V1",
+    "clip_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+    "config_sha256": "edf5745686e3d3d0d3b4142341569da06ad5b54025a779b78d83f74303ce67fc",
+    "metadata_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+    "p26_sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+    "parent_execution_sha": "1151373f2c4968268f52cdc3e538c7ebcef7b8f0",
+    "scientific_execution_base_sha": "de41b380449dcbc0b124f71f4f8fbb789e1a96f0"
+  },
+  "cache_root": "/workspace/p27r1_cache_v1",
+  "class": "candle",
+  "class_order": [
+    "candle",
+    "capsules",
+    "cashew",
+    "chewinggum",
+    "fryum",
+    "macaroni1",
+    "macaroni2",
+    "pcb1",
+    "pcb2",
+    "pcb3",
+    "pcb4",
+    "pipe_fryum"
+  ],
+  "completion_status": "ATTEMPT_CONSUMED",
+  "engineering_qualification_commit": "eef6877c692fcb0102c7fcab686d68c4a28f39f4",
+  "epochs": 20,
+  "expected_optimizer_steps": 39240,
+  "fit_records": 1962,
+  "frozen_checkpoint_identities": {
+    "p26_checkpoint": {
+      "path": "/workspace/ACD-CLIP-sabra/runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+      "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34"
+    }
+  },
+  "full_started": false,
+  "held_reads_before_prediction_freeze_expected": 0,
+  "held_records": 200,
+  "held_result_tuning_iterations": 0,
+  "implementation_commit": "e4f73206cd2bb7ca10201fb944163e40d55b4a44",
+  "inherited_artifact_hashes": {
+    "engineering_qualification": {
+      "path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P33_ENGINEERING_QUALIFICATION.json",
+      "sha256": "29b230b64a561d57dbe8368652abc48e7ee40a0c5a1a1b9392ff752196d249ef"
+    },
+    "implementation_report": {
+      "path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P33_IMPLEMENTATION_REPORT.md",
+      "sha256": "0790277de711d57f326ac725cd0f9a99ec12b0e194ebba80eefbe49b914132c4"
+    },
+    "p30r1_metrics": {
+      "path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P30R1/candle/metrics/P30R1_HELD_METRICS.json",
+      "sha256": "8cb46bfa0a65f2561d0531da5bc131e383a2783eb6778f282aab0d39bb1cabf4"
+    },
+    "p30r1_predictions": {
+      "path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P30R1/candle/predictions/p30r1_held_predictions.pt",
+      "sha256": "30c250b52ff980e7b16fa0e97ffaebb19e13fd5521722e5397cc86ed2c4e1218"
+    },
+    "p31_control_result": {
+      "path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P31/P31_CONTROL_SCIENTIFIC_RESULT.json",
+      "sha256": "e34ed6969a9ea629907e61cc5bdef52014d49c599d6a6aeeeafbde208654adef"
+    },
+    "p32_metrics": {
+      "path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P32/candle/metrics/P32_HELD_METRICS.json",
+      "sha256": "b1b85b187c3558d4004fb66c70b309b56446ce7df8a0dcd5dd2a46fc99404ca2"
+    },
+    "speed_profile": {
+      "path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P33_SPEED_PROFILE.json",
+      "sha256": "0cb7122428ca98c4b3d7b717ecbbd194e8f8ae7daa39da8d9d246125b8694236"
+    }
+  },
+  "learning_rate": 0.001,
+  "new_clip_forwards_expected": 0,
+  "new_phase2b_forwards_expected": 0,
+  "new_teacher_forwards_expected": 0,
+  "no_code_change_after_identity": true,
+  "objective": "P33_CONTINUOUS_ACTIONABILITY_WEIGHTED_FUNCTIONAL_TRANSFER_V1",
+  "objective_contract": {
+    "align_corners": true,
+    "auxiliary_terms": [],
+    "effect_shape": "[B,518,518]",
+    "gaussian_kernel": [
+      7,
+      7
+    ],
+    "gaussian_sigma": [
+      1.0,
+      1.0
+    ],
+    "hard_threshold": false,
+    "incremental_inference_overhead_percent": 0,
+    "inherited_correction_scale_C": 4.960109710693359,
+    "name": "P33_CONTINUOUS_ACTIONABILITY_WEIGHTED_FUNCTIONAL_TRANSFER_V1",
+    "objective_count": 1,
+    "preregistration_sha256": "d2460555be14af7d23316e43ad16c8585faeecbedf1698ee71f29dce765aed6c",
+    "smooth_l1_beta": 1.0,
+    "student_self_normalized": false,
+    "student_shape": "[3,B,9,9]",
+    "target_shrinkage": false,
+    "teacher_at_inference": false,
+    "teacher_detached": true,
+    "teacher_shape": "[B,9,9]",
+    "weight_detached": true,
+    "weight_formula": "clamp(abs(detached_teacher_effect)/C,0,1)",
+    "weight_shape": "[B,518,518]"
+  },
+  "optimizer": {
+    "amsgrad": false,
+    "betas": [
+      0.9,
+      0.999
+    ],
+    "epsilon": 1e-08,
+    "name": "AdamW",
+    "weight_decay": 0.01
+  },
+  "p33_preregistration_sha256": "d2460555be14af7d23316e43ad16c8585faeecbedf1698ee71f29dce765aed6c",
+  "prediction_freeze_required": true,
+  "protocol_id": "P33",
+  "schema_version": "P33_STAGE2_ATTEMPT_V1",
+  "scientific_execution_base_sha": "e4f73206cd2bb7ca10201fb944163e40d55b4a44",
+  "seed": 0,
+  "split": "locked candle LOCO fit/held split",
+  "stage3_started": false,
+  "utc_timestamp": "2026-08-27T04:34:05.090856+00:00"
+}

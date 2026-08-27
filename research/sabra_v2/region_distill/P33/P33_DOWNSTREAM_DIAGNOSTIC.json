@@ -1,0 +1,113 @@
+{
+  "attempt_uuid": "1a29ea4a-8952-4eeb-b75b-c574f6769261",
+  "held_class": "candle",
+  "held_descriptive_enrichment": {
+    "0.0001": {
+      "active_fraction": 0.006901581669921438,
+      "anomaly_enrichment": 125.5697547971511,
+      "anomaly_fraction_of_active": 0.16979415290572722
+    },
+    "0.0496010971069336": {
+      "active_fraction": 0.002313192260103457,
+      "anomaly_enrichment": 277.1052528715719,
+      "anomaly_fraction_of_active": 0.37469892135302124
+    },
+    "absolute_effect_mass_enrichment": 311.89980626190294,
+    "absolute_effect_mass_fraction_in_anomaly": 0.42174776466873976,
+    "anomaly_area_fraction": 0.0013521898898346775
+  },
+  "held_mask_reads_post_freeze": 100,
+  "native_to_p33_score_effect": {
+    "concentration": {
+      "effective_support": 92462.71434973332,
+      "effective_support_fraction": 0.0017229676501120533,
+      "gini": 0.9984090461561372,
+      "top_10_percent_mass": 0.9999945888578442,
+      "top_1_percent_mass": 0.9999544900124827,
+      "top_5_percent_mass": 0.9999931417003219
+    },
+    "max_abs": 0.9341042041778564,
+    "mean_abs": 0.0009074744884856045,
+    "median_abs": 4.818892396230012e-09,
+    "near_zero_fraction_le_1e-10": 0.0002982215530478079,
+    "near_zero_fraction_le_1e-8": 0.8307967419984794,
+    "q90_abs": 1.6095524912884684e-08,
+    "q95_abs": 5.015810344843885e-08,
+    "q99_abs": 1.2143284948251676e-05
+  },
+  "new_clip_forwards": 0,
+  "new_phase2b_forwards": 0,
+  "new_teacher_forwards": 0,
+  "p33_minus_native_pixel_shift": {
+    "anomaly": {
+      "mean": 0.2821734547615051,
+      "median": 0.18402111530303955
+    },
+    "normal": {
+      "mean": 0.0005226315115578473,
+      "median": -4.40246461508309e-09,
+      "q95": 1.769736588386189e-08,
+      "q99": 6.601931227123543e-06
+    }
+  },
+  "protocol_id": "P33",
+  "raw_direction_metrics_are_gates": false,
+  "residual": {
+    "mean_abs": 4.6377701094139505,
+    "median_abs": 4.907374620437622,
+    "q90_abs": 5.05625901222229,
+    "q99_abs": 5.246386370658875
+  },
+  "residual_exact_nonzero_fraction": 1.0,
+  "residual_support": {
+    "concentration": {
+      "effective_support": 46790.155860281935,
+      "effective_support_fraction": 0.9627604086477765,
+      "gini": 0.06917623434521047,
+      "top_10_percent_mass": 0.11205324382281542,
+      "top_1_percent_mass": 0.012547146147688,
+      "top_5_percent_mass": 0.057184169131910614
+    },
+    "fraction_abs_gt_threshold": 0.9990740740740741,
+    "threshold": 0.0496010971069336
+  },
+  "schema_version": "P33_DOWNSTREAM_DIAGNOSTIC_V1",
+  "source_only_actionability": {
+    "cache_rebuilds": 0,
+    "category_specific_rule": false,
+    "duplicate_exposures_not_counted": 0,
+    "held_reads": 0,
+    "new_neural_forwards": 0,
+    "source_cache_tier_b_shards": 1,
+    "source_exposures": 1962,
+    "source_unique_samples": 1962,
+    "weight_summary": {
+      "bounded": true,
+      "chunk_size": 8,
+      "exact_zero_fraction": 0.20813423814114543,
+      "finite": true,
+      "max": 1.0,
+      "mean": 0.5151192263753267,
+      "min": 0.0,
+      "n": 526451688,
+      "near_zero_fraction_le_1e-6": 0.21410127001055412,
+      "q50": 0.5015398561954498,
+      "q90": 1.0,
+      "q95": 1.0,
+      "q99": 1.0,
+      "quantile_method": "deterministic systematic sample",
+      "quantile_sample_size": 199944,
+      "strong_active_fraction_ge_0.5": 0.5003543876945457
+    }
+  },
+  "status": "COMPLETE",
+  "support_overlap_vs_p30r1": {
+    "intersection_fraction": 0.1104320987654321,
+    "jaccard": 0.1104320987654321,
+    "left_active_fraction": 0.11135802469135803,
+    "left_contained_in_right": 0.9916851441241685,
+    "right_active_fraction": 0.9990740740740741,
+    "right_contained_in_left": 0.1105344454742045,
+    "union_fraction": 1.0
+  }
+}
