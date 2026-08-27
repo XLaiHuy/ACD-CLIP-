@@ -1,0 +1,20 @@
+{
+  "schema": "P34_ENGINEERING_FAILURE_V1",
+  "status": "ENGINEERING_FAILURE_PRESERVED",
+  "protocol": "P34",
+  "failure": "runner baseline comparison evaluated data['median_step_seconds'] eagerly for profiles that expose median_comparable_step_seconds",
+  "exception": "KeyError: 'median_step_seconds'",
+  "failed_stage": "engineering speed comparison after 5-step and warmed 40-step profiles",
+  "optimizer_steps_completed": 51,
+  "scientific_optimizer_steps": 0,
+  "scientific_uuid": null,
+  "scientific_marker": null,
+  "held_reads": 0,
+  "new_clip_forwards": 0,
+  "new_phase2b_forwards": 0,
+  "new_teacher_forwards": 0,
+  "cache_rebuilds": 0,
+  "checkpoint_preserved": "p34_engineering_adapter.pt",
+  "repair_scope": "engineering-only dictionary key handling; no P34 equation, preregistration, or scientific semantics change",
+  "rerun_authorized": "same engineering qualification after minimal repair; not a scientific attempt"
+}

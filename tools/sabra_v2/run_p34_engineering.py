@@ -467,9 +467,15 @@ def _baseline_comparison(profile: dict[str, Any]) -> dict[str, Any]:
         ("P33", P33_SPEED_PROFILE, "warmed_profile_40_step"),
     ):
         data = _json(path)[key]
+        comparable_step = data.get("median_comparable_step_seconds")
+        if comparable_step is None:
+            comparable_step = data["median_step_seconds"]
+        end_to_end_step = data.get("median_end_to_end_step_seconds")
+        if end_to_end_step is None:
+            end_to_end_step = data["median_step_seconds"]
         baselines[name] = {
-            "comparable_step_seconds": float(data.get("median_comparable_step_seconds", data["median_step_seconds"])),
-            "end_to_end_step_seconds": float(data.get("median_end_to_end_step_seconds", data["median_step_seconds"])),
+            "comparable_step_seconds": float(comparable_step),
+            "end_to_end_step_seconds": float(end_to_end_step),
             "objective_seconds": float(data["objective_median_seconds"]),
         }
     return {

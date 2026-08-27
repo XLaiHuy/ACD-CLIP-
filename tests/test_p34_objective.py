@@ -7,7 +7,7 @@ import torch
 import torch.nn.functional as F
 
 from tools.sabra_v2 import p32_objective, p34_objective, p34_reference, p33_objective
-from tools.sabra_v2.run_p34_engineering import _materialize_batch
+from tools.sabra_v2.run_p34_engineering import _baseline_comparison, _materialize_batch
 
 
 def _tensors(seed: int = 34002, batch: int = 2) -> tuple[torch.Tensor, torch.Tensor]:
@@ -182,3 +182,15 @@ def test_engineering_batch_plumbing_allows_cache_metadata_but_not_supervision() 
     batch["mask"] = torch.zeros((1, 518, 518), dtype=torch.float32)
     with pytest.raises(RuntimeError, match="forbidden"):
         _materialize_batch(batch, torch.device("cpu"))
+
+
+def test_engineering_baseline_parser_accepts_mixed_profile_schemas() -> None:
+    comparison = _baseline_comparison(
+        {
+            "median_comparable_step_seconds": 0.005,
+            "median_end_to_end_step_seconds": 0.03,
+            "objective_median_seconds": 0.0003,
+        }
+    )
+    assert comparison["baselines"]["P32"]["comparable_step_seconds"] > 0
+    assert comparison["baselines"]["P33"]["end_to_end_step_seconds"] > 0
