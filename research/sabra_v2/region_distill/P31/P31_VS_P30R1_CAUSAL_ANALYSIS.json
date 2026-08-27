@@ -1,0 +1,332 @@
+{
+  "schema_version": "P31_VS_P30R1_CAUSAL_ANALYSIS_V1",
+  "artifact_type": "frozen_causal_control_analysis",
+  "status": "P31_CONTROL_ALREADY_EXISTED",
+  "protocol_id": "P31",
+  "control_status": "P31_CONTROL_ALREADY_EXISTED",
+  "primary_mechanism": "TEACHER_DIRECTION_NOT_CAUSAL",
+  "secondary_mechanism": "SPARSE_SELECTIVE_CORRECTION",
+  "next_research_question": "What downstream-relevant invariant should be transferred instead of raw teacher correction direction?",
+  "entry_audit": {
+    "branch": "research/p29r1-fast-objective-forensic-v1",
+    "head_at_analysis": "905f325232ccdb83d20b6c7cb30e7300eae3ef47",
+    "worktree_clean_at_analysis": true,
+    "active_p31_process": false,
+    "p31_engineering_commit": "1f6d1d68c04ce4fde49cec86bbe5d3b9a22cc85d",
+    "p31_engineering_commit_is_ancestor": true,
+    "p31_preregistration_sha256": "f42f0add36c0de2e303e6f25b0d48b63c33eda7d4c56d2a7ccb368ca76c865e3",
+    "parent_forensic_commit": "0800cf86d6896b164885768a0b6653a8f1953a76",
+    "parent_forensic_status": "FORENSIC_COMPLETE",
+    "existing_control_evidence": true,
+    "existing_control_evidence_reason": "The exact native zero-residual counterfactual and paired candle metrics were already produced by the immutable P30R1 forensic/scoring path and recorded before this analysis.",
+    "held_metrics_previously_exposed": true,
+    "p31_independent_scientific_uuid": false,
+    "p31_independent_execution_marker": false
+  },
+  "scope": {
+    "held_class": "candle",
+    "held_records": 200,
+    "comparison": "native zero-adapter identity versus existing P30R1 teacher-residual output",
+    "data_scope": "locked one-class candle comparison only",
+    "generalization": "none claimed across classes or datasets",
+    "current_turn_is_new_scoring": false,
+    "current_turn_reads_held_gt": 0,
+    "current_turn_reads_held_masks": 0
+  },
+  "prediction_freeze": {
+    "artifact": "research/sabra_v2/region_distill/P31/P31_PREDICTION_FREEZE.json",
+    "status": "P31_PREDICTION_FROZEN_EXISTING_REFERENCE",
+    "new_prediction": false,
+    "new_scoring": false,
+    "source_predictions_frozen_gt_free": true,
+    "source_artifact": "research/sabra_v2/region_distill/P30R1/candle/predictions/p30r1_held_predictions.pt",
+    "source_artifact_sha256": "30c250b52ff980e7b16fa0e97ffaebb19e13fd5521722e5397cc86ed2c4e1218",
+    "native_field_sha256": "d8119c5e77db27ad3858200059d0ed6ab855e4d2ed029f7ad2b42318e705fc16",
+    "native_field_shape": [
+      200,
+      518,
+      518
+    ],
+    "native_field_dtype": "float32",
+    "native_identity_delta": 0.0,
+    "native_reconstruction_max_abs_error": 1.1920928955078125e-07,
+    "native_reconstruction_tolerance": 2e-05
+  },
+  "metrics": {
+    "native_reference": {
+      "pAP": 0.5141403049313743,
+      "pAUROC": 0.9806671435137679,
+      "source": "research/sabra_v2/region_distill/P30R1/candle/metrics/P30R1_HELD_METRICS.json"
+    },
+    "native_reconstructed_from_cache": {
+      "pAP": 0.5141403016095532,
+      "pAUROC": 0.9806671442171766,
+      "source": "research/sabra_v2/region_distill/P30R1_FORENSIC/P30R1_CAUSAL_FORENSIC.json"
+    },
+    "p30r1": {
+      "pAP": 0.5115137342243291,
+      "pAUROC": 0.9805347089543165,
+      "source": "research/sabra_v2/region_distill/P30R1/candle/metrics/P30R1_HELD_METRICS.json"
+    },
+    "native_reference_minus_p30r1": {
+      "pAP": 0.002626570707045195,
+      "pAUROC": 0.00013243455945144422
+    },
+    "native_reconstructed_minus_p30r1": {
+      "pAP": 0.0026265673852241,
+      "pAUROC": 0.0001324352628601
+    },
+    "p29": {
+      "pAP": 0.4905032311990789,
+      "pAUROC": 0.970040297208166
+    },
+    "p30": {
+      "pAP": 0.14461806417860867,
+      "pAUROC": 0.9729044193436347
+    },
+    "support_rule": "native pAP >= P30R1 pAP and native pAUROC >= P30R1 pAUROC",
+    "support_rule_satisfied": true,
+    "metric_margin": 0.0,
+    "metrics_are_reused_not_recomputed": true
+  },
+  "historical_metric_table": [
+    {
+      "method": "P31 native zero-adapter",
+      "pAP": 0.5141403049313743,
+      "pAUROC": 0.9806671435137679,
+      "mean_abs_residual": 0.0,
+      "residual_q99": 0.0,
+      "normal_score_delta_q99": 0.0
+    },
+    {
+      "method": "P29",
+      "pAP": 0.4905032311990789,
+      "pAUROC": 0.970040297208166,
+      "mean_abs_residual": 2.036682759,
+      "residual_q99": 4.321676936,
+      "normal_score_delta_q99": 1.1587851122384847e-06,
+      "residual_status": "historical forensic value; residual support analysis unavailable"
+    },
+    {
+      "method": "P30",
+      "pAP": 0.14461806417860867,
+      "pAUROC": 0.9729044193436347,
+      "mean_abs_residual": 1.5424903257706284,
+      "residual_q99": 25.929798946380703,
+      "normal_score_delta_q99": 0.9986907839775085
+    },
+    {
+      "method": "P30R1",
+      "pAP": 0.5115137342243291,
+      "pAUROC": 0.9805347089543165,
+      "mean_abs_residual": 0.1787438652449414,
+      "residual_q99": 4.528306531906242,
+      "normal_score_delta_q99": 7.328280098590611e-06
+    }
+  ],
+  "prediction_similarity_p30r1_vs_native": {
+    "global_pearson": 0.7319094554122704,
+    "global_spearman": 0.974893732968107,
+    "global_spearman_definition": "pooled pixel ranks with average ties, computed from the already-frozen native and P30R1 map fields; descriptive only",
+    "per_image_pearson_mean": 0.9478457385007079,
+    "per_image_spearman_mean": 0.9072194124024153,
+    "per_image_spearman_median": 0.9336437561086128,
+    "absolute_score_difference": {
+      "count": 53664800,
+      "mean": 0.0011143937013683085,
+      "median": 3.122524461218745e-11,
+      "q90": 4.195413128016422e-09,
+      "q95": 3.681394584731367e-08,
+      "q99": 1.3707787547900466e-05,
+      "max": 0.9357001185417175
+    },
+    "top_pixel_overlap": {
+      "top_0.1_percent": 0.9461152416356878,
+      "top_0.5_percent": 0.9634612518628913,
+      "top_1_percent": 0.9566803278688525,
+      "top_5_percent": 0.86918349854662
+    },
+    "fixed_difference_fractions": {
+      "abs_gt_1e-6": 0.017428519252843576,
+      "abs_gt_1e-4": 0.007153907216648529,
+      "abs_gt_1e-3": 0.0049976707264352055,
+      "abs_gt_1e-2": 0.003436330704670473,
+      "abs_gt_5e-2": 0.002562759946929831
+    },
+    "score_quantiles": {
+      "quantiles": [
+        0.5,
+        0.9,
+        0.95,
+        0.99,
+        0.999,
+        1.0
+      ],
+      "native": [
+        4.9844661731413e-09,
+        1.3508335783285474e-08,
+        2.384896369278522e-08,
+        5.811035219949039e-07,
+        0.05456753537429501,
+        0.9972811937332153
+      ],
+      "p30r1": [
+        5.13614217823033e-09,
+        2.1374811254304404e-08,
+        6.344819780679245e-08,
+        1.4348284230436292e-05,
+        0.846541933655728,
+        0.9999839067459106
+      ],
+      "p30r1_minus_native": [
+        1.5167600508902979e-10,
+        7.86647547101893e-09,
+        3.959923411400723e-08,
+        1.3767180708441387e-05,
+        0.791974398281433,
+        0.0027027130126953125
+      ]
+    },
+    "pairwise_ordering_changes": {
+      "status": "NOT_COMPUTED",
+      "reason": "Exact all-pairs enumeration is O(N^2) and is not needed because pooled/per-image rank correlation and fixed top-quantile overlaps are available.",
+      "no_significance_test": true
+    }
+  },
+  "correction_effect_p30r1_vs_p31": {
+    "p31_residual": {
+      "mean_abs": 0.0,
+      "q99_abs": 0.0,
+      "support_fraction": 0.0,
+      "score_delta_mean_abs": 0.0,
+      "score_delta_q99_abs": 0.0,
+      "score_delta_max_abs": 0.0
+    },
+    "p30r1_score_delta": {
+      "mean_abs": 0.0011143937013683085,
+      "median_abs": 3.122524461218745e-11,
+      "q90_abs": 4.195413128016422e-09,
+      "q95_abs": 3.681394584731367e-08,
+      "q99_abs": 1.3707787547900466e-05,
+      "max_abs": 0.9357001185417175,
+      "positive_fraction": 0.917089898779088,
+      "negative_fraction": 0.08287652241320195,
+      "exact_zero_fraction": 3.357880771008184e-05,
+      "abs_le_1e-6_fraction": 0.9825714807471564,
+      "normal_mean_abs": 0.0006754871574230492,
+      "anomaly_mean_abs": 0.32526370882987976,
+      "anomaly_mass_enrichment_over_area": 291.87570037082986,
+      "anomaly_abs_mass_fraction": 0.39467137112985173
+    },
+    "p30r1_residual": {
+      "count": 48600,
+      "mean_abs": 0.1787438652449414,
+      "q99_abs": 4.528306531906242,
+      "max_abs": 7.580770969390869,
+      "effective_support": 2741.491873356116,
+      "effective_support_fraction": 0.056409297805681394,
+      "gini": 0.9251284420760251,
+      "top_1_percent_mass_fraction": 0.30389583280572047,
+      "top_5_percent_mass_fraction": 0.8235520766231765,
+      "top_10_percent_mass_fraction": 0.9611424563996503
+    },
+    "interpretation": "P30R1 is globally close in rank and most pixel magnitudes, but it makes a small number of high-effect changes. Those changes are anomaly-enriched in the prior post-freeze descriptive mask analysis; the aggregate native metrics are still slightly better, so usefulness beyond native is not established."
+  },
+  "direction_and_ranking_context": {
+    "p30": {
+      "directional_cosine": 0.7369235739966037,
+      "sign_agreement": 0.5695679012345679,
+      "spearman": 0.7142337500114273,
+      "pAP": 0.14461806417860867,
+      "pAUROC": 0.9729044193436347
+    },
+    "p30r1": {
+      "directional_cosine": -0.07014822472997172,
+      "sign_agreement": 0.11969135802469136,
+      "spearman": 0.05456509396360184,
+      "pAP": 0.5115137342243291,
+      "pAUROC": 0.9805347089543165
+    },
+    "p31": {
+      "directional_cosine": null,
+      "sign_agreement": null,
+      "spearman": null,
+      "reason": "A zero-adapter control has no student residual and no teacher target; teacher-direction metrics are not meaningful for P31."
+    },
+    "interpretation": "P30 has stronger raw teacher-direction metrics but much worse detection; P30R1 has weak raw direction/ranking metrics but recovers detection. Raw teacher direction is not a validated downstream proxy."
+  },
+  "normality": {
+    "p31_score_delta": {
+      "mean": 0.0,
+      "q99_abs": 0.0,
+      "max_abs": 0.0
+    },
+    "p30r1_normal_score_delta_q99_abs": 7.328280098590611e-06,
+    "p30_normal_score_delta_q99_abs": 0.9986907839775085,
+    "interpretation": "P31 preserves native normality exactly. P30R1 largely recovered normal-tail stability relative to P30 but did not improve the native detector on the frozen primary comparison."
+  },
+  "mechanism_readout": {
+    "did_p31_preserve_teacher_direction": "NOT_APPLICABLE; P31 has no residual. Existing P30 versus P30R1 contrast rejects raw teacher direction as a sufficient downstream target.",
+    "did_p31_inflate_normal_scores": false,
+    "did_p30r1_add_downstream_value_beyond_native": "NOT_SUPPORTED_ON_THIS_LOCKED_COMPARISON; native exceeds P30R1 on both pAP and pAUROC.",
+    "was_p30r1_intervention_globally_near_zero": "NO; most score differences are tiny, but a small high-effect tail exists and residual effective support is 0.056409.",
+    "was_p30r1_intervention_sparse_or_selective": "DESCRIPTIVELY_SELECTIVE; prior frozen mask analysis found 291.8757x anomaly-area enrichment, but this is not proof of useful correction.",
+    "cross_category_transfer": "NOT TESTED BY A NEW P31 RUN; prior 12-category learned transfers improved pAP while regressing AUROC broadly, so no generalization is claimed.",
+    "objective_level_control_sufficiency": "YES for the null question: zero objectives and zero parameters isolate whether intervention is necessary.",
+    "feature_level_consistency": "NOT ESTABLISHED and not added."
+  },
+  "decision": {
+    "value": "KEEP_CURRENT",
+    "statement": "Keep the native detector as the default for this locked scope and stop teacher-imitation expansion. A future downstream-functional transfer method requires a new research decision and preregistration.",
+    "automatic_follow_up": false
+  },
+  "source_artifacts": {
+    "p31_preregistration": {
+      "path": "research/sabra_v2/region_distill/P31_PREREGISTRATION.md",
+      "sha256": "f42f0add36c0de2e303e6f25b0d48b63c33eda7d4c56d2a7ccb368ca76c865e3"
+    },
+    "p31_fast_screen": {
+      "path": "research/sabra_v2/region_distill/P31_FAST_OBJECTIVE_SCREEN.json",
+      "sha256": "82b7bfebb961f4c8f26eb228c855a3a76276b6d8454c4662fc6d536dab201af1"
+    },
+    "p30r1_forensic": {
+      "path": "research/sabra_v2/region_distill/P30R1_FORENSIC/P30R1_CAUSAL_FORENSIC.json",
+      "sha256": "07f3cc371b6d85d5b819e6e9262bfbc61936c801b888615e51c4e6b32ae9fb9d"
+    },
+    "p30r1_forensic_report": {
+      "path": "research/sabra_v2/region_distill/P30R1_FORENSIC/P30R1_CAUSAL_FORENSIC_REPORT.md",
+      "sha256": "a2bbf9b80b5f2fdf6b0627b50a0d3ced569e0ded934e44515635cd0fa9715575"
+    },
+    "p30r1_metrics": {
+      "path": "research/sabra_v2/region_distill/P30R1/candle/metrics/P30R1_HELD_METRICS.json",
+      "sha256": "8cb46bfa0a65f2561d0531da5bc131e383a2783eb6778f282aab0d39bb1cabf4"
+    },
+    "p30r1_predictions": {
+      "path": "research/sabra_v2/region_distill/P30R1/candle/predictions/p30r1_held_predictions.pt",
+      "sha256": "30c250b52ff980e7b16fa0e97ffaebb19e13fd5521722e5397cc86ed2c4e1218"
+    }
+  },
+  "audit_counts": {
+    "p31_training_runs": 0,
+    "p31_optimizer_steps": 0,
+    "p31_new_clip_forwards": 0,
+    "p31_new_phase2b_forwards": 0,
+    "p31_teacher_forwards": 0,
+    "p31_cache_rebuilds": 0,
+    "p31_held_gt_reads_current_turn": 0,
+    "p31_held_mask_reads_current_turn": 0,
+    "p31_scientific_scoring_count_current_turn": 0,
+    "p31_rerun_count": 0,
+    "prior_p30r1_held_gt_reads_before_prediction_freeze": 0,
+    "prior_p30r1_held_mask_reads_after_prediction_freeze": 100,
+    "scientific_uuid_created": false,
+    "execution_marker_created": false,
+    "stage3_started": false,
+    "full_run_started": false,
+    "mvtec_touched": false,
+    "medical_touched": false
+  },
+  "no_new_method": true,
+  "no_new_scientific_execution": true,
+  "terminal": "P31_CONTROL_ALREADY_EXISTED"
+}

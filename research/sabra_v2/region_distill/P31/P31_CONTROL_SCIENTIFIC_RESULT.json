@@ -1,0 +1,133 @@
+{
+  "schema_version": "P31_CONTROL_SCIENTIFIC_RESULT_V1",
+  "artifact_type": "zero_adapter_control_result",
+  "status": "P31_CONTROL_ALREADY_EXISTED",
+  "protocol_id": "P31",
+  "hypothesis": "P31_NATIVE_ZERO_ADAPTER_CONTROL",
+  "primary_mechanism": "TEACHER_DIRECTION_NOT_CAUSAL",
+  "secondary_mechanism": "SPARSE_SELECTIVE_CORRECTION",
+  "decision": "KEEP_CURRENT",
+  "terminal": "P31_CONTROL_ALREADY_EXISTED",
+  "scope": {
+    "held_class": "candle",
+    "held_records": 200,
+    "comparison": "native zero-adapter control versus existing P30R1 teacher-residual output",
+    "independent_p31_execution": false,
+    "new_scoring_pass": false,
+    "reason": "The exact paired native/P30R1 candle comparison already exists in immutable P30R1 scoring and forensic artifacts; a new P31 pass would duplicate it."
+  },
+  "primary_comparison": {
+    "native_p31": {
+      "pAP": 0.5141403049313743,
+      "pAUROC": 0.9806671435137679,
+      "source": "research/sabra_v2/region_distill/P30R1/candle/metrics/P30R1_HELD_METRICS.json"
+    },
+    "p30r1": {
+      "pAP": 0.5115137342243291,
+      "pAUROC": 0.9805347089543165,
+      "source": "research/sabra_v2/region_distill/P30R1/candle/metrics/P30R1_HELD_METRICS.json"
+    },
+    "native_minus_p30r1": {
+      "pAP": 0.002626570707045195,
+      "pAUROC": 0.00013243455945144422
+    },
+    "non_inferiority_margin": 0.0,
+    "control_supported": true,
+    "interpretation": "The native zero-adapter control is non-inferior to P30R1 on both locked candle outcomes; no downstream gain from P30R1 intervention is demonstrated."
+  },
+  "native_reconstruction_cross_check": {
+    "pAP": 0.5141403016095532,
+    "pAUROC": 0.9806671442171766,
+    "native_minus_p30r1_pAP": 0.0026265673852241,
+    "native_minus_p30r1_pAUROC": 0.0001324352628601,
+    "max_abs_map_error_vs_stored_native": 1.1920928955078125e-07,
+    "allowed_max_abs_error": 2e-05,
+    "source": "research/sabra_v2/region_distill/P30R1_FORENSIC/P30R1_CAUSAL_FORENSIC.json"
+  },
+  "historical_context": {
+    "P29": {
+      "pAP": 0.4905032311990789,
+      "pAUROC": 0.970040297208166,
+      "mean_abs_residual": 2.036682759,
+      "residual_q99": 4.321676936,
+      "normal_score_delta_q99": 1.1587851122384847e-06
+    },
+    "P30": {
+      "pAP": 0.14461806417860867,
+      "pAUROC": 0.9729044193436347,
+      "mean_abs_residual": 1.5424903257706284,
+      "residual_q99": 25.929798946380703,
+      "normal_score_delta_q99": 0.9986907839775085
+    },
+    "P30R1": {
+      "pAP": 0.5115137342243291,
+      "pAUROC": 0.9805347089543165,
+      "mean_abs_residual": 0.1787438652449414,
+      "residual_q99": 4.528306531906242,
+      "normal_score_delta_q99": 7.328280098590611e-06
+    },
+    "P31": {
+      "pAP": 0.5141403049313743,
+      "pAUROC": 0.9806671435137679,
+      "mean_abs_residual": 0.0,
+      "residual_q99": 0.0,
+      "normal_score_delta_q99": 0.0
+    }
+  },
+  "teacher_direction_metrics": {
+    "P30": {
+      "directional_cosine": 0.7369235739966037,
+      "sign_agreement": 0.5695679012345679,
+      "spearman": 0.7142337500114273
+    },
+    "P30R1": {
+      "directional_cosine": -0.07014822472997172,
+      "sign_agreement": 0.11969135802469136,
+      "spearman": 0.05456509396360184
+    },
+    "P31": {
+      "directional_cosine": null,
+      "sign_agreement": null,
+      "spearman": null,
+      "status": "NOT_MEANINGFUL_FOR_ZERO_ADAPTER_CONTROL"
+    },
+    "interpretation": "P30 has stronger teacher-direction metrics but much worse detection, while P30R1 has weak direction metrics and recovers detection. Raw teacher direction is not a validated downstream proxy."
+  },
+  "correction": {
+    "P31": {
+      "residual_exact_zero": true,
+      "score_delta_exact_zero": true,
+      "effective_support_fraction": 0.0,
+      "inference_overhead_percent": 0.0
+    },
+    "P30R1": {
+      "residual_effective_support_fraction": 0.056409297805681394,
+      "score_delta_mean_abs": 0.0011143937013683085,
+      "score_delta_q99_abs": 1.3707787547900466e-05,
+      "score_delta_max_abs": 0.9357001185417175,
+      "normal_score_delta_q99_abs": 7.328280098590611e-06,
+      "anomaly_score_delta_mean_abs": 0.32526370882987976,
+      "normal_score_delta_mean_abs": 0.0006754871574230492,
+      "anomaly_mass_enrichment_over_area": 291.87570037082986
+    }
+  },
+  "counts": {
+    "p31_training_runs": 0,
+    "p31_optimizer_steps": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "teacher_forwards": 0,
+    "cache_rebuilds": 0,
+    "held_gt_reads_current_turn": 0,
+    "held_mask_reads_current_turn": 0,
+    "new_scientific_scoring_passes": 0,
+    "reruns": 0,
+    "scientific_uuid_created": false,
+    "execution_marker_created": false,
+    "stage3_started": false,
+    "full_run_started": false
+  },
+  "next_research_question": "What downstream-relevant invariant should be transferred instead of raw teacher correction direction?",
+  "automatic_follow_up": false,
+  "detailed_analysis": "research/sabra_v2/region_distill/P31/P31_VS_P30R1_CAUSAL_ANALYSIS.json"
+}

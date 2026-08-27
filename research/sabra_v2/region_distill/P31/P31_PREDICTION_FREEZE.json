@@ -1,0 +1,86 @@
+{
+  "schema_version": "P31_PREDICTION_FREEZE_V1",
+  "artifact_type": "existing_frozen_prediction_reference",
+  "status": "P31_PREDICTION_FROZEN_EXISTING_REFERENCE",
+  "protocol_id": "P31",
+  "freeze_mode": "RETROSPECTIVE_REFERENCE_NO_NEW_PREDICTION",
+  "purpose": "Record the exact native field already frozen inside the P30R1 prediction artifact for the P31 zero-adapter control.",
+  "source_artifact": {
+    "path": "research/sabra_v2/region_distill/P30R1/candle/predictions/p30r1_held_predictions.pt",
+    "sha256": "30c250b52ff980e7b16fa0e97ffaebb19e13fd5521722e5397cc86ed2c4e1218",
+    "schema_version": "P30R1_IMMUTABLE_HELD_PREDICTIONS_V1",
+    "status": "PREDICTIONS_FROZEN_GT_FREE",
+    "p30r1_attempt_uuid": "788c969e-3df9-418d-b659-550641d0cb69",
+    "p30r1_uuid": "7374c95c-2ada-41f3-89e7-24d7e48338af",
+    "p30r1_preregistration_sha256": "ceff5944e3602f8b640e7ace02a5b99962244f71eeefe6cb4882c4cf3af92a43",
+    "held_class": "candle",
+    "records": 200,
+    "gt_used": false,
+    "mask_reads": 0
+  },
+  "prediction_contract": {
+    "p31_output_source": "native_abnormal_probability field of each source record",
+    "native_shape_per_record": [
+      518,
+      518
+    ],
+    "native_batch_shape": [
+      200,
+      518,
+      518
+    ],
+    "native_dtype": "float32",
+    "native_field_value_count": 53664800,
+    "native_field_sha256": "d8119c5e77db27ad3858200059d0ed6ab855e4d2ed029f7ad2b42318e705fc16",
+    "digest_definition": "SHA-256 of native float32 field bytes in source-record order, each record contiguous C-order",
+    "identity_rule": "P31 output is an independent exact copy of the native field; no transformation, threshold, clipping, or normalization",
+    "exact_identity_delta": true,
+    "all_values_finite": true
+  },
+  "paired_comparator_fields": {
+    "p30r1_shape_per_record": [
+      518,
+      518
+    ],
+    "p30r1_dtype": "float32",
+    "p30r1_field_sha256": "b514f1999411476851c0eff5b5a99fab093832d8d267fbbd6340e8172dc2cc8f",
+    "residual_shape_per_record": [
+      3,
+      9,
+      9
+    ],
+    "residual_dtype": "float32",
+    "residual_value_count": 48600,
+    "residual_field_sha256": "d54a478e17be6df255a163c1f4681a8781d432341e68888347f69ac853efc7cc"
+  },
+  "freeze_provenance": {
+    "predictions_frozen_before_prior_scoring": true,
+    "prior_scoring_artifact": "research/sabra_v2/region_distill/P30R1/candle/metrics/P30R1_HELD_METRICS.json",
+    "prior_scoring_artifact_sha256": "8cb46bfa0a65f2561d0531da5bc131e383a2783eb6778f282aab0d39bb1cabf4",
+    "native_counterfactual_artifact": "research/sabra_v2/region_distill/P30R1_FORENSIC/P30R1_CAUSAL_FORENSIC.json",
+    "native_counterfactual_artifact_sha256": "07f3cc371b6d85d5b819e6e9262bfbc61936c801b888615e51c4e6b32ae9fb9d",
+    "native_cache_path": "/workspace/p27r1_cache_v1/tier_a/candle/native_logits.npy",
+    "native_cache_sha256": "2bc931f6203180e8d66ced656d7fa1a5f86e27f1a3c6d4ce37f8f58a02a4ad1d",
+    "native_cache_shape": [
+      200,
+      3,
+      1369,
+      2
+    ],
+    "native_reconstruction_max_abs_error": 1.1920928955078125e-07,
+    "native_reconstruction_tolerance": 2e-05
+  },
+  "current_turn_audit": {
+    "new_prediction": false,
+    "new_scoring": false,
+    "held_gt_reads": 0,
+    "held_mask_reads": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0,
+    "optimizer_steps": 0,
+    "cache_rebuilds": 0,
+    "scientific_uuid_created": false,
+    "execution_marker_created": false
+  }
+}

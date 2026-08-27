@@ -1,0 +1,101 @@
+{
+  "schema_version": "P31_CONTROL_POST_RUN_AUDIT_V1",
+  "artifact_type": "control_post_run_audit",
+  "status": "PASS",
+  "terminal_status": "P31_CONTROL_ALREADY_EXISTED",
+  "protocol_id": "P31",
+  "control_evidence_mode": "REUSED_EXISTING_FROZEN_P30R1_NATIVE_COUNTERFACTUAL",
+  "entry": {
+    "branch": "research/p29r1-fast-objective-forensic-v1",
+    "head_before_new_artifacts": "905f325232ccdb83d20b6c7cb30e7300eae3ef47",
+    "worktree_clean_before_new_artifacts": true,
+    "active_p31_process": false,
+    "p31_engineering_commit": "1f6d1d68c04ce4fde49cec86bbe5d3b9a22cc85d",
+    "p31_engineering_commit_is_ancestor": true,
+    "p31_preregistration_sha256": "f42f0add36c0de2e303e6f25b0d48b63c33eda7d4c56d2a7ccb368ca76c865e3",
+    "parent_forensic_commit": "0800cf86d6896b164885768a0b6653a8f1953a76",
+    "parent_forensic_status": "FORENSIC_COMPLETE"
+  },
+  "existing_evidence": {
+    "p30r1_prediction_artifact": "research/sabra_v2/region_distill/P30R1/candle/predictions/p30r1_held_predictions.pt",
+    "p30r1_prediction_sha256": "30c250b52ff980e7b16fa0e97ffaebb19e13fd5521722e5397cc86ed2c4e1218",
+    "p30r1_prediction_status": "PREDICTIONS_FROZEN_GT_FREE",
+    "p30r1_prediction_frozen_before_prior_scoring": true,
+    "p30r1_metrics": "research/sabra_v2/region_distill/P30R1/candle/metrics/P30R1_HELD_METRICS.json",
+    "p30r1_metrics_sha256": "8cb46bfa0a65f2561d0531da5bc131e383a2783eb6778f282aab0d39bb1cabf4",
+    "p30r1_forensic": "research/sabra_v2/region_distill/P30R1_FORENSIC/P30R1_CAUSAL_FORENSIC.json",
+    "p30r1_forensic_sha256": "07f3cc371b6d85d5b819e6e9262bfbc61936c801b888615e51c4e6b32ae9fb9d",
+    "native_counterfactual_available": true,
+    "native_counterfactual_method": "Tier-A native logits plus unchanged deterministic deployment operator; no neural forward",
+    "native_reconstruction_max_abs_error": 1.1920928955078125e-07,
+    "native_reconstruction_tolerance": 2e-05,
+    "held_metrics_previously_exposed": true,
+    "independent_p31_uuid_exists": false,
+    "independent_p31_marker_exists": false
+  },
+  "current_turn_counts": {
+    "p31_training_runs": 0,
+    "optimizer_steps": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0,
+    "adapter_forwards": 0,
+    "cache_rebuilds": 0,
+    "held_gt_reads_before_prediction_freeze": 0,
+    "held_mask_reads_before_prediction_freeze": 0,
+    "held_gt_reads_after_existing_prediction_freeze": 0,
+    "held_mask_reads_after_existing_prediction_freeze": 0,
+    "scientific_scoring_passes": 0,
+    "rerun_count": 0,
+    "new_scientific_predictions": 0,
+    "new_stage3_attempts": 0,
+    "full_runs": 0,
+    "scientific_uuid_created": false,
+    "execution_marker_created": false
+  },
+  "prior_comparison_counts": {
+    "p30r1_training_runs": 1,
+    "p30r1_optimizer_steps": 39240,
+    "p30r1_held_gt_reads_before_prediction_freeze": 0,
+    "p30r1_held_mask_reads_after_prediction_freeze": 100,
+    "p30r1_new_clip_forwards": 0,
+    "p30r1_new_phase2b_forwards": 0,
+    "p30r1_cache_rebuilds": 0,
+    "p30r1_scoring_attempts": 1,
+    "note": "These are historical comparator counts, not P31 activity. P31 reuses the resulting immutable outputs."
+  },
+  "prediction_freeze_audit": {
+    "artifact": "research/sabra_v2/region_distill/P31/P31_PREDICTION_FREEZE.json",
+    "native_identity_exact": true,
+    "native_field_finite": true,
+    "source_record_count": 200,
+    "source_native_field_shape": [
+      200,
+      518,
+      518
+    ],
+    "source_native_field_dtype": "float32",
+    "no_new_prediction_written": true,
+    "no_held_data_read_current_turn": true
+  },
+  "model_and_gradient_audit": {
+    "model_instantiated": false,
+    "student_parameter_delta": 0.0,
+    "teacher_parameter_delta": 0.0,
+    "student_gradient_l2": 0.0,
+    "retained_graph": false,
+    "optimizer": "none"
+  },
+  "integrity": {
+    "p29_p30_p30r1_evidence_modified": false,
+    "p31_implementation_modified": false,
+    "p31_preregistration_modified": false,
+    "metric_or_postprocessing_changed": false,
+    "threshold_or_coefficient_tuning": false,
+    "held_result_tuning_iterations": 0,
+    "mvtec_touched": false,
+    "medical_touched": false
+  },
+  "final_gate": "PASS",
+  "reason": "The P31 native zero-adapter comparison already existed as an exact frozen counterfactual in the P30R1 evidence. No duplicate scientific execution was performed."
+}
