@@ -124,13 +124,13 @@ def _atomic_text(path: Path, content: str) -> None:
 
 def _active_p32_processes() -> list[str]:
     result = subprocess.run(["ps", "-eo", "pid=,args="], check=True, text=True, capture_output=True)
-    own_pid = str(os.getpid())
+    excluded_pids = {str(os.getpid()), str(os.getppid())}
     needles = ("run_p32_scientific_stage2", "train_region_distill_p32_cached")
     return [
         line.strip()
         for line in result.stdout.splitlines()
         if any(needle in line for needle in needles)
-        and not line.lstrip().startswith(own_pid + " ")
+        and not line.lstrip().split(maxsplit=1)[0] in excluded_pids
     ]
 
 
