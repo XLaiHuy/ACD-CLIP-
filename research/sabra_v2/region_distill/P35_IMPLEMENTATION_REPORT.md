@@ -33,7 +33,8 @@ module.
 ## Files and minimal code delta
 
 - `tools/sabra_v2/p35_objective.py`: production objective and contract.
-- `tools/sabra_v2/p35_reference.py`: readable deployment-algebra reference.
+- `tools/sabra_v2/p35_reference.py`: readable canonical separable
+  deployment-algebra reference.
 - `tools/sabra_v2/run_p35_engineering.py`: fit-cache-only smoke and profile.
 - `tests/test_p35_objective.py`: objective, full-target, zero-importance, and
   production/reference parity tests.
@@ -60,6 +61,7 @@ The generated engineering evidence is recorded in:
 - `P35_ENGINEERING_RUN/P35_ENGINEERING_RUN.json`
 - `P35_SPEED_PROFILE.json`
 - `P35_ENGINEERING_QUALIFICATION.json`
+- `P35_REFERENCE_PARITY_AUDIT.json`
 
 The engineering pass completed with `P35_PASS_TO_SCIENTIFIC_PROTOCOL`.
 The cached smoke changed the student (`parameter-delta L2=0.013964320754`),
@@ -94,11 +96,14 @@ The final status, measured profile values, memory, gradient audit, checkpoint
 identity, and incident/fix record are authoritative in the generated
 artifacts above. This report does not authorize P35 scientific execution.
 
-Production/reference parity was checked on CPU and CUDA over random, zero,
-near-zero, extreme-scale, and mixed-scale cases. The maximum component-output
-absolute error was `3.0517578125e-05`, maximum loss absolute error was
-`2.384185791015625e-07`, and maximum student-gradient absolute error was
-`2.9103830456733704e-10`.
+An initial independent deployment-path reference exposed an FP32 accumulation
+order mismatch in a high-scale case. This was an engineering-only reference
+issue: the production objective and frozen scientific equation were unchanged.
+The reference was aligned to the canonical separable deployment algebra and
+the strict follow-up audit now passes on CPU and CUDA with the preregistered
+`atol=1e-6`, `rtol=1e-6`: maximum component, loss, and student-gradient
+absolute errors are all `0.0`. The follow-up is recorded in
+`P35_REFERENCE_PARITY_AUDIT.json`.
 
 ## Scientific integrity
 

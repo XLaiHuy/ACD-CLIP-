@@ -1,0 +1,32 @@
+{
+  "all_finite": true,
+  "all_within_tolerance": true,
+  "atol": 1e-06,
+  "cases": [
+    "normal",
+    "zero",
+    "near_zero",
+    "extreme",
+    "sign_reversed"
+  ],
+  "devices": [
+    "cpu",
+    "cuda"
+  ],
+  "max_abs_errors": {
+    "loss": 0.0,
+    "student_effect": 0.0,
+    "teacher_effect": 0.0,
+    "weight": 0.0,
+    "target": 0.0,
+    "student_gradient": 0.0
+  },
+  "production_module": "tools/sabra_v2/p35_objective.py",
+  "preregistration_sha256": "d92a8144e071412608292b4c48f5fe69381f82c3b205f6990266f2383336e3d8",
+  "reference_module": "tools/sabra_v2/p35_reference.py",
+  "schema_version": "P35_REFERENCE_PARITY_AUDIT_V1",
+  "scientific_stage2_attempts": 0,
+  "status": "PASS",
+  "semantic_change": false,
+  "rtol": 1e-06
+}

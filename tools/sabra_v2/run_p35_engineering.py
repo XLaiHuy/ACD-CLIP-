@@ -58,6 +58,8 @@ P35_FIT_RECORDS = 1962
 P35_HELD_RECORDS = 200
 P35_WARMUP_STEPS = 5
 P35_PROFILE_STEPS = 40
+P35_REFERENCE_ATOL = 1e-6
+P35_REFERENCE_RTOL = 1e-6
 
 
 def make_parser() -> argparse.ArgumentParser:
@@ -484,6 +486,71 @@ def _baseline_comparison(profile: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _production_reference_parity() -> dict[str, Any]:
+    cases = (
+        ("normal", 1.0, 1.0),
+        ("zero", 0.0, 0.0),
+        ("near_zero", 1e-6, 1e-6),
+        ("extreme", 100.0, 1.0),
+        ("sign_reversed", 1.0, 1.0),
+    )
+    maximum = {
+        "loss": 0.0,
+        "student_effect": 0.0,
+        "teacher_effect": 0.0,
+        "weight": 0.0,
+        "target": 0.0,
+        "student_gradient": 0.0,
+    }
+    case_results: list[dict[str, Any]] = []
+    devices = [torch.device("cpu")]
+    if torch.cuda.is_available():
+        devices.append(torch.device("cuda"))
+    for device in devices:
+        for index, (name, student_scale, teacher_scale) in enumerate(cases):
+            generator = torch.Generator(device="cpu").manual_seed(35050 + index)
+            student_value = torch.randn((3, 2, 9, 9), generator=generator, dtype=torch.float32) * student_scale
+            teacher_value = torch.randn((2, 9, 9), generator=generator, dtype=torch.float32) * teacher_scale
+            if name == "sign_reversed":
+                student_value.neg_()
+            student_value = student_value.to(device)
+            teacher_value = teacher_value.to(device)
+            production_student = student_value.detach().clone().requires_grad_(True)
+            reference_student = student_value.detach().clone().requires_grad_(True)
+            production = p35_actionability_components(production_student, teacher_value)
+            reference = p35_reference_components(reference_student, teacher_value)
+            quantities = ("loss", "student_effect", "teacher_effect", "weight", "target")
+            errors: dict[str, float] = {}
+            for quantity, actual, expected in zip(quantities, production, reference):
+                error = float((actual - expected).abs().max().detach().cpu())
+                errors[quantity] = error
+                maximum[quantity] = max(maximum[quantity], error)
+                tolerance = P35_REFERENCE_ATOL + P35_REFERENCE_RTOL * float(expected.detach().abs().max().cpu())
+                if error > tolerance:
+                    raise RuntimeError(f"P35 production/reference parity failed for {device} {name} {quantity}: {error} > {tolerance}")
+            production_gradient = torch.autograd.grad(production[0], production_student)[0]
+            reference_gradient = torch.autograd.grad(reference[0], reference_student)[0]
+            gradient_error = float((production_gradient - reference_gradient).abs().max().detach().cpu())
+            errors["student_gradient"] = gradient_error
+            maximum["student_gradient"] = max(maximum["student_gradient"], gradient_error)
+            gradient_tolerance = P35_REFERENCE_ATOL + P35_REFERENCE_RTOL * float(reference_gradient.detach().abs().max().cpu())
+            if gradient_error > gradient_tolerance:
+                raise RuntimeError(f"P35 gradient parity failed for {device} {name}: {gradient_error} > {gradient_tolerance}")
+            if not all(bool(torch.isfinite(value).all().item()) for value in (*production, *reference, production_gradient, reference_gradient)):
+                raise RuntimeError(f"P35 production/reference parity found non-finite values for {device} {name}")
+            case_results.append({"device": str(device), "name": name, "max_abs_errors": errors})
+    return {
+        "status": "PASS",
+        "devices": [str(device) for device in devices],
+        "cases": case_results,
+        "max_abs_errors": maximum,
+        "rtol": P35_REFERENCE_RTOL,
+        "atol": P35_REFERENCE_ATOL,
+        "all_finite": True,
+        "all_within_tolerance": True,
+    }
+
+
 def run(args: argparse.Namespace) -> dict[str, Any]:
     if args.output_root.exists() and any(args.output_root.iterdir()):
         raise RuntimeError(f"P35 engineering output is non-empty: {args.output_root}")
@@ -505,6 +572,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(P35_SEED)
     torch.use_deterministic_algorithms(True, warn_only=True)
+
+    parity = _production_reference_parity()
 
     loader, data_audit = _make_loader(args.metadata, args.cache_root, args.held_class)
     adapter = RegionResidualAdapter().to(device=device, dtype=torch.float32)
@@ -643,7 +712,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "preflight": "PASS",
             "import_compile": "PASS",
             "objective_smoke": "PASS",
-            "production_reference_parity": "PASS in tests/test_p35_objective.py",
+            "production_reference_parity": "PASS",
             "cached_batch_forward": "PASS",
             "backward": "PASS",
             "optimizer_step": "PASS_ENGINEERING_ONLY",
@@ -657,6 +726,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "objective_count": 1,
         },
         "preregistration_audit": preregistration,
+        "production_reference_parity": parity,
     }
     if not micro["finite"] or not profile["finite"] or not micro["teacher_detached"] or not profile["teacher_detached"] or not micro["target_full"] or not profile["target_full"]:
         result["status"] = "ENGINEERING_STOP"

@@ -92,8 +92,8 @@ def test_p35_reference_and_production_match_outputs_targets_weights_and_gradient
         production_gradient = torch.autograd.grad(production[0], production_student)[0]
         reference_gradient = torch.autograd.grad(reference[0], reference_student)[0]
         for actual, expected in zip(production, reference):
-            torch.testing.assert_close(actual, expected, rtol=1e-5, atol=1e-4)
-        torch.testing.assert_close(production_gradient, reference_gradient, rtol=1e-5, atol=1e-6)
+            torch.testing.assert_close(actual, expected, rtol=1e-6, atol=1e-6)
+        torch.testing.assert_close(production_gradient, reference_gradient, rtol=1e-6, atol=1e-6)
 
 
 def test_p35_source_has_no_p34_target_shaping_or_auxiliary_objective() -> None:
