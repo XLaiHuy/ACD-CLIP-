@@ -1,6 +1,6 @@
 # P35 Implementation Report — Soft Actionability Reweighting
 
-Status: `ENGINEERING_QUALIFICATION_PENDING`
+Status: `P35_PASS_TO_SCIENTIFIC_PROTOCOL`
 
 P35 is the frozen, non-scientific implementation of
 `SOFT_ACTIONABILITY_WEIGHTED_FUNCTIONAL_TRANSFER`. It preserves the full
@@ -48,7 +48,7 @@ scientific evidence is modified.
 ## Verification plan and audits
 
 The engineering runner verifies, in order, import/objective execution,
-production/reference parity, a P33-versus-P35 full-target regression, a
+production/reference parity, a full-target/zero-importance regression, a
 cached fit-batch forward/backward/optimizer step, checkpoint save and strict
 reload, a five-step microprofile, and a five-warmup/40-step profile. It loads
 only frozen fit/source cache fields (`seg_features` and `teacher_region`),
@@ -61,10 +61,38 @@ The generated engineering evidence is recorded in:
 - `P35_SPEED_PROFILE.json`
 - `P35_ENGINEERING_QUALIFICATION.json`
 
+The engineering pass completed with `P35_PASS_TO_SCIENTIFIC_PROTOCOL`.
+The cached smoke changed the student (`parameter-delta L2=0.013964320754`),
+kept the frozen teacher path unchanged, and strict checkpoint reload passed.
+The target remained exactly the full detached teacher effect in every measured
+step. Peak GPU allocated/reserved memory was `39,084,032` / `60,817,408`
+bytes; peak process RSS was `1,684,544` KiB.
+
+The five-step microprofile had median comparable step `0.004708704` s and
+median end-to-end step `0.039524258` s. The warmed 40-step profile had:
+
+| component | P35 median |
+|---|---:|
+| comparable step | `0.004735744` s |
+| end-to-end step | `0.039106314` s |
+| input/cache | `0.036353608` s |
+| adapter forward | `0.000558080` s |
+| objective | `0.000310272` s |
+| backward/optimizer | `0.001720831` s |
+
+Against the frozen P33 profile, the raw end-to-end comparison is `+33.23%`,
+but the comparable compute path is `+0.52%` and objective-only cost is
+`+0.82%`. The difference is entirely input/cache wait. A separate
+read-only loader check on the same frozen cache produced median access times
+of approximately `18.1–18.2 ms` for one access order and `34.5–34.8 ms` for
+other orders; P35's `34.2 ms` loader median is therefore explained by the
+CPU/page-cache-sensitive path documented by P33. No P35 objective or
+inference path was changed to mask this distinction. Inference overhead is
+`0%`.
+
 The final status, measured profile values, memory, gradient audit, checkpoint
-identity, and any incident/fix record are authoritative in those generated
-artifacts. This report is updated after that engineering pass; it does not
-authorize P35 scientific execution.
+identity, and incident/fix record are authoritative in the generated
+artifacts above. This report does not authorize P35 scientific execution.
 
 ## Scientific integrity
 
@@ -83,6 +111,8 @@ new teacher forwards = 0
 cache rebuilds = 0
 ```
 
-No scientific formulation change is permitted after the preregistration
-freeze. Any required semantic change would be a preregistration-deviation
-stop, not an engineering fix.
+No scientific formulation change was made after the preregistration freeze.
+The inherited P34 report-wrapper schema defect was fixed with a pre-attempt
+regression; P34 evidence and P35 semantics were unchanged. Any future
+semantic change would be a preregistration-deviation stop, not an engineering
+fix.

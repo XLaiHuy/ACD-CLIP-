@@ -1,0 +1,296 @@
+{
+  "data_access_audit": {
+    "cache_provenance": {
+      "cache_implementation_version": "P27_CACHE_V1",
+      "clip_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+      "config_sha256": "edf5745686e3d3d0d3b4142341569da06ad5b54025a779b78d83f74303ce67fc",
+      "metadata_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+      "p26_sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+      "parent_execution_sha": "1151373f2c4968268f52cdc3e538c7ebcef7b8f0",
+      "scientific_execution_base_sha": "de41b380449dcbc0b124f71f4f8fbb789e1a96f0"
+    },
+    "cache_root": "/workspace/p27r1_cache_v1",
+    "dataset_length": 1962,
+    "fit_records": 1962,
+    "held_class": "candle",
+    "held_records_not_read": 200,
+    "metadata": "/workspace/ACD-CLIP-sabra/dataset/hub/VisA.jsonl",
+    "metadata_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+    "native_logits_loaded": false,
+    "smoke_batch_fields": [
+      "seg_features",
+      "teacher_region"
+    ],
+    "smoke_held_GT_read_count": 0,
+    "smoke_held_mask_read_count": 0,
+    "source_mask_loaded": false
+  },
+  "device": "cuda",
+  "entry_git": {
+    "branch": "research/p29r1-fast-objective-forensic-v1",
+    "head": "11501f4ab151b4d2afccb120a21c0bc1b02c34b7",
+    "status_porcelain": ""
+  },
+  "exit_git": {
+    "branch": "research/p29r1-fast-objective-forensic-v1",
+    "head": "11501f4ab151b4d2afccb120a21c0bc1b02c34b7",
+    "status_porcelain": "?? research/sabra_v2/region_distill/P35_ENGINEERING_RUN/"
+  },
+  "gates": {
+    "backward": "PASS",
+    "cached_batch_forward": "PASS",
+    "checkpoint_save": "PASS_ENGINEERING_ONLY",
+    "checkpoint_strict_reload": "PASS",
+    "import_compile": "PASS",
+    "inference_overhead": "PASS_ZERO",
+    "microprofile": "PASS",
+    "new_tuned_hyperparameters": 0,
+    "objective_count": 1,
+    "objective_smoke": "PASS",
+    "optimizer_step": "PASS_ENGINEERING_ONLY",
+    "preflight": "PASS",
+    "preregistration_integrity": "PASS",
+    "production_reference_parity": "PASS in tests/test_p35_objective.py",
+    "report_wrapper_mock_generation": "PASS in tests/test_p34_reporting.py",
+    "warmed_profile": "PASS"
+  },
+  "memory": {
+    "duplicate_teacher_tensor": false,
+    "peak_gpu_allocated_bytes": 39084032,
+    "peak_gpu_reserved_bytes": 60817408,
+    "peak_process_rss_kib": 1684544,
+    "retained_graph": false
+  },
+  "microprofile_5_step": {
+    "backward_optimizer_median_seconds": 0.0016703360080718994,
+    "cache_tensor_transfer_median_seconds": 0.002137887954711914,
+    "data_loader_median_seconds": 0.034794849809259176,
+    "finite": true,
+    "forward_median_seconds": 0.0005693439841270447,
+    "input_cache_median_seconds": 0.036935585912317034,
+    "label": "5_step_microprofile",
+    "mean_end_to_end_step_seconds": 0.03928374819979071,
+    "mean_step_seconds": 0.004732537591457367,
+    "measured_steps": 5,
+    "median_end_to_end_step_seconds": 0.03952425792440772,
+    "median_step_seconds": 0.004708703935146332,
+    "objective_fraction_of_step_median": 0.06524088556476003,
+    "objective_median_seconds": 0.00030720001459121706,
+    "optimizer_steps": 5,
+    "p90_end_to_end_step_seconds": 0.04233265129625797,
+    "p90_step_seconds": 0.004825004816055298,
+    "peak_process_rss_kib": 1129400,
+    "target_full": true,
+    "teacher_detached": true,
+    "warmup_steps": 0
+  },
+  "model_forward_audit": {
+    "adapter_forwards": 52,
+    "cache_rebuilds": 0,
+    "cached_student_only": true,
+    "held_GT_read_count": 0,
+    "held_mask_read_count": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0
+  },
+  "objective": {
+    "align_corners": true,
+    "auxiliary_terms": [],
+    "effect_shape": "[B,518,518]",
+    "gaussian_kernel": [
+      7,
+      7
+    ],
+    "gaussian_sigma": [
+      1.0,
+      1.0
+    ],
+    "hard_threshold": false,
+    "incremental_inference_overhead_percent": 0,
+    "inherited_correction_scale_C": 4.960109710693359,
+    "learned_gate": false,
+    "name": "P35_SOFT_TANH_ACTIONABILITY_WEIGHTED_FUNCTIONAL_TRANSFER_V1",
+    "new_learnable_parameters": 0,
+    "new_tuned_hyperparameters": 0,
+    "normalized_effect_formula": "abs(detached_teacher_effect)/C",
+    "objective_count": 1,
+    "preregistration_sha256": "d92a8144e071412608292b4c48f5fe69381f82c3b205f6990266f2383336e3d8",
+    "radial_identifiable": true,
+    "smooth_l1_beta": 1.0,
+    "sparsity_regularizer": false,
+    "student_self_normalized": false,
+    "student_shape": "[3,B,9,9]",
+    "target_detached": true,
+    "target_formula": "detached_teacher_effect (full E_t; never multiplied by weight)",
+    "target_shape": "[B,518,518]",
+    "target_shrinkage": false,
+    "teacher_at_inference": false,
+    "teacher_detached": true,
+    "teacher_shape": "[B,9,9]",
+    "weight_detached": true,
+    "weight_formula": "tanh(abs(detached_teacher_effect)/C)",
+    "weight_shape": "[B,518,518]"
+  },
+  "preregistration_audit": {
+    "objective_contract": {
+      "align_corners": true,
+      "auxiliary_terms": [],
+      "effect_shape": "[B,518,518]",
+      "gaussian_kernel": [
+        7,
+        7
+      ],
+      "gaussian_sigma": [
+        1.0,
+        1.0
+      ],
+      "hard_threshold": false,
+      "incremental_inference_overhead_percent": 0,
+      "inherited_correction_scale_C": 4.960109710693359,
+      "learned_gate": false,
+      "name": "P35_SOFT_TANH_ACTIONABILITY_WEIGHTED_FUNCTIONAL_TRANSFER_V1",
+      "new_learnable_parameters": 0,
+      "new_tuned_hyperparameters": 0,
+      "normalized_effect_formula": "abs(detached_teacher_effect)/C",
+      "objective_count": 1,
+      "preregistration_sha256": "d92a8144e071412608292b4c48f5fe69381f82c3b205f6990266f2383336e3d8",
+      "radial_identifiable": true,
+      "smooth_l1_beta": 1.0,
+      "sparsity_regularizer": false,
+      "student_self_normalized": false,
+      "student_shape": "[3,B,9,9]",
+      "target_detached": true,
+      "target_formula": "detached_teacher_effect (full E_t; never multiplied by weight)",
+      "target_shape": "[B,518,518]",
+      "target_shrinkage": false,
+      "teacher_at_inference": false,
+      "teacher_detached": true,
+      "teacher_shape": "[B,9,9]",
+      "weight_detached": true,
+      "weight_formula": "tanh(abs(detached_teacher_effect)/C)",
+      "weight_shape": "[B,518,518]"
+    },
+    "path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P35_PREREGISTRATION.md",
+    "preflight_sha256": "fe9d7bca9e2f089f9cc233abef5ec91d3bc5a835d197c4fa23d0d68ce2725032",
+    "sha256": "d92a8144e071412608292b4c48f5fe69381f82c3b205f6990266f2383336e3d8",
+    "status": "P35_PREREGISTRATION_FROZEN"
+  },
+  "preregistration_sha256": "d92a8144e071412608292b4c48f5fe69381f82c3b205f6990266f2383336e3d8",
+  "protocol_id": "P35",
+  "schema_version": "P35_ENGINEERING_RUN_V1",
+  "scientific_safety": {
+    "cache_rebuilds": 0,
+    "execution_marker_created": false,
+    "full_runs": 0,
+    "held_result_tuning_iterations": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_scientific_held_predictions": 0,
+    "new_scientific_stage2_attempts": 0,
+    "new_stage3_attempts": 0,
+    "new_teacher_forwards": 0,
+    "scientific_uuid_created": false
+  },
+  "smoke": {
+    "checkpoint": {
+      "path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P35_ENGINEERING_RUN/p35_engineering_adapter.pt",
+      "schema_version": "P35_ENGINEERING_CHECKPOINT_V1",
+      "sha256": "86037c33d7537be189cd531280a331ea62e36770e9108a9c7de67527015d8f48"
+    },
+    "frozen_parameter_delta": 0.0,
+    "gradient": {
+      "finite": true,
+      "l2": 0.07399307191371918,
+      "max_abs": 0.03291696682572365,
+      "missing_gradient_elements": 0,
+      "nonfinite_count": 0
+    },
+    "loss": 0.21960636973381042,
+    "loss_finite": true,
+    "optimizer_steps": 1,
+    "status": "PASS",
+    "strict_reload": {
+      "checkpoint": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P35_ENGINEERING_RUN/p35_engineering_adapter.pt",
+      "checkpoint_sha256": "86037c33d7537be189cd531280a331ea62e36770e9108a9c7de67527015d8f48",
+      "probe": "one cached Tier-A fit batch, adapter-only residual forward",
+      "probe_device": "cuda",
+      "probe_finite": true,
+      "probe_shape": [
+        3,
+        1,
+        9,
+        9
+      ],
+      "probe_teacher_requires_grad": false,
+      "status": "PASS",
+      "strict_state_dict_reload": true
+    },
+    "student_effect_shape": [
+      1,
+      518,
+      518
+    ],
+    "student_parameter_delta": {
+      "l2": 0.013964320753855161,
+      "max_abs": 0.000999999581836164
+    },
+    "target_is_full_teacher_effect": true,
+    "target_requires_grad": false,
+    "teacher_effect_requires_grad": false,
+    "teacher_effect_shape": [
+      1,
+      518,
+      518
+    ],
+    "teacher_requires_grad": false,
+    "weight_requires_grad": false
+  },
+  "speed_comparison": {
+    "comparable_step_overhead_percent_vs_P33": 0.5168748218773889,
+    "comparison_caveat": "same cached host comparison; DataLoader wait is reported separately",
+    "end_to_end_overhead_percent_vs_P33": 33.22865496180818,
+    "objective_only_overhead_percent_vs_P33": 0.8162230146439686,
+    "observed_median_comparable_step_seconds": 0.004735744029283524,
+    "observed_median_end_to_end_step_seconds": 0.039106314448639753,
+    "observed_objective_median_seconds": 0.0003102720081806183,
+    "reference_artifact": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P33_SPEED_PROFILE.json",
+    "reference_median_comparable_step_seconds": 0.004711392030119896,
+    "reference_median_end_to_end_step_seconds": 0.02935278034582734,
+    "reference_objective_median_seconds": 0.0003077600002288818,
+    "reference_protocol": "P33",
+    "reference_warmed_profile_steps": 40
+  },
+  "status": "ENGINEERING_QUALIFICATION_ONLY",
+  "training_schedule": {
+    "batch_size": 1,
+    "engineering_optimizer_steps": 51,
+    "epochs_frozen_for_future_science": 20,
+    "learning_rate": 0.001,
+    "scientific_training_runs": 0,
+    "seed": 0
+  },
+  "warmed_profile_40_step": {
+    "backward_optimizer_median_seconds": 0.0017208319902420044,
+    "cache_tensor_transfer_median_seconds": 0.002135087966918945,
+    "data_loader_median_seconds": 0.03421735158190131,
+    "finite": true,
+    "forward_median_seconds": 0.0005580800175666809,
+    "input_cache_median_seconds": 0.03635360756143927,
+    "label": "40_step_warmed_profile",
+    "mean_end_to_end_step_seconds": 0.03920644956994802,
+    "mean_step_seconds": 0.0049433648109436035,
+    "measured_steps": 40,
+    "median_end_to_end_step_seconds": 0.039106314448639753,
+    "median_step_seconds": 0.004735744029283524,
+    "objective_fraction_of_step_median": 0.0655170562982391,
+    "objective_median_seconds": 0.0003102720081806183,
+    "optimizer_steps": 40,
+    "p90_end_to_end_step_seconds": 0.04078954856321216,
+    "p90_step_seconds": 0.005329062390327453,
+    "peak_process_rss_kib": 1684544,
+    "target_full": true,
+    "teacher_detached": true,
+    "warmup_steps": 5
+  }
+}
