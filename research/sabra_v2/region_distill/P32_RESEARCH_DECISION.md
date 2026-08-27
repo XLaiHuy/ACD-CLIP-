@@ -38,6 +38,19 @@ The ranked P30R1 forensic hypotheses were:
 4. `DIRECTION_METRIC_ILL_CONDITIONED_BY_ABSTENTION`
 5. `TEACHER_SCALE_REWEIGHTING`
 
+The entry evidence is pinned by the following hashes:
+
+| artifact | SHA-256 |
+|---|---|
+| P31/P30R1 causal analysis Markdown | `e2e31f2c85b13a49e2464a6e0b0b9e33a9874a48c90f2f70a5234cba99a9d75d` |
+| P31/P30R1 causal analysis JSON | `3ad4a54836e422c1dfdda9592081ec4cd8ba3a4a9a26d0e481827c29c630ae30` |
+| P31 native-control final report | `72e3c38fe81a4905f852362511380a2e3769b862df605689c38bbdc10b17f2b1` |
+| P31 native-control result JSON | `e34ed6969a9ea629907e61cc5bdef52014d49c599d6a6aeeeafbde208654adef` |
+| P30R1 final report | `4bbf5107c3546b8d06b2b045b735fe9844e2f1947b53574d402707c24e198cb2` |
+| P30R1 post-run audit | `dc68c2cade16807899631594704fef79c9f68d97408a66a293bd799a4f8492f2` |
+| P30R1 causal forensic report | `a2bbf9b80b5f2fdf6b0627b50a0d3ced569e0ded934e44515635cd0fa9715575` |
+| P30R1 causal forensic JSON | `07f3cc371b6d85d5b819e6e9262bfbc61936c801b888615e51c4e6b32ae9fb9d` |
+
 The native control already existed and was slightly better on the locked
 candle endpoints:
 
@@ -307,12 +320,31 @@ is a scoped overlap statement, not a novelty claim.
 | B: local ranking effect | medium | 1 | pair/tie choices | higher/variable | 0% | high | low-medium | medium |
 | C: selective actionability | partial/underdetermined | 0 diagnostic or gate | threshold required | 0% diagnostic | 0% if no gate | medium-high if learned | low | high as a stop |
 
+The required downstream-invariant comparison is:
+
+| Candidate | Downstream relevance | Native redundancy | Sparse compatibility | Scale identifiable | Objectives | New params | Inference overhead | Main risk |
+|---|---|---|---|---|---:|---:|---:|---|
+| A: functional margin effect | direct exact deployed margin effect | complementary to native; not a native-only signal | compatible; effect may be zero | yes; fixed operator rank 81 | 1 | 0 | 0% | teacher effect may be unhelpful |
+| B: local ranking effect | local downstream ordering | global rank already native-like | partial | no; ranking discards magnitude | 1 | 0 learnable; pair/tie rules required | 0% | redundant/overconstraining rank target |
+| C: selective actionability | potentially avoids harmful intervention | native outside selected actions | strong descriptively | partial; usefulness is not source-identifiable | 0 diagnostic / gate would add one | 0 diagnostic; threshold otherwise required | 0% | no defensible outcome-free actionability rule |
+
 The ranking is by mechanism validity × simplicity × falsifiability ×
 performance potential × runtime × publishability. Candidate C is retained as
 an analysis/control principle, not as a learned gate. Candidate B is rejected
 as the primary experiment because global ordering is already native-like and
 the local diagnostic is weak. Candidate A is the only candidate that tests the
 declared causal question without adding a second scientific rationale.
+
+### Effect representation screen
+
+Offline formulation checks compared exact signed effect, sign-only effect,
+normalized relative effect, probability delta, and bounded robust regression.
+Sign-only transfer was rejected because it discards intervention magnitude;
+normalized relative transfer was rejected because it recreates radial
+non-identifiability and requires a normalization choice; probability delta was
+rejected because native-margin saturation can conceal distinct signed margin
+effects. Exact signed effect with inherited `SmoothL1(beta=1.0)` retains the
+minimum identifiable downstream information while bounding tail influence.
 
 ## 8. SELECTED_P32_HYPOTHESIS
 

@@ -13,7 +13,49 @@
     "forensic_status": "FORENSIC_COMPLETE",
     "forensic_report": "research/sabra_v2/region_distill/P30R1_FORENSIC/P30R1_CAUSAL_FORENSIC_REPORT.md",
     "forensic_json": "research/sabra_v2/region_distill/P30R1_FORENSIC/P30R1_CAUSAL_FORENSIC.json",
-    "delta_orientation": "P31/native - P30R1"
+    "delta_orientation": "P31/native - P30R1",
+    "evidence_artifacts": [
+      {
+        "role": "P31_vs_P30R1_causal_analysis_markdown",
+        "path": "research/sabra_v2/region_distill/P31/P31_VS_P30R1_CAUSAL_ANALYSIS.md",
+        "sha256": "e2e31f2c85b13a49e2464a6e0b0b9e33a9874a48c90f2f70a5234cba99a9d75d"
+      },
+      {
+        "role": "P31_vs_P30R1_causal_analysis_json",
+        "path": "research/sabra_v2/region_distill/P31/P31_VS_P30R1_CAUSAL_ANALYSIS.json",
+        "sha256": "3ad4a54836e422c1dfdda9592081ec4cd8ba3a4a9a26d0e481827c29c630ae30"
+      },
+      {
+        "role": "P31_native_control_final_report",
+        "path": "research/sabra_v2/region_distill/P31/P31_CONTROL_FINAL_REPORT.md",
+        "sha256": "72e3c38fe81a4905f852362511380a2e3769b862df605689c38bbdc10b17f2b1"
+      },
+      {
+        "role": "P31_native_control_result",
+        "path": "research/sabra_v2/region_distill/P31/P31_CONTROL_SCIENTIFIC_RESULT.json",
+        "sha256": "e34ed6969a9ea629907e61cc5bdef52014d49c599d6a6aeeeafbde208654adef"
+      },
+      {
+        "role": "P30R1_final_report",
+        "path": "research/sabra_v2/region_distill/P30R1/P30R1_FINAL_REPORT.md",
+        "sha256": "4bbf5107c3546b8d06b2b045b735fe9844e2f1947b53574d402707c24e198cb2"
+      },
+      {
+        "role": "P30R1_post_run_audit",
+        "path": "research/sabra_v2/region_distill/P30R1/P30R1_POST_RUN_AUDIT.json",
+        "sha256": "dc68c2cade16807899631594704fef79c9f68d97408a66a293bd799a4f8492f2"
+      },
+      {
+        "role": "P30R1_causal_forensic_report",
+        "path": "research/sabra_v2/region_distill/P30R1_FORENSIC/P30R1_CAUSAL_FORENSIC_REPORT.md",
+        "sha256": "a2bbf9b80b5f2fdf6b0627b50a0d3ced569e0ded934e44515635cd0fa9715575"
+      },
+      {
+        "role": "P30R1_causal_forensic_json",
+        "path": "research/sabra_v2/region_distill/P30R1_FORENSIC/P30R1_CAUSAL_FORENSIC.json",
+        "sha256": "07f3cc371b6d85d5b819e6e9262bfbc61936c801b888615e51c4e6b32ae9fb9d"
+      }
+    ]
   },
   "forensic": {
     "primary_mechanism": "TEACHER_DIRECTION_NOT_CAUSAL",
@@ -264,6 +306,13 @@
     "falsifier": "candidate fails the frozen native pAP or pAUROC non-inferiority comparison, or any finite-gradient, normal-safety, tail, provenance, or runtime gate",
     "does_not_claim_novelty": true
   },
+  "representation_screen": {
+    "exact_signed_effect": "retained; preserves downstream sign and magnitude",
+    "sign_only_effect": "rejected; discards scale and cannot test the full margin intervention",
+    "normalized_relative_effect": "rejected; recreates radial non-identifiability and adds a normalization choice",
+    "bounded_robust_effect": "retained as SmoothL1 beta=1.0; bounded derivative without a new tuned scalar",
+    "probability_delta": "rejected; native-margin saturation can hide distinct signed margin effects"
+  },
   "cheapest_falsification_sequence": [
     "verify exact deployment algebra and fixed operator rank/conditioning",
     "run deterministic synthetic zero, near-zero, scale, sign, sparse, heavy-tail, mixed-scale, outlier, null, and high-effect tests",
@@ -285,8 +334,13 @@
   },
   "next_artifacts": {
     "decision_markdown": "research/sabra_v2/region_distill/P32_RESEARCH_DECISION.md",
+    "authoritative_preregistration_markdown": "research/sabra_v2/region_distill/P32_PREREGISTRATION.md",
+    "authoritative_preregistration_json": "research/sabra_v2/region_distill/P32_PREREGISTRATION.json",
     "draft_preregistration_markdown": "research/sabra_v2/region_distill/P32_PREREGISTRATION_DRAFT.md",
-    "draft_preregistration_json": "research/sabra_v2/region_distill/P32_PREREGISTRATION_DRAFT.json"
+    "draft_preregistration_json": "research/sabra_v2/region_distill/P32_PREREGISTRATION_DRAFT.json",
+    "implementation_report": "research/sabra_v2/region_distill/P32_IMPLEMENTATION_REPORT.md",
+    "engineering_qualification": "research/sabra_v2/region_distill/P32_ENGINEERING_QUALIFICATION.json",
+    "speed_profile": "research/sabra_v2/region_distill/P32_SPEED_PROFILE.json"
   },
   "terminal_state": "P32_RESEARCH_DECISION_COMPLETE"
 }
