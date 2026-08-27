@@ -1,0 +1,114 @@
+{
+  "schema_version": "P34_SPEED_PROFILE_V1",
+  "artifact_type": "engineering_speed_profile",
+  "status": "P34_SPEED_QUALIFICATION_PASS",
+  "protocol_id": "P34",
+  "preregistration_sha256": "b78f69487e665b62d9c81b58da45f8f0afe5d047e91996f18569c6d38f99abdb",
+  "engineering_run": "research/sabra_v2/region_distill/P34_ENGINEERING_RUN/P34_ENGINEERING_RUN.json",
+  "device": "cuda",
+  "timing_method": "CUDA events for cache transfer, adapter forward, objective, and backward/optimizer; wall-clock for DataLoader",
+  "microprofile_5_step": {
+    "warmup_steps": 0,
+    "measured_steps": 5,
+    "optimizer_steps": 5,
+    "median_comparable_step_seconds": 0.004681408017873765,
+    "p90_comparable_step_seconds": 0.004739039981365204,
+    "mean_comparable_step_seconds": 0.004694841599464416,
+    "median_end_to_end_step_seconds": 0.0074027740731835365,
+    "p90_end_to_end_step_seconds": 0.007486877022683621,
+    "mean_end_to_end_step_seconds": 0.0073042186744511125,
+    "input_cache_median_seconds": 0.004870230056345463,
+    "data_loader_median_seconds": 0.002742038108408451,
+    "cache_tensor_transfer_median_seconds": 0.002124639987945463,
+    "forward_median_seconds": 0.0005642240047454834,
+    "objective_median_seconds": 0.0003060159981250763,
+    "backward_optimizer_median_seconds": 0.0016814080476760865,
+    "objective_fraction_of_comparable_step_median": 0.06536836715720942,
+    "finite": true,
+    "teacher_detached": true,
+    "weight_detached": true,
+    "target_detached": true
+  },
+  "warmed_profile_40_step": {
+    "warmup_steps": 5,
+    "measured_steps": 40,
+    "optimizer_steps": 40,
+    "median_comparable_step_seconds": 0.004566591992974281,
+    "p90_comparable_step_seconds": 0.005799024015665054,
+    "mean_comparable_step_seconds": 0.004746024791896343,
+    "median_end_to_end_step_seconds": 0.007434671696275473,
+    "p90_end_to_end_step_seconds": 0.008229886251315476,
+    "mean_end_to_end_step_seconds": 0.007448983324505389,
+    "input_cache_median_seconds": 0.004758974310010672,
+    "data_loader_median_seconds": 0.0026443502865731716,
+    "cache_tensor_transfer_median_seconds": 0.002116912007331848,
+    "forward_median_seconds": 0.0005114880204200744,
+    "objective_median_seconds": 0.0002811840027570724,
+    "backward_optimizer_median_seconds": 0.001631712019443512,
+    "objective_fraction_of_comparable_step_median": 0.06157414614436216,
+    "finite": true,
+    "teacher_detached": true,
+    "weight_detached": true,
+    "target_detached": true
+  },
+  "baseline_comparison": {
+    "P30R1": {
+      "comparable_step_seconds": 0.004393984079360962,
+      "end_to_end_step_seconds": 0.004393984079360962,
+      "objective_seconds": 0.00022779200226068496
+    },
+    "P32": {
+      "comparable_step_seconds": 0.004818620283156634,
+      "end_to_end_step_seconds": 0.026872534254565837,
+      "objective_seconds": 0.0002380959987640381
+    },
+    "P33": {
+      "comparable_step_seconds": 0.004711392030119896,
+      "end_to_end_step_seconds": 0.02935278034582734,
+      "objective_seconds": 0.0003077600002288818
+    }
+  },
+  "overhead_percent": {
+    "P30R1": {
+      "comparable": 3.9282780842123888,
+      "end_to_end": 69.20115234820634,
+      "objective_only": 23.43892672548078
+    },
+    "P32": {
+      "comparable": -5.230299865364185,
+      "end_to_end": -72.33356695782322,
+      "objective_only": 18.096903860923817
+    },
+    "P33": {
+      "comparable": -3.0734024301079077,
+      "end_to_end": -74.67132037005703,
+      "objective_only": -8.635299406045217
+    }
+  },
+  "interpretation": {
+    "objective_overhead_reported_separately": true,
+    "input_cache_is_dominant_component": true,
+    "closest_comparable_baseline": "P33",
+    "preferred_end_to_end_overhead_gate_percent": 10.0,
+    "hard_unexplained_overhead_gate_percent": 15.0,
+    "inference_overhead_percent": 0.0,
+    "speed_gate_pass": true
+  },
+  "memory": {
+    "peak_gpu_allocated_bytes": 45727744,
+    "peak_gpu_reserved_bytes": 60817408,
+    "peak_process_rss_kib": 1858184,
+    "retained_graph": false,
+    "duplicate_teacher_tensor": false,
+    "gate": "PASS_WITH_DOCUMENTED_TRANSIENT_TARGET_AND_CUDA_WORKSPACE"
+  },
+  "counts": {
+    "engineering_optimizer_steps": 51,
+    "scientific_optimizer_steps": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0,
+    "cache_rebuilds": 0,
+    "held_reads": 0
+  }
+}

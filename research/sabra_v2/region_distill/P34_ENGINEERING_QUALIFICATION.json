@@ -1,0 +1,194 @@
+{
+  "schema_version": "P34_ENGINEERING_QUALIFICATION_V1",
+  "artifact_type": "engineering_qualification",
+  "status": "P34_PASS_TO_SCIENTIFIC_PROTOCOL",
+  "final_gate": "P34_PASS_TO_SCIENTIFIC_PROTOCOL",
+  "protocol_id": "P34",
+  "selected_hypothesis": "EXPLICIT_ACTIONABILITY_TARGET_FUNCTIONAL_TRANSFER",
+  "authoritative_preregistration": "research/sabra_v2/region_distill/P34_PREREGISTRATION.md",
+  "preregistration_sha256": "b78f69487e665b62d9c81b58da45f8f0afe5d047e91996f18569c6d38f99abdb",
+  "preflight": {
+    "artifact": "research/sabra_v2/region_distill/P34_PREFLIGHT_FALSIFICATION.json",
+    "sha256": "059d8b1d0cf7b0cfa4999dd2ec03129443e5e78e5a9ce24ca6401bb482f8494c",
+    "status": "P34_PREFLIGHT_PASS",
+    "held_reads": 0,
+    "new_neural_forwards": 0
+  },
+  "entry": {
+    "branch": "research/p29r1-fast-objective-forensic-v1",
+    "head": "02dcf78f3426d1a5c29cd23623a596000e52a7cc",
+    "worktree_clean_before_engineering": true,
+    "scientific_uuid": null,
+    "execution_marker": null,
+    "scientific_execution_authorized": false
+  },
+  "implementation": {
+    "production_module": "tools/sabra_v2/p34_objective.py",
+    "reference_module": "tools/sabra_v2/p34_reference.py",
+    "engineering_runner": "tools/sabra_v2/run_p34_engineering.py",
+    "preflight_module": "tools/sabra_v2/p34_preflight.py",
+    "test_module": "tests/test_p34_objective.py",
+    "formula": "mean(SmoothL1(D(mean_stage(student_region)), stop_gradient(clamp(abs(D(detach(teacher_region)))/C,0,1)*D(detach(teacher_region))), beta=1, reduction=none))",
+    "objective_count": 1,
+    "new_hyperparameter_count": 0,
+    "new_learnable_parameter_count": 0,
+    "auxiliary_terms": [],
+    "teacher_at_inference": false,
+    "inference_overhead_percent": 0.0,
+    "student_self_normalized": false,
+    "hard_gate": false,
+    "sparsity_regularizer": false,
+    "production_reference_max_abs_error": {
+      "loss": 0.0,
+      "student_effect": 4.76837158203125e-07,
+      "teacher_effect": 7.152557373046875e-07,
+      "weight": 1.4901161193847656e-07,
+      "target": 5.364418029785156e-07,
+      "student_gradient": 9.313225746154785e-10
+    }
+  },
+  "tests": {
+    "p34_tests_passed": 18,
+    "inherited_p32_p33_tests_passed": 20,
+    "total_targeted_tests_passed": 38,
+    "p34_pytest_status": "PASS",
+    "inherited_pytest_status": "PASS",
+    "p33_zero_weight_regression": "PASS",
+    "radial_identifiability": "PASS",
+    "heavy_tail_finiteness": "PASS",
+    "mixed_batch_safety": "PASS"
+  },
+  "production_smoke": {
+    "status": "PASS",
+    "engineering_run_artifact": "research/sabra_v2/region_distill/P34_ENGINEERING_RUN/P34_ENGINEERING_RUN.json",
+    "engineering_run_artifact_sha256": "2178f655e8bda7e09c1b7b35edc9cbfe5438731564d814ce4e96c3f6b15aeb7e",
+    "checkpoint": "research/sabra_v2/region_distill/P34_ENGINEERING_RUN/p34_engineering_adapter.pt",
+    "checkpoint_sha256": "e16b08f4f6c7340d5ef8c53d6860658399775049b3e7fd2aca5a8ae146ab682f",
+    "optimizer_steps": 1,
+    "engineering_optimizer_steps_total": 51,
+    "scientific_optimizer_steps": 0,
+    "loss": 0.21615920960903168,
+    "loss_finite": true,
+    "gradient_finite": true,
+    "gradient_l2": 0.08245544880628586,
+    "student_parameter_delta_l2": 0.01396438226076141,
+    "frozen_parameter_delta": 0.0,
+    "teacher_effect_requires_grad": false,
+    "weight_requires_grad": false,
+    "target_requires_grad": false,
+    "strict_checkpoint_reload": true,
+    "student_effect_shape": [1, 518, 518],
+    "teacher_effect_shape": [1, 518, 518],
+    "target_shape": [1, 518, 518]
+  },
+  "data_access_audit": {
+    "source_cache": "/workspace/p27r1_cache_v1",
+    "held_class": "candle",
+    "fit_records": 1962,
+    "held_records_not_read": 200,
+    "source_mask_loaded": false,
+    "native_logits_loaded": false,
+    "held_gt_read_count": 0,
+    "held_mask_read_count": 0,
+    "cache_rebuilds": 0,
+    "source_cache_read_only": true
+  },
+  "model_forward_audit": {
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0,
+    "adapter_forwards": 52,
+    "cached_student_only": true,
+    "retained_graph": false,
+    "duplicate_teacher_tensor": false
+  },
+  "speed": {
+    "profile_artifact": "research/sabra_v2/region_distill/P34_SPEED_PROFILE.json",
+    "device": "cuda",
+    "microprofile_5_step": {
+      "median_comparable_step_seconds": 0.004681408017873765,
+      "p90_comparable_step_seconds": 0.004739039981365204,
+      "mean_comparable_step_seconds": 0.004694841599464416,
+      "median_end_to_end_step_seconds": 0.0074027740731835365,
+      "objective_median_seconds": 0.0003060159981250763,
+      "input_cache_median_seconds": 0.004870230056345463
+    },
+    "warmed_profile_40_step": {
+      "warmup_steps": 5,
+      "median_comparable_step_seconds": 0.004566591992974281,
+      "p90_comparable_step_seconds": 0.005799024015665054,
+      "mean_comparable_step_seconds": 0.004746024791896343,
+      "median_end_to_end_step_seconds": 0.007434671696275473,
+      "objective_median_seconds": 0.0002811840027570724,
+      "input_cache_median_seconds": 0.004758974310010672
+    },
+    "overhead_vs_p33": {
+      "comparable_step_percent": -3.0734024301079077,
+      "end_to_end_percent": -74.67132037005703,
+      "objective_only_percent": -8.635299406045217
+    },
+    "overhead_vs_p32": {
+      "comparable_step_percent": -5.230299865364185,
+      "end_to_end_percent": -72.33356695782322,
+      "objective_only_percent": 18.096903860923817
+    },
+    "preferred_comparable_overhead_gate_percent": 10.0,
+    "hard_unexplained_overhead_gate_percent": 15.0,
+    "closest_comparable_baseline": "P33",
+    "inference_overhead_percent": 0.0
+  },
+  "memory": {
+    "p34_peak_gpu_allocated_bytes": 45727744,
+    "p34_peak_gpu_reserved_bytes": 60817408,
+    "p34_peak_process_rss_kib": 1858184,
+    "p32_peak_gpu_allocated_bytes": 36954624,
+    "p33_peak_gpu_allocated_bytes": 38010368,
+    "rss_growth_percent_vs_p33": 8.368972344262072,
+    "single_step_p33_and_p34_peak_gpu_allocated_bytes": 33942528,
+    "post_profile_current_gpu_allocated_bytes": 18063872,
+    "retained_graph": false,
+    "duplicate_teacher_tensor": false,
+    "gate": "PASS_WITH_DOCUMENTED_TRANSIENT_TARGET_AND_CUDA_WORKSPACE",
+    "investigation": "The repeated-profile peak is transient; the current allocation returns to the P33 level. P34's only semantic live addition is the required detached full-resolution target; no accumulation or precision/approximation workaround was used."
+  },
+  "incidents": [
+    {
+      "artifact": "research/sabra_v2/region_distill/P34_ENGINEERING_FAILURES/baseline_lookup_failure/FAILURE.json",
+      "status": "preserved_and_repaired",
+      "scope": "cache metadata allowlist and legacy speed-key handling only",
+      "scientific_semantics_changed": false
+    }
+  ],
+  "scientific_safety": {
+    "new_scientific_stage2_attempts": 0,
+    "new_stage3_attempts": 0,
+    "full_runs": 0,
+    "held_result_tuning_iterations": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0,
+    "cache_rebuilds": 0,
+    "scientific_uuid_created": false,
+    "execution_marker_created": false,
+    "new_scientific_held_predictions": 0
+  },
+  "gates": {
+    "import_compile": "PASS",
+    "objective_unit_tests": "PASS",
+    "p33_zero_weight_regression": "PASS",
+    "production_reference_parity": "PASS",
+    "cached_batch_forward": "PASS",
+    "backward": "PASS",
+    "engineering_optimizer_step": "PASS_ENGINEERING_ONLY",
+    "checkpoint_save": "PASS_ENGINEERING_ONLY",
+    "checkpoint_strict_reload": "PASS",
+    "microprofile_5_step": "PASS",
+    "warmed_profile_40_step": "PASS",
+    "speed_preferred_gate": "PASS",
+    "speed_hard_gate": "PASS",
+    "memory_gate": "PASS_WITH_DOCUMENTED_TRANSIENT_TARGET_AND_CUDA_WORKSPACE",
+    "inference_overhead_gate": "PASS",
+    "scientific_stage2_gate": "NOT_RUN_BY_DESIGN"
+  },
+  "final_note": "P34 is engineering-qualified for a separate future protocol decision; no P34 scientific Stage 2 attempt has started."
+}

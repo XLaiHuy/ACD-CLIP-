@@ -1,0 +1,400 @@
+{
+  "data_access_audit": {
+    "cache_provenance": {
+      "cache_implementation_version": "P27_CACHE_V1",
+      "clip_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+      "config_sha256": "edf5745686e3d3d0d3b4142341569da06ad5b54025a779b78d83f74303ce67fc",
+      "metadata_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+      "p26_sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+      "parent_execution_sha": "1151373f2c4968268f52cdc3e538c7ebcef7b8f0",
+      "scientific_execution_base_sha": "de41b380449dcbc0b124f71f4f8fbb789e1a96f0"
+    },
+    "cache_root": "/workspace/p27r1_cache_v1",
+    "dataset_length": 1962,
+    "fit_records": 1962,
+    "held_class": "candle",
+    "held_records_not_read": 200,
+    "metadata": "/workspace/ACD-CLIP-sabra/dataset/hub/VisA.jsonl",
+    "metadata_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+    "native_logits_loaded": false,
+    "smoke_batch_fields": [
+      "seg_features",
+      "teacher_region"
+    ],
+    "smoke_held_GT_read_count": 0,
+    "smoke_held_mask_read_count": 0,
+    "source_mask_loaded": false
+  },
+  "device": "cuda",
+  "entry_git": {
+    "branch": "research/p29r1-fast-objective-forensic-v1",
+    "head": "02dcf78f3426d1a5c29cd23623a596000e52a7cc",
+    "status_porcelain": ""
+  },
+  "exit_git": {
+    "branch": "research/p29r1-fast-objective-forensic-v1",
+    "head": "02dcf78f3426d1a5c29cd23623a596000e52a7cc",
+    "status_porcelain": "?? research/sabra_v2/region_distill/P34_ENGINEERING_RUN/"
+  },
+  "gates": {
+    "backward": "PASS",
+    "cached_batch_forward": "PASS",
+    "checkpoint_save": "PASS_ENGINEERING_ONLY",
+    "checkpoint_strict_reload": "PASS",
+    "import_compile": "PASS",
+    "microprofile": "PASS",
+    "objective_unit_tests": "PASS in tests/test_p34_objective.py",
+    "optimizer_step": "PASS_ENGINEERING_ONLY",
+    "p33_zero_weight_regression": "PASS in tests/test_p34_objective.py",
+    "production_reference_parity": "PASS",
+    "warmed_profile": "PASS"
+  },
+  "memory": {
+    "duplicate_teacher_tensor": false,
+    "peak_gpu_allocated_bytes": 45727744,
+    "peak_gpu_reserved_bytes": 60817408,
+    "peak_process_rss_kib": 1858184,
+    "retained_graph": false
+  },
+  "microprofile_5_step": {
+    "backward_optimizer_median_seconds": 0.0016814080476760865,
+    "cache_tensor_transfer_median_seconds": 0.0021246399879455567,
+    "data_loader_median_seconds": 0.002742038108408451,
+    "finite": true,
+    "forward_median_seconds": 0.0005642240047454834,
+    "input_cache_median_seconds": 0.004870230056345463,
+    "label": "5_step_microprofile",
+    "mean_comparable_step_seconds": 0.004694841599464416,
+    "mean_end_to_end_step_seconds": 0.0073042186744511125,
+    "measured_steps": 5,
+    "median_comparable_step_seconds": 0.004681408017873765,
+    "median_end_to_end_step_seconds": 0.0074027740731835365,
+    "objective_fraction_of_comparable_step_median": 0.06536836715720942,
+    "objective_median_seconds": 0.0003060159981250763,
+    "optimizer_steps": 5,
+    "p90_comparable_step_seconds": 0.004739039981365204,
+    "p90_end_to_end_step_seconds": 0.007486877022683621,
+    "peak_process_rss_kib": 1303252,
+    "target_detached": true,
+    "target_mean_abs_median": 4.960111618041992,
+    "target_q99_abs_max": 4.96011209487915,
+    "teacher_detached": true,
+    "warmup_steps": 0,
+    "weight_detached": true,
+    "weight_mean_median": 1.0,
+    "weight_zero_fraction_median": 0.0
+  },
+  "model_forward_audit": {
+    "adapter_forwards": 52,
+    "cache_rebuilds": 0,
+    "cached_student_only": true,
+    "held_GT_read_count": 0,
+    "held_mask_read_count": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0
+  },
+  "objective": {
+    "align_corners": true,
+    "auxiliary_terms": [],
+    "effect_shape": "[B,518,518]",
+    "explicit_zero_target": true,
+    "gaussian_kernel": [
+      7,
+      7
+    ],
+    "gaussian_sigma": [
+      1.0,
+      1.0
+    ],
+    "hard_threshold": false,
+    "incremental_inference_overhead_percent": 0,
+    "inherited_correction_scale_C": 4.960109710693359,
+    "name": "P34_EXPLICIT_ACTIONABILITY_TARGET_FUNCTIONAL_TRANSFER_V1",
+    "objective_count": 1,
+    "preregistration_sha256": "b78f69487e665b62d9c81b58da45f8f0afe5d047e91996f18569c6d38f99abdb",
+    "smooth_l1_beta": 1.0,
+    "sparsity_regularizer": false,
+    "student_self_normalized": false,
+    "student_shape": "[3,B,9,9]",
+    "target_detached": true,
+    "target_formula": "detached(weight * teacher_effect)",
+    "target_shape": "[B,518,518]",
+    "target_shrinkage": true,
+    "teacher_at_inference": false,
+    "teacher_detached": true,
+    "teacher_shape": "[B,9,9]",
+    "weight_detached": true,
+    "weight_formula": "clamp(abs(detached_teacher_effect)/C,0,1)",
+    "weight_shape": "[B,518,518]"
+  },
+  "preregistration": {
+    "objective_contract": {
+      "align_corners": true,
+      "auxiliary_terms": [],
+      "effect_shape": "[B,518,518]",
+      "explicit_zero_target": true,
+      "gaussian_kernel": [
+        7,
+        7
+      ],
+      "gaussian_sigma": [
+        1.0,
+        1.0
+      ],
+      "hard_threshold": false,
+      "incremental_inference_overhead_percent": 0,
+      "inherited_correction_scale_C": 4.960109710693359,
+      "name": "P34_EXPLICIT_ACTIONABILITY_TARGET_FUNCTIONAL_TRANSFER_V1",
+      "objective_count": 1,
+      "preregistration_sha256": "b78f69487e665b62d9c81b58da45f8f0afe5d047e91996f18569c6d38f99abdb",
+      "smooth_l1_beta": 1.0,
+      "sparsity_regularizer": false,
+      "student_self_normalized": false,
+      "student_shape": "[3,B,9,9]",
+      "target_detached": true,
+      "target_formula": "detached(weight * teacher_effect)",
+      "target_shape": "[B,518,518]",
+      "target_shrinkage": true,
+      "teacher_at_inference": false,
+      "teacher_detached": true,
+      "teacher_shape": "[B,9,9]",
+      "weight_detached": true,
+      "weight_formula": "clamp(abs(detached_teacher_effect)/C,0,1)",
+      "weight_shape": "[B,518,518]"
+    },
+    "path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P34_PREREGISTRATION.md",
+    "sha256": "b78f69487e665b62d9c81b58da45f8f0afe5d047e91996f18569c6d38f99abdb",
+    "status": "P34_PREREGISTRATION_FROZEN"
+  },
+  "production_reference_parity": {
+    "all_finite": true,
+    "all_within_tolerance": true,
+    "cases": [
+      {
+        "max_abs_errors": {
+          "loss": 0.0,
+          "student_effect": 4.76837158203125e-07,
+          "student_gradient": 6.984919309616089e-10,
+          "target": 3.2782554626464844e-07,
+          "teacher_effect": 4.76837158203125e-07,
+          "weight": 1.1920928955078125e-07
+        },
+        "name": "normal"
+      },
+      {
+        "max_abs_errors": {
+          "loss": 0.0,
+          "student_effect": 0.0,
+          "student_gradient": 0.0,
+          "target": 0.0,
+          "teacher_effect": 0.0,
+          "weight": 0.0
+        },
+        "name": "zero"
+      },
+      {
+        "max_abs_errors": {
+          "loss": 0.0,
+          "student_effect": 3.410605131648481e-13,
+          "student_gradient": 9.992007221626409e-16,
+          "target": 4.87890977618477e-19,
+          "teacher_effect": 6.821210263296962e-13,
+          "weight": 1.4210854715202004e-13
+        },
+        "name": "near_zero"
+      },
+      {
+        "max_abs_errors": {
+          "loss": 0.0,
+          "student_effect": 4.172325134277344e-07,
+          "student_gradient": 9.313225746154785e-10,
+          "target": 5.364418029785156e-07,
+          "teacher_effect": 7.152557373046875e-07,
+          "weight": 1.4901161193847656e-07
+        },
+        "name": "sign_reversed"
+      }
+    ],
+    "devices": [
+      "cpu"
+    ],
+    "heavy_tail_finiteness": "covered by tests/test_p34_objective.py and source/synthetic preflight; parity uses bounded FP32 cases",
+    "max_abs_errors": {
+      "loss": 0.0,
+      "student_effect": 4.76837158203125e-07,
+      "student_gradient": 9.313225746154785e-10,
+      "target": 5.364418029785156e-07,
+      "teacher_effect": 7.152557373046875e-07,
+      "weight": 1.4901161193847656e-07
+    },
+    "status": "PASS",
+    "tolerances": {
+      "loss": 1e-06,
+      "student_effect": 1e-06,
+      "student_gradient": 1e-06,
+      "target": 1e-06,
+      "teacher_effect": 1e-06,
+      "weight": 1e-06
+    }
+  },
+  "protocol_id": "P34",
+  "schema_version": "P34_ENGINEERING_RUN_V1",
+  "scientific_safety": {
+    "cache_rebuilds": 0,
+    "execution_marker_created": false,
+    "full_runs": 0,
+    "held_result_tuning_iterations": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_scientific_held_predictions": 0,
+    "new_scientific_stage2_attempts": 0,
+    "new_stage3_attempts": 0,
+    "new_teacher_forwards": 0,
+    "scientific_uuid_created": false
+  },
+  "smoke": {
+    "checkpoint": {
+      "path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P34_ENGINEERING_RUN/p34_engineering_adapter.pt",
+      "schema_version": "P34_ENGINEERING_CHECKPOINT_V1",
+      "sha256": "e16b08f4f6c7340d5ef8c53d6860658399775049b3e7fd2aca5a8ae146ab682f"
+    },
+    "frozen_parameter_delta": 0.0,
+    "gradient": {
+      "finite": true,
+      "l2": 0.12176129221916199,
+      "max_abs": 0.05416712164878845,
+      "missing_gradient_elements": 0,
+      "nonfinite_count": 0
+    },
+    "loss": 0.21615920960903168,
+    "loss_finite": true,
+    "optimizer_steps": 1,
+    "status": "PASS",
+    "strict_reload": {
+      "checkpoint": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P34_ENGINEERING_RUN/p34_engineering_adapter.pt",
+      "checkpoint_sha256": "e16b08f4f6c7340d5ef8c53d6860658399775049b3e7fd2aca5a8ae146ab682f",
+      "probe": "one cached Tier-A fit batch, adapter plus P34 target path",
+      "probe_device": "cuda",
+      "probe_finite": true,
+      "probe_shape": [
+        3,
+        1,
+        9,
+        9
+      ],
+      "probe_target_shape": [
+        1,
+        518,
+        518
+      ],
+      "probe_teacher_requires_grad": false,
+      "status": "PASS",
+      "strict_state_dict_reload": true
+    },
+    "student_effect_shape": [
+      1,
+      518,
+      518
+    ],
+    "student_parameter_delta": {
+      "l2": 0.01396438226076141,
+      "max_abs": 0.0009999996982514858
+    },
+    "target_requires_grad": false,
+    "target_shape": [
+      1,
+      518,
+      518
+    ],
+    "teacher_effect_requires_grad": false,
+    "teacher_effect_shape": [
+      1,
+      518,
+      518
+    ],
+    "teacher_requires_grad": false,
+    "weight_requires_grad": false
+  },
+  "speed_comparison": {
+    "baselines": {
+      "P30R1": {
+        "comparable_step_seconds": 0.004393984079360962,
+        "end_to_end_step_seconds": 0.004393984079360962,
+        "objective_seconds": 0.00022779200226068496
+      },
+      "P32": {
+        "comparable_step_seconds": 0.004818620283156634,
+        "end_to_end_step_seconds": 0.026872534254565837,
+        "objective_seconds": 0.0002380959987640381
+      },
+      "P33": {
+        "comparable_step_seconds": 0.004711392030119896,
+        "end_to_end_step_seconds": 0.02935278034582734,
+        "objective_seconds": 0.0003077600002288818
+      }
+    },
+    "closest_comparable_baseline": "P33",
+    "comparison_caveat": "cache/data-loader wait is reported separately; comparable step includes cache transfer, forward, P34 objective, and backward/optimizer",
+    "observed": {
+      "comparable_step_seconds": 0.004566591992974281,
+      "end_to_end_step_seconds": 0.007434671696275473,
+      "objective_seconds": 0.0002811840027570724
+    },
+    "overhead_percent": {
+      "P30R1": {
+        "comparable": 3.9282780842123888,
+        "end_to_end": 69.20115234820634,
+        "objective_only": 23.43892672548078
+      },
+      "P32": {
+        "comparable": -5.230299865364185,
+        "end_to_end": -72.33356695782322,
+        "objective_only": 18.096903860923817
+      },
+      "P33": {
+        "comparable": -3.0734024301079077,
+        "end_to_end": -74.67132037005703,
+        "objective_only": -8.635299406045217
+      }
+    }
+  },
+  "status": "ENGINEERING_QUALIFICATION_ONLY",
+  "training_schedule": {
+    "batch_size": 1,
+    "engineering_optimizer_steps": 51,
+    "epochs_frozen_for_future_science": 20,
+    "learning_rate": 0.001,
+    "scientific_optimizer_steps": 0,
+    "scientific_training_runs": 0,
+    "seed": 0
+  },
+  "warmed_profile_40_step": {
+    "backward_optimizer_median_seconds": 0.001631712019443512,
+    "cache_tensor_transfer_median_seconds": 0.002116912007331848,
+    "data_loader_median_seconds": 0.0026443502865731716,
+    "finite": true,
+    "forward_median_seconds": 0.0005114880204200744,
+    "input_cache_median_seconds": 0.004758974310010672,
+    "label": "40_step_warmed_profile",
+    "mean_comparable_step_seconds": 0.004746024791896343,
+    "mean_end_to_end_step_seconds": 0.007448983324505389,
+    "measured_steps": 40,
+    "median_comparable_step_seconds": 0.004566591992974281,
+    "median_end_to_end_step_seconds": 0.007434671696275473,
+    "objective_fraction_of_comparable_step_median": 0.06157414614436216,
+    "objective_median_seconds": 0.0002811840027570724,
+    "optimizer_steps": 40,
+    "p90_comparable_step_seconds": 0.005799024015665054,
+    "p90_end_to_end_step_seconds": 0.008229886251315476,
+    "peak_process_rss_kib": 1858184,
+    "target_detached": true,
+    "target_mean_abs_median": 4.960111618041992,
+    "target_q99_abs_max": 4.96011209487915,
+    "teacher_detached": true,
+    "warmup_steps": 5,
+    "weight_detached": true,
+    "weight_mean_median": 1.0,
+    "weight_zero_fraction_median": 0.0
+  }
+}
