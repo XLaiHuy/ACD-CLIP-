@@ -28,6 +28,68 @@
     "P34_effective_support_fraction": 0.495237535130,
     "P34_gini": 0.523964988072
   },
+  "artifact_inventory": {
+    "P31_native": {
+      "native_logits": {"available": true, "provenance": "frozen Tier-A candle cache; P31 prediction freeze", "shape": "[200,3,1369,2]"},
+      "corrected_logits": {"available": false, "reason": "P31 is the exact zero-adapter native control"},
+      "anomaly_scores": {"available": true, "representation": "native abnormal-probability field"},
+      "region_residuals": {"available": true, "representation": "implicit exact zero"},
+      "upsampled_residuals": {"available": true, "representation": "implicit exact zero"},
+      "support_masks": {"available": false, "reason": "no nonzero intervention support"},
+      "source_identifiers": {"available": true, "provenance": "P31 freeze and cache manifest"},
+      "held_identifiers": {"available": true, "provenance": "P31 freeze source records"},
+      "teacher_functional_effects": {"available": true, "provenance": "frozen source Tier-B cache; not used in native output"},
+      "score_effects": {"available": true, "representation": "exact zero native-to-control effect"}
+    },
+    "P30R1": {
+      "native_logits": {"available": true, "provenance": "frozen Tier-A cache / P31 reconstruction cross-check"},
+      "corrected_logits": {"available": false, "reason": "not persisted as standalone logits"},
+      "anomaly_scores": {"available": true, "path": "research/sabra_v2/region_distill/P30R1/candle/predictions/p30r1_held_predictions.pt"},
+      "region_residuals": {"available": true, "shape": "[200,3,9,9]", "path": "same prediction artifact"},
+      "upsampled_residuals": {"available": "reconstructible", "provenance": "frozen P30R1 forensic score effects"},
+      "support_masks": {"available": true, "provenance": "P30R1 causal forensic support definition"},
+      "source_identifiers": {"available": true, "provenance": "P30R1 cache manifests"},
+      "held_identifiers": {"available": true, "provenance": "held prediction records"},
+      "teacher_functional_effects": {"available": true, "provenance": "frozen source Tier-B cache and forensic reconstruction"},
+      "score_effects": {"available": true, "provenance": "P30R1 causal forensic"}
+    },
+    "P32": {
+      "native_logits": {"available": true, "provenance": "frozen Tier-A cache"},
+      "corrected_logits": {"available": false, "reason": "not persisted as standalone logits"},
+      "anomaly_scores": {"available": true, "path": "research/sabra_v2/region_distill/P32/candle/predictions/p32_held_predictions.pt"},
+      "region_residuals": {"available": true, "shape": "[200,3,9,9]", "path": "same prediction artifact"},
+      "upsampled_residuals": {"available": "reconstructible", "provenance": "P32 downstream diagnostic"},
+      "support_masks": {"available": "diagnostic definition", "provenance": "P32 downstream diagnostic"},
+      "source_identifiers": {"available": true, "provenance": "cache manifests"},
+      "held_identifiers": {"available": true, "provenance": "held prediction records"},
+      "teacher_functional_effects": {"available": true, "provenance": "frozen source Tier-B cache"},
+      "score_effects": {"available": true, "provenance": "P32 downstream diagnostic"}
+    },
+    "P33": {
+      "native_logits": {"available": true, "provenance": "frozen Tier-A cache"},
+      "corrected_logits": {"available": false, "reason": "not persisted as standalone logits"},
+      "anomaly_scores": {"available": true, "path": "research/sabra_v2/region_distill/P33/candle/predictions/p33_held_predictions.pt"},
+      "region_residuals": {"available": true, "shape": "[200,3,9,9]", "path": "same prediction artifact"},
+      "upsampled_residuals": {"available": "reconstructible", "provenance": "P33 downstream diagnostic"},
+      "support_masks": {"available": true, "provenance": "P33 downstream diagnostic"},
+      "source_identifiers": {"available": true, "provenance": "P33 source-only actionability audit"},
+      "held_identifiers": {"available": true, "provenance": "held prediction records"},
+      "teacher_functional_effects": {"available": true, "provenance": "frozen source Tier-B cache"},
+      "score_effects": {"available": true, "provenance": "P33 downstream diagnostic"}
+    },
+    "P34": {
+      "native_logits": {"available": true, "provenance": "frozen Tier-A cache"},
+      "corrected_logits": {"available": false, "reason": "not persisted as standalone logits"},
+      "anomaly_scores": {"available": true, "path": "research/sabra_v2/region_distill/P34/candle/predictions/p34_held_predictions.pt"},
+      "region_residuals": {"available": true, "shape": "[200,3,9,9]", "path": "same prediction artifact"},
+      "upsampled_residuals": {"available": "reconstructible", "provenance": "P34 downstream diagnostic"},
+      "support_masks": {"available": true, "provenance": "P34 downstream diagnostic"},
+      "source_identifiers": {"available": true, "provenance": "P34 source-only actionability audit"},
+      "held_identifiers": {"available": true, "provenance": "held prediction records"},
+      "teacher_functional_effects": {"available": true, "provenance": "frozen source Tier-B cache"},
+      "score_effects": {"available": true, "provenance": "P34 downstream diagnostic"}
+    }
+  },
   "hypothesis_ranking": [
     {
       "rank": 1,
@@ -82,6 +144,7 @@
       "systematic_q90": 1.0000003845375898,
       "systematic_q95": 1.0000003845375898,
       "systematic_q99": 1.000000480671987,
+      "systematic_max": 1.0000005768063847,
       "finite": true
     },
     "candidate_weights": {
@@ -126,7 +189,16 @@
     "new_clip_forwards": 0,
     "new_phase2b_forwards": 0,
     "new_teacher_forwards": 0,
-    "cache_rebuilds": 0
+    "cache_rebuilds": 0,
+    "target_preservation_forensic": {
+      "artifact": "research/sabra_v2/region_distill/P35_SOURCE_TARGET_FORENSIC.json",
+      "full_target": "E_t",
+      "p34_target": "wE_t",
+      "l1_ratio_p34_to_full": 0.937818610770016,
+      "rms_ratio_p34_to_full": 0.9802402236427618,
+      "l1_fraction_removed": 0.06218138922998395,
+      "rms_fraction_removed": 0.019759776357238246
+    }
   },
   "literature": [
     {
@@ -255,6 +327,14 @@
     "radial_identifiable": {"A": true, "B": true, "C": true},
     "inference_overhead_percent": {"A": 0.0, "B": 0.0, "C": 0.0},
     "overconstraint_risk": {"A": "low", "B": "low", "C": "low"}
+  },
+  "required_forensic_conclusions": {
+    "p34_target_attenuation": "supported contributor, not isolated sole cause; frozen source audit retained 93.7818611% L1 and 98.0240224% RMS/L2 target magnitude",
+    "p33_gain_mechanism": "importance allocation is the leading testable mechanism because P33 retained full E_t and had strongest pAP while P34 changed target and lost endpoints",
+    "dense_support": "not established intrinsically harmful; P33 was densest and best pAP, P34 was less dense and worse",
+    "hard_clamp_ordering": "43.8716992% of source pixels have x>=1 and lose relative ordering under clamp; no source mass has x>=2",
+    "soft_source_only_map": "candidate B tanh is supported by source-only and synthetic evidence without held tuning",
+    "complexity": {"objective_count": 1, "new_tuned_hyperparameters": 0, "category_specific_parameters": 0, "inference_overhead_percent": 0.0}
   },
   "selected_next_hypothesis": "SOFT_ACTIONABILITY_WEIGHTED_FUNCTIONAL_TRANSFER",
   "selected_candidate": "B",

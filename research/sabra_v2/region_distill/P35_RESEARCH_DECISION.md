@@ -33,7 +33,26 @@ root cause and frozen-metadata regression are recorded in
 [`P34_REPORTING_BUG_ROOT_CAUSE.md`](P34_REPORTING_BUG_ROOT_CAUSE.md). No P34
 evidence was rewritten or rerun.
 
-## 2. P34 forensic hypotheses and ranking
+## 2. Frozen artifact inventory
+
+The inventory below records what was available without regenerating neural
+outputs. Native logits are available through the frozen Tier-A cache and the
+P31 native reconstruction cross-check; the held prediction files store
+probability maps and region residuals, not standalone corrected-logit tensors.
+
+| frozen method | native logits | corrected/anomaly outputs | region residual | upsampled residual / score effect | support / identifiers | teacher effect |
+|---|---|---|---|---|---|---|
+| P31/native | Tier-A cache; P31 freeze shape `[200,3,1369,2]` | native abnormal-probability field; zero correction | exact zero by control | exact zero score effect; no nonzero map file | metadata, held identifiers, and native freeze available | source Tier-B effect reconstructible but not used as P31 output |
+| P30R1 | Tier-A cache; frozen reconstruction | `p30r1_held_predictions.pt` probability map | same file, `[3,9,9]` | reconstructible; forensic score-effect summaries available | forensic support definition, source manifests, held identifiers | frozen source Tier-B teacher reconstruction |
+| P32 | Tier-A cache; attempt/cache provenance | `p32_held_predictions.pt` probability map | same file, `[3,9,9]` | reconstructible; downstream score-effect summary available | source manifests and held identifiers | frozen source Tier-B teacher functional effect |
+| P33 | Tier-A cache; attempt/cache provenance | `p33_held_predictions.pt` probability map | same file, `[3,9,9]` | reconstructible; downstream score-effect summary available | source-only actionability/support definitions | frozen source Tier-B teacher functional effect |
+| P34 | Tier-A cache; attempt/cache provenance | `p34_held_predictions.pt` probability map | same file, `[3,9,9]` | reconstructible; downstream score-effect summary available | source-only actionability/support definitions | frozen source Tier-B teacher functional effect |
+
+Exact paths, shapes, and availability flags are machine-readable in
+[`P35_RESEARCH_DECISION.json`](P35_RESEARCH_DECISION.json). This inventory is
+descriptive; no held labels or new neural forward was used to choose P35.
+
+## 3. P34 forensic hypotheses and ranking
 
 The five required hypotheses are ranked using the frozen P33/P34 endpoints,
 selectivity diagnostics, and the source-only P34 cache audit. Ranking is not a
@@ -48,10 +67,14 @@ explicitly falsifiable.
 | 4 | `HARD_WEIGHT_SATURATION_LIMITS_P33` | inherited clamp gives weight 1 to `43.871699%` of source pixels; raw `x` has no mass at `x>=2` | source-only/synthetic analysis showing the clamp plateau does not change optimization ordering or that a soft map is numerically unstable |
 | 5 | `ACTIONABILITY_SIGNAL_IS_INSUFFICIENT` | P33 still missed native pAUROC, so the proxy may be incidental | a source-only descriptor audit finding no stable, category-agnostic effect ordering, or a clean future full-target weighted test failing its locked endpoints |
 
+The required H1–H5 labels map to the table in order as H4, H1, H2, H3, and
+H5. H1 and H3 are the leading actionable hypotheses; H4 is the strongest
+null constraint against continuing the sparsity chase.
+
 The selected P35 test isolates ranks 2–4 without reusing P34 target shaping:
 it preserves the full target and changes only the source-example importance map.
 
-## 3. Exact source-only forensic
+## 4. Exact source-only forensic
 
 The analysis used only
 `/workspace/p27r1_cache_v1/tier_b/candle/teacher_region.npy` and its source
@@ -75,9 +98,24 @@ distribution is finite, has exact-zero fraction `0.208134238141`, and has:
 | `x >= 5` | 0 |
 
 The systematic `x` quantiles are q10 `0`, q25 `0.0001701549`, q50
-`0.5022023`, q75 `1.0000003`, q90 `1.0000004`, q95 `1.0000004`, and q99
-`1.0000005`. The clamp therefore has a real source plateau; it is not merely
-an abstract asymptote.
+`0.5022023`, q75 `1.0000003`, q90 `1.0000004`, q95 `1.0000004`, q99
+`1.0000005`, with maximum `1.0000006`. The clamp therefore has a real source
+plateau; it is not merely an abstract asymptote. Complete q10/q25/q50/q75/q90/
+q95/q99, threshold, and candidate-weight distributions are retained in the
+frozen preflight JSON.
+
+### P33/P34 target magnitude preservation
+
+The inherited P34 source-only preflight provides exact population sums for the
+full teacher effect and P34's attenuated target. The dedicated
+[`P35_SOURCE_TARGET_FORENSIC.json`](P35_SOURCE_TARGET_FORENSIC.json) preserves
+those values without rereading held data. Across `526,451,688` source pixels,
+P34 retained `93.7818611%` of teacher-target L1 mass and `98.0240224%` of its
+RMS/L2 magnitude; it removed `6.2181389%` of L1 mass. In the deterministic
+300,000-pixel sample, mean absolute target fell from `2.5560459` for `E_t` to
+`2.3972047` for `wE_t`, and the median fell from `2.4947143` to `1.2547302`.
+This supports target attenuation as a contributor, but does not isolate it
+from P34's simultaneous change in output semantics.
 
 ### Candidate maps
 
@@ -121,7 +159,7 @@ but no candidate introduces a category-specific rule. Across the eleven
 source categories, mean `x` ranges `0.399029–0.602389`, mean tanh weight
 `0.313833–0.472495`, and fraction `x>=1` ranges `0.333333–0.500411`.
 
-## 4. Optimization-mass and identifiability result
+## 5. Optimization-mass and identifiability result
 
 The approximate source gradient mass used `g=w*abs(rho'(E_s-E_t))` with
 `E_s=0` and inherited SmoothL1 beta 1. It is deliberately labeled a
@@ -139,7 +177,7 @@ remains `E_t`. The selected tanh map changes importance only. At `w=0`, P35
 intentionally supplies zero direct loss gradient, just as P33 does; this is
 the stated hypothesis and is not the P34 zero-target semantics.
 
-## 5. Narrow prior-art findings
+## 6. Narrow prior-art findings
 
 The targeted review stopped after the candidate ranking stopped changing. The
 records below use `problem → mechanism → equation → relevance → limitation`.
@@ -191,7 +229,7 @@ native-relative `9x9 -> deployed functional effect` transfer, a
 source-only absolute-effect weight, and zero inference overhead. That is an
 overlap boundary only, not a novelty assertion.
 
-## 6. Candidate hypotheses
+## 7. Candidate hypotheses
 
 ### Candidate A — P33 hard-clamp baseline
 
@@ -235,7 +273,7 @@ as the maximum comparison alternative, not selected.
 | B tanh | highest for saturation-is-limiting hypothesis | yes | 1 | 0 | O(N), negligible | 0% | low | high |
 | C rational | medium; stronger attenuation | yes | 1 | 0 | O(N), negligible | 0% | low | high |
 
-## 7. Selected next hypothesis
+## 8. Selected next hypothesis
 
 `SELECTED_P35_HYPOTHESIS = SOFT_ACTIONABILITY_WEIGHTED_FUNCTIONAL_TRANSFER`
 
@@ -257,7 +295,7 @@ the larger target/gradient attenuation of P34 and Candidate C.
 - P34's target shaping `wE_t` is explicitly excluded; P35 does not shrink the answer.
 - No additional loss, gate, threshold, category parameter, inference module, or teacher-at-inference path is introduced.
 
-## 8. Cheapest falsification sequence
+## 9. Cheapest falsification sequence
 
 1. Re-run the deterministic source-only script and verify the frozen source
    manifest, no held reads, and the candidate statistics.
@@ -269,7 +307,25 @@ the larger target/gradient attenuation of P34 and Candidate C.
 4. Only a separately authorized, one-attempt P35 Stage 2 could test the
    locked pAP/pAUROC endpoints; no such attempt is authorized here.
 
-## 9. Overconstraint, cost, and authorization
+## 10. Required forensic conclusions
+
+1. **P34 target attenuation:** supported as a contributor, not proven as the
+   sole cause; the frozen source audit retained `93.7818611%` of L1 target
+   mass and `98.0240224%` of RMS/L2 magnitude.
+2. **P33 importance:** the leading testable mechanism; P33 retained `E_t` and
+   achieved the strongest pAP, whereas P34 changed the target and lost both
+   endpoints.
+3. **Dense support:** not established as intrinsically harmful; P33 was the
+   densest effective intervention and had the best pAP, while P34 was less
+   dense and substantially worse.
+4. **Hard clamp:** it destroys source ordering for `43.8716992%` of pixels
+   with `x>=1`; no source pixels have `x>=2`.
+5. **Soft full-target importance:** source-only and synthetic evidence support
+   candidate B as the minimal non-null test; the teacher target remains `E_t`.
+6. **Complexity:** the selected test uses one objective, zero new tuned
+   hyperparameters, zero category-specific state, and zero inference cost.
+
+## 11. Overconstraint, cost, and authorization
 
 The selected design is one mechanism, one SmoothL1 objective, zero new tuned
 scalars, zero learned parameters, zero category-specific parameters, zero
