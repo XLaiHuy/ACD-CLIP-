@@ -1,0 +1,11 @@
+{
+  "attempt_uuid": "9a8d25f9-7592-479b-8fc8-2861226d7485",
+  "error": "'source_only'",
+  "error_type": "KeyError",
+  "partial_artifacts_preserved": true,
+  "rerun_forbidden": true,
+  "schema_version": "P34_STAGE2_ENGINEERING_STOP_V1",
+  "status": "P34_STAGE2_ENGINEERING_STOP",
+  "traceback": "Traceback (most recent call last):\n  File \"/workspace/ACD-CLIP-sabra/tools/sabra_v2/run_p34_scientific_stage2.py\", line 1379, in run\n    report = _final_report(final_status, attempt, training, prediction, metrics, diagnostics, comparison, gate, audit)\n  File \"/workspace/ACD-CLIP-sabra/tools/sabra_v2/run_p34_scientific_stage2.py\", line 1212, in _final_report\n    f\"- source-only shaped target: exact-zero {source['target_exact_zero_fraction']}; near-zero {source['target_near_zero_fraction']}; meaningful source target sample q50/q90/q99 {diagnostics['source_only']['frozen_preflight_target_sample'].get('q50_abs')}/{diagnostics['source_only']['frozen_preflight_target_sample'].get('q90_abs')}/{diagnostics['source_only']['frozen_preflight_target_sample'].get('q99_abs')}.\",\nKeyError: 'source_only'\n",
+  "utc_timestamp": "2026-08-27T07:12:33.909608+00:00"
+}
