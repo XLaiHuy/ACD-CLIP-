@@ -76,6 +76,17 @@ P34_IMPLEMENTATION_REPORT = ROOT / "research/sabra_v2/region_distill/P34_IMPLEME
 P34_ENGINEERING_QUALIFICATION = ROOT / "research/sabra_v2/region_distill/P34_ENGINEERING_QUALIFICATION.json"
 P34_SPEED_PROFILE = ROOT / "research/sabra_v2/region_distill/P34_SPEED_PROFILE.json"
 
+P34_REPORTING_SOURCE_EXACT_KEYS = {
+    "pixels",
+    "target_exact_zero_fraction",
+    "target_near_zero_fraction",
+    "weight_zero_fraction",
+    "weight_one_fraction",
+    "weight_gt_075_fraction",
+    "weight_gt_09_fraction",
+    "preclamp_ratio_ge_1_fraction",
+}
+
 P31_CONTROL_RESULT = ROOT / "research/sabra_v2/region_distill/P31/P31_CONTROL_SCIENTIFIC_RESULT.json"
 P30R1_METRICS = ROOT / "research/sabra_v2/region_distill/P30R1/candle/metrics/P30R1_HELD_METRICS.json"
 P30R1_PREDICTIONS = ROOT / "research/sabra_v2/region_distill/P30R1/candle/predictions/p30r1_held_predictions.pt"
@@ -368,6 +379,7 @@ def _audit_inputs(
         or preflight.get("new_teacher_forwards") != 0
     ):
         raise RuntimeError("P34 source/synthetic preflight is not a matching PASS")
+    _validate_reporting_source_schema(preflight)
     engineering = _json(P34_ENGINEERING_QUALIFICATION)
     if (
         engineering.get("status") != "P34_PASS_TO_SCIENTIFIC_PROTOCOL"
@@ -423,6 +435,30 @@ def _audit_inputs(
         "scientific_execution_base_sha": git_identity["head"],
     }
     return input_audit, inventory, provenance, preflight
+
+
+def _validate_reporting_source_schema(preflight: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate the frozen source schema before a scientific attempt exists.
+
+    P34's report builder consumes the source-only exact-count contract from
+    the preflight artifact.  Keeping this check before attempt creation makes
+    a renamed field fail at the cheap integrity gate instead of after a long
+    scientific fit.
+    """
+    source = preflight.get("source_only")
+    if not isinstance(source, Mapping):
+        raise RuntimeError("P34 reporting schema is missing source_only")
+    exact = source.get("exact_counts")
+    if not isinstance(exact, Mapping):
+        raise RuntimeError("P34 reporting schema is missing source_only.exact_counts")
+    missing = sorted(key for key in P34_REPORTING_SOURCE_EXACT_KEYS if key not in exact)
+    if missing:
+        raise RuntimeError(f"P34 reporting source schema is missing fields: {missing}")
+    return {
+        "source_key": "source_only",
+        "exact_counts_key": "exact_counts",
+        "required_exact_fields": sorted(P34_REPORTING_SOURCE_EXACT_KEYS),
+    }
 
 
 def _production_reference_parity() -> dict[str, Any]:
@@ -938,13 +974,13 @@ def _diagnostics(
             "frozen_preflight_exact_counts": exact,
             "frozen_preflight_target_sample": target_sample,
             "training_batch_weight_samples": training_weights,
-            "target_exact_zero_fraction": float(exact.get("target_zero", 0) / exact["pixels"]) if exact.get("pixels") else None,
-            "target_near_zero_fraction": float(exact.get("target_near_zero", 0) / exact["pixels"]) if exact.get("pixels") else None,
-            "weight_exact_zero_fraction": float(exact.get("weight_zero", 0) / exact["pixels"]) if exact.get("pixels") else None,
-            "weight_saturated_one_fraction": float(exact.get("weight_one", 0) / exact["pixels"]) if exact.get("pixels") else None,
-            "weight_gt_075_fraction": float(exact.get("weight_gt_075", 0) / exact["pixels"]) if exact.get("pixels") else None,
-            "weight_gt_09_fraction": float(exact.get("weight_gt_09", 0) / exact["pixels"]) if exact.get("pixels") else None,
-            "preclamp_ratio_ge_1_fraction": float(exact.get("ratio_ge_1", 0) / exact["pixels"]) if exact.get("pixels") else None,
+            "target_exact_zero_fraction": exact.get("target_exact_zero_fraction"),
+            "target_near_zero_fraction": exact.get("target_near_zero_fraction"),
+            "weight_exact_zero_fraction": exact.get("weight_zero_fraction"),
+            "weight_saturated_one_fraction": exact.get("weight_one_fraction"),
+            "weight_gt_075_fraction": exact.get("weight_gt_075_fraction"),
+            "weight_gt_09_fraction": exact.get("weight_gt_09_fraction"),
+            "preclamp_ratio_ge_1_fraction": exact.get("preclamp_ratio_ge_1_fraction"),
         },
         "historical_residual_summaries": historical,
         "held_mask_reads_post_freeze": metrics["held_mask_file_reads_after_prediction_freeze"],
@@ -1051,7 +1087,8 @@ def _scientific_gate(
         "inference_overhead_zero": True,
         "stage3_not_started": True,
         "full_run_not_started": True,
-        "automatic_rerun": False,
+        # This is a structural pass condition: no automatic rerun is allowed.
+        "automatic_rerun_forbidden": True,
         "all_required_values_finite": _finite_tree({"training": training, "metrics": metrics, "diagnostics": diagnostics}),
     }
     failures = [name for name, item in checks.items() if item["pass"] is not True]
@@ -1209,7 +1246,7 @@ def _final_report(
         "",
         f"- mechanism epsilon: {P34_MECHANISM_EPSILON:.16f}; P34 residual exact-nonzero fraction: {diagnostics['residual_exact_nonzero_fraction']:.12f}.",
         f"- source-only weights: exact-zero {source['weight_exact_zero_fraction']}; saturated-one {source['weight_saturated_one_fraction']}; >0.75 {source['weight_gt_075_fraction']}; >0.9 {source['weight_gt_09_fraction']}.",
-        f"- source-only shaped target: exact-zero {source['target_exact_zero_fraction']}; near-zero {source['target_near_zero_fraction']}; meaningful source target sample q50/q90/q99 {diagnostics['source_only']['frozen_preflight_target_sample'].get('q50_abs')}/{diagnostics['source_only']['frozen_preflight_target_sample'].get('q90_abs')}/{diagnostics['source_only']['frozen_preflight_target_sample'].get('q99_abs')}.",
+        f"- source-only shaped target: exact-zero {source['target_exact_zero_fraction']}; near-zero {source['target_near_zero_fraction']}; meaningful source target sample q50/q90/q99 {source['frozen_preflight_target_sample'].get('q50_abs')}/{source['frozen_preflight_target_sample'].get('q90_abs')}/{source['frozen_preflight_target_sample'].get('q99_abs')}.",
         f"- P34 score-effect q99 abs: {diagnostics['native_to_p34_score_effect']['q99_abs']:.12f}; normal-score q99 shift: {normal_q99:.12f}.",
         "",
         "## Mechanism answers",

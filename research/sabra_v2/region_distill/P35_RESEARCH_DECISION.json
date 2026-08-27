@@ -1,0 +1,300 @@
+{
+  "schema_version": "P35_RESEARCH_DECISION_V1",
+  "status": "P35_RESEARCH_DECISION_COMPLETE",
+  "protocol_id": "P35",
+  "authorization": "offline research, preregistration, implementation, and engineering qualification only; no P35 scientific Stage 2",
+  "authoritative_p34_evidence_commit": "5544ef7ba3984b1a3e4f750a32458a07e784b1c4",
+  "p34_terminal_scientific_state": "P34_STAGE2_ENGINEERING_STOP",
+  "p34_frozen_scientific_state_before_reporting_failure": "P34_STAGE2_SCIENTIFIC_STOP",
+  "p34_reporting_root_cause": "final report used diagnostics.source_only although the actual qualification schema uses diagnostics.source_only_actionability; old exact-count field names also disagreed with frozen preflight schema",
+  "p34_frozen_metrics": {
+    "P31_native": {"pAP": 0.5141403049313743, "pAUROC": 0.9806671435137679},
+    "P30R1": {"pAP": 0.511513734224, "pAUROC": 0.980534708954},
+    "P32": {"pAP": 0.510351502947, "pAUROC": 0.971460700418},
+    "P33": {"pAP": 0.519395095936, "pAUROC": 0.978184288830},
+    "P34": {"pAP": 0.505450138378, "pAUROC": 0.970397710904}
+  },
+  "p34_selectivity": {
+    "P30R1_active_fraction": 0.111358024691,
+    "P30R1_effective_support_fraction": 0.056409297806,
+    "P30R1_gini": 0.925128442076,
+    "P32_active_fraction": 0.871481481481,
+    "P32_effective_support_fraction": 0.525447156883,
+    "P32_gini": 0.505108044575,
+    "P33_active_fraction": 0.999074074074,
+    "P33_effective_support_fraction": 0.962760408648,
+    "P33_gini": 0.069176234345,
+    "P34_active_fraction": 0.875987654321,
+    "P34_effective_support_fraction": 0.495237535130,
+    "P34_gini": 0.523964988072
+  },
+  "hypothesis_ranking": [
+    {
+      "rank": 1,
+      "id": "DENSITY_NOT_PRIMARY",
+      "support": "P33 had best pAP despite dense effective support; P34 reduced support but lost detection",
+      "falsifier": "source or future locked evidence shows only output sparsity, not optimization allocation, explains the contrast"
+    },
+    {
+      "rank": 2,
+      "id": "SAMPLE_IMPORTANCE_IS_CAUSAL",
+      "support": "P33 retained full E_t and improved pAP; P34 changed target and degraded both endpoints",
+      "falsifier": "full-target importance-only transfer cannot retain the P33 benefit under a clean locked test"
+    },
+    {
+      "rank": 3,
+      "id": "TARGET_ATTENUATION_DESTROYS_USEFUL_ACTION",
+      "support": "P34 used wE_t, reduced source target magnitude, and underperformed P33",
+      "falsifier": "target-preserving transfer reproduces the P34 failure without target attenuation"
+    },
+    {
+      "rank": 4,
+      "id": "HARD_WEIGHT_SATURATION_LIMITS_P33",
+      "support": "43.8716992% of source pixels have x>=1 and receive clamp weight 1",
+      "falsifier": "soft source maps do not change the allocation ordering or fail source/synthetic checks"
+    },
+    {
+      "rank": 5,
+      "id": "ACTIONABILITY_SIGNAL_IS_INSUFFICIENT",
+      "support": "P33 remains below native pAUROC",
+      "falsifier": "no stable category-agnostic source effect ordering, or future full-target weighting fails locked endpoints"
+    }
+  ],
+  "source_only": {
+    "cache": "/workspace/p27r1_cache_v1/tier_b/candle/teacher_region.npy",
+    "records": 1962,
+    "pixels": 526451688,
+    "correction_scale_C": 4.960109710693359,
+    "analysis_script": "tools/sabra_v2/forensics/p35_soft_actionability.py",
+    "x_distribution": {
+      "exact_zero_fraction": 0.20813423814114543,
+      "lt_0.1_fraction": 0.3987701355798483,
+      "lt_0.25_fraction": 0.45131821098843167,
+      "lt_0.5_fraction": 0.49964561230545435,
+      "lt_1_fraction": 0.5612830079861003,
+      "ge_1_fraction": 0.4387169920138997,
+      "ge_2_fraction": 0.0,
+      "ge_5_fraction": 0.0,
+      "systematic_q10": 0.0,
+      "systematic_q25": 0.00017015490271397258,
+      "systematic_median": 0.5022023429106266,
+      "systematic_q75": 1.0000002884031922,
+      "systematic_q90": 1.0000003845375898,
+      "systematic_q95": 1.0000003845375898,
+      "systematic_q99": 1.000000480671987,
+      "finite": true
+    },
+    "candidate_weights": {
+      "clamp": {
+        "formula": "clip(x,0,1)",
+        "full_mean": 0.5151192263749761,
+        "full_rms": 0.6950455776131071,
+        "exact_zero_fraction": 0.20813423814114543,
+        "exact_one_fraction": 0.4387169920138997,
+        "effective_fraction": 0.5492882468088744,
+        "gini": 0.47817227317973543,
+        "top_10_percent_mass": 0.1941303192745447,
+        "initial_gradient_mass_proxy_mean": 0.5108590314136556
+      },
+      "tanh": {
+        "formula": "tanh(x)",
+        "full_mean": 0.40203574080919713,
+        "full_rms": 0.53554883338287,
+        "exact_zero_fraction": 0.20813423814114543,
+        "exact_one_fraction": 0.0,
+        "effective_fraction": 0.5635683979861711,
+        "gini": 0.46526592715434106,
+        "top_10_percent_mass": 0.1894351123001268,
+        "initial_gradient_mass_proxy_mean": 0.39778749248382567,
+        "initial_gradient_mass_relative_to_clamp": 0.7786639131798513
+      },
+      "rational": {
+        "formula": "x/(1+x)",
+        "full_mean": 0.269450990698433,
+        "full_rms": 0.35447156583381373,
+        "exact_zero_fraction": 0.20813423814114543,
+        "exact_one_fraction": 0.0,
+        "effective_fraction": 0.5778604455127643,
+        "gini": 0.45339793793650773,
+        "top_10_percent_mass": 0.1855610390693572,
+        "initial_gradient_mass_proxy_mean": 0.26549543339890397,
+        "initial_gradient_mass_relative_to_clamp": 0.5197039047430004
+      }
+    },
+    "category_agnostic_rule": true,
+    "held_reads": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0,
+    "cache_rebuilds": 0
+  },
+  "literature": [
+    {
+      "title": "Confidence Conditioned Knowledge Distillation",
+      "year": 2021,
+      "mechanism": "teacher confidence creates sample-specific loss and target variants",
+      "equation": "confidence-conditioned CCKD-L/CCKD-T",
+      "relevance": "direct precedent for confidence-dependent transfer importance",
+      "limitation": "classification confidence and labels; not native-relative anomaly effects",
+      "url": "https://arxiv.org/abs/2107.06993"
+    },
+    {
+      "title": "Not All Knowledge Is Created Equal: Mutual Distillation of Confident Knowledge",
+      "year": 2021,
+      "mechanism": "static/progressive confidence selection before distillation",
+      "equation": "entropy threshold chi selects knowledge",
+      "relevance": "supports testing whether all teacher evidence should have equal influence",
+      "limitation": "hard/progressive thresholds, mutual training, noisy-label classification",
+      "url": "https://arxiv.org/abs/2106.01489"
+    },
+    {
+      "title": "Distilling Knowledge From a Deep Pose Regressor Network",
+      "year": 2019,
+      "mechanism": "teacher-loss confidence weights attentive regression transfer",
+      "equation": "L_AIL=w_teacher L_reg",
+      "relevance": "close continuous confidence-weighted regression precedent",
+      "limitation": "pose regression and attentive hints; no anomaly residual intervention",
+      "url": "https://openaccess.thecvf.com/content_ICCV_2019/html/Saputra_Distilling_Knowledge_From_a_Deep_Pose_Regressor_Network_ICCV_2019_paper.html"
+    },
+    {
+      "title": "Selective Knowledge Distillation for Neural Machine Translation",
+      "year": 2021,
+      "mechanism": "batch/global selection of teacher-knowledge-bearing samples",
+      "equation": "selected sample partitions contribute to KD",
+      "relevance": "direct evidence that teacher knowledge can have unequal optimization value",
+      "limitation": "NMT and subset selection rather than a continuous pixelwise map",
+      "url": "https://aclanthology.org/2021.acl-long.504/"
+    },
+    {
+      "title": "Focal Loss for Dense Object Detection",
+      "year": 2017,
+      "mechanism": "down-weight easy dense examples to reallocate optimization mass",
+      "equation": "-(1-p_t)^gamma log(p_t)",
+      "relevance": "foundational optimization-allocation precedent",
+      "limitation": "supervised classification with a tuned gamma; not KD or anomaly residuals",
+      "url": "https://openaccess.thecvf.com/content_ICCV_2017/html/Lin_Focal_Loss_for_Dense_Object_Detection_ICCV_2017_paper.html"
+    },
+    {
+      "title": "Uninformed Students",
+      "year": 2020,
+      "mechanism": "teacher-student discrepancy for one-class anomaly detection",
+      "equation": "A(x)=d(f_T(x),f_S(x))",
+      "relevance": "direct teacher-student anomaly context",
+      "limitation": "discrepancy scoring, not selective native-relative correction",
+      "url": "https://openaccess.thecvf.com/content_CVPR_2020/html/Bergmann_Uninformed_Students_Student-Teacher_Anomaly_Detection_With_Discriminative_Latent_Embeddings_CVPR_2020_paper.html"
+    },
+    {
+      "title": "Deep Anomaly Detection by Residual Adaptation",
+      "year": 2020,
+      "mechanism": "pretrained representation plus residual correction",
+      "equation": "f=f_0+r_theta",
+      "relevance": "direct residual-adapter context",
+      "limitation": "no source-only actionability weighting around a strong native detector",
+      "url": "https://arxiv.org/abs/2010.02310"
+    }
+  ],
+  "candidates": [
+    {
+      "id": "A",
+      "name": "P33_HARD_CLAMP_FULL_TARGET",
+      "mechanism": "w=clip(abs(E_t)/C,0,1); L=mean(w*SmoothL1(E_s,stop_gradient(E_t)))",
+      "mechanism_match": "baseline",
+      "scientific_question": "Is source-effect magnitude useful as an optimization-importance signal at all?",
+      "expected_detection_effect": "retain P33 pAP behavior; native pAUROC remains an open endpoint",
+      "expected_residual_behavior": "not prescribed to be sparse",
+      "teacher_fidelity_matters": "full signed target is retained; no direction gate",
+      "objective_count": 1,
+      "new_hyperparameters": 0,
+      "training_overhead": "baseline",
+      "inference_overhead_percent": 0.0,
+      "novelty_risk": "high overlap with standard confidence weighting",
+      "main_failure_mode": "hard saturation makes many strong source pixels indistinguishable",
+      "cheapest_falsification": "source clamp plateau and future locked endpoint test"
+    },
+    {
+      "id": "B",
+      "name": "SOFT_TANH_ACTIONABILITY_WEIGHTED_FUNCTIONAL_TRANSFER",
+      "mechanism": "w=stop_gradient(tanh(abs(E_t)/C)); L=mean(w*SmoothL1(E_s,stop_gradient(E_t)))",
+      "mechanism_match": "highest for hard-saturation limitation",
+      "scientific_question": "Does continuous non-saturating importance allocation preserve or improve full-target transfer?",
+      "expected_detection_effect": "preserve P33 pAP potential and test whether AUROC improves from better high-effect ordering",
+      "expected_residual_behavior": "not prescribed to be sparse; target remains full E_t",
+      "teacher_fidelity_matters": "full signed target retained; raw direction is not a gate",
+      "objective_count": 1,
+      "new_hyperparameters": 0,
+      "training_overhead": "one vectorized tanh per effect element; expected negligible",
+      "inference_overhead_percent": 0.0,
+      "novelty_risk": "high overlap at component level; no novelty claim",
+      "main_failure_mode": "soft attenuation weakens useful high-effect optimization or actionability proxy is insufficient",
+      "cheapest_falsification": "fixed-point/source-mass/radial/heavy-tail/mixed-batch preflight"
+    },
+    {
+      "id": "C",
+      "name": "RATIONAL_ACTIONABILITY_WEIGHTED_FUNCTIONAL_TRANSFER",
+      "mechanism": "w=(abs(E_t)/C)/(1+abs(E_t)/C); full target E_t",
+      "mechanism_match": "medium; stronger unverified attenuation",
+      "scientific_question": "Does a more aggressive monotone compression improve source gradient allocation?",
+      "expected_detection_effect": "uncertain; source proxy retains only 51.97% of clamp mass",
+      "expected_residual_behavior": "not prescribed to be sparse",
+      "teacher_fidelity_matters": "full signed target retained",
+      "objective_count": 1,
+      "new_hyperparameters": 0,
+      "training_overhead": "one vectorized rational map per effect element",
+      "inference_overhead_percent": 0.0,
+      "novelty_risk": "high overlap at component level; no novelty claim",
+      "main_failure_mode": "over-suppresses actionable teacher gradients",
+      "cheapest_falsification": "source mass and synthetic action-preservation checks"
+    }
+  ],
+  "comparison": {
+    "mechanism_match": {"A": "baseline", "B": "high", "C": "medium"},
+    "full_target_preserved": {"A": true, "B": true, "C": true},
+    "objectives": {"A": 1, "B": 1, "C": 1},
+    "new_hyperparameters": {"A": 0, "B": 0, "C": 0},
+    "hard_saturation": {"A": true, "B": false, "C": false},
+    "radial_identifiable": {"A": true, "B": true, "C": true},
+    "inference_overhead_percent": {"A": 0.0, "B": 0.0, "C": 0.0},
+    "overconstraint_risk": {"A": "low", "B": "low", "C": "low"}
+  },
+  "selected_next_hypothesis": "SOFT_ACTIONABILITY_WEIGHTED_FUNCTIONAL_TRANSFER",
+  "selected_candidate": "B",
+  "selection_reason": [
+    "P34 shows lower intervention density is not sufficient; preserve P33's full target and isolate optimization allocation",
+    "43.8716992% source clamp saturation provides a concrete non-held mechanism to test",
+    "tanh is bounded, monotonic, parameter-free, source-only, and less attenuating than the rational alternative",
+    "one objective, zero new tuned parameters, no category-specific behavior, and zero inference overhead",
+    "radial identifiability and heavy-tail finiteness pass deterministic preflight"
+  ],
+  "future_training_required": true,
+  "future_scientific_gates": {
+    "pAP_minimum": 0.5141403049313743,
+    "pAUROC_minimum": 0.9806671435137679,
+    "residual_absolute_q99_max": 8.643353872299194,
+    "normal_score_q99_shift_max": 0.0010011587851122385,
+    "nonfinite_loss_count": 0,
+    "nonfinite_gradient_count": 0,
+    "support_and_residual_concentration": "descriptive only; no P30R1-like sparsity gate"
+  },
+  "cost": {
+    "objective_count": 1,
+    "new_tuned_hyperparameters": 0,
+    "new_learnable_parameters": 0,
+    "category_specific_parameters": 0,
+    "inference_overhead_percent": 0.0,
+    "expected_training_overhead_percent": "negligible relative to P33; measured only during engineering qualification"
+  },
+  "scientific_counts": {
+    "p35_stage2_attempts": 0,
+    "stage3_attempts": 0,
+    "full_runs": 0,
+    "held_tuning_iterations": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0,
+    "cache_rebuilds": 0,
+    "p34_reruns": 0,
+    "scientific_uuid": null
+  },
+  "novelty_position": "No novelty claim is made for tanh, confidence weighting, or the individual components; the exact scoped combination was not verified in the targeted literature.",
+  "terminal_state": "P35_RESEARCH_DECISION_COMPLETE"
+}

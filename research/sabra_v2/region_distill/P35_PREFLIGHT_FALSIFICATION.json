@@ -1,0 +1,136 @@
+{
+  "schema_version": "P35_PREFLIGHT_FALSIFICATION_V1",
+  "protocol_id": "P35",
+  "status": "P35_PREFLIGHT_PASS",
+  "selected_candidate": "SOFT_TANH_ACTIONABILITY_WEIGHTED_FUNCTIONAL_TRANSFER",
+  "source_analysis_script": "tools/sabra_v2/forensics/p35_soft_actionability.py",
+  "source_only": {
+    "cache": "/workspace/p27r1_cache_v1/tier_b/candle/teacher_region.npy",
+    "held_class_excluded": "candle",
+    "records": 1962,
+    "deployed_effect_pixels": 526451688,
+    "correction_scale_C": 4.960109710693359,
+    "systematic_sample_size": 299973,
+    "normalized_effect_x": {
+      "exact_zero_fraction": 0.20813423814114543,
+      "q10": 0.0,
+      "q25": 0.00017015490271397258,
+      "q50": 0.5022023429106266,
+      "q75": 1.0000002884031922,
+      "q90": 1.0000003845375898,
+      "q95": 1.0000003845375898,
+      "q99": 1.000000480671987,
+      "max": 1.0000005768063847,
+      "lt_0.1_fraction": 0.3987701355798483,
+      "lt_0.25_fraction": 0.45131821098843167,
+      "lt_0.5_fraction": 0.49964561230545435,
+      "lt_1_fraction": 0.5612830079861003,
+      "ge_1_fraction": 0.4387169920138997,
+      "ge_2_fraction": 0.0,
+      "ge_5_fraction": 0.0,
+      "finite": true
+    },
+    "candidate_weights": {
+      "clamp": {
+        "formula": "clip(x,0,1)",
+        "full_mean": 0.5151192263749761,
+        "full_rms": 0.6950455776131071,
+        "exact_zero_fraction": 0.20813423814114543,
+        "exact_one_fraction": 0.4387169920138997,
+        "effective_fraction": 0.5492882468088744,
+        "gini": 0.47817227317973543,
+        "top_10_percent_mass": 0.1941303192745447,
+        "initial_gradient_mass_proxy_mean": 0.5108590314136556
+      },
+      "tanh": {
+        "formula": "tanh(x)",
+        "full_mean": 0.40203574080919713,
+        "full_rms": 0.53554883338287,
+        "exact_zero_fraction": 0.20813423814114543,
+        "exact_one_fraction": 0.0,
+        "effective_fraction": 0.5635683979861711,
+        "gini": 0.46526592715434106,
+        "top_10_percent_mass": 0.1894351123001268,
+        "initial_gradient_mass_proxy_mean": 0.39778749248382567,
+        "initial_gradient_mass_relative_to_clamp": 0.7786639131798513
+      },
+      "rational": {
+        "formula": "x/(1+x)",
+        "full_mean": 0.269450990698433,
+        "full_rms": 0.35447156583381373,
+        "exact_zero_fraction": 0.20813423814114543,
+        "exact_one_fraction": 0.0,
+        "effective_fraction": 0.5778604455127643,
+        "gini": 0.45339793793650773,
+        "top_10_percent_mass": 0.1855610390693572,
+        "initial_gradient_mass_proxy_mean": 0.26549543339890397,
+        "initial_gradient_mass_relative_to_clamp": 0.5197039047430004
+      }
+    },
+    "no_target_shrinkage": true,
+    "held_reads": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0,
+    "cache_rebuilds": 0
+  },
+  "fixed_point_maps": {
+    "x": [0.0, 0.01, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0],
+    "clamp": [0.0, 0.01, 0.1, 0.25, 0.5, 1.0, 1.0, 1.0, 1.0],
+    "tanh": [0.0, 0.00999966668, 0.099667994625, 0.244918662404, 0.46211715726, 0.761594155956, 0.964027580076, 0.999909204263, 0.999999995878],
+    "rational": [0.0, 0.009900990099, 0.090909090909, 0.2, 0.333333333333, 0.5, 0.666666666667, 0.833333333333, 0.909090909091]
+  },
+  "derivatives": {
+    "clamp": {"below_one": 1.0, "at_one": "undefined_subgradient", "above_one": 0.0},
+    "tanh": {"formula": "sech^2(x)", "at_0.5": 0.786447732966, "at_1": 0.419974341614, "at_2": 0.070650824853, "at_5": 0.000181583231},
+    "rational": {"formula": "(1+x)^-2", "at_0.5": 0.444444444444, "at_1": 0.25, "at_2": 0.111111111111, "at_5": 0.027777777778}
+  },
+  "synthetic_selected_tanh": [
+    {"name": "zero_weight_decoupled", "weight_mean": 0.0, "loss": 0.0, "gradient_l2": 0.0, "gradient_q99_abs": 0.0, "gradient_max_abs": 0.0, "gradient_nonzero_fraction": 0.0, "finite": true, "target_equals_full_teacher": true},
+    {"name": "x_0.01", "weight_mean": 0.009999666363, "loss": 0.001510256203, "gradient_l2": 0.001943068462, "gradient_q99_abs": 0.000686978456, "gradient_max_abs": 0.000686978456, "gradient_nonzero_fraction": 1.0, "finite": true, "target_equals_full_teacher": true},
+    {"name": "x_0.1", "weight_mean": 0.099667996168, "loss": 0.049437221140, "gradient_l2": 0.035097394139, "gradient_q99_abs": 0.012408803217, "gradient_max_abs": 0.012408803217, "gradient_nonzero_fraction": 1.0, "finite": true, "target_equals_full_teacher": true},
+    {"name": "x_0.5", "weight_mean": 0.462117195129, "loss": 1.146076083183, "gradient_l2": 0.163383081555, "gradient_q99_abs": 0.057764649391, "gradient_max_abs": 0.057764649391, "gradient_nonzero_fraction": 1.0, "finite": true, "target_equals_full_teacher": true},
+    {"name": "x_1", "weight_mean": 0.761594235897, "loss": 3.777591228485, "gradient_l2": 0.269264191389, "gradient_q99_abs": 0.095199272037, "gradient_max_abs": 0.095199272037, "gradient_nonzero_fraction": 1.0, "finite": true, "target_equals_full_teacher": true},
+    {"name": "x_2", "weight_mean": 0.964027523994, "loss": 9.563364982605, "gradient_l2": 0.340835213661, "gradient_q99_abs": 0.120503447950, "gradient_max_abs": 0.120503447950, "gradient_nonzero_fraction": 1.0, "finite": true, "target_equals_full_teacher": true},
+    {"name": "x_10", "weight_mean": 1.0, "loss": 49.601100921631, "gradient_l2": 0.353553384543, "gradient_q99_abs": 0.125, "gradient_max_abs": 0.125, "gradient_nonzero_fraction": 1.0, "finite": true, "target_equals_full_teacher": true, "finite_precision_note": "float32 tanh reaches 1 at this out-of-support synthetic magnitude"},
+    {"name": "mixed_effect_sign_reversal", "weight_mean": 0.537164449692, "loss": 31.199169158936, "gradient_l2": 0.241231709719, "gradient_q99_abs": 0.124999202788, "gradient_max_abs": 0.125, "gradient_nonzero_fraction": 0.875, "finite": true, "target_equals_full_teacher": true},
+    {"name": "mixed_90_low_10_high", "weight_mean": 0.076159425080, "loss": 0.320639461279, "gradient_l2": 0.024083720520, "gradient_q99_abs": 0.007615941577, "gradient_max_abs": 0.007615941577, "gradient_nonzero_fraction": 0.1, "finite": true, "target_equals_full_teacher": true},
+    {"name": "heavy_tail_one_outlier", "weight_mean": 0.388896495104, "loss": 166666.65625, "gradient_l2": 0.213014945388, "gradient_q99_abs": 0.164679944515, "gradient_max_abs": 0.166666671634, "gradient_nonzero_fraction": 0.833333333333, "finite": true, "target_equals_full_teacher": true},
+    {"name": "all_zero_actionability", "weight_mean": 0.0, "loss": 0.0, "gradient_l2": 0.0, "gradient_q99_abs": 0.0, "gradient_max_abs": 0.0, "gradient_nonzero_fraction": 0.0, "finite": true, "target_equals_full_teacher": true},
+    {"name": "all_high_actionability", "weight_mean": 0.761594235897, "loss": 3.396793603897, "gradient_l2": 0.269264191389, "gradient_q99_abs": 0.095199272037, "gradient_max_abs": 0.095199272037, "gradient_nonzero_fraction": 1.0, "finite": true, "target_equals_full_teacher": true}
+  ],
+  "radial_identifiability": {
+    "clamp_loss_range_over_beta": 0.083246096969,
+    "tanh_loss_range_over_beta": 0.085944905877,
+    "rational_loss_range_over_beta": 0.077873550355,
+    "all_candidates_identifiable": true,
+    "student_self_normalized": false
+  },
+  "gates": {
+    "all_synthetic_finite": true,
+    "full_target_preserved": true,
+    "weight_map_monotone": true,
+    "selected_source_weight_finite_bounded": true,
+    "selected_source_weight_has_no_exact_one_plateau": true,
+    "source_actionability_nontrivial": true,
+    "source_target_not_shrunk": true,
+    "radial_identifiable": true,
+    "one_objective": true,
+    "new_tuned_hyperparameters": 0,
+    "new_learnable_parameters": 0,
+    "category_specific_parameters": 0,
+    "inference_overhead_percent": 0.0,
+    "held_reads": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0,
+    "cache_rebuilds": 0
+  },
+  "interpretation": {
+    "p35_zero_actionability": "zero direct importance gradient is intentional and is not a zero-target/restoring-gradient claim",
+    "p35_target": "full detached E_t for every candidate and every weight",
+    "p34_target_shaping_excluded": true,
+    "residual_sparsity_is_not_a_gate": true,
+    "held_result_tuning": 0
+  }
+}
