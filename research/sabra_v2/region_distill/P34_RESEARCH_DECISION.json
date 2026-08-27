@@ -1,0 +1,187 @@
+{
+  "schema": "P34_RESEARCH_DECISION_V1",
+  "status": "P34_RESEARCH_DECISION_COMPLETE",
+  "protocol": "P34",
+  "created_utc": "2026-08-27T00:00:00Z",
+  "authoritative_parent": {
+    "p33_final_evidence_commit": "f83e8d7053b2abe78cf92b4aadb4043ad673c6a9",
+    "p33_status": "P33_STAGE2_SCIENTIFIC_STOP",
+    "p33_pap": 0.519395095936,
+    "p33_pauroc": 0.97818428883,
+    "native_pap": 0.514140304931,
+    "native_pauroc": 0.980667143514,
+    "p32_pap": 0.510351502947,
+    "p32_pauroc": 0.971460700418
+  },
+  "forensic_conclusion": {
+    "primary_mechanism": "LOSS_WEIGHTING_SUPPRESSES_ABSTENTION_RESTORATION",
+    "secondary_mechanism": "DENSE_LOW_AMPLITUDE_SHARED_ADAPTER_INTERVENTION",
+    "p33_effective_residual_support_fraction": 0.962760,
+    "p33_inherited_threshold_support_fraction": 0.999074,
+    "p33_residual_gini": 0.069176,
+    "p30r1_historical_support_fraction": 0.111358,
+    "p33_source_weight_exact_zero_fraction": 0.208134,
+    "p33_source_weight_q90": 1.0,
+    "p33_source_weight_q95": 1.0,
+    "p33_source_weight_q99": 1.0,
+    "gradient_proof": {
+      "p33": "dL/dE_s = w*psi_1(E_s-E_t)/N",
+      "p34": "dL/dE_s = psi_1(E_s-w*E_t)/N",
+      "w_zero_p33_gradient": "zero for every E_s",
+      "w_zero_p34_gradient": "psi_1(E_s)/N, restoring toward zero when E_s is nonzero"
+    }
+  },
+  "source_only_preflight": {
+    "artifact": "research/sabra_v2/region_distill/P34_PREFLIGHT_FALSIFICATION.json",
+    "artifact_sha256": "059d8b1d0cf7b0cfa4999dd2ec03129443e5e78e5a9ce24ca6401bb482f8494c",
+    "status": "P34_PREFLIGHT_PASS",
+    "cache": "/workspace/p27r1_cache_v1/tier_b/candle",
+    "held_reads": 0,
+    "new_neural_forwards": 0,
+    "source_pixels": 526451688,
+    "raw_exact_zero_fraction": 0.2081342381,
+    "target_exact_zero_fraction": 0.2081342381,
+    "raw_meaningful_support_fraction": 0.6867073242,
+    "target_meaningful_support_fraction": 0.6012298644,
+    "target_to_raw_absolute_mass_ratio": 0.9378186108,
+    "target_to_raw_rms_ratio": 0.9802402236,
+    "weight_one_fraction": 0.438716992,
+    "weight_gt_075_fraction": 0.468221502,
+    "weight_gt_09_fraction": 0.4523844779,
+    "all_zero_collapse": false,
+    "radial_identifiability": true,
+    "heavy_tail_finite": true
+  },
+  "literature": [
+    {
+      "title": "Confidence Conditioned Knowledge Distillation",
+      "problem": "unreliable teacher predictions",
+      "mechanism": "confidence-weighted transfer and confidence-conditioned target mixing",
+      "equation": "L=lambda L_KD+(1-lambda)L_CE; target can mix lambda*y_teacher+(1-lambda)*y",
+      "relevance": "closest direct precedent for target conditioning rather than only loss weighting",
+      "limitation": "uses labels and classification distributions",
+      "url": "https://arxiv.org/abs/2107.06993"
+    },
+    {
+      "title": "Not All Knowledge Is Created Equal",
+      "problem": "teacher knowledge has varying reliability",
+      "mechanism": "confidence-driven masking/selection with static or progressive thresholds",
+      "equation": "transfer only selected confident knowledge",
+      "relevance": "selective knowledge transfer precedent",
+      "limitation": "hard selection, extra schedule choices, classification/noisy-label setting",
+      "url": "https://arxiv.org/abs/2106.01489"
+    },
+    {
+      "title": "Distilling Knowledge From a Deep Pose Regressor Network",
+      "problem": "regression teacher reliability varies",
+      "mechanism": "continuous teacher-confidence weighting of attentive regression transfer",
+      "equation": "L approximately w_teacher L_reg",
+      "relevance": "confidence weighting in regression transfer",
+      "limitation": "pose-regression confidence; no native/no-op target",
+      "url": "https://www.qmac.ox.ac.uk/files/11078/ICCV19_Distilling_Knowledge_From_a_Deep_Pose_Regressor_Network.pdf"
+    },
+    {
+      "title": "Localization Distillation for Dense Object Detection",
+      "problem": "feature imitation misses localization knowledge",
+      "mechanism": "spatially selected output/logit distillation",
+      "equation": "sum over selected regions of spatial weight times output loss",
+      "relevance": "downstream-aware spatial transfer precedent",
+      "limitation": "detector-specific region selection; no anomaly abstention target",
+      "url": "https://openaccess.thecvf.com/content/CVPR2022/html/Zheng_Localization_Distillation_for_Dense_Object_Detection_CVPR_2022_paper.html"
+    },
+    {
+      "title": "SelectiveNet",
+      "problem": "prediction with a reject option",
+      "mechanism": "learned reject gate and coverage-constrained selective risk",
+      "equation": "coverage=E[g(x)], risk=E[g(x)loss]/E[g(x)]",
+      "relevance": "formal abstention/action semantics",
+      "limitation": "learned gate and held-label coverage objective are out of scope",
+      "url": "https://proceedings.mlr.press/v97/geifman19a.html"
+    },
+    {
+      "title": "Uninformed Students",
+      "problem": "one-class pixel anomaly detection",
+      "mechanism": "student-teacher discrepancy scoring",
+      "equation": "A(x)=d(f_teacher(x),f_student(x))",
+      "relevance": "direct teacher-student anomaly precedent",
+      "limitation": "discrepancy is the inference signal, not selective native-relative intervention",
+      "url": "https://openaccess.thecvf.com/content_CVPR_2020/html/Bergmann_Uninformed_Students_Student-Teacher_Anomaly_Detection_With_Discriminative_Latent_Embeddings_CVPR_2020_paper.html"
+    },
+    {
+      "title": "Deep Anomaly Detection by Residual Adaptation",
+      "problem": "adapt a pretrained representation for anomaly detection",
+      "mechanism": "residual adaptation around a pretrained network",
+      "equation": "f=f_0+r_theta",
+      "relevance": "residual adapter precedent",
+      "limitation": "does not define source-only actionability or zero-target abstention",
+      "url": "https://arxiv.org/abs/2010.02310"
+    }
+  ],
+  "candidates": [
+    {
+      "id": "A",
+      "name": "EXPLICIT_ACTIONABILITY_TARGET_FUNCTIONAL_TRANSFER",
+      "equation": "w=stop_gradient(clamp(abs(E_t)/C,0,1)); T=stop_gradient(w*E_t); L=mean(SmoothL1(E_s,T;beta=1))",
+      "selectivity_causal_fit": "high",
+      "explicit_zero_restoring_gradient": true,
+      "action_preserved_at_w1": true,
+      "one_objective": true,
+      "new_tuned_parameters": 0,
+      "radial_identifiable": true,
+      "source_only": true,
+      "inference_overhead_percent": 0,
+      "main_risk": "absolute teacher effect remains an operational, not held-validated, actionability proxy"
+    },
+    {
+      "id": "B",
+      "name": "RESIDUAL_TARGET_INTERPOLATION",
+      "equation": "T=(1-w)*0+w*E_t=w*E_t",
+      "selectivity_causal_fit": "same equation as A",
+      "explicit_zero_restoring_gradient": true,
+      "action_preserved_at_w1": true,
+      "one_objective": true,
+      "new_tuned_parameters": 0,
+      "radial_identifiable": true,
+      "source_only": true,
+      "inference_overhead_percent": 0,
+      "main_risk": "not an independent candidate"
+    },
+    {
+      "id": "C",
+      "name": "UNSATURATED_BOUNDED_ACTIONABILITY_TARGET",
+      "equation": "q=abs(E_t)/C; w'=q/(1+q); T'=w'*E_t",
+      "selectivity_causal_fit": "medium",
+      "explicit_zero_restoring_gradient": true,
+      "action_preserved_at_w1": false,
+      "one_objective": true,
+      "new_tuned_parameters": 0,
+      "radial_identifiable": true,
+      "source_only": true,
+      "inference_overhead_percent": 0,
+      "main_risk": "confounds transform saturation with target semantics; halves raw target RMS in source sample",
+      "decision": "reject"
+    }
+  ],
+  "selected_next_hypothesis": "EXPLICIT_ACTIONABILITY_TARGET_FUNCTIONAL_TRANSFER",
+  "selection_reason": [
+    "directly tests the P33 weighting-versus-target causal distinction",
+    "one objective with zero new tuned hyperparameters",
+    "explicit zero target at w=0 without a sparsity regularizer or hard gate",
+    "preserves full functional target at w=1 and student magnitude identifiability",
+    "zero inference overhead and cheap algebraic/source-only falsification"
+  ],
+  "future_training_required": true,
+  "current_scientific_execution": {
+    "stage2_attempts": 0,
+    "stage3_attempts": 0,
+    "full_runs": 0,
+    "held_tuning_iterations": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0,
+    "cache_rebuilds": 0,
+    "scientific_uuid": null
+  },
+  "novelty_position": "Components and target conditioning have prior art; no novelty claim is made for the scoped exact combination.",
+  "authorization": "Implementation and engineering qualification may proceed; no P34 scientific Stage 2 is authorized by this artifact alone."
+}
