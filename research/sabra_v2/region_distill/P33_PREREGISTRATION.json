@@ -1,0 +1,159 @@
+{
+  "schema_version": "P33_PREREGISTRATION_V1",
+  "artifact_type": "authoritative_preregistration",
+  "status": "P33_PREREGISTRATION_FROZEN",
+  "protocol_id": "P33",
+  "execution_authorized": false,
+  "scientific_uuid": null,
+  "execution_marker": null,
+  "preregistration_md_sha256": "d2460555be14af7d23316e43ad16c8585faeecbedf1698ee71f29dce765aed6c",
+  "hypothesis": {
+    "name": "CONTINUOUS_ACTIONABILITY_WEIGHTED_FUNCTIONAL_TRANSFER",
+    "claim": "a bounded source-only continuous absolute deployed teacher effect can suppress dense low-actionability functional micro-corrections while retaining the signed effect where intervention is requested",
+    "primary_forensic_mechanism": "LOST_SELECTIVITY_DENSE_MICRO_CORRECTION",
+    "secondary_forensic_mechanisms": [
+      "SUPPORT_MISMATCH",
+      "ACTIONABILITY_NOT_MAGNITUDE"
+    ],
+    "native_control_required": true
+  },
+  "mechanism": {
+    "student_shape": "[3,B,9,9] float32",
+    "teacher_shape": "[B,9,9] float32",
+    "effect_shape": "[B,518,518] float32",
+    "weight_shape": "[B,518,518] float32",
+    "transform": "D(x)=bilinear_37_to_518(gaussian_blur7_sigma1(bilinear_9_to_37(x)))",
+    "interpolation": "bilinear with align_corners=True",
+    "student_effect": "D(mean_stage(student_region))",
+    "teacher_effect": "D(teacher_region.detach())",
+    "inherited_correction_scale_C": 4.960109710693359,
+    "weight": "stop_gradient(clamp(abs(teacher_effect)/C, min=0, max=1))",
+    "objective": "mean(weight * SmoothL1(student_effect, stop_gradient(teacher_effect), beta=1.0, reduction=none))",
+    "teacher_detached": true,
+    "weight_detached": true,
+    "student_self_normalized": false,
+    "target_shrinkage": false,
+    "hard_threshold": false,
+    "auxiliary_terms": [],
+    "operator_matrix_shape": [
+      268324,
+      81
+    ],
+    "operator_rank": 81,
+    "operator_condition_number": 6.140363502015776
+  },
+  "frozen": {
+    "parent_architecture": "canonical Phase2B plus unchanged RegionResidualAdapter",
+    "image_size": 518,
+    "stages": 3,
+    "fold": "candle",
+    "fit_records": 1962,
+    "held_records": 200,
+    "epochs": 20,
+    "batch_size": 1,
+    "seed": 0,
+    "precision": "fp32",
+    "deterministic_policy": "existing canonical deterministic policy",
+    "optimizer": "AdamW",
+    "learning_rate": 0.001,
+    "betas": [
+      0.9,
+      0.999
+    ],
+    "optimizer_epsilon": 1e-08,
+    "weight_decay": 0.01,
+    "amsgrad": false,
+    "smooth_l1_beta": 1.0,
+    "new_objective_count": 1,
+    "new_hyperparameter_count": 0,
+    "new_learnable_parameter_count": 0,
+    "category_specific_parameters": 0,
+    "teacher_at_inference": false,
+    "incremental_inference_overhead_percent": 0
+  },
+  "allowed_data": [
+    "locked candle fit/source samples",
+    "frozen Tier-A segmentation features and native logits",
+    "frozen Tier-B teacher region targets",
+    "immutable metadata for identity and cache validation",
+    "deterministic synthetic tensors",
+    "frozen source-only distribution summaries"
+  ],
+  "forbidden_data_before_prediction_freeze": [
+    "held GT labels",
+    "held masks",
+    "held outcome metrics",
+    "held-derived thresholds, weights, coefficients, or formulation choices",
+    "new source or held cache builds",
+    "new CLIP forwards",
+    "new Phase2B forwards",
+    "teacher neural forwards",
+    "category-specific actionability rules"
+  ],
+  "allowed_model_forwards": {
+    "cached_student_adapter_forward": "one per fit batch during future training",
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0,
+    "weight_computation": "training-only fixed tensor transform"
+  },
+  "controls": [
+    "native zero-adapter output",
+    "frozen P30R1 output comparator",
+    "frozen P32 functional-margin-effect comparator",
+    "P33 continuous actionability-weighted functional transfer"
+  ],
+  "preflight_gates": [
+    "bounded weight and finite zero/near-zero symbolic behavior",
+    "deterministic synthetic adversarial suite",
+    "source-only support, scale, tail, and category-dispersion audit",
+    "reference/production FP32 parity for output, loss, and student gradients",
+    "cached one-batch CLI-to-checkpoint engineering smoke",
+    "5-step microprofile and warmed 40-step profile",
+    "training overhead <=10 percent preferred and <=15 percent hard",
+    "peak memory growth <=10 percent unless documented",
+    "identical native/control/candidate data identity and scoring path"
+  ],
+  "future_stage2": {
+    "primary_metric": "pAP",
+    "secondary_metric": "pAUROC",
+    "native_noninferiority_margin": 0.0,
+    "pAP_threshold": 0.5141403049313743,
+    "pAUROC_threshold": 0.9806671435137679,
+    "residual_absolute_q99_max": 8.643353872299194,
+    "normal_score_q99_shift_max": 0.0010011587851122385,
+    "nonfinite_loss_count": 0,
+    "nonfinite_gradient_count": 0,
+    "diagnostics_not_gates": [
+      "raw residual cosine",
+      "raw sign agreement",
+      "Pearson",
+      "Spearman",
+      "support fraction",
+      "actionability weight distribution"
+    ],
+    "one_attempt_only": true
+  },
+  "no_rerun": {
+    "changed_inherited_scale_forbidden": true,
+    "changed_beta_forbidden": true,
+    "changed_weight_formula_forbidden": true,
+    "changed_normalization_forbidden": true,
+    "added_threshold_forbidden": true,
+    "changed_optimizer_or_schedule_forbidden": true,
+    "changed_seed_or_class_forbidden": true,
+    "changed_objective_or_gate_forbidden": true,
+    "integrity_repair_only": true
+  },
+  "counts_at_freeze": {
+    "new_scientific_stage2_attempts": 0,
+    "new_stage3_attempts": 0,
+    "full_runs": 0,
+    "held_result_tuning_iterations": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0,
+    "cache_rebuilds": 0,
+    "optimizer_steps": 0
+  }
+}

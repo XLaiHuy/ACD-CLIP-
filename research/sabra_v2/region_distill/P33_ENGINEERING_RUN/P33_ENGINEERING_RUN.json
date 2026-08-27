@@ -1,0 +1,230 @@
+{
+  "data_access_audit": {
+    "cache_provenance": {
+      "cache_implementation_version": "P27_CACHE_V1",
+      "clip_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+      "config_sha256": "edf5745686e3d3d0d3b4142341569da06ad5b54025a779b78d83f74303ce67fc",
+      "metadata_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+      "p26_sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+      "parent_execution_sha": "1151373f2c4968268f52cdc3e538c7ebcef7b8f0",
+      "scientific_execution_base_sha": "de41b380449dcbc0b124f71f4f8fbb789e1a96f0"
+    },
+    "cache_root": "/workspace/p27r1_cache_v1",
+    "dataset_length": 1962,
+    "fit_records": 1962,
+    "held_class": "candle",
+    "held_records_not_read": 200,
+    "metadata": "/workspace/ACD-CLIP-sabra/dataset/hub/VisA.jsonl",
+    "metadata_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+    "native_logits_loaded": false,
+    "smoke_batch_fields": [
+      "seg_features",
+      "teacher_region"
+    ],
+    "smoke_held_GT_read_count": 0,
+    "smoke_held_mask_read_count": 0,
+    "source_mask_loaded": false
+  },
+  "device": "cuda",
+  "entry_git": {
+    "branch": "research/p29r1-fast-objective-forensic-v1",
+    "head": "74d88aeb2c72e5a675984c802fb36acbbbe8dda1",
+    "status_porcelain": "?? research/sabra_v2/region_distill/P33_FORENSIC_ANALYSIS.json\n?? research/sabra_v2/region_distill/P33_PREFLIGHT_FALSIFICATION.json\n?? research/sabra_v2/region_distill/P33_PREREGISTRATION.json\n?? research/sabra_v2/region_distill/P33_PREREGISTRATION.md\n?? research/sabra_v2/region_distill/P33_RESEARCH_DECISION.json\n?? research/sabra_v2/region_distill/P33_RESEARCH_DECISION.md\n?? tests/test_p33_objective.py\n?? tools/sabra_v2/forensics/p33_selective_actionability.py\n?? tools/sabra_v2/p33_objective.py\n?? tools/sabra_v2/p33_preflight.py\n?? tools/sabra_v2/p33_reference.py\n?? tools/sabra_v2/run_p33_engineering.py"
+  },
+  "exit_git": {
+    "branch": "research/p29r1-fast-objective-forensic-v1",
+    "head": "74d88aeb2c72e5a675984c802fb36acbbbe8dda1",
+    "status_porcelain": "?? research/sabra_v2/region_distill/P33_ENGINEERING_RUN/\n?? research/sabra_v2/region_distill/P33_FORENSIC_ANALYSIS.json\n?? research/sabra_v2/region_distill/P33_PREFLIGHT_FALSIFICATION.json\n?? research/sabra_v2/region_distill/P33_PREREGISTRATION.json\n?? research/sabra_v2/region_distill/P33_PREREGISTRATION.md\n?? research/sabra_v2/region_distill/P33_RESEARCH_DECISION.json\n?? research/sabra_v2/region_distill/P33_RESEARCH_DECISION.md\n?? tests/test_p33_objective.py\n?? tools/sabra_v2/forensics/p33_selective_actionability.py\n?? tools/sabra_v2/p33_objective.py\n?? tools/sabra_v2/p33_preflight.py\n?? tools/sabra_v2/p33_reference.py\n?? tools/sabra_v2/run_p33_engineering.py"
+  },
+  "gates": {
+    "backward": "PASS",
+    "cached_batch_forward": "PASS",
+    "checkpoint_save": "PASS_ENGINEERING_ONLY",
+    "checkpoint_strict_reload": "PASS",
+    "import_compile": "PASS",
+    "microprofile": "PASS",
+    "objective_smoke": "PASS",
+    "optimizer_step": "PASS_ENGINEERING_ONLY",
+    "production_reference_parity": "PASS in tests/test_p33_objective.py",
+    "warmed_profile": "PASS"
+  },
+  "memory": {
+    "duplicate_teacher_tensor": false,
+    "peak_gpu_allocated_bytes": 38010368,
+    "peak_gpu_reserved_bytes": 60817408,
+    "peak_process_rss_kib": 1714880,
+    "retained_graph": false
+  },
+  "microprofile_5_step": {
+    "backward_optimizer_median_seconds": 0.001695744037628174,
+    "cache_tensor_transfer_median_seconds": 0.002135871887207031,
+    "data_loader_median_seconds": 0.025196166709065437,
+    "finite": true,
+    "forward_median_seconds": 0.0005703679919242859,
+    "input_cache_median_seconds": 0.02733203859627247,
+    "label": "5_step_microprofile",
+    "mean_end_to_end_step_seconds": 0.0305789448261261,
+    "mean_step_seconds": 0.00487514882683754,
+    "measured_steps": 5,
+    "median_end_to_end_step_seconds": 0.029908326640725135,
+    "median_step_seconds": 0.004712159931659698,
+    "objective_fraction_of_step_median": 0.06543071337520402,
+    "objective_median_seconds": 0.00030831998586654664,
+    "optimizer_steps": 5,
+    "p90_end_to_end_step_seconds": 0.03231163301542401,
+    "p90_step_seconds": 0.0051617728948593145,
+    "peak_process_rss_kib": 1159456,
+    "teacher_detached": true,
+    "warmup_steps": 0
+  },
+  "model_forward_audit": {
+    "adapter_forwards": 52,
+    "cache_rebuilds": 0,
+    "cached_student_only": true,
+    "held_GT_read_count": 0,
+    "held_mask_read_count": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0
+  },
+  "objective": {
+    "align_corners": true,
+    "auxiliary_terms": [],
+    "effect_shape": "[B,518,518]",
+    "gaussian_kernel": [
+      7,
+      7
+    ],
+    "gaussian_sigma": [
+      1.0,
+      1.0
+    ],
+    "hard_threshold": false,
+    "incremental_inference_overhead_percent": 0,
+    "inherited_correction_scale_C": 4.960109710693359,
+    "name": "P33_CONTINUOUS_ACTIONABILITY_WEIGHTED_FUNCTIONAL_TRANSFER_V1",
+    "objective_count": 1,
+    "preregistration_sha256": "d2460555be14af7d23316e43ad16c8585faeecbedf1698ee71f29dce765aed6c",
+    "smooth_l1_beta": 1.0,
+    "student_self_normalized": false,
+    "student_shape": "[3,B,9,9]",
+    "target_shrinkage": false,
+    "teacher_at_inference": false,
+    "teacher_detached": true,
+    "teacher_shape": "[B,9,9]",
+    "weight_detached": true,
+    "weight_formula": "clamp(abs(detached_teacher_effect)/C,0,1)",
+    "weight_shape": "[B,518,518]"
+  },
+  "preregistration_sha256": "d2460555be14af7d23316e43ad16c8585faeecbedf1698ee71f29dce765aed6c",
+  "protocol_id": "P33",
+  "schema_version": "P33_ENGINEERING_RUN_V1",
+  "scientific_safety": {
+    "cache_rebuilds": 0,
+    "execution_marker_created": false,
+    "full_runs": 0,
+    "held_result_tuning_iterations": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_scientific_held_predictions": 0,
+    "new_scientific_stage2_attempts": 0,
+    "new_stage3_attempts": 0,
+    "new_teacher_forwards": 0,
+    "scientific_uuid_created": false
+  },
+  "smoke": {
+    "checkpoint": {
+      "path": "research/sabra_v2/region_distill/P33_ENGINEERING_RUN/p33_engineering_adapter.pt",
+      "schema_version": "P33_ENGINEERING_CHECKPOINT_V1",
+      "sha256": "697486f6543fa9034dc8856dd4826f1ed43ded965a509a13694f7517dc01928b"
+    },
+    "frozen_parameter_delta": 0.0,
+    "gradient": {
+      "finite": true,
+      "l2": 0.08245544880628586,
+      "max_abs": 0.0366816371679306,
+      "missing_gradient_elements": 0,
+      "nonfinite_count": 0
+    },
+    "loss": 0.25380760431289673,
+    "loss_finite": true,
+    "optimizer_steps": 1,
+    "status": "PASS",
+    "strict_reload": {
+      "checkpoint": "research/sabra_v2/region_distill/P33_ENGINEERING_RUN/p33_engineering_adapter.pt",
+      "checkpoint_sha256": "697486f6543fa9034dc8856dd4826f1ed43ded965a509a13694f7517dc01928b",
+      "probe": "one cached Tier-A fit batch, adapter-only residual forward",
+      "probe_device": "cuda",
+      "probe_finite": true,
+      "probe_shape": [
+        3,
+        1,
+        9,
+        9
+      ],
+      "probe_teacher_requires_grad": false,
+      "status": "PASS",
+      "strict_state_dict_reload": true
+    },
+    "student_effect_shape": [
+      1,
+      518,
+      518
+    ],
+    "student_parameter_delta": {
+      "l2": 0.013964336930482702,
+      "max_abs": 0.0009999996982514858
+    },
+    "teacher_effect_requires_grad": false,
+    "teacher_effect_shape": [
+      1,
+      518,
+      518
+    ],
+    "teacher_requires_grad": false,
+    "weight_requires_grad": false
+  },
+  "speed_comparison": {
+    "comparison_caveat": "same cached host comparison; DataLoader wait is reported separately and excluded from comparable step",
+    "end_to_end_overhead_percent_vs_P30R1": 7.2236936917872585,
+    "objective_only_overhead_percent_vs_P30R1": 35.105709232355565,
+    "observed_median_step_seconds": 0.004711392030119896,
+    "observed_objective_median_seconds": 0.0003077600002288818,
+    "reference_artifact": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P30R1_SPEED_PROFILE.json",
+    "reference_median_step_seconds": 0.004393984079360962,
+    "reference_objective_median_seconds": 0.00022779200226068496,
+    "reference_protocol": "P30R1",
+    "reference_warmed_profile_steps": 40
+  },
+  "status": "ENGINEERING_QUALIFICATION_ONLY",
+  "training_schedule": {
+    "batch_size": 1,
+    "engineering_optimizer_steps": 51,
+    "epochs_frozen_for_future_science": 20,
+    "learning_rate": 0.001,
+    "scientific_training_runs": 0,
+    "seed": 0
+  },
+  "warmed_profile_40_step": {
+    "backward_optimizer_median_seconds": 0.001706496000289917,
+    "cache_tensor_transfer_median_seconds": 0.0021233280897140503,
+    "data_loader_median_seconds": 0.02454032702371478,
+    "finite": true,
+    "forward_median_seconds": 0.0005631999969482422,
+    "input_cache_median_seconds": 0.02667682804912329,
+    "label": "40_step_warmed_profile",
+    "mean_end_to_end_step_seconds": 0.02974526251424104,
+    "mean_step_seconds": 0.004874411227554084,
+    "measured_steps": 40,
+    "median_end_to_end_step_seconds": 0.02935278034582734,
+    "median_step_seconds": 0.004711392030119896,
+    "objective_fraction_of_step_median": 0.06532252002409783,
+    "objective_median_seconds": 0.0003077600002288818,
+    "optimizer_steps": 40,
+    "p90_end_to_end_step_seconds": 0.030694692927598955,
+    "p90_step_seconds": 0.005315379244089127,
+    "peak_process_rss_kib": 1714880,
+    "teacher_detached": true,
+    "warmup_steps": 5
+  }
+}

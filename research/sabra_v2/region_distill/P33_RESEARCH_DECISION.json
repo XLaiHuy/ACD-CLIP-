@@ -1,0 +1,79 @@
+{
+  "schema_version": "P33_RESEARCH_DECISION_V1",
+  "artifact_type": "offline_research_decision",
+  "status": "P33_RESEARCH_DECISION_COMPLETE",
+  "protocol_id": "P33",
+  "execution_authorized": false,
+  "entry": {
+    "parent_protocol": "P32",
+    "parent_terminal_state": "P32_STAGE2_SCIENTIFIC_STOP",
+    "parent_attempt_uuid": "1818b1ef-9afc-41ad-972c-ee5288ee1286",
+    "parent_evidence_commit": "74d88aeb2c72e5a675984c802fb36acbbbe8dda1",
+    "branch": "research/p29r1-fast-objective-forensic-v1",
+    "worktree_clean_at_entry": true,
+    "forensic_json": "research/sabra_v2/region_distill/P33_FORENSIC_ANALYSIS.json"
+  },
+  "forensic": {
+    "primary_mechanism": "H1_LOST_SELECTIVITY_DENSE_MICRO_CORRECTION",
+    "secondary_mechanism": "H4_SUPPORT_MISMATCH",
+    "ranked_hypotheses": [
+      "H1_LOST_SELECTIVITY_DENSE_MICRO_CORRECTION",
+      "H4_SUPPORT_MISMATCH",
+      "H5_ACTIONABILITY_NOT_MAGNITUDE",
+      "H2_WRONG_FUNCTIONAL_TARGET",
+      "H3_NEAR_TIE_RANKING_SENSITIVITY"
+    ],
+    "p32_metrics": {"pAP": 0.510351502947, "pAUROC": 0.971460700418},
+    "native_metrics": {"pAP": 0.514140304931, "pAUROC": 0.980667143514},
+    "p30r1_metrics": {"pAP": 0.511513734224, "pAUROC": 0.980534708954},
+    "residual_support_fraction": {"P32": 0.871481481481, "P30R1": 0.111358024691},
+    "residual_effective_support_fraction": {"P32": 0.525447156883, "P30R1": 0.056409297806},
+    "residual_gini": {"P32": 0.505108044576, "P30R1": 0.925128442076},
+    "score_effect_fraction_le_1e_minus_10": {"P32": 0.033224646323, "P30R1": 0.775294066129},
+    "rank": {
+      "pooled_spearman_fixed_stride_17": {"P32": 0.932436975782, "P30R1": 0.974893444036},
+      "per_image_spearman_mean": {"P32": 0.735469393329, "P30R1": 0.907219405507},
+      "adjacent_flip_fraction": {"P32": 0.499349720300, "P30R1": 0.498120940061},
+      "conditional_gap_excess": false
+    },
+    "support_overlap": {"residual_jaccard": 0.123482924076, "P30R1_in_P32": 0.970066518847, "P32_in_P30R1": 0.123955234452},
+    "held_descriptive_enrichment": {"P30R1": 291.875070720, "P32": 315.154661846},
+    "source_only": {"unique_samples": 2162, "pixel_effect_exact_zero_fraction": 0.213812304, "effect_rms_category_median_max_min": 4.476355881, "usefulness_validated_source_only": false}
+  },
+  "literature": [
+    {"paper": "Confidence Conditioned Knowledge Distillation", "year": 2021, "mechanism": "confidence-conditioned loss or target", "equation": "L=lambda L_KD+(1-lambda)L_CE; lambda from teacher confidence", "relevance": "sample-wise teacher reliability weighting", "limitation": "uses labels and classification/regression confidence", "url": "https://arxiv.org/abs/2107.06993"},
+    {"paper": "Not All Knowledge Is Created Equal: Mutual Distillation of Confident Knowledge", "year": 2021, "mechanism": "static/progressive confident-knowledge selection", "equation": "transfer selected when confidence exceeds a static or progressive threshold", "relevance": "direct selective-distillation precedent", "limitation": "hard threshold, mutual models, label-noise setting", "url": "https://arxiv.org/abs/2106.01489"},
+    {"paper": "Distilling Knowledge From a Deep Pose Regressor Network", "year": 2019, "mechanism": "teacher-confidence weighted attentive imitation", "equation": "L_AIL=w_teacher L_reg", "relevance": "continuous weighting for regression transfer", "limitation": "pose-specific confidence and auxiliary hint setting", "url": "https://www.qmac.ox.ac.uk/files/11078/ICCV19_Distilling_Knowledge_From_a_Deep_Pose_Regressor_Network.pdf"},
+    {"paper": "Localization Distillation for Dense Object Detection", "year": 2022, "mechanism": "valuable-region output/localization distillation", "equation": "sum over selected regions of weighted output loss", "relevance": "downstream-aware spatial selection", "limitation": "detection-specific region selection", "url": "https://openaccess.thecvf.com/content/CVPR2022/html/Zheng_Localization_Distillation_for_Dense_Object_Detection_CVPR_2022_paper.html"},
+    {"paper": "SelectiveNet", "year": 2019, "mechanism": "learned reject option with coverage-constrained risk", "equation": "coverage=E[g]; risk=E[g*l]/E[g]", "relevance": "formal abstention semantics", "limitation": "learned gate and held-label coverage/risk", "url": "https://proceedings.mlr.press/v97/geifman19a.html"},
+    {"paper": "Uninformed Students", "year": 2020, "mechanism": "student regression to pretrained teacher with discrepancy scoring", "equation": "A(x)=d(f_T(x),f_S(x))", "relevance": "teacher-student anomaly-detection precedent", "limitation": "inference discrepancy, not native-relative intervention", "url": "https://openaccess.thecvf.com/content_CVPR_2020/html/Bergmann_Uninformed_Students_Student-Teacher_Anomaly_Detection_With_Discriminative_Latent_Embeddings_CVPR_2020_paper.html"},
+    {"paper": "Student-Teacher Feature Pyramid Matching for Anomaly Detection", "year": 2021, "mechanism": "multi-scale teacher-student feature matching", "equation": "multi-level feature discrepancy anomaly map", "relevance": "direct anomaly teacher-student context", "limitation": "feature discrepancy rather than selective correction", "url": "https://arxiv.org/abs/2103.04257"},
+    {"paper": "Deep Anomaly Detection by Residual Adaptation", "year": 2020, "mechanism": "residual correction of a pretrained representation", "equation": "f=f_0+r_theta", "relevance": "residual adapter context", "limitation": "no abstention/actionability weighting around native detector", "url": "https://arxiv.org/abs/2010.02310"}
+  ],
+  "prior_art_overlap": {
+    "exact_mechanism_found": false,
+    "components_found_separately": true,
+    "anomaly_detection_teacher_student_found": true,
+    "exact_native_relative_margin_intervention_found": false,
+    "novelty_claim": false,
+    "extra_inference_cost_for_selected_candidate_percent": 0.0,
+    "category_specific_parameters": 0
+  },
+  "candidates": [
+    {"id": "A", "name": "CONTINUOUS_ACTIONABILITY_WEIGHTED_FUNCTIONAL_TRANSFER", "mechanism": "w=clip(abs(E_t)/C,0,1); weight one functional SmoothL1 objective", "mechanism_match": "high", "source_only": true, "objective_count": 1, "new_hyperparameters": 0, "radial_identifiable": true, "inference_overhead_percent": 0.0, "main_risk": "teacher effect magnitude is only an operational actionability proxy"},
+    {"id": "B", "name": "ABSTENTION_AWARE_FUNCTIONAL_TARGET", "mechanism": "one SmoothL1 target w*E_t, driving zero where w is zero", "mechanism_match": "medium-high", "source_only": true, "objective_count": 1, "new_hyperparameters": 0, "radial_identifiable": "weakened by target shrinkage", "inference_overhead_percent": 0.0, "main_risk": "reintroduces magnitude attenuation"},
+    {"id": "C", "name": "HARD_SPARSE_SUPPORT_TRANSFER", "mechanism": "inherited raw-epsilon support propagated through deployment transform", "mechanism_match": "medium", "source_only": true, "objective_count": 1, "new_hyperparameters": 0, "radial_identifiable": true, "inference_overhead_percent": 0.0, "main_risk": "discontinuity and threshold sensitivity"}
+  ],
+  "selected_next_hypothesis": {
+    "name": "CONTINUOUS_ACTIONABILITY_WEIGHTED_FUNCTIONAL_TRANSFER",
+    "causal_claim": "bounded source-only absolute deployed teacher effect can suppress dense low-actionability micro-corrections while preserving signed functional transfer",
+    "why_selected": "highest mechanism fit, one objective, zero new tuned scalars, no target shrinkage, no hard threshold, zero inference cost, and clean synthetic falsifiability",
+    "falsifier": "failure of locked native non-inferiority or health/safety gates, or no reduction of low-actionability support in a clean future P33 comparison",
+    "selected_for_implementation": true
+  },
+  "cheapest_falsification_sequence": ["symbolic bounded-gradient check", "deterministic synthetic adversarial suite", "source-cache weight/support audit", "production/reference parity", "cached engineering smoke", "one future preregistered scientific Stage 2 attempt"],
+  "overconstraint": {"risk": "LOW", "reason": "one mechanism, one objective, zero new tuned hyperparameters, no category parameters, no new module, no teacher at inference"},
+  "training_required": true,
+  "scientific_execution": {"new_stage2_attempts": 0, "new_stage3_attempts": 0, "full_runs": 0, "held_tuning_iterations": 0, "new_clip_forwards": 0, "new_phase2b_forwards": 0, "new_teacher_forwards": 0, "cache_rebuilds": 0, "scientific_uuid_created": false},
+  "terminal_state": "P33_RESEARCH_DECISION_COMPLETE"
+}

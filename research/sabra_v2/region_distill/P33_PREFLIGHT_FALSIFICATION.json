@@ -1,0 +1,649 @@
+{
+  "allowed_evidence": [
+    "symbolic analysis",
+    "deterministic synthetic tensors",
+    "frozen Tier-B source cache"
+  ],
+  "alternative_rejections": {
+    "hard_support_transfer": "rejected: inherited threshold is discontinuous and threshold-sensitive; it is not needed for a one-objective continuous test",
+    "target_weighted_functional_target": "rejected: target w*E_t shrinks signed magnitude and creates a restoring null-target pressure under all-abstain"
+  },
+  "final_gate": "P33_PREFLIGHT_PASS",
+  "forbidden_evidence_used": [
+    "held GT",
+    "held masks",
+    "held metrics",
+    "new neural forwards",
+    "cache rebuild"
+  ],
+  "objective_contract": {
+    "inherited_correction_scale_C": 4.960109710693359,
+    "new_tuned_hyperparameters": 0,
+    "objective_count": 1,
+    "student_self_normalized": false,
+    "target_shrinkage": false,
+    "weight_formula": "clamp(abs(detached_teacher_effect)/C,0,1)"
+  },
+  "preregistration_md_sha256": "d2460555be14af7d23316e43ad16c8585faeecbedf1698ee71f29dce765aed6c",
+  "protocol_id": "P33",
+  "schema_version": "P33_PREFLIGHT_FALSIFICATION_V1",
+  "source_only": {
+    "cache_root": "/workspace/p27r1_cache_v1",
+    "category_effect_rms_median_ratio_max_min": 4.476355540314558,
+    "category_specific_rule_used": false,
+    "duplicate_exposures_not_counted": 21620,
+    "exposure_count": 23782,
+    "functional_effect_rms": {
+      "exact_zero_fraction": 0.004162812139838934,
+      "q01": 0.16094163060188293,
+      "q50": 1.9891574382781982,
+      "q99": 4.960111141204834
+    },
+    "held_reads": 0,
+    "neural_forwards": 0,
+    "new_cache_builds": 0,
+    "source_only_identifiability": "operational teacher-requested deployed effect, not validated anomaly utility",
+    "tier_b_shard_count": 12,
+    "unique_source_samples": 2162,
+    "weight": {
+      "bounded": true,
+      "detached": true,
+      "exact_zero_fraction": 0.21364150941371918,
+      "max": 1.0,
+      "mean": 0.5186097621917725,
+      "min": 0.0
+    }
+  },
+  "status": "P33_PREFLIGHT_PASS",
+  "synthetic": {
+    "all_abstain_has_zero_loss_and_gradient": true,
+    "all_finite_bounded_and_teacher_detached": true,
+    "cases": [
+      {
+        "batch": 1,
+        "expected_descent_alignment_nonnegative": true,
+        "gradient": {
+          "finite": true,
+          "l2": 0.0,
+          "max_abs": 0.0,
+          "nonzero_fraction": 0.0
+        },
+        "loss": 0.0,
+        "loss_finite": true,
+        "name": "exact_zero",
+        "nonzero_sample_gradient_max_median_ratio": null,
+        "per_sample_gradient_l2": [
+          0.0
+        ],
+        "student_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "target_displacement_gradient_alignment": 0.0,
+        "teacher_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "teacher_gradient_absent": true,
+        "weight": {
+          "bounded": true,
+          "detached": true,
+          "exact_zero_fraction": 1.0,
+          "max": 0.0,
+          "mean": 0.0,
+          "min": 0.0,
+          "nonzero_fraction": 0.0
+        }
+      },
+      {
+        "batch": 1,
+        "expected_descent_alignment_nonnegative": true,
+        "gradient": {
+          "finite": true,
+          "l2": 3.154705607855135e-09,
+          "max_abs": 6.787178041811615e-10,
+          "nonzero_fraction": 1.0
+        },
+        "loss": 9.796800704009456e-09,
+        "loss_finite": true,
+        "name": "near_zero",
+        "nonzero_sample_gradient_max_median_ratio": 1.0,
+        "per_sample_gradient_l2": [
+          3.154705607855135e-09
+        ],
+        "student_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "target_displacement_gradient_alignment": 1.9593599631662073e-08,
+        "teacher_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "teacher_gradient_absent": true,
+        "weight": {
+          "bounded": true,
+          "detached": true,
+          "exact_zero_fraction": 0.0,
+          "max": 3.7318082490855886e-07,
+          "mean": 9.821484781014078e-08,
+          "min": 2.933053919098455e-13,
+          "nonzero_fraction": 1.0
+        }
+      },
+      {
+        "batch": 1,
+        "expected_descent_alignment_nonnegative": true,
+        "gradient": {
+          "finite": true,
+          "l2": 0.0031547117978334427,
+          "max_abs": 0.0006787189631722867,
+          "nonzero_fraction": 1.0
+        },
+        "loss": 0.009796839207410812,
+        "loss_finite": true,
+        "name": "normal_scale",
+        "nonzero_sample_gradient_max_median_ratio": 1.0,
+        "per_sample_gradient_l2": [
+          0.0031547117978334427
+        ],
+        "student_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "target_displacement_gradient_alignment": 0.019593678414821625,
+        "teacher_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "teacher_gradient_absent": true,
+        "weight": {
+          "bounded": true,
+          "detached": true,
+          "exact_zero_fraction": 0.0,
+          "max": 0.3731808364391327,
+          "mean": 0.09821484982967377,
+          "min": 2.9384747790572874e-07,
+          "nonzero_fraction": 1.0
+        }
+      },
+      {
+        "batch": 1,
+        "expected_descent_alignment_nonnegative": true,
+        "gradient": {
+          "finite": true,
+          "l2": 3.1547114076602156e-07,
+          "max_abs": 6.787189477108768e-08,
+          "nonzero_fraction": 1.0
+        },
+        "loss": 9.796838895681503e-09,
+        "loss_finite": true,
+        "name": "scale_0.01x",
+        "nonzero_sample_gradient_max_median_ratio": 1.0,
+        "per_sample_gradient_l2": [
+          3.1547114076602156e-07
+        ],
+        "student_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "target_displacement_gradient_alignment": 1.9593676015006167e-08,
+        "teacher_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "teacher_gradient_absent": true,
+        "weight": {
+          "bounded": true,
+          "detached": true,
+          "exact_zero_fraction": 0.0,
+          "max": 0.0037318081595003605,
+          "mean": 0.0009821485728025436,
+          "min": 2.940695242870106e-09,
+          "nonzero_fraction": 1.0
+        }
+      },
+      {
+        "batch": 1,
+        "expected_descent_alignment_nonnegative": true,
+        "gradient": {
+          "finite": true,
+          "l2": 3.1547115213470533e-05,
+          "max_abs": 6.787187430745689e-06,
+          "nonzero_fraction": 1.0
+        },
+        "loss": 9.79683954938082e-06,
+        "loss_finite": true,
+        "name": "scale_0.1x",
+        "nonzero_sample_gradient_max_median_ratio": 1.0,
+        "per_sample_gradient_l2": [
+          3.1547115213470533e-05
+        ],
+        "student_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "target_displacement_gradient_alignment": 1.9593680917751044e-05,
+        "teacher_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "teacher_gradient_absent": true,
+        "weight": {
+          "bounded": true,
+          "detached": true,
+          "exact_zero_fraction": 0.0,
+          "max": 0.03731808438897133,
+          "mean": 0.009821483865380287,
+          "min": 2.9295936343487483e-08,
+          "nonzero_fraction": 1.0
+        }
+      },
+      {
+        "batch": 1,
+        "expected_descent_alignment_nonnegative": true,
+        "gradient": {
+          "finite": true,
+          "l2": 0.0031547117978334427,
+          "max_abs": 0.0006787189631722867,
+          "nonzero_fraction": 1.0
+        },
+        "loss": 0.009796839207410812,
+        "loss_finite": true,
+        "name": "scale_1x",
+        "nonzero_sample_gradient_max_median_ratio": 1.0,
+        "per_sample_gradient_l2": [
+          0.0031547117978334427
+        ],
+        "student_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "target_displacement_gradient_alignment": 0.019593678414821625,
+        "teacher_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "teacher_gradient_absent": true,
+        "weight": {
+          "bounded": true,
+          "detached": true,
+          "exact_zero_fraction": 0.0,
+          "max": 0.3731808364391327,
+          "mean": 0.09821484982967377,
+          "min": 2.9384747790572874e-07,
+          "nonzero_fraction": 1.0
+        }
+      },
+      {
+        "batch": 1,
+        "expected_descent_alignment_nonnegative": true,
+        "gradient": {
+          "finite": true,
+          "l2": 0.03465145081281662,
+          "max_abs": 0.004934392869472504,
+          "nonzero_fraction": 1.0
+        },
+        "loss": 1.8637723922729492,
+        "loss_finite": true,
+        "name": "scale_10x",
+        "nonzero_sample_gradient_max_median_ratio": 1.0,
+        "per_sample_gradient_l2": [
+          0.03465145081281662
+        ],
+        "student_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "target_displacement_gradient_alignment": 2.182190179824829,
+        "teacher_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "teacher_gradient_absent": true,
+        "weight": {
+          "bounded": true,
+          "detached": true,
+          "exact_zero_fraction": 0.0,
+          "max": 1.0,
+          "mean": 0.6667500138282776,
+          "min": 2.887673872464802e-06,
+          "nonzero_fraction": 1.0
+        }
+      },
+      {
+        "batch": 1,
+        "expected_descent_alignment_nonnegative": true,
+        "gradient": {
+          "finite": true,
+          "l2": 0.04033205658197403,
+          "max_abs": 0.0051648314110934734,
+          "nonzero_fraction": 1.0
+        },
+        "loss": 23.8450870513916,
+        "loss_finite": true,
+        "name": "scale_100x",
+        "nonzero_sample_gradient_max_median_ratio": 1.0,
+        "per_sample_gradient_l2": [
+          0.04033205658197403
+        ],
+        "student_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "target_displacement_gradient_alignment": 24.324207305908203,
+        "teacher_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "teacher_gradient_absent": true,
+        "weight": {
+          "bounded": true,
+          "detached": true,
+          "exact_zero_fraction": 0.0,
+          "max": 1.0,
+          "mean": 0.9613761901855469,
+          "min": 2.8832999305450357e-05,
+          "nonzero_fraction": 1.0
+        }
+      },
+      {
+        "batch": 1,
+        "expected_descent_alignment_nonnegative": true,
+        "gradient": {
+          "finite": true,
+          "l2": 0.005811851937323809,
+          "max_abs": 0.0010982300154864788,
+          "nonzero_fraction": 1.0
+        },
+        "loss": 0.07290361821651459,
+        "loss_finite": true,
+        "name": "sign_reversal",
+        "nonzero_sample_gradient_max_median_ratio": 1.0,
+        "per_sample_gradient_l2": [
+          0.005811851937323809
+        ],
+        "student_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "target_displacement_gradient_alignment": 0.11058538407087326,
+        "teacher_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "teacher_gradient_absent": true,
+        "weight": {
+          "bounded": true,
+          "detached": true,
+          "exact_zero_fraction": 0.0,
+          "max": 0.3731808364391327,
+          "mean": 0.09821484982967377,
+          "min": 2.9384747790572874e-07,
+          "nonzero_fraction": 1.0
+        }
+      },
+      {
+        "batch": 1,
+        "expected_descent_alignment_nonnegative": true,
+        "gradient": {
+          "finite": true,
+          "l2": 0.0008531242492608726,
+          "max_abs": 0.00036961387377232313,
+          "nonzero_fraction": 0.19753086419753085
+        },
+        "loss": 0.0031437482684850693,
+        "loss_finite": true,
+        "name": "sparse_1_percent_actionable",
+        "nonzero_sample_gradient_max_median_ratio": 1.0,
+        "per_sample_gradient_l2": [
+          0.0008531242492608726
+        ],
+        "student_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "target_displacement_gradient_alignment": 0.004435366485267878,
+        "teacher_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "teacher_gradient_absent": true,
+        "weight": {
+          "bounded": true,
+          "detached": true,
+          "exact_zero_fraction": 0.9507125616073608,
+          "max": 0.5670062899589539,
+          "mean": 0.003298967843875289,
+          "min": 0.0,
+          "nonzero_fraction": 0.049287427216768265
+        }
+      },
+      {
+        "batch": 1,
+        "expected_descent_alignment_nonnegative": true,
+        "gradient": {
+          "finite": true,
+          "l2": 0.007173956837505102,
+          "max_abs": 0.002187733305618167,
+          "nonzero_fraction": 1.0
+        },
+        "loss": 1.0877176523208618,
+        "loss_finite": true,
+        "name": "heavy_tail_corruption",
+        "nonzero_sample_gradient_max_median_ratio": 1.0,
+        "per_sample_gradient_l2": [
+          0.007173956837505102
+        ],
+        "student_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "target_displacement_gradient_alignment": 1.109443187713623,
+        "teacher_effect_shape": [
+          1,
+          518,
+          518
+        ],
+        "teacher_gradient_absent": true,
+        "weight": {
+          "bounded": true,
+          "detached": true,
+          "exact_zero_fraction": 0.0,
+          "max": 1.0,
+          "mean": 0.12020856142044067,
+          "min": 2.9384747790572874e-07,
+          "nonzero_fraction": 1.0
+        }
+      },
+      {
+        "batch": 6,
+        "expected_descent_alignment_nonnegative": true,
+        "gradient": {
+          "finite": true,
+          "l2": 0.008877798914909363,
+          "max_abs": 0.0008608049829490483,
+          "nonzero_fraction": 0.8333333333333334
+        },
+        "loss": 4.286444187164307,
+        "loss_finite": true,
+        "name": "mixed_scale_batch",
+        "nonzero_sample_gradient_max_median_ratio": 12.78470401311233,
+        "per_sample_gradient_l2": [
+          0.0,
+          3.1547114076602156e-07,
+          3.1547115213470533e-05,
+          0.0031547117978334427,
+          0.03465145081281662,
+          0.04033205658197403
+        ],
+        "student_effect_shape": [
+          6,
+          518,
+          518
+        ],
+        "target_displacement_gradient_alignment": 4.421002388000488,
+        "teacher_effect_shape": [
+          6,
+          518,
+          518
+        ],
+        "teacher_gradient_absent": true,
+        "weight": {
+          "bounded": true,
+          "detached": true,
+          "exact_zero_fraction": 0.1666666716337204,
+          "max": 1.0,
+          "mean": 0.2895241379737854,
+          "min": 0.0,
+          "nonzero_fraction": 0.8333333134651184
+        }
+      },
+      {
+        "batch": 4,
+        "expected_descent_alignment_nonnegative": true,
+        "gradient": {
+          "finite": true,
+          "l2": 0.002238991903141141,
+          "max_abs": 0.0005350011633709073,
+          "nonzero_fraction": 1.0
+        },
+        "loss": 0.14375022053718567,
+        "loss_finite": true,
+        "name": "one_extreme_outlier_sample",
+        "nonzero_sample_gradient_max_median_ratio": 2.24932336407323,
+        "per_sample_gradient_l2": [
+          0.0031547117978334427,
+          0.0031547117978334427,
+          0.0031547117978334427,
+          0.007095966953784227
+        ],
+        "student_effect_shape": [
+          4,
+          518,
+          518
+        ],
+        "target_displacement_gradient_alignment": 0.1564592570066452,
+        "teacher_effect_shape": [
+          4,
+          518,
+          518
+        ],
+        "teacher_gradient_absent": true,
+        "weight": {
+          "bounded": true,
+          "detached": true,
+          "exact_zero_fraction": 0.0,
+          "max": 1.0,
+          "mean": 0.10371328145265579,
+          "min": 2.9384747790572874e-07,
+          "nonzero_fraction": 1.0
+        }
+      },
+      {
+        "batch": 4,
+        "expected_descent_alignment_nonnegative": true,
+        "gradient": {
+          "finite": true,
+          "l2": 0.0,
+          "max_abs": 0.0,
+          "nonzero_fraction": 0.0
+        },
+        "loss": 0.0,
+        "loss_finite": true,
+        "name": "all_abstain",
+        "nonzero_sample_gradient_max_median_ratio": null,
+        "per_sample_gradient_l2": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "student_effect_shape": [
+          4,
+          518,
+          518
+        ],
+        "target_displacement_gradient_alignment": 0.0,
+        "teacher_effect_shape": [
+          4,
+          518,
+          518
+        ],
+        "teacher_gradient_absent": true,
+        "weight": {
+          "bounded": true,
+          "detached": true,
+          "exact_zero_fraction": 1.0,
+          "max": 0.0,
+          "mean": 0.0,
+          "min": 0.0,
+          "nonzero_fraction": 0.0
+        }
+      },
+      {
+        "batch": 2,
+        "expected_descent_alignment_nonnegative": true,
+        "gradient": {
+          "finite": true,
+          "l2": 0.04770119488239288,
+          "max_abs": 0.0026585643645375967,
+          "nonzero_fraction": 1.0
+        },
+        "loss": 4.460109233856201,
+        "loss_finite": true,
+        "name": "all_high_confidence_active",
+        "nonzero_sample_gradient_max_median_ratio": 1.0,
+        "per_sample_gradient_l2": [
+          0.06745968014001846,
+          0.06745968014001846
+        ],
+        "student_effect_shape": [
+          2,
+          518,
+          518
+        ],
+        "target_displacement_gradient_alignment": 4.960109233856201,
+        "teacher_effect_shape": [
+          2,
+          518,
+          518
+        ],
+        "teacher_gradient_absent": true,
+        "weight": {
+          "bounded": true,
+          "detached": true,
+          "exact_zero_fraction": 0.0,
+          "max": 1.0,
+          "mean": 1.0,
+          "min": 0.9999996423721313,
+          "nonzero_fraction": 1.0
+        }
+      }
+    ],
+    "exact_zero_has_zero_loss_and_gradient": true,
+    "generator_seed": 33033,
+    "selected_candidate_status": "PASS"
+  }
+}

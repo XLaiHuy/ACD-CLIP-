@@ -1,0 +1,265 @@
+{
+  "schema_version": "P33_OFFLINE_FORENSIC_V1",
+  "artifact_type": "frozen_p32_selective_actionability_forensic",
+  "status": "P33_OFFLINE_FORENSIC_COMPLETE",
+  "protocol_id": "P33",
+  "entry": {
+    "parent_status": "P32_STAGE2_SCIENTIFIC_STOP",
+    "parent_attempt_uuid": "1818b1ef-9afc-41ad-972c-ee5288ee1286",
+    "parent_evidence_commit": "74d88aeb2c72e5a675984c802fb36acbbbe8dda1",
+    "branch": "research/p29r1-fast-objective-forensic-v1",
+    "worktree_clean_at_entry": true,
+    "p32_prediction": "research/sabra_v2/region_distill/P32/candle/predictions/p32_held_predictions.pt",
+    "p30r1_prediction": "research/sabra_v2/region_distill/P30R1/candle/predictions/p30r1_held_predictions.pt",
+    "analysis_implementation": "tools/sabra_v2/forensics/p33_selective_actionability.py"
+  },
+  "execution_audit": {
+    "new_scientific_stage2": 0,
+    "new_stage3": 0,
+    "new_full_runs": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0,
+    "cache_rebuilds": 0,
+    "held_result_tuning_iterations": 0,
+    "held_masks_read_for_descriptive_forensic": 100,
+    "held_masks_used_to_select_threshold": false
+  },
+  "inventory": {
+    "P31_native": {
+      "native_logits": "available in frozen Tier-A candle cache",
+      "native_anomaly_scores": "available as frozen native field in P30R1/P32 payloads",
+      "corrected_logits": "not stored; deterministic reconstruction only",
+      "region_residual": "not applicable; zero adapter",
+      "upsampled_residual": "not applicable",
+      "support_mask": "none",
+      "source_identifiers": "available in immutable metadata/cache manifests",
+      "held_identifiers": "available in frozen candle payloads"
+    },
+    "P30R1": {
+      "native_logits": "available in frozen Tier-A candle cache",
+      "corrected_logits": "not stored; deterministic residual deployment is defined",
+      "anomaly_scores": "frozen p30r1_held_predictions.pt",
+      "region_residual": "frozen [200,3,9,9] field",
+      "upsampled_residual": "not stored; deterministic deployment operator only",
+      "support_mask": "derived descriptively from inherited coordinate threshold and effect thresholds",
+      "source_identifiers": "Tier-B manifests and immutable metadata",
+      "held_identifiers": "frozen prediction records",
+      "support_definition": "effective-support mass statistics plus inherited raw coordinate threshold 0.0496010971069336"
+    },
+    "P32": {
+      "native_logits": "available in frozen Tier-A candle cache",
+      "corrected_logits": "not stored; deterministic residual deployment is defined",
+      "anomaly_scores": "frozen p32_held_predictions.pt",
+      "region_residual": "frozen [200,3,9,9] field",
+      "upsampled_residual": "not stored; deterministic deployment operator only",
+      "support_mask": "derived descriptively from the same inherited coordinate threshold and fixed effect thresholds",
+      "source_identifiers": "Tier-B manifests and immutable metadata",
+      "held_identifiers": "frozen prediction records",
+      "score_effect": "p32 score minus paired frozen native score"
+    },
+    "paired_payload_check": {
+      "records": 200,
+      "image_order_equal": true,
+      "native_maps_max_abs_difference": 0.0,
+      "native_map_shape": [200, 518, 518],
+      "residual_shape": [200, 3, 9, 9]
+    }
+  },
+  "frozen_result": {
+    "native_pAP": 0.514140304931,
+    "native_pAUROC": 0.980667143514,
+    "p30r1_pAP": 0.511513734224,
+    "p30r1_pAUROC": 0.980534708954,
+    "p32_pAP": 0.510351502947,
+    "p32_pAUROC": 0.971460700418,
+    "p32_minus_native": {"pAP": -0.003788801984, "pAUROC": -0.009206443096},
+    "p32_minus_p30r1": {"pAP": -0.001162231277, "pAUROC": -0.009074008536},
+    "safety": {
+      "p32_residual_q99_abs": 4.963814287186,
+      "p32_residual_max_abs": 8.643353872299,
+      "normal_score_q99_shift": 0.000005382090,
+      "native_to_p32_score_effect_q99_abs": 0.000009602303,
+      "native_to_p32_score_effect_max_abs": 0.905158341,
+      "residual_exact_nonzero_fraction": 1.0,
+      "post_run_audit": "PASS",
+      "scale_explosion": false,
+      "normal_score_saturation": false
+    }
+  },
+  "hypotheses": [
+    {
+      "rank": 1,
+      "name": "H1_LOST_SELECTIVITY_DENSE_MICRO_CORRECTION",
+      "support": "P32 residual support above the inherited coordinate threshold is 0.871481 versus 0.111358 for P30R1; P32 residual effective support is 25536.73 versus 2741.49, Gini 0.5051 versus 0.9251, and top-10-percent absolute mass 0.2145 versus 0.9611. P32 score effects are much less near-zero at 1e-10 (0.0332 versus 0.7753), despite both having highly concentrated top mass.",
+      "falsifier": "A future actionability-conditioned method would not be falsified by residual density alone; this hypothesis is weakened if source-only weighting leaves the frozen residual/effect support broad without downstream recovery under a clean held test."
+    },
+    {
+      "rank": 2,
+      "name": "H4_SUPPORT_MISMATCH",
+      "support": "P30R1 active support is 97.01 percent contained in P32 support, but P32 active support is only 12.40 percent contained in P30R1; the residual-support Jaccard is 0.1235. This is support expansion rather than replacement. At deployed effect threshold 1e-4 the Jaccard is 0.8780, so the main mismatch is the low-level residual/micro-effect tail.",
+      "falsifier": "If P32 and P30R1 had comparable residual support under the inherited threshold, or if the extra P32 support were not associated with worse rank displacement, support expansion would be weakened."
+    },
+    {
+      "rank": 3,
+      "name": "H5_ACTIONABILITY_NOT_MAGNITUDE",
+      "support": "P30R1's sparse intervention was descriptively anomaly-enriched, while P32 matched a functional effect without selecting where learning should occur. The source cache provides a bounded per-pixel deployed-effect magnitude with 21.38 percent exact-zero pixels, making an operational actionability proxy identifiable without a learned gate.",
+      "falsifier": "If continuous source-only actionability weighting produces the same broad intervention and no clean downstream distinction from unweighted functional transfer, actionability-as-the-missing mechanism is falsified for this scope."
+    },
+    {
+      "rank": 4,
+      "name": "H2_WRONG_FUNCTIONAL_TARGET",
+      "support": "P32 functional-effect transfer failed the locked endpoints, so the effect target is not validated. However, the failure is confounded with lost selectivity; source and frozen held evidence do not isolate target invalidity from dense intervention.",
+      "falsifier": "A clean actionability-conditioned functional transfer that preserves selectivity but still fails the locked endpoints would support this hypothesis."
+    },
+    {
+      "rank": 5,
+      "name": "H3_NEAR_TIE_RANKING_SENSITIVITY",
+      "support": "P32 mean per-image Spearman is 0.7355 versus 0.9072 for P30R1, and sampled rank displacement is larger (median 0.1163 versus 0.01635 of pixels). But adjacent native-order flips are 0.49935 versus 0.49812 overall, and 0.49030 versus 0.51846 among positive native gaps; conditional gap bins do not show a distinctive smallest-gap excess for P32.",
+      "falsifier": "A predefined native-gap analysis showing a large P32-specific flip excess concentrated in the smallest positive-gap bins would raise this hypothesis."
+    }
+  ],
+  "density": {
+    "support_threshold": {"value": 0.0496010971069336, "provenance": "inherited P30R1 fixed coordinate threshold; not held tuned"},
+    "P30R1_residual": {
+      "abs_q50": 0.006710126065,
+      "abs_q75": 0.010984461755,
+      "abs_q90": 0.098961766809,
+      "abs_q95": 1.162329203,
+      "abs_q99": 4.528306532,
+      "abs_max": 7.580770969,
+      "fraction_abs_gt_threshold": 0.111358024691,
+      "effective_support": 2741.491873,
+      "effective_support_fraction": 0.056409297806,
+      "gini": 0.925128442076,
+      "top_1_percent_mass": 0.303895832806,
+      "top_5_percent_mass": 0.823552076624,
+      "top_10_percent_mass": 0.961142456400
+    },
+    "P32_residual": {
+      "abs_q50": 1.161072969,
+      "abs_q75": 4.627282619,
+      "abs_q90": 4.751970767,
+      "abs_q95": 4.820861816,
+      "abs_q99": 4.963814259,
+      "abs_max": 7.922290802,
+      "fraction_abs_gt_threshold": 0.871481481481,
+      "effective_support": 25536.731825,
+      "effective_support_fraction": 0.525447156883,
+      "gini": 0.505108044576,
+      "top_1_percent_mass": 0.023697762544,
+      "top_5_percent_mass": 0.109535780558,
+      "top_10_percent_mass": 0.214533648140
+    },
+    "interpretation": "P32 is not merely exactly-nonzero due to floating point. Its raw residual is meaningfully dense at the inherited scale. Its deployed score effect is still mass-concentrated, but its micro-effect floor is substantially denser and is sufficient to alter ranks broadly."
+  },
+  "score_effect_density": {
+    "P30R1": {
+      "mean_abs": 0.001114393708,
+      "median_abs": 3.122790915e-11,
+      "q90_abs": 4.195421877e-09,
+      "q95_abs": 3.681394585e-08,
+      "q99_abs": 1.370778755e-05,
+      "max_abs": 0.935700119,
+      "fraction_abs_le_1e-10": 0.775294066129,
+      "fraction_abs_le_1e-8": 0.922821626094,
+      "fraction_abs_le_1e-4": 0.992846092783,
+      "effective_support": 102162.839802,
+      "effective_support_fraction": 0.001903721616,
+      "gini": 0.998262288087,
+      "top_1_percent_mass": 0.999966467644,
+      "top_5_percent_mass": 0.999999251015,
+      "top_10_percent_mass": 0.999999870083
+    },
+    "P32": {
+      "mean_abs": 0.000844875826,
+      "median_abs": 3.259383652e-09,
+      "q90_abs": 8.067786528e-09,
+      "q95_abs": 4.062777634e-08,
+      "q99_abs": 9.602218543e-06,
+      "max_abs": 0.905158341,
+      "fraction_abs_le_1e-10": 0.033224646323,
+      "fraction_abs_le_1e-8": 0.909722630104,
+      "fraction_abs_le_1e-4": 0.993374558370,
+      "effective_support": 88932.611199,
+      "effective_support_fraction": 0.001657187043,
+      "gini": 0.998469357139,
+      "top_1_percent_mass": 0.999962935636,
+      "top_5_percent_mass": 0.999996248131,
+      "top_10_percent_mass": 0.999997320104
+    },
+    "fixed_effect_support_overlap": {
+      "threshold_1e-4_jaccard": 0.878027967268,
+      "threshold_1e-4_P32_in_P30R1": 0.972344488727,
+      "threshold_1e-4_P30R1_in_P32": 0.900516523275,
+      "top_1_percent_effect_overlap": 0.765607302534
+    }
+  },
+  "rank_flip_forensic": {
+    "method": "exact per-image rank construction with fixed-stride 17 rank-distribution/conditional-gap samples; no O(N^2) enumeration",
+    "pooled_spearman_fixed_stride_17": {"P32": 0.932436975782, "P30R1": 0.974893444036},
+    "per_image_spearman_mean": {"P32": 0.735469393329, "P30R1": 0.907219405507},
+    "top_1_percent_overlap_with_native": {"P32": 0.821861028316, "P30R1": 0.956680327869},
+    "rank_displacement_fraction_of_pixels": {
+      "P32": {"median": 0.116284790030, "q90": 0.343644250981, "q99": 0.662192014132},
+      "P30R1": {"median": 0.016349637006, "q90": 0.136055664048, "q99": 0.623973442555}
+    },
+    "adjacent_native_order_flip_fraction": {
+      "P32": {"all": 0.499349720300, "positive_gap": 0.490297795917},
+      "P30R1": {"all": 0.498120940061, "positive_gap": 0.518462452809}
+    },
+    "fixed_nonadjacent_pair_flip_fraction": {"P32": 0.498048726397, "P30R1": 0.483965910531},
+    "conditional_gap_readout": "P32 has approximately 0.49–0.51 flip fractions across the nonempty predefined native-gap quantile bins, with no smallest-gap-specific excess over P30R1. The rank displacement is broader, but H3 is not isolated as the primary mechanism."
+  },
+  "support_overlap": {
+    "coordinate_or_stage_mean_threshold": {
+      "P30R1_active_fraction": 0.111358024691,
+      "P32_active_fraction": 0.871481481481,
+      "jaccard": 0.123482924076,
+      "P30R1_active_contained_in_P32": 0.970066518847,
+      "P32_active_contained_in_P30R1": 0.123955234452,
+      "P30R1_active_P32_inactive": 0.003333333333,
+      "P30R1_inactive_P32_active": 0.763456790123
+    },
+    "interpretation": "P32 did not discard the P30R1 support; it retained nearly all of it and added a large amount of extra residual support. This supports lost selectivity more strongly than a replacement-location theory."
+  },
+  "held_descriptive_enrichment": {
+    "mask_scope": "paired frozen candle masks, read only for descriptive post-freeze forensic; no threshold or method parameter was selected from them",
+    "anomaly_pixel_fraction": 0.001352189890,
+    "P30R1": {"mean_abs_effect_normal": 0.000675487157, "mean_abs_effect_anomaly": 0.325263709, "mass_fraction_in_anomaly": 0.394670520, "mass_enrichment_over_area": 291.875070720},
+    "P32": {"mean_abs_effect_normal": 0.000485485856, "mean_abs_effect_anomaly": 0.266266524792, "mass_fraction_in_anomaly": 0.426148947, "mass_enrichment_over_area": 315.154661846},
+    "conclusion": "P30R1 is meaningfully anomaly-enriched, but P32 is also anomaly-enriched and even slightly more so by absolute effect mass. Enrichment alone therefore does not explain P32's endpoint failure."
+  },
+  "source_only_actionability": {
+    "source_cache": "Tier-B teacher_region.npy across the immutable source-cache union",
+    "unique_samples": 2162,
+    "source_exposures": 23782,
+    "duplicate_exposures_not_counted": 21620,
+    "descriptors_considered_max_initial": 5,
+    "descriptors": {
+      "pixel_abs_deployed_teacher_effect": {"fixed_pixel_sample_stride": 257, "exact_zero_fraction_in_sample": 0.213812304, "q25": 0.000609851239, "q50": 2.621486664, "q75": 4.960111141, "interpretation": "bounded, spatial, category-agnostic operational actionability proxy"},
+      "sample_deployed_effect_rms": {"q01": 0.160941655486, "q10": 0.740822603, "q25": 1.008071019, "q50": 1.989157359, "q75": 4.960111345, "q99": 4.960111345, "exact_zero_fraction": 0.004162812211, "category_median_max_min": 4.476355881, "interpretation": "available but category dispersion remains a limitation"},
+      "sample_teacher_region_rms": {"q50": 2.056864852, "category_median_max_min": 4.340913645, "interpretation": "strongly correlated with effect magnitude but not more actionability-specific"},
+      "raw_region_support_above_inherited_epsilon": {"mean": 0.577454575, "category_median_max_min": 5.785714286, "interpretation": "reject as a category-sensitive hard support descriptor"},
+      "effect_top10_abs_mass": {"median": 0.311182190, "category_median_max_min": 6.560670282, "spearman_with_effect_rms": -0.823407898, "interpretation": "describes concentration, not a stable category-agnostic actionability rule"}
+    },
+    "unavailable_descriptors": ["cross-stage teacher consistency", "multi-view teacher stability", "independent calibrated teacher confidence"],
+    "identifiability_statement": "Source-only data identifies whether the frozen teacher asks for a deployed effect and how large that effect is. It cannot prove that the effect is useful on future anomalies without held outcomes. The P33 claim is therefore a preregistered test of actionability-weighted transfer, not a claim that source magnitude is a validated oracle."
+  },
+  "synthetic_falsification": {
+    "cases": ["exact_zero", "near_zero", "normal_scale", "0.01x", "0.1x", "1x", "10x", "100x", "sign_flip", "sparse_1_percent", "heavy_tail", "mixed_scale", "one_extreme_outlier", "all_abstain", "high_confidence"],
+    "constants": {"inherited_correction_scale": 4.960109710693359, "inherited_coordinate_epsilon": 0.0496010971069336},
+    "candidate_A": {"formula": "w=clip(abs(E_t)/C,0,1); mean(w*SmoothL1(E_s,E_t))", "all_finite": true, "all_abstain_loss": 0.0, "all_abstain_gradient_l2": 0.0, "max_gradient_component": 0.00390625, "heavy_tail_gradient_l2": 0.044218458, "one_outlier_per_sample_gradient_l2": [0.001937919,0.001933888,0.001994845,0.004310385], "readout": "bounded influence, continuous attenuation, target magnitude retained, explicit abstention of the objective where teacher effect is zero"},
+    "candidate_B": {"formula": "mean(SmoothL1(E_s,w*E_t))", "all_finite": true, "all_abstain_loss": 0.125706092, "all_abstain_gradient_l2": 0.030108251, "max_gradient_component": 0.00390625, "readout": "numerically stable but changes the target magnitude and drives arbitrary student output toward zero in an all-abstain batch; rejected for repeating radial target shrinkage"},
+    "candidate_C": {"formula": "W=1[abs(E_t)>inherited_epsilon]; mean(W*SmoothL1(E_s,E_t))", "all_finite": true, "all_abstain_loss": 0.0, "all_abstain_gradient_l2": 0.0, "readout": "stable but discontinuous; near-zero and 0.01x cases are abruptly removed, so it requires a hard support decision and is less falsifiable as a smooth actionability mechanism"}
+  },
+  "required_conclusions": {
+    "meaningfully_dense_or_only_numerically_dense": "Meaningfully dense in raw residual space, with a denser micro-effect tail in deployed score space; not merely exact-nonzero.",
+    "near_tie_flips": "P32 has broader rank displacement, but no P32-specific near-tie flip excess; near-tie sensitivity is secondary, not sufficient.",
+    "lost_P30R1_selective_support": "Yes in residual support: P32 expands support from 11.14 percent to 87.15 percent and retains nearly all P30R1 support. In effect mass, meaningful top support remains largely overlapping.",
+    "P30R1_anomaly_enrichment": "Yes, 291.875x absolute-effect mass enrichment; P32 is also enriched at 315.155x, so enrichment is not sufficient for success.",
+    "source_only_actionability": "Operationally identifiable by bounded absolute deployed teacher effect, but usefulness cannot be validated source-only.",
+    "functional_effect_conditioned_on_actionability": "Still an open hypothesis; P32 did not test it because it transferred the effect without selective actionability weighting.",
+    "single_best_P33_mechanism": "CONTINUOUS_ACTIONABILITY_WEIGHTED_FUNCTIONAL_TRANSFER"
+  }
+}
