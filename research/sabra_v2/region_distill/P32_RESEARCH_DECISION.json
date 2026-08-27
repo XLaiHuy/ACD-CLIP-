@@ -1,0 +1,292 @@
+{
+  "schema_version": "P32_RESEARCH_DECISION_V1",
+  "artifact_type": "offline_research_decision",
+  "status": "RESEARCH_DECISION_COMPLETE",
+  "protocol_id": "P32",
+  "execution_authorized": false,
+  "entry": {
+    "previous_protocol": "P31",
+    "previous_terminal_state": "P31_CONTROL_ALREADY_EXISTED",
+    "previous_commit": "2f577889363e4b0ab67fcbe721267b22c157fb55",
+    "branch": "research/p29r1-fast-objective-forensic-v1",
+    "worktree_clean_at_entry": true,
+    "forensic_status": "FORENSIC_COMPLETE",
+    "forensic_report": "research/sabra_v2/region_distill/P30R1_FORENSIC/P30R1_CAUSAL_FORENSIC_REPORT.md",
+    "forensic_json": "research/sabra_v2/region_distill/P30R1_FORENSIC/P30R1_CAUSAL_FORENSIC.json",
+    "delta_orientation": "P31/native - P30R1"
+  },
+  "forensic": {
+    "primary_mechanism": "TEACHER_DIRECTION_NOT_CAUSAL",
+    "secondary_mechanism": "SPARSE_SELECTIVE_CORRECTION",
+    "ranked_hypotheses": [
+      "TEACHER_DIRECTION_NOT_CAUSAL",
+      "SPARSE_SELECTIVE_CORRECTION",
+      "DO_NO_HARM_NATIVE_PRESERVATION",
+      "DIRECTION_METRIC_ILL_CONDITIONED_BY_ABSTENTION",
+      "TEACHER_SCALE_REWEIGHTING"
+    ],
+    "native_minus_p30r1": {
+      "pap": 0.002626570707045195,
+      "pauroc": 0.00013243455945144422
+    },
+    "p30": {
+      "directional_cosine": 0.736924,
+      "pap": 0.14461806417860867
+    },
+    "p30r1": {
+      "directional_cosine": -0.0701482247299717,
+      "sign_agreement": 0.11969135802469134,
+      "pap": 0.5115137342243291,
+      "pauroc": 0.9805347089543165,
+      "residual_effective_support_fraction": 0.056409297805681394,
+      "anomaly_delta_mass_enrichment": 291.87570037082986
+    },
+    "native": {
+      "pap": 0.5141403049313743,
+      "pauroc": 0.9806671435137679
+    }
+  },
+  "deployment_contract": {
+    "native_margin": "deployed_logits[...,1] - deployed_logits[...,0]",
+    "student_effect": "Delta_m_s = D(mean_stage(student_region))",
+    "teacher_effect": "Delta_m_t = D(teacher_region)",
+    "probability": "sigmoid(native_margin + Delta_m)",
+    "D": "GaussianBlur7_sigma1 after 9x9_to_37x37 bilinear resize, then 37x37_to_518x518 bilinear resize, then stage mean",
+    "operator_shape": [268324, 81],
+    "operator_rank": 81,
+    "operator_condition_number": 6.140363502015776,
+    "operator_entries_nonnegative": true
+  },
+  "offline_effect_analysis": {
+    "held_records": 200,
+    "post_freeze_mask_reads": 100,
+    "teacher_reconstruction": "frozen Tier-A native logits plus post-freeze masks through deterministic R0 utility; no neural teacher forward",
+    "margin_effect_exact_parity_prefix_max_abs": 7.24e-06,
+    "probability_delta_exact_parity_max_abs": 2.384185791015625e-07,
+    "probability_delta_exact_parity_mean_abs": 6.849415479237564e-11,
+    "functional_effect_transfer_all": {
+      "cosine_mean": -0.11833708901511689,
+      "pearson_mean": 0.2808569991934594,
+      "sign_mean": 0.16689194779445746
+    },
+    "inherited_abstention_threshold": 0.7732045827032998,
+    "inherited_abstention_records": 92,
+    "inherited_active_records": 108,
+    "functional_effect_transfer_abstention": {
+      "cosine_mean": -0.8181067564573923,
+      "pearson_mean": -0.004757914670870775,
+      "sign_mean": 0.0468758405639386
+    },
+    "functional_effect_transfer_active": {
+      "cosine_mean": 0.4777629980653401,
+      "pearson_mean": 0.5241585924852962,
+      "sign_mean": 0.26912789099082535
+    },
+    "student_stage_mean_invisible_fraction_mean": -1.519918441772461e-08,
+    "local_effect_order": {
+      "sampled_pairs_per_image": 33540,
+      "strict_agreement_mean": 0.29252400119260585,
+      "tie_inclusive_agreement_mean": 0.29252415026833634
+    },
+    "native_ranking_redundancy": {
+      "pooled_spearman_native_vs_p30r1": 0.974893733,
+      "top_1_percent_overlap": 0.956680
+    }
+  },
+  "source_only_actionability": {
+    "unique_tier_b_samples": 2162,
+    "tier_b_exposures": 23782,
+    "duplicate_value_mismatches": 0,
+    "teacher_exact_zero_fraction": 0.004162812210915819,
+    "teacher_rms_q01": 0.19688876911340752,
+    "teacher_rms_q50": 2.0568648524386046,
+    "teacher_rms_q99": 4.960111618041992,
+    "functional_effect_rms_q01": 0.16094165020577847,
+    "functional_effect_rms_q50": 1.9891572498321533,
+    "functional_effect_rms_q99": 4.960111259009454,
+    "functional_effect_exact_zero_or_machine_fraction": 0.004162812210915819,
+    "fixed_probe_effect_mean_abs_mean": 2.5705507933402534,
+    "inherited_inverse_teacher_scale_q99_over_q01": 24.56161249334785,
+    "interpretation": "source-only artifacts identify support and intervention magnitude, but not held utility; no actionability threshold is identifiable without an outcome criterion"
+  },
+  "literature": [
+    {
+      "paper": "Hinton, Vinyals and Dean (2015), Distilling the Knowledge in a Neural Network",
+      "url": "https://arxiv.org/abs/1503.02531",
+      "problem": "compress a large teacher or ensemble",
+      "mechanism": "soft output distribution transfer",
+      "equation": "T^2 KL(softmax(z_t/T) || softmax(z_s/T))",
+      "relevance": "foundational output/function transfer alternative to internal-vector imitation",
+      "limitation": "transfers complete teacher output behavior and is not anomaly-residual specific"
+    },
+    {
+      "paper": "Penso, Achituve and Fetaya (2022), Functional Ensemble Distillation",
+      "url": "https://arxiv.org/abs/2206.02183",
+      "problem": "ordinary ensemble outputs omit predictive uncertainty and covariance",
+      "mechanism": "functional distillation with mixup augmentation to expose predictive variation",
+      "equation": "predictive-function/distribution matching on augmented inputs",
+      "relevance": "closest function-rather-than-parameter/vector precedent",
+      "limitation": "Bayesian ensemble setting; no native-relative dense anomaly margin effect"
+    },
+    {
+      "paper": "Zheng et al. (2022), Localization Distillation for Object Detection",
+      "url": "https://arxiv.org/abs/2204.05957",
+      "problem": "feature imitation can omit localization knowledge",
+      "mechanism": "distill teacher prediction distributions over valuable localization regions",
+      "equation": "region-weighted KL between teacher and student localization distributions",
+      "relevance": "direct task-output/logit distillation precedent with no inference-speed sacrifice reported",
+      "limitation": "detection-specific heads, boxes, and region selection; not anomaly residuals"
+    },
+    {
+      "paper": "Park et al. (2019), Relational Knowledge Distillation",
+      "url": "https://openaccess.thecvf.com/content_CVPR_2019/html/Park_Relational_Knowledge_Distillation_CVPR_2019_paper.html",
+      "problem": "pointwise matching misses inter-example structure",
+      "mechanism": "match normalized pairwise distances and angles",
+      "equation": "lambda_D L_distance + lambda_A L_angle",
+      "relevance": "established structural-invariant alternative to per-example direction",
+      "limitation": "pairwise structure and multiple terms; no dense anomaly-logit intervention"
+    },
+    {
+      "paper": "Reddi et al. (2021), RankDistil: Knowledge Distillation for Ranking",
+      "url": "https://proceedings.mlr.press/v130/reddi21a.html",
+      "problem": "top-k ordering is the target in large ranking systems",
+      "mechanism": "teacher-ordered top-k/listwise or pairwise losses with negative sampling",
+      "equation": "Psi(t,s,P) + sum_(i in N,j in P) phi(s_j-s_i)",
+      "relevance": "primary precedent for rank-preserving transfer and efficient sampling",
+      "limitation": "large-item ranking with pair conventions; no image-anomaly residual validation"
+    },
+    {
+      "paper": "Bergmann et al. (2020), Uninformed Students",
+      "url": "https://openaccess.thecvf.com/content_CVPR_2020/html/Bergmann_Uninformed_Students_Student-Teacher_Anomaly_Detection_With_Discriminative_Latent_Embeddings_CVPR_2020_paper.html",
+      "problem": "unsupervised pixel anomaly detection",
+      "mechanism": "regress pretrained teacher features on normal data and score discrepancy",
+      "equation": "A(x) = d(f_teacher(x), f_student(x))",
+      "relevance": "direct teacher-student anomaly-detection precedent",
+      "limitation": "teacher/student discrepancy remains an inference-time signal and is not native-relative"
+    },
+    {
+      "paper": "Wang et al. (2021), Student-Teacher Feature Pyramid Matching for Anomaly Detection",
+      "url": "https://arxiv.org/abs/2103.04257",
+      "problem": "one-class anomaly localization across scales",
+      "mechanism": "multi-scale teacher/student feature matching",
+      "equation": "multi-level feature discrepancy used as the anomaly map",
+      "relevance": "confirms anomaly literature scores downstream discrepancy rather than residual direction",
+      "limitation": "feature discrepancy and different inference architecture; no native-relative margin effect"
+    },
+    {
+      "paper": "Geifman and El-Yaniv (2019), SelectiveNet",
+      "url": "https://proceedings.mlr.press/v97/geifman19a.html",
+      "problem": "prediction with a reject/abstain option",
+      "mechanism": "joint prediction and rejection under a coverage constraint",
+      "equation": "coverage=E[g(x)], risk=E[l(f(x),y)g(x)]/coverage",
+      "relevance": "formalizes why abstention needs an explicit coverage or utility criterion",
+      "limitation": "learned gate and labeled selective-risk objective are outside the proposed scope"
+    }
+  ],
+  "prior_art_overlap": {
+    "exact_native_relative_sabra_match_in_targeted_set": false,
+    "novelty_claim": "none",
+    "output_or_logit_transfer_exists": true,
+    "rank_transfer_exists": true,
+    "teacher_student_anomaly_transfer_exists": true,
+    "direct_anomaly_residual_to_native_margin_effect_found": false,
+    "extra_inference_cost_for_candidate_a": "0 percent relative to the existing adapter path; no teacher or extra branch",
+    "multiple_weighted_losses_for_candidate_a": false,
+    "category_specific_parameters_for_candidate_a": false
+  },
+  "candidates": [
+    {
+      "rank": 1,
+      "name": "FUNCTIONAL_MARGIN_EFFECT",
+      "mechanism_match": "high/direct",
+      "formulation": "mean SmoothL1(D(mean_stage(student_region)), stopgrad(D(teacher_region)), beta=1.0)",
+      "scientific_question": "Can native-relative deployed margin effects transfer useful teacher intervention without raw residual direction?",
+      "expected_detection_effect": "preserve useful teacher-induced score changes; no superiority over native assumed",
+      "expected_residual_behavior": "stage-mean effect constrained; stage-specific components not separately constrained",
+      "teacher_fidelity": "functional effect only",
+      "objective_count": 1,
+      "new_hyperparameter_count": 0,
+      "training_overhead_target": "10 percent preferred, 15 percent hard",
+      "inference_overhead_percent": 0,
+      "overconstraint_risk": "medium-low",
+      "novelty_risk": "medium/partial overlap",
+      "main_failure_mode": "teacher effect is unhelpful or transform only changes conditioning",
+      "cheapest_falsification": "symbolic/operator check, synthetic finite gradients, source audit, then one locked native comparison"
+    },
+    {
+      "rank": 2,
+      "name": "LOCAL_RANKING_EFFECT",
+      "mechanism_match": "medium",
+      "formulation": "one fixed-neighbor ranking objective on native-relative effects",
+      "scientific_question": "Is local effect ordering more useful than effect magnitude?",
+      "expected_detection_effect": "possible ordering preservation without calibrated effect scale",
+      "expected_residual_behavior": "many residuals satisfy the same order constraints",
+      "teacher_fidelity": "local ordering only",
+      "objective_count": 1,
+      "new_hyperparameter_count": "at least pair and tie conventions",
+      "training_overhead_target": "variable and higher than candidate A",
+      "inference_overhead_percent": 0,
+      "overconstraint_risk": "high",
+      "novelty_risk": "low-medium/known family",
+      "main_failure_mode": "metric chasing and P29-style overconstraint",
+      "cheapest_falsification": "fixed pair inventory plus native ranking redundancy audit"
+    },
+    {
+      "rank": 3,
+      "name": "SELECTIVE_ACTIONABILITY_ABSTENTION",
+      "mechanism_match": "partial/underdetermined",
+      "formulation": "source-defined actionability rule with native output outside selected intervention",
+      "scientific_question": "Can fixed source-only actionability prevent harmful intervention?",
+      "expected_detection_effect": "less native damage if weak corrections are omitted; utility is not source-identifiable",
+      "expected_residual_behavior": "more abstention and exact native preservation outside selected actions",
+      "teacher_fidelity": "selected actionability only",
+      "objective_count": 0,
+      "new_hyperparameter_count": "threshold required unless inherited/analytic",
+      "training_overhead_percent": 0,
+      "inference_overhead_percent": 0,
+      "overconstraint_risk": "medium-high if learned",
+      "novelty_risk": "low",
+      "main_failure_mode": "magnitude/support cannot identify held utility",
+      "cheapest_falsification": "show no outcome-free preregisterable actionability rule exists"
+    }
+  ],
+  "selected_next_hypothesis": {
+    "name": "FUNCTIONAL_MARGIN_EFFECT",
+    "causal_claim": "matching the exact native-relative deployed margin effect can transfer downstream-relevant intervention without raw residual-vector direction",
+    "native_control_required": true,
+    "why_selected": [
+      "directly tests the forensic primary mechanism",
+      "one objective, zero new tuned scalars, zero inference branch",
+      "rank transfer is redundant with native in the frozen scope",
+      "source-only actionability cannot establish usefulness",
+      "the formulation has a symbolic and finite-gradient falsifier before science"
+    ],
+    "falsifier": "candidate fails the frozen native pAP or pAUROC non-inferiority comparison, or any finite-gradient, normal-safety, tail, provenance, or runtime gate",
+    "does_not_claim_novelty": true
+  },
+  "cheapest_falsification_sequence": [
+    "verify exact deployment algebra and fixed operator rank/conditioning",
+    "run deterministic synthetic zero, near-zero, scale, sign, sparse, heavy-tail, mixed-scale, outlier, null, and high-effect tests",
+    "audit source-only target support, effect scale, tails, and category dispersion",
+    "perform no-held-tuning frozen descriptive check of P30R1 effect mismatch",
+    "freeze preregistration, then permit only an engineering cached-batch smoke",
+    "require a later explicit scientific authorization for one locked Stage 2 comparison"
+  ],
+  "counts": {
+    "new_scientific_stage2_attempts": 0,
+    "new_stage3_attempts": 0,
+    "full_runs": 0,
+    "held_result_tuning_iterations": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "cache_rebuilds": 0,
+    "optimizer_steps": 0,
+    "scientific_execution_markers": 0
+  },
+  "next_artifacts": {
+    "decision_markdown": "research/sabra_v2/region_distill/P32_RESEARCH_DECISION.md",
+    "draft_preregistration_markdown": "research/sabra_v2/region_distill/P32_PREREGISTRATION_DRAFT.md",
+    "draft_preregistration_json": "research/sabra_v2/region_distill/P32_PREREGISTRATION_DRAFT.json"
+  },
+  "terminal_state": "P32_RESEARCH_DECISION_COMPLETE"
+}

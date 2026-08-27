@@ -1,0 +1,135 @@
+{
+  "schema_version": "P32_PREREGISTRATION_V1",
+  "artifact_type": "authoritative_preregistration",
+  "status": "P32_PREREGISTRATION_FROZEN",
+  "protocol_id": "P32",
+  "execution_authorized": false,
+  "scientific_uuid": null,
+  "execution_marker": null,
+  "preregistration_md_sha256": "5141722b2c3e3d3aac721390a8943d54356dd17bdfdad8aaa6bd7302766a5cc2",
+  "hypothesis": {
+    "name": "FUNCTIONAL_MARGIN_EFFECT",
+    "claim": "matching the exact native-relative deployed margin effect can transfer downstream-relevant teacher intervention without raw residual-vector direction",
+    "primary_forensic_mechanism": "TEACHER_DIRECTION_NOT_CAUSAL",
+    "secondary_forensic_mechanism": "SPARSE_SELECTIVE_CORRECTION",
+    "native_control_required": true
+  },
+  "mechanism": {
+    "student_shape": "[3,B,9,9] float32",
+    "teacher_shape": "[B,9,9] float32",
+    "effect_shape": "[B,518,518] float32",
+    "transform": "T(x)=interpolate_37_to_518(gaussian_blur7_sigma1(interpolate_9_to_37(x)))",
+    "interpolation": "bilinear with align_corners=True",
+    "student_effect": "T(mean_stage(student_region))",
+    "teacher_effect": "T(teacher_region)",
+    "native_margin": "deployed_logit_abnormal - deployed_logit_normal",
+    "symmetric_margin_delta": {
+      "normal_logit": "normal_logit - r/2",
+      "abnormal_logit": "abnormal_logit + r/2"
+    },
+    "probability": "sigmoid(native_margin + Delta_m)",
+    "objective": "mean SmoothL1(student_effect, stop_gradient(teacher_effect), beta=1.0, reduction=mean)",
+    "teacher_detached": true,
+    "student_self_normalized": false,
+    "auxiliary_terms": [],
+    "operator_matrix_shape": [268324, 81],
+    "operator_rank": 81,
+    "operator_condition_number": 6.140363502015776
+  },
+  "frozen": {
+    "parent_architecture": "canonical Phase2B plus unchanged RegionResidualAdapter",
+    "image_size": 518,
+    "stages": 3,
+    "fold": "candle",
+    "fit_records": 1962,
+    "held_records": 200,
+    "epochs": 20,
+    "batch_size": 1,
+    "seed": 0,
+    "precision": "fp32",
+    "deterministic_policy": "existing canonical deterministic policy",
+    "optimizer": "AdamW",
+    "learning_rate": 0.001,
+    "betas": [0.9, 0.999],
+    "optimizer_epsilon": 1e-08,
+    "weight_decay": 0.01,
+    "amsgrad": false,
+    "smooth_l1_beta": 1.0,
+    "new_objective_count": 1,
+    "new_hyperparameter_count": 0,
+    "new_learnable_parameter_count": 0,
+    "category_specific_parameters": 0,
+    "teacher_at_inference": false,
+    "incremental_inference_overhead_percent": 0
+  },
+  "allowed_data": [
+    "locked candle fit/source samples",
+    "frozen Tier-A segmentation features and native logits",
+    "frozen Tier-B teacher region targets",
+    "immutable metadata for identity and cache validation"
+  ],
+  "forbidden_data_before_prediction_freeze": [
+    "held GT labels",
+    "held masks",
+    "held outcome metrics",
+    "held-derived thresholds, weights, or coefficients",
+    "new source or held cache builds",
+    "new CLIP forwards",
+    "new Phase2B forwards",
+    "teacher neural forwards",
+    "category-specific actionability rules"
+  ],
+  "allowed_model_forwards": {
+    "cached_student_adapter_forward": "one per fit batch during future training",
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0
+  },
+  "controls": [
+    "native zero-adapter output",
+    "frozen P30R1 output comparator",
+    "P32 functional-margin-effect candidate"
+  ],
+  "preflight_gates": [
+    "exact deployment algebra and operator rank/conditioning",
+    "finite deterministic adversarial synthetic suite",
+    "source-only support, scale, tail, and category-dispersion audit",
+    "reference/production FP32 parity",
+    "cached one-batch engineering smoke",
+    "training overhead <=10 percent preferred and <=15 percent hard",
+    "peak memory growth <=10 percent unless documented",
+    "identical native/candidate data identity and scoring path"
+  ],
+  "future_stage2": {
+    "primary_metric": "pAP",
+    "secondary_metric": "pAUROC",
+    "native_noninferiority_margin": 0.0,
+    "pAP_threshold": 0.5141403049313743,
+    "pAUROC_threshold": 0.9806671435137679,
+    "residual_absolute_q99_max": 8.643353872299194,
+    "normal_score_q99_shift_max": 0.0010011587851122385,
+    "nonfinite_loss_count": 0,
+    "nonfinite_gradient_count": 0,
+    "raw_direction_metrics_are_gates": false,
+    "one_attempt_only": true
+  },
+  "no_rerun": {
+    "changed_beta_forbidden": true,
+    "changed_normalization_forbidden": true,
+    "changed_threshold_forbidden": true,
+    "changed_optimizer_or_schedule_forbidden": true,
+    "changed_seed_or_class_forbidden": true,
+    "changed_objective_or_gate_forbidden": true,
+    "integrity_repair_only": true
+  },
+  "counts_at_freeze": {
+    "new_scientific_stage2_attempts": 0,
+    "new_stage3_attempts": 0,
+    "full_runs": 0,
+    "held_result_tuning_iterations": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "cache_rebuilds": 0,
+    "optimizer_steps": 0
+  }
+}

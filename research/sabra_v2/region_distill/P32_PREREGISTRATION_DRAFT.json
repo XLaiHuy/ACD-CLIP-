@@ -1,0 +1,121 @@
+{
+  "schema_version": "P32_PREREGISTRATION_DRAFT_V1",
+  "artifact_type": "preregistration_draft",
+  "status": "P32_PREREGISTRATION_DRAFT_ONLY",
+  "protocol_id": "P32",
+  "execution_authorized": false,
+  "scientific_uuid": null,
+  "execution_marker": null,
+  "hypothesis": {
+    "name": "FUNCTIONAL_MARGIN_EFFECT",
+    "claim": "matching the exact native-relative deployed margin effect can transfer downstream-relevant teacher intervention without raw residual-vector direction",
+    "native_control_required": true
+  },
+  "mechanism": {
+    "student_shape": "[3,B,9,9]",
+    "teacher_shape": "[B,9,9]",
+    "operator": "D(r)=mean_stage(interpolate_37_to_518(gaussian_blur7_sigma1(interpolate_9_to_37(r))))",
+    "student_effect": "D(mean_stage(student_region))",
+    "teacher_effect": "D(teacher_region)",
+    "native_margin": "deployed_logit_abnormal - deployed_logit_normal",
+    "probability": "sigmoid(native_margin + Delta_m)",
+    "objective": "mean SmoothL1(student_effect, stop_gradient(teacher_effect), beta=1.0, reduction=mean)",
+    "teacher_detached": true,
+    "student_self_normalized": false,
+    "operator_rank": 81,
+    "operator_condition_number": 6.140363502015776
+  },
+  "frozen": {
+    "parent_architecture": "canonical Phase2B plus unchanged RegionResidualAdapter",
+    "image_size": 518,
+    "stages": 3,
+    "fold": "candle",
+    "fit_records": 1962,
+    "held_records": 200,
+    "epochs": 20,
+    "batch_size": 1,
+    "seed": 0,
+    "precision": "fp32",
+    "optimizer": "AdamW",
+    "learning_rate": 0.001,
+    "betas": [0.9, 0.999],
+    "optimizer_epsilon": 1e-08,
+    "weight_decay": 0.01,
+    "amsgrad": false,
+    "smooth_l1_beta": 1.0,
+    "new_objective_count": 1,
+    "new_hyperparameter_count": 0,
+    "category_specific_parameters": 0,
+    "teacher_at_inference": false,
+    "incremental_inference_overhead_percent": 0
+  },
+  "allowed_data": [
+    "locked candle fit/source samples",
+    "frozen Tier-A features and native logits",
+    "frozen Tier-B teacher region targets",
+    "immutable metadata for identity and cache validation"
+  ],
+  "forbidden_data_before_prediction_freeze": [
+    "held GT labels",
+    "held masks",
+    "held outcome metrics",
+    "held-derived thresholds or weights",
+    "new cache builds",
+    "new CLIP forwards",
+    "new Phase2B forwards",
+    "teacher neural forwards",
+    "category-specific actionability rules"
+  ],
+  "allowed_model_forwards": {
+    "cached_student_adapter_forward": "one per fit batch during future training",
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0
+  },
+  "controls": [
+    "native zero-adapter output",
+    "frozen P30R1 output comparator"
+  ],
+  "preflight_gates": [
+    "exact deployment algebra and operator rank/conditioning",
+    "finite deterministic adversarial synthetic suite",
+    "source-only support, scale, tail, and category-dispersion audit",
+    "reference/production FP32 parity",
+    "cached one-batch engineering smoke",
+    "training overhead <=10 percent preferred and <=15 percent hard",
+    "peak memory growth <=10 percent unless documented",
+    "identical native/candidate data identity and scoring path"
+  ],
+  "future_stage2": {
+    "primary_metric": "pAP",
+    "secondary_metric": "pAUROC",
+    "native_noninferiority_margin": 0.0,
+    "pAP_threshold": 0.5141403049313743,
+    "pAUROC_threshold": 0.9806671435137679,
+    "residual_absolute_q99_max": 8.643353872299194,
+    "normal_score_q99_shift_max": 0.0010011587851122385,
+    "nonfinite_loss_count": 0,
+    "nonfinite_gradient_count": 0,
+    "raw_direction_metrics_are_gates": false,
+    "one_attempt_only": true
+  },
+  "no_rerun": {
+    "changed_beta_forbidden": true,
+    "changed_normalization_forbidden": true,
+    "changed_threshold_forbidden": true,
+    "changed_optimizer_or_schedule_forbidden": true,
+    "changed_seed_or_class_forbidden": true,
+    "changed_objective_or_gate_forbidden": true,
+    "integrity_repair_only": true
+  },
+  "counts_at_draft": {
+    "new_scientific_stage2_attempts": 0,
+    "new_stage3_attempts": 0,
+    "full_runs": 0,
+    "held_result_tuning_iterations": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "cache_rebuilds": 0,
+    "optimizer_steps": 0
+  }
+}

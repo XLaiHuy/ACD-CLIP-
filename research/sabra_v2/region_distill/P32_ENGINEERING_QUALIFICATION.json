@@ -1,0 +1,180 @@
+{
+  "schema_version": "P32_ENGINEERING_QUALIFICATION_V1",
+  "artifact_type": "engineering_qualification",
+  "status": "P32_PASS_TO_SCIENTIFIC_PROTOCOL",
+  "protocol_id": "P32",
+  "selected_hypothesis": "FUNCTIONAL_MARGIN_EFFECT",
+  "primary_mechanism": "TEACHER_DIRECTION_NOT_CAUSAL",
+  "secondary_mechanism": "SPARSE_SELECTIVE_CORRECTION",
+  "authoritative_preregistration": "research/sabra_v2/region_distill/P32_PREREGISTRATION.md",
+  "preregistration_sha256": "5141722b2c3e3d3aac721390a8943d54356dd17bdfdad8aaa6bd7302766a5cc2",
+  "implementation": {
+    "production_module": "tools/sabra_v2/p32_objective.py",
+    "reference_module": "tools/sabra_v2/p32_reference.py",
+    "engineering_runner": "tools/sabra_v2/run_p32_engineering.py",
+    "test_module": "tests/test_p32_objective.py",
+    "trainer_created": false,
+    "scientific_runner_created": false,
+    "engineering_runner_created": true,
+    "engineering_checkpoint_created": true,
+    "scientific_checkpoint_created": false,
+    "formula": "mean SmoothL1(T(mean_stage(student_region)), stop_gradient(T(teacher_region)), beta=1.0, reduction=mean)",
+    "objective_count": 1,
+    "new_hyperparameter_count": 0,
+    "new_learnable_parameter_count": 0,
+    "auxiliary_terms": [],
+    "teacher_at_inference": false,
+    "inference_overhead_percent": 0.0,
+    "production_optimization": "fixed canonical FP32 separable 518x9 matrix A with effect A@x@A.T; equation unchanged"
+  },
+  "entry": {
+    "branch": "research/p29r1-fast-objective-forensic-v1",
+    "parent_commit": "2f577889363e4b0ab67fcbe721267b22c157fb55",
+    "worktree_clean_before_changes": true,
+    "forensic_status": "FORENSIC_COMPLETE",
+    "p31_status": "P31_CONTROL_ALREADY_EXISTED"
+  },
+  "fast_fail_gates": {
+    "import_compile": "PASS",
+    "p32_unit_tests": {"status": "PASS", "passed": 10, "failed": 0},
+    "prior_contract_regressions": {"status": "PASS", "passed": 64, "failed": 0},
+    "production_reference_parity": {
+      "status": "PASS",
+      "cases": 10,
+      "devices": ["cpu", "cuda"],
+      "max_abs_errors": {
+        "loss": 2.9802322387695312e-08,
+        "student_effect": 4.57763671875e-05,
+        "teacher_effect": 1.1920928955078125e-06,
+        "student_gradient": 2.3283064365386963e-09
+      },
+      "tolerance": {
+        "output_rtol": 1e-05,
+        "output_atol": 0.0001,
+        "teacher_effect_rtol": 1e-05,
+        "teacher_effect_atol": 1e-05,
+        "gradient_rtol": 1e-05,
+        "gradient_atol": 1e-06
+      },
+      "all_finite": true,
+      "all_within_tolerance": true
+    },
+    "cached_batch_forward": "PASS",
+    "backward": "PASS",
+    "optimizer_step": "PASS_ENGINEERING_ONLY",
+    "checkpoint_save": "PASS_ENGINEERING_ONLY",
+    "checkpoint_strict_reload": "PASS",
+    "microprofile_5_step": "PASS",
+    "warmed_profile_40_step": "PASS"
+  },
+  "production_smoke": {
+    "status": "PASS",
+    "optimizer_steps": 1,
+    "engineering_optimizer_steps_total": 51,
+    "loss": 0.424630343914032,
+    "loss_finite": true,
+    "gradient_l2": 0.20999093353748322,
+    "gradient_max_abs": 0.09342052042484283,
+    "missing_gradient_elements": 0,
+    "nonfinite_gradient_elements": 0,
+    "student_parameter_delta_l2": 0.013964422925999368,
+    "student_parameter_delta_max_abs": 0.0009999998146668077,
+    "frozen_parameter_delta": 0.0,
+    "teacher_requires_grad": false,
+    "teacher_effect_requires_grad": false,
+    "student_effect_shape": [1, 518, 518],
+    "teacher_effect_shape": [1, 518, 518],
+    "checkpoint_strict_reload": true
+  },
+  "data_access_audit": {
+    "source_cache": "/workspace/p27r1_cache_v1",
+    "held_class": "candle",
+    "fit_records": 1962,
+    "held_records_not_read": 200,
+    "source_mask_loaded": false,
+    "native_logits_loaded": false,
+    "held_GT_read_count": 0,
+    "held_mask_read_count": 0,
+    "cache_rebuilds": 0,
+    "new_scientific_held_predictions": 0,
+    "source_cache_read_only": true
+  },
+  "model_and_gradient_audit": {
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0,
+    "adapter_forwards": 52,
+    "engineering_optimizer_steps": 51,
+    "scientific_optimizer_steps": 0,
+    "student_parameter_delta_l2": 0.013964422925999368,
+    "frozen_parameter_delta": 0.0,
+    "gradient_finite": true,
+    "teacher_detached": true,
+    "duplicate_teacher_tensor": false,
+    "retained_graph": false
+  },
+  "tests": {
+    "focused_total_passed": 74,
+    "focused_total_failed": 0,
+    "p32_specific_passed": 10,
+    "prior_contract_regressions_passed": 64,
+    "warnings": 1,
+    "warning": "pre-existing pkg_resources deprecation only"
+  },
+  "speed": {
+    "artifact": "research/sabra_v2/region_distill/P32_SPEED_PROFILE.json",
+    "microprofile_5_step": {
+      "median_comparable_step_seconds": 0.004719124868512154,
+      "median_end_to_end_step_seconds": 0.009386937826871871,
+      "objective_median_seconds": 0.00023039999604225158,
+      "input_cache_median_seconds": 0.006856761872768402
+    },
+    "warmed_profile_40_step": {
+      "median_comparable_step_seconds": 0.004818620283156634,
+      "p90_comparable_step_seconds": 0.0055296040296554565,
+      "median_end_to_end_step_seconds": 0.026872534254565837,
+      "objective_median_seconds": 0.0002380959987640381,
+      "input_cache_median_seconds": 0.02419726038351655
+    },
+    "training_overhead_percent_vs_p30r1": 9.664036012106546,
+    "objective_overhead_percent_vs_p30r1": 4.5234232989274314,
+    "inference_overhead_percent": 0.0,
+    "preferred_gate_pass": true,
+    "hard_gate_pass": true,
+    "peak_gpu_allocated_bytes": 36954624,
+    "peak_gpu_reserved_bytes": 60817408,
+    "duplicate_teacher_tensor": false,
+    "retained_graph": false
+  },
+  "scientific_safety": {
+    "new_training_runs": 0,
+    "new_scientific_stage2_attempts": 0,
+    "new_stage3_attempts": 0,
+    "full_runs": 0,
+    "full_12_class_runs": 0,
+    "held_result_tuning_iterations": 0,
+    "new_clip_forwards": 0,
+    "new_phase2b_forwards": 0,
+    "new_teacher_forwards": 0,
+    "cache_rebuilds": 0,
+    "scientific_uuid_created": false,
+    "execution_marker_created": false,
+    "future_stage2_authorized_now": false
+  },
+  "scientific_deviations": {
+    "count": 0,
+    "description": "separable fixed-matrix production optimization changed no frozen scientific semantics"
+  },
+  "incidents": [
+    {
+      "type": "semantics_preserving_speed_optimization",
+      "resolution": "replaced direct full-resolution transform with cached separable FP32 matrix; production/reference parity passed"
+    },
+    {
+      "type": "known_cuda_determinism_warnings",
+      "resolution": "existing warn_only deterministic policy; no non-finite values or scientific change"
+    }
+  ],
+  "final_gate": "P32_PASS_TO_SCIENTIFIC_PROTOCOL",
+  "no_new_scientific_stage2_started": true
+}
