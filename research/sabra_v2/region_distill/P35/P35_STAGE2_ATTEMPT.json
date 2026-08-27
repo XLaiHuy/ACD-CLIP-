@@ -1,0 +1,100 @@
+{
+  "attempt_number": 1,
+  "attempt_uuid": "5e1526d7-fa89-40f9-9976-4e5bb196ee79",
+  "automatic_rerun": false,
+  "batch_size": 1,
+  "branch": "research/p29r1-fast-objective-forensic-v1",
+  "cache_identities": {
+    "tier_a_candle_manifest_sha256": "d2cb586ed963b21242b3c483c2a71ce65a69501dbf04f5954ebb8a3d1fd56698",
+    "tier_b_candle_manifest_sha256": "35071ddc8b267a8ca670d41af8246cc491d98844e9199bed8f43c24e47023eff"
+  },
+  "cache_provenance": {
+    "cache_implementation_version": "P27_CACHE_V1",
+    "clip_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+    "config_sha256": "edf5745686e3d3d0d3b4142341569da06ad5b54025a779b78d83f74303ce67fc",
+    "metadata_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+    "p26_sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34",
+    "parent_execution_sha": "1151373f2c4968268f52cdc3e538c7ebcef7b8f0",
+    "scientific_execution_base_sha": "de41b380449dcbc0b124f71f4f8fbb789e1a96f0"
+  },
+  "cache_root": "/workspace/p27r1_cache_v1",
+  "class": "candle",
+  "completion_status": "ATTEMPT_CONSUMED",
+  "correction_scale_C": 4.960109710693359,
+  "engineering_qualification_commit": "ea11d937c4394ef754c2b8f31c3acf7e601af0ac",
+  "epochs": 20,
+  "expected_optimizer_steps": 39240,
+  "fit_records": 1962,
+  "frozen_checkpoint_identities": {
+    "engineering_checkpoint_not_used_for_science": true,
+    "p26_checkpoint": {
+      "path": "/workspace/ACD-CLIP-sabra/runs/phase4v/v1_7/readiness_full/adapter_5.pth",
+      "sha256": "a786e1498254d4589824e7bd111e1917b399d31687ed807212e86dfe3893df34"
+    }
+  },
+  "full_started": false,
+  "held_reads_before_prediction_freeze_expected": 0,
+  "held_records": 200,
+  "held_result_tuning_iterations": 0,
+  "implementation_commit": "ea11d937c4394ef754c2b8f31c3acf7e601af0ac",
+  "inherited_artifact_hashes": {
+    "p30r1_metrics": {
+      "path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P30R1/candle/metrics/P30R1_HELD_METRICS.json",
+      "sha256": "8cb46bfa0a65f2561d0531da5bc131e383a2783eb6778f282aab0d39bb1cabf4"
+    },
+    "p30r1_predictions": {
+      "path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P30R1/candle/predictions/p30r1_held_predictions.pt",
+      "sha256": "30c250b52ff980e7b16fa0e97ffaebb19e13fd5521722e5397cc86ed2c4e1218"
+    },
+    "p31_control": {
+      "path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P31/P31_CONTROL_SCIENTIFIC_RESULT.json",
+      "sha256": "e34ed6969a9ea629907e61cc5bdef52014d49c599d6a6aeeeafbde208654adef"
+    },
+    "p32_metrics": {
+      "path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P32/candle/metrics/P32_HELD_METRICS.json",
+      "sha256": "b1b85b187c3558d4004fb66c70b309b56446ce7df8a0dcd5dd2a46fc99404ca2"
+    },
+    "p32_predictions": {
+      "path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P32/candle/predictions/p32_held_predictions.pt",
+      "sha256": "e5573828a3205dd18955e3e0551a8297a75b7a07d24d2b35d49d165002f596f0"
+    },
+    "p33_metrics": {
+      "path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P33/candle/metrics/P33_HELD_METRICS.json",
+      "sha256": "e22ed79d69ea6445b6550bc253084f6ef508f2457d6162783df1e0c7ce509995"
+    },
+    "p33_predictions": {
+      "path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P33/candle/predictions/p33_held_predictions.pt",
+      "sha256": "91d6400823afbad810f880fc22fa37a74ac42dd2191e3f9a51e4b57e2403cd8a"
+    }
+  },
+  "learning_rate": 0.001,
+  "new_clip_forwards_expected": 0,
+  "new_phase2b_forwards_expected": 0,
+  "new_teacher_forwards_expected": 0,
+  "no_code_change_after_identity": true,
+  "objective": "P35_SOFT_TANH_ACTIONABILITY_WEIGHTED_FUNCTIONAL_TRANSFER_V1",
+  "objective_count": 1,
+  "optimizer": {
+    "amsgrad": false,
+    "betas": [
+      0.9,
+      0.999
+    ],
+    "epsilon": 1e-08,
+    "name": "AdamW",
+    "weight_decay": 0.01
+  },
+  "p35_preregistration_sha256": "d92a8144e071412608292b4c48f5fe69381f82c3b205f6990266f2383336e3d8",
+  "precision": "float32",
+  "prediction_freeze_required": true,
+  "protocol_id": "P35",
+  "schema_version": "P35_STAGE2_ATTEMPT_V1",
+  "scientific_execution_base_sha": "ea11d937c4394ef754c2b8f31c3acf7e601af0ac",
+  "seed": 0,
+  "split": "locked candle LOCO fit/held split",
+  "stage3_started": false,
+  "target_is_full_teacher_effect": true,
+  "target_shaping": false,
+  "utc_timestamp": "2026-08-27T10:10:51.767352+00:00",
+  "weight_map": "stop_gradient(tanh(abs(E_t)/C))"
+}

@@ -1,0 +1,45 @@
+{
+  "adapter_forwards": 200,
+  "attempt_uuid": "5e1526d7-fa89-40f9-9976-4e5bb196ee79",
+  "completion_status": "COMPLETE",
+  "gt_used": false,
+  "held_class": "candle",
+  "held_gt_reads": 0,
+  "mask_reads": 0,
+  "new_clip_forwards": 0,
+  "new_phase2b_forwards": 0,
+  "new_teacher_forwards": 0,
+  "peak_gpu_allocated_bytes": 60154880,
+  "peak_gpu_reserved_bytes": 75497472,
+  "peak_process_rss_kib": 11343532,
+  "prediction_dtype": "float32 tensors",
+  "prediction_path": "/workspace/ACD-CLIP-sabra/research/sabra_v2/region_distill/P35/candle/predictions/p35_held_predictions.pt",
+  "prediction_seconds": 7.609042442869395,
+  "prediction_sha256": "5c195012317c2724adfbc2a662ef731fbdeaccd433a277a42550d7999f055413",
+  "prediction_shape": {
+    "candidate_map": [
+      200,
+      518,
+      518
+    ],
+    "native_map": [
+      200,
+      518,
+      518
+    ],
+    "records": 200,
+    "residual": [
+      200,
+      3,
+      9,
+      9
+    ]
+  },
+  "preregistration_sha256": "d92a8144e071412608292b4c48f5fe69381f82c3b205f6990266f2383336e3d8",
+  "protocol_id": "P35",
+  "records": 200,
+  "schema_version": "P35_PREDICTION_COMPLETE_V1",
+  "status": "COMPLETE",
+  "target_is_full_teacher_effect": true,
+  "target_shaping": false
+}
