@@ -6,7 +6,11 @@ P32 is the frozen `FUNCTIONAL_MARGIN_EFFECT` hypothesis. The authoritative
 preregistration is
 `P32_PREREGISTRATION.md`, SHA-256
 `5141722b2c3e3d3aac721390a8943d54356dd17bdfdad8aaa6bd7302766a5cc2`.
-No P32 scientific Stage 2 prediction or score was produced.
+No P32 scientific Stage 2 prediction or score was produced during the
+engineering handoff. The separate scientific runner and hard-locked cached
+trainer were added afterward in a descendant commit solely to execute the
+explicitly authorized one-attempt Stage 2 path; they do not change the frozen
+objective or preregistration.
 
 ## 1. Exact preregistration correspondence
 
@@ -35,6 +39,10 @@ inference path. The teacher is detached exactly once at the target boundary.
   reference;
 - `tools/sabra_v2/run_p32_engineering.py` — cached fit-only engineering
   smoke, checkpoint reload, and speed profile;
+- `tools/sabra_v2/train_region_distill_p32_cached.py` — hard-locked P32
+  scientific fit path using only the source cache;
+- `tools/sabra_v2/run_p32_scientific_stage2.py` — one-attempt P32 Stage 2
+  firewall, GT-free prediction freeze, post-freeze scoring, and audit path;
 - `tests/test_p32_objective.py` — shape, null, scale, gradient, auxiliary-term,
   CPU/CUDA parity, and reference tests;
 - `research/sabra_v2/region_distill/P32_*` — decision, preflight,
