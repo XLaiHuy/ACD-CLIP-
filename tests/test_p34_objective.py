@@ -7,6 +7,7 @@ import torch
 import torch.nn.functional as F
 
 from tools.sabra_v2 import p32_objective, p34_objective, p34_reference, p33_objective
+from tools.sabra_v2.run_p34_engineering import _materialize_batch
 
 
 def _tensors(seed: int = 34002, batch: int = 2) -> tuple[torch.Tensor, torch.Tensor]:
@@ -164,3 +165,20 @@ def test_production_contains_no_extra_loss_or_inference_module() -> None:
     assert "sparsity" in source.lower()  # contract explicitly records it as forbidden
     assert "native_logits" not in source
     assert p34_objective.p34_objective_contract()["auxiliary_terms"] == []
+
+
+def test_engineering_batch_plumbing_allows_cache_metadata_but_not_supervision() -> None:
+    batch = {
+        "class_name": "capsules",
+        "image_path": "source-only.png",
+        "index": 0,
+        "sample_id": "capsules:source-only.png",
+        "seg_features": torch.zeros((1, 3, 1369, 768), dtype=torch.float32),
+        "teacher_region": torch.zeros((1, 9, 9), dtype=torch.float32),
+    }
+    seg_features, teacher_region = _materialize_batch(batch, torch.device("cpu"))
+    assert seg_features.shape == (3, 1, 1369, 768)
+    assert teacher_region.shape == (1, 9, 9)
+    batch["mask"] = torch.zeros((1, 518, 518), dtype=torch.float32)
+    with pytest.raises(RuntimeError, match="forbidden"):
+        _materialize_batch(batch, torch.device("cpu"))

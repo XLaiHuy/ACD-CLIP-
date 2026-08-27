@@ -235,8 +235,12 @@ def _materialize_batch(batch: dict[str, Any], device: torch.device) -> tuple[tor
     forbidden = {"mask", "native_logits"}.intersection(batch)
     if forbidden:
         raise RuntimeError(f"forbidden cached fields reached P34 objective: {sorted(forbidden)}")
-    if set(batch) != {"seg_features", "teacher_region"}:
-        raise RuntimeError(f"unexpected P34 cached fields: {sorted(batch)}")
+    allowed_metadata = {"class_name", "image_path", "index", "sample_id"}
+    unexpected = set(batch) - {"seg_features", "teacher_region"} - allowed_metadata
+    if unexpected:
+        raise RuntimeError(f"unexpected P34 cached fields: {sorted(unexpected)}")
+    if "seg_features" not in batch or "teacher_region" not in batch:
+        raise RuntimeError("P34 cached batch is missing segmentation features or teacher region")
     seg_features = batch["seg_features"].permute(1, 0, 2, 3).to(device=device, dtype=torch.float32)
     teacher_region = batch["teacher_region"].to(device=device, dtype=torch.float32)
     if teacher_region.requires_grad:
