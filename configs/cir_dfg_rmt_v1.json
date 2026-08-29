@@ -18,10 +18,9 @@
   "rmt_transport_alpha": 0.5,
   "rmt_alpha_status": "PROVISIONAL",
   "rmt_spatial_radius": 3,
-  "rmt_delta_layout": "per_stage_to_group_vector",
+  "rmt_delta_layout": "per_stage_per_group",
   "rmt_delta_stopgrad": true,
   "rmt_score_mode": "exact_score_space",
-  "source_dataset": "VisA",
   "rmt_gradient_contract": "peer_search_detached_delta_stopgrad_native_dfg_differentiable",
   "precision": "fp32",
   "evaluator_protocol": "CIR_FINAL_EXACT_V1"

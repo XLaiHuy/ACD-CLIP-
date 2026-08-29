@@ -68,7 +68,7 @@ def validate_cir_config(config: Mapping[str, Any], *, config_path: str | Path | 
         raise ValueError("CIR robust settings are not frozen")
     if abs(float(config["rmt_mad_constant"]) - 1.4826) > 1e-12 or float(config["rmt_eps"]) <= 0 or str(config["rmt_transform"]) != "tanh":
         raise ValueError("CIR MAD/transform settings are invalid")
-    if int(config["rmt_spatial_radius"]) != 3 or str(config["rmt_delta_layout"]) != "per_stage_to_group_vector":
+    if int(config["rmt_spatial_radius"]) != 3 or str(config["rmt_delta_layout"]) != "per_stage_per_group":
         raise ValueError("CIR peer geometry/delta layout is not frozen")
     if str(config["rmt_gradient_contract"]) != "peer_search_detached_delta_stopgrad_native_dfg_differentiable":
         raise ValueError("CIR gradient contract is not frozen")

@@ -1,7 +1,7 @@
 from pathlib import Path
 import pytest
 
-from tools.cir_rmt.identity import canonical_json, checkpoint_metadata, config_sha256, load_cir_config, sha256_file, validate_checkpoint_identity
+from tools.cir_rmt.identity import canonical_json, checkpoint_metadata, config_sha256, load_cir_config, sha256_file, validate_checkpoint_identity, validate_cir_config
 
 
 def test_checkpoint_identity_round_trip_and_hard_fail():
@@ -24,3 +24,12 @@ def test_canonical_hashes_are_deterministic_and_bind_freeze():
     path = Path(__file__).resolve().parents[2] / freeze
     assert config["architecture_freeze_sha256"] == sha256_file(path)
     assert config_sha256(config) == config_sha256(dict(config))
+
+
+def test_legacy_delta_layout_is_rejected():
+    config = load_cir_config()
+    assert config["rmt_delta_layout"] == "per_stage_per_group"
+    legacy = dict(config)
+    legacy["rmt_delta_layout"] = "per_stage_to_group_vector"
+    with pytest.raises(ValueError, match="CIR peer geometry/delta layout is not frozen"):
+        validate_cir_config(legacy)
