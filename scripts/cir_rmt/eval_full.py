@@ -6,6 +6,7 @@ import csv
 import hashlib
 import json
 import os
+import time
 from pathlib import Path
 from typing import Any
 import torch
@@ -121,18 +122,38 @@ def evaluate(args: argparse.Namespace) -> dict[str, Any]:
     loader = DataLoader(dataset, **loader_kwargs)
     domain = _domain(args.target)
     records = []
-    for batch in tqdm(loader, desc=stage_name, unit="img"):
-        image = batch["image"].to(device, non_blocking=device.type == "cuda").float()
-        names = [str(x) for x in batch["class_name"]]
-        output = forward_cir(model, image, names, device, cir_config, domain=domain, require_grad=False, dataset_name=args.target)
-        pixels = output.cir_segmentation_probability.detach().cpu().numpy()
-        classifications = output.classification_probability.detach().cpu().numpy()
-        masks = batch["mask"].detach().cpu().numpy()
-        labels = batch["label"].detach().cpu().numpy()
-        paths = [str(x) for x in batch["image_path"]]
-        for index, name in enumerate(names):
-            pixel = pixels[index].reshape(-1)
-            records.append({"class_name": name, "pixel_scores": pixel, "pixel_labels": masks[index].reshape(-1), "image_scores": [image_score(float(classifications[index]), float(pixel.max()), domain)], "image_labels": [int(labels[index])], "image_path": paths[index]})
+    epoch = int(checkpoint.get("epoch", 0))
+    source_display = "VisA" if str(args.source).lower() == "visa" else "MVTec"
+    target_display = (
+        "MVTec" if target_lower == "mvtec"
+        else "VisA" if target_lower == "visa"
+        else str(args.target)
+    )
+    eval_progress = tqdm(
+        loader,
+        desc=f"CIR/EVAL {target_display} | {source_display}→{target_display} | E{epoch:02d}",
+        unit="img",
+        dynamic_ncols=True,
+    )
+    eval_started = time.perf_counter()
+    try:
+        for batch in eval_progress:
+            image = batch["image"].to(device, non_blocking=device.type == "cuda").float()
+            names = [str(x) for x in batch["class_name"]]
+            output = forward_cir(model, image, names, device, cir_config, domain=domain, require_grad=False, dataset_name=args.target)
+            pixels = output.cir_segmentation_probability.detach().cpu().numpy()
+            classifications = output.classification_probability.detach().cpu().numpy()
+            masks = batch["mask"].detach().cpu().numpy()
+            labels = batch["label"].detach().cpu().numpy()
+            paths = [str(x) for x in batch["image_path"]]
+            for index, name in enumerate(names):
+                pixel = pixels[index].reshape(-1)
+                records.append({"class_name": name, "pixel_scores": pixel, "pixel_labels": masks[index].reshape(-1), "image_scores": [image_score(float(classifications[index]), float(pixel.max()), domain)], "image_labels": [int(labels[index])], "image_path": paths[index]})
+
+            eval_elapsed = max(time.perf_counter() - eval_started, 1e-9)
+            eval_progress.set_postfix_str(f"{eval_progress.n / eval_elapsed:.1f} img/s")
+    finally:
+        eval_progress.close()
     evaluated = evaluate_records(records, method="phase2b", allow_undefined_image_metrics=(domain == "Medical"))
     checkpoint_sha = sha256_file(checkpoint_path)
     evaluator_hash = sha256_file(Path(__file__).resolve())

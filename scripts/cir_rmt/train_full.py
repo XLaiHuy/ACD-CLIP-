@@ -136,6 +136,11 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
     print("Groups     : " + str(cir_config["n_groups"]))
     print("Score mode : " + str(cir_config["rmt_score_mode"]))
     print("Device     : " + str(device))
+    print("MICRO BATCH : " + str(args.micro_batch_size))
+    print("GRAD ACCUM  : " + str(args.grad_accum_steps))
+    print("EFF. BATCH  : " + str(parent_config["effective_batch_size"]))
+    print("WORKERS     : " + str(args.num_workers))
+    print("PREFETCH    : " + str(args.prefetch_factor))
     print("=" * 60)
     model = build_phase2b_trainable(parent_config, args.clip_asset, device)
     generator = make_dataloader_generator(int(args.seed))
@@ -165,33 +170,57 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
         active, mad_values, delta_values, saturation_values = [], [], [], []
         started = time.perf_counter()
         iterator = iter(loader); total_batches = len(loader)
-        for batch_index, batch in enumerate(tqdm(loader, desc=f"CIR/TRAIN-{source.upper()} E{epoch:02d}", leave=False), start=1):
-            image = batch["image"].to(device, non_blocking=bool(args.pin_memory)).float()
-            masks = batch["mask"].to(device, non_blocking=bool(args.pin_memory)).float()
-            labels = batch["label"].to(device, non_blocking=bool(args.pin_memory)).long()
-            classes = [str(x) for x in batch["class_name"]]
-            text, kg_loss, k_loss = _text_with_regularizers(model, classes, parent_config, device)
-            output = forward_cir(model, image, classes, device, cir_config, domain="Industrial", require_grad=True, dataset_name=parent_config["dataset"], precomputed_text_features=text)
-            if output.peer_valid.numel() and not bool(output.peer_valid.any()):
-                raise RuntimeError("CIR training has no valid K=8 peer set")
-            active.append(float(output.delta.detach().abs().mean()))
-            mad_values.append(float(output.delta_stats["mad"].detach().float().median()))
-            delta_values.append(float(output.delta.detach().float().abs().median()))
-            saturation_values.append(float((output.delta.detach().float().abs() > 0.95).float().mean()))
-            cls_loss = F.cross_entropy(output.classification_logits.float(), labels)
-            seg_loss = calculate_seg_loss(output.cir_training_segmentation_probability.float(), masks.float())
-            loss = cls_loss + seg_loss + float(parent_config.get("lambda_kg", 0.001)) * kg_loss + float(parent_config.get("lambda_k", 0.0)) * k_loss
-            if not torch.isfinite(loss):
-                raise FloatingPointError(f"non-finite CIR loss at epoch={epoch} batch={batch_index}")
-            divisor = grad_accum_window_size(batch_index, total_batches, int(args.grad_accum_steps))
-            (loss / float(divisor)).backward()
-            assert_phase2b_gradient_contract(model, soft_prompt_trainable=(not soft_frozen and bool(parent_config.get("soft_prompt_trainable", True))))
-            if batch_index % int(args.grad_accum_steps) == 0 or batch_index == total_batches:
-                torch.nn.utils.clip_grad_norm_([p for p in model.parameters() if p.requires_grad and p.grad is not None], float(parent_config["grad_clip_norm"]))
-                optimizer.step(); optimizer.zero_grad(set_to_none=True); global_step += 1
-            sums["loss"] += float(loss.detach()); sums["cls"] += float(cls_loss.detach()); sums["seg"] += float(seg_loss.detach()); count += 1
-            if smoke_target is not None and global_step - smoke_start_step >= smoke_target:
-                break
+        progress = tqdm(
+            loader,
+            desc=f"CIR/TRAIN-{source.upper()} E{epoch:02d}",
+            leave=False,
+            dynamic_ncols=True,
+        )
+        try:
+            for batch_index, batch in enumerate(progress, start=1):
+                image = batch["image"].to(device, non_blocking=bool(args.pin_memory)).float()
+                masks = batch["mask"].to(device, non_blocking=bool(args.pin_memory)).float()
+                labels = batch["label"].to(device, non_blocking=bool(args.pin_memory)).long()
+                classes = [str(x) for x in batch["class_name"]]
+                text, kg_loss, k_loss = _text_with_regularizers(model, classes, parent_config, device)
+                output = forward_cir(model, image, classes, device, cir_config, domain="Industrial", require_grad=True, dataset_name=parent_config["dataset"], precomputed_text_features=text)
+                if output.peer_valid.numel() and not bool(output.peer_valid.any()):
+                    raise RuntimeError("CIR training has no valid K=8 peer set")
+                active.append(float(output.delta.detach().abs().mean()))
+                mad_values.append(float(output.delta_stats["mad"].detach().float().median()))
+                delta_values.append(float(output.delta.detach().float().abs().median()))
+                saturation_values.append(float((output.delta.detach().float().abs() > 0.95).float().mean()))
+                cls_loss = F.cross_entropy(output.classification_logits.float(), labels)
+                seg_loss = calculate_seg_loss(output.cir_training_segmentation_probability.float(), masks.float())
+                loss = cls_loss + seg_loss + float(parent_config.get("lambda_kg", 0.001)) * kg_loss + float(parent_config.get("lambda_k", 0.0)) * k_loss
+                if not torch.isfinite(loss):
+                    raise FloatingPointError(f"non-finite CIR loss at epoch={epoch} batch={batch_index}")
+                divisor = grad_accum_window_size(batch_index, total_batches, int(args.grad_accum_steps))
+                (loss / float(divisor)).backward()
+                assert_phase2b_gradient_contract(model, soft_prompt_trainable=(not soft_frozen and bool(parent_config.get("soft_prompt_trainable", True))))
+                if batch_index % int(args.grad_accum_steps) == 0 or batch_index == total_batches:
+                    torch.nn.utils.clip_grad_norm_([p for p in model.parameters() if p.requires_grad and p.grad is not None], float(parent_config["grad_clip_norm"]))
+                    optimizer.step(); optimizer.zero_grad(set_to_none=True); global_step += 1
+                sums["loss"] += float(loss.detach()); sums["cls"] += float(cls_loss.detach()); sums["seg"] += float(seg_loss.detach()); count += 1
+                elapsed_live = max(time.perf_counter() - started, 1e-9)
+                vram_gb = (torch.cuda.memory_allocated(device) / float(1024 ** 3)) if device.type == "cuda" else None
+                vram_text = f"{vram_gb:.1f}GB" if vram_gb is not None else "n/a"
+                progress.set_postfix_str(
+                    f"loss={float(loss.detach()):.3f} "
+                    f"cls={float(cls_loss.detach()):.3f} "
+                    f"seg={float(seg_loss.detach()):.3f} "
+                    f"lr={float(optimizer.param_groups[0]['lr']):.1e} "
+                    f"Δ={delta_values[-1]:.3f} "
+                    f"MAD={mad_values[-1]:.4f} "
+                    f"sat={100.0 * saturation_values[-1]:.2f}% "
+                    f"{count * int(args.micro_batch_size) / elapsed_live:.1f} img/s "
+                    f"VRAM={vram_text}"
+                )
+                if smoke_target is not None and global_step - smoke_start_step >= smoke_target:
+                    break
+
+        finally:
+            progress.close()
         elapsed = time.perf_counter() - started
         images_per_sec = float(count * int(args.micro_batch_size) / max(elapsed, 1e-9)) if count else 0.0
         peak_vram = int(torch.cuda.max_memory_allocated(device)) if device.type == "cuda" else 0
