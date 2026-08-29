@@ -2,9 +2,7 @@
 """CIR/TRAIN-{source}: train the frozen parent adapter with CIR in one path."""
 from __future__ import annotations
 import argparse
-import hashlib
 import json
-import os
 import random
 import time
 from pathlib import Path
@@ -13,14 +11,10 @@ from typing import Any, Mapping
 import numpy as np
 import torch
 import torch.nn.functional as F
-from PIL import Image
-from torch.utils.data import DataLoader, Dataset
-from torchvision import transforms
-from torchvision.transforms import InterpolationMode
+from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 
 from dataset import TextAndImageDataset
-from dataset.info import CLASS_NAMES
 from model.checkpoint_utils import capture_rng_state, restore_rng_state, write_torch_checkpoint_atomic
 from model.phase2b_legacy_bridge import assert_phase2b_gradient_contract, load_adapter_state
 from model.phase2b_runtime import build_phase2b_trainable, configure_canonical_fp32, trainable_parameter_counts
@@ -31,8 +25,6 @@ from utils import calculate_seg_loss, make_dataloader_generator, seed_worker
 
 
 TARGET_EPOCHS = (12, 14, 16, 18, 20)
-IMAGE_SIZE = 518
-MVTEC_CLASSES = tuple(CLASS_NAMES["MVTec"])
 
 
 def seed_everything(seed: int) -> None:
@@ -57,44 +49,15 @@ def _cpu_state(module: torch.nn.Module) -> dict[str, torch.Tensor]:
     return {name: value.detach().cpu().clone() for name, value in module.state_dict().items()}
 
 
-class MVTecTrainDataset(Dataset):
-    """Normal-only MVTec train split; labels/masks never enter peer selection."""
-    def __init__(self, root: Path, image_size: int = IMAGE_SIZE):
-        self.root = (root / "mvtec_anomaly_detection") if (root / "mvtec_anomaly_detection").is_dir() else root
-        self.samples = []
-        for class_name in MVTEC_CLASSES:
-            good = self.root / class_name / "train" / "good"
-            if not good.is_dir():
-                raise FileNotFoundError(f"MVTec normal train directory missing: {good}")
-            for path in sorted(good.iterdir()):
-                if path.suffix.lower() in {".png", ".jpg", ".jpeg", ".bmp"}:
-                    self.samples.append((path, class_name))
-        self.transform = transforms.Compose([
-            transforms.Resize((image_size, image_size), InterpolationMode.BICUBIC),
-            transforms.ToTensor(),
-            transforms.Normalize((0.48145466, 0.4578275, 0.40821073), (0.26862954, 0.26130258, 0.27577711)),
-        ])
-        if not self.samples:
-            raise ValueError("MVTec train split is empty")
-
-    def __len__(self) -> int:
-        return len(self.samples)
-
-    def __getitem__(self, index: int) -> dict[str, Any]:
-        path, class_name = self.samples[int(index)]
-        with Image.open(path) as handle:
-            image = self.transform(handle.convert("RGB")).contiguous()
-        return {"image": image, "mask": torch.zeros((1, IMAGE_SIZE, IMAGE_SIZE), dtype=torch.float32), "label": torch.tensor(0, dtype=torch.int64), "class_name": class_name, "file_name": str(path), "local_mask_valid": torch.ones_like(torch.zeros((1, IMAGE_SIZE, IMAGE_SIZE)))}
-
 
 def build_loader(source: str, source_root: Path, config: Mapping[str, Any], args: argparse.Namespace, generator: torch.Generator):
-    if source == "visa":
-        metadata = Path(__file__).resolve().parents[2] / "dataset/hub/VisA.jsonl"
-        dataset = TextAndImageDataset(str(source_root), str(metadata), int(config["img_size"]))
-    elif source == "mvtec":
-        dataset = MVTecTrainDataset(source_root, int(config["img_size"]))
-    else:
-        raise ValueError("source must be visa or mvtec")
+    source_key = str(source).lower()
+    try:
+        manifest_name = {"visa": "VisA.jsonl", "mvtec": "MVTec.jsonl"}[source_key]
+    except KeyError as exc:
+        raise ValueError("source must be visa or mvtec") from exc
+    metadata = Path(__file__).resolve().parents[2] / "dataset" / "hub" / manifest_name
+    dataset = TextAndImageDataset(str(source_root), str(metadata), int(config["img_size"]))
     kwargs: dict[str, Any] = {"batch_size": int(args.micro_batch_size), "shuffle": True, "num_workers": int(args.num_workers), "pin_memory": bool(args.pin_memory), "worker_init_fn": seed_worker, "generator": generator}
     if args.num_workers > 0:
         kwargs.update({"persistent_workers": bool(args.persistent_workers), "prefetch_factor": int(args.prefetch_factor)})

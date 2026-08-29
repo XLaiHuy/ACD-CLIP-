@@ -27,6 +27,7 @@ class CIRForward:
     native_weights: torch.Tensor
     native_logits: torch.Tensor
     native_margin: torch.Tensor
+    native_group_margin: torch.Tensor
     delta: torch.Tensor
     peer_indices: torch.Tensor
     peer_valid: torch.Tensor
@@ -81,6 +82,43 @@ def _native_weights(model: Any, seg_features: torch.Tensor, text: torch.Tensor) 
     return native
 
 
+def _native_logits_from_weights(model: Any, seg_features: torch.Tensor, text: torch.Tensor, native_weights: torch.Tensor) -> torch.Tensor:
+    """Reproduce the parent native DFG logits through the explicit CIR path."""
+    if not callable(getattr(model, "apply_dfg_weights", None)):
+        raise AttributeError("CIR production forward requires model.apply_dfg_weights")
+    if seg_features.ndim != 4 or text.ndim != 4 or native_weights.ndim != 4:
+        raise ValueError("expected seg [S,B,P,D], text [B,G,D,2], weights [S,B,G,2]")
+    if tuple(native_weights.shape[:2]) != tuple(seg_features.shape[:2]) or native_weights.shape[-1] != 2:
+        raise ValueError("native DFG weights do not match segmentation features")
+    rows = []
+    for stage in range(int(seg_features.shape[0])):
+        fused_text = model.apply_dfg_weights(
+            text,
+            native_weights[stage, ..., 0],
+            native_weights[stage, ..., 1],
+        )
+        expected = (seg_features.shape[1], seg_features.shape[-1], 2)
+        if tuple(fused_text.shape) != expected:
+            raise ValueError(f"DFG fused text shape mismatch: {tuple(fused_text.shape)} != {expected}")
+        rows.append(torch.matmul(10.0 * seg_features[stage], fused_text))
+    native_logits = torch.stack(rows, dim=0).float()
+    if tuple(native_logits.shape[:3]) != tuple(seg_features.shape[:3]) or native_logits.shape[-1] != 2:
+        raise ValueError(f"native logit geometry mismatch: {tuple(native_logits.shape)}")
+    return native_logits
+
+
+def _per_group_margins(seg_features: torch.Tensor, text: torch.Tensor) -> torch.Tensor:
+    """Compute unfused cosine margins with distinct visual-stage/group axes."""
+    if seg_features.ndim != 4 or text.ndim != 4 or text.shape[-1] != 2:
+        raise ValueError("expected seg [S,B,P,D] and text [B,G,D,2]")
+    if tuple(seg_features.shape[1:2]) != tuple(text.shape[:1]) or seg_features.shape[-1] != text.shape[-2]:
+        raise ValueError("segmentation/text dimensions do not match")
+    visual = F.normalize(seg_features.float(), dim=-1)
+    prompts = F.normalize(text.float(), dim=-2)
+    similarities = torch.einsum("sbpd,bgdc->sbpgc", visual, prompts)
+    return similarities[..., 1] - similarities[..., 0]
+
+
 def _transport_summaries(native_weights: torch.Tensor, transported_logits: torch.Tensor, delta: torch.Tensor) -> dict[str, float]:
     # This is diagnostic only; it never enters the objective.
     normal = native_weights[..., 0]
@@ -130,15 +168,12 @@ def forward_cir(
         if seg_features.shape[-1] != 768:
             raise ValueError(f"CIR projected dimension mismatch: {tuple(seg_features.shape)}")
         parent_text = text.permute(1, 0, 2, 3).contiguous()
-        _, native_logits, native_margin = model.vision_text_fusion_gate_seg(
-            seg_features, parent_text, img_size=int(config.get("img_size", IMAGE_SIZE)),
-            test_mode=False, domain=domain, return_details=True,
-        )
-        native_logits = native_logits.float()
-        native_margin = native_margin.float()
         native_weights = _native_weights(model, seg_features, text)
+        native_logits = _native_logits_from_weights(model, seg_features, text, native_weights)
+        native_margin = native_logits[..., 1] - native_logits[..., 0]
+        native_group_margin = _per_group_margins(seg_features, text).float()
         delta, delta_stats = peer_delta_from_native_margins(
-            seg_features.detach(), native_margin.detach(),
+            seg_features.detach(), native_group_margin.detach(),
             peer_count=int(config["rmt_peer_count"]),
             spatial_radius=int(config.get("rmt_spatial_radius", 3)),
             eps=float(config["rmt_eps"]),
@@ -170,6 +205,7 @@ def forward_cir(
         native_weights=native_weights,
         native_logits=native_logits,
         native_margin=native_margin,
+        native_group_margin=native_group_margin,
         delta=delta,
         peer_indices=delta_stats.pop("peer_indices"),
         peer_valid=delta_stats.pop("valid"),

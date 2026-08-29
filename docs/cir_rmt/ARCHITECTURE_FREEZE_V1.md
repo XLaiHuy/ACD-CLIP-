@@ -51,37 +51,43 @@ native DFG (GAP + SS2D weights)
              anomaly map
 ```
 
-For observed patch feature `x_p`, native text prototypes are `T_N` and `T_A`.
-The observed anomaly margin is
+For each visual output stage `s`, batch item `b`, patch `p`, and text group
+`g`, the feature and native prototypes are `x[s,b,p]` and `T_N[b,g]`,
+`T_A[b,g]`. Visual-stage and text-group axes are distinct.
+The unfused observed anomaly margin is
 
 ```text
-m_obs = cos(x_p, T_A) - cos(x_p, T_N)
+m_obs[s,b,p,g] = cos(x[s,b,p], T_A[b,g]) - cos(x[s,b,p], T_N[b,g])
 ```
 
-The peer margins are `m_peer[k]`. For even `K=8`, the center is the midpoint
-median, not the lower-median behavior of `torch.median`:
+Peer selection produces one shared, GT-free index set `i[b,p,k]` with shape
+`[B,P,K]`, `K=8`, from detached pooled features and group-pooled margins. The
+gathered peer margins retain both independent axes:
 
 ```text
-center = (x_(4) + x_(5)) / 2
-MAD    = midpoint_median(abs(m_peer - center))
-d      = 1.4826 * MAD
-z_{g,p}      = (m_obs_{g,p} - center_{g,p}) / (d_{g,p} + rmt_eps)
-delta_{g,p}  = tanh(z_{g,p})
+m_peer[s,b,p,k,g] = m_obs[s,b,i[b,p,k],g]       # [S,B,P,K,G]
+center[s,b,p,g] = midpoint_median_k(m_peer[s,b,p,:,g])
+MAD[s,b,p,g] = midpoint_median_k(abs(m_peer[s,b,p,:,g] - center[s,b,p,g]))
+d[s,b,p,g] = 1.4826 * MAD[s,b,p,g]
+z[s,b,p,g] = (m_obs[s,b,p,g] - center[s,b,p,g]) / (d[s,b,p,g] + rmt_eps)
+delta[s,b,p,g] = tanh(z[s,b,p,g])                    # [S,B,P,G]
 ```
 
-The robust statistic is computed independently for each native
-stage/group depth. For an output stage s, the transport vector is
-delta_{g,p} across the three groups, so a scalar patch offset is never
-added to every softmax entry:
+The robust statistic is reduced over K independently for every
+visual-stage/patch/group coordinate `[s,b,p,g]`. Transport applies a group
+softmax separately at each stage and patch; native weights `[s,b,g]` broadcast
+over patches, while the evidence remains `[s,b,p,g]`:
 
 ```text
-wA[s,p,g] = softmax_g(log(wA_native[s,p,g]) + rmt_transport_alpha * delta[g,p])
-wN[s,p,g] = softmax_g(log(wN_native[s,p,g]) - rmt_transport_alpha * delta[g,p])
+wA*[s,b,p,g] = softmax_g(log(wA_native[s,b,g]) + rmt_transport_alpha * delta[s,b,p,g])
+wN*[s,b,p,g] = softmax_g(log(wN_native[s,b,g]) - rmt_transport_alpha * delta[s,b,p,g])
 ```
 
-delta is stop-gradient. Peer search uses pooled native margins only to define
-the normal-like candidate pool; the signed per-stage margins above remain the
-evidence used for transport. No Trust, Need, FU, router, expert, decoder,
+delta is stop-gradient. Peer search uses pooled group margins only to define
+the normal-like candidate pool; the unfused per-stage/per-group margins above
+remain the evidence used for transport. The stage axis `s` and text-group axis
+`g` are never mapped or broadcast into one another, and no fused native DFG
+margin is used as RMT evidence. No Trust, Need, FU, router, expert, decoder,
 second CLIP, selector, target-specific repair, or auxiliary CIR head is part
 of this architecture.
 

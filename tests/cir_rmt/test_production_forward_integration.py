@@ -22,6 +22,7 @@ class SyntheticParent(nn.Module):
         self.register_buffer("det_base", torch.nn.functional.normalize(torch.randn(3, dim, generator=generator), dim=-1))
         self.batch = batch
         self.groups = groups
+        self.fusion_calls = 0
 
     def forward(self, image, return_phase4_features=False):
         batch = int(image.shape[0])
@@ -34,19 +35,21 @@ class SyntheticParent(nn.Module):
         values = torch.softmax(self.gate_logits[int(group_index)], dim=0)
         weights = values.unsqueeze(0).expand(img_feat.shape[0], -1, -1)
         return {"normal": weights[..., 0], "abnormal": weights[..., 1]}
+    def apply_dfg_weights(self, group_text_features, weights_normal, weights_abnormal):
+        normal_text = torch.einsum("bg,bgd->bd", weights_normal, group_text_features[..., 0])
+        abnormal_text = torch.einsum("bg,bgd->bd", weights_abnormal, group_text_features[..., 1])
+        return torch.stack([normal_text, abnormal_text], dim=-1)
+
 
     def vision_text_fusion_gate_seg(self, vision_tokens, text_features, img_size=518, test_mode=False, domain="Industrial", return_details=False):
+        self.fusion_calls += 1
         group_text = text_features.permute(1, 0, 2, 3)
         logits = []
         for group_index in range(vision_tokens.shape[0]):
             image_features = 10.0 * vision_tokens[group_index]
             weights = self.compute_dfg_weights(image_features, group_text, group_index)
-            normal_text = torch.einsum("bg,bgd->bd", weights["normal"], group_text[..., 0])
-            abnormal_text = torch.einsum("bg,bgd->bd", weights["abnormal"], group_text[..., 1])
-            normal = torch.einsum("bpd,bd->bp", image_features, normal_text)
-            abnormal = torch.einsum("bpd,bd->bp", image_features, abnormal_text)
-            signal = torch.linspace(-2.0, 2.0, image_features.shape[1], device=image_features.device).view(1, -1)
-            logits.append(torch.stack([normal, abnormal + signal + 0.03 * group_index], dim=-1))
+            fused_text = self.apply_dfg_weights(group_text, weights["normal"], weights["abnormal"])
+            logits.append(torch.matmul(image_features, fused_text))
         base = torch.stack(logits, dim=0)
         margins = base[..., 1] - base[..., 0]
         dummy = torch.zeros((vision_tokens.shape[1], 2, img_size, img_size), device=vision_tokens.device)
@@ -81,7 +84,18 @@ def test_production_forward_executes_cir_transport_and_backpropagates():
         output = forward_cir(model, image, ["class_a", "class_b"], torch.device("cpu"), config, require_grad=True, dataset_name="VisA", precomputed_text_features=text)
 
     assert calls == [{"alpha": config["rmt_transport_alpha"], "score_mode": "optimized"}]
-    assert output.delta.shape == (3, batch, patches)
+    assert model.fusion_calls == 0
+    assert output.native_group_margin.shape == (3, batch, patches, groups)
+    assert output.peer_margins.shape == (3, batch, patches, 8, groups)
+    assert output.delta.shape == (3, batch, patches, groups)
+    assert output.delta_stats["center"].shape == (3, batch, patches, groups)
+    assert output.delta_stats["mad"].shape == (3, batch, patches, groups)
+    assert output.delta_stats["z"].shape == (3, batch, patches, groups)
+    _, parent_logits, parent_margin = model.vision_text_fusion_gate_seg(
+        output.seg_features, text.permute(1, 0, 2, 3), return_details=True
+    )
+    assert torch.allclose(output.native_logits, parent_logits)
+    assert torch.allclose(output.native_margin, parent_margin)
     assert torch.isfinite(output.delta).all()
     assert not output.delta.requires_grad
     assert output.peer_valid.any()
@@ -89,7 +103,7 @@ def test_production_forward_executes_cir_transport_and_backpropagates():
     assert output.cir_logits.requires_grad
     assert output.native_weights.requires_grad
 
-    evidence = output.delta.permute(1, 2, 0).unsqueeze(0).expand(3, batch, patches, groups)
+    evidence = output.delta
     native_normal = output.native_weights[..., 0].unsqueeze(2).expand(3, batch, patches, groups)
     native_abnormal = output.native_weights[..., 1].unsqueeze(2).expand(3, batch, patches, groups)
     transported_normal, transported_abnormal = transport_pair(native_normal, native_abnormal, evidence, float(config["rmt_transport_alpha"]))
@@ -107,6 +121,9 @@ def test_production_forward_executes_cir_transport_and_backpropagates():
     repo_root = Path(__file__).resolve().parents[2]
     train_source = (repo_root / "scripts/cir_rmt/train_full.py").read_text(encoding="utf-8")
     eval_source = (repo_root / "scripts/cir_rmt/eval_full.py").read_text(encoding="utf-8")
+    runtime_source = (repo_root / "tools/cir_rmt/runtime.py").read_text(encoding="utf-8")
+    assert "vision_text_fusion_gate_seg(" not in runtime_source
+    assert "_per_group_margins(" in runtime_source
     assert "forward_cir(" in train_source
     assert "forward_cir(" in eval_source
     assert "forward_phase2b(" not in train_source

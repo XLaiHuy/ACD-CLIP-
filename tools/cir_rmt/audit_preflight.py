@@ -20,7 +20,7 @@ def run_synthetic() -> dict[str, object]:
     stages, batch, side, dim, groups = 3, 4, 7, 16, 3
     patches = side * side
     features = torch.nn.functional.normalize(torch.randn(stages, batch, patches, dim), dim=-1)
-    margins = torch.randn(stages, batch, patches)
+    margins = torch.randn(stages, batch, patches, groups)
     delta, stats = peer_delta_from_native_margins(features, margins)
     peers = stats["peer_indices"]
     spatial_violations = 0
@@ -39,7 +39,7 @@ def run_synthetic() -> dict[str, object]:
             spatial_violations += sum(max(abs(y - divmod(q, side)[0]), abs(x - divmod(q, side)[1])) <= 3 for q in values)
     native = torch.rand(stages, batch, patches, groups) + 0.1
     native = native / native.sum(-1, keepdim=True)
-    evidence = delta.permute(1, 2, 0).unsqueeze(0).expand(stages, batch, patches, groups)
+    evidence = delta
     normal, abnormal = transport_pair(native, native, evidence, float(load_cir_config()["rmt_transport_alpha"]))
     rows = {"stage": "CIR/G3-PREFLIGHT", "peer_shape": list(peers.shape), "peer_valid_fraction": float(stats["valid"].float().mean()), "invalid_count": invalid_count, "duplicate_count": duplicate_count, "self_count": self_count, "spatial_violation_count": spatial_violations, "deterministic": True, "gt_free": True, "mad_mean": float(stats["mad"].mean()), "z_abs_p95": float(stats["z"].abs().quantile(0.95)), "delta_saturation_fraction": float((delta.abs() > 0.95).float().mean()), "transport_l1_normal": float((normal - native).abs().sum(-1).mean()), "transport_l1_abnormal": float((abnormal - native).abs().sum(-1).mean()), "transport_entropy_normal": _entropy(normal), "transport_entropy_abnormal": _entropy(abnormal), "transport_active_fraction": float(((normal - native).abs().sum(-1) + (abnormal - native).abs().sum(-1) > 1e-6).float().mean())}
     rows["status"] = "PASS" if duplicate_count == 0 and self_count == 0 and spatial_violations == 0 and rows["peer_valid_fraction"] > 0 else "FAIL"

@@ -50,29 +50,39 @@ def robust_peer_delta(
     eps: float = CIR_EPS,
     mad_constant: float = MAD_CONSTANT,
     peer_count: int = PEER_COUNT,
+    peer_dim: int = -1,
     return_stats: bool = False,
 ) -> torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
     """Compute detached robust signed evidence from exactly eight peers.
 
-    ``peer_margins`` has shape ``[..., K]`` and ``observed_margin`` has shape
-    ``[...]``.  The returned delta is bounded by ``tanh`` and is always
-    detached, so relational evidence cannot become a hidden trainable head.
+    ``peer_margins`` contains a length-``K`` peer axis at ``peer_dim`` and
+    ``observed_margin`` has the remaining shape. The returned delta is bounded
+    by ``tanh`` and is always detached, so relational evidence cannot become a
+    hidden trainable head.
     """
-    if peer_margins.ndim < 1 or peer_margins.shape[:-1] != observed_margin.shape:
+    if peer_margins.ndim < 1:
+        raise ValueError("peer margins must have a peer dimension")
+    peer_dim = int(peer_dim)
+    if peer_dim < 0:
+        peer_dim += peer_margins.ndim
+    if peer_dim < 0 or peer_dim >= peer_margins.ndim:
+        raise ValueError(f"invalid peer dimension {peer_dim} for {tuple(peer_margins.shape)}")
+    observed_shape = tuple(peer_margins.shape[:peer_dim] + peer_margins.shape[peer_dim + 1:])
+    if observed_shape != tuple(observed_margin.shape):
         raise ValueError(
             f"observed margin {tuple(observed_margin.shape)} and peer margins "
             f"{tuple(peer_margins.shape)} are incompatible"
         )
-    if int(peer_margins.shape[-1]) != int(peer_count):
-        raise ValueError(f"CIR requires K={peer_count} peers, got {peer_margins.shape[-1]}")
+    if int(peer_margins.shape[peer_dim]) != int(peer_count):
+        raise ValueError(f"CIR requires K={peer_count} peers, got {peer_margins.shape[peer_dim]}")
     if float(eps) <= 0 or float(mad_constant) <= 0:
         raise ValueError("eps and mad_constant must be positive")
     observed = observed_margin.detach().float()
     peers = peer_margins.detach().float()
     _require_finite(observed, "observed_margin")
     _require_finite(peers, "peer_margins")
-    center = midpoint_median(peers, dim=-1)
-    mad = midpoint_median((peers - center.unsqueeze(-1)).abs(), dim=-1)
+    center = midpoint_median(peers, dim=peer_dim)
+    mad = midpoint_median((peers - center.unsqueeze(peer_dim)).abs(), dim=peer_dim)
     scale = float(mad_constant) * mad
     z = (observed - center) / (scale + float(eps))
     delta = torch.tanh(z).detach()
@@ -189,14 +199,24 @@ def select_gt_free_peers(
 
 
 def gather_peer_values(values: torch.Tensor, peer_indices: torch.Tensor) -> torch.Tensor:
-    """Gather ``[S,B,P]`` values at ``[B,P,K]`` peer indices."""
-    if values.ndim != 3 or peer_indices.ndim != 3:
-        raise ValueError("expected values [S,B,P] and peer_indices [B,P,K]")
-    stages, batch, patches = values.shape
-    if peer_indices.shape[:2] != (batch, patches):
-        raise ValueError("peer indices do not match values geometry")
-    index = peer_indices.clamp(0, patches - 1).unsqueeze(0).expand(stages, -1, -1, -1)
-    return values.unsqueeze(-1).expand(-1, -1, -1, peer_indices.shape[-1]).gather(2, index)
+    """Gather ``[S,B,P]`` or ``[S,B,P,G]`` values at ``[B,P,K]`` peers."""
+    if peer_indices.ndim != 3:
+        raise ValueError("peer indices must have shape [B,P,K]")
+    if values.ndim == 3:
+        stages, batch, patches = values.shape
+        if peer_indices.shape[:2] != (batch, patches):
+            raise ValueError("peer indices do not match values geometry")
+        index = peer_indices.clamp(0, patches - 1).unsqueeze(0).expand(stages, -1, -1, -1)
+        source = values.unsqueeze(-1).expand(-1, -1, -1, peer_indices.shape[-1])
+        return source.gather(2, index)
+    if values.ndim == 4:
+        stages, batch, patches, groups = values.shape
+        if peer_indices.shape[:2] != (batch, patches):
+            raise ValueError("peer indices do not match values geometry")
+        index = peer_indices.clamp(0, patches - 1).unsqueeze(0).unsqueeze(-1).expand(stages, -1, -1, -1, groups)
+        source = values.unsqueeze(3).expand(-1, -1, -1, peer_indices.shape[-1], -1)
+        return source.gather(2, index)
+    raise ValueError("values must be [S,B,P] or [S,B,P,G]")
 
 
 def _canonicalize_score_inputs(
@@ -334,19 +354,13 @@ def cir_logits_from_native_weights(
     native = native.expand(stages, batch, patches, native.shape[-2], 2).float()
     groups = int(native.shape[-2])
     if delta.ndim == 2:
-        evidence = delta.unsqueeze(0).expand(stages, batch, patches)
-        evidence = evidence.unsqueeze(-1).expand(stages, batch, patches, groups)
-    elif delta.ndim == 3:
-        evidence = delta.expand(stages, batch, patches)
-        if groups != stages:
-            raise ValueError("per-stage delta requires group count equal to stage count")
-        # Each output-stage DFG distribution receives the three group/depth
-        # evidences, so a scalar patch delta cannot cancel in softmax.
-        evidence = evidence.permute(1, 2, 0).unsqueeze(0).expand(stages, batch, patches, groups)
+        if tuple(delta.shape) != (batch, patches):
+            raise ValueError(f"patch delta must be [B,P], got {tuple(delta.shape)}")
+        evidence = delta.unsqueeze(0).unsqueeze(-1).expand(stages, batch, patches, groups)
     elif delta.ndim == 4:
         evidence = delta
     else:
-        raise ValueError("delta must be [B,P], [S,B,P], or [S,B,P,G]")
+        raise ValueError("delta must be legacy [B,P] or contract [S,B,P,G]")
     if tuple(evidence.shape) != (stages, batch, patches, groups):
         raise ValueError(f"delta geometry mismatch: {tuple(evidence.shape)}")
     normal, abnormal = transport_pair(native[..., 0], native[..., 1], evidence, alpha)
@@ -368,24 +382,44 @@ def peer_delta_from_native_margins(
     eps: float = CIR_EPS,
     mad_constant: float = MAD_CONSTANT,
 ) -> tuple[torch.Tensor, dict[str, Any]]:
-    """Build peers and robust delta from native detached margin evidence."""
+    """Build shared peers and robust per-stage/per-group evidence.
+
+    ``native_margins`` is the unfused cosine-margin tensor ``[S,B,P,G]``.
+    Peer selection uses only the detached group-pooled margin ``[S,B,P]`` so
+    the same GT-free ``[B,P,K]`` peer set is shared by every stage and group.
+    Robust statistics are then computed along the K axis, yielding
+    ``delta [S,B,P,G]``.
+    """
+    if stage_features.ndim != 4 or native_margins.ndim != 4:
+        raise ValueError("expected stage_features [S,B,P,D] and native_margins [S,B,P,G]")
+    if tuple(stage_features.shape[:3]) != tuple(native_margins.shape[:3]):
+        raise ValueError("stage feature/margin geometries do not match")
+    observed = native_margins.detach().float()
+    selection_margins = observed.mean(dim=-1)
     peers = select_gt_free_peers(
-        stage_features,
-        native_margins,
+        stage_features.detach(),
+        selection_margins,
         peer_count=peer_count,
         spatial_radius=spatial_radius,
     )
-    peer_margins = gather_peer_values(native_margins.detach().float(), peers["peer_indices"])
-    observed = native_margins.detach().float()
+    peer_margins = gather_peer_values(observed, peers["peer_indices"])
     delta, stats = robust_peer_delta(
         observed,
         peer_margins,
         eps=eps,
         mad_constant=mad_constant,
         peer_count=peer_count,
+        peer_dim=-2,
         return_stats=True,
     )
     valid = peers["valid"]
-    delta = torch.where(valid.unsqueeze(0), delta, torch.zeros_like(delta))
-    stats.update({"peer_indices": peers["peer_indices"], "valid": valid, "candidate_count": peers["candidate_count"], "peer_margins": peer_margins, "observed_margin": observed})
+    delta = torch.where(valid.unsqueeze(0).unsqueeze(-1), delta, torch.zeros_like(delta))
+    stats.update({
+        "peer_indices": peers["peer_indices"],
+        "valid": valid,
+        "candidate_count": peers["candidate_count"],
+        "peer_margins": peer_margins,
+        "observed_margin": observed,
+        "selection_margins": selection_margins,
+    })
     return delta.detach(), stats

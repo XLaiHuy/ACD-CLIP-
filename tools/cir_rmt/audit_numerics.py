@@ -16,13 +16,13 @@ def run_audit(seed: int = 17) -> dict[str, object]:
     text = torch.nn.functional.normalize(torch.randn(stages, batch, groups, dim, 2), dim=-2)
     native = torch.rand(stages, batch, groups, 2) + 0.1
     native = native / native.sum(dim=-2, keepdim=True)
-    delta = torch.randn(stages, batch, patches).tanh()
+    delta = torch.randn(stages, batch, patches, groups).tanh()
     reference, optimized = score_reference(image, text, native), score_optimized(image, text, native)
     cir, native_score = cir_logits_from_native_weights(image, text, native, delta, 0.0, score_mode="reference")
-    group_delta = delta.permute(1, 2, 0).unsqueeze(0).expand(stages, batch, patches, groups)
-    normal, abnormal = transport_pair(native[..., 0].unsqueeze(2).expand(stages, batch, patches, groups), native[..., 1].unsqueeze(2).expand(stages, batch, patches, groups), group_delta, 0.5)
+    native_patch = native.unsqueeze(2).expand(stages, batch, patches, groups, 2)
+    normal, abnormal = transport_pair(native_patch[..., 0], native_patch[..., 1], delta, 0.5)
     features = torch.nn.functional.normalize(torch.randn(stages, batch, 49, dim), dim=-1)
-    margins = torch.randn(stages, batch, 49)
+    margins = torch.randn(stages, batch, 49, groups)
     peer_delta, peer_stats = peer_delta_from_native_margins(features, margins)
     checks = {
         "stage": "CIR/G1-MATH",
