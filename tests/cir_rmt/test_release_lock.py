@@ -5,12 +5,13 @@ from pathlib import Path
 
 import pytest
 
-from tools.cir_rmt.identity import git_identity, load_cir_config, release_identity_fields
+from tools.cir_rmt.identity import architecture_branch, git_identity, load_cir_config, release_identity_fields
 from tools.cir_rmt.release_lock import (
     LOCK_SCHEMA,
     REAL_EVIDENCE_KINDS,
     REQUIRED_GATES,
     ReleaseNotAuthorized,
+    canonical_lock_path,
     validate_gate_manifest,
     validate_lock_payload,
 )
@@ -40,6 +41,32 @@ def _fake_payload(config: dict[str, object], git: dict[str, object]) -> dict[str
         "git_sha": git["head"],
         "gate_statuses": {name: _fake_gate(name, identity) for name in REQUIRED_GATES},
     }
+
+
+def test_canonical_lock_path_is_architecture_aware():
+    repo_root = Path(__file__).resolve().parents[2]
+    v1 = load_cir_config(repo_root / "configs/cir_dfg_rmt_v1.json")
+    v2 = load_cir_config(repo_root / "configs/cir_dfg_rmt_v2.json")
+    assert canonical_lock_path(v1) == repo_root / "runs/cir_rmt/CIR_DFG_RMT_V1/release_lock.json"
+    assert canonical_lock_path(v2) == repo_root / "runs/cir_rmt/CIR_DFG_RMT_V2/release_lock.json"
+    assert canonical_lock_path(v1) != canonical_lock_path(v2)
+
+
+def test_cross_version_lock_path_is_rejected():
+    config = dict(load_cir_config())
+    config["rmt_alpha_status"] = "FROZEN"
+    git = dict(git_identity())
+    git["branch"] = architecture_branch(config)
+    git["head"] = "test-git-sha"
+    git["status_short"] = []
+    git["clean"] = True
+    payload = _fake_payload(config, git)
+    payload["generated_at_utc"] = "2026-01-01T00:00:00Z"
+    for name in ("G2_REAL", "G3_REAL", "G4_GPU", "G5_REAL"):
+        payload["gate_statuses"][name]["evidence"].update({"real_execution": True, "artifact": {"path": "test"}})
+    v2 = load_cir_config(Path(__file__).resolve().parents[2] / "configs/cir_dfg_rmt_v2.json")
+    with pytest.raises(ReleaseNotAuthorized, match="release lock path is not canonical"):
+        validate_lock_payload(payload, config, git, canonical_lock_path(v2))
 
 
 def test_missing_lock_cli_fails_closed_with_real_gate_message(tmp_path):

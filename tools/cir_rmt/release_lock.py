@@ -1,4 +1,4 @@
-"""Generate and verify the only release authorization for CIR_DFG_RMT_V1."""
+"""Generate and verify the only release authorization for a CIR architecture."""
 from __future__ import annotations
 
 import argparse
@@ -51,6 +51,19 @@ REAL_EVIDENCE_KINDS = {
 }
 class ReleaseNotAuthorized(RuntimeError):
     """Raised when a release lock cannot be safely generated or verified."""
+
+
+def canonical_lock_path(config: Mapping[str, Any] | str | Path) -> Path:
+    """Return the canonical lock path bound to ``config['arch_id']``.
+
+    The architecture identity is part of the path so a V2 lock can never be
+    mistaken for a V1 lock (or vice versa).
+    """
+    payload = load_cir_config(config) if not isinstance(config, Mapping) else config
+    arch_id = str(payload.get("arch_id", ""))
+    if not arch_id:
+        raise ReleaseNotAuthorized("config is missing arch_id")
+    return (REPO_ROOT / "runs" / "cir_rmt" / arch_id / "release_lock.json").resolve()
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -181,9 +194,10 @@ def _lock_identity(config: Mapping[str, Any], git: Mapping[str, Any], gates: Map
 def generate_release_lock(
     config_path: str | Path,
     gates_manifest_path: str | Path,
-    output_path: str | Path = DEFAULT_LOCK_PATH,
+    output_path: str | Path | None = None,
 ) -> dict[str, Any]:
     config = load_cir_config(config_path)
+    expected_lock = canonical_lock_path(config)
     manifest = _read_json(Path(gates_manifest_path).expanduser().resolve())
     gates = validate_gate_manifest(manifest, config)
     git = git_identity()
@@ -192,9 +206,11 @@ def generate_release_lock(
     if not git["clean"]:
         raise ReleaseNotAuthorized("G0 requires a clean worktree before lock generation")
     payload = _lock_identity(config, git, gates)
-    output = Path(output_path).expanduser().resolve()
-    if output != DEFAULT_LOCK_PATH.resolve():
-        raise ReleaseNotAuthorized("release lock output must be the canonical worktree path")
+    output = expected_lock if output_path is None else Path(output_path).expanduser().resolve()
+    if output != expected_lock:
+        raise ReleaseNotAuthorized(
+            "release lock output is not canonical for " + str(config["arch_id"])
+        )
     output.parent.mkdir(parents=True, exist_ok=True)
     temporary = output.with_name(output.name + ".tmp")
     temporary.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -213,7 +229,7 @@ def validate_lock_payload(
     payload: Mapping[str, Any],
     config: Mapping[str, Any],
     git: Mapping[str, Any],
-    lock_path: str | Path = DEFAULT_LOCK_PATH,
+    lock_path: str | Path | None = None,
 ) -> dict[str, Any]:
     errors: list[str] = []
     expected = release_identity_fields(config)
@@ -247,8 +263,8 @@ def validate_lock_payload(
     errors.extend(_gate_errors(gates, expected, require_identity=False))
     if errors:
         raise ReleaseNotAuthorized("; ".join(errors))
-    lock = Path(lock_path).expanduser().resolve()
-    expected_lock = DEFAULT_LOCK_PATH.resolve()
+    expected_lock = canonical_lock_path(config)
+    lock = expected_lock if lock_path is None else Path(lock_path).expanduser().resolve()
     if lock != expected_lock:
         raise ReleaseNotAuthorized("release lock path is not canonical")
     allowed_dirty = "?? " + str(lock.relative_to(REPO_ROOT))
@@ -260,12 +276,13 @@ def validate_lock_payload(
 
 def verify_release_lock(
     config_path: str | Path = REPO_ROOT / "configs/cir_dfg_rmt_v1.json",
-    lock_path: str | Path = DEFAULT_LOCK_PATH,
+    lock_path: str | Path | None = None,
 ) -> dict[str, Any]:
-    lock = Path(lock_path).expanduser().resolve()
+    config = load_cir_config(config_path)
+    expected_lock = canonical_lock_path(config)
+    lock = expected_lock if lock_path is None else Path(lock_path).expanduser().resolve()
     if not lock.is_file():
         raise ReleaseNotAuthorized("missing release_lock.json")
-    config = load_cir_config(config_path)
     payload = _read_json(lock)
     git = git_identity()
     if Path(git["worktree"]).resolve() != REPO_ROOT.resolve():
@@ -351,7 +368,7 @@ def describe_release(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=REPO_ROOT / "configs/cir_dfg_rmt_v1.json")
-    parser.add_argument("--lock", type=Path, default=DEFAULT_LOCK_PATH)
+    parser.add_argument("--lock", type=Path)
     parser.add_argument("--gates-manifest", type=Path)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--verify", action="store_true")
@@ -378,7 +395,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.gates_manifest is None:
             parser.error("--gates-manifest is required when generating a release lock")
-        payload = generate_release_lock(args.config, args.gates_manifest, args.output or DEFAULT_LOCK_PATH)
+        payload = generate_release_lock(args.config, args.gates_manifest, args.output)
         print(json.dumps(payload, indent=2, sort_keys=True))
         return 0
     except ReleaseNotAuthorized as exc:
