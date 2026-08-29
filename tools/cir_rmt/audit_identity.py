@@ -5,7 +5,7 @@ import argparse
 import json
 import os
 from pathlib import Path
-from .identity import assert_g0, load_cir_config
+from .identity import assert_g0, load_cir_config, release_identity_fields
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -16,6 +16,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     result = assert_g0(allow_dirty=args.allow_dirty, config_path=args.config)
     cfg = load_cir_config(args.config)
+    result.update({"gate": "G0", "scope": "identity", "real": False, "identity": release_identity_fields(cfg)})
     roots = {"visa_root": cfg.get("visa_root") or os.environ.get("VISA_ROOT") or os.environ.get("ACDCLIP_VISA_ROOT"), "mvtec_root": cfg.get("mvtec_root") or os.environ.get("MVTEC_ROOT") or os.environ.get("ACDCLIP_MVTEC_ROOT"), "medical_root": cfg.get("medical_root") or os.environ.get("MEDICAL_ROOT") or os.environ.get("ACDCLIP_DATA_ROOT")}
     result["dataset_roots"] = roots
     if args.require_assets:

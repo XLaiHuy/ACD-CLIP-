@@ -25,7 +25,7 @@ from model.checkpoint_utils import capture_rng_state, restore_rng_state, write_t
 from model.phase2b_legacy_bridge import assert_phase2b_gradient_contract, load_adapter_state
 from model.phase2b_runtime import build_phase2b_trainable, configure_canonical_fp32, trainable_parameter_counts
 from model.phase2b_schedule import apply_soft_prompt_lr_policy, get_dfg_beta_for_epoch, get_hybrid_alpha_for_epoch, grad_accum_window_size
-from tools.cir_rmt.identity import checkpoint_metadata, config_sha256, load_cir_config, validate_checkpoint_identity
+from tools.cir_rmt.identity import checkpoint_metadata, config_sha256, load_cir_config, release_identity_fields, validate_checkpoint_identity
 from tools.cir_rmt.runtime import forward_cir
 from utils import calculate_seg_loss, make_dataloader_generator, seed_worker
 
@@ -154,13 +154,26 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
     source = str(args.source).lower()
     parent_config.update({"dataset": "VisA" if source == "visa" else "MVTec", "seed": int(args.seed), "epochs": int(args.epochs or parent_config.get("epochs", 20)), "micro_batch_size": int(args.micro_batch_size), "batch_size": int(args.micro_batch_size), "grad_accum_steps": int(args.grad_accum_steps), "effective_batch_size": int(args.micro_batch_size * args.grad_accum_steps), "num_workers": int(args.num_workers), "pin_memory": bool(args.pin_memory), "persistent_workers": bool(args.persistent_workers), "prefetch_factor": int(args.prefetch_factor)})
     if parent_config["effective_batch_size"] != 6:
-        raise ValueError("canonical Phase2B effective batch size must be six")
+        raise ValueError("canonical CIR effective batch size must be six")
     if source == "visa" and not args.source_root.is_dir():
         raise FileNotFoundError(args.source_root)
     if source == "mvtec" and not args.source_root.is_dir():
         raise FileNotFoundError(args.source_root)
     configure_canonical_fp32(); seed_everything(int(args.seed))
     device = torch.device(args.device)
+    print("=" * 60)
+    print("ARCH       : CIR_DFG_RMT_V1")
+    print("STAGE      : CIR/TRAIN-" + source.upper())
+    print("SOURCE     : " + ("VisA" if source == "visa" else "MVTec-AD"))
+    print("CONFIG     : " + config_sha256(cir_config)[:12])
+    print("FREEZE     : " + str(cir_config["architecture_freeze_sha256"])[:12])
+    print("GIT        : " + str(args.git_sha)[:12])
+    print("RMT alpha  : " + str(cir_config["rmt_transport_alpha"]) + " (" + str(cir_config["rmt_alpha_status"]) + ")")
+    print("Peers      : " + str(cir_config["rmt_peer_count"]))
+    print("Groups     : " + str(cir_config["n_groups"]))
+    print("Score mode : " + str(cir_config["rmt_score_mode"]))
+    print("Device     : " + str(device))
+    print("=" * 60)
     model = build_phase2b_trainable(parent_config, args.clip_asset, device)
     generator = make_dataloader_generator(int(args.seed))
     dataset, loader = build_loader(source, args.source_root, parent_config, args, generator)
@@ -182,7 +195,10 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
     for epoch in range(start_epoch, int(parent_config["epochs"]) + 1):
         _, beta, soft_frozen = _set_epoch_state(model, optimizer, parent_config, epoch)
         model.train(); model.clipmodel.eval(); model.image_encoder.eval(); optimizer.zero_grad(set_to_none=True)
-        sums = {"loss": 0.0, "cls": 0.0, "seg": 0.0}; count = 0; active = []; started = time.perf_counter()
+        sums = {"loss": 0.0, "cls": 0.0, "seg": 0.0}
+        count = 0
+        active, mad_values, delta_values, saturation_values = [], [], [], []
+        started = time.perf_counter()
         iterator = iter(loader); total_batches = len(loader)
         for batch_index, batch in enumerate(tqdm(loader, desc=f"CIR/TRAIN-{source.upper()} E{epoch:02d}", leave=False), start=1):
             image = batch["image"].to(device, non_blocking=bool(args.pin_memory)).float()
@@ -194,6 +210,9 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
             if output.peer_valid.numel() and not bool(output.peer_valid.any()):
                 raise RuntimeError("CIR training has no valid K=8 peer set")
             active.append(float(output.delta.detach().abs().mean()))
+            mad_values.append(float(output.delta_stats["mad"].detach().float().median()))
+            delta_values.append(float(output.delta.detach().float().abs().median()))
+            saturation_values.append(float((output.delta.detach().float().abs() > 0.95).float().mean()))
             cls_loss = F.cross_entropy(output.classification_logits.float(), labels)
             seg_loss = calculate_seg_loss(output.cir_training_segmentation_probability.float(), masks.float())
             loss = cls_loss + seg_loss + float(parent_config.get("lambda_kg", 0.001)) * kg_loss + float(parent_config.get("lambda_k", 0.0)) * k_loss
@@ -209,7 +228,25 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
             if smoke_target is not None and global_step - smoke_start_step >= smoke_target:
                 break
         elapsed = time.perf_counter() - started
-        row = {"stage": f"CIR/TRAIN-{source.upper()}", "epoch": epoch, "mean_loss": sums["loss"] / max(count, 1), "mean_cls": sums["cls"] / max(count, 1), "mean_seg": sums["seg"] / max(count, 1), "rmt_delta_abs_mean": float(np.mean(active)) if active else 0.0, "beta": beta, "elapsed_seconds": elapsed, "checkpoint_saved": False}
+        images_per_sec = float(count * int(args.micro_batch_size) / max(elapsed, 1e-9)) if count else 0.0
+        peak_vram = int(torch.cuda.max_memory_allocated(device)) if device.type == "cuda" else 0
+        row = {
+            "stage": f"CIR/TRAIN-{source.upper()}",
+            "epoch": epoch,
+            "mean_loss": sums["loss"] / max(count, 1),
+            "mean_cls": sums["cls"] / max(count, 1),
+            "mean_seg": sums["seg"] / max(count, 1),
+            "rmt_delta_abs_mean": float(np.mean(active)) if active else 0.0,
+            "mad_p50": float(np.median(mad_values)) if mad_values else 0.0,
+            "delta_p50": float(np.median(delta_values)) if delta_values else 0.0,
+            "delta_saturation_percent": 100.0 * float(np.mean(saturation_values)) if saturation_values else 0.0,
+            "lr": float(optimizer.param_groups[0]["lr"]),
+            "images_per_sec": images_per_sec,
+            "peak_vram_bytes": peak_vram,
+            "beta": beta,
+            "elapsed_seconds": elapsed,
+            "checkpoint_saved": False,
+        }
         if epoch in TARGET_EPOCHS and smoke_target is None:
             checkpoint_root.mkdir(parents=True, exist_ok=True)
             write_torch_checkpoint_atomic(checkpoint_root / f"epoch_{epoch:02d}.pth", checkpoint_payload(model, parent_config, cir_config, source, epoch, global_step, optimizer, scheduler, generator, args.git_sha))
@@ -232,7 +269,20 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
     manifest = {"stage": f"CIR/TRAIN-{source.upper()}", "status": "SMOKE_PASS" if smoke_target is not None else "COMPLETED", "arch_id": cir_config["arch_id"], "source": source, "seed": int(args.seed), "config_sha256": config_sha256(cir_config), "git_sha": args.git_sha, "epochs": [row["epoch"] for row in history], "target_epochs": list(TARGET_EPOCHS), "trainable_parameters": trainable_parameter_counts(model), "history": history}
     _write_json(run_root / "run_manifest.json", manifest)
     if smoke_target is not None:
-        _write_json(run_root / "G5_SMOKE.json", {"stage": "CIR/G5-SMOKE", "status": "PASS", "requested_steps": smoke_target, "steps_completed": completed_steps, "rmt_active": any(row["rmt_delta_abs_mean"] > 0 for row in history), "checkpoint_resume_contract": (run_root / "last.pth").is_file()})
+        _write_json(run_root / "G5_SMOKE.json", {
+            "stage": "CIR/G5-SMOKE",
+            "gate": "G5_REAL",
+            "scope": "real",
+            "real": True,
+            "real_asset": True,
+            "status": "PASS",
+            "requested_steps": smoke_target,
+            "steps_completed": completed_steps,
+            "rmt_active": any(row["rmt_delta_abs_mean"] > 0 for row in history),
+            "checkpoint_resume_contract": (run_root / "last.pth").is_file(),
+            "identity": release_identity_fields(cir_config),
+            "evidence": {"kind": "train_smoke_real", "real_execution": True, "artifact": {"checkpoint": str(run_root / "last.pth")}, "source": source, "steps_completed": completed_steps},
+        })
     return {"run_root": str(run_root), "history": history, "global_step": global_step}
 
 

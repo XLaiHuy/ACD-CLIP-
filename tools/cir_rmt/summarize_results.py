@@ -28,7 +28,7 @@ def collect(root: Path) -> list[dict[str, Any]]:
             payload = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             continue
-        meta = {key: payload[key] for key in ("arch_id", "source", "target", "epoch", "checkpoint", "config_sha256", "git_sha", "evaluator_protocol") if key in payload}
+        meta = {key: payload[key] for key in ("arch_id", "source", "target", "epoch", "checkpoint", "checkpoint_sha256", "config_sha256", "git_sha", "evaluator_protocol", "evaluator_hash") if key in payload}
         macro = payload.get("macro", payload.get("metrics", {}))
         if isinstance(macro, dict):
             rows.append({**meta, **{f"macro_{key}": value for key, value in macro.items()}, "metrics_path": str(path)})
@@ -40,8 +40,10 @@ def _merge_long(path: Path, rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     if path.is_file():
         with path.open(newline="", encoding="utf-8") as handle:
             existing = list(csv.DictReader(handle))
-    keys = {(str(row.get("source")), str(row.get("target")), str(row.get("epoch")), str(row.get("checkpoint_sha256", row.get("checkpoint")))) for row in rows}
-    kept = [row for row in existing if (str(row.get("source")), str(row.get("target")), str(row.get("epoch")), str(row.get("checkpoint_sha256", row.get("checkpoint")))) not in keys]
+    def result_key(row: dict[str, Any]) -> tuple[str, ...]:
+        return (str(row.get("source")), str(row.get("target")), str(row.get("epoch")), str(row.get("checkpoint_sha256", row.get("checkpoint"))), str(row.get("evaluator_protocol")), str(row.get("evaluator_hash")))
+    keys = {result_key(row) for row in rows}
+    kept = [row for row in existing if result_key(row) not in keys]
     return kept + rows
 
 

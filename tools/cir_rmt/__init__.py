@@ -27,13 +27,13 @@ __all__ = [
 from .identity import (
     ARCH_ID, ARCH_VERSION, BRANCH, EVALUATOR_PROTOCOL,
     canonical_json, config_sha256, load_cir_config,
-    checkpoint_metadata, validate_checkpoint_identity,
+    checkpoint_metadata, validate_checkpoint_identity, release_identity_fields,
 )
 
 __all__ += [
     "ARCH_ID", "ARCH_VERSION", "BRANCH", "EVALUATOR_PROTOCOL",
     "canonical_json", "config_sha256", "load_cir_config",
-    "checkpoint_metadata", "validate_checkpoint_identity",
+    "checkpoint_metadata", "validate_checkpoint_identity", "release_identity_fields",
 ]
 
 from .runtime import CIRForward, forward_cir

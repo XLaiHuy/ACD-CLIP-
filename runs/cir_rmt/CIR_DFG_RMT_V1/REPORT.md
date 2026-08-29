@@ -17,15 +17,16 @@ the exact evaluator after the user launches the blocking runner.
 
 | Gate | Status | Evidence |
 |---|---|---|
-| CIR/G0-IDENTITY | PASS (development audit with dirty tree) | tools/cir_rmt/audit_identity.py |
-| CIR/G1-MATH | PASS | 11 pytest tests; reference/optimized max error <= 1e-5 |
-| CIR/G2-PARITY | NOT RUN | real CLIP asset and source image were not available |
-| CIR/G3-PREFLIGHT | PASS (synthetic structural audit) | tools/cir_rmt/audit_preflight.py |
-| CIR/G4-PROFILE | PASS (CPU score-path profile) | tools/cir_rmt/profile_runtime.py |
-| CIR/G5-SMOKE | NOT RUN | scripts/cir_rmt/smoke_train.sh requires an approved source root and CLIP asset |
+| CIR/G0-IDENTITY | PASS | branch/worktree/config identity |
+| CIR/G1-MATH | PASS | reference-vs-optimized max error = 1.43e-6; midpoint/MAD/transport tests |
+| CIR/G2-PARITY | BLOCKED / NOT RUN | real CLIP asset, input, and checkpoint unavailable |
+| CIR/G3-PREFLIGHT | PARTIAL | synthetic-only PASS; real VisA source preflight NOT RUN |
+| CIR/G4-PROFILE | PARTIAL | CPU micro-profile only; GPU latency/VRAM NOT RUN |
+| CIR/G5-SMOKE | BLOCKED / NOT RUN | real source dataset and CLIP asset unavailable |
 
-A clean-tree G0 and a real source-only G2/G3/G5 run are release prerequisites.
-No full training or inference was launched by this handoff.
+ALPHA_STATUS = PROVISIONAL. RELEASE_LOCK = FALSE.
+The full runner is not authorized; no full training or inference was launched by
+this handoff. Synthetic G3 and CPU G4 are not production release passes.
 
 ## Performance
 
@@ -38,7 +39,7 @@ warm-up) measured the exact score paths as follows:
 | CIR/reference | 0.024950 s | 80.2 images/s |
 | CIR/optimized | 0.003095 s | 646.3 images/s |
 
-Reference-versus-optimized maximum absolute error was `1.55e-6` (threshold
+Reference-versus-optimized maximum absolute error was `1.43e-6` (threshold
 `1e-5`). No GPU before/after or peak-VRAM number is claimed because no real
 asset-backed profile was authorized; the alpha=0 final-map value likewise
 remains pending the real G2 parity gate.
@@ -47,7 +48,7 @@ remains pending the real G2 parity gate.
 
 The long-form and per-source metric CSVs are intentionally header-only until
 the exact runner is launched. The evaluator records architecture, source,
-target, epoch, checkpoint SHA, config SHA, git SHA, and evaluator protocol on
+target, epoch, checkpoint SHA, config SHA, git SHA, evaluator protocol, and evaluator hash on
 every row. Medical rows are never used to select transport alpha.
 
 ## Resume and safety
@@ -57,4 +58,5 @@ candidate checkpoints before evaluation, resumes only from an existing
 identity-compatible last.pth, and fails closed on identity mismatch. The G5
 smoke path requires 50 optimizer steps, persists `last.pth`, validates the
 smoke manifest, then performs one resumed optimizer step. Full execution
-requires RELEASE_LOCK=TRUE after G0-G5 release checks.
+requires a valid generated release_lock.json whose identity and real G2/G3/G4/G5
+evidence match exactly; no environment variable can bypass that check.

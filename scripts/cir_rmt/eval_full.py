@@ -18,7 +18,7 @@ from tqdm.auto import tqdm
 from evaluation.datasets import MVTecDatasetAdapter, resolve_mvtec_root
 from evaluation.evaluator import evaluate_records, image_score
 from model.phase2b_runtime import build_phase2b_frozen, configure_canonical_fp32
-from tools.cir_rmt.identity import config_sha256, load_cir_config, sha256_file, validate_checkpoint_identity
+from tools.cir_rmt.identity import config_sha256, git_identity, load_cir_config, sha256_file, validate_checkpoint_identity
 from tools.cir_rmt.runtime import forward_cir
 
 
@@ -98,11 +98,15 @@ def _write_result(output_dir: Path, result: dict[str, Any], row: dict[str, Any])
 
 def evaluate(args: argparse.Namespace) -> dict[str, Any]:
     cir_config = load_cir_config(args.config)
+    target_lower = str(args.target).lower()
+    if (args.source == "visa" and target_lower == "visa") or (args.source == "mvtec" and target_lower == "mvtec"):
+        raise ValueError("source and target datasets must be different")
+    stage_name = "CIR/EVAL-" + str(args.source).upper() + "-SOURCE"
     checkpoint_path = args.checkpoint.expanduser().resolve()
     if not checkpoint_path.is_file():
         raise FileNotFoundError(checkpoint_path)
     checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
-    validate_checkpoint_identity(checkpoint, cir_config, source_dataset=args.source, expected_git_sha=checkpoint.get("git_sha"))
+    validate_checkpoint_identity(checkpoint, cir_config, source_dataset=args.source, expected_git_sha=git_identity()["head"])
     parent_path = Path(cir_config.get("parent_config_path", "configs/phase2b_canonical_v1.json"))
     if not parent_path.is_absolute():
         parent_path = Path(__file__).resolve().parents[2] / parent_path
@@ -117,7 +121,7 @@ def evaluate(args: argparse.Namespace) -> dict[str, Any]:
     loader = DataLoader(dataset, **loader_kwargs)
     domain = _domain(args.target)
     records = []
-    for batch in tqdm(loader, desc=f"CIR/EVAL-{args.target.upper()}-SOURCE", unit="img"):
+    for batch in tqdm(loader, desc=stage_name, unit="img"):
         image = batch["image"].to(device, non_blocking=device.type == "cuda").float()
         names = [str(x) for x in batch["class_name"]]
         output = forward_cir(model, image, names, device, cir_config, domain=domain, require_grad=False, dataset_name=args.target)
@@ -131,9 +135,29 @@ def evaluate(args: argparse.Namespace) -> dict[str, Any]:
             records.append({"class_name": name, "pixel_scores": pixel, "pixel_labels": masks[index].reshape(-1), "image_scores": [image_score(float(classifications[index]), float(pixel.max()), domain)], "image_labels": [int(labels[index])], "image_path": paths[index]})
     evaluated = evaluate_records(records, method="phase2b", allow_undefined_image_metrics=(domain == "Medical"))
     checkpoint_sha = sha256_file(checkpoint_path)
+    evaluator_hash = sha256_file(Path(__file__).resolve())
     macro = evaluated["macro"]
-    row = {"arch_id": cir_config["arch_id"], "architecture_version": cir_config["architecture_version"], "source": args.source, "target": args.target, "epoch": checkpoint.get("epoch"), "checkpoint": str(checkpoint_path), "checkpoint_sha256": checkpoint_sha, "config_sha256": config_sha256(cir_config), "git_sha": checkpoint.get("git_sha"), "evaluator_protocol": cir_config["evaluator_protocol"], **{f"macro_{key}": value for key, value in macro.items()}}
-    result = {"stage": f"CIR/EVAL-{args.target.upper()}-SOURCE", "status": "PASS", "arch_id": cir_config["arch_id"], "source": args.source, "target": args.target, "epoch": checkpoint.get("epoch"), "checkpoint": str(checkpoint_path), "checkpoint_sha256": checkpoint_sha, "config_sha256": config_sha256(cir_config), "git_sha": checkpoint.get("git_sha"), "evaluator_protocol": cir_config["evaluator_protocol"], "per_class": evaluated["per_class"], "macro": macro}
+    identity = {
+        "arch_id": cir_config["arch_id"],
+        "architecture_version": cir_config["architecture_version"],
+        "source": args.source,
+        "target": args.target,
+        "epoch": checkpoint.get("epoch"),
+        "checkpoint": str(checkpoint_path),
+        "checkpoint_sha256": checkpoint_sha,
+        "config_sha256": config_sha256(cir_config),
+        "git_sha": checkpoint.get("git_sha"),
+        "evaluator_protocol": cir_config["evaluator_protocol"],
+        "evaluator_hash": evaluator_hash,
+    }
+    row = {**identity, **{f"macro_{key}": value for key, value in macro.items()}}
+    result = {
+        "stage": stage_name,
+        "status": "PASS",
+        **identity,
+        "per_class": evaluated["per_class"],
+        "macro": macro,
+    }
     _write_result(args.output_dir, result, row)
     return result
 

@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 import torch
 from .core import score_optimized, score_reference
-from .identity import load_cir_config
+from .identity import load_cir_config, release_identity_fields
 
 def _timer(fn, warmup: int, steps: int, device: torch.device) -> tuple[float, float]:
     for _ in range(max(0, warmup)):
@@ -50,13 +50,22 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--steps", type=int, default=10)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
-    load_cir_config(args.config)
+    config = load_cir_config(args.config)
     device = torch.device(args.device)
     if device.type == "cuda" and not torch.cuda.is_available():
         raise RuntimeError("requested CUDA but CUDA is unavailable")
     if device.type == "cuda":
         torch.cuda.reset_peak_memory_stats(device)
     result = run_profile(device, args.warmup, args.steps)
+    profile_metrics = dict(result)
+    result.update({
+        "gate": "G4_CPU_SYNTHETIC",
+        "scope": "cpu",
+        "real": False,
+        "real_asset": False,
+        "identity": release_identity_fields(config),
+        "evidence": {"kind": "score_path_synthetic", "real_execution": False, "artifact": {}, "device": str(device), "metrics": profile_metrics},
+    })
     payload = json.dumps(result, indent=2, sort_keys=True) + "\n"
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

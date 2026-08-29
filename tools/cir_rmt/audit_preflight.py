@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from evaluation.metrics import binary_average_precision, binary_auroc
 from .core import peer_delta_from_native_margins, transport_pair
-from .identity import load_cir_config
+from .identity import load_cir_config, release_identity_fields
 
 
 def _entropy(weights: torch.Tensor) -> float:
@@ -60,11 +60,30 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=Path("configs/cir_dfg_rmt_v1.json"))
     parser.add_argument("--source-records", type=Path)
+    parser.add_argument("--real", action="store_true", help="mark this as the real source-preflight gate")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
-    load_cir_config(args.config)
+    config = load_cir_config(args.config)
     result = run_synthetic()
     add_source_metrics(result, args.source_records)
+    real = bool(args.real)
+    real_asset = bool(real and args.source_records is not None and args.source_records.is_file())
+    result.update({
+        "gate": "G3_REAL" if real else "G3_SYNTHETIC",
+        "scope": "real" if real else "synthetic",
+        "real": real,
+        "real_asset": real_asset,
+        "identity": release_identity_fields(config),
+        "evidence": {
+            "kind": "source_preflight_real" if real else "synthetic_preflight",
+            "real_execution": bool(real and real_asset and result.get("status") == "PASS"),
+            "artifact": {"source_records": str(args.source_records)} if real_asset else {},
+        },
+    })
+    if real and args.source_records is None:
+        result["status"] = "NOT_RUN_NO_SOURCE_RECORDS"
+    elif real and result.get("source_metrics", {}).get("status") != "PASS":
+        result["status"] = "FAIL"
     if result["status"] != "PASS":
         raise SystemExit(json.dumps(result, sort_keys=True))
     payload = json.dumps(result, indent=2, sort_keys=True) + "\n"

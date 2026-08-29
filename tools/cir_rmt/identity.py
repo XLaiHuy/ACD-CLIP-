@@ -53,7 +53,7 @@ def validate_cir_config(config: Mapping[str, Any], *, config_path: str | Path | 
         "parent_protocol", "parent_config_sha256",
         "n_groups", "rmt_enabled", "rmt_peer_count", "rmt_center", "rmt_scale",
         "rmt_mad_constant", "rmt_eps", "rmt_transform", "rmt_transport",
-        "rmt_transport_alpha", "rmt_spatial_radius", "rmt_delta_layout", "rmt_delta_stopgrad", "rmt_score_mode",
+        "rmt_transport_alpha", "rmt_alpha_status", "rmt_spatial_radius", "rmt_delta_layout", "rmt_delta_stopgrad", "rmt_score_mode",
         "rmt_gradient_contract",
         "precision", "evaluator_protocol",
     }
@@ -74,6 +74,8 @@ def validate_cir_config(config: Mapping[str, Any], *, config_path: str | Path | 
         raise ValueError("CIR gradient contract is not frozen")
     if str(config["rmt_transport"]) != "kl_antisymmetric" or float(config["rmt_transport_alpha"]) < 0:
         raise ValueError("CIR transport settings are invalid")
+    if str(config["rmt_alpha_status"]) not in {"PROVISIONAL", "FROZEN"}:
+        raise ValueError("CIR alpha status must be PROVISIONAL or FROZEN")
     if config["rmt_delta_stopgrad"] is not True or str(config["rmt_score_mode"]) not in {"exact_score_space", "reference", "optimized"}:
         raise ValueError("CIR delta/score settings are invalid")
     if str(config["precision"]) != "fp32" or str(config["evaluator_protocol"]) != EVALUATOR_PROTOCOL:
@@ -89,6 +91,21 @@ def validate_cir_config(config: Mapping[str, Any], *, config_path: str | Path | 
             raise ValueError("architecture freeze SHA256 mismatch")
 
 
+def release_identity_fields(config: Mapping[str, Any]) -> dict[str, Any]:
+    """Return the exact identity fields bound into release/checkpoint artifacts."""
+    validate_cir_config(config)
+    return {
+        "arch_id": str(config["arch_id"]),
+        "architecture_version": int(config["architecture_version"]),
+        "config_sha256": config_sha256(config),
+        "architecture_freeze_sha256": str(config["architecture_freeze_sha256"]),
+        "parent_config_sha256": str(config["parent_config_sha256"]),
+        "rmt_transport_alpha": float(config["rmt_transport_alpha"]),
+        "n_groups": int(config["n_groups"]),
+        "rmt_peer_count": int(config["rmt_peer_count"]),
+        "rmt_score_mode": str(config["rmt_score_mode"]),
+        "evaluator_protocol": str(config["evaluator_protocol"]),
+    }
 def _git(*args: str) -> str:
     try:
         return subprocess.check_output(["git", *args], cwd=REPO_ROOT, text=True, stderr=subprocess.STDOUT).strip()
@@ -168,15 +185,16 @@ def checkpoint_metadata(config: Mapping[str, Any], *, source_dataset: str, epoch
     return identity
 
 
-def validate_checkpoint_identity(checkpoint: Mapping[str, Any], config: Mapping[str, Any], *, source_dataset: str | None = None, expected_git_sha: str | None = None, evaluator_protocol: str = EVALUATOR_PROTOCOL) -> None:
+def validate_checkpoint_identity(checkpoint: Mapping[str, Any], config: Mapping[str, Any], *, source_dataset: str | None = None, expected_git_sha: str | None = None, evaluator_protocol: str = EVALUATOR_PROTOCOL, expected_epoch: int | None = None) -> None:
     source = str(source_dataset or checkpoint.get("source", checkpoint.get("source_dataset", "")))
     expected = build_run_identity(config, source_dataset=source, git_sha=expected_git_sha or checkpoint.get("git_sha"), evaluator_protocol=evaluator_protocol)
-    required = ["arch_id", "architecture_version", "config_sha256", "parent_config_sha256", "n_groups", "rmt_peer_count", "rmt_transport_alpha", "rmt_score_mode", "evaluator_protocol", "delta_stopgrad"]
-    missing = [key for key in required if key not in checkpoint]
+    required_identity = ["arch_id", "architecture_version", "config_sha256", "architecture_freeze_sha256", "parent_config_sha256", "n_groups", "rmt_peer_count", "rmt_transport_alpha", "rmt_score_mode", "evaluator_protocol", "delta_stopgrad"]
+    required_metadata = ["source", "epoch"]
+    missing = [key for key in required_identity + required_metadata if key not in checkpoint]
     if missing:
         raise ValueError(f"CIR checkpoint missing identity fields: {missing}")
     mismatches: dict[str, tuple[Any, Any]] = {}
-    for key in required:
+    for key in required_identity:
         actual = checkpoint.get(key)
         wanted = True if key == "delta_stopgrad" else expected[key]
         different = abs(float(actual) - float(wanted)) > 1e-12 if key == "rmt_transport_alpha" else actual != wanted
@@ -184,6 +202,8 @@ def validate_checkpoint_identity(checkpoint: Mapping[str, Any], config: Mapping[
             mismatches[key] = (actual, wanted)
     if source_dataset is not None and str(checkpoint.get("source", checkpoint.get("source_dataset"))) != str(source_dataset):
         mismatches["source"] = (checkpoint.get("source", checkpoint.get("source_dataset")), source_dataset)
+    if expected_epoch is not None and int(checkpoint.get("epoch", -1)) != int(expected_epoch):
+        mismatches["epoch"] = (checkpoint.get("epoch"), expected_epoch)
     if mismatches:
         raise ValueError(f"CIR checkpoint identity mismatch: {mismatches}")
 

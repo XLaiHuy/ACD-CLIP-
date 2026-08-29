@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 import torch
 from .core import cir_logits_from_native_weights, midpoint_median, peer_delta_from_native_margins, score_optimized, score_reference, transport_pair
-from .identity import load_cir_config
+from .identity import load_cir_config, release_identity_fields
 
 def run_audit(seed: int = 17) -> dict[str, object]:
     torch.manual_seed(int(seed))
@@ -45,9 +45,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--seed", type=int, default=17)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
-    load_cir_config(args.config)
+    config = load_cir_config(args.config)
     started = time.perf_counter()
     result = run_audit(args.seed)
+    result.update({"gate": "G1", "scope": "unit", "real": False, "identity": release_identity_fields(config)})
     result["elapsed_seconds"] = time.perf_counter() - started
     payload = json.dumps(result, indent=2, sort_keys=True) + "\n"
     if args.output:

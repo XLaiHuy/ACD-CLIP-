@@ -7,12 +7,30 @@ from pathlib import Path
 import torch
 
 from model.phase2b_runtime import build_phase2b_trainable, configure_canonical_fp32, forward_phase2b
-from tools.cir_rmt.identity import load_cir_config
+from tools.cir_rmt.identity import load_cir_config, release_identity_fields
 from tools.cir_rmt.runtime import forward_cir
 
 
 def _max_abs(left: torch.Tensor, right: torch.Tensor) -> float:
     return float((left.detach().float() - right.detach().float()).abs().max())
+
+
+def _gate_result(config: dict[str, object], payload: dict[str, object], *, real_asset: bool, artifact: dict[str, str] | None = None) -> dict[str, object]:
+    return {
+        "gate": "G2_REAL",
+        "scope": "real",
+        "real": True,
+        "real_asset": bool(real_asset),
+        "identity": release_identity_fields(config),
+        "evidence": {
+            "kind": "alpha0_parity_real",
+            "status": payload.get("status"),
+            "real_execution": bool(real_asset and payload.get("status") == "PASS"),
+            "artifact": dict(artifact or {}),
+            "checks": {key: value for key, value in payload.items() if key.endswith("_max_abs")},
+        },
+        **payload,
+    }
 
 
 def run_real(args: argparse.Namespace) -> dict[str, object]:
@@ -23,9 +41,9 @@ def run_real(args: argparse.Namespace) -> dict[str, object]:
     parent_config = json.loads(parent_path.read_text(encoding="utf-8"))
     parent_config["dataset"] = "VisA"
     if not args.clip_asset or not Path(args.clip_asset).is_file():
-        return {"stage": "CIR/G2-PARITY", "status": "NOT_RUN_NO_ASSETS"}
+        return _gate_result(config, {"stage": "CIR/G2-PARITY", "status": "NOT_RUN_NO_ASSETS"}, real_asset=False)
     if args.image is None:
-        return {"stage": "CIR/G2-PARITY", "status": "NOT_RUN_NO_IMAGE"}
+        return _gate_result(config, {"stage": "CIR/G2-PARITY", "status": "NOT_RUN_NO_IMAGE"}, real_asset=False)
     from PIL import Image
     from torchvision import transforms
     from torchvision.transforms import InterpolationMode
@@ -59,7 +77,7 @@ def run_real(args: argparse.Namespace) -> dict[str, object]:
         "threshold": 1e-5,
     }
     checks["status"] = "PASS" if max(value for key, value in checks.items() if key.endswith("_max_abs")) <= checks["threshold"] else "FAIL"
-    return checks
+    return _gate_result(config, checks, real_asset=True, artifact={"clip_asset": str(args.clip_asset), "image": str(args.image)})
 
 
 def main(argv: list[str] | None = None) -> int:
