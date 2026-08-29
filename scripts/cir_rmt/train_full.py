@@ -144,7 +144,8 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=float(parent_config["lr_gamma"]))
     start_epoch, global_step = 1, 0
     if args.resume:
-        payload = torch.load(args.resume, map_location=device, weights_only=False)
+        # Keep RNG tensors on CPU; restore_rng_state requires a CPU ByteTensor.
+        payload = torch.load(args.resume, map_location="cpu", weights_only=False)
         validate_resume(payload, cir_config, source, args.git_sha)
         load_adapter_state(model, payload); optimizer.load_state_dict(payload["optimizer_state"]); scheduler.load_state_dict(payload["scheduler_state"]); restore_rng_state(payload, dataloader_generator=generator)
         start_epoch, global_step = int(payload["epoch"]) + 1, int(payload.get("global_step", 0))
