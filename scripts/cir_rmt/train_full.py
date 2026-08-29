@@ -125,7 +125,7 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
     configure_canonical_fp32(); seed_everything(int(args.seed))
     device = torch.device(args.device)
     print("=" * 60)
-    print("ARCH       : CIR_DFG_RMT_V1")
+    print("ARCH       : " + str(cir_config["arch_id"]))
     print("STAGE      : CIR/TRAIN-" + source.upper())
     print("SOURCE     : " + ("VisA" if source == "visa" else "MVTec-AD"))
     print("CONFIG     : " + config_sha256(cir_config)[:12])
@@ -148,7 +148,8 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
         validate_resume(payload, cir_config, source, args.git_sha)
         load_adapter_state(model, payload); optimizer.load_state_dict(payload["optimizer_state"]); scheduler.load_state_dict(payload["scheduler_state"]); restore_rng_state(payload, dataloader_generator=generator)
         start_epoch, global_step = int(payload["epoch"]) + 1, int(payload.get("global_step", 0))
-    run_root = Path(args.run_root) / source / f"seed{int(args.seed)}"
+    base_run_root = Path(args.run_root) if args.run_root is not None else Path("runs/cir_rmt") / str(cir_config["arch_id"])
+    run_root = base_run_root / source / f"seed{int(args.seed)}"
     checkpoint_root = run_root / "checkpoints"
     history = []
     smoke_target = None if args.smoke_steps is None else int(args.smoke_steps)
@@ -255,7 +256,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--source-root", type=Path, required=True)
     parser.add_argument("--clip-asset", type=Path, required=True)
     parser.add_argument("--config", type=Path, default=Path("configs/cir_dfg_rmt_v1.json"))
-    parser.add_argument("--run-root", type=Path, default=Path("runs/cir_rmt/CIR_DFG_RMT_V1"))
+    parser.add_argument("--run-root", type=Path)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--epochs", type=int)
     parser.add_argument("--resume", type=Path)

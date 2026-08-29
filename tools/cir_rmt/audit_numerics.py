@@ -6,10 +6,10 @@ import json
 import time
 from pathlib import Path
 import torch
-from .core import cir_logits_from_native_weights, midpoint_median, peer_delta_from_native_margins, score_optimized, score_reference, transport_pair
+from .core import V1_TRANSPORT_DIRECTION, cir_logits_from_native_weights, midpoint_median, peer_delta_from_native_margins, score_optimized, score_reference, transport_pair
 from .identity import load_cir_config, release_identity_fields
 
-def run_audit(seed: int = 17) -> dict[str, object]:
+def run_audit(seed: int = 17, transport_direction: str = V1_TRANSPORT_DIRECTION) -> dict[str, object]:
     torch.manual_seed(int(seed))
     stages, batch, patches, groups, dim = 3, 2, 16, 3, 13
     image = torch.nn.functional.normalize(torch.randn(stages, batch, patches, dim), dim=-1)
@@ -18,9 +18,9 @@ def run_audit(seed: int = 17) -> dict[str, object]:
     native = native / native.sum(dim=-2, keepdim=True)
     delta = torch.randn(stages, batch, patches, groups).tanh()
     reference, optimized = score_reference(image, text, native), score_optimized(image, text, native)
-    cir, native_score = cir_logits_from_native_weights(image, text, native, delta, 0.0, score_mode="reference")
+    cir, native_score = cir_logits_from_native_weights(image, text, native, delta, 0.0, score_mode="reference", transport_direction=transport_direction)
     native_patch = native.unsqueeze(2).expand(stages, batch, patches, groups, 2)
-    normal, abnormal = transport_pair(native_patch[..., 0], native_patch[..., 1], delta, 0.5)
+    normal, abnormal = transport_pair(native_patch[..., 0], native_patch[..., 1], delta, 0.5, transport_direction=transport_direction)
     features = torch.nn.functional.normalize(torch.randn(stages, batch, 49, dim), dim=-1)
     margins = torch.randn(stages, batch, 49, groups)
     peer_delta, peer_stats = peer_delta_from_native_margins(features, margins)
@@ -47,7 +47,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     config = load_cir_config(args.config)
     started = time.perf_counter()
-    result = run_audit(args.seed)
+    result = run_audit(args.seed, str(config.get("rmt_transport_direction", V1_TRANSPORT_DIRECTION)))
     result.update({"gate": "G1", "scope": "unit", "real": False, "identity": release_identity_fields(config)})
     result["elapsed_seconds"] = time.perf_counter() - started
     payload = json.dumps(result, indent=2, sort_keys=True) + "\n"

@@ -14,6 +14,7 @@ from model.phase2b_runtime import (
     deploy_native_logits,
 )
 from .core import (
+    V1_TRANSPORT_DIRECTION,
     cir_logits_from_native_weights,
     peer_delta_from_native_margins,
 )
@@ -186,6 +187,7 @@ def forward_cir(
             float(config["rmt_transport_alpha"]),
             score_mode=scorer_mode,
             eps=float(config["rmt_eps"]),
+            transport_direction=str(config.get("rmt_transport_direction", V1_TRANSPORT_DIRECTION)),
         )
         cir_logits = cir_logits.float()
         cir_margin = cir_logits[..., 1] - cir_logits[..., 0]

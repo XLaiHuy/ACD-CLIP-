@@ -1,0 +1,64 @@
+{
+  "alpha_status": "PROVISIONAL",
+  "architecture_freeze_allowed": true,
+  "baseline_alpha": 0.0,
+  "both_pixel_improvements": [
+    "0.1",
+    "0.25",
+    "0.5"
+  ],
+  "confirmation_execution_identity": {
+    "arch_id": "CIR_DFG_RMT_V2",
+    "architecture_freeze_sha256": "a5ebd919bd86d752fb549ba312e5888cc6c4eb7be6303cfe81bdf51989bf24b4",
+    "architecture_version": 2,
+    "config_sha256": "b3b1494371a6aa88512c59d9b2e29519462ce71943af22e4420a68c898f0a8f8",
+    "evaluator_protocol": "CIR_FINAL_EXACT_V1",
+    "n_groups": 3,
+    "parent_config_sha256": "d24cf942684b0be3c12838699ec6fe452697bd7f0a58eabbf316fb79b1b18cdb",
+    "rmt_peer_count": 8,
+    "rmt_score_mode": "exact_score_space",
+    "rmt_transport_alpha": 0.5,
+    "rmt_transport_direction": "abnormal_minus_normal_plus"
+  },
+  "decision": "V2_SIGN_CONFIRMED",
+  "identity": {
+    "arch_id": "CIR_DFG_RMT_V2",
+    "architecture_freeze_sha256": "f6de6ee8f1998f591c077efeff50fa9741a9f8bad34603ba145ec54ef961ba86",
+    "architecture_version": 2,
+    "config_sha256": "31827a7c6eaac0ffc7f906909f28b4eb208e5639c498d85b9fe80cbe284b1be0",
+    "evaluator_protocol": "CIR_FINAL_EXACT_V1",
+    "n_groups": 3,
+    "parent_config_sha256": "d24cf942684b0be3c12838699ec6fe452697bd7f0a58eabbf316fb79b1b18cdb",
+    "rmt_peer_count": 8,
+    "rmt_score_mode": "exact_score_space",
+    "rmt_transport_alpha": 0.5,
+    "rmt_transport_direction": "abnormal_minus_normal_plus"
+  },
+  "image_safe_candidates": [
+    "0.1",
+    "0.25",
+    "0.5"
+  ],
+  "improvements": {
+    "0.1": {
+      "image_ap_drop": -0.005820105820105725,
+      "image_auroc_drop": -0.0033333333333332993,
+      "pixel_ap_improves": true,
+      "pixel_auroc_improves": true
+    },
+    "0.25": {
+      "image_ap_drop": -0.0133994708994708,
+      "image_auroc_drop": 0.006666666666666543,
+      "pixel_ap_improves": true,
+      "pixel_auroc_improves": true
+    },
+    "0.5": {
+      "image_ap_drop": -0.024742063492063204,
+      "image_auroc_drop": -0.02666666666666684,
+      "pixel_ap_improves": true,
+      "pixel_auroc_improves": true
+    }
+  },
+  "release_lock": false,
+  "rule": "two or more nonzero alphas must improve both pixel metrics; one must keep image AUROC/AP drops <=0.02"
+}

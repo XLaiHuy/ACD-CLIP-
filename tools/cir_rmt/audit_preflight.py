@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import torch
 from evaluation.metrics import binary_average_precision, binary_auroc
-from .core import peer_delta_from_native_margins, transport_pair
+from .core import V1_TRANSPORT_DIRECTION, peer_delta_from_native_margins, transport_pair
 from .identity import load_cir_config, release_identity_fields
 
 
@@ -15,7 +15,7 @@ def _entropy(weights: torch.Tensor) -> float:
     return float((-(weights * weights.clamp_min(1e-8).log()).sum(-1)).mean())
 
 
-def run_synthetic() -> dict[str, object]:
+def run_synthetic(transport_direction: str = V1_TRANSPORT_DIRECTION, alpha: float = 0.5) -> dict[str, object]:
     torch.manual_seed(23)
     stages, batch, side, dim, groups = 3, 4, 7, 16, 3
     patches = side * side
@@ -40,7 +40,7 @@ def run_synthetic() -> dict[str, object]:
     native = torch.rand(stages, batch, patches, groups) + 0.1
     native = native / native.sum(-1, keepdim=True)
     evidence = delta
-    normal, abnormal = transport_pair(native, native, evidence, float(load_cir_config()["rmt_transport_alpha"]))
+    normal, abnormal = transport_pair(native, native, evidence, float(alpha), transport_direction=transport_direction)
     rows = {"stage": "CIR/G3-PREFLIGHT", "peer_shape": list(peers.shape), "peer_valid_fraction": float(stats["valid"].float().mean()), "invalid_count": invalid_count, "duplicate_count": duplicate_count, "self_count": self_count, "spatial_violation_count": spatial_violations, "deterministic": True, "gt_free": True, "mad_mean": float(stats["mad"].mean()), "z_abs_p95": float(stats["z"].abs().quantile(0.95)), "delta_saturation_fraction": float((delta.abs() > 0.95).float().mean()), "transport_l1_normal": float((normal - native).abs().sum(-1).mean()), "transport_l1_abnormal": float((abnormal - native).abs().sum(-1).mean()), "transport_entropy_normal": _entropy(normal), "transport_entropy_abnormal": _entropy(abnormal), "transport_active_fraction": float(((normal - native).abs().sum(-1) + (abnormal - native).abs().sum(-1) > 1e-6).float().mean())}
     rows["status"] = "PASS" if duplicate_count == 0 and self_count == 0 and spatial_violations == 0 and rows["peer_valid_fraction"] > 0 else "FAIL"
     return rows
@@ -64,7 +64,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
     config = load_cir_config(args.config)
-    result = run_synthetic()
+    result = run_synthetic(str(config.get("rmt_transport_direction", V1_TRANSPORT_DIRECTION)), float(config["rmt_transport_alpha"]))
     add_source_metrics(result, args.source_records)
     real = bool(args.real)
     real_asset = bool(real and args.source_records is not None and args.source_records.is_file())

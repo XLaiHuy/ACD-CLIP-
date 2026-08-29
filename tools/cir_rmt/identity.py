@@ -1,4 +1,4 @@
-"""Identity and checkpoint-contract helpers for CIR_DFG_RMT_V1."""
+"""Identity and checkpoint-contract helpers for CIR_DFG_RMT variants."""
 from __future__ import annotations
 
 import hashlib
@@ -14,10 +14,43 @@ import torch
 ARCH_ID = "CIR_DFG_RMT_V1"
 ARCH_VERSION = 1
 BRANCH = "research/cir-dfg-rmt-v1"
+V2_ARCH_ID = "CIR_DFG_RMT_V2"
+V2_ARCH_VERSION = 2
+V2_BRANCH = "research/cir-dfg-rmt-v2-signfix"
+V1_TRANSPORT_DIRECTION = "abnormal_plus_normal_minus"
+V2_TRANSPORT_DIRECTION = "abnormal_minus_normal_plus"
 PARENT_PROTOCOL = "PHASE2B_CANONICAL_V1"
 EVALUATOR_PROTOCOL = "CIR_FINAL_EXACT_V1"
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_PATH = REPO_ROOT / "configs/cir_dfg_rmt_v1.json"
+
+_ARCHITECTURE_SPECS = {
+    ARCH_ID: {"version": ARCH_VERSION, "branch": BRANCH, "direction": V1_TRANSPORT_DIRECTION},
+    V2_ARCH_ID: {"version": V2_ARCH_VERSION, "branch": V2_BRANCH, "direction": V2_TRANSPORT_DIRECTION},
+}
+
+
+def transport_direction(config: Mapping[str, Any]) -> str:
+    """Return the explicit transport direction for a V1/V2 config."""
+    arch_id = str(config.get("arch_id", ""))
+    spec = _ARCHITECTURE_SPECS.get(arch_id)
+    if spec is None:
+        raise ValueError(f"unsupported CIR architecture identity: {arch_id!r}")
+    configured = config.get("rmt_transport_direction")
+    if configured is None and arch_id == ARCH_ID:
+        return str(spec["direction"])
+    if str(configured) != str(spec["direction"]):
+        raise ValueError("CIR transport direction does not match architecture identity")
+    return str(configured)
+
+
+def architecture_branch(config: Mapping[str, Any]) -> str:
+    """Return the branch bound to the configured architecture identity."""
+    arch_id = str(config.get("arch_id", ""))
+    try:
+        return str(_ARCHITECTURE_SPECS[arch_id]["branch"])
+    except KeyError as exc:
+        raise ValueError(f"unsupported CIR architecture identity: {arch_id!r}") from exc
 
 
 def canonical_json(payload: Mapping[str, Any]) -> bytes:
@@ -60,8 +93,14 @@ def validate_cir_config(config: Mapping[str, Any], *, config_path: str | Path | 
     missing = sorted(required - set(config))
     if missing:
         raise ValueError(f"CIR config missing fields: {missing}")
-    if str(config["arch_id"]) != ARCH_ID or int(config["architecture_version"]) != ARCH_VERSION:
+    arch_id = str(config["arch_id"])
+    try:
+        spec = _ARCHITECTURE_SPECS[arch_id]
+    except KeyError as exc:
+        raise ValueError("CIR architecture identity mismatch") from exc
+    if int(config["architecture_version"]) != int(spec["version"]):
         raise ValueError("CIR architecture identity mismatch")
+    transport_direction(config)
     if str(config["parent_protocol"]) != PARENT_PROTOCOL or int(config["n_groups"]) != 3 or int(config["rmt_peer_count"]) != 8:
         raise ValueError("CIR parent/group/peer identity mismatch")
     if config["rmt_enabled"] is not True or str(config["rmt_center"]) != "midpoint_median" or str(config["rmt_scale"]) != "mad":
@@ -101,6 +140,7 @@ def release_identity_fields(config: Mapping[str, Any]) -> dict[str, Any]:
         "architecture_freeze_sha256": str(config["architecture_freeze_sha256"]),
         "parent_config_sha256": str(config["parent_config_sha256"]),
         "rmt_transport_alpha": float(config["rmt_transport_alpha"]),
+        "rmt_transport_direction": transport_direction(config),
         "n_groups": int(config["n_groups"]),
         "rmt_peer_count": int(config["rmt_peer_count"]),
         "rmt_score_mode": str(config["rmt_score_mode"]),
@@ -157,8 +197,8 @@ def build_run_identity(config: Mapping[str, Any], *, source_dataset: str, git_sh
         if config_sha256(raw) != parent_sha:
             raise ValueError("parent config SHA256 does not match canonical config")
     return {
-        "arch_id": ARCH_ID,
-        "architecture_version": ARCH_VERSION,
+        "arch_id": str(config["arch_id"]),
+        "architecture_version": int(config["architecture_version"]),
         "git_sha": git_sha or git_identity()["head"],
         "config_sha256": config_sha256(config),
         "parent_protocol": PARENT_PROTOCOL,
@@ -167,6 +207,7 @@ def build_run_identity(config: Mapping[str, Any], *, source_dataset: str, git_sh
         "n_groups": int(config["n_groups"]),
         "rmt_peer_count": int(config["rmt_peer_count"]),
         "rmt_transport_alpha": float(config["rmt_transport_alpha"]),
+        "rmt_transport_direction": transport_direction(config),
         "rmt_score_mode": str(config["rmt_score_mode"]),
         "evaluator_protocol": str(evaluator_protocol),
         "architecture_freeze_sha256": config.get("architecture_freeze_sha256"),
@@ -188,7 +229,7 @@ def checkpoint_metadata(config: Mapping[str, Any], *, source_dataset: str, epoch
 def validate_checkpoint_identity(checkpoint: Mapping[str, Any], config: Mapping[str, Any], *, source_dataset: str | None = None, expected_git_sha: str | None = None, evaluator_protocol: str = EVALUATOR_PROTOCOL, expected_epoch: int | None = None) -> None:
     source = str(source_dataset or checkpoint.get("source", checkpoint.get("source_dataset", "")))
     expected = build_run_identity(config, source_dataset=source, git_sha=expected_git_sha or checkpoint.get("git_sha"), evaluator_protocol=evaluator_protocol)
-    required_identity = ["arch_id", "architecture_version", "config_sha256", "architecture_freeze_sha256", "parent_config_sha256", "n_groups", "rmt_peer_count", "rmt_transport_alpha", "rmt_score_mode", "evaluator_protocol", "delta_stopgrad"]
+    required_identity = ["arch_id", "architecture_version", "config_sha256", "architecture_freeze_sha256", "parent_config_sha256", "n_groups", "rmt_peer_count", "rmt_transport_alpha", "rmt_transport_direction", "rmt_score_mode", "evaluator_protocol", "delta_stopgrad"]
     required_metadata = ["source", "epoch"]
     missing = [key for key in required_identity + required_metadata if key not in checkpoint]
     if missing:
@@ -211,7 +252,7 @@ def validate_checkpoint_identity(checkpoint: Mapping[str, Any], config: Mapping[
 def assert_g0(*, allow_dirty: bool = False, config_path: str | Path = CONFIG_PATH) -> dict[str, Any]:
     config = load_cir_config(config_path)
     git = git_identity()
-    if git["branch"] != BRANCH or Path(git["worktree"]).resolve() != REPO_ROOT.resolve():
+    if git["branch"] != architecture_branch(config) or Path(git["worktree"]).resolve() != REPO_ROOT.resolve():
         raise RuntimeError(f"G0 repository identity mismatch: {git}")
     if not allow_dirty and not git["clean"]:
         raise RuntimeError(f"G0 requires a clean worktree: {git['status_short']}")

@@ -11,6 +11,7 @@ from .identity import (
     ARCH_ID,
     BRANCH,
     REPO_ROOT,
+    architecture_branch,
     config_sha256,
     git_identity,
     load_cir_config,
@@ -34,6 +35,7 @@ IDENTITY_KEYS = (
     "architecture_freeze_sha256",
     "parent_config_sha256",
     "rmt_transport_alpha",
+    "rmt_transport_direction",
     "n_groups",
     "rmt_peer_count",
     "rmt_score_mode",
@@ -185,7 +187,7 @@ def generate_release_lock(
     manifest = _read_json(Path(gates_manifest_path).expanduser().resolve())
     gates = validate_gate_manifest(manifest, config)
     git = git_identity()
-    if git["branch"] != BRANCH or Path(git["worktree"]).resolve() != REPO_ROOT.resolve():
+    if git["branch"] != architecture_branch(config) or Path(git["worktree"]).resolve() != REPO_ROOT.resolve():
         raise ReleaseNotAuthorized("repository identity is not the CIR release worktree")
     if not git["clean"]:
         raise ReleaseNotAuthorized("G0 requires a clean worktree before lock generation")
@@ -237,7 +239,7 @@ def validate_lock_payload(
             mismatch = actual != wanted
         if mismatch:
             errors.append("lock mismatch: " + key)
-    if str(payload.get("branch")) != BRANCH or str(git.get("branch")) != BRANCH:
+    if str(payload.get("branch")) != architecture_branch(config) or str(git.get("branch")) != architecture_branch(config):
         errors.append("branch mismatch")
     if str(payload.get("git_sha")) != str(git.get("head")):
         errors.append("git SHA mismatch")
@@ -328,7 +330,7 @@ def describe_release(
     source_value = str(source).lower()
     source_label = "VisA" if source_value == "visa" else "MVTec-AD" if source_value == "mvtec" else "VisA + MVTec-AD"
     lines = [
-        "ARCH        : " + ARCH_ID,
+        "ARCH        : " + str(config["arch_id"]),
         "SOURCE      : " + source_label,
         "TRAIN       : 20 epochs",
         "EVAL EPOCHS : 12,14,16,18,20",

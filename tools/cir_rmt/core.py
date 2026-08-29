@@ -16,6 +16,8 @@ PEER_COUNT = 8
 GROUP_COUNT = 3
 MAD_CONSTANT = 1.4826
 CIR_EPS = 1e-6
+V1_TRANSPORT_DIRECTION = "abnormal_plus_normal_minus"
+V2_TRANSPORT_DIRECTION = "abnormal_minus_normal_plus"
 PATCH_GRID = (37, 37)
 PATCH_COUNT = PATCH_GRID[0] * PATCH_GRID[1]
 
@@ -129,14 +131,19 @@ def transport_pair(
     native_abnormal: torch.Tensor,
     delta: torch.Tensor,
     alpha: float,
+    transport_direction: str = V1_TRANSPORT_DIRECTION,
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    """Transport normal down and abnormal up using the same detached delta."""
+    """Transport both class weights with an explicit architecture direction."""
     if native_normal.shape != native_abnormal.shape:
         raise ValueError("normal and abnormal native weights must have the same shape")
-    return (
-        transport_weights(native_normal, -delta, alpha),
-        transport_weights(native_abnormal, delta, alpha),
-    )
+    direction = str(transport_direction)
+    if direction == V1_TRANSPORT_DIRECTION:
+        normal_delta, abnormal_delta = -delta, delta
+    elif direction == V2_TRANSPORT_DIRECTION:
+        normal_delta, abnormal_delta = delta, -delta
+    else:
+        raise ValueError(f"unsupported CIR transport direction: {direction!r}")
+    return (transport_weights(native_normal, normal_delta, alpha), transport_weights(native_abnormal, abnormal_delta, alpha))
 
 
 def select_gt_free_peers(
@@ -327,8 +334,9 @@ def cir_logits_from_native_weights(
     *,
     score_mode: str = "optimized",
     eps: float = CIR_EPS,
+    transport_direction: str = V1_TRANSPORT_DIRECTION,
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    """Transport native normal/abnormal DFG weights and score both classes."""
+    """Transport native DFG weights and score both classes."""
     if image_features.ndim == 3:
         image = image_features.unsqueeze(0)
         squeeze_stage = True
@@ -363,7 +371,7 @@ def cir_logits_from_native_weights(
         raise ValueError("delta must be legacy [B,P] or contract [S,B,P,G]")
     if tuple(evidence.shape) != (stages, batch, patches, groups):
         raise ValueError(f"delta geometry mismatch: {tuple(evidence.shape)}")
-    normal, abnormal = transport_pair(native[..., 0], native[..., 1], evidence, alpha)
+    normal, abnormal = transport_pair(native[..., 0], native[..., 1], evidence, alpha, transport_direction=transport_direction)
     transported = torch.stack([normal, abnormal], dim=-1)
     scorer = score_optimized if str(score_mode).lower() in {"optimized", "opt"} else score_reference
     scores = scorer(image, text_features, transported, eps=eps)
