@@ -1,7 +1,7 @@
 """Full-precision, tie-aware binary metrics shared by every evaluator."""
 from __future__ import annotations
 
-from typing import Iterable, Mapping
+from typing import Iterable, Iterator, Mapping
 
 import numpy as np
 
@@ -23,18 +23,20 @@ def _arrays(scores: Iterable[float], labels: Iterable[int], *, allow_undefined: 
     return scores_array, labels_array
 
 
-def _descending_groups(scores: np.ndarray) -> tuple[np.ndarray, list[tuple[int, int]]]:
+def _descending_groups(scores: np.ndarray) -> tuple[np.ndarray, Iterator[tuple[int, int]]]:
     order = np.argsort(-scores, kind="mergesort")
     sorted_scores = scores[order]
-    groups: list[tuple[int, int]] = []
-    start = 0
-    while start < sorted_scores.size:
-        end = start + 1
-        while end < sorted_scores.size and sorted_scores[end] == sorted_scores[start]:
-            end += 1
-        groups.append((start, end))
-        start = end
-    return order, groups
+
+    def groups() -> Iterator[tuple[int, int]]:
+        start = 0
+        while start < sorted_scores.size:
+            end = start + 1
+            while end < sorted_scores.size and sorted_scores[end] == sorted_scores[start]:
+                end += 1
+            yield start, end
+            start = end
+
+    return order, groups()
 
 
 def binary_auroc(scores: Iterable[float], labels: Iterable[int], *, allow_undefined: bool = False) -> float | None:
