@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """CIR/EVAL-{target}-SOURCE: exact evaluator for one frozen CIR checkpoint."""
 from __future__ import annotations
+
 import argparse
 import csv
-import hashlib
+import gc
 import json
 import os
-import time
 from pathlib import Path
+import threading
+import time
 from typing import Any
+
 import torch
 from PIL import Image
 from torch.utils.data import DataLoader, Dataset
@@ -17,9 +20,10 @@ from torchvision.transforms import InterpolationMode
 from tqdm.auto import tqdm
 
 from evaluation.datasets import MVTecDatasetAdapter, resolve_mvtec_root
-from evaluation.evaluator import evaluate_records, image_score
+from evaluation.evaluator import evaluate_spool, image_score
+from evaluation.spool import EvaluationSpool
 from model.phase2b_runtime import build_phase2b_frozen, configure_canonical_fp32
-from tools.cir_rmt.identity import config_sha256, git_identity, load_cir_config, sha256_file, validate_checkpoint_identity
+from tools.cir_rmt.identity import config_sha256, load_cir_config, sha256_file, validate_checkpoint_identity
 from tools.cir_rmt.runtime import forward_cir
 
 
@@ -27,6 +31,78 @@ MEDICAL_TARGETS = ("Brain", "Liver", "Retina", "Colon_clinicDB", "Colon_colonDB"
 IMAGE_SIZE = 518
 NORM_MEAN = (0.48145466, 0.4578275, 0.40821073)
 NORM_STD = (0.26862954, 0.26130258, 0.27577711)
+
+
+def _rss_bytes() -> int:
+    """Return current process RSS from the kernel, including native NumPy memory."""
+    try:
+        for line in Path("/proc/self/status").read_text(encoding="ascii").splitlines():
+            if line.startswith("VmRSS:"):
+                return int(line.split()[1]) * 1024
+    except (FileNotFoundError, OSError, ValueError):
+        pass
+    return 0
+
+
+class _RssMonitor:
+    """Sample current RSS by evaluation phase without changing model behavior."""
+
+    def __init__(self, interval_seconds: float = 0.10):
+        self._interval_seconds = float(interval_seconds)
+        self._phase = "startup"
+        self._stop = threading.Event()
+        self._lock = threading.Lock()
+        self._thread: threading.Thread | None = None
+        self._last_by_phase: dict[str, int] = {}
+        self._peak_by_phase: dict[str, int] = {}
+
+    def sample(self) -> None:
+        rss = _rss_bytes()
+        if rss <= 0:
+            return
+        with self._lock:
+            phase = self._phase
+            self._last_by_phase[phase] = rss
+            self._peak_by_phase[phase] = max(rss, self._peak_by_phase.get(phase, 0))
+
+    def set_phase(self, phase: str) -> None:
+        with self._lock:
+            self._phase = str(phase)
+        self.sample()
+
+    def _run(self) -> None:
+        while not self._stop.wait(self._interval_seconds):
+            self.sample()
+
+    def start(self) -> None:
+        if self._thread is not None:
+            raise RuntimeError("RSS monitor already started")
+        self.sample()
+        self._thread = threading.Thread(target=self._run, name="cir-rss-monitor", daemon=True)
+        self._thread.start()
+
+    def stop(self) -> None:
+        self.sample()
+        self._stop.set()
+        if self._thread is not None:
+            self._thread.join(timeout=2.0)
+        self.sample()
+
+    def report(self, model_loaded_rss: int) -> dict[str, Any]:
+        with self._lock:
+            last = dict(self._last_by_phase)
+            peak = dict(self._peak_by_phase)
+        to_mib = lambda value: None if not value else round(value / 2**20, 3)
+        return {
+            "rss_model_loaded_mib": to_mib(model_loaded_rss),
+            "rss_after_inference_mib": to_mib(last.get("post_inference", 0)),
+            "rss_after_teardown_mib": to_mib(last.get("after_teardown", 0)),
+            "peak_inference_rss_mib": to_mib(peak.get("inference", 0)),
+            "peak_metric_rss_mib": to_mib(peak.get("metric", 0)),
+            "final_rss_mib": to_mib(last.get("final", 0)),
+            "peak_rss_by_phase_mib": {name: to_mib(value) for name, value in peak.items()},
+            "last_rss_by_phase_mib": {name: to_mib(value) for name, value in last.items()},
+        }
 
 
 class ManifestDataset(Dataset):
@@ -97,6 +173,25 @@ def _write_result(output_dir: Path, result: dict[str, Any], row: dict[str, Any])
         writer.writeheader(); writer.writerow(row)
 
 
+def _shutdown_loader(loader: DataLoader | None, loader_iter: Any) -> None:
+    """Stop persistent workers before metric computation."""
+    candidates = []
+    if loader_iter is not None:
+        candidates.append(loader_iter)
+    if loader is not None:
+        candidates.append(getattr(loader, "_iterator", None))
+    seen: set[int] = set()
+    for candidate in candidates:
+        if candidate is None or id(candidate) in seen:
+            continue
+        seen.add(id(candidate))
+        shutdown = getattr(candidate, "_shutdown_workers", None)
+        if callable(shutdown):
+            shutdown()
+    if loader is not None and hasattr(loader, "_iterator"):
+        loader._iterator = None
+
+
 def evaluate(args: argparse.Namespace) -> dict[str, Any]:
     cir_config = load_cir_config(args.config)
     target_lower = str(args.target).lower()
@@ -107,79 +202,136 @@ def evaluate(args: argparse.Namespace) -> dict[str, Any]:
     if not checkpoint_path.is_file():
         raise FileNotFoundError(checkpoint_path)
     checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
-    validate_checkpoint_identity(checkpoint, cir_config, source_dataset=args.source, expected_git_sha=git_identity()["head"])
+    # The frozen checkpoint records the commit that produced its weights. The
+    # evaluator checkout may be a later, evaluator-only commit; all scientific
+    # identity fields remain hard-validated by this call.
+    validate_checkpoint_identity(checkpoint, cir_config, source_dataset=args.source)
     parent_path = Path(cir_config.get("parent_config_path", "configs/phase2b_canonical_v1.json"))
     if not parent_path.is_absolute():
         parent_path = Path(__file__).resolve().parents[2] / parent_path
     parent_config = dict(checkpoint.get("parent_config") or json.loads(parent_path.read_text(encoding="utf-8")))
+    checkpoint_git_sha = str(checkpoint.get("git_sha", ""))
+    checkpoint_sha = sha256_file(checkpoint_path)
+    epoch = int(checkpoint.get("epoch", 0))
     configure_canonical_fp32()
     device = torch.device(args.device)
     model = build_phase2b_frozen(parent_config, checkpoint, args.clip_asset, device)
+    model_loaded_rss = _rss_bytes()
+    del checkpoint
+    del parent_config
     dataset = _target_dataset(args.target, args.target_root)
     loader_kwargs: dict[str, Any] = {"batch_size": int(args.batch_size), "shuffle": False, "num_workers": int(args.num_workers), "pin_memory": bool(device.type == "cuda")}
     if args.num_workers > 0:
         loader_kwargs.update({"persistent_workers": True, "prefetch_factor": int(args.prefetch_factor)})
-    loader = DataLoader(dataset, **loader_kwargs)
+    loader: DataLoader | None = DataLoader(dataset, **loader_kwargs)
     domain = _domain(args.target)
-    records = []
-    epoch = int(checkpoint.get("epoch", 0))
     source_display = "VisA" if str(args.source).lower() == "visa" else "MVTec"
-    target_display = (
-        "MVTec" if target_lower == "mvtec"
-        else "VisA" if target_lower == "visa"
-        else str(args.target)
-    )
-    eval_progress = tqdm(
-        loader,
-        desc=f"CIR/EVAL {target_display} | {source_display}→{target_display} | E{epoch:02d}",
-        unit="img",
-        dynamic_ncols=True,
-    )
-    eval_started = time.perf_counter()
+    target_display = "MVTec" if target_lower == "mvtec" else "VisA" if target_lower == "visa" else str(args.target)
+    spool = EvaluationSpool.create(args.output_dir)
+    monitor = _RssMonitor()
+    monitor_started = False
+    loader_iter: Any = None
+    eval_progress: Any = None
+    batch = image = output = pixels = classifications = masks = labels = paths = pixel = None
+    names: list[str] | None = None
+    evaluated: dict[str, Any] | None = None
+    result: dict[str, Any] | None = None
     try:
-        for batch in eval_progress:
-            image = batch["image"].to(device, non_blocking=device.type == "cuda").float()
-            names = [str(x) for x in batch["class_name"]]
-            output = forward_cir(model, image, names, device, cir_config, domain=domain, require_grad=False, dataset_name=args.target)
-            pixels = output.cir_segmentation_probability.detach().cpu().numpy()
-            classifications = output.classification_probability.detach().cpu().numpy()
-            masks = batch["mask"].detach().cpu().numpy()
-            labels = batch["label"].detach().cpu().numpy()
-            paths = [str(x) for x in batch["image_path"]]
-            for index, name in enumerate(names):
-                pixel = pixels[index].reshape(-1)
-                records.append({"class_name": name, "pixel_scores": pixel, "pixel_labels": masks[index].reshape(-1), "image_scores": [image_score(float(classifications[index]), float(pixel.max()), domain)], "image_labels": [int(labels[index])], "image_path": paths[index]})
+        loader_iter = iter(loader)
+        monitor.start()
+        monitor_started = True
+        monitor.set_phase("inference")
+        eval_progress = tqdm(
+            loader_iter,
+            desc=f"CIR/EVAL {target_display} | {source_display}→{target_display} | E{epoch:02d}",
+            unit="img",
+            dynamic_ncols=True,
+        )
+        eval_started = time.perf_counter()
+        try:
+            for batch in eval_progress:
+                image = batch["image"].to(device, non_blocking=device.type == "cuda").float()
+                names = [str(x) for x in batch["class_name"]]
+                output = forward_cir(model, image, names, device, cir_config, domain=domain, require_grad=False, dataset_name=args.target)
+                pixels = output.cir_segmentation_probability.detach().cpu().numpy()
+                classifications = output.classification_probability.detach().cpu().numpy()
+                masks = batch["mask"].detach().cpu().numpy()
+                labels = batch["label"].detach().cpu().numpy()
+                paths = [str(x) for x in batch["image_path"]]
+                for index, name in enumerate(names):
+                    pixel = pixels[index].reshape(-1)
+                    spool.append(
+                        name,
+                        pixel,
+                        masks[index].reshape(-1),
+                        image_score(float(classifications[index]), float(pixel.max()), domain),
+                        int(labels[index]),
+                    )
+                eval_elapsed = max(time.perf_counter() - eval_started, 1e-9)
+                eval_progress.set_postfix_str(f"{eval_progress.n / eval_elapsed:.1f} img/s")
+                batch = image = output = pixels = classifications = masks = labels = paths = pixel = None
+                names = None
+        finally:
+            if eval_progress is not None:
+                eval_progress.close()
+            eval_progress = None
+            batch = image = output = pixels = classifications = masks = labels = paths = pixel = None
+            names = None
+            monitor.set_phase("post_inference")
+            _shutdown_loader(loader, loader_iter)
+            loader_iter = None
+            loader = None
+            dataset = None
+            model = None
+            gc.collect()
+            if device.type == "cuda":
+                torch.cuda.empty_cache()
+            monitor.set_phase("after_teardown")
 
-            eval_elapsed = max(time.perf_counter() - eval_started, 1e-9)
-            eval_progress.set_postfix_str(f"{eval_progress.n / eval_elapsed:.1f} img/s")
+        monitor.set_phase("metric")
+        evaluated = evaluate_spool(
+            spool,
+            allow_undefined_image_metrics=(domain == "Medical"),
+        )
+        spool.cleanup()
+        monitor.set_phase("serialization")
+        checkpoint_sha = sha256_file(checkpoint_path)
+        evaluator_hash = sha256_file(Path(__file__).resolve())
+        macro = evaluated["macro"]
+        identity = {
+            "arch_id": cir_config["arch_id"],
+            "architecture_version": cir_config["architecture_version"],
+            "source": args.source,
+            "target": args.target,
+            "epoch": epoch,
+            "checkpoint": str(checkpoint_path),
+            "checkpoint_sha256": checkpoint_sha,
+            "config_sha256": config_sha256(cir_config),
+            "git_sha": checkpoint_git_sha,
+            "evaluator_protocol": cir_config["evaluator_protocol"],
+            "evaluator_hash": evaluator_hash,
+        }
+        row = {**identity, **{f"macro_{key}": value for key, value in macro.items()}}
+        result = {
+            "stage": stage_name,
+            "status": "PASS",
+            **identity,
+            "per_class": evaluated["per_class"],
+            "macro": macro,
+        }
+        _write_result(args.output_dir, result, row)
+        monitor.set_phase("final")
     finally:
-        eval_progress.close()
-    evaluated = evaluate_records(records, method="phase2b", allow_undefined_image_metrics=(domain == "Medical"))
-    checkpoint_sha = sha256_file(checkpoint_path)
-    evaluator_hash = sha256_file(Path(__file__).resolve())
-    macro = evaluated["macro"]
-    identity = {
-        "arch_id": cir_config["arch_id"],
-        "architecture_version": cir_config["architecture_version"],
-        "source": args.source,
-        "target": args.target,
-        "epoch": checkpoint.get("epoch"),
-        "checkpoint": str(checkpoint_path),
-        "checkpoint_sha256": checkpoint_sha,
-        "config_sha256": config_sha256(cir_config),
-        "git_sha": checkpoint.get("git_sha"),
-        "evaluator_protocol": cir_config["evaluator_protocol"],
-        "evaluator_hash": evaluator_hash,
-    }
-    row = {**identity, **{f"macro_{key}": value for key, value in macro.items()}}
-    result = {
-        "stage": stage_name,
-        "status": "PASS",
-        **identity,
-        "per_class": evaluated["per_class"],
-        "macro": macro,
-    }
-    _write_result(args.output_dir, result, row)
+        if monitor_started:
+            monitor.stop()
+            telemetry = monitor.report(model_loaded_rss)
+            telemetry["status"] = "PASS" if result is not None else "FAIL"
+            (args.output_dir / "memory_telemetry.json").write_text(
+                json.dumps(telemetry, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+        spool.cleanup()
+    assert result is not None
     return result
 
 
@@ -199,6 +351,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     evaluate(args)
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

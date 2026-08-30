@@ -5,7 +5,8 @@ from typing import Any, Iterable, Mapping
 
 import numpy as np
 
-from .metrics import class_metrics, macro_metrics
+from .metrics import binary_metrics, binary_metrics_from_files, class_metrics, macro_metrics
+from .spool import EvaluationSpool
 
 
 def image_score(classification_probability: Any, pixel_max: Any, domain: str):
@@ -22,6 +23,34 @@ def _method_payload(record: Mapping[str, Any], method: str) -> Mapping[str, Any]
             raise TypeError(f"record[{method!r}] must be a mapping")
         return payload
     return record
+
+
+def evaluate_spool(
+    spool: EvaluationSpool,
+    *,
+    allow_undefined_image_metrics: bool = False,
+) -> dict[str, Any]:
+    """Evaluate one finalized class at a time from the disk-backed spool."""
+    per_class: dict[str, dict[str, float | None]] = {}
+    for entry in spool.classes():
+        pixel_auroc, pixel_ap = binary_metrics_from_files(
+            entry.score_path,
+            entry.label_path,
+            entry.pixel_count,
+            workspace=entry.score_path.parent,
+        )
+        image_auroc, image_ap = binary_metrics(
+            entry.image_scores,
+            entry.image_labels,
+            allow_undefined=allow_undefined_image_metrics,
+        )
+        per_class[entry.class_name] = {
+            "pixel_auroc": pixel_auroc,
+            "pixel_ap": pixel_ap,
+            "image_auroc": image_auroc,
+            "image_ap": image_ap,
+        }
+    return {"per_class": per_class, "macro": macro_metrics(per_class)}
 
 
 def evaluate_records(
