@@ -24,7 +24,6 @@ from tools.cir_rmt.runtime import forward_cir
 from utils import calculate_seg_loss, make_dataloader_generator, seed_worker
 
 
-TARGET_EPOCHS = (12, 14, 16, 18, 20)
 
 
 def seed_everything(seed: int) -> None:
@@ -118,6 +117,9 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
     parent_config.update({"dataset": "VisA" if source == "visa" else "MVTec", "seed": int(args.seed), "epochs": int(args.epochs or parent_config.get("epochs", 20)), "micro_batch_size": int(args.micro_batch_size), "batch_size": int(args.micro_batch_size), "grad_accum_steps": int(args.grad_accum_steps), "effective_batch_size": int(args.micro_batch_size * args.grad_accum_steps), "num_workers": int(args.num_workers), "pin_memory": bool(args.pin_memory), "persistent_workers": bool(args.persistent_workers), "prefetch_factor": int(args.prefetch_factor)})
     if parent_config["effective_batch_size"] != 6:
         raise ValueError("canonical CIR effective batch size must be six")
+    candidate_epochs = tuple(int(item) for item in parent_config["candidate_epochs"])
+    if not candidate_epochs:
+        raise ValueError("canonical CIR candidate epoch schedule must not be empty")
     if source == "visa" and not args.source_root.is_dir():
         raise FileNotFoundError(args.source_root)
     if source == "mvtec" and not args.source_root.is_dir():
@@ -221,6 +223,9 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
 
         finally:
             progress.close()
+        # Keep CIR identical to the canonical Phase2B timing: complete the
+        # epoch, advance StepLR once, then record/save the post-step state.
+        scheduler.step()
         elapsed = time.perf_counter() - started
         images_per_sec = float(count * int(args.micro_batch_size) / max(elapsed, 1e-9)) if count else 0.0
         peak_vram = int(torch.cuda.max_memory_allocated(device)) if device.type == "cuda" else 0
@@ -241,7 +246,7 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
             "elapsed_seconds": elapsed,
             "checkpoint_saved": False,
         }
-        if epoch in TARGET_EPOCHS and smoke_target is None:
+        if epoch in candidate_epochs and smoke_target is None:
             checkpoint_root.mkdir(parents=True, exist_ok=True)
             write_torch_checkpoint_atomic(checkpoint_root / f"epoch_{epoch:02d}.pth", checkpoint_payload(model, parent_config, cir_config, source, epoch, global_step, optimizer, scheduler, generator, args.git_sha))
             row["checkpoint_saved"] = True
@@ -260,7 +265,7 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
             )
     else:
         completed_steps = None
-    manifest = {"stage": f"CIR/TRAIN-{source.upper()}", "status": "SMOKE_PASS" if smoke_target is not None else "COMPLETED", "arch_id": cir_config["arch_id"], "source": source, "seed": int(args.seed), "config_sha256": config_sha256(cir_config), "git_sha": args.git_sha, "epochs": [row["epoch"] for row in history], "target_epochs": list(TARGET_EPOCHS), "trainable_parameters": trainable_parameter_counts(model), "history": history}
+    manifest = {"stage": f"CIR/TRAIN-{source.upper()}", "status": "SMOKE_PASS" if smoke_target is not None else "COMPLETED", "arch_id": cir_config["arch_id"], "source": source, "seed": int(args.seed), "config_sha256": config_sha256(cir_config), "git_sha": args.git_sha, "epochs": [row["epoch"] for row in history], "target_epochs": list(candidate_epochs), "trainable_parameters": trainable_parameter_counts(model), "history": history}
     _write_json(run_root / "run_manifest.json", manifest)
     if smoke_target is not None:
         _write_json(run_root / "G5_SMOKE.json", {

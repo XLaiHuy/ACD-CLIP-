@@ -36,6 +36,19 @@ CONFIG_ARCH="$(python -c 'import sys; from tools.cir_rmt.identity import load_ci
 CONFIG_DIRECTION="$(python -c 'import sys; from tools.cir_rmt.identity import load_cir_config, transport_direction; print(transport_direction(load_cir_config(sys.argv[1])))' "$CONFIG")"
 [[ "$CONFIG_ARCH" == "CIR_DFG_RMT_V2" ]] || { echo "V2 runner requires arch_id=CIR_DFG_RMT_V2 (got $CONFIG_ARCH)" >&2; exit 2; }
 [[ "$CONFIG_DIRECTION" == "abnormal_minus_normal_plus" ]] || { echo "V2 runner requires abnormal_minus_normal_plus direction (got $CONFIG_DIRECTION)" >&2; exit 2; }
+mapfile -t CANDIDATE_EPOCHS < <(python - "$CONFIG" "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+config = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+parent = Path(config.get("parent_config_path", "configs/phase2b_canonical_v1.json"))
+if not parent.is_absolute():
+    parent = Path(sys.argv[2]) / parent
+for epoch in json.loads(parent.read_text(encoding="utf-8"))["candidate_epochs"]:
+    print(int(epoch))
+PY
+)
+[[ "${#CANDIDATE_EPOCHS[@]}" -gt 0 ]] || { echo "canonical candidate epoch schedule is empty" >&2; exit 2; }
 GIT_SHA="$(git rev-parse HEAD)"
 echo "============================================================"
 echo "ARCH       : CIR_DFG_RMT_V2"
@@ -60,7 +73,7 @@ run_source() {
     echo "CIR TRAIN FAILED: source=$source" >&2
     return 6
   fi
-  for epoch in 12 14 16 18 20; do
+  for epoch in "${CANDIDATE_EPOCHS[@]}"; do
     checkpoint="$base/checkpoints/epoch_$(printf '%02d' "$epoch").pth"
     if ! python -m tools.cir_rmt.release_lock --verify-checkpoint --config "$CONFIG" --checkpoint "$checkpoint" --source "$source" --epoch "$epoch"; then
       echo "CIR CHECKPOINT FAILED: source=$source epoch=$epoch checkpoint=$checkpoint" >&2
@@ -69,7 +82,7 @@ run_source() {
   done
   if [[ "$source" == visa ]]; then target="MVTec"; target_root="$MVTEC_ROOT"; else target="VisA"; target_root="$VISA_ROOT"; fi
   [[ -n "$target_root" ]] || { echo "missing target root for $target" >&2; return 2; }
-  for epoch in 12 14 16 18 20; do
+  for epoch in "${CANDIDATE_EPOCHS[@]}"; do
     checkpoint="$base/checkpoints/epoch_$(printf '%02d' "$epoch").pth"
     if ! python -m scripts.cir_rmt.eval_full --source "$source" --target "$target" --target-root "$target_root" --checkpoint "$checkpoint" --clip-asset "$CLIP_ASSET" --config "$CONFIG" --output-dir "$base/eval/$target/epoch_$(printf '%02d' "$epoch")" --device "$DEVICE"; then
       echo "CIR EVALUATION FAILED: source=$source epoch=$epoch target=$target" >&2
@@ -78,7 +91,7 @@ run_source() {
   done
   for target in Brain Liver Retina Colon_clinicDB Colon_colonDB Colon_Kvasir; do
     [[ -n "$MEDICAL_ROOT" ]] || { echo "missing medical root" >&2; return 2; }
-    for epoch in 12 14 16 18 20; do
+    for epoch in "${CANDIDATE_EPOCHS[@]}"; do
       checkpoint="$base/checkpoints/epoch_$(printf '%02d' "$epoch").pth"
       if ! python -m scripts.cir_rmt.eval_full --source "$source" --target "$target" --target-root "$MEDICAL_ROOT" --checkpoint "$checkpoint" --clip-asset "$CLIP_ASSET" --config "$CONFIG" --output-dir "$base/eval/$target/epoch_$(printf '%02d' "$epoch")" --device "$DEVICE"; then
         echo "CIR EVALUATION FAILED: source=$source epoch=$epoch target=$target" >&2
