@@ -1,0 +1,44 @@
+{
+  "cell_count": 35,
+  "current_git": {
+    "branch": "research/cir-dfg-rmt-v2-signfix",
+    "head": "da0b75cab2671a6b287ac17679c23302d1c93cad"
+  },
+  "decision": "KEEP_PARENT_FIX_TRAINING",
+  "effect_summary": {
+    "alpha05_better_both": 8,
+    "alpha05_better_pixel_ap": 11,
+    "alpha05_better_pixel_auroc": 10,
+    "alpha05_worse_both": 17,
+    "mean_delta_pixel_ap": -0.00034197302232319193,
+    "mean_delta_pixel_auroc": -0.00015730314557440932,
+    "n": 30
+  },
+  "identity": {
+    "arch_id": "CIR_DFG_RMT_V2",
+    "architecture_freeze_sha256": "f6de6ee8f1998f591c077efeff50fa9741a9f8bad34603ba145ec54ef961ba86",
+    "architecture_version": 2,
+    "config_sha256": "4d861cc529b8e3a40e2d19f4851a11e73782600f52c0bc52bd565e1d9523f5f8",
+    "evaluator_protocol": "CIR_FINAL_EXACT_V1",
+    "n_groups": 3,
+    "parent_config_sha256": "d24cf942684b0be3c12838699ec6fe452697bd7f0a58eabbf316fb79b1b18cdb",
+    "rmt_peer_count": 8,
+    "rmt_score_mode": "exact_score_space",
+    "rmt_transport_alpha": 0.5,
+    "rmt_transport_direction": "abnormal_minus_normal_plus"
+  },
+  "medical_effect_rows": 30,
+  "peer_rows": 35,
+  "rank_rows": 2100,
+  "rationale": "CIR_SCHEDULER_BUG_CONFIRMED: current CIR-V2 training is not optimization-matched to Phase2B because train_full.py never calls scheduler.step(). The present benchmark cannot cleanly isolate the RMT hypothesis; run one matched corrective retrain before attributing degradation to RMT.",
+  "scheduler_audit": {
+    "cir_nonmatching_scheduler_rows": 5,
+    "classification": "CIR_SCHEDULER_BUG_CONFIRMED",
+    "parent_available_checkpoint_count": 1,
+    "report_path": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/forensics_20260830/SCHEDULER_OPTIMIZATION_AUDIT.md",
+    "summary_path": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/forensics_20260830/scheduler_audit_summary.json",
+    "table_path": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/forensics_20260830/scheduler_optimization_audit.csv"
+  },
+  "source_rows": 5,
+  "stage_rows": 315
+}

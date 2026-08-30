@@ -1,0 +1,12 @@
+row_type,epoch,batch_size,component,component_a,component_b,raw_loss,gradient_norm,image_adapter_gradient_norm,text_adapter_gradient_norm,soft_prompt_gradient_norm,other_gradient_norm,finite,nonzero,gradient_cosine,gradient_conflict
+component,14,6,classification,,,0.3635416328907013,0.2169007531651158,0.21623779382407382,0.0117656322323071,0.012195209873796204,0.0,True,True,,
+component,14,6,segmentation,,,0.36348167061805725,0.26502563343554697,0.26408349055984365,0.012363289175399866,0.01859154303459885,0.0,True,True,,
+component,14,6,weighted_kg,,,0.0003362131246831268,0.001683558936777302,0.0,1.793782659149646e-05,0.001683463372924963,0.0,True,True,,
+component,14,6,weighted_k,,,0.0,0.0,0.0,0.0,0.0,0.0,True,False,,
+component,14,6,total,,,0.7273595333099365,0.33957149030546335,0.3382522797287609,0.018200211305531747,0.0237264534855823,0.0,True,True,,
+pair,14,6,,classification,segmentation,,,,,,,True,True,-0.01733218878507614,True
+pair,14,6,,classification,weighted_kg,,,,,,,True,True,0.010773943737149239,False
+pair,14,6,,classification,weighted_k,,,,,,,True,False,,
+pair,14,6,,segmentation,weighted_kg,,,,,,,True,True,0.004680556245148182,False
+pair,14,6,,segmentation,weighted_k,,,,,,,True,False,,
+pair,14,6,,weighted_kg,weighted_k,,,,,,,True,False,,

@@ -1,0 +1,161 @@
+{
+  "alpha_comparison_status": "COMPLETE",
+  "arch_id": "CIR_DFG_RMT_V2",
+  "architecture_freeze_sha": "f6de6ee8f1998f591c077efeff50fa9741a9f8bad34603ba145ec54ef961ba86",
+  "architecture_version": 2,
+  "checkpoint_paths": {
+    "12": {
+      "path": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/visa/seed0/checkpoints/epoch_12.pth",
+      "sha256": "ba4e978b5c0eddc9b3b61d8079b0608cce08538c377418616c844754ada39eb3"
+    },
+    "14": {
+      "path": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/visa/seed0/checkpoints/epoch_14.pth",
+      "sha256": "8d296fde0b232aa4cfdca1277b187a39ca7d4fff407ce109846c28ee1376a144"
+    },
+    "16": {
+      "path": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/visa/seed0/checkpoints/epoch_16.pth",
+      "sha256": "90c1ceeac04f46f390bc09d192e2cee078b5437d3edfe5f86d7d1c5a0691dbe9"
+    },
+    "18": {
+      "path": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/visa/seed0/checkpoints/epoch_18.pth",
+      "sha256": "db772a1114048d7f64083343360cd9be99e431bed9363a58eb34f3680c093851"
+    },
+    "20": {
+      "path": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/visa/seed0/checkpoints/epoch_20.pth",
+      "sha256": "a305f9b211bd85c0c3d7a58be7c6bb5428de1eef14f55a78d45e4bceea80af4d"
+    }
+  },
+  "checkpoint_producer_git_sha": [
+    "5c5b9bb988ede51b2e8945c420bcbaaac42359ad"
+  ],
+  "checkpoint_shas": {
+    "12": "ba4e978b5c0eddc9b3b61d8079b0608cce08538c377418616c844754ada39eb3",
+    "14": "8d296fde0b232aa4cfdca1277b187a39ca7d4fff407ce109846c28ee1376a144",
+    "16": "90c1ceeac04f46f390bc09d192e2cee078b5437d3edfe5f86d7d1c5a0691dbe9",
+    "18": "db772a1114048d7f64083343360cd9be99e431bed9363a58eb34f3680c093851",
+    "20": "a305f9b211bd85c0c3d7a58be7c6bb5428de1eef14f55a78d45e4bceea80af4d"
+  },
+  "clip_asset": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/model/ViT-L-14-336px.pt",
+  "clip_asset_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+  "config_sha": "064e8acd4369645f631030b5d60abf8615e878b50e9caff6a4a8b2439b64f81c",
+  "coverage": {
+    "alpha0_vs_alpha05": "COMPLETE",
+    "checkpoint_drift_e12_to_e20": "COMPLETE",
+    "correlational": "COMPLETE",
+    "go_modify_abandon": "COMPLETE",
+    "gradient_loss_conflict": "COMPLETE",
+    "medical_failure_pattern": "COMPLETE",
+    "mvtec_failure_pattern": "NOT_RUN",
+    "parameter_justification": "COMPLETE",
+    "peer_delta_mad_saturation": "COMPLETE",
+    "protocol_equivalence_vs_phase2b": "COMPLETE",
+    "proven": "COMPLETE",
+    "scheduler_lr_mismatch": "COMPLETE",
+    "smallest_next_experiment": "COMPLETE",
+    "source_visa_diagnostics": "COMPLETE",
+    "stage_group_attribution": "COMPLETE",
+    "train_vs_deploy": "COMPLETE",
+    "unknown": "COMPLETE"
+  },
+  "current_branch": "research/cir-dfg-rmt-v2-signfix",
+  "current_decision": "KEEP_PARENT_FIX_TRAINING",
+  "current_git_sha": "da0b75cab2671a6b287ac17679c23302d1c93cad",
+  "evaluator_git_sha": "da0b75cab2671a6b287ac17679c23302d1c93cad",
+  "excluded_transient_artifacts": [
+    "cache files",
+    "memmaps",
+    "temp spools",
+    "__pycache__"
+  ],
+  "forensic_directory": {
+    "absolute": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/forensics_20260830",
+    "archive_repo_relative": "research_artifacts/cir_rmt_v2/forensics_20260830_pre_scheduler_fix",
+    "repo_relative": "runs/cir_rmt/CIR_DFG_RMT_V2/forensics_20260830"
+  },
+  "forensic_script_paths": [
+    "tools/cir_rmt/failure_forensics.py",
+    "tools/cir_rmt/scheduler_audit.py",
+    "tools/cir_rmt/freeze_forensic_snapshot.py",
+    "tools/cir_rmt/v2_source_confirmation.py"
+  ],
+  "gradient_audit_status": "COMPLETE",
+  "intentionally_excluded_large_artifacts": [
+    {
+      "pattern": "raw per-pixel score stores / memmaps / caches / evaluator spools",
+      "reason": "not scientifically useful as compact review artifacts; no such file was found under the audited forensic root"
+    }
+  ],
+  "loss_train_deploy_audit_status": "COMPLETE",
+  "medical_benchmark_status": {
+    "cells": 30,
+    "paired_alpha_conditions": [
+      0.0,
+      0.5
+    ],
+    "status": "COMPLETE",
+    "summary_csv": "medical_results_prefx.csv"
+  },
+  "mvtec_status": "NOT_RUN",
+  "notes": [
+    "CIR_SCHEDULER_BUG_CONFIRMED: the CIR loop constructs StepLR but does not call scheduler.step().",
+    "The alpha=.5 minus alpha=0 comparison is conditional on the wrongly trained CIR representation and is not a clean CIR-vs-Phase2B causal estimate.",
+    "The available historical parent checkpoint lacks optimizer_state and scheduler_state; parent LR history and canonical expected values are preserved with that limitation.",
+    "The single next experiment is one matched corrective Phase2B-vs-CIR retrain; it was not launched in this snapshot task."
+  ],
+  "parameter_justification_status": "COMPLETE",
+  "peer_audit_status": "COMPLETE",
+  "protocol_audit_status": "COMPLETE",
+  "resolved_config_sha": "4d861cc529b8e3a40e2d19f4851a11e73782600f52c0bc52bd565e1d9523f5f8",
+  "scheduler_classification": "CIR_SCHEDULER_BUG_CONFIRMED",
+  "scientific_firewall": {
+    "architecture_modified": false,
+    "deployment_modified": false,
+    "loss_modified": false,
+    "new_training_results": false,
+    "optimizer_modified": false,
+    "retrain_started": false,
+    "rmt_modified": false,
+    "scheduler_fix_included": false
+  },
+  "seed": 0,
+  "source_dataset": {
+    "name": "VisA",
+    "role": "source/training domain for the audited CIR run",
+    "root": "/home/ai4/caohuy/data/VisA_20220922"
+  },
+  "source_diagnostic_status": "COMPLETE",
+  "stage_group_audit_status": "COMPLETE",
+  "timestamp": "2026-08-30T16:47:50.866440+07:00",
+  "versioned_artifacts": [
+    "FORENSIC_ARTIFACT_INVENTORY.md",
+    "FORENSIC_SHA256SUMS.txt",
+    "FULL_FAILURE_FORENSICS.md",
+    "GO_NO_GO_DECISION.md",
+    "PRE_FIX_FORENSIC_MANIFEST.json",
+    "RESEARCH_DIRECTION_PRE_FIX.md",
+    "SCHEDULER_OPTIMIZATION_AUDIT.md",
+    "audit_identity.json",
+    "cells.jsonl",
+    "checkpoint_drift.csv",
+    "diagnostic_scripts/failure_forensics.py",
+    "diagnostic_scripts/freeze_forensic_snapshot.py",
+    "diagnostic_scripts/scheduler_audit.py",
+    "diagnostic_scripts/v2_source_confirmation.py",
+    "final_summary.json",
+    "gradient_conflict_report.csv",
+    "gradient_conflict_summary.json",
+    "inference_rmt_effect.csv",
+    "medical_results_prefx.csv",
+    "parameter_justification_table.csv",
+    "peer_forensics.csv",
+    "pixel_rank_forensics.csv",
+    "progress.json",
+    "protocol_equivalence_ledger.csv",
+    "scheduler_audit_summary.json",
+    "scheduler_optimization_audit.csv",
+    "scheduler_optimizer_group_detail.csv",
+    "source_checkpoint_metrics.csv",
+    "stage_group_attribution.csv",
+    "train_deploy_mismatch.md"
+  ]
+}

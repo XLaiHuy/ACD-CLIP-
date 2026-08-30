@@ -1,0 +1,42 @@
+{
+  "clip_asset": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/model/ViT-L-14-336px.pt",
+  "config_path": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/configs/cir_dfg_rmt_v2.json",
+  "config_sha256": "064e8acd4369645f631030b5d60abf8615e878b50e9caff6a4a8b2439b64f81c",
+  "current_git": {
+    "branch": "research/cir-dfg-rmt-v2-signfix",
+    "head": "da0b75cab2671a6b287ac17679c23302d1c93cad"
+  },
+  "diag_limit": 60,
+  "epochs": [
+    12,
+    14,
+    16,
+    18,
+    20
+  ],
+  "identity": {
+    "arch_id": "CIR_DFG_RMT_V2",
+    "architecture_freeze_sha256": "f6de6ee8f1998f591c077efeff50fa9741a9f8bad34603ba145ec54ef961ba86",
+    "architecture_version": 2,
+    "config_sha256": "4d861cc529b8e3a40e2d19f4851a11e73782600f52c0bc52bd565e1d9523f5f8",
+    "evaluator_protocol": "CIR_FINAL_EXACT_V1",
+    "n_groups": 3,
+    "parent_config_sha256": "d24cf942684b0be3c12838699ec6fe452697bd7f0a58eabbf316fb79b1b18cdb",
+    "rmt_peer_count": 8,
+    "rmt_score_mode": "exact_score_space",
+    "rmt_transport_alpha": 0.5,
+    "rmt_transport_direction": "abnormal_minus_normal_plus"
+  },
+  "max_images": null,
+  "medical_root": "/home/ai4/caohuy/data",
+  "run_root": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/visa/seed0",
+  "targets": [
+    "Brain",
+    "Liver",
+    "Retina",
+    "Colon_clinicDB",
+    "Colon_colonDB",
+    "Colon_Kvasir"
+  ],
+  "visa_root": "/home/ai4/caohuy/data/VisA_20220922"
+}

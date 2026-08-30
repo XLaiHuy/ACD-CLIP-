@@ -1,0 +1,14 @@
+parameter,value,justification,evidence,status
+rmt_transport_alpha,0.5,Frozen value inherited from the V2 source-sign protocol; this audit does not retune it.,configs/cir_dfg_rmt_v2.json; docs/cir_rmt/v2/ARCHITECTURE_FREEZE_V2.md,FROZEN
+rmt_transport_direction,"""abnormal_minus_normal_plus""",V2 causal direction under audit: abnormal receives -alpha*delta and normal +alpha*delta.,configs/cir_dfg_rmt_v2.json; tools/cir_rmt/core.py:129-146,FROZEN
+n_groups,3,Inherited Phase2B group geometry.,configs/phase2b_canonical_v1.json,INHERITED
+rmt_peer_count,8,Exactly K=8 is part of the frozen peer contract.,configs/cir_dfg_rmt_v2.json; tools/cir_rmt/core.py:48-99,FROZEN
+rmt_spatial_radius,3,Excludes local Chebyshev neighbors from the GT-free peer candidates.,configs/cir_dfg_rmt_v2.json; tools/cir_rmt/core.py:149-205,FROZEN
+rmt_center,"""midpoint_median""",Midpoint median is the registered robust center.,configs/cir_dfg_rmt_v2.json; tools/cir_rmt/core.py:48-99,FROZEN
+rmt_scale,"""mad""","MAD scaled by 1.4826, with epsilon stabilization.",configs/cir_dfg_rmt_v2.json; tools/cir_rmt/core.py:48-99,FROZEN
+rmt_transform,"""tanh""",Tanh bounds relational evidence before transport.,configs/cir_dfg_rmt_v2.json; tools/cir_rmt/core.py:48-99,FROZEN
+rmt_delta_stopgrad,true,Peer evidence is detached so the relational path is not a hidden trainable head.,configs/cir_dfg_rmt_v2.json; tools/cir_rmt/core.py:48-99,FROZEN
+rmt_score_mode,"""exact_score_space""",Exact score-space implementation with optimized/reference parity tests.,configs/cir_dfg_rmt_v2.json; tools/cir_rmt/core.py:308-381,FROZEN
+precision,"""fp32""",FP32 is required for the canonical numerical contract.,configs/cir_dfg_rmt_v2.json; model/phase2b_runtime.py,FROZEN
+medical_image_score,"""0.5*classification + 0.5*pixel_max""",Frozen medical image-level aggregation.,evaluation/evaluator.py:12-16,FROZEN
+candidate_epochs,"[10, 12, 14, 16, 18, 20]","Parent preregistration includes E10; V2 artifact production omitted it, which is an audit finding rather than a retuning choice.",configs/phase2b_canonical_v1.json; scripts/cir_rmt/train_full.py:27,AUDIT_FINDING
