@@ -188,6 +188,15 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError("canonical CIR effective batch size must be six")
     candidate_epochs = tuple(int(item) for item in parent_config["candidate_epochs"])
     matched_horizon_e14 = bool(getattr(args, "matched_horizon_e14", False))
+    matched_extension_e20 = bool(getattr(args, "matched_extension_e20", False))
+    if matched_horizon_e14 and matched_extension_e20:
+        raise ValueError("matched-horizon E14 and E20 extension modes are mutually exclusive")
+    if matched_extension_e20:
+        if int(parent_config["epochs"]) != 20:
+            raise ValueError("matched-extension E20 mode requires --epochs 20")
+        if args.resume is None:
+            raise ValueError("matched-extension E20 mode requires --resume from the E14 cursor")
+        candidate_epochs = tuple(epoch for epoch in candidate_epochs if epoch in {10, 12, 14, 16, 18, 20})
     if matched_horizon_e14:
         if int(parent_config["epochs"]) != 14:
             raise ValueError("matched-horizon E14 mode requires --epochs 14")
@@ -232,23 +241,33 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
     optimizer = _optimizer(model, parent_config)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=float(parent_config["lr_gamma"]))
     start_epoch, global_step = 1, 0
+    resume_epoch: int | None = None
     if args.resume:
         # Keep RNG tensors on CPU; restore_rng_state requires a CPU ByteTensor.
         payload = torch.load(args.resume, map_location="cpu", weights_only=False)
         validate_resume(payload, cir_config, source, args.git_sha, image_anchor_lambda=image_anchor_lambda, image_anchor=image_anchor)
         load_adapter_state(model, payload); optimizer.load_state_dict(payload["optimizer_state"]); scheduler.load_state_dict(payload["scheduler_state"]); restore_rng_state(payload, dataloader_generator=generator)
-        start_epoch, global_step = int(payload["epoch"]) + 1, int(payload.get("global_step", 0))
+        resume_epoch = int(payload["epoch"])
+        start_epoch, global_step = resume_epoch + 1, int(payload.get("global_step", 0))
     base_run_root = Path(args.run_root) if args.run_root is not None else Path("runs/cir_rmt") / str(cir_config["arch_id"])
     run_root = base_run_root / source / f"seed{int(args.seed)}"
     checkpoint_root = run_root / "checkpoints"
-    history = []
+    prior_manifest: dict[str, Any] = {}
+    if args.resume:
+        prior_manifest_path = run_root / "run_manifest.json"
+        if prior_manifest_path.is_file():
+            prior_manifest = json.loads(prior_manifest_path.read_text(encoding="utf-8"))
+    history = list(prior_manifest.get("history", []))
     smoke_target = None if args.smoke_steps is None else int(args.smoke_steps)
     if smoke_target is not None and smoke_target < 1:
         raise ValueError("--smoke-steps must request at least one optimizer step")
     smoke_start_step = int(global_step)
     train_started = time.perf_counter()
-    e10_gate: dict[str, Any] | None = None
+    e10_gate: dict[str, Any] | None = prior_manifest.get("e10_catastrophic_failure_gate")
     quiet_progress = bool(getattr(args, "quiet_progress", False))
+    probe_epochs = {10}
+    if matched_extension_e20:
+        probe_epochs.update({16, 18, 20})
     for epoch in range(start_epoch, int(parent_config["epochs"]) + 1):
         _, beta, soft_frozen = _set_epoch_state(model, optimizer, parent_config, epoch)
         model.train(); model.clipmodel.eval(); model.image_encoder.eval(); optimizer.zero_grad(set_to_none=True)
@@ -286,7 +305,7 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
                 loss = base_loss + image_anchor_lambda * image_anchor_loss
                 if not torch.isfinite(loss):
                     raise FloatingPointError(f"non-finite CIR loss at epoch={epoch} batch={batch_index}")
-                if epoch == 10 and batch_index == 1:
+                if epoch in probe_epochs and batch_index == 1:
                     image_parameters = [parameter for parameter in model.image_adapter.parameters() if parameter.requires_grad]
                     base_gradients = torch.autograd.grad(base_loss, image_parameters, retain_graph=True, allow_unused=True)
                     anchor_component = image_anchor_lambda * image_anchor_loss
@@ -342,13 +361,19 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
             "delta_p50": float(np.median(delta_values)) if delta_values else 0.0,
             "delta_saturation_percent": 100.0 * float(np.mean(saturation_values)) if saturation_values else 0.0,
             "lr": float(optimizer.param_groups[0]["lr"]),
+            "image_lr": float(optimizer.param_groups[0]["lr"]),
+            "text_lr": float(optimizer.param_groups[1]["lr"]),
+            "soft_prompt_lr": float(optimizer.param_groups[2]["lr"]),
             "images_per_sec": images_per_sec,
             "peak_vram_bytes": peak_vram,
             "peak_reserved_vram_bytes": int(torch.cuda.max_memory_reserved(device)) if device.type == "cuda" else 0,
             "beta": beta,
             "elapsed_seconds": elapsed,
             "batches": count,
-            "e10_gradient_probe": gradient_probe,
+            "e10_gradient_probe": gradient_probe if epoch == 10 else None,
+            "gradient_probe": gradient_probe,
+            "anchor_reference_distance": float(image_anchor.loss(model.image_adapter).detach().cpu()) if image_anchor is not None else 0.0,
+            "host_rss_bytes": int(__import__("resource").getrusage(__import__("resource").RUSAGE_SELF).ru_maxrss) * (1024 if __import__("sys").platform != "darwin" else 1),
             "checkpoint_saved": False,
         }
         if epoch in candidate_epochs and smoke_target is None:
@@ -380,7 +405,7 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
             )
     else:
         completed_steps = None
-    manifest = {"stage": f"CIR/TRAIN-{source.upper()}", "status": "SMOKE_PASS" if smoke_target is not None else "COMPLETED", "arch_id": cir_config["arch_id"], "source": source, "seed": int(args.seed), "config_sha256": config_sha256(cir_config), "git_sha": args.git_sha, "epochs": [row["epoch"] for row in history], "target_epochs": list(candidate_epochs), "trainable_parameters": trainable_parameter_counts(model), "image_anchor": image_anchor.metadata(image_anchor_lambda) if image_anchor is not None else {"enabled": False, "lambda_image_anchor": image_anchor_lambda, "scope": "image_adapter_parameters_only", "train_only": True}, "e10_catastrophic_failure_gate": e10_gate, "train_wall_seconds": time.perf_counter() - train_started, "max_epoch": int(parent_config["epochs"]), "candidate_checkpoint_policy": "E10/E12/E14 only in matched-horizon mode; last.pth is an atomic resume cursor", "history": history}
+    manifest = {"stage": f"CIR/TRAIN-{source.upper()}", "status": "SMOKE_PASS" if smoke_target is not None else "COMPLETED", "arch_id": cir_config["arch_id"], "source": source, "seed": int(args.seed), "config_sha256": config_sha256(cir_config), "git_sha": args.git_sha, "epochs": [row["epoch"] for row in history], "target_epochs": list(candidate_epochs), "trainable_parameters": trainable_parameter_counts(model), "image_anchor": image_anchor.metadata(image_anchor_lambda) if image_anchor is not None else {"enabled": False, "lambda_image_anchor": image_anchor_lambda, "scope": "image_adapter_parameters_only", "train_only": True}, "e10_catastrophic_failure_gate": e10_gate, "train_wall_seconds": time.perf_counter() - train_started, "max_epoch": int(parent_config["epochs"]), "candidate_checkpoint_policy": "E10/E12/E14 only in matched-horizon mode; E10/E12/E14/E16/E18/E20 in matched-extension E20 mode; last.pth is an atomic resume cursor", "resume_from_epoch": resume_epoch, "extension_mode": "matched_extension_e20" if matched_extension_e20 else None, "extension_git_sha": __import__("subprocess").check_output(["git", "rev-parse", "HEAD"], text=True).strip(), "history": history}
     _write_json(run_root / "run_manifest.json", manifest)
     if smoke_target is not None:
         _write_json(run_root / "G5_SMOKE.json", {
@@ -420,6 +445,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--persistent-workers", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--smoke-steps", type=int)
     parser.add_argument("--matched-horizon-e14", action="store_true", help="Cap the run at E14 and retain only E10/E12/E14 candidate checkpoints.")
+    parser.add_argument("--matched-extension-e20", action="store_true", help="Resume the completed E14 anchor run through E20 and retain E10/E12/E14/E16/E18/E20 candidates.")
     parser.add_argument("--quiet-progress", action="store_true", help="Suppress per-batch progress; retain milestone and final records.")
     parser.add_argument("--image-anchor-checkpoint", type=Path)
     parser.add_argument("--image-anchor-lambda", type=float, default=0.0)
