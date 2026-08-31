@@ -6,6 +6,7 @@ import argparse
 import csv
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -177,7 +178,7 @@ def _metric(row: Mapping[str, str], key: str) -> float:
 def _source_decomposition(
     source_rows: Sequence[Mapping[str, str]],
     config: Mapping[str, Any],
-    git_sha: str,
+    evaluator_git_sha: str,
     checkpoint_rows: Sequence[Mapping[str, Any]],
 ) -> list[dict[str, Any]]:
     frozen = {(int(row["epoch"]), row["method"]): row for row in source_rows if row.get("recomputed", "").lower() == "false"}
@@ -199,7 +200,7 @@ def _source_decomposition(
             "parent_checkpoint_sha256": parent_hashes.get(str(epoch), ""),
             "cir_checkpoint_sha256": cir_hashes[epoch],
             "config_sha256": config_sha256(config),
-            "evaluator_git_sha": git_sha,
+            "evaluator_git_sha": evaluator_git_sha,
             "evaluator_sha256": evaluator_sha,
         }
         for metric in ("pixel_auroc", "pixel_ap", "image_auroc", "image_ap"):
@@ -415,7 +416,8 @@ def run(args: argparse.Namespace) -> None:
         raise ValueError("source evaluation timing does not cover exactly E10/E12/E14")
     parent_lr_rows = _frozen_parent_lr_rows()
     cir_lr_rows = _candidate_history(manifest, checkpoint_rows)
-    decomp = _source_decomposition(source_rows, config, git_sha, checkpoint_rows)
+    evaluator_git_sha = str(args.evaluator_git_sha or subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip())
+    decomp = _source_decomposition(source_rows, config, evaluator_git_sha, checkpoint_rows)
     _write_source_decomposition(archive, decomp)
     _write_medical_not_run(archive)
     _write_ledger(archive, config, anchor_sha, profile)
@@ -436,6 +438,7 @@ def run(args: argparse.Namespace) -> None:
         "parent_config_sha256": str(config["parent_config_sha256"]),
         "architecture_freeze_sha256": str(config["architecture_freeze_sha256"]),
         "git_sha": git_sha,
+        "evaluator_git_sha": evaluator_git_sha,
         "source": {"name": "VisA", "role": "VisA_TRAIN", "root": str(source_path), "path_probe_sha256": source_identity, "sample_identity": str(Path(args.baseline_archive_root) / "SOURCE_SAMPLE_IDENTITY.json"), "sample_images": int(source_sample.get("sample_size", len(source_sample.get("selection", []))))},
         "seed": 0,
         "clip_asset": {"path": str(Path(args.clip_asset).resolve()), "sha256": sha256_file(Path(args.clip_asset))},
@@ -467,6 +470,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--anchor-checkpoint", type=Path, required=True)
     parser.add_argument("--source-root", type=Path, required=True)
     parser.add_argument("--git-sha", required=True)
+    parser.add_argument("--evaluator-git-sha")
     run(parser.parse_args(argv))
     return 0
 

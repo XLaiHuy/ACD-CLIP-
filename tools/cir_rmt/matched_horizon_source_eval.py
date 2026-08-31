@@ -164,12 +164,12 @@ def _evaluate_checkpoint(*, epoch: int, checkpoint: Path, parent_config: Mapping
 
 def run(args: argparse.Namespace) -> None:
     archive = Path(args.archive_root)
-    indices, _, holdout = _frozen_sample(archive)
+    baseline_archive = Path(args.baseline_archive_root) if args.baseline_archive_root else archive
+    indices, _, holdout = _frozen_sample(baseline_archive)
     cir_config = load_cir_config(Path(args.config))
     parent_config = _parent_config(cir_config)
     dataset = ManifestDataset(Path(args.source_root), ROOT / "dataset" / "hub" / "VisA.jsonl", IMAGE_SIZE)
     device = torch.device(args.device)
-    baseline_archive = Path(args.baseline_archive_root) if args.baseline_archive_root else archive
     baseline = _read_baseline(baseline_archive / "SOURCE_BOUNDED_METRICS.csv")
     metrics: list[dict[str, Any]] = []
     tails: list[dict[str, Any]] = []
