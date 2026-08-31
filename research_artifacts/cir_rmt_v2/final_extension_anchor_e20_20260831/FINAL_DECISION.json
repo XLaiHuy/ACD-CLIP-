@@ -1,0 +1,38 @@
+{
+  "correlational": [
+    "source/target representation-drift associations",
+    "A0/C_OLD trajectory comparisons",
+    "A05-minus-A0 domain consistency"
+  ],
+  "decision_basis": [
+    "matched E14-to-E20 training audit",
+    "same-epoch representation closure",
+    "six-epoch source decomposition",
+    "exact six-domain Medical matrix",
+    "conditional A05-minus-A0 alpha comparison"
+  ],
+  "final_decision": "KEEP_ANCHOR_DISABLE_INFERENCE_RMT_CANDIDATE",
+  "inference_rmt": "A05_MINUS_A0_CONDITIONAL_ON_ANCHORED_REPRESENTATION",
+  "medical_status": "COMPLETE",
+  "mvtec_status": "NOT_RUN",
+  "new_medical_logical_cells": 72,
+  "primary_checkpoint": "A05_E20",
+  "primary_epoch": 20,
+  "proven": [
+    "E14 cursor resumed to E20",
+    "StepLR and Adam state matched the frozen protocol",
+    "all six Anchor checkpoints are identity-valid",
+    "all 72 new Anchor Medical logical cells completed",
+    "no target tuning or MVTec evaluation occurred"
+  ],
+  "representation_preservation": "PRESERVATION_PARTIAL",
+  "reused_medical_logical_cells": 108,
+  "source_status": "COMPLETE",
+  "status": "FINAL",
+  "target_tuning_occurred": false,
+  "unknown": [
+    "whether a clean no-anchor CIR retrain under the fixed scheduler would match P on Medical",
+    "whether a different anchor strength or reference would generalize",
+    "whether RMT helps outside the tested target domains"
+  ]
+}

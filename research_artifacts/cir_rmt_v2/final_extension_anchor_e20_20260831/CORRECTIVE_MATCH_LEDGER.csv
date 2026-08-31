@@ -1,0 +1,13 @@
+field,parent_phase2b,cir_anchor,status,evidence
+source_dataset,VisA_TRAIN,VisA_TRAIN,MATCHED,same source role
+seed,0,0,MATCHED,frozen seed
+precision,fp32,fp32,MATCHED,checkpoint audit
+effective_batch_size,6,6,MATCHED,"micro batch 6, accumulation 1"
+optimizer,"Adam betas=(0.9,0.999), eps=1e-8, weight_decay=0","Adam betas=(0.9,0.999), eps=1e-8, weight_decay=0",MATCHED,checkpoint param groups
+scheduler,StepLR step_size=1 gamma=0.9 after epoch,StepLR step_size=1 gamma=0.9 after epoch,MATCHED,"last_epoch=epoch, step_count=epoch+1"
+loss,cls+seg+0.001*kg+0.0*k,cls+seg+0.001*kg+0.0*k+anchor,INTENDED_DIFFERENCE,image-only train anchor
+anchor,none,E14 image adapter lambda=0.001,INTENDED_DIFFERENCE,frozen anchor SHA
+checkpoint_schedule,E10/E12/E14/E16/E18/E20,E10/E12/E14/E16/E18/E20,MATCHED,candidate audit
+source_evaluation,frozen P rows,A0/A05; old P/C reused,MATCHED_SCOPE,FINAL_SOURCE_MATRIX.csv
+medical_evaluation,frozen P rows,new A0/A05 only; old P/C reused,MATCHED_SCOPE,TARGET_EVAL_LEDGER.csv
+target_tuning,NO,NO,FROZEN,pre-Medical freeze

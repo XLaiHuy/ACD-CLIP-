@@ -1,0 +1,38 @@
+{
+  "status": "RESOLVED",
+  "failures": [
+    {
+      "class": "ENGINEERING_LAUNCH_CONFIGURATION",
+      "stage": "anchor_extension_launch",
+      "error": "RuntimeError: Invalid device string: '0'",
+      "cause": "CIR_DEVICE was numeric and the launcher did not normalize it to cuda:<index>.",
+      "scientific_effect": "none; failure occurred before model construction and before the first training batch",
+      "checkpoint_effect": "none; E14 last.pth remained unchanged",
+      "correction": "launcher-only normalization of numeric device values",
+      "retry_authorized": true
+    },
+    {
+      "class": "ENGINEERING_PREFLIGHT_BOOKKEEPING",
+      "stage": "medical_resource_admission",
+      "error": "UnboundLocalError: cannot access local variable 'dataset' where it is not associated with a value",
+      "cause": "The preflight deleted the dataset before using its length for a conservative spool-size estimate.",
+      "scientific_effect": "none; the bounded admission probe did not produce a benchmark cell",
+      "checkpoint_effect": "none",
+      "correction": "capture dataset length before teardown and use that scalar after teardown",
+      "retry_authorized": true
+    },
+    {
+      "class": "ENGINEERING_REPORT_AGGREGATION",
+      "stage": "final_target_association_assembly",
+      "error": "ValueError: invalid literal for int() with base 10: 'ALL'",
+      "cause": "The association report iterated summary rows while collecting integer epoch rows.",
+      "scientific_effect": "none; all 72 new target cells were already complete and durable",
+      "checkpoint_effect": "none",
+      "correction": "filter domain_epoch rows before converting epoch values",
+      "retry_authorized": true
+    }
+  ],
+  "scientific_identity_changed": false,
+  "retraining_started_before_correction": false,
+  "target_evaluation_started": false
+}

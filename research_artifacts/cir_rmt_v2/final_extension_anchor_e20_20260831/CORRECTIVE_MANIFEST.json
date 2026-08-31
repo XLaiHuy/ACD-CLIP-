@@ -1,0 +1,91 @@
+{
+  "anchor_lambda_image": 0.001,
+  "anchor_reference_checkpoint_sha256": "3eb6e2fe12f96b84745baf0f8a013f88c7f3a739283493a2ba5e31a35ad2f6c2",
+  "anchor_reference_epoch": 14,
+  "arch_id": "CIR_DFG_RMT_V2",
+  "architecture_freeze_sha256": "f6de6ee8f1998f591c077efeff50fa9741a9f8bad34603ba145ec54ef961ba86",
+  "architecture_version": 2,
+  "checkpoint_paths": {
+    "10": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/matched_horizon_anchor_e14_20260831/visa/seed0/checkpoints/epoch_10.pth",
+    "12": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/matched_horizon_anchor_e14_20260831/visa/seed0/checkpoints/epoch_12.pth",
+    "14": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/matched_horizon_anchor_e14_20260831/visa/seed0/checkpoints/epoch_14.pth",
+    "16": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/matched_horizon_anchor_e14_20260831/visa/seed0/checkpoints/epoch_16.pth",
+    "18": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/matched_horizon_anchor_e14_20260831/visa/seed0/checkpoints/epoch_18.pth",
+    "20": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/matched_horizon_anchor_e14_20260831/visa/seed0/checkpoints/epoch_20.pth"
+  },
+  "checkpoint_shas": {
+    "10": "58af2ea6e3d92232498e3cb9bcf40b251e7116cfbac9a34d1abd4b07487aeaf0",
+    "12": "bbbbfc6e24ac9dd1bfa87b596e3f6fe17a1b06cee6f5d4522ef67c4147a7e2f9",
+    "14": "9b8fc5e7760037e772c9bd63d98ce56fcbbaa04f021258ca0d23aa8f2bf5ab81",
+    "16": "2d030907f5234ca7367fadf4f3f4f83a9b8f5d792e65e1abbe23f54a32a354a9",
+    "18": "25779178f390b1bc9fc22d97a520bf43504fc805d21b68fe17e1986637b55050",
+    "20": "91f121852b6c20b8dddf31225518db10f79219b61e8b326e3afe37d06b4dbde6"
+  },
+  "clip_asset_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+  "config_sha256": "064e8acd4369645f631030b5d60abf8615e878b50e9caff6a4a8b2439b64f81c",
+  "current_git_sha": "869e580363e4b49bba893c06cc8df3e818168e36",
+  "decision_artifact": "FINAL_DECISION.json",
+  "experiment_id": "corrective_matched_retrain_20260830_final_extension_anchor_e20_20260831",
+  "final_decision": "KEEP_ANCHOR_DISABLE_INFERENCE_RMT_CANDIDATE",
+  "freeze_sha256": "15a2e0d89424bddc755a4e1a6eca1f010f011da0bdc7982df806e5d40950809a",
+  "medical_cells_generated_at_git_sha": "617eccb26d869c72c46046f586cd957e4e7301ed",
+  "medical_evaluation": {
+    "artifact": "FINAL_MEDICAL_MATRIX.csv",
+    "epochs": [
+      10,
+      12,
+      14,
+      16,
+      18,
+      20
+    ],
+    "new_logical_cells": 72,
+    "reused_logical_cells": 108,
+    "status": "COMPLETE",
+    "targets": [
+      "Brain",
+      "Liver",
+      "Retina",
+      "Colon_clinicDB",
+      "Colon_colonDB",
+      "Colon_Kvasir"
+    ]
+  },
+  "medical_matrix_sha256": "728a90bf6145dbb050b34450064511010fa315314d9198e2e8398b383a970e4f",
+  "medical_raw_eval_root": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/final_extension_anchor_e20_20260831/medical_eval",
+  "mvtec": "NOT_RUN",
+  "parent_config_sha256": "d24cf942684b0be3c12838699ec6fe452697bd7f0a58eabbf316fb79b1b18cdb",
+  "primary_checkpoint": "A05_E20",
+  "primary_epoch": 20,
+  "primary_selection_rule": "highest A05 source pixel AUROC, tie-break by A05 source pixel AP, then earliest epoch",
+  "representation_preservation": "PRESERVATION_PARTIAL",
+  "seed": 0,
+  "source_dataset": "VisA",
+  "source_evaluation": {
+    "artifact": "FINAL_SOURCE_MATRIX.csv",
+    "epochs": [
+      10,
+      12,
+      14,
+      16,
+      18,
+      20
+    ],
+    "methods": [
+      "P",
+      "C_OLD_0",
+      "C_OLD_05",
+      "A0",
+      "A05"
+    ],
+    "status": "PASS"
+  },
+  "source_matrix_generated_at_git_sha": "617eccb26d869c72c46046f586cd957e4e7301ed",
+  "source_matrix_sha256": "f4f730829e0aa087a17e5d9e2198ef5dcc12b9c576cdb93babb71528990ad43e",
+  "source_root": "/home/ai4/caohuy/data/VisA_20220922",
+  "source_sample_images": 96,
+  "status": "COMPLETE",
+  "target_ledger_sha256": "07b9e163ce80d7f399cf9f5a70e7e6187eba8e2c71855e8fd3bcb5fd727171f7",
+  "target_tuning_occurred": false,
+  "training_git_sha": "7d4ae4b8261aee8fa0d012188de1984296f7e7cf"
+}

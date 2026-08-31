@@ -135,6 +135,7 @@ def main() -> int:
             prefetch_factor=args.prefetch_factor,
             monitor=monitor,
         )
+        dataset_length = int(len(dataset))
         del model, sample, dataset
         gc.collect()
         if device.type == "cuda":
@@ -156,7 +157,7 @@ def main() -> int:
         telemetry["spool_bytes_before_cleanup"] = int(spool_bytes)
         telemetry["rss"] = monitor.report(rss_before)
         disk_after = shutil.disk_usage(output.parent)
-        expected_full_cell_bytes = int(len(dataset) * 518 * 518 * 4 * 4)
+        expected_full_cell_bytes = int(dataset_length * 518 * 518 * 4 * 4)
         bounded_vram = bool(
             device.type != "cuda"
             or int(telemetry["peak_reserved_vram_bytes"]) < int(gpu_before["total_bytes"] or 0) * 0.9
@@ -175,7 +176,7 @@ def main() -> int:
             "prefetch_factor": int(args.prefetch_factor),
             "image_size": 518,
             "pixels_per_image": 518 * 518,
-            "brain_images": int(len(dataset)),
+            "brain_images": dataset_length,
             "expected_full_cell_bytes_conservative": expected_full_cell_bytes,
             "disk": {"free_bytes_before": int(disk_before.free), "free_bytes_after": int(disk_after.free), "total_bytes": int(disk_before.total)},
             "file_descriptors": {"soft_limit": int(soft_fd), "hard_limit": int(hard_fd), "open_before": int(fd_before), "open_after": int(_open_fd_count())},
