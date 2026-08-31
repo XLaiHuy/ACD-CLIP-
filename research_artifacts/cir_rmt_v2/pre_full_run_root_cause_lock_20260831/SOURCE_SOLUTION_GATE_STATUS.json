@@ -1,0 +1,23 @@
+{
+  "ap_tail_gate": "INCONCLUSIVE_HORIZON_MISMATCH",
+  "baseline_epoch": 14,
+  "culprit_image_drift": "INCONCLUSIVE_HORIZON_MISMATCH",
+  "deployment_gate": "INCONCLUSIVE_HORIZON_MISMATCH",
+  "full_run_authorized": false,
+  "heldout_seen_gate": "INCONCLUSIVE_HORIZON_MISMATCH",
+  "implementation_smoke": "PASS",
+  "medical_evaluation": "NOT_RUN",
+  "mvtec_evaluation": "NOT_RUN",
+  "reason": "Selected solution has only the E02/5-step smoke horizon; frozen P/C0 comparison is E14. No matched-horizon scientific conclusion is allowed.",
+  "representation_drift": "INCONCLUSIVE_HORIZON_MISMATCH",
+  "scientific_gate": "INCONCLUSIVE",
+  "selected_solution_epoch": 2,
+  "selected_solution_global_step": 5,
+  "solution_hyperparameters": {
+    "lambda_image_anchor": 0.001,
+    "reference_checkpoint_sha256": "3eb6e2fe12f96b84745baf0f8a013f88c7f3a739283493a2ba5e31a35ad2f6c2",
+    "reference_epoch": 14,
+    "scope": "image_adapter_parameters_only"
+  },
+  "source_only": true
+}

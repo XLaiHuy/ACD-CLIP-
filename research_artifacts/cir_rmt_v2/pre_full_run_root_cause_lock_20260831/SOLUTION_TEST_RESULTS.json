@@ -1,0 +1,35 @@
+{
+  "solution": "SELECTIVE_PHASE2B_ANCHOR",
+  "implementation_commit_base": "0907ff9a15d6b5549fe424a978bcb98f065d4245",
+  "unit_and_contract_tests": {
+    "py_compile": "PASS",
+    "pytest_tests/cir_rmt/test_parameter_anchor.py": "PASS: 2 passed",
+    "pytest_tests/cir_rmt/test_matched_training_schedule.py": "PASS",
+    "pytest_tests/cir_rmt/test_checkpoint_contract.py": "PASS",
+    "combined_pytest_result": "PASS: 9 passed",
+    "identity_baseline_lambda_zero": "PASS: optional anchor disabled by default and metadata reports coefficient zero",
+    "gradient_intended_parameters": "PASS: live image parameters receive anchor gradients",
+    "frozen_reference_no_grad": "PASS: reference tensors are detached and non-trainable",
+    "adam_groups_and_hyperparameters": "PASS: existing matched-training test",
+    "scheduler_timing_and_lr_trajectory": "PASS: existing matched-training test",
+    "resume_hyperparameter_restore": "PASS: real one-step resume smoke",
+    "fp32_contract": "PASS: existing contract test and real smoke",
+    "checkpoint_identity": "PASS: real smoke checkpoint finite and anchor metadata/hash validated",
+    "evaluator_deployment_parity": "PASS: source gate reuses unchanged repository metric, forward, and Gaussian deployment helpers"
+  },
+  "real_visa_smoke": {
+    "status": "PASS",
+    "requested_steps": 4,
+    "resume_steps": 1,
+    "rmt_active": true,
+    "medical": "NOT_RUN",
+    "mvtec": "NOT_RUN"
+  },
+  "scientific_source_gate": {
+    "status": "INCONCLUSIVE",
+    "authorization_gate": "FAIL",
+    "reason": "selected solution is E02/5-step smoke while frozen P/C0 comparison is E14",
+    "matched_horizon_comparison": "NOT_AVAILABLE",
+    "full_run_authorized": false
+  }
+}

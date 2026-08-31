@@ -20,6 +20,7 @@ from model.phase2b_legacy_bridge import assert_phase2b_gradient_contract, load_a
 from model.phase2b_runtime import build_phase2b_trainable, configure_canonical_fp32, trainable_parameter_counts
 from model.phase2b_schedule import apply_soft_prompt_lr_policy, get_dfg_beta_for_epoch, get_hybrid_alpha_for_epoch, grad_accum_window_size
 from tools.cir_rmt.identity import checkpoint_metadata, config_sha256, load_cir_config, release_identity_fields, validate_checkpoint_identity
+from tools.cir_rmt.parameter_anchor import ImageParameterAnchor, load_image_parameter_anchor
 from tools.cir_rmt.runtime import forward_cir
 from utils import calculate_seg_loss, make_dataloader_generator, seed_worker
 
@@ -89,22 +90,30 @@ def _set_epoch_state(model: Any, optimizer: torch.optim.Optimizer, config: Mappi
     return float(alpha), float(beta), frozen
 
 
-def checkpoint_payload(model: Any, parent_config: Mapping[str, Any], cir_config: Mapping[str, Any], source: str, epoch: int, step: int, optimizer: torch.optim.Optimizer, scheduler: torch.optim.lr_scheduler.LRScheduler, generator: torch.Generator, git_sha: str | None) -> dict[str, Any]:
+def checkpoint_payload(model: Any, parent_config: Mapping[str, Any], cir_config: Mapping[str, Any], source: str, epoch: int, step: int, optimizer: torch.optim.Optimizer, scheduler: torch.optim.lr_scheduler.LRScheduler, generator: torch.Generator, git_sha: str | None, image_anchor: ImageParameterAnchor | None = None, image_anchor_lambda: float = 0.0) -> dict[str, Any]:
     payload = dict(checkpoint_metadata(cir_config, source_dataset=source, epoch=epoch, git_sha=git_sha))
     payload.update({
         "checkpoint_version": 1, "parent_protocol": parent_config["protocol_version"], "model_name": parent_config["model_name"], "img_size": int(parent_config["img_size"]), "precision": "fp32", "amp_enabled": False, "tf32_enabled": False,
         "global_step": int(step), "parent_config": dict(parent_config), "parent_config_sha256": str(cir_config["parent_config_sha256"]),
         "resolved_scientific_config": dict(parent_config), "image_adapter": _cpu_state(model.image_adapter), "text_adapter": _cpu_state(model.text_adapter), "soft_prompt": _cpu_state(model.soft_prompt),
         "optimizer_state": optimizer.state_dict(), "scheduler_state": scheduler.state_dict(),
+        "image_anchor": image_anchor.metadata(float(image_anchor_lambda)) if image_anchor is not None else {"enabled": False, "lambda_image_anchor": float(image_anchor_lambda), "scope": "image_adapter_parameters_only", "train_only": True},
     })
     payload.update(capture_rng_state(dataloader_generator=generator))
     return payload
 
 
-def validate_resume(payload: Mapping[str, Any], cir_config: Mapping[str, Any], source: str, git_sha: str | None) -> None:
+def validate_resume(payload: Mapping[str, Any], cir_config: Mapping[str, Any], source: str, git_sha: str | None, image_anchor_lambda: float = 0.0, image_anchor: ImageParameterAnchor | None = None) -> None:
     validate_checkpoint_identity(payload, cir_config, source_dataset=source, expected_git_sha=git_sha or payload.get("git_sha"))
     if payload.get("precision") != "fp32" or payload.get("amp_enabled") is True or payload.get("tf32_enabled") is True:
         raise ValueError("CIR resume violates FP32 contract")
+    saved_anchor = payload.get("image_anchor", {})
+    saved_lambda = float(saved_anchor.get("lambda_image_anchor", 0.0))
+    if abs(saved_lambda - float(image_anchor_lambda)) > 1.0e-15:
+        raise ValueError(f"CIR resume image-anchor coefficient mismatch: saved={saved_lambda} current={float(image_anchor_lambda)}")
+    if float(image_anchor_lambda) > 0.0:
+        if image_anchor is None or saved_anchor.get("reference_checkpoint_sha256") != image_anchor.reference_checkpoint_sha256:
+            raise ValueError("CIR resume image-anchor reference mismatch")
 
 
 def train(args: argparse.Namespace) -> dict[str, Any]:
@@ -145,6 +154,14 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
     print("PREFETCH    : " + str(args.prefetch_factor))
     print("=" * 60)
     model = build_phase2b_trainable(parent_config, args.clip_asset, device)
+    image_anchor_lambda = float(args.image_anchor_lambda)
+    if image_anchor_lambda < 0.0:
+        raise ValueError("--image-anchor-lambda must be non-negative")
+    image_anchor = None
+    if image_anchor_lambda > 0.0:
+        if args.image_anchor_checkpoint is None:
+            raise ValueError("--image-anchor-checkpoint is required when --image-anchor-lambda is positive")
+        image_anchor = load_image_parameter_anchor(args.image_anchor_checkpoint, model, device)
     generator = make_dataloader_generator(int(args.seed))
     dataset, loader = build_loader(source, args.source_root, parent_config, args, generator)
     optimizer = _optimizer(model, parent_config)
@@ -153,7 +170,7 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
     if args.resume:
         # Keep RNG tensors on CPU; restore_rng_state requires a CPU ByteTensor.
         payload = torch.load(args.resume, map_location="cpu", weights_only=False)
-        validate_resume(payload, cir_config, source, args.git_sha)
+        validate_resume(payload, cir_config, source, args.git_sha, image_anchor_lambda=image_anchor_lambda, image_anchor=image_anchor)
         load_adapter_state(model, payload); optimizer.load_state_dict(payload["optimizer_state"]); scheduler.load_state_dict(payload["scheduler_state"]); restore_rng_state(payload, dataloader_generator=generator)
         start_epoch, global_step = int(payload["epoch"]) + 1, int(payload.get("global_step", 0))
     base_run_root = Path(args.run_root) if args.run_root is not None else Path("runs/cir_rmt") / str(cir_config["arch_id"])
@@ -167,7 +184,7 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
     for epoch in range(start_epoch, int(parent_config["epochs"]) + 1):
         _, beta, soft_frozen = _set_epoch_state(model, optimizer, parent_config, epoch)
         model.train(); model.clipmodel.eval(); model.image_encoder.eval(); optimizer.zero_grad(set_to_none=True)
-        sums = {"loss": 0.0, "cls": 0.0, "seg": 0.0}
+        sums = {"loss": 0.0, "cls": 0.0, "seg": 0.0, "image_anchor": 0.0}
         count = 0
         active, mad_values, delta_values, saturation_values = [], [], [], []
         started = time.perf_counter()
@@ -194,7 +211,9 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
                 saturation_values.append(float((output.delta.detach().float().abs() > 0.95).float().mean()))
                 cls_loss = F.cross_entropy(output.classification_logits.float(), labels)
                 seg_loss = calculate_seg_loss(output.cir_training_segmentation_probability.float(), masks.float())
-                loss = cls_loss + seg_loss + float(parent_config.get("lambda_kg", 0.001)) * kg_loss + float(parent_config.get("lambda_k", 0.0)) * k_loss
+                base_loss = cls_loss + seg_loss + float(parent_config.get("lambda_kg", 0.001)) * kg_loss + float(parent_config.get("lambda_k", 0.0)) * k_loss
+                image_anchor_loss = image_anchor.loss(model.image_adapter) if image_anchor is not None else base_loss.detach() * 0.0
+                loss = base_loss + image_anchor_lambda * image_anchor_loss
                 if not torch.isfinite(loss):
                     raise FloatingPointError(f"non-finite CIR loss at epoch={epoch} batch={batch_index}")
                 divisor = grad_accum_window_size(batch_index, total_batches, int(args.grad_accum_steps))
@@ -203,7 +222,7 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
                 if batch_index % int(args.grad_accum_steps) == 0 or batch_index == total_batches:
                     torch.nn.utils.clip_grad_norm_([p for p in model.parameters() if p.requires_grad and p.grad is not None], float(parent_config["grad_clip_norm"]))
                     optimizer.step(); optimizer.zero_grad(set_to_none=True); global_step += 1
-                sums["loss"] += float(loss.detach()); sums["cls"] += float(cls_loss.detach()); sums["seg"] += float(seg_loss.detach()); count += 1
+                sums["loss"] += float(loss.detach()); sums["cls"] += float(cls_loss.detach()); sums["seg"] += float(seg_loss.detach()); sums["image_anchor"] += float(image_anchor_loss.detach()); count += 1
                 elapsed_live = max(time.perf_counter() - started, 1e-9)
                 vram_gb = (torch.cuda.memory_allocated(device) / float(1024 ** 3)) if device.type == "cuda" else None
                 vram_text = f"{vram_gb:.1f}GB" if vram_gb is not None else "n/a"
@@ -235,6 +254,8 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
             "mean_loss": sums["loss"] / max(count, 1),
             "mean_cls": sums["cls"] / max(count, 1),
             "mean_seg": sums["seg"] / max(count, 1),
+            "mean_image_anchor": sums["image_anchor"] / max(count, 1),
+            "lambda_image_anchor": image_anchor_lambda,
             "rmt_delta_abs_mean": float(np.mean(active)) if active else 0.0,
             "mad_p50": float(np.median(mad_values)) if mad_values else 0.0,
             "delta_p50": float(np.median(delta_values)) if delta_values else 0.0,
@@ -248,10 +269,10 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
         }
         if epoch in candidate_epochs and smoke_target is None:
             checkpoint_root.mkdir(parents=True, exist_ok=True)
-            write_torch_checkpoint_atomic(checkpoint_root / f"epoch_{epoch:02d}.pth", checkpoint_payload(model, parent_config, cir_config, source, epoch, global_step, optimizer, scheduler, generator, args.git_sha))
+            write_torch_checkpoint_atomic(checkpoint_root / f"epoch_{epoch:02d}.pth", checkpoint_payload(model, parent_config, cir_config, source, epoch, global_step, optimizer, scheduler, generator, args.git_sha, image_anchor=image_anchor, image_anchor_lambda=image_anchor_lambda))
             row["checkpoint_saved"] = True
         run_root.mkdir(parents=True, exist_ok=True)
-        write_torch_checkpoint_atomic(run_root / "last.pth", checkpoint_payload(model, parent_config, cir_config, source, epoch, global_step, optimizer, scheduler, generator, args.git_sha))
+        write_torch_checkpoint_atomic(run_root / "last.pth", checkpoint_payload(model, parent_config, cir_config, source, epoch, global_step, optimizer, scheduler, generator, args.git_sha, image_anchor=image_anchor, image_anchor_lambda=image_anchor_lambda))
         history.append(row)
         print(json.dumps(row, sort_keys=True))
         if smoke_target is not None and global_step - smoke_start_step >= smoke_target:
@@ -265,7 +286,7 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
             )
     else:
         completed_steps = None
-    manifest = {"stage": f"CIR/TRAIN-{source.upper()}", "status": "SMOKE_PASS" if smoke_target is not None else "COMPLETED", "arch_id": cir_config["arch_id"], "source": source, "seed": int(args.seed), "config_sha256": config_sha256(cir_config), "git_sha": args.git_sha, "epochs": [row["epoch"] for row in history], "target_epochs": list(candidate_epochs), "trainable_parameters": trainable_parameter_counts(model), "history": history}
+    manifest = {"stage": f"CIR/TRAIN-{source.upper()}", "status": "SMOKE_PASS" if smoke_target is not None else "COMPLETED", "arch_id": cir_config["arch_id"], "source": source, "seed": int(args.seed), "config_sha256": config_sha256(cir_config), "git_sha": args.git_sha, "epochs": [row["epoch"] for row in history], "target_epochs": list(candidate_epochs), "trainable_parameters": trainable_parameter_counts(model), "image_anchor": image_anchor.metadata(image_anchor_lambda) if image_anchor is not None else {"enabled": False, "lambda_image_anchor": image_anchor_lambda, "scope": "image_adapter_parameters_only", "train_only": True}, "history": history}
     _write_json(run_root / "run_manifest.json", manifest)
     if smoke_target is not None:
         _write_json(run_root / "G5_SMOKE.json", {
@@ -278,6 +299,7 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
             "requested_steps": smoke_target,
             "steps_completed": completed_steps,
             "rmt_active": any(row["rmt_delta_abs_mean"] > 0 for row in history),
+            "image_anchor": manifest["image_anchor"],
             "checkpoint_resume_contract": (run_root / "last.pth").is_file(),
             "identity": release_identity_fields(cir_config),
             "evidence": {"kind": "train_smoke_real", "real_execution": True, "artifact": {"checkpoint": str(run_root / "last.pth")}, "source": source, "steps_completed": completed_steps},
@@ -303,6 +325,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--pin-memory", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--persistent-workers", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--smoke-steps", type=int)
+    parser.add_argument("--image-anchor-checkpoint", type=Path)
+    parser.add_argument("--image-anchor-lambda", type=float, default=0.0)
     parser.add_argument("--git-sha", default="WORKTREE_SHA")
     args = parser.parse_args(argv)
     if args.micro_batch_size * args.grad_accum_steps != 6:
