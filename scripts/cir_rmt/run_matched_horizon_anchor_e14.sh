@@ -19,6 +19,9 @@ PARENT_ARCHIVE="${CIR_PARENT_ARCHIVE:-$ROOT/research_artifacts/cir_rmt_v2/pre_fu
 [[ -d "$VISA_ROOT" ]] || { echo "VISA_ROOT is required for the matched source run" >&2; exit 2; }
 [[ -f "$CLIP_ASSET" ]] || { echo "missing CLIP asset: $CLIP_ASSET" >&2; exit 2; }
 [[ -f "$ANCHOR_CHECKPOINT" ]] || { echo "missing Phase2B E14 anchor: $ANCHOR_CHECKPOINT" >&2; exit 2; }
+EXPECTED_CLIP_SHA="3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02"
+ACTUAL_CLIP_SHA="$(sha256sum "$CLIP_ASSET" | awk '{print $1}')"
+[[ "$ACTUAL_CLIP_SHA" == "$EXPECTED_CLIP_SHA" ]] || { echo "CLIP asset hash mismatch: $ACTUAL_CLIP_SHA" >&2; exit 4; }
 [[ -s "$PARENT_ARCHIVE/SOURCE_BOUNDED_METRICS.csv" ]] || { echo "frozen P/C0 source artifact is required" >&2; exit 2; }
 [[ -s "$PARENT_ARCHIVE/SOURCE_SAMPLE_IDENTITY.json" ]] || { echo "frozen source sample identity is required" >&2; exit 2; }
 
