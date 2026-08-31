@@ -1,0 +1,12 @@
+evidence_scope,row_type,epoch,batch_size,component,component_a,component_b,raw_loss,gradient_norm,image_adapter_gradient_norm,text_adapter_gradient_norm,soft_prompt_gradient_norm,gradient_cosine,gradient_conflict,finite,nonzero,status
+corrected_CIR_E14_single_VisA_batch,component,14,6,classification,,,0.3941400945186615,0.4793046032451749,0.478687067045743,0.02074962925380994,0.012690446051590348,,,True,True,PASS
+corrected_CIR_E14_single_VisA_batch,component,14,6,segmentation,,,0.3562261462211609,0.2045743863125252,0.204262930252629,0.006548483628226057,0.009189789003386715,,,True,True,PASS
+corrected_CIR_E14_single_VisA_batch,component,14,6,weighted_kg,,,0.0004234254010953009,0.0012284614404948113,0.0,3.2405648191953195e-05,0.0012280339509752353,,,True,True,PASS
+corrected_CIR_E14_single_VisA_batch,component,14,6,weighted_k,,,0.0,0.0,0.0,0.0,0.0,,,True,False,PASS
+corrected_CIR_E14_single_VisA_batch,component,14,6,total,,,0.7507896423339844,0.5274757852537492,0.526755354491354,0.022123518069788222,0.016433213074838637,,,True,True,PASS
+corrected_CIR_E14_single_VisA_batch,pair,14,6,,classification,segmentation,,,,,,0.03389832749962807,False,True,True,PASS
+corrected_CIR_E14_single_VisA_batch,pair,14,6,,classification,weighted_kg,,,,,,0.0015924702165648341,False,True,True,PASS
+corrected_CIR_E14_single_VisA_batch,pair,14,6,,classification,weighted_k,,,,,,,,True,False,PASS
+corrected_CIR_E14_single_VisA_batch,pair,14,6,,segmentation,weighted_kg,,,,,,0.0029148419853299856,False,True,True,PASS
+corrected_CIR_E14_single_VisA_batch,pair,14,6,,segmentation,weighted_k,,,,,,,,True,False,PASS
+corrected_CIR_E14_single_VisA_batch,pair,14,6,,weighted_kg,weighted_k,,,,,,,,True,False,PASS

@@ -1,0 +1,78 @@
+{
+  "approximation_rule_note": "Image-level paired bootstrap CIs were not run; tiny C05-C0 effects are therefore treated as practically neutral from magnitude and mixed-sign evidence, not as a formal CI result.",
+  "approximation_rule_status": "INCOMPLETE",
+  "case_confidence": "MEDIUM_LOW_NO_PAIRED_BOOTSTRAP_CI",
+  "cases": [
+    {
+      "case": "A",
+      "classification": "NOT_SUPPORTED",
+      "evidence": "C0 is not approximately P on Medical pixel metrics and C05-C0 is not a positive material effect.",
+      "name": "CLEAN_RMT_WIN"
+    },
+    {
+      "case": "B",
+      "classification": "PARTIAL_NOT_PRIMARY",
+      "evidence": "C05-C0 is neutral, but the case premise C0 approximately P is not met for pixel transfer.",
+      "name": "RMT_NEUTRAL"
+    },
+    {
+      "case": "C",
+      "classification": "WEAK_HARM_NOT_MATERIAL",
+      "evidence": "C05-C0 is slightly negative for most Medical macro epochs but the magnitude is at most 0.0114 percentage points and is not consistent enough for a material AP-harm claim.",
+      "name": "AP_HARM"
+    },
+    {
+      "case": "D",
+      "classification": "NOT_PRIMARY",
+      "evidence": "The small negative C05-C0 pixel effect does not explain the C0-P gap; inference transport is effectively neutral.",
+      "name": "INFERENCE_RMT_HARMFUL"
+    },
+    {
+      "case": "E",
+      "classification": "SUPPORTED_FOR_MEDICAL_PIXEL_TRANSFER",
+      "evidence": "C0 pixel AUROC/AP is below P at every macro epoch; C05 does not recover either metric.",
+      "name": "CIR_TRAINING_HARMS_REPRESENTATION"
+    },
+    {
+      "case": "F",
+      "classification": "SUPPORTED_SOURCE_ONLY",
+      "evidence": "C0 source Pixel AP exceeds P at all source epochs, but the effect does not transfer to Medical pixel scores.",
+      "name": "TRAINING_HELPS_INFERENCE_DOES_NOT"
+    },
+    {
+      "case": "G",
+      "classification": "NOT_SUPPORTED",
+      "evidence": "C05 remains below P on Medical pixel macro metrics.",
+      "name": "TRAINING_HURTS_INFERENCE_RECOVERS"
+    },
+    {
+      "case": "H",
+      "classification": "NOT_PRIMARY",
+      "evidence": "The observed direction is mostly the reverse: C0 image AUROC is often better while pixel metrics are weaker.",
+      "name": "PIXEL_GOOD_IMAGE_WEAK"
+    },
+    {
+      "case": "I",
+      "classification": "SUPPORTED",
+      "evidence": "Image metrics are comparatively stronger, while Medical Pixel AP remains the clearest residual weakness.",
+      "name": "IMAGE_GOOD_PIXEL_AP_WEAK"
+    },
+    {
+      "case": "J",
+      "classification": "SUPPORTED_FOR_CIR_TRAINING",
+      "evidence": "Liver improves versus P while Retina/ClinicDB/Kvasir decline and Brain/ColonDB are mixed; no domain-specific alpha rule is permitted.",
+      "name": "DOMAIN_FLIP"
+    },
+    {
+      "case": "K",
+      "classification": "NOT_PRIMARY",
+      "evidence": "P is not universally weak: it is a stronger pixel-transfer baseline than C0, although the target problem itself remains difficult.",
+      "name": "PARENT_UPSTREAM_FAILURE"
+    }
+  ],
+  "final_decision": "PHASE2B_REPRESENTATION_PRESERVATION",
+  "generated_at": "2026-08-31T03:00:08.185325+00:00",
+  "rmt_signal_usable": "NO_FOR_CURRENT_INFERENCE_TRANSPORT",
+  "sar_rmt_authorized": "NO",
+  "schema_version": 1
+}

@@ -1,0 +1,119 @@
+{
+  "additional_measured_risk": "K7_TRAIN_DEPLOY_OPERATOR_MISMATCH",
+  "causal_limit": "This is diagnostic and correlational. No paired image-level bootstrap confidence intervals, full corrected drift sweep, AP-tail quantiles, or branch-only image decomposition were run.",
+  "fields": {
+    "anomaly_score_state": {
+      "evidence": "No full corrected anomaly-score quantile audit was retained; bounded E14 peer delta statistics are mechanism diagnostics only.",
+      "status": "UNKNOWN"
+    },
+    "checkpoint_stability": {
+      "evidence": "Both corrected runs have valid matched LR/scheduler states; target metrics still vary across E10-E20 and no full post-corrective drift battery was rerun.",
+      "status": "WEAK"
+    },
+    "cir_training_effect": {
+      "evidence": "C0-P is negative for Medical pixel AUROC and Pixel AP at every candidate epoch; C05 does not recover the gap.",
+      "status": "BAD"
+    },
+    "classification_branch_state": {
+      "evidence": "IMAGE_BRANCH_AUDIT.csv: branch-only classification scores were not emitted by the frozen evaluator.",
+      "status": "UNKNOWN"
+    },
+    "clipping_frequency": {
+      "evidence": "The clip norm is fixed at 1.0 and code path is audited, but per-step clipping frequency was not logged.",
+      "status": "UNKNOWN"
+    },
+    "cls_seg_gradient_cosine": {
+      "evidence": "LOSS_GRADIENT_AUDIT.csv: corrected E14 classification/segmentation cosine +0.033898; no negative conflict in the bounded batch.",
+      "status": "GOOD"
+    },
+    "cls_seg_gradient_norm_ratio": {
+      "evidence": "Corrected E14 segmentation/classification total gradient norm ratio is 0.4266; this is a single-batch measurement, not a training-wide imbalance estimate.",
+      "status": "WEAK"
+    },
+    "cross_head_agreement_state": {
+      "evidence": "No separate classification-only versus pixel-max-only decomposition was run.",
+      "status": "UNKNOWN"
+    },
+    "image_ap_state": {
+      "evidence": "C0 image AP is mixed: below P at E10/E12 and above P at E14-E20; Colon image metrics are undefined by evaluator contract.",
+      "status": "WEAK"
+    },
+    "image_auroc_state": {
+      "evidence": "C0 image AUROC exceeds P at all six unweighted macro epochs; the image branch is not the dominant observed gap.",
+      "status": "GOOD"
+    },
+    "loss_state": {
+      "evidence": "Loss formula is matched and finite; weighted KG is tiny and weighted K is exactly zero in the bounded E14 batch, but causal importance is unknown.",
+      "status": "WEAK"
+    },
+    "lr_schedule_state": {
+      "evidence": "parent_lr_history.csv and cir_lr_history.csv: StepLR states and all three post-step learning rates match at E10-E20.",
+      "status": "GOOD"
+    },
+    "mad_state": {
+      "evidence": "E14 Brain peer MAD has median 0.003865 and minimum 3.22e-6, exposing low-dispersion normalization risk.",
+      "status": "BAD"
+    },
+    "normal_upper_tail_state": {
+      "evidence": "AP_TAIL_AUDIT.csv: corrected normal p99.9/top-k analysis was not run because exact spools were cleaned after scoring.",
+      "status": "UNKNOWN"
+    },
+    "optimizer_state": {
+      "evidence": "CHECKPOINT_AUDIT.csv: all 12 candidate checkpoints finite with 113 optimizer-state entries and identical global-step schedule.",
+      "status": "GOOD"
+    },
+    "parent_source_quality": {
+      "evidence": "corrected_source_decomposition.csv: P source Pixel AUROC 0.9710-0.9763 and Pixel AP 0.5132-0.6339 across E10-E20.",
+      "status": "GOOD"
+    },
+    "parent_target_quality": {
+      "evidence": "corrected_medical_decomposition.csv: P six-target pixel macro AP 31.81-32.94%; target transfer remains difficult even for P.",
+      "status": "WEAK"
+    },
+    "peer_signal_state": {
+      "evidence": "POST_CORRECTIVE_PEER_SUMMARY.csv: peer validity/invariants pass, but C05-C0 score effect is negligible and post-hoc contamination is diagnostic-only.",
+      "status": "WEAK"
+    },
+    "pixel_ap_state": {
+      "evidence": "C0 Medical pixel AP trails P by 1.32-2.59 percentage points at macro level; Retina, ClinicDB, and Kvasir are especially weak.",
+      "status": "BAD"
+    },
+    "pixel_auroc_state": {
+      "evidence": "C0 Medical pixel AUROC trails P by 0.69-1.96 percentage points at macro level, despite absolute AUROC remaining high.",
+      "status": "WEAK"
+    },
+    "pixel_branch_state": {
+      "evidence": "The residual corrected gap is concentrated in Medical pixel AUROC/AP, not the fused image metrics.",
+      "status": "BAD"
+    },
+    "rank_signal_state": {
+      "evidence": "E14 Brain z statistics have extreme tails (p99 1300.84, max 99855.59); predictive utility was not established.",
+      "status": "WEAK"
+    },
+    "representation_drift_state": {
+      "evidence": "No full corrected E12->E20 representation-drift sweep was rerun; this snapshot preserves checkpoint identities and metric trajectories.",
+      "status": "UNKNOWN"
+    },
+    "rmt_inference_effect": {
+      "evidence": "C05-C0 is near zero at every source and Medical macro epoch; maximum absolute Medical pixel effect is 0.0114 percentage points.",
+      "status": "WEAK"
+    },
+    "saturation_state": {
+      "evidence": "E14 Brain has |delta|>0.99 for 55.66% of diagnostic patches and |delta|>0.95 for 63.52%.",
+      "status": "BAD"
+    },
+    "stage_consistency_state": {
+      "evidence": "STAGE_RELIABILITY_AUDIT.csv: E14 Brain stage 1 Pixel AP 0.4356 versus stage 0 0.0745 and stage 2 0.1023 on 60 diagnostic images.",
+      "status": "WEAK"
+    },
+    "train_deploy_consistency": {
+      "evidence": "DEPLOYMENT_CONSISTENCY_AUDIT.csv: E14 bounded batch mean absolute difference 0.0032489, maximum 0.9993287, Pearson 0.6475441.",
+      "status": "BAD"
+    }
+  },
+  "generated_at": "2026-08-31T03:00:08.185325+00:00",
+  "interpretation": "The corrected run removes the scheduler confound but does not make C0 medically pixel-matched to P. C05 is inference-neutral. A representation-preservation / target-transfer issue remains more supported than an inference-RMT win or a multitask-gradient bug.",
+  "primary_bottleneck": "K2_SOURCE_GOOD_TARGET_GENERALIZATION_BAD",
+  "schema_version": 1,
+  "secondary_bottleneck": "K3_PIXEL_AUROC_GOOD_AP_BAD"
+}

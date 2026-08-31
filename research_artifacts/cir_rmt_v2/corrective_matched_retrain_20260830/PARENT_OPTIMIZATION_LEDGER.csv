@@ -1,0 +1,7 @@
+method,param_group,base_lr,post_lr_E10,post_lr_E20,lr_ratio_to_image_base,optimizer,betas,eps,weight_decay,scheduler,step_size,gamma,scheduler_step_timing,soft_prompt_policy,gradient_clip_norm,status
+P,image_adapter,0.001,0.0003486784401,0.00012157665459056936,1.0,Adam,"(0.9,0.999)",1e-8,0.0,StepLR,1,0.9,once_after_epoch_before_history_and_checkpoint,frozen_E01_E03_trainable_E04_plus,1.0,MATCHED
+P,text_adapter,0.0005,0.00017433922005,6.078832729528468e-05,0.5,Adam,"(0.9,0.999)",1e-8,0.0,StepLR,1,0.9,once_after_epoch_before_history_and_checkpoint,frozen_E01_E03_trainable_E04_plus,1.0,MATCHED
+P,soft_prompt,0.0001,9e-05,9e-05,0.1,Adam,"(0.9,0.999)",1e-8,0.0,StepLR,1,0.9,once_after_epoch_before_history_and_checkpoint,frozen_E01_E03_trainable_E04_plus,1.0,MATCHED
+CIR,image_adapter,0.001,0.0003486784401,0.00012157665459056936,1.0,Adam,"(0.9,0.999)",1e-8,0.0,StepLR,1,0.9,once_after_epoch_before_history_and_checkpoint,frozen_E01_E03_trainable_E04_plus,1.0,MATCHED
+CIR,text_adapter,0.0005,0.00017433922005000006,6.078832729528467e-05,0.5,Adam,"(0.9,0.999)",1e-8,0.0,StepLR,1,0.9,once_after_epoch_before_history_and_checkpoint,frozen_E01_E03_trainable_E04_plus,1.0,MATCHED
+CIR,soft_prompt,0.0001,9e-05,9e-05,0.1,Adam,"(0.9,0.999)",1e-8,0.0,StepLR,1,0.9,once_after_epoch_before_history_and_checkpoint,frozen_E01_E03_trainable_E04_plus,1.0,MATCHED

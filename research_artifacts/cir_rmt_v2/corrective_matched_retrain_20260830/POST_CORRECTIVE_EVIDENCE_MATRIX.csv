@@ -1,0 +1,16 @@
+question,artifact,evidence_status,sufficient,missing_information,bounded_test,expected_runtime
+Was the scheduler mismatch fixed and matched?,parent_lr_history.csv;cir_lr_history.csv;CHECKPOINT_AUDIT.csv;CORRECTIVE_MATCH_LEDGER.csv,PASS,YES,None for this training protocol,None,0
+Did corrected C0 recover P on source?,corrected_source_decomposition.csv,PASS,YES,No uncertainty intervals,Image-level paired bootstrap if formal inference is needed,bounded
+Did corrected C0 recover P on Medical?,corrected_medical_decomposition.csv,PASS,YES for descriptive matrix,No paired bootstrap CIs,Image-level paired bootstrap from retained scores if separately authorized,not retained in this snapshot
+Did C05 improve C0?,corrected_source_decomposition.csv;corrected_medical_decomposition.csv,PASS_DESCRIPTIVE,YES for practical-effect screen,Formal paired CI,Paired image-level bootstrap,bounded
+Is the old checkpoint oscillation gone?,parent/cir run manifests;corrected_medical_decomposition.csv,INCOMPLETE,NO,Full representation-drift and old/new matched stability analysis,Checkpoint drift sweep without rerunning training,bounded-to-moderate
+Are source diagnostics complete?,corrected_source_decomposition.csv;source_cell_audit.json,PASS,YES for source metrics,Source category-held-out and uncertainty analysis,Only if representation-preservation selection is authorized,future
+Is the Medical matrix reliable and resumable?,MEDICAL_RELIABILITY_REPORT.md;SPEED_MEMORY_TELEMETRY.csv;OOM_KILLED_INCIDENTS.csv,PASS,YES,None for completed cells,None,0
+What is the AP tail mechanism?,AP_TAIL_AUDIT.csv,NOT_RUN,NO,Normal-tail/anomaly-quantile/top-k precision/lesion strata,One bounded score-spool diagnostic if still decision-relevant,<=15 min preferred
+Which image branch fails?,IMAGE_BRANCH_AUDIT.csv,INCOMPLETE,NO,Classification-only and pixel-max-only metrics,Same-spool branch decomposition,bounded
+Is there direct multitask gradient conflict?,LOSS_GRADIENT_AUDIT.csv,PASS_BOUNDED,NO for training-wide claim,Across-batch/epoch clipping frequency and gradient distribution,Short deterministic multi-batch audit if K5 becomes primary,<=15 min preferred
+Is train/deploy mismatch present?,DEPLOYMENT_CONSISTENCY_AUDIT.csv,PASS_MISMATCH_CONFIRMED,YES to establish risk; NO for causal share,Prediction-level relation to Medical AP,Same-image native/training/deploy map comparison with AP-tail strata,<=15 min preferred
+Is peer/RMT signal reliable?,POST_CORRECTIVE_PEER_SUMMARY.csv;STAGE_RELIABILITY_AUDIT.csv,PASS_WITH_RISK,YES for bounded mechanism screen,Cross-epoch/cross-domain reliability and formal paired uncertainty,Only if RMT redesign is re-authorized,future
+Was post-hoc GT used as tuning?,BOTTLENECK_FINGERPRINT.json;CASE_K_SUBCLASSIFICATION.json,PASS_FIREWALL,YES,None,None,0
+Was targeted prior art completed?,TARGETED_PRIOR_ART.md,BOUNDED,YES for scope note,No implementation-level comparison,No further search until a mechanism is authorized,0
+What is the next authorized direction?,RESEARCH_SCOPE_LOCK.md;NEXT_DIRECTION.md;CORRECTED_GO_NO_GO_DECISION.md,PASS,YES,Formal source-only result for preservation variable,One source-only variable after separate authorization,future

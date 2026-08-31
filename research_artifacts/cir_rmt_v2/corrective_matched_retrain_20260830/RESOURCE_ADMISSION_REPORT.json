@@ -1,0 +1,136 @@
+{
+  "admission_class": "SAFE",
+  "batch_size": 6,
+  "bounded_rss_ok": true,
+  "bounded_vram_ok": true,
+  "brain_images": 3715,
+  "checkpoint": {
+    "path": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/corrective_matched_retrain_20260830/cir/visa/seed0/checkpoints/epoch_10.pth",
+    "sha256": "e4a2bfaef8f44a64dba87999c90f19accf7863eeba2e99eb587ef8cc65601722"
+  },
+  "children_after_teardown": [],
+  "clip_asset": {
+    "path": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/model/ViT-L-14-336px.pt",
+    "sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02"
+  },
+  "config_sha256": "064e8acd4369645f631030b5d60abf8615e878b50e9caff6a4a8b2439b64f81c",
+  "disk": {
+    "free_bytes_after": 191975460864,
+    "free_bytes_before": 191975473152,
+    "total_bytes": 982240026624
+  },
+  "engineering_adjustments": [],
+  "exact_full_resolution_spool": true,
+  "expected_full_cell_bytes_conservative": 15949178560,
+  "file_descriptors": {
+    "hard_limit": 1048576,
+    "open_after": 43,
+    "open_before": 17,
+    "soft_limit": 1024
+  },
+  "generated_at": "2026-08-30T21:34:37.882446+00:00",
+  "gpu_after": {
+    "allocated_bytes": 33554432,
+    "free_bytes": 15858008064,
+    "reserved_bytes": 33554432,
+    "total_bytes": 16608788480
+  },
+  "gpu_before": {
+    "allocated_bytes": 0,
+    "free_bytes": 15918825472,
+    "reserved_bytes": 0,
+    "total_bytes": 16608788480
+  },
+  "image_size": 518,
+  "metric_evaluation_after_teardown": true,
+  "metric_status": "PASS",
+  "metrics": {
+    "C0": {
+      "image_ap": 0.5108332170638672,
+      "image_auroc": 0.4513888888888889,
+      "pixel_ap": 0.28016940359928766,
+      "pixel_auroc": 0.9404468218535409
+    },
+    "C05": {
+      "image_ap": 0.5108332170638672,
+      "image_auroc": 0.4513888888888889,
+      "pixel_ap": 0.28043538697282233,
+      "pixel_auroc": 0.9404256574332142
+    }
+  },
+  "num_workers": 4,
+  "pixels_per_image": 268324,
+  "prefetch_factor": 2,
+  "rss_after_teardown_bytes": 3165196288,
+  "rss_before_bytes": 789557248,
+  "sample": {
+    "batches": 4,
+    "images": 24,
+    "indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      640,
+      641,
+      642,
+      643,
+      644,
+      645,
+      646,
+      647,
+      648,
+      649,
+      650,
+      651
+    ],
+    "label_counts": {
+      "anomalous": 12,
+      "normal": 12
+    }
+  },
+  "sample_forward": {
+    "elapsed_seconds": 5.487905966117978,
+    "images": 24,
+    "images_per_second": 5.18169885552653,
+    "peak_allocated_vram_bytes": 3624604160,
+    "peak_reserved_vram_bytes": 4416602112,
+    "rss": {
+      "final_rss_mib": 3018.566,
+      "last_rss_by_phase_mib": {
+        "after_teardown": 3017.449,
+        "final": 3018.566,
+        "inference": 3018.551,
+        "metric": 3067.715,
+        "startup": 2433.734
+      },
+      "peak_inference_rss_mib": 3018.551,
+      "peak_metric_rss_mib": 3067.715,
+      "peak_rss_by_phase_mib": {
+        "after_teardown": 3018.461,
+        "final": 3018.582,
+        "inference": 3018.551,
+        "metric": 3067.715,
+        "startup": 2433.734
+      },
+      "rss_after_inference_mib": null,
+      "rss_after_teardown_mib": 3017.449,
+      "rss_model_loaded_mib": 752.98
+    },
+    "spool_bytes_before_cleanup": 64398054,
+    "spool_bytes_before_metric": 64398054
+  },
+  "scope": "medical",
+  "spool_root": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/corrective_matched_retrain_20260830/medical_eval/preflight_spool_balanced",
+  "status": "PASS",
+  "target": "Brain",
+  "worker_shutdown_ok": true
+}

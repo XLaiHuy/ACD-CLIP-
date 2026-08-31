@@ -1,0 +1,42 @@
+{
+  "future_gate": "If any next study is authorized, test one representation-preservation or deployment-consistency variable source-only before any RMT redesign; no target tuning.",
+  "generated_at": "2026-08-31T03:00:08.185325+00:00",
+  "measured_risk": "K7_TRAIN_DEPLOY_OPERATOR_MISMATCH",
+  "primary": "K2_SOURCE_GOOD_TARGET_GENERALIZATION_BAD",
+  "schema_version": 1,
+  "secondary": "K3_PIXEL_AUROC_GOOD_AP_BAD",
+  "subcases": {
+    "K1_OPTIMIZATION_FAILURE": {
+      "reason": "Corrected Adam/StepLR/checkpoint states are matched and valid; no optimizer bug remains in this experiment.",
+      "status": "NOT_SUPPORTED_AS_PRIMARY"
+    },
+    "K2_SOURCE_GOOD_TARGET_GENERALIZATION_BAD": {
+      "reason": "Source C0 AP is strong/above P, while Medical C0 pixel AP is below P across all macro epochs.",
+      "status": "SUPPORTED"
+    },
+    "K3_PIXEL_AUROC_GOOD_AP_BAD": {
+      "reason": "Pixel AP is low relative to AUROC and is the largest residual transfer weakness.",
+      "status": "SUPPORTED"
+    },
+    "K4_PIXEL_GOOD_IMAGE_BAD": {
+      "reason": "Image AUROC is not the primary deficit in the corrected macro results.",
+      "status": "NOT_SUPPORTED"
+    },
+    "K5_MULTITASK_GRADIENT_CONFLICT": {
+      "reason": "Classification/segmentation cosine is positive; this is not a training-wide proof.",
+      "status": "NOT_SUPPORTED_BY_BOUNDED_BATCH"
+    },
+    "K6_STAGE_FUSION_BOTTLENECK": {
+      "reason": "E14 Brain stage attribution is uneven, but no full cross-epoch causal stage test was run.",
+      "status": "POSSIBLE_NOT_PROVEN"
+    },
+    "K7_TRAIN_DEPLOY_OPERATOR_MISMATCH": {
+      "reason": "Training/deployment maps differ materially on a bounded E14 batch; causal contribution to Medical AP remains unmeasured.",
+      "status": "MEASURED_RISK_CAUSAL_SHARE_UNKNOWN"
+    },
+    "K8_NO_USABLE_SIGNAL_CAPACITY_LIMIT": {
+      "reason": "Parent source and several corrected source metrics are strong; the evidence is not a universal capacity failure.",
+      "status": "NOT_SUPPORTED_AS_PRIMARY"
+    }
+  }
+}
