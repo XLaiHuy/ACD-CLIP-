@@ -51,6 +51,16 @@ def _audit_checkpoints(run_root: Path, config: Mapping[str, Any], anchor_sha: st
         names = [group.get("name") for group in groups]
         if names != ["image_adapter", "text_adapter", "soft_prompt"]:
             raise ValueError(f"optimizer group identity failed at E{epoch}")
+        expected_lrs = [0.001 * (0.9 ** epoch), 0.0005 * (0.9 ** epoch), 9.0e-5]
+        for index, group in enumerate(groups):
+            if abs(float(group["lr"]) - expected_lrs[index]) > 1.0e-15:
+                raise ValueError(f"optimizer LR trajectory failed at E{epoch}, group={names[index]}")
+            if tuple(float(value) for value in group.get("betas", ())) != (0.9, 0.999):
+                raise ValueError(f"Adam betas failed at E{epoch}, group={names[index]}")
+            if abs(float(group.get("eps", -1.0)) - 1.0e-8) > 1.0e-20:
+                raise ValueError(f"Adam eps failed at E{epoch}, group={names[index]}")
+            if abs(float(group.get("weight_decay", -1.0))) > 1.0e-20:
+                raise ValueError(f"weight decay failed at E{epoch}, group={names[index]}")
         scheduler = payload.get("scheduler_state", {})
         if int(scheduler.get("last_epoch", -1)) != epoch or int(scheduler.get("_step_count", -1)) != epoch + 1:
             raise ValueError(f"scheduler state failed at E{epoch}")
@@ -65,6 +75,20 @@ def _audit_checkpoints(run_root: Path, config: Mapping[str, Any], anchor_sha: st
             "anchor_reference_sha256": anchor_sha,
         })
     return rows
+
+
+def _audit_resume_cursor(run_root: Path, config: Mapping[str, Any], git_sha: str) -> dict[str, Any]:
+    path = run_root / "visa" / "seed0" / "last.pth"
+    if not path.is_file():
+        raise FileNotFoundError(path)
+    payload = torch.load(path, map_location="cpu", weights_only=False)
+    validate_checkpoint_identity(payload, config, source_dataset="visa", expected_git_sha=git_sha, expected_epoch=14)
+    scheduler = payload.get("scheduler_state", {})
+    if int(scheduler.get("last_epoch", -1)) != 14 or int(scheduler.get("_step_count", -1)) != 15:
+        raise ValueError("final resume cursor scheduler state failed")
+    if payload.get("precision") != "fp32" or payload.get("amp_enabled") is True or payload.get("tf32_enabled") is True:
+        raise ValueError("final resume cursor violates FP32 contract")
+    return {"path": str(path), "sha256": sha256_file(path), "epoch": int(payload["epoch"]), "scheduler_last_epoch": int(scheduler["last_epoch"]), "scheduler_step_count": int(scheduler["_step_count"])}
 
 
 def _write_csv(path: Path, rows: Sequence[Mapping[str, Any]], fields: Sequence[str]) -> None:
@@ -407,6 +431,7 @@ def run(args: argparse.Namespace) -> None:
     manifest = _check_manifest(run_root, config, git_sha)
     profile = _audit_profile(archive, anchor_sha)
     checkpoint_rows = _audit_checkpoints(run_root, config, anchor_sha, git_sha)
+    resume_cursor = _audit_resume_cursor(run_root, config, git_sha)
     gate = _load_json(run_root / "visa" / "seed0" / "E10_CATASTROPHIC_FAILURE_GATE.json")
     if gate.get("status") != "PASS":
         raise ValueError("E10 catastrophic-failure gate is not PASS")
@@ -443,7 +468,7 @@ def run(args: argparse.Namespace) -> None:
         "seed": 0,
         "clip_asset": {"path": str(Path(args.clip_asset).resolve()), "sha256": sha256_file(Path(args.clip_asset))},
         "anchor": {"checkpoint": str(Path(args.anchor_checkpoint).resolve()), "sha256": anchor_sha, "lambda_image_anchor": 0.001, "scope": "image_adapter_parameters_only", "training_only": True},
-        "training": {"run_root": str(run_root.resolve()), "run_manifest": str((run_root / "visa" / "seed0" / "run_manifest.json").resolve()), "status": manifest["status"], "max_epoch": 14, "candidate_epochs": list(EPOCHS), "train_wall_seconds": manifest.get("train_wall_seconds"), "e10_gate": gate, "checkpoints": checkpoint_rows},
+        "training": {"run_root": str(run_root.resolve()), "run_manifest": str((run_root / "visa" / "seed0" / "run_manifest.json").resolve()), "status": manifest["status"], "max_epoch": 14, "candidate_epochs": list(EPOCHS), "train_wall_seconds": manifest.get("train_wall_seconds"), "e10_gate": gate, "checkpoints": checkpoint_rows, "resume_cursor": resume_cursor},
         "optimizer": {"family": "Adam", "betas": [0.9, 0.999], "eps": 1e-8, "weight_decay": 0.0, "effective_batch_size": 6, "gradient_clip_norm": 1.0},
         "scheduler": {"family": "StepLR", "step_size": 1, "gamma": 0.9, "timing": "after_epoch_before_history_and_checkpoint"},
         "source_evaluation": {"status": source_status["status"], "results": "MATCHED_HORIZON_SOURCE_RESULTS.csv", "decomposition": "MATCHED_HORIZON_SOURCE_DECOMPOSITION.csv", "frozen_p_c0_reused": True, "new_cir_only_forward": True, "epochs": list(EPOCHS)},

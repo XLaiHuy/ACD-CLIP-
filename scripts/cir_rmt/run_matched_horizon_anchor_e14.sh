@@ -36,6 +36,7 @@ exec 9>"$RUN_ROOT/.process.lock"
 flock -n 9 || { echo "matched-horizon run lock is held: $RUN_ROOT/.process.lock" >&2; exit 11; }
 
 GIT_SHA="$(git rev-parse HEAD)"
+TRAINING_GIT_SHA="$GIT_SHA"
 TRAIN_ARGS=(
   --source visa
   --source-root "$VISA_ROOT"
@@ -64,6 +65,8 @@ fi
 NEED_TRAIN=1
 if [[ "$RESUME_EPOCH" -ge 14 && -s "$CHECKPOINT_ROOT/epoch_10.pth" && -s "$CHECKPOINT_ROOT/epoch_12.pth" && -s "$CHECKPOINT_ROOT/epoch_14.pth" ]]; then
   NEED_TRAIN=0
+  [[ -s "$BASE/run_manifest.json" ]] || { echo "completed matched-horizon run manifest is required for post-hoc resume" >&2; exit 17; }
+  TRAINING_GIT_SHA="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))[\"git_sha\"])' "$BASE/run_manifest.json")"
 elif [[ "$RESUME_EPOCH" -ge 14 ]]; then
   echo "E14 resume cursor exists but a required candidate checkpoint is missing" >&2
   exit 12
@@ -105,6 +108,6 @@ python -m tools.cir_rmt.finalize_matched_horizon \
   --clip-asset "$CLIP_ASSET" \
   --anchor-checkpoint "$ANCHOR_CHECKPOINT" \
   --source-root "$VISA_ROOT" \
-  --git-sha "$GIT_SHA"
+  --git-sha "$TRAINING_GIT_SHA"
 
 echo "MATCHED_HORIZON_STATUS PASS: E10/E12/E14 trained, saved, gated, and source-evaluated; no P/C0 recomputation or target evaluation"
