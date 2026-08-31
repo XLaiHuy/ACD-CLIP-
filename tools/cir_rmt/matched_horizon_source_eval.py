@@ -45,6 +45,7 @@ from tools.cir_rmt.runtime import forward_cir
 
 ROOT = Path(__file__).resolve().parents[2]
 EPOCHS = (10, 12, 14)
+GEOMETRY_MAX_ROWS = 2048
 
 
 def _write_csv(path: Path, rows: Sequence[Mapping[str, Any]], fields: Sequence[str]) -> None:
@@ -72,9 +73,17 @@ def _frozen_sample(archive: Path) -> tuple[list[int], list[dict[str, Any]], set[
 
 def _feature_drift(epoch: int, previous: Mapping[str, np.ndarray], current: Mapping[str, np.ndarray]) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
+    def bounded_geometry(value: np.ndarray) -> np.ndarray:
+        value = value.reshape(value.shape[0], -1)
+        if value.shape[0] <= GEOMETRY_MAX_ROWS:
+            return value
+        take = np.linspace(0, value.shape[0] - 1, GEOMETRY_MAX_ROWS, dtype=np.int64)
+        return value[take]
     def add(signal: str, axis: str, before: np.ndarray, after: np.ndarray) -> None:
         before = np.asarray(before, dtype=np.float64)
         after = np.asarray(after, dtype=np.float64)
+        geometry_before = bounded_geometry(before)
+        geometry_after = bounded_geometry(after)
         rows.append({
             "epoch": epoch,
             "signal": signal,
@@ -82,7 +91,8 @@ def _feature_drift(epoch: int, previous: Mapping[str, np.ndarray], current: Mapp
             "mean_cosine": _mean_cosine(before, after),
             "norm_ratio": _norm_ratio(before, after),
             "linear_cka": _linear_cka(before.reshape(-1, before.shape[-1]), after.reshape(-1, after.shape[-1]), seed=0),
-            "pairwise_geometry_corr": _pairwise_geometry_corr(before.reshape(-1, before.shape[-1]), after.reshape(-1, after.shape[-1])),
+            "pairwise_geometry_corr": _pairwise_geometry_corr(geometry_before, geometry_after),
+            "geometry_rows": int(min(geometry_before.shape[0], geometry_after.shape[0])),
         })
     for stage in range(previous["seg_pooled"].shape[0]):
         add(f"seg_stage{stage}", "feature", previous["seg_pooled"][stage], current["seg_pooled"][stage])
@@ -197,7 +207,7 @@ def run(args: argparse.Namespace) -> None:
     _write_csv(archive / "MATCHED_HORIZON_DEPLOYMENT.csv", deployments, ["epoch", "method", "metric", "value", "checkpoint_sha256", "source"])
     _write_csv(archive / "MATCHED_HORIZON_BRANCH.csv", branches, ["epoch", "method", "branch", "image_auroc", "image_ap", "mean_score", "n_images", "checkpoint_sha256", "source"])
     _write_csv(archive / "MATCHED_HORIZON_HELDOUT.csv", heldouts, ["epoch", "method", "split", "category", "n_images", "pixel_auroc", "pixel_ap", "image_auroc", "image_ap", "checkpoint_sha256", "source"])
-    _write_csv(archive / "MATCHED_HORIZON_REPRESENTATION.csv", representations, ["epoch", "method", "comparison", "signal", "axis", "mean_cosine", "norm_ratio", "linear_cka", "pairwise_geometry_corr"])
+    _write_csv(archive / "MATCHED_HORIZON_REPRESENTATION.csv", representations, ["epoch", "method", "comparison", "signal", "axis", "mean_cosine", "norm_ratio", "linear_cka", "pairwise_geometry_corr", "geometry_rows"])
     status = {"status": "PASS", "source_only": True, "epochs": list(EPOCHS), "new_checkpoints_only": True, "existing_p_c0_e10_e12_e14_reused": True, "p_c0_recomputed": False, "baseline_archive": str(baseline_archive), "medical": "NOT_RUN", "mvtec": "NOT_RUN", "n_images": len(indices), "timing_artifact": "MATCHED_HORIZON_EVAL_TIMES.csv"}
     (archive / "MATCHED_HORIZON_SOURCE_EVAL_STATUS.json").write_text(json.dumps(status, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
