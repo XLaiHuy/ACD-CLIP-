@@ -1,0 +1,34 @@
+{
+  "status": "PASS",
+  "syntax": {
+    "train_pa.py": "PASS",
+    "verify_pa_training.py": "PASS",
+    "run_pa_control.sh": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "focused_pytest": {
+    "command": "pytest -q tests/cir_rmt/test_pa_control.py tests/cir_rmt/test_parameter_anchor.py tests/cir_rmt/test_matched_training_schedule.py",
+    "result": "13 passed"
+  },
+  "real_asset_smoke": {
+    "status": "PASS",
+    "steps": 2,
+    "resume_steps": 1,
+    "rng_device_contract": "CPU ByteTensor restored successfully",
+    "scheduler_last_epoch_after_resume": 2,
+    "scheduler_step_count_after_resume": 3
+  },
+  "scientific_identity": {
+    "control_id": "PA_PHASE2B_IMAGE_ANCHOR_V1",
+    "cir_training": false,
+    "rmt_training": false,
+    "training_forward": "native_phase2b",
+    "anchor_lambda": 0.001,
+    "anchor_reference_epoch": 14,
+    "precision": "fp32",
+    "amp": false,
+    "tf32": false,
+    "target_tuning_occurred": false,
+    "mvtec": "NOT_RUN"
+  }
+}
