@@ -1,0 +1,660 @@
+{
+  "categories": [
+    "candle",
+    "capsules",
+    "cashew",
+    "chewinggum",
+    "fryum",
+    "macaroni1",
+    "macaroni2",
+    "pcb1",
+    "pcb2",
+    "pcb3",
+    "pcb4",
+    "pipe_fryum"
+  ],
+  "cir_config_sha256": "064e8acd4369645f631030b5d60abf8615e878b50e9caff6a4a8b2439b64f81c",
+  "clip_asset_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+  "holdout_categories": [
+    "cashew",
+    "macaroni2",
+    "pcb3",
+    "pipe_fryum"
+  ],
+  "manifest": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/dataset/hub/VisA.jsonl",
+  "manifest_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+  "n_images": 96,
+  "parent_config_sha256": "edf5745686e3d3d0d3b4142341569da06ad5b54025a779b78d83f74303ce67fc",
+  "per_category": 8,
+  "protocol_note": "The model was trained on all VisA categories; category partitions are an assessment split, not a true unseen-training-category counterfactual.",
+  "sample_seed": 9014,
+  "scope": "SOURCE_ONLY",
+  "selection": [
+    {
+      "class_name": "candle",
+      "image_path": "candle/Data/Images/Anomaly/047.JPG",
+      "label": 1,
+      "manifest_index": 1253,
+      "mask_path": "candle/Data/Masks/Anomaly/047.png"
+    },
+    {
+      "class_name": "candle",
+      "image_path": "candle/Data/Images/Anomaly/085.JPG",
+      "label": 1,
+      "manifest_index": 107,
+      "mask_path": "candle/Data/Masks/Anomaly/085.png"
+    },
+    {
+      "class_name": "candle",
+      "image_path": "candle/Data/Images/Anomaly/087.JPG",
+      "label": 1,
+      "manifest_index": 1497,
+      "mask_path": "candle/Data/Masks/Anomaly/087.png"
+    },
+    {
+      "class_name": "candle",
+      "image_path": "candle/Data/Images/Anomaly/096.JPG",
+      "label": 1,
+      "manifest_index": 2092,
+      "mask_path": "candle/Data/Masks/Anomaly/096.png"
+    },
+    {
+      "class_name": "candle",
+      "image_path": "candle/Data/Images/Normal/0172.JPG",
+      "label": 0,
+      "manifest_index": 1494
+    },
+    {
+      "class_name": "candle",
+      "image_path": "candle/Data/Images/Normal/0363.JPG",
+      "label": 0,
+      "manifest_index": 239
+    },
+    {
+      "class_name": "candle",
+      "image_path": "candle/Data/Images/Normal/0427.JPG",
+      "label": 0,
+      "manifest_index": 907
+    },
+    {
+      "class_name": "candle",
+      "image_path": "candle/Data/Images/Normal/0490.JPG",
+      "label": 0,
+      "manifest_index": 1289
+    },
+    {
+      "class_name": "capsules",
+      "image_path": "capsules/Data/Images/Anomaly/019.JPG",
+      "label": 1,
+      "manifest_index": 866,
+      "mask_path": "capsules/Data/Masks/Anomaly/019.png"
+    },
+    {
+      "class_name": "capsules",
+      "image_path": "capsules/Data/Images/Anomaly/035.JPG",
+      "label": 1,
+      "manifest_index": 870,
+      "mask_path": "capsules/Data/Masks/Anomaly/035.png"
+    },
+    {
+      "class_name": "capsules",
+      "image_path": "capsules/Data/Images/Anomaly/070.JPG",
+      "label": 1,
+      "manifest_index": 1281,
+      "mask_path": "capsules/Data/Masks/Anomaly/070.png"
+    },
+    {
+      "class_name": "capsules",
+      "image_path": "capsules/Data/Images/Anomaly/076.JPG",
+      "label": 1,
+      "manifest_index": 1921,
+      "mask_path": "capsules/Data/Masks/Anomaly/076.png"
+    },
+    {
+      "class_name": "capsules",
+      "image_path": "capsules/Data/Images/Normal/159.JPG",
+      "label": 0,
+      "manifest_index": 1246
+    },
+    {
+      "class_name": "capsules",
+      "image_path": "capsules/Data/Images/Normal/286.JPG",
+      "label": 0,
+      "manifest_index": 1057
+    },
+    {
+      "class_name": "capsules",
+      "image_path": "capsules/Data/Images/Normal/400.JPG",
+      "label": 0,
+      "manifest_index": 2025
+    },
+    {
+      "class_name": "capsules",
+      "image_path": "capsules/Data/Images/Normal/569.JPG",
+      "label": 0,
+      "manifest_index": 1829
+    },
+    {
+      "class_name": "cashew",
+      "image_path": "cashew/Data/Images/Anomaly/028.JPG",
+      "label": 1,
+      "manifest_index": 1936,
+      "mask_path": "cashew/Data/Masks/Anomaly/028.png"
+    },
+    {
+      "class_name": "cashew",
+      "image_path": "cashew/Data/Images/Anomaly/041.JPG",
+      "label": 1,
+      "manifest_index": 59,
+      "mask_path": "cashew/Data/Masks/Anomaly/041.png"
+    },
+    {
+      "class_name": "cashew",
+      "image_path": "cashew/Data/Images/Anomaly/057.JPG",
+      "label": 1,
+      "manifest_index": 287,
+      "mask_path": "cashew/Data/Masks/Anomaly/057.png"
+    },
+    {
+      "class_name": "cashew",
+      "image_path": "cashew/Data/Images/Anomaly/066.JPG",
+      "label": 1,
+      "manifest_index": 1178,
+      "mask_path": "cashew/Data/Masks/Anomaly/066.png"
+    },
+    {
+      "class_name": "cashew",
+      "image_path": "cashew/Data/Images/Normal/050.JPG",
+      "label": 0,
+      "manifest_index": 965
+    },
+    {
+      "class_name": "cashew",
+      "image_path": "cashew/Data/Images/Normal/148.JPG",
+      "label": 0,
+      "manifest_index": 319
+    },
+    {
+      "class_name": "cashew",
+      "image_path": "cashew/Data/Images/Normal/260.JPG",
+      "label": 0,
+      "manifest_index": 1911
+    },
+    {
+      "class_name": "cashew",
+      "image_path": "cashew/Data/Images/Normal/482.JPG",
+      "label": 0,
+      "manifest_index": 1081
+    },
+    {
+      "class_name": "chewinggum",
+      "image_path": "chewinggum/Data/Images/Anomaly/014.JPG",
+      "label": 1,
+      "manifest_index": 1045,
+      "mask_path": "chewinggum/Data/Masks/Anomaly/014.png"
+    },
+    {
+      "class_name": "chewinggum",
+      "image_path": "chewinggum/Data/Images/Anomaly/027.JPG",
+      "label": 1,
+      "manifest_index": 2150,
+      "mask_path": "chewinggum/Data/Masks/Anomaly/027.png"
+    },
+    {
+      "class_name": "chewinggum",
+      "image_path": "chewinggum/Data/Images/Anomaly/057.JPG",
+      "label": 1,
+      "manifest_index": 610,
+      "mask_path": "chewinggum/Data/Masks/Anomaly/057.png"
+    },
+    {
+      "class_name": "chewinggum",
+      "image_path": "chewinggum/Data/Images/Anomaly/085.JPG",
+      "label": 1,
+      "manifest_index": 1298,
+      "mask_path": "chewinggum/Data/Masks/Anomaly/085.png"
+    },
+    {
+      "class_name": "chewinggum",
+      "image_path": "chewinggum/Data/Images/Normal/239.JPG",
+      "label": 0,
+      "manifest_index": 2104
+    },
+    {
+      "class_name": "chewinggum",
+      "image_path": "chewinggum/Data/Images/Normal/244.JPG",
+      "label": 0,
+      "manifest_index": 235
+    },
+    {
+      "class_name": "chewinggum",
+      "image_path": "chewinggum/Data/Images/Normal/272.JPG",
+      "label": 0,
+      "manifest_index": 1781
+    },
+    {
+      "class_name": "chewinggum",
+      "image_path": "chewinggum/Data/Images/Normal/486.JPG",
+      "label": 0,
+      "manifest_index": 1724
+    },
+    {
+      "class_name": "fryum",
+      "image_path": "fryum/Data/Images/Anomaly/012.JPG",
+      "label": 1,
+      "manifest_index": 1998,
+      "mask_path": "fryum/Data/Masks/Anomaly/012.png"
+    },
+    {
+      "class_name": "fryum",
+      "image_path": "fryum/Data/Images/Anomaly/019.JPG",
+      "label": 1,
+      "manifest_index": 128,
+      "mask_path": "fryum/Data/Masks/Anomaly/019.png"
+    },
+    {
+      "class_name": "fryum",
+      "image_path": "fryum/Data/Images/Anomaly/037.JPG",
+      "label": 1,
+      "manifest_index": 814,
+      "mask_path": "fryum/Data/Masks/Anomaly/037.png"
+    },
+    {
+      "class_name": "fryum",
+      "image_path": "fryum/Data/Images/Anomaly/079.JPG",
+      "label": 1,
+      "manifest_index": 537,
+      "mask_path": "fryum/Data/Masks/Anomaly/079.png"
+    },
+    {
+      "class_name": "fryum",
+      "image_path": "fryum/Data/Images/Normal/012.JPG",
+      "label": 0,
+      "manifest_index": 1169
+    },
+    {
+      "class_name": "fryum",
+      "image_path": "fryum/Data/Images/Normal/166.JPG",
+      "label": 0,
+      "manifest_index": 1818
+    },
+    {
+      "class_name": "fryum",
+      "image_path": "fryum/Data/Images/Normal/384.JPG",
+      "label": 0,
+      "manifest_index": 84
+    },
+    {
+      "class_name": "fryum",
+      "image_path": "fryum/Data/Images/Normal/461.JPG",
+      "label": 0,
+      "manifest_index": 259
+    },
+    {
+      "class_name": "macaroni1",
+      "image_path": "macaroni1/Data/Images/Anomaly/027.JPG",
+      "label": 1,
+      "manifest_index": 1288,
+      "mask_path": "macaroni1/Data/Masks/Anomaly/027.png"
+    },
+    {
+      "class_name": "macaroni1",
+      "image_path": "macaroni1/Data/Images/Anomaly/053.JPG",
+      "label": 1,
+      "manifest_index": 540,
+      "mask_path": "macaroni1/Data/Masks/Anomaly/053.png"
+    },
+    {
+      "class_name": "macaroni1",
+      "image_path": "macaroni1/Data/Images/Anomaly/057.JPG",
+      "label": 1,
+      "manifest_index": 2118,
+      "mask_path": "macaroni1/Data/Masks/Anomaly/057.png"
+    },
+    {
+      "class_name": "macaroni1",
+      "image_path": "macaroni1/Data/Images/Anomaly/095.JPG",
+      "label": 1,
+      "manifest_index": 1504,
+      "mask_path": "macaroni1/Data/Masks/Anomaly/095.png"
+    },
+    {
+      "class_name": "macaroni1",
+      "image_path": "macaroni1/Data/Images/Normal/0027.JPG",
+      "label": 0,
+      "manifest_index": 1332
+    },
+    {
+      "class_name": "macaroni1",
+      "image_path": "macaroni1/Data/Images/Normal/0286.JPG",
+      "label": 0,
+      "manifest_index": 1891
+    },
+    {
+      "class_name": "macaroni1",
+      "image_path": "macaroni1/Data/Images/Normal/0297.JPG",
+      "label": 0,
+      "manifest_index": 1433
+    },
+    {
+      "class_name": "macaroni1",
+      "image_path": "macaroni1/Data/Images/Normal/0730.JPG",
+      "label": 0,
+      "manifest_index": 477
+    },
+    {
+      "class_name": "macaroni2",
+      "image_path": "macaroni2/Data/Images/Anomaly/039.JPG",
+      "label": 1,
+      "manifest_index": 986,
+      "mask_path": "macaroni2/Data/Masks/Anomaly/039.png"
+    },
+    {
+      "class_name": "macaroni2",
+      "image_path": "macaroni2/Data/Images/Anomaly/054.JPG",
+      "label": 1,
+      "manifest_index": 390,
+      "mask_path": "macaroni2/Data/Masks/Anomaly/054.png"
+    },
+    {
+      "class_name": "macaroni2",
+      "image_path": "macaroni2/Data/Images/Anomaly/060.JPG",
+      "label": 1,
+      "manifest_index": 2159,
+      "mask_path": "macaroni2/Data/Masks/Anomaly/060.png"
+    },
+    {
+      "class_name": "macaroni2",
+      "image_path": "macaroni2/Data/Images/Anomaly/093.JPG",
+      "label": 1,
+      "manifest_index": 862,
+      "mask_path": "macaroni2/Data/Masks/Anomaly/093.png"
+    },
+    {
+      "class_name": "macaroni2",
+      "image_path": "macaroni2/Data/Images/Normal/0011.JPG",
+      "label": 0,
+      "manifest_index": 2036
+    },
+    {
+      "class_name": "macaroni2",
+      "image_path": "macaroni2/Data/Images/Normal/0046.JPG",
+      "label": 0,
+      "manifest_index": 1762
+    },
+    {
+      "class_name": "macaroni2",
+      "image_path": "macaroni2/Data/Images/Normal/0483.JPG",
+      "label": 0,
+      "manifest_index": 549
+    },
+    {
+      "class_name": "macaroni2",
+      "image_path": "macaroni2/Data/Images/Normal/0684.JPG",
+      "label": 0,
+      "manifest_index": 1064
+    },
+    {
+      "class_name": "pcb1",
+      "image_path": "pcb1/Data/Images/Anomaly/005.JPG",
+      "label": 1,
+      "manifest_index": 1129,
+      "mask_path": "pcb1/Data/Masks/Anomaly/005.png"
+    },
+    {
+      "class_name": "pcb1",
+      "image_path": "pcb1/Data/Images/Anomaly/058.JPG",
+      "label": 1,
+      "manifest_index": 1640,
+      "mask_path": "pcb1/Data/Masks/Anomaly/058.png"
+    },
+    {
+      "class_name": "pcb1",
+      "image_path": "pcb1/Data/Images/Anomaly/064.JPG",
+      "label": 1,
+      "manifest_index": 976,
+      "mask_path": "pcb1/Data/Masks/Anomaly/064.png"
+    },
+    {
+      "class_name": "pcb1",
+      "image_path": "pcb1/Data/Images/Anomaly/085.JPG",
+      "label": 1,
+      "manifest_index": 1499,
+      "mask_path": "pcb1/Data/Masks/Anomaly/085.png"
+    },
+    {
+      "class_name": "pcb1",
+      "image_path": "pcb1/Data/Images/Normal/0016.JPG",
+      "label": 0,
+      "manifest_index": 1832
+    },
+    {
+      "class_name": "pcb1",
+      "image_path": "pcb1/Data/Images/Normal/0297.JPG",
+      "label": 0,
+      "manifest_index": 2056
+    },
+    {
+      "class_name": "pcb1",
+      "image_path": "pcb1/Data/Images/Normal/0400.JPG",
+      "label": 0,
+      "manifest_index": 1376
+    },
+    {
+      "class_name": "pcb1",
+      "image_path": "pcb1/Data/Images/Normal/0457.JPG",
+      "label": 0,
+      "manifest_index": 1745
+    },
+    {
+      "class_name": "pcb2",
+      "image_path": "pcb2/Data/Images/Anomaly/036.JPG",
+      "label": 1,
+      "manifest_index": 1573,
+      "mask_path": "pcb2/Data/Masks/Anomaly/036.png"
+    },
+    {
+      "class_name": "pcb2",
+      "image_path": "pcb2/Data/Images/Anomaly/038.JPG",
+      "label": 1,
+      "manifest_index": 354,
+      "mask_path": "pcb2/Data/Masks/Anomaly/038.png"
+    },
+    {
+      "class_name": "pcb2",
+      "image_path": "pcb2/Data/Images/Anomaly/040.JPG",
+      "label": 1,
+      "manifest_index": 332,
+      "mask_path": "pcb2/Data/Masks/Anomaly/040.png"
+    },
+    {
+      "class_name": "pcb2",
+      "image_path": "pcb2/Data/Images/Anomaly/061.JPG",
+      "label": 1,
+      "manifest_index": 812,
+      "mask_path": "pcb2/Data/Masks/Anomaly/061.png"
+    },
+    {
+      "class_name": "pcb2",
+      "image_path": "pcb2/Data/Images/Normal/0026.JPG",
+      "label": 0,
+      "manifest_index": 782
+    },
+    {
+      "class_name": "pcb2",
+      "image_path": "pcb2/Data/Images/Normal/0174.JPG",
+      "label": 0,
+      "manifest_index": 448
+    },
+    {
+      "class_name": "pcb2",
+      "image_path": "pcb2/Data/Images/Normal/0402.JPG",
+      "label": 0,
+      "manifest_index": 1100
+    },
+    {
+      "class_name": "pcb2",
+      "image_path": "pcb2/Data/Images/Normal/0730.JPG",
+      "label": 0,
+      "manifest_index": 269
+    },
+    {
+      "class_name": "pcb3",
+      "image_path": "pcb3/Data/Images/Anomaly/012.JPG",
+      "label": 1,
+      "manifest_index": 836,
+      "mask_path": "pcb3/Data/Masks/Anomaly/012.png"
+    },
+    {
+      "class_name": "pcb3",
+      "image_path": "pcb3/Data/Images/Anomaly/035.JPG",
+      "label": 1,
+      "manifest_index": 1706,
+      "mask_path": "pcb3/Data/Masks/Anomaly/035.png"
+    },
+    {
+      "class_name": "pcb3",
+      "image_path": "pcb3/Data/Images/Anomaly/038.JPG",
+      "label": 1,
+      "manifest_index": 1441,
+      "mask_path": "pcb3/Data/Masks/Anomaly/038.png"
+    },
+    {
+      "class_name": "pcb3",
+      "image_path": "pcb3/Data/Images/Anomaly/087.JPG",
+      "label": 1,
+      "manifest_index": 1691,
+      "mask_path": "pcb3/Data/Masks/Anomaly/087.png"
+    },
+    {
+      "class_name": "pcb3",
+      "image_path": "pcb3/Data/Images/Normal/0286.JPG",
+      "label": 0,
+      "manifest_index": 246
+    },
+    {
+      "class_name": "pcb3",
+      "image_path": "pcb3/Data/Images/Normal/0739.JPG",
+      "label": 0,
+      "manifest_index": 841
+    },
+    {
+      "class_name": "pcb3",
+      "image_path": "pcb3/Data/Images/Normal/0804.JPG",
+      "label": 0,
+      "manifest_index": 2116
+    },
+    {
+      "class_name": "pcb3",
+      "image_path": "pcb3/Data/Images/Normal/0900.JPG",
+      "label": 0,
+      "manifest_index": 143
+    },
+    {
+      "class_name": "pcb4",
+      "image_path": "pcb4/Data/Images/Anomaly/025.JPG",
+      "label": 1,
+      "manifest_index": 1549,
+      "mask_path": "pcb4/Data/Masks/Anomaly/025.png"
+    },
+    {
+      "class_name": "pcb4",
+      "image_path": "pcb4/Data/Images/Anomaly/030.JPG",
+      "label": 1,
+      "manifest_index": 1790,
+      "mask_path": "pcb4/Data/Masks/Anomaly/030.png"
+    },
+    {
+      "class_name": "pcb4",
+      "image_path": "pcb4/Data/Images/Anomaly/055.JPG",
+      "label": 1,
+      "manifest_index": 441,
+      "mask_path": "pcb4/Data/Masks/Anomaly/055.png"
+    },
+    {
+      "class_name": "pcb4",
+      "image_path": "pcb4/Data/Images/Anomaly/078.JPG",
+      "label": 1,
+      "manifest_index": 971,
+      "mask_path": "pcb4/Data/Masks/Anomaly/078.png"
+    },
+    {
+      "class_name": "pcb4",
+      "image_path": "pcb4/Data/Images/Normal/0174.JPG",
+      "label": 0,
+      "manifest_index": 1023
+    },
+    {
+      "class_name": "pcb4",
+      "image_path": "pcb4/Data/Images/Normal/0196.JPG",
+      "label": 0,
+      "manifest_index": 2084
+    },
+    {
+      "class_name": "pcb4",
+      "image_path": "pcb4/Data/Images/Normal/0657.JPG",
+      "label": 0,
+      "manifest_index": 2053
+    },
+    {
+      "class_name": "pcb4",
+      "image_path": "pcb4/Data/Images/Normal/0659.JPG",
+      "label": 0,
+      "manifest_index": 1879
+    },
+    {
+      "class_name": "pipe_fryum",
+      "image_path": "pipe_fryum/Data/Images/Anomaly/000.JPG",
+      "label": 1,
+      "manifest_index": 489,
+      "mask_path": "pipe_fryum/Data/Masks/Anomaly/000.png"
+    },
+    {
+      "class_name": "pipe_fryum",
+      "image_path": "pipe_fryum/Data/Images/Anomaly/017.JPG",
+      "label": 1,
+      "manifest_index": 137,
+      "mask_path": "pipe_fryum/Data/Masks/Anomaly/017.png"
+    },
+    {
+      "class_name": "pipe_fryum",
+      "image_path": "pipe_fryum/Data/Images/Anomaly/076.JPG",
+      "label": 1,
+      "manifest_index": 606,
+      "mask_path": "pipe_fryum/Data/Masks/Anomaly/076.png"
+    },
+    {
+      "class_name": "pipe_fryum",
+      "image_path": "pipe_fryum/Data/Images/Anomaly/082.JPG",
+      "label": 1,
+      "manifest_index": 230,
+      "mask_path": "pipe_fryum/Data/Masks/Anomaly/082.png"
+    },
+    {
+      "class_name": "pipe_fryum",
+      "image_path": "pipe_fryum/Data/Images/Normal/093.JPG",
+      "label": 0,
+      "manifest_index": 1196
+    },
+    {
+      "class_name": "pipe_fryum",
+      "image_path": "pipe_fryum/Data/Images/Normal/284.JPG",
+      "label": 0,
+      "manifest_index": 2034
+    },
+    {
+      "class_name": "pipe_fryum",
+      "image_path": "pipe_fryum/Data/Images/Normal/392.JPG",
+      "label": 0,
+      "manifest_index": 1711
+    },
+    {
+      "class_name": "pipe_fryum",
+      "image_path": "pipe_fryum/Data/Images/Normal/484.JPG",
+      "label": 0,
+      "manifest_index": 163
+    }
+  ],
+  "source_root": "/home/ai4/caohuy/data/VisA_20220922",
+  "source_root_sha256": "see corrective manifest"
+}

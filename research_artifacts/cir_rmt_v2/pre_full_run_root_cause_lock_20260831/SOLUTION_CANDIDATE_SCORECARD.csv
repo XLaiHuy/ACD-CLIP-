@@ -1,0 +1,6 @@
+candidate,fit_to_locked_cause,mechanistic_scope,protocol_preservation,implementation_risk,extra_compute,red_team_status,decision
+SELECTIVE_PHASE2B_ANCHOR,HIGH,"Directly constrains the image adapter implicated by E14 image-only swap and cross-epoch drift.",HIGH,MEDIUM,LOW,PASS_WITH_FALSIFIERS,SELECT
+SELECTIVE_FEATURE_ANCHOR,HIGH,"Direct feature-path response to R4, but requires a stable reference forward/features and risks changing architecture/runtime contracts.",MEDIUM,HIGH,HIGH,DEFER,REJECT_FOR_NOW
+NATIVE_PRESERVING_CIR,LOW,"Addresses an RMT transport hypothesis that is neutral in the current paired alpha audit.",HIGH,MEDIUM,LOW,FAIL_NEUTRAL_SIGNAL,REJECT
+DEPLOYMENT_CONSISTENT_TRAINING,MEDIUM,"Addresses the measured raw/deployed AP discrepancy, but K7 is shared and its causal share is unknown.",MEDIUM,MEDIUM,MEDIUM,DEFER_UNTIL_K7_ISOLATED,REJECT_FOR_NOW
+CULPRIT_LR_CONTROL,LOW,"Scheduler/LR is already matched in P and C0; changing it would re-open a resolved protocol mismatch.",LOW,HIGH,MEDIUM,FAIL_PROTOCOL_MATCH,REJECT
