@@ -1,0 +1,17 @@
+field,parent_phase2b,cir_matched_horizon,status,evidence
+source_dataset,VisA_TRAIN,VisA_TRAIN,MATCHED,same frozen source role
+seed,0,0,MATCHED,fixed seed
+clip_asset_sha256,3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02,3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02,MATCHED,same frozen CLIP asset
+precision,fp32,fp32,MATCHED,AMP and TF32 disabled
+effective_batch_size,6,6,MATCHED,"micro batch six, accumulation one"
+optimizer,Adam,Adam,MATCHED,same optimizer family
+adam_hyperparameters,"betas=(0.9,0.999),eps=1e-8,weight_decay=0","betas=(0.9,0.999),eps=1e-8,weight_decay=0",MATCHED,checkpoint param groups verified
+learning_rates,"image=1e-3,text=5e-4,prompt=1e-4","image=1e-3,text=5e-4,prompt=1e-4",MATCHED,StepLR post-state verified
+scheduler,"StepLR(step_size=1,gamma=0.9)","StepLR(step_size=1,gamma=0.9)",MATCHED,step once after each epoch
+scheduler_timing,after epoch before history/checkpoint,after epoch before history/checkpoint,MATCHED,trainer source and state verified
+loss,cls+seg+0.001*kg+0.0*k,cls+seg+0.001*kg+0.0*k,MATCHED,frozen objective
+checkpoint_schedule,E10/E12/E14,E10/E12/E14,MATCHED,matched-horizon policy
+anchor,none,"E14 image adapter, lambda=0.001, sha=3eb6e2fe12f96b84745baf0f8a013f88c7f3a739283493a2ba5e31a35ad2f6c2",INTENDED_DIFFERENCE,selected preservation intervention
+anchor_profile,not applicable,median overhead=0.345875%,MEASURED,"one real batch, no optimizer step"
+source_evaluation,frozen P/C0 rows,new C0/C05 only,MATCHED_SCOPE,no P/C0 recomputation
+medical_evaluation,not in this stage,NOT_RUN,NOT_RUN,source-only speed stage

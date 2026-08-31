@@ -1,0 +1,201 @@
+{
+  "anchor": {
+    "checkpoint": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/corrective_matched_retrain_20260830/parent/phase2b/checkpoints/adapter_14.pth",
+    "lambda_image_anchor": 0.001,
+    "scope": "image_adapter_parameters_only",
+    "sha256": "3eb6e2fe12f96b84745baf0f8a013f88c7f3a739283493a2ba5e31a35ad2f6c2",
+    "training_only": true
+  },
+  "arch_id": "CIR_DFG_RMT_V2",
+  "architecture_freeze_sha256": "f6de6ee8f1998f591c077efeff50fa9741a9f8bad34603ba145ec54ef961ba86",
+  "architecture_version": 2,
+  "clip_asset": {
+    "path": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v1/model/ViT-L-14-336px.pt",
+    "sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02"
+  },
+  "config_sha256": "064e8acd4369645f631030b5d60abf8615e878b50e9caff6a4a8b2439b64f81c",
+  "evaluator_git_sha": "65d0783",
+  "excluded_large_artifacts": [
+    "raw checkpoints",
+    "raw per-pixel stores",
+    "memmaps",
+    "caches",
+    "evaluator spools",
+    "temporary logs"
+  ],
+  "experiment_id": "matched_horizon_anchor_e14_20260831",
+  "git_sha": "7d4ae4b8261aee8fa0d012188de1984296f7e7cf",
+  "manifest_version": 1,
+  "medical": {
+    "artifact": "corrected_medical_decomposition.csv",
+    "reason": "target evaluation intentionally excluded from this source-only speed stage",
+    "status": "NOT_RUN"
+  },
+  "mvtec": {
+    "status": "NOT_RUN"
+  },
+  "optimizer": {
+    "betas": [
+      0.9,
+      0.999
+    ],
+    "effective_batch_size": 6,
+    "eps": 1e-08,
+    "family": "Adam",
+    "gradient_clip_norm": 1.0,
+    "weight_decay": 0.0
+  },
+  "parent_config_sha256": "d24cf942684b0be3c12838699ec6fe452697bd7f0a58eabbf316fb79b1b18cdb",
+  "profile": {
+    "anchor_overhead_percent": 0.34587546734808927,
+    "artifact": "ANCHOR_OVERHEAD_PROFILE.json",
+    "status": "PASS"
+  },
+  "scheduler": {
+    "family": "StepLR",
+    "gamma": 0.9,
+    "step_size": 1,
+    "timing": "after_epoch_before_history_and_checkpoint"
+  },
+  "scope": "source_only_matched_horizon",
+  "seed": 0,
+  "source": {
+    "name": "VisA",
+    "path_probe_sha256": "098f7cceef433c2e36992f75cca95a027e1601075de6ca04d0d385045aaae4a6",
+    "role": "VisA_TRAIN",
+    "root": "/home/ai4/caohuy/data/VisA_20220922",
+    "sample_identity": "research_artifacts/cir_rmt_v2/pre_full_run_root_cause_lock_20260831/SOURCE_SAMPLE_IDENTITY.json",
+    "sample_images": 96
+  },
+  "source_evaluation": {
+    "decomposition": "MATCHED_HORIZON_SOURCE_DECOMPOSITION.csv",
+    "epochs": [
+      10,
+      12,
+      14
+    ],
+    "frozen_p_c0_reused": true,
+    "new_cir_only_forward": true,
+    "results": "MATCHED_HORIZON_SOURCE_RESULTS.csv",
+    "status": "PASS"
+  },
+  "status": "PASS",
+  "timestamp_utc": "2026-08-31T10:43:44.708642+00:00",
+  "training": {
+    "candidate_epochs": [
+      10,
+      12,
+      14
+    ],
+    "checkpoints": [
+      {
+        "anchor_reference_sha256": "3eb6e2fe12f96b84745baf0f8a013f88c7f3a739283493a2ba5e31a35ad2f6c2",
+        "checkpoint_sha256": "58af2ea6e3d92232498e3cb9bcf40b251e7116cfbac9a34d1abd4b07487aeaf0",
+        "epoch": 10,
+        "optimizer_group_names": [
+          "image_adapter",
+          "text_adapter",
+          "soft_prompt"
+        ],
+        "optimizer_lrs": [
+          0.0003486784401,
+          0.00017433922005,
+          9e-05
+        ],
+        "path": "runs/cir_rmt/CIR_DFG_RMT_V2/matched_horizon_anchor_e14_20260831/visa/seed0/checkpoints/epoch_10.pth",
+        "scheduler_last_epoch": 10,
+        "scheduler_step_count": 11
+      },
+      {
+        "anchor_reference_sha256": "3eb6e2fe12f96b84745baf0f8a013f88c7f3a739283493a2ba5e31a35ad2f6c2",
+        "checkpoint_sha256": "bbbbfc6e24ac9dd1bfa87b596e3f6fe17a1b06cee6f5d4522ef67c4147a7e2f9",
+        "epoch": 12,
+        "optimizer_group_names": [
+          "image_adapter",
+          "text_adapter",
+          "soft_prompt"
+        ],
+        "optimizer_lrs": [
+          0.00028242953648100003,
+          0.00014121476824050002,
+          9e-05
+        ],
+        "path": "runs/cir_rmt/CIR_DFG_RMT_V2/matched_horizon_anchor_e14_20260831/visa/seed0/checkpoints/epoch_12.pth",
+        "scheduler_last_epoch": 12,
+        "scheduler_step_count": 13
+      },
+      {
+        "anchor_reference_sha256": "3eb6e2fe12f96b84745baf0f8a013f88c7f3a739283493a2ba5e31a35ad2f6c2",
+        "checkpoint_sha256": "9b8fc5e7760037e772c9bd63d98ce56fcbbaa04f021258ca0d23aa8f2bf5ab81",
+        "epoch": 14,
+        "optimizer_group_names": [
+          "image_adapter",
+          "text_adapter",
+          "soft_prompt"
+        ],
+        "optimizer_lrs": [
+          0.00022876792454961005,
+          0.00011438396227480502,
+          9e-05
+        ],
+        "path": "runs/cir_rmt/CIR_DFG_RMT_V2/matched_horizon_anchor_e14_20260831/visa/seed0/checkpoints/epoch_14.pth",
+        "scheduler_last_epoch": 14,
+        "scheduler_step_count": 15
+      }
+    ],
+    "e10_gate": {
+      "checkpoint_state_finite": true,
+      "epoch": 10,
+      "gradient_probe": {
+        "anchor_grad_l2": 6.017703708494082e-05,
+        "anchor_to_base_ratio": 0.0001456244783100203,
+        "base_grad_l2": 0.4132343530654907
+      },
+      "model_finite": true,
+      "reasons": [],
+      "small_metric_differences_do_not_abort": true,
+      "stage": "CIR/E10-CATASTROPHIC-FAILURE-GATE",
+      "status": "PASS",
+      "thresholds": {
+        "anchor_to_base_gradient_ratio_abort_gt": 10.0
+      }
+    },
+    "max_epoch": 14,
+    "resume_cursor": {
+      "epoch": 14,
+      "path": "runs/cir_rmt/CIR_DFG_RMT_V2/matched_horizon_anchor_e14_20260831/visa/seed0/last.pth",
+      "scheduler_last_epoch": 14,
+      "scheduler_step_count": 15,
+      "sha256": "9b8fc5e7760037e772c9bd63d98ce56fcbbaa04f021258ca0d23aa8f2bf5ab81"
+    },
+    "run_manifest": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/matched_horizon_anchor_e14_20260831/visa/seed0/run_manifest.json",
+    "run_root": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/matched_horizon_anchor_e14_20260831",
+    "status": "COMPLETED",
+    "train_wall_seconds": 13278.694292679895
+  },
+  "versioned_artifacts": [
+    "ANCHOR_OVERHEAD_PROFILE.json",
+    "CORRECTED_GO_NO_GO_DECISION.md",
+    "CORRECTED_RESULTS_SUMMARY.md",
+    "CORRECTIVE_MATCH_LEDGER.csv",
+    "CORRECTIVE_TRAINING_AUDIT.md",
+    "MATCHED_HORIZON_AP_TAIL.csv",
+    "MATCHED_HORIZON_AUDIT.md",
+    "MATCHED_HORIZON_BRANCH.csv",
+    "MATCHED_HORIZON_DEPLOYMENT.csv",
+    "MATCHED_HORIZON_EVAL_TIMES.csv",
+    "MATCHED_HORIZON_HELDOUT.csv",
+    "MATCHED_HORIZON_REPRESENTATION.csv",
+    "MATCHED_HORIZON_SOURCE_DECOMPOSITION.csv",
+    "MATCHED_HORIZON_SOURCE_EVAL_STATUS.json",
+    "MATCHED_HORIZON_SOURCE_RESULTS.csv",
+    "MATCHED_HORIZON_TIME_REPORT.md",
+    "RUNNER_CONTRACT.md",
+    "cir_lr_history.csv",
+    "corrected_medical_decomposition.csv",
+    "corrected_source_decomposition.csv",
+    "parent_lr_history.csv",
+    "CORRECTIVE_MANIFEST.json",
+    "SHA256SUMS.txt"
+  ]
+}
