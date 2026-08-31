@@ -116,6 +116,66 @@ def validate_resume(payload: Mapping[str, Any], cir_config: Mapping[str, Any], s
             raise ValueError("CIR resume image-anchor reference mismatch")
 
 
+def _gradient_l2(gradients: list[torch.Tensor | None]) -> float:
+    values = [gradient.detach().float().pow(2).sum() for gradient in gradients if gradient is not None]
+    return float(torch.sqrt(torch.stack(values).sum()).item()) if values else 0.0
+
+
+def _finite_state_mapping(state: Mapping[str, Any]) -> bool:
+    for value in state.values():
+        if isinstance(value, Mapping):
+            if not _finite_state_mapping(value):
+                return False
+        elif isinstance(value, torch.Tensor) and not bool(torch.isfinite(value).all()):
+            return False
+    return True
+
+
+def e10_catastrophic_failure_gate(
+    *,
+    model: Any,
+    checkpoint_payload_value: Mapping[str, Any],
+    cir_config: Mapping[str, Any],
+    source: str,
+    row: Mapping[str, Any],
+    gradient_probe: Mapping[str, float] | None,
+    git_sha: str | None,
+) -> dict[str, Any]:
+    """Abort only on structural E10 failures, never on small metric changes."""
+    reasons: list[str] = []
+    model_finite = all(bool(torch.isfinite(parameter.detach()).all()) for parameter in model.parameters())
+    payload_finite = _finite_state_mapping(checkpoint_payload_value)
+    if not model_finite or not payload_finite:
+        reasons.append("nonfinite_model_or_checkpoint_state")
+    try:
+        validate_checkpoint_identity(checkpoint_payload_value, cir_config, source_dataset=source, expected_git_sha=git_sha, expected_epoch=10)
+    except Exception as exc:  # pragma: no cover - exact exception text is serialized for the run audit
+        reasons.append(f"checkpoint_identity_failure:{type(exc).__name__}:{exc}")
+    if int(row.get("batches", 0)) < 1:
+        reasons.append("no_completed_training_batch")
+    if float(row.get("rmt_delta_abs_mean", 0.0)) <= 0.0:
+        reasons.append("rmt_path_inactive")
+    if gradient_probe is not None:
+        base_norm = float(gradient_probe.get("base_grad_l2", 0.0))
+        anchor_norm = float(gradient_probe.get("anchor_grad_l2", 0.0))
+        ratio = float(gradient_probe.get("anchor_to_base_ratio", 0.0))
+        if not all(np.isfinite(value) for value in (base_norm, anchor_norm, ratio)):
+            reasons.append("nonfinite_gradient_probe")
+        elif ratio > 10.0:
+            reasons.append("severe_anchor_gradient_domination")
+    return {
+        "stage": "CIR/E10-CATASTROPHIC-FAILURE-GATE",
+        "epoch": 10,
+        "status": "PASS" if not reasons else "FAIL",
+        "reasons": reasons,
+        "small_metric_differences_do_not_abort": True,
+        "model_finite": model_finite,
+        "checkpoint_state_finite": payload_finite,
+        "gradient_probe": dict(gradient_probe or {}),
+        "thresholds": {"anchor_to_base_gradient_ratio_abort_gt": 10.0},
+    }
+
+
 def train(args: argparse.Namespace) -> dict[str, Any]:
     cir_config = load_cir_config(args.config)
     parent_path = Path(cir_config.get("parent_config_path", "configs/phase2b_canonical_v1.json"))
@@ -127,6 +187,11 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
     if parent_config["effective_batch_size"] != 6:
         raise ValueError("canonical CIR effective batch size must be six")
     candidate_epochs = tuple(int(item) for item in parent_config["candidate_epochs"])
+    matched_horizon_e14 = bool(getattr(args, "matched_horizon_e14", False))
+    if matched_horizon_e14:
+        if int(parent_config["epochs"]) != 14:
+            raise ValueError("matched-horizon E14 mode requires --epochs 14")
+        candidate_epochs = tuple(epoch for epoch in candidate_epochs if epoch <= 14)
     if not candidate_epochs:
         raise ValueError("canonical CIR candidate epoch schedule must not be empty")
     if source == "visa" and not args.source_root.is_dir():
@@ -154,12 +219,12 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
     print("PREFETCH    : " + str(args.prefetch_factor))
     print("=" * 60)
     model = build_phase2b_trainable(parent_config, args.clip_asset, device)
-    image_anchor_lambda = float(args.image_anchor_lambda)
+    image_anchor_lambda = float(getattr(args, "image_anchor_lambda", 0.0))
     if image_anchor_lambda < 0.0:
         raise ValueError("--image-anchor-lambda must be non-negative")
     image_anchor = None
     if image_anchor_lambda > 0.0:
-        if args.image_anchor_checkpoint is None:
+        if getattr(args, "image_anchor_checkpoint", None) is None:
             raise ValueError("--image-anchor-checkpoint is required when --image-anchor-lambda is positive")
         image_anchor = load_image_parameter_anchor(args.image_anchor_checkpoint, model, device)
     generator = make_dataloader_generator(int(args.seed))
@@ -181,12 +246,16 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
     if smoke_target is not None and smoke_target < 1:
         raise ValueError("--smoke-steps must request at least one optimizer step")
     smoke_start_step = int(global_step)
+    train_started = time.perf_counter()
+    e10_gate: dict[str, Any] | None = None
+    quiet_progress = bool(getattr(args, "quiet_progress", False))
     for epoch in range(start_epoch, int(parent_config["epochs"]) + 1):
         _, beta, soft_frozen = _set_epoch_state(model, optimizer, parent_config, epoch)
         model.train(); model.clipmodel.eval(); model.image_encoder.eval(); optimizer.zero_grad(set_to_none=True)
         sums = {"loss": 0.0, "cls": 0.0, "seg": 0.0, "image_anchor": 0.0}
         count = 0
         active, mad_values, delta_values, saturation_values = [], [], [], []
+        gradient_probe: dict[str, float] | None = None
         started = time.perf_counter()
         iterator = iter(loader); total_batches = len(loader)
         progress = tqdm(
@@ -194,6 +263,7 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
             desc=f"CIR/TRAIN-{source.upper()} E{epoch:02d}",
             leave=False,
             dynamic_ncols=True,
+            disable=quiet_progress,
         )
         try:
             for batch_index, batch in enumerate(progress, start=1):
@@ -216,6 +286,17 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
                 loss = base_loss + image_anchor_lambda * image_anchor_loss
                 if not torch.isfinite(loss):
                     raise FloatingPointError(f"non-finite CIR loss at epoch={epoch} batch={batch_index}")
+                if epoch == 10 and batch_index == 1:
+                    image_parameters = [parameter for parameter in model.image_adapter.parameters() if parameter.requires_grad]
+                    base_gradients = torch.autograd.grad(base_loss, image_parameters, retain_graph=True, allow_unused=True)
+                    anchor_component = image_anchor_lambda * image_anchor_loss
+                    if image_anchor is not None and anchor_component.requires_grad:
+                        anchor_gradients = torch.autograd.grad(anchor_component, image_parameters, retain_graph=True, allow_unused=True)
+                    else:
+                        anchor_gradients = [None for _ in image_parameters]
+                    base_norm = _gradient_l2(list(base_gradients))
+                    anchor_norm = _gradient_l2(list(anchor_gradients))
+                    gradient_probe = {"base_grad_l2": base_norm, "anchor_grad_l2": anchor_norm, "anchor_to_base_ratio": anchor_norm / max(base_norm, 1.0e-12)}
                 divisor = grad_accum_window_size(batch_index, total_batches, int(args.grad_accum_steps))
                 (loss / float(divisor)).backward()
                 assert_phase2b_gradient_contract(model, soft_prompt_trainable=(not soft_frozen and bool(parent_config.get("soft_prompt_trainable", True))))
@@ -263,18 +344,31 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
             "lr": float(optimizer.param_groups[0]["lr"]),
             "images_per_sec": images_per_sec,
             "peak_vram_bytes": peak_vram,
+            "peak_reserved_vram_bytes": int(torch.cuda.max_memory_reserved(device)) if device.type == "cuda" else 0,
             "beta": beta,
             "elapsed_seconds": elapsed,
+            "batches": count,
+            "e10_gradient_probe": gradient_probe,
             "checkpoint_saved": False,
         }
         if epoch in candidate_epochs and smoke_target is None:
             checkpoint_root.mkdir(parents=True, exist_ok=True)
-            write_torch_checkpoint_atomic(checkpoint_root / f"epoch_{epoch:02d}.pth", checkpoint_payload(model, parent_config, cir_config, source, epoch, global_step, optimizer, scheduler, generator, args.git_sha, image_anchor=image_anchor, image_anchor_lambda=image_anchor_lambda))
+            candidate_checkpoint_payload = checkpoint_payload(model, parent_config, cir_config, source, epoch, global_step, optimizer, scheduler, generator, args.git_sha, image_anchor=image_anchor, image_anchor_lambda=image_anchor_lambda)
+            checkpoint_path = checkpoint_root / f"epoch_{epoch:02d}.pth"
+            write_torch_checkpoint_atomic(checkpoint_path, candidate_checkpoint_payload)
             row["checkpoint_saved"] = True
+            if epoch == 10:
+                e10_gate = e10_catastrophic_failure_gate(model=model, checkpoint_payload_value=candidate_checkpoint_payload, cir_config=cir_config, source=source, row=row, gradient_probe=gradient_probe, git_sha=args.git_sha)
+                _write_json(run_root / "E10_CATASTROPHIC_FAILURE_GATE.json", e10_gate)
+                if e10_gate["status"] != "PASS":
+                    raise RuntimeError("E10 catastrophic-failure gate failed: " + "; ".join(str(reason) for reason in e10_gate["reasons"]))
+            if quiet_progress and row["checkpoint_saved"]:
+                print(f"MATCHED_HORIZON_CHECKPOINT epoch={epoch} path={checkpoint_path} elapsed_seconds={elapsed:.3f}", flush=True)
         run_root.mkdir(parents=True, exist_ok=True)
         write_torch_checkpoint_atomic(run_root / "last.pth", checkpoint_payload(model, parent_config, cir_config, source, epoch, global_step, optimizer, scheduler, generator, args.git_sha, image_anchor=image_anchor, image_anchor_lambda=image_anchor_lambda))
         history.append(row)
-        print(json.dumps(row, sort_keys=True))
+        if not quiet_progress or epoch in candidate_epochs:
+            print(json.dumps(row, sort_keys=True), flush=True)
         if smoke_target is not None and global_step - smoke_start_step >= smoke_target:
             break
     if smoke_target is not None:
@@ -286,7 +380,7 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
             )
     else:
         completed_steps = None
-    manifest = {"stage": f"CIR/TRAIN-{source.upper()}", "status": "SMOKE_PASS" if smoke_target is not None else "COMPLETED", "arch_id": cir_config["arch_id"], "source": source, "seed": int(args.seed), "config_sha256": config_sha256(cir_config), "git_sha": args.git_sha, "epochs": [row["epoch"] for row in history], "target_epochs": list(candidate_epochs), "trainable_parameters": trainable_parameter_counts(model), "image_anchor": image_anchor.metadata(image_anchor_lambda) if image_anchor is not None else {"enabled": False, "lambda_image_anchor": image_anchor_lambda, "scope": "image_adapter_parameters_only", "train_only": True}, "history": history}
+    manifest = {"stage": f"CIR/TRAIN-{source.upper()}", "status": "SMOKE_PASS" if smoke_target is not None else "COMPLETED", "arch_id": cir_config["arch_id"], "source": source, "seed": int(args.seed), "config_sha256": config_sha256(cir_config), "git_sha": args.git_sha, "epochs": [row["epoch"] for row in history], "target_epochs": list(candidate_epochs), "trainable_parameters": trainable_parameter_counts(model), "image_anchor": image_anchor.metadata(image_anchor_lambda) if image_anchor is not None else {"enabled": False, "lambda_image_anchor": image_anchor_lambda, "scope": "image_adapter_parameters_only", "train_only": True}, "e10_catastrophic_failure_gate": e10_gate, "train_wall_seconds": time.perf_counter() - train_started, "max_epoch": int(parent_config["epochs"]), "candidate_checkpoint_policy": "E10/E12/E14 only in matched-horizon mode; last.pth is an atomic resume cursor", "history": history}
     _write_json(run_root / "run_manifest.json", manifest)
     if smoke_target is not None:
         _write_json(run_root / "G5_SMOKE.json", {
@@ -325,6 +419,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--pin-memory", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--persistent-workers", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--smoke-steps", type=int)
+    parser.add_argument("--matched-horizon-e14", action="store_true", help="Cap the run at E14 and retain only E10/E12/E14 candidate checkpoints.")
+    parser.add_argument("--quiet-progress", action="store_true", help="Suppress per-batch progress; retain milestone and final records.")
     parser.add_argument("--image-anchor-checkpoint", type=Path)
     parser.add_argument("--image-anchor-lambda", type=float, default=0.0)
     parser.add_argument("--git-sha", default="WORKTREE_SHA")
