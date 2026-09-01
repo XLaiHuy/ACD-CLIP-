@@ -7,6 +7,7 @@ from torch.utils.checkpoint import checkpoint
 
 from .adapter_modules import TextLoraAdapter, MLPAdapter, ConvLoraAdapter, DFGSS2DResidualBranch
 from .soft_prompt import SoftPromptLearner
+from h2_clean.contract import cir_adjust_native_logits
 
 
 class AddWeight(nn.Module):
@@ -303,6 +304,10 @@ class ACDCLIP(nn.Module):
             img_size: int = 518,
             test_mode: bool = False,
             domain: str = "Industrial",
+            cir_training: bool = False,
+            cir_alpha: float = 0.0,
+            cir_peer_count: int = 8,
+            cir_spatial_radius: int = 3,
     ):
         """
         Fuse vision and text features using a gating mechanism.
@@ -335,6 +340,34 @@ class ACDCLIP(nn.Module):
             fused_feature = torch.matmul(img_feat, group_text_features)  # [bs, patch_num, 2]
             seg_logits = fused_feature.permute(0, 2, 1).view(B, 2, H, H)  # [bs, 2, H, H]
             group_seg_preds.append(seg_logits)  # [bs, 2, H, H]
+        # CIR is a train-only intervention.  The disabled/zero branch leaves
+        # the historical native tensor untouched, including its autograd path.
+        if not test_mode and cir_training and float(cir_alpha) != 0.0:
+            native_logits = torch.stack(group_seg_preds, dim=0).flatten(start_dim=-2)
+            adjusted_logits, cir_stats = cir_adjust_native_logits(
+                native_logits,
+                vision_tokens,
+                cir_alpha,
+                peer_count=cir_peer_count,
+                spatial_radius=cir_spatial_radius,
+            )
+            adjusted_logits = adjusted_logits.view(self.n_groups, B, 2, H, H)
+            group_seg_preds = [adjusted_logits[i] for i in range(self.n_groups)]
+            self._last_cir_stats = {
+                "enabled": True,
+                "alpha": float(cir_alpha),
+                "peer_valid_fraction": float(cir_stats["valid"].float().mean().item()),
+                "peer_candidate_mean": float(cir_stats["candidate_count"].float().mean().item()),
+                "delta_abs_mean": float(cir_stats["delta_abs_mean"].item()),
+                "delta_saturation_fraction": float(cir_stats["delta_saturation_fraction"].item()),
+                "delta_detached": not cir_stats["delta"].requires_grad,
+            }
+        else:
+            self._last_cir_stats = {
+                "enabled": False,
+                "alpha": float(cir_alpha),
+                "inference_or_zero": True,
+            }
         if test_mode:
             sigma = 1 if domain == "Industrial" else 1.5
             kernel_size = 7 if domain == "Industrial" else 9

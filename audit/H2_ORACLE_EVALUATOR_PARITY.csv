@@ -1,0 +1,16 @@
+evidence,mode,epoch,dataset,pixel_auc,pixel_ap,image_auc,image_ap,pixel_stride,rounding,source,status
+H2_HISTORICAL_PARSER,legacy_h2_replay,10,Brain,0.9524,0.3828,0.7987,0.9357,4,class_round4,base_historical_parsed_results.csv,PASS
+H2_HISTORICAL_PARSER,legacy_h2_replay,10,Liver,0.9707,0.0681,0.5924,0.4786,4,class_round4,base_historical_parsed_results.csv,PASS
+H2_HISTORICAL_PARSER,legacy_h2_replay,10,Retina,0.9220,0.4039,0.7584,0.7069,4,class_round4,base_historical_parsed_results.csv,PASS
+H2_HISTORICAL_PARSER,legacy_h2_replay,10,Colon_clinicDB,0.8906,0.5746,0.0,0.0,4,class_round4,base_historical_parsed_results.csv,PASS_SINGLE_CLASS_IMAGE_GUARD
+H2_HISTORICAL_PARSER,legacy_h2_replay,10,Colon_colonDB,0.8388,0.3570,0.0,0.0,4,class_round4,base_historical_parsed_results.csv,PASS_SINGLE_CLASS_IMAGE_GUARD
+H2_HISTORICAL_PARSER,legacy_h2_replay,10,Colon_Kvasir,0.8840,0.6345,0.0,0.0,4,class_round4,base_historical_parsed_results.csv,PASS_SINGLE_CLASS_IMAGE_GUARD
+H2_HISTORICAL_MACRO,legacy_h2_replay,10,ALL_MEDICAL_MACRO,0.9097500000,0.4034833333,,,4,class_round4_then_macro,rounded_historical_class_rows,PASS
+H2_CURRENT_EXACT_REFERENCE,benchmark_exact,10,Brain,0.9520292839784856,0.3828013383091009,0.7982743902439025,0.9354835382644038,1,raw_exact,research_artifacts/h2_anchor_cir_master_20260901/H2_ORACLE_REPLAY.csv,PASS_REFERENCE
+H2_CURRENT_EXACT_REFERENCE,benchmark_exact,10,Liver,0.9704753659107919,0.06818662978589149,0.5921896031139728,0.478817288179643,1,raw_exact,research_artifacts/h2_anchor_cir_master_20260901/H2_ORACLE_REPLAY.csv,PASS_REFERENCE
+H2_CURRENT_EXACT_REFERENCE,benchmark_exact,10,Retina,0.9217404263331043,0.404723758540213,0.7584141808872862,0.7072191677588493,1,raw_exact,research_artifacts/h2_anchor_cir_master_20260901/H2_ORACLE_REPLAY.csv,PASS_REFERENCE
+H2_CURRENT_EXACT_REFERENCE,benchmark_exact,10,Colon_clinicDB,0.8897592833311395,0.5745580947454461,0.0,0.0,1,raw_exact,research_artifacts/h2_anchor_cir_master_20260901/H2_ORACLE_REPLAY.csv,PASS_SINGLE_CLASS_IMAGE_GUARD
+H2_CURRENT_EXACT_REFERENCE,benchmark_exact,10,Colon_colonDB,0.8379044940342908,0.35714364916681673,0.0,0.0,1,raw_exact,research_artifacts/h2_anchor_cir_master_20260901/H2_ORACLE_REPLAY.csv,PASS_SINGLE_CLASS_IMAGE_GUARD
+H2_CURRENT_EXACT_REFERENCE,benchmark_exact,10,Colon_Kvasir,0.8834224212399449,0.6349704025559091,0.0,0.0,1,raw_exact,research_artifacts/h2_anchor_cir_master_20260901/H2_ORACLE_REPLAY.csv,PASS_SINGLE_CLASS_IMAGE_GUARD
+H2_CURRENT_EXACT_REFERENCE,benchmark_exact,10,ALL_MEDICAL_MACRO,0.9092218791379595,0.40373064551722954,0.7162927247483871,0.7071733314009654,1,raw_exact,research_artifacts/h2_anchor_cir_master_20260901/H2_ORACLE_REPLAY.csv,PASS_REFERENCE
+H2_CURRENT_CANDIDATE_BOUNDED,benchmark_exact,10,Brain,0.95202911,0.38280072,0.79827940,0.93548626,1,raw_exact_displayed_6dp,/tmp/h2_oracle_benchmark_spool/test.log,PASS_BOUNDED

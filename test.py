@@ -20,6 +20,7 @@ from model.adapter import (
     ACDCLIP
 )
 from model.clip import create_model
+from h2_clean.exact_metrics import ExactBinaryAccumulator
 
 
 def get_epoch_from_checkpoint(path: str) -> int:
@@ -100,11 +101,18 @@ def get_streaming_metrics(
         device,
         class_name: str,
         dataset: str = "MVTec",
-        thresholds: int = 1000,
+        thresholds: int | None = 1000,
         pixel_stride: int = 1,
+        round_result: bool = True,
+        spool_root: str | Path | None = None,
 ):
-    pixel_auc = BinaryAUROC(thresholds=thresholds)
-    pixel_ap = BinaryAveragePrecision(thresholds=thresholds)
+    pixel_spool = (
+        ExactBinaryAccumulator(spool_root)
+        if thresholds is None and spool_root is not None
+        else None
+    )
+    pixel_auc = None if pixel_spool is not None else BinaryAUROC(thresholds=thresholds)
+    pixel_ap = None if pixel_spool is not None else BinaryAveragePrecision(thresholds=thresholds)
     image_labels = []
     image_preds = []
 
@@ -149,8 +157,11 @@ def get_streaming_metrics(
         else:
             seg_pred_eval = seg_pred
             mask_eval = mask
-        pixel_auc.update(seg_pred_eval.detach().flatten().cpu(), mask_eval.detach().flatten().cpu())
-        pixel_ap.update(seg_pred_eval.detach().flatten().cpu(), mask_eval.detach().flatten().cpu())
+        if pixel_spool is not None:
+            pixel_spool.update(seg_pred_eval, mask_eval)
+        else:
+            pixel_auc.update(seg_pred_eval.detach().flatten().cpu(), mask_eval.detach().flatten().cpu())
+            pixel_ap.update(seg_pred_eval.detach().flatten().cpu(), mask_eval.detach().flatten().cpu())
         image_labels.append(label.detach().cpu())
         image_preds.append(pred_image.detach().cpu())
 
@@ -166,12 +177,24 @@ def get_streaming_metrics(
         image_auc = torch.tensor(0.0)
         image_ap = torch.tensor(0.0)
 
+    def display_metric(value: torch.Tensor | float) -> float:
+        value = float(value.item()) if torch.is_tensor(value) else float(value)
+        return (round(value, 4) if round_result else value) * 100
+
+    if pixel_spool is not None:
+        try:
+            pixel_auc_value, pixel_ap_value = pixel_spool.compute()
+        finally:
+            pixel_spool.cleanup()
+    else:
+        pixel_auc_value = pixel_auc.compute()
+        pixel_ap_value = pixel_ap.compute()
     return {
         "class name": class_name,
-        "pixel AUC": round(pixel_auc.compute().item(), 4) * 100,
-        "pixel AP": round(pixel_ap.compute().item(), 4) * 100,
-        "image AUC": round(image_auc.item(), 4) * 100,
-        "image AP": round(image_ap.item(), 4) * 100,
+        "pixel AUC": display_metric(pixel_auc_value),
+        "pixel AP": display_metric(pixel_ap_value),
+        "image AUC": display_metric(image_auc),
+        "image AP": display_metric(image_ap),
     }
 
 
@@ -248,6 +271,13 @@ def main():
         help="Use streaming binned AUROC/AP with this many thresholds to avoid storing all pixel maps. Default: exact metrics.",
     )
     parser.add_argument(
+        "--evaluator_mode",
+        choices=["legacy_h2_replay", "benchmark_exact"],
+        default="legacy_h2_replay",
+        help="legacy_h2_replay preserves historical stride/rounding; benchmark_exact forces stride 1 and raw exact metrics.",
+    )
+
+    parser.add_argument(
         "--pixel_stride",
         type=int,
         default=1,
@@ -270,6 +300,11 @@ def main():
     if args.use_soft_prompt and args.use_hybrid_soft_prompt:
         raise ValueError("--use_soft_prompt and --use_hybrid_soft_prompt are mutually exclusive")
     # ========================================================
+    if args.evaluator_mode == "benchmark_exact":
+        if args.metric_thresholds is not None:
+            raise ValueError("benchmark_exact forbids binned --metric_thresholds")
+        if args.pixel_stride != 1:
+            raise ValueError("benchmark_exact requires --pixel_stride 1")
     os.makedirs(args.save_path, exist_ok=True)
     logging.basicConfig(
         filename=os.path.join(args.save_path, "test.log"),
@@ -484,7 +519,20 @@ def main():
             )
             with torch.no_grad():
                 class_text_embeddings = text_embeddings[class_name]
-                if args.metric_thresholds is None:
+                if args.evaluator_mode == "benchmark_exact":
+                    class_result_dict = get_streaming_metrics(
+                        model=model,
+                        class_text_embeddings=class_text_embeddings,
+                        test_loader=image_dataloader,
+                        device=device,
+                        class_name=class_name,
+                        dataset=args.dataset,
+                        thresholds=None,
+                        pixel_stride=1,
+                        round_result=False,
+                        spool_root=Path(args.save_path) / ".h2_exact_spool" / f"{args.dataset}_{class_name}",
+                    )
+                elif args.metric_thresholds is None:
                     masks, labels, preds, preds_image, file_names = get_predictions(
                         model=model,
                         class_text_embeddings=class_text_embeddings,
@@ -499,6 +547,7 @@ def main():
                         preds_image,
                         class_name,
                         domain=DOMAINS[args.dataset],
+                        round_result=True,
                     )
                 else:
                     class_result_dict = get_streaming_metrics(
@@ -510,6 +559,7 @@ def main():
                         dataset=args.dataset,
                         thresholds=args.metric_thresholds,
                         pixel_stride=args.pixel_stride,
+                        round_result=True,
                     )
             df.loc[len(df)] = Series(class_result_dict)
             if use_cuda:

@@ -1,0 +1,80 @@
+{
+  "status": "PASS",
+  "hash_search_root": "/home/ai4/caohuy",
+  "checkpoint_path": "/home/ai4/caohuy/ACD-CLIP-base-new-phase1/runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/adapter_10.pth",
+  "checkpoint_sha256": "ae27443f99020588298a9ecc6dfc833a83ebe7a752f00e8524042d5a84a2c0cb",
+  "parent_run_directory": "/home/ai4/caohuy/ACD-CLIP-base-new-phase1/runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch",
+  "artifact_worktree": "/home/ai4/caohuy/ACD-CLIP-base-new-phase1",
+  "artifact_worktree_head_at_audit": "11134b81998902ff43b7ac42a38acda64bd28127",
+  "exact_h2_source_commit": "e03966997d4cecfd985943a4053a93e1e40197ec",
+  "clean_branch": "research/h2-clean-repro-anchor-cir-v1",
+  "clean_worktree": "/home/ai4/caohuy/ACD-CLIP-base-new-phase1-h2-anchor-cir-20260901",
+  "train_log": {
+    "path": "/home/ai4/caohuy/ACD-CLIP-base-new-phase1/runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/train.log",
+    "sha256": "c4eef1918739d25b82239986f7730118a59947777955612c8dd7bf2c9d98de73"
+  },
+  "test_log": {
+    "path": "/home/ai4/caohuy/ACD-CLIP-base-new-phase1/runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/test.log",
+    "sha256": "7244861362404150962470e4bc4ff986a4b7f2729cf77053ecc3a13d6e736ba7"
+  },
+  "adapter_epochs_present": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+  "adapter_epochs_missing": [16, 17, 18, 19, 20],
+  "checkpoint_contract": "model_only; valid for replay, not exact optimizer continuation",
+  "metadata": {
+    "epoch": 10,
+    "n_groups": 3,
+    "dfg_mode": "attn",
+    "dfg_attn_dim": 256,
+    "dfg_attn_tau": 8.0,
+    "use_ss2d_dfg": true,
+    "dfg_gamma_max": 0.2,
+    "dfg_ss2d_fusion": "weight_residual",
+    "dfg_beta": 0.1,
+    "dfg_beta_schedule": "warmup010",
+    "dfg_beta_target": 0.1,
+    "dfg_beta_current": 0.1,
+    "dfg_weight_residual_fp32": true,
+    "prompt_mode": "hybrid",
+    "use_hybrid_soft_prompt": true,
+    "hybrid_alpha_current": 0.2,
+    "hybrid_alpha_max": 0.2,
+    "soft_prompt_freeze_epochs": 3,
+    "soft_prompt_ctx_len": 4,
+    "soft_prompt_init": "phrase",
+    "soft_prompt_init_phrase": "a photo of a",
+    "lambda_kg": 0.01,
+    "lambda_k": 0.002,
+    "image_lr": 0.001,
+    "text_lr": 0.0005,
+    "soft_prompt_lr": 0.00005,
+    "lr_gamma": 0.9,
+    "optimizer": "Adam",
+    "scheduler": "StepLR(step_size=1,gamma=0.9)",
+    "amp": true,
+    "batch_size": 6,
+    "num_workers": 6,
+    "img_size": 518
+  },
+  "launcher_provenance": {
+    "train_launcher_path": "/home/ai4/caohuy/ACD-CLIP-base-new-phase1/run_phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_fromscratch_train_then_test.sh",
+    "train_launcher_sha256": "71b1f728f233755703c558b2c85347d6581ad4c46dbcc0c1591c4f10b306ca5e",
+    "train_launcher_commit_note": "post-hoc archive commit 7f0b26a5; not present at exact e039 tree",
+    "medical_launcher_path": "/home/ai4/caohuy/ACD-CLIP-base-new-phase1/test_6medical_selected_epochs.sh",
+    "medical_launcher_sha256": "d2021202ad0fd4615f8922de188658e61008f8a19e4ec67dd9cc6812bbd033d7",
+    "medical_launcher_in_exact_commit": true
+  },
+  "clip": {
+    "path": "/home/ai4/caohuy/ACD-CLIP-base-new-phase1/model/ViT-L-14-336px.pt",
+    "sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02"
+  },
+  "visa_manifest": {
+    "path": "/home/ai4/caohuy/ACD-CLIP-base-new-phase1/dataset/hub/VisA.jsonl",
+    "sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842"
+  },
+  "historical_evaluator": {
+    "metric_thresholds": null,
+    "pixel_stride": 4,
+    "medical_datasets": ["Brain", "Liver", "Retina", "Colon_clinicDB", "Colon_colonDB", "Colon_Kvasir"],
+    "recorded_e10_macro_percent": {"pixel_auc": 90.98, "pixel_ap": 40.35}
+  }
+}

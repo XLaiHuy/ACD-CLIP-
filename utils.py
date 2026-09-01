@@ -421,6 +421,7 @@ def metrics_eval_gpu(
         image_preds: torch.Tensor,
         class_names: str,
         domain: str,
+        round_result: bool = True,
 ):
     pixel_preds = torch.flatten(pixel_preds, start_dim=1)
     pmax_pred, _ = torch.max(pixel_preds, dim=1)
@@ -444,12 +445,16 @@ def metrics_eval_gpu(
         agg_image_auc = torch.tensor(0.0, device=pixel_preds.device)
         agg_image_ap = torch.tensor(0.0, device=pixel_preds.device)
     # ================================================================================================
+    def display_metric(value: torch.Tensor) -> float:
+        value = float(value.item())
+        return (round(value, 4) if round_result else value) * 100
+
     result = {
         "class name": class_names,
-        "pixel AUC": round(zero_pixel_auc.item(), 4) * 100,
-        "pixel AP": round(zero_pixel_ap.item(), 4) * 100,
-        "image AUC": round(agg_image_auc.item(), 4) * 100,
-        "image AP": round(agg_image_ap.item(), 4) * 100,
+        "pixel AUC": display_metric(zero_pixel_auc),
+        "pixel AP": display_metric(zero_pixel_ap),
+        "image AUC": display_metric(agg_image_auc),
+        "image AP": display_metric(agg_image_ap),
     }
     return result
 
