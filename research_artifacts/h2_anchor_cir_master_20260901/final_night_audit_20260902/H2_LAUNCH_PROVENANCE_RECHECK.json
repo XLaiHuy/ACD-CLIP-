@@ -1,0 +1,67 @@
+{
+  "status": "PASS",
+  "arch_id": "CIR_DFG_RMT_V2",
+  "architecture_version": 2,
+  "historical_h2_repo": "/home/ai4/caohuy/ACD-CLIP-base-new-phase1-h2-anchor-cir-20260901",
+  "historical_h2_commit": "e03966997d4cecfd985943a4053a93e1e40197ec",
+  "historical_train_log": "/home/ai4/caohuy/ACD-CLIP-base-new-phase1/runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/train.log",
+  "historical_train_log_sha256": "c4eef1918739d25b82239986f7730118a59947777955612c8dd7bf2c9d98de73",
+  "historical_launcher": "run_phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_fromscratch_train_then_test.sh",
+  "historical_launcher_sha256": "71b1f728f233755703c558b2c85347d6581ad4c46dbcc0c1591c4f10b306ca5e",
+  "historical_train_py_sha256": "9f0d1879d8073a5199da6967a8f4a17f65a5fd4949e60e04eede68ba964111d5",
+  "args_evidence": {
+    "model_name": "ViT-L-14-336",
+    "dataset": "VisA",
+    "batch_size": 6,
+    "epochs": 15,
+    "image_lr": 0.001,
+    "text_lr": 0.0005,
+    "soft_prompt_lr": 0.00005,
+    "lambda_kg": 0.01,
+    "lambda_k": 0.002,
+    "lr_gamma": 0.9,
+    "soft_prompt_freeze_epochs": 3,
+    "hybrid_alpha_max": 0.2,
+    "amp": true,
+    "num_workers": 6,
+    "grad_clip_norm": 1.0,
+    "non_finite_loss_abort_threshold": 20
+  },
+  "lambda_k_proof": [
+    "train.log args line records lambda_k=0.002",
+    "train.log hybrid_state and soft_prompt_epoch lines record lambda_k=0.002",
+    "historical adapter payload metadata records lambda_k=0.002"
+  ],
+  "horizon_proof": {
+    "adapter_files": "adapter_1.pth through adapter_15.pth",
+    "last_checkpoint": "adapter_15.pth",
+    "logged_horizon": "epoch 1 / 15 through epoch 15 / 15",
+    "actual_horizon": "E1-E15"
+  },
+  "optimizer_scheduler_proof": {
+    "optimizer": "torch.optim.Adam",
+    "betas": [0.9, 0.999],
+    "eps": 1e-08,
+    "weight_decay": 0.0,
+    "amsgrad": false,
+    "param_group_order": ["text_adapter", "image_adapter", "soft_prompt"],
+    "scheduler": "torch.optim.lr_scheduler.StepLR",
+    "scheduler_step_size": 1,
+    "scheduler_gamma": 0.9,
+    "scheduler_step_position": "after epoch loop before model-only checkpoint save",
+    "soft_prompt_policy": "frozen through E3; constant 0.00005 after unfreeze",
+    "historical_optimizer_scheduler_state_saved": false
+  },
+  "identity": {
+    "config_sha256": "c1be71655ca245516f67a20e8712e52251e37ca627bdade77bf78f809f283876",
+    "architecture_freeze_sha256": "f6de6ee8f1998f591c077efeff50fa9741a9f8bad34603ba145ec54ef961ba86",
+    "clip_asset_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+    "source_manifest_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842"
+  },
+  "provenance_limits": [
+    "The historical log and payloads do not record a seed or PYTHONHASHSEED.",
+    "The historical model-only checkpoints do not contain optimizer, scheduler, or RNG state.",
+    "The run-local launcher was not preserved in the historical run directory; the matching repository launcher and log args were used.",
+    "Therefore launch hyperparameters and horizon are proven, but exact stochastic replay is not."
+  ]
+}

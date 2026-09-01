@@ -1,0 +1,15 @@
+Audit date: 2026-09-02
+Timezone: Asia/Ho_Chi_Minh
+Environment: conda environment torchhuy
+Python: 3.11.15
+PyTorch: 2.12.1+cu130
+torch.version.cuda: 13.0
+CUDA available during audit: True
+NumPy: 2.4.6
+Pillow: 12.2.0
+Kornia: 0.8.3
+GPU: NVIDIA GeForce RTX 5060 Ti
+Driver: 580.173.02
+GPU memory: 16311 MiB
+
+The conda wrapper emitted a non-fatal shell warning about an invalid export identifier and the environment emitted a pkg_resources deprecation warning. The completed evaluator and Anchor probes exited successfully; no scientific failure was associated with those warnings.

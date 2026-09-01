@@ -1,0 +1,44 @@
+{
+  "status": "STOP_AUDIT_NO_TRAINING",
+  "decision_tree_case": "B",
+  "decision_tree_text": "RA10 is below R10 on Medical and the Anchor is ill-conditioned; current Anchor formulation is invalid for causal interpretation and Geometry/SRTR is not authorized.",
+  "same_e10_medical": {
+    "R_pixel_auroc": 0.894299585925876,
+    "R_pixel_ap": 0.354425235970159,
+    "RA_pixel_auroc": 0.878459584829202,
+    "RA_pixel_ap": 0.371681472849071,
+    "RCA_pixel_auroc": 0.869881267762518,
+    "RCA_pixel_ap": 0.374138190112212
+  },
+  "same_e10_effects": {
+    "anchor_RA_minus_R_pixel_auroc": -0.015840001096675,
+    "anchor_RA_minus_R_pixel_ap": 0.017256236878912,
+    "cir_RCA_minus_RA_pixel_auroc": -0.008578317066684,
+    "cir_RCA_minus_RA_pixel_ap": 0.002456717263141
+  },
+  "H2_LAUNCH_PROVENANCE": "PASS",
+  "H2_ACTUAL_LAMBDA_K": 0.002,
+  "H2_ACTUAL_HORIZON": "E1-E15",
+  "R_REPRO_GAP_CLASS": "MULTIPLE_FACTORS",
+  "SOURCE_GATE_OVERLAP": "96/96",
+  "SOURCE_GATE_STATUS": "IN_DISTRIBUTION_ASSESSMENT",
+  "ANCHOR_SCALE_STATUS": "ILL_CONDITIONED",
+  "ANCHOR_WEIGHTED_GRAD_RATIO": {
+    "RA_E10": 40068.91849217278,
+    "RA_E16": 31138.683816031626
+  },
+  "ANCHOR_DOMINANT_PARAMETERS": "zero-reference dfg_ss2d_branches pre_norm.bias/post_norm.bias; near-zero direction_logits and dfg_raw_gamma also included",
+  "ANCHOR_REFERENCE_STATUS": "UNKNOWN",
+  "TRAINING_PATH_PARITY": "PARTIAL",
+  "GEOMETRY_AUTHORIZED": "NO",
+  "CORRECTED_ANCHOR_IMPLEMENTED": "NO",
+  "CORRECTED_ANCHOR_E10": "NOT_RUN",
+  "NEW_LONG_TRAIN_STARTED": "NO",
+  "FP32_CHANGE": "NO",
+  "CIR_NEW_RUN": "NO",
+  "MVTEC_NEW_RUN": "NO",
+  "current_recommendation": "Do not make architecture or geometry changes. Repair the Anchor formulation and reproducibility/source-validation contract before any causal RMT claim.",
+  "single_next_experiment": "One preregistered same-trajectory, globally normalized Anchor E1-E10 test after clean source-validation and reproducibility gates; no geometry/SRTR or E20 run.",
+  "medical_evaluation_status": "same-E10 evaluation complete; no new training results generated",
+  "evidence_scope": "The R/RA/RCA comparison is same-E10 and native alpha=0 deployment. RCA-RA is conditional on the pathological Anchor trajectory; it is not a clean inference-only RMT effect."
+}
