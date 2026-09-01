@@ -1,0 +1,42 @@
+{
+  "anchor_gradient_ratio": "NOT_MEASURED; trainer records loss and CIR telemetry, not per-objective gradient decomposition",
+  "architecture_freeze_sha256": "f6de6ee8f1998f591c077efeff50fa9741a9f8bad34603ba145ec54ef961ba86",
+  "checkpoint_sha256": {
+    "R": "e167a5a53c314f8e7f2ca84cd0ad44578564dc10d45212d6d746b8637cbdb2a8",
+    "RA": "8f7597db9a874af77658c176bf0ae188de484c02d4ccaa56f2db1f443a58560d",
+    "RCA": "df73c220204c658d8119cde79f726667361a04f231d656d5ee7404b7f5327a44"
+  },
+  "config_sha256": "c1be71655ca245516f67a20e8712e52251e37ca627bdade77bf78f809f283876",
+  "deployment_alpha": 0.0,
+  "finite_metrics": true,
+  "gate": "E10_SOURCE_ONLY",
+  "medical_evaluation": "NOT_RUN",
+  "methods": [
+    "R",
+    "RA",
+    "RCA"
+  ],
+  "mvtec_evaluation": "NOT_RUN",
+  "rmt_inference_effect": "NOT_MEASURED_IN_THIS_MASTER; RCA CIR IS TRAINING_ONLY",
+  "source_dataset": "VisA",
+  "source_gate_rule": "fixed sample identity, exact native-H2 alpha0 metrics, complete R/RA/RCA E10 checkpoint and identity audit; no pre-registered performance threshold",
+  "source_sample_categories": [
+    "candle",
+    "capsules",
+    "cashew",
+    "chewinggum",
+    "fryum",
+    "macaroni1",
+    "macaroni2",
+    "pcb1",
+    "pcb2",
+    "pcb3",
+    "pcb4",
+    "pipe_fryum"
+  ],
+  "source_sample_n_images": 96,
+  "source_sample_path": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/research_artifacts/cir_rmt_v2/pre_full_run_root_cause_lock_20260831/SOURCE_SAMPLE_IDENTITY.json",
+  "source_sample_selection_note": "The model was trained on all VisA categories; category partitions are an assessment split, not a true unseen-training-category counterfactual.",
+  "source_sample_sha256": "a49c5bc3395cd26872b982a05c07100ecaab3de4445bc2e56f2162b2c96139ab",
+  "status": "PASS"
+}

@@ -1,0 +1,68 @@
+{
+  "status": "COMPLETE",
+  "decision": "H2_PLUS_IMAGE_ANCHOR_NATIVE",
+  "cir_training_decision": "DO_NOT_CARRY_CIR_FORWARD",
+  "inference_rmt_decision": "DISABLED_NATIVE_ALPHA0",
+  "final_candidate": "RA",
+  "final_epoch": 16,
+  "final_checkpoint": "runs/h2_anchor_cir_master_20260901/RA/adapter_16.pth",
+  "final_checkpoint_sha256": "2e5b27b7744b571f9166c1d8ead99fcc85039f414635ba8b8aed5a999999eba0",
+  "config_sha256": "c1be71655ca245516f67a20e8712e52251e37ca627bdade77bf78f809f283876",
+  "architecture_freeze_sha256": "f6de6ee8f1998f591c077efeff50fa9741a9f8bad34603ba145ec54ef961ba86",
+  "h2_repo_commit": "e03966997d4cecfd985943a4053a93e1e40197ec",
+  "git_sha_at_evaluation": "6d989791a4e63a26e4829250200e169594f41ecc",
+  "source_gate": {
+    "status": "PASS",
+    "anchor_primary_pixel_effect": "POSITIVE",
+    "cir_primary_pixel_effect": "MIXED",
+    "anchor_same_e10_pixel_auroc_delta": 0.0330429231183269,
+    "anchor_same_e10_pixel_ap_delta": 0.0858085547900845,
+    "cir_same_e10_pixel_auroc_delta": -0.0458560123826622,
+    "cir_same_e10_pixel_ap_delta": 0.0025215576441497
+  },
+  "medical": {
+    "status": "PASS",
+    "candidate_set": "R E10, RA E16, RCA E12",
+    "r_pixel_auroc": 0.8942995859258764,
+    "r_pixel_ap": 0.354425235970159,
+    "ra_pixel_auroc": 0.8789035017406901,
+    "ra_pixel_ap": 0.3716246431218127,
+    "rca_pixel_auroc": 0.868403541258822,
+    "rca_pixel_ap": 0.3735474998987815,
+    "anchor_increment_pixel": [-0.0153960841851863, 0.0171994071516537],
+    "cir_increment_pixel": [-0.0104999604818681, 0.0019228567769688],
+    "interpretation": "Mixed selected-checkpoint evidence with epoch-selection confounding; no robust CIR dominance over RA."
+  },
+  "mvtec": {
+    "status": "PASS",
+    "candidate": "RA E16",
+    "pixel_auroc": 0.8808174447009919,
+    "pixel_ap": 0.3937203481753414,
+    "image_auroc": 0.9052598673290452,
+    "image_ap": 0.9584212925865357,
+    "variants_evaluated": 1,
+    "target_tuning": false,
+    "mvtec_tuning": false
+  },
+  "proven": [
+    "Historical H2 identity and replay pass.",
+    "The extension has one common E0 and fixed-input parity pass.",
+    "R, RA, and RCA training completed under the exact H2 contract; RA and RCA resumed through E20.",
+    "Source selection was target-blind and Medical evaluation completed 18 frozen cells.",
+    "Only the frozen RA E16 winner was evaluated on MVTec."
+  ],
+  "correlational": [
+    "Medical RA-R and RCA-RA rows use source-selected different epochs and are not clean same-epoch causal estimates.",
+    "The source-side CIR telemetry proves an active train-time path, not a generalization benefit.",
+    "The new R E10 Medical gap versus the historical H2 replay is an observed reproduction/generalization discrepancy, not by itself proof of a code failure."
+  ],
+  "unknown": [
+    "A clean same-epoch Medical RCA-vs-RA causal estimate was not run because the preregistered Medical set was source-selected candidates only.",
+    "No independent-seed replication was authorized.",
+    "No inference-time alpha comparison was part of this H2 master experiment."
+  ],
+  "auto_recovery_count": 3,
+  "forbidden_scientific_recovery_used": false,
+  "target_tuning_occurred": false,
+  "mvtec_tuning_occurred": false
+}

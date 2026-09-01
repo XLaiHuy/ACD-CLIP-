@@ -1,0 +1,86 @@
+{
+  "status": "FROZEN",
+  "experiment_id": "h2_anchor_cir_master_20260901",
+  "architecture_id": "CIR_DFG_RMT_V2",
+  "architecture_version": 2,
+  "architecture_freeze_sha256": "f6de6ee8f1998f591c077efeff50fa9741a9f8bad34603ba145ec54ef961ba86",
+  "git_sha_at_freeze": "6d989791a4e63a26e4829250200e169594f41ecc",
+  "config_sha256": "c1be71655ca245516f67a20e8712e52251e37ca627bdade77bf78f809f283876",
+  "source_dataset": "VisA",
+  "source_manifest_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+  "source_sample_path": "research_artifacts/cir_rmt_v2/pre_full_run_root_cause_lock_20260831/SOURCE_SAMPLE_IDENTITY.json",
+  "source_sample_sha256": "a49c5bc3395cd26872b982a05c07100ecaab3de4445bc2e56f2162b2c96139ab",
+  "source_sample_n_images": 96,
+  "source_sample_protocol_note": "Fixed deterministic assessment sample; categories were present during VisA training and are not a true unseen-category counterfactual.",
+  "seed": 0,
+  "clip_asset": "/home/ai4/caohuy/ACD-CLIP-base-new-phase1-h2-anchor-cir-20260901/model/ViT-L-14-336px.pt",
+  "clip_asset_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+  "deployment_alpha": 0.0,
+  "rmt_inference": "NOT_USED; RCA CIR IS TRAINING_ONLY",
+  "source_decomposition": {
+    "status": "PASS",
+    "csv": "SOURCE_DECOMPOSITION.csv",
+    "sha256": "839580318d0c781cd594ca67a7b7d51d340ce68773a995ef3a0b4bc3c4a1390b",
+    "script": "tools/cir_rmt/h2_master_source_gate.py",
+    "script_sha256": "5526d4de431805087142e16c50965ebb4c20925abb09c73506602b02b4e26bf1",
+    "evaluated_epochs": [10, 12, 14, 16, 18, 20],
+    "evaluated_methods": ["R", "RA", "RCA"],
+    "missing_expected_checkpoints": ["R_E12", "R_E14", "R_E16", "R_E18", "R_E20"],
+    "missing_checkpoint_policy": "EXPECTED_FAST_RIGOR_R_STOP_AT_E10"
+  },
+  "selection_rule": {
+    "primary": "highest deterministic-source pixel AUROC",
+    "tie_break": "highest deterministic-source pixel AP",
+    "final_tie_break": "earliest checkpoint",
+    "target_tuning": false,
+    "medical_results_seen": false,
+    "mvtec_results_seen": false
+  },
+  "source_selected_checkpoints": {
+    "R": {
+      "epoch": 10,
+      "checkpoint": "runs/h2_anchor_cir_master_20260901/R/adapter_10.pth",
+      "checkpoint_sha256": "e167a5a53c314f8e7f2ca84cd0ad44578564dc10d45212d6d746b8637cbdb2a8",
+      "pixel_auroc": 0.9439353144493897,
+      "pixel_ap": 0.4050818310284318,
+      "image_auroc": 0.9427083333333334,
+      "image_ap": 0.9631744844764122
+    },
+    "RA": {
+      "epoch": 16,
+      "checkpoint": "runs/h2_anchor_cir_master_20260901/RA/adapter_16.pth",
+      "checkpoint_sha256": "2e5b27b7744b571f9166c1d8ead99fcc85039f414635ba8b8aed5a999999eba0",
+      "pixel_auroc": 0.9776476498344276,
+      "pixel_ap": 0.4910300093662545,
+      "image_auroc": 0.9262152777777778,
+      "image_ap": 0.9451856248218959
+    },
+    "RCA": {
+      "epoch": 12,
+      "checkpoint": "runs/h2_anchor_cir_master_20260901/RCA/adapter_12.pth",
+      "checkpoint_sha256": "ffb82017c7eec844bdf1a6079fb70b25c88d6743e77e30bde53c19245f095801",
+      "pixel_auroc": 0.9334560764627571,
+      "pixel_ap": 0.49347167389967733,
+      "image_auroc": 0.9596354166666666,
+      "image_ap": 0.969814545206563
+    }
+  },
+  "final_candidate": {
+    "method": "RA",
+    "epoch": 16,
+    "checkpoint": "runs/h2_anchor_cir_master_20260901/RA/adapter_16.pth",
+    "checkpoint_sha256": "2e5b27b7744b571f9166c1d8ead99fcc85039f414635ba8b8aed5a999999eba0",
+    "reason": "Highest deterministic-source pixel AUROC among all available R/RA/RCA candidates under the frozen rule."
+  },
+  "medical_plan": {
+    "status": "AUTHORIZED_AFTER_FREEZE",
+    "targets": ["Brain", "Liver", "Retina", "Colon_clinicDB", "Colon_colonDB", "Colon_Kvasir"],
+    "methods": ["R", "RA", "RCA"],
+    "checkpoint_policy": "Evaluate the frozen source-selected R-E10, RA-E16, and RCA-E12 cells; no target-guided revision is permitted.",
+    "metrics": ["pixel_auroc", "pixel_ap", "image_auroc", "image_ap"],
+    "evaluator": "Exact H2 forward/deployment path with current disk-backed metric implementation",
+    "target_tuning": false
+  },
+  "mvtec": "NOT_RUN; blocked until final architecture/checkpoint freeze after Medical",
+  "timestamp": "2026-09-01"
+}

@@ -1,0 +1,67 @@
+{
+  "anchor_gradient_ratio": "NOT_MEASURED; trainer records loss and CIR telemetry, not per-objective gradient decomposition",
+  "architecture_freeze_sha256": "f6de6ee8f1998f591c077efeff50fa9741a9f8bad34603ba145ec54ef961ba86",
+  "checkpoint_sha256": {
+    "RA_E10": "8f7597db9a874af77658c176bf0ae188de484c02d4ccaa56f2db1f443a58560d",
+    "RA_E12": "8d099f039b2f7da6466b6995e88440e8f67cf1f1856657ecc9f8d3f37d6d28f2",
+    "RA_E14": "05d0fd4f76ba6b901778066e9b9f91c020a9c83e2b93e3969a4ae40a9b5e3b6a",
+    "RA_E16": "2e5b27b7744b571f9166c1d8ead99fcc85039f414635ba8b8aed5a999999eba0",
+    "RA_E18": "af010033abcfa30f9064d388be6b0e1a4ac01749be3806ec5f65646efb732a6e",
+    "RA_E20": "3430862665c4f834ca9fab56e8e919cdf39f392257acc5e937bb02629c6b26b6",
+    "RCA_E10": "df73c220204c658d8119cde79f726667361a04f231d656d5ee7404b7f5327a44",
+    "RCA_E12": "ffb82017c7eec844bdf1a6079fb70b25c88d6743e77e30bde53c19245f095801",
+    "RCA_E14": "466b4e7849a0748dc71236c57d52e921c7a0862c9dc80642975bbfc44d0f589a",
+    "RCA_E16": "d34af8c46bdeb3606d364fa23aa4dd543d4d41508e1511fca608bc8503b7a25f",
+    "RCA_E18": "ebcc076121d9fe85b783c01fd97e3fe888a239e04f919dd1d0e7c6aa24b048c7",
+    "RCA_E20": "243c91a6a82ad0c72f9cf86cda1271bde7791c741035da19419cfefe7d61cc81",
+    "R_E10": "e167a5a53c314f8e7f2ca84cd0ad44578564dc10d45212d6d746b8637cbdb2a8"
+  },
+  "config_sha256": "c1be71655ca245516f67a20e8712e52251e37ca627bdade77bf78f809f283876",
+  "deployment_alpha": 0.0,
+  "epochs": [
+    10,
+    12,
+    14,
+    16,
+    18,
+    20
+  ],
+  "finite_metrics": true,
+  "gate": "SOURCE_ONLY_TARGET_BLIND",
+  "medical_evaluation": "NOT_RUN",
+  "methods": [
+    "R",
+    "RA",
+    "RCA"
+  ],
+  "missing_checkpoints": [
+    "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/h2_anchor_cir_master_20260901/R/adapter_12.pth",
+    "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/h2_anchor_cir_master_20260901/R/adapter_14.pth",
+    "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/h2_anchor_cir_master_20260901/R/adapter_16.pth",
+    "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/h2_anchor_cir_master_20260901/R/adapter_18.pth",
+    "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/h2_anchor_cir_master_20260901/R/adapter_20.pth"
+  ],
+  "mvtec_evaluation": "NOT_RUN",
+  "rmt_inference_effect": "NOT_MEASURED_IN_THIS_MASTER; RCA CIR IS TRAINING_ONLY",
+  "source_dataset": "VisA",
+  "source_gate_rule": "fixed sample identity, exact native-H2 alpha0 metrics, complete R/RA/RCA candidate checkpoint and identity audit; no pre-registered performance threshold",
+  "source_sample_categories": [
+    "candle",
+    "capsules",
+    "cashew",
+    "chewinggum",
+    "fryum",
+    "macaroni1",
+    "macaroni2",
+    "pcb1",
+    "pcb2",
+    "pcb3",
+    "pcb4",
+    "pipe_fryum"
+  ],
+  "source_sample_n_images": 96,
+  "source_sample_path": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/research_artifacts/cir_rmt_v2/pre_full_run_root_cause_lock_20260831/SOURCE_SAMPLE_IDENTITY.json",
+  "source_sample_selection_note": "The model was trained on all VisA categories; category partitions are an assessment split, not a true unseen-training-category counterfactual.",
+  "source_sample_sha256": "a49c5bc3395cd26872b982a05c07100ecaab3de4445bc2e56f2162b2c96139ab",
+  "status": "PASS"
+}
