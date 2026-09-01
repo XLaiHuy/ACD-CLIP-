@@ -1,0 +1,152 @@
+{
+  "adam_defaults": {
+    "betas": [
+      0.9,
+      0.999
+    ],
+    "eps": 1e-08,
+    "weight_decay": 0
+  },
+  "anchor_lambda_image": 0.001,
+  "anchor_reference_checkpoint_sha256": "3eb6e2fe12f96b84745baf0f8a013f88c7f3a739283493a2ba5e31a35ad2f6c2",
+  "candidate_epochs": [
+    10,
+    12,
+    14,
+    16,
+    18,
+    20
+  ],
+  "config_sha256": "5ec0190ec4dc1e16e0ce646b5e470d5585b981de7221ed4b46a392b321cd27f9",
+  "control_id": "PA_PHASE2B_IMAGE_ANCHOR_V1",
+  "epochs": [
+    {
+      "adam_betas": [
+        0.9,
+        0.999
+      ],
+      "adam_eps": 1e-08,
+      "checkpoint": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/pa_control_20260831/visa/seed0/checkpoints/adapter_10.pth",
+      "checkpoint_sha256": "9f12f21327061eea36af03d24f73dfcc06b11158019b37e7691a103c529ba0c2",
+      "epoch": 10,
+      "optimizer_lr": [
+        0.0003486784401,
+        0.00017433922005,
+        9e-05
+      ],
+      "scheduler_last_epoch": 10,
+      "scheduler_step_count": 11,
+      "weight_decay": 0
+    },
+    {
+      "adam_betas": [
+        0.9,
+        0.999
+      ],
+      "adam_eps": 1e-08,
+      "checkpoint": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/pa_control_20260831/visa/seed0/checkpoints/adapter_12.pth",
+      "checkpoint_sha256": "2bf264f6ab7b5596fa5eeb425a517da28ece3be477c50e395e4bb4b82f9900b8",
+      "epoch": 12,
+      "optimizer_lr": [
+        0.00028242953648100003,
+        0.00014121476824050002,
+        9e-05
+      ],
+      "scheduler_last_epoch": 12,
+      "scheduler_step_count": 13,
+      "weight_decay": 0
+    },
+    {
+      "adam_betas": [
+        0.9,
+        0.999
+      ],
+      "adam_eps": 1e-08,
+      "checkpoint": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/pa_control_20260831/visa/seed0/checkpoints/adapter_14.pth",
+      "checkpoint_sha256": "1a69943c1ec3fb7513000f2f4f274ffb4071ee4ff4c81394a0b597a3241be4b6",
+      "epoch": 14,
+      "optimizer_lr": [
+        0.00022876792454961005,
+        0.00011438396227480502,
+        9e-05
+      ],
+      "scheduler_last_epoch": 14,
+      "scheduler_step_count": 15,
+      "weight_decay": 0
+    },
+    {
+      "adam_betas": [
+        0.9,
+        0.999
+      ],
+      "adam_eps": 1e-08,
+      "checkpoint": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/pa_control_20260831/visa/seed0/checkpoints/adapter_16.pth",
+      "checkpoint_sha256": "1e275f2f6a4b7d348af7a81398ca497b5b8c394d8e7d1d92978425e58634ff62",
+      "epoch": 16,
+      "optimizer_lr": [
+        0.00018530201888518417,
+        9.265100944259208e-05,
+        9e-05
+      ],
+      "scheduler_last_epoch": 16,
+      "scheduler_step_count": 17,
+      "weight_decay": 0
+    },
+    {
+      "adam_betas": [
+        0.9,
+        0.999
+      ],
+      "adam_eps": 1e-08,
+      "checkpoint": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/pa_control_20260831/visa/seed0/checkpoints/adapter_18.pth",
+      "checkpoint_sha256": "b167d424140f208e3b055f6e29bca37f39e94517c4c5a65a2d5711a92de5e18d",
+      "epoch": 18,
+      "optimizer_lr": [
+        0.0001500946352969992,
+        7.50473176484996e-05,
+        9e-05
+      ],
+      "scheduler_last_epoch": 18,
+      "scheduler_step_count": 19,
+      "weight_decay": 0
+    },
+    {
+      "adam_betas": [
+        0.9,
+        0.999
+      ],
+      "adam_eps": 1e-08,
+      "checkpoint": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/pa_control_20260831/visa/seed0/checkpoints/adapter_20.pth",
+      "checkpoint_sha256": "22c44a28f6dd88c59525fa9699249acb2744f4c23c7d69f8bd882311d52837ee",
+      "epoch": 20,
+      "optimizer_lr": [
+        0.00012157665459056936,
+        6.078832729528468e-05,
+        9e-05
+      ],
+      "scheduler_last_epoch": 20,
+      "scheduler_step_count": 21,
+      "weight_decay": 0
+    }
+  ],
+  "mvtec": "NOT_RUN",
+  "parent_config_sha256": "d24cf942684b0be3c12838699ec6fe452697bd7f0a58eabbf316fb79b1b18cdb",
+  "precision": {
+    "amp": false,
+    "precision": "fp32",
+    "tf32": false
+  },
+  "resume": {
+    "last_checkpoint": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/pa_control_20260831/visa/seed0/last.pth",
+    "resume_from_epoch": null
+  },
+  "run_root": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/cir_rmt/CIR_DFG_RMT_V2/pa_control_20260831/visa/seed0",
+  "scheduler": {
+    "gamma": 0.9,
+    "step_size": 1,
+    "timing": "after_epoch_before_checkpoint",
+    "type": "StepLR"
+  },
+  "status": "PASS",
+  "target_tuning_occurred": false
+}
