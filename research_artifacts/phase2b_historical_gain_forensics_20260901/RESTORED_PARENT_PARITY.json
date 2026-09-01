@@ -1,0 +1,16 @@
+{
+  "historical_checkpoint_sha256": "ae27443f99020588298a9ecc6dfc833a83ebe7a752f00e8524042d5a84a2c0cb",
+  "reason": "No new restored-H2 implementation has been added; current legacy bridge replay is not a full historical-vs-restored parity test.",
+  "required_comparisons": [
+    "image adapter outputs",
+    "text adapter outputs",
+    "stage features",
+    "DFG native weights",
+    "segmentation logits",
+    "deployed anomaly map",
+    "image logits",
+    "bounded metric parity"
+  ],
+  "selected_parent": "HISTORICAL_PHASE2B",
+  "status": "NOT_RUN"
+}

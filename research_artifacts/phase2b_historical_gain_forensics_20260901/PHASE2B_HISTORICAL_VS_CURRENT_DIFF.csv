@@ -1,0 +1,10 @@
+setting,historical_value,current_value,classification,evidence
+K-reg,0.002 exact,0.0 explicit zero stub,C_ACCIDENTAL_FEATURE_REMOVAL,H1_H2_C2_FULL_CONTRACT_MATRIX.csv and migration audit
+KG coefficient,0.01,0.001,A_INTENTIONAL_SCIENTIFIC_CHANGE,H1_H2_C2_FULL_CONTRACT_MATRIX.csv and migration audit
+global precision,AMP/autocast/GradScaler,FP32/no AMP,D_PROTOCOL_CORRECTION,H1_H2_C2_FULL_CONTRACT_MATRIX.csv and migration audit
+soft prompt LR,5e-5 constant after freeze,1e-4 constant after freeze,D_PROTOCOL_CORRECTION,H1_H2_C2_FULL_CONTRACT_MATRIX.csv and migration audit
+horizon/candidates,15; E7-E15,20; E10/E12/E14/E16/E18/E20,A_INTENTIONAL_SCIENTIFIC_CHANGE,H1_H2_C2_FULL_CONTRACT_MATRIX.csv and migration audit
+scheduler,StepLR .9 stepped after epoch before save,same,B_ENGINEERING_FIX_WITH_EXPECTED_PARITY,H1_H2_C2_FULL_CONTRACT_MATRIX.csv and migration audit
+evaluator,legacy test.py stride4,current exact evaluator stride1,F_EVALUATION_ONLY_CHANGE,H1_H2_C2_FULL_CONTRACT_MATRIX.csv and migration audit
+loader,workers6; historical transforms,workers4; canonical transforms,E_UNKNOWN_MIGRATION,H1_H2_C2_FULL_CONTRACT_MATRIX.csv and migration audit
+selection,retrospective Medical best,fixed E10 for decomposition,D_PROTOCOL_CORRECTION,H1_H2_C2_FULL_CONTRACT_MATRIX.csv and migration audit

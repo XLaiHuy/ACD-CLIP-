@@ -1,0 +1,118 @@
+{
+  "checkpoint": "/home/ai4/caohuy/ACD-CLIP-base-new-phase1/phase1_best_checkpoints/phase1b_v3c_fp32attn_final/e09_best_final_anchor_adapter.pth",
+  "checkpoint_epoch": 9,
+  "checkpoint_sha256": "6c1d888af56d011f7d2dabee7a5662ff422420df428841582a51c02846500e4a",
+  "clip_asset": "model/ViT-L-14-336px.pt",
+  "clip_asset_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+  "data": {
+    "augmentation": "historical repository transforms",
+    "batch_size": 6,
+    "effective_batch_size": 6,
+    "num_workers": 6
+  },
+  "dfg": {
+    "attn_dim": 256,
+    "beta": 0.1,
+    "beta_schedule": "warmup010",
+    "beta_target": 0.1,
+    "fusion": "weight_residual",
+    "gamma_max": 0.2,
+    "mode": "attn",
+    "ss2d": true,
+    "tau": 8.0,
+    "weight_residual_fp32": true
+  },
+  "evaluation": {
+    "candidate_epochs": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "image_score": "0.5*classification + 0.5*pixel_max",
+    "metric_thresholds": null,
+    "pixel_stride": 4,
+    "script_sha256": "e6c768b5604ea7c7c0dea7c3db709405da6876ff01a22ddecb2dde6a4f59334f"
+  },
+  "gradient": {
+    "clip_norm": 1.0,
+    "frequency": "each optimizer update"
+  },
+  "lineage": "H1",
+  "loss": {
+    "formula": "classification cross entropy + segmentation loss",
+    "lambda_k": "not present",
+    "lambda_kg": "not present in H1 path"
+  },
+  "model": {
+    "conv_kernel_size_list": [
+      3,
+      5
+    ],
+    "conv_lora_alpha": 2.0,
+    "conv_lora_rank": 8,
+    "image_adapt_weight": 0.2,
+    "img_size": 518,
+    "lora_alpha": 2.0,
+    "lora_rank": 16,
+    "model_name": "ViT-L-14-336",
+    "n_groups": 3,
+    "text_adapt_weight": 0.2
+  },
+  "optimizer": {
+    "betas": [
+      0.9,
+      0.999
+    ],
+    "class": "torch.optim.Adam",
+    "eps": 1e-08,
+    "groups": [
+      "text_adapter",
+      "image_adapter"
+    ],
+    "image_lr": 0.001,
+    "text_lr": 0.0005,
+    "weight_decay": 0.0
+  },
+  "precision": {
+    "attention_score_precision": "DFG weight-residual FP32 flag; full score precision not separately isolated",
+    "autocast": true,
+    "global_amp": true,
+    "grad_scaler": true,
+    "model_train_precision": "AMP mixed precision",
+    "tf32": "not explicitly configured"
+  },
+  "prompt": {
+    "hybrid": false,
+    "mode": "hard",
+    "soft_prompt": false,
+    "status": "not applicable"
+  },
+  "protocol": "historical Phase1B V3c FP32-attention weight-residual",
+  "repository": "/home/ai4/caohuy/ACD-CLIP-base-new-phase1",
+  "repository_commit": "0232200e964c02c328eec09dbe842f327f72fcd9",
+  "repository_remote": "https://github.com/XLaiHuy/ACD-CLIP-.git",
+  "run_directory": "/home/ai4/caohuy/ACD-CLIP-base-new-phase1/phase1_v3c_weightres_betawarm010_fp32attn_tau8_g3",
+  "scheduler": {
+    "actual_behavior": "stepped after each epoch before checkpoint",
+    "class": "StepLR",
+    "gamma": 0.9,
+    "step_size": 1
+  },
+  "seed": 0,
+  "selection": {
+    "rule": "historical Phase1 best reported checkpoint",
+    "selected_epoch": 9,
+    "status": "RETROSPECTIVE_BEST; target/Medical-informed"
+  },
+  "source_dataset": "VisA",
+  "source_root": "/home/ai4/caohuy/data/VisA_20220922"
+}

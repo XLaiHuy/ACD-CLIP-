@@ -1,0 +1,33 @@
+{
+  "historical_contract": "HISTORICAL_PHASE2B_CONTRACT.json",
+  "modernization_allowed": [
+    "atomic checkpoint writes",
+    "deterministic resume",
+    "bounded evaluator",
+    "manifests and ledgers"
+  ],
+  "required_semantics": [
+    "AMP/autocast/GradScaler enabled",
+    "hybrid alpha schedule",
+    "lambda_kg=0.01",
+    "exact lambda_k=0.002 detached-W_K K-reg",
+    "Adam groups and LRs",
+    "StepLR gamma=.9 stepped after epoch before save",
+    "batch/effective batch 6",
+    "DFG/SS2D weight-residual beta schedule",
+    "historical evaluator kept separate"
+  ],
+  "scientific_changes_forbidden": [
+    "precision",
+    "loss",
+    "K-reg",
+    "prompt",
+    "scheduler",
+    "optimizer",
+    "augmentation",
+    "DFG math",
+    "scoring"
+  ],
+  "selected_parent": "HISTORICAL_PHASE2B",
+  "status": "AUDIT_SPECIFICATION"
+}

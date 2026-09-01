@@ -1,0 +1,121 @@
+{
+  "architecture_freeze_sha256": "f6de6ee8f1998f591c077efeff50fa9741a9f8bad34603ba145ec54ef961ba86",
+  "clip_asset": "model/ViT-L-14-336px.pt",
+  "clip_asset_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+  "config_sha256": "d24cf942684b0be3c12838699ec6fe452697bd7f0a58eabbf316fb79b1b18cdb",
+  "current_head_at_audit": "1564a0c9f32a7e93fb333ca8b0950a2fb2c73cc2",
+  "data": {
+    "augmentation": "current canonical loader",
+    "batch_size": 6,
+    "effective_batch_size": 6,
+    "manifest": "dataset/hub/VisA.jsonl",
+    "num_workers": 4
+  },
+  "dfg": {
+    "attn_dim": 256,
+    "beta": 0.1,
+    "beta_schedule": "warmup010",
+    "beta_target": 0.1,
+    "fusion": "weight_residual",
+    "gamma_max": 0.2,
+    "mode": "attn",
+    "ss2d": true,
+    "tau": 8.0,
+    "weight_residual_fp32": true
+  },
+  "evaluation": {
+    "candidate_epochs": [
+      10,
+      12,
+      14,
+      16,
+      18,
+      20
+    ],
+    "colon_image_metrics": "undefined/blank",
+    "image_score": "current exact evaluator deployment",
+    "metric_thresholds": null,
+    "pixel_stride": 1,
+    "script_sha256": "cbcfaf4b2eda645fc6b440ed9bb486b5fb6b6f3af908e1c0ec70bafe13db0797"
+  },
+  "gradient": {
+    "clip_norm": 1.0,
+    "frequency": "each optimizer update",
+    "nonfinite_gradient_skips": "abort-on-nonfinite loss; no H2-style legacy skip evidence in corrected summary"
+  },
+  "lineage": "C2",
+  "loss": {
+    "classification": "cross_entropy",
+    "formula": "cls_loss + seg_loss + 0.001*kg_loss + 0.0*k_loss",
+    "k_reg_status": "STUB_ZERO",
+    "lambda_k": 0.0,
+    "lambda_kg": 0.001,
+    "segmentation": "calculate_seg_loss"
+  },
+  "model": {
+    "conv_kernel_size_list": [
+      3,
+      5
+    ],
+    "conv_lora_alpha": 2.0,
+    "conv_lora_rank": 8,
+    "image_adapt_weight": 0.2,
+    "img_size": 518,
+    "lora_alpha": 2.0,
+    "lora_rank": 16,
+    "model_name": "ViT-L-14-336",
+    "n_groups": 3,
+    "text_adapt_weight": 0.2
+  },
+  "optimizer": {
+    "betas": [
+      0.9,
+      0.999
+    ],
+    "class": "torch.optim.Adam",
+    "eps": 1e-08,
+    "groups": [
+      "image_adapter",
+      "text_adapter",
+      "soft_prompt"
+    ],
+    "image_lr": 0.001,
+    "text_lr": 0.0005,
+    "weight_decay": 0.0
+  },
+  "precision": {
+    "attention_score_precision": "FP32",
+    "autocast": false,
+    "global_amp": false,
+    "grad_scaler": false,
+    "model_train_precision": "FP32",
+    "tf32": false
+  },
+  "prompt": {
+    "alpha_max": 0.2,
+    "ctx_len": 4,
+    "freeze_epochs": 3,
+    "init": "phrase:a photo of a",
+    "mode": "hybrid",
+    "schedule": "canonical get_hybrid_alpha_for_epoch",
+    "soft_prompt_lr": 0.0001
+  },
+  "protocol": "current corrected canonical Phase2B",
+  "repository": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2",
+  "repository_commit": "042174cdc63d9cb635566a1dae5b774056045383",
+  "resolved_run_config_sha256": "5ec0190ec4dc1e16e0ce646b5e470d5585b981de7221ed4b46a392b321cd27f9",
+  "scheduler": {
+    "actual_behavior": "scheduler.step once after each epoch before history and candidate save",
+    "class": "StepLR",
+    "gamma": 0.9,
+    "step_size": 1
+  },
+  "seed": 0,
+  "selection": {
+    "rule": "candidate fixed for decomposition; current archive reports all candidates",
+    "selected_epoch": 10,
+    "status": "no new target tuning in this audit"
+  },
+  "source_dataset": "VisA",
+  "source_root": "/home/ai4/caohuy/data/VisA_20220922"
+}

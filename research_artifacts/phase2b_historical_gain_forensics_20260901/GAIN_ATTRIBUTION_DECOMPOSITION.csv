@@ -1,0 +1,15 @@
+component,comparison,metric,value_percentage_points,status,interpretation
+historical_contract_recovery,H2_current_eval - C2_E10_current_eval,pixel_auroc,3.0103505472098058,OBSERVED_NOT_CAUSAL,same-evaluator model-state comparison; residual has multiple H2-to-C2 factors
+evaluator_migration,H2_current_eval - H2_historical_eval,pixel_auroc,-0.05281208620406819,OBSERVED,same checkpoint cross-evaluator component
+anchor_predecessor,PA_E12 - P_E12,pixel_auroc,1.525325952631007,ASSOCIATED_ONLY,existing PA control; not pure anchor gain on restored H2
+cir_predecessor,A0_E12 - PA_E12,pixel_auroc,-0.6612307531518868,INCONCLUSIVE,existing factorial comparison; CIR training not isolated cleanly
+restored_parent,R - C2,pixel_auroc,,NOT_RUN,no restored H2 trajectory
+anchor_on_restored_parent,RA - R,pixel_auroc,,NOT_RUN,no parent-compatible anchor trajectory
+cir_on_restored_parent,RCA - RA,pixel_auroc,,NOT_RUN,CIR conditional gate not reached
+historical_contract_recovery,H2_current_eval - C2_E10_current_eval,pixel_ap,8.56373187929288,OBSERVED_NOT_CAUSAL,same-evaluator model-state comparison; residual has multiple H2-to-C2 factors
+evaluator_migration,H2_current_eval - H2_historical_eval,pixel_ap,0.02473121838961756,OBSERVED,same checkpoint cross-evaluator component
+anchor_predecessor,PA_E12 - P_E12,pixel_ap,2.0081174666121693,ASSOCIATED_ONLY,existing PA control; not pure anchor gain on restored H2
+cir_predecessor,A0_E12 - PA_E12,pixel_ap,-0.8690522529280542,INCONCLUSIVE,existing factorial comparison; CIR training not isolated cleanly
+restored_parent,R - C2,pixel_ap,,NOT_RUN,no restored H2 trajectory
+anchor_on_restored_parent,RA - R,pixel_ap,,NOT_RUN,no parent-compatible anchor trajectory
+cir_on_restored_parent,RCA - RA,pixel_ap,,NOT_RUN,CIR conditional gate not reached
