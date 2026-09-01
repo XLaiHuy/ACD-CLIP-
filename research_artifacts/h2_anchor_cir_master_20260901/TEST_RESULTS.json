@@ -1,0 +1,144 @@
+{
+  "anchor_parameter_identity": "PASS",
+  "h2_extension_parity": {
+    "config": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/configs/exact_h2_anchor_cir_master_v1.json",
+    "config_sha256": "c1be71655ca245516f67a20e8712e52251e37ca627bdade77bf78f809f283876",
+    "device": "cuda:0",
+    "e0": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/h2_anchor_cir_master_20260901/common/e0.pth",
+    "e0_payload_epoch": 0,
+    "e0_sha256": "e3eb453a984ea4116d18e125905d75508257aaf01efad421b309819e9d5dda0f",
+    "fixed_batch": {
+      "batch_size": 2,
+      "class_names": [
+        "candle",
+        "candle"
+      ],
+      "file_names": [
+        "candle/Data/Images/Anomaly/004.JPG",
+        "candle/Data/Images/Anomaly/011.JPG"
+      ]
+    },
+    "forward_finite": true,
+    "h2_commit": "e03966997d4cecfd985943a4053a93e1e40197ec",
+    "h2_repo": "/home/ai4/caohuy/ACD-CLIP-base-new-phase1-h2-anchor-cir-20260901",
+    "k_regularization_audit": {
+      "alpha_probe": 0.05,
+      "expected": "soft-prompt path receives K-reg gradient; detached W_K receives none",
+      "lambda_k": 0.002,
+      "loss": 0.00046319764805957675,
+      "pass": true,
+      "soft_prompt_grad_norm": 2.2348935999616515e-06,
+      "stats": {
+        "k_cos_abnormal": 0.9995312094688416,
+        "k_cos_mean": 0.9995367527008057,
+        "k_cos_normal": 0.9995423555374146,
+        "stage1_k_cos_abnormal": 0.9995442628860474,
+        "stage1_k_cos_mean": 0.9995503425598145,
+        "stage1_k_cos_normal": 0.9995565414428711,
+        "stage1_k_loss": 0.00044958791113458574,
+        "stage2_k_cos_abnormal": 0.9995104670524597,
+        "stage2_k_cos_mean": 0.9995333552360535,
+        "stage2_k_cos_normal": 0.9995562434196472,
+        "stage2_k_loss": 0.00046666464186273515,
+        "stage3_k_cos_abnormal": 0.9995390772819519,
+        "stage3_k_cos_mean": 0.9995266795158386,
+        "stage3_k_cos_normal": 0.9995142817497253,
+        "stage3_k_loss": 0.0004733403620775789
+      },
+      "vision_text_k_grad_norm": 0.0,
+      "weighted_loss": 9.263953302252048e-07
+    },
+    "max_abs_differences": {
+      "deployed_probability": 0.0,
+      "dfg_weights": 0.0,
+      "native_logits": 0.0,
+      "training_probability": 0.0
+    },
+    "native_shapes": {
+      "det_features": [
+        3,
+        2,
+        768
+      ],
+      "native_logits": [
+        3,
+        2,
+        1369,
+        2
+      ],
+      "native_weights": [
+        3,
+        2,
+        3,
+        2
+      ],
+      "seg_features": [
+        3,
+        2,
+        1369,
+        768
+      ],
+      "text_features": [
+        3,
+        2,
+        768,
+        2
+      ]
+    },
+    "peer_audit": {
+      "candidate_count_min": 643,
+      "delta_abs_mean": 0.6704257726669312,
+      "peer_count": 8,
+      "spatial_radius": 3,
+      "valid_fraction": 1.0
+    },
+    "scope": "fixed_input_historical_h2_vs_extension_and_kreg",
+    "status": "PASS",
+    "tolerance": 0.0001,
+    "transport_direction_audit": {
+      "configured": "abnormal_minus_normal_plus",
+      "pass": true,
+      "positive_delta_decreases_abnormal_group0": true,
+      "positive_delta_increases_normal_group0": true
+    },
+    "weights_modified": false
+  },
+  "h2_replay": "PASS",
+  "k_regularization": {
+    "alpha_probe": 0.05,
+    "expected": "soft-prompt path receives K-reg gradient; detached W_K receives none",
+    "lambda_k": 0.002,
+    "loss": 0.00046319764805957675,
+    "pass": true,
+    "soft_prompt_grad_norm": 2.2348935999616515e-06,
+    "stats": {
+      "k_cos_abnormal": 0.9995312094688416,
+      "k_cos_mean": 0.9995367527008057,
+      "k_cos_normal": 0.9995423555374146,
+      "stage1_k_cos_abnormal": 0.9995442628860474,
+      "stage1_k_cos_mean": 0.9995503425598145,
+      "stage1_k_cos_normal": 0.9995565414428711,
+      "stage1_k_loss": 0.00044958791113458574,
+      "stage2_k_cos_abnormal": 0.9995104670524597,
+      "stage2_k_cos_mean": 0.9995333552360535,
+      "stage2_k_cos_normal": 0.9995562434196472,
+      "stage2_k_loss": 0.00046666464186273515,
+      "stage3_k_cos_abnormal": 0.9995390772819519,
+      "stage3_k_cos_mean": 0.9995266795158386,
+      "stage3_k_cos_normal": 0.9995142817497253,
+      "stage3_k_loss": 0.0004733403620775789
+    },
+    "vision_text_k_grad_norm": 0.0,
+    "weighted_loss": 9.263953302252048e-07
+  },
+  "medical_evaluation": "NOT_RUN",
+  "mvtec_evaluation": "NOT_RUN",
+  "status": "PASS",
+  "training_authorized": true,
+  "transport_direction": {
+    "configured": "abnormal_minus_normal_plus",
+    "pass": true,
+    "positive_delta_decreases_abnormal_group0": true,
+    "positive_delta_increases_normal_group0": true
+  }
+}

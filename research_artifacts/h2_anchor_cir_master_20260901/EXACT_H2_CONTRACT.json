@@ -1,0 +1,134 @@
+{
+  "clip_asset": "model/ViT-L-14-336px.pt",
+  "clip_asset_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+  "data": {
+    "augmentation": "historical repository dataset transforms",
+    "batch_size": 6,
+    "effective_batch_size": 6,
+    "manifest": "historical dataset loader",
+    "num_workers": 6
+  },
+  "dfg": {
+    "attn_dim": 256,
+    "beta": 0.1,
+    "beta_schedule": "warmup010",
+    "beta_target": 0.1,
+    "fusion": "weight_residual",
+    "gamma_max": 0.2,
+    "mode": "attn",
+    "ss2d": true,
+    "tau": 8.0,
+    "weight_residual_fp32": true
+  },
+  "evaluation": {
+    "candidate_epochs": [
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "colon_image_metrics": "unsupported and emitted as 0.00",
+    "image_score": "0.5*classification_score + 0.5*pixel_max",
+    "metric_thresholds": null,
+    "pixel_stride": 4,
+    "script_sha256": "7bdd8cc6ada90467285a79ced9599ed778c6dc2a0ba6596d2f3311fa637fae9d"
+  },
+  "gradient": {
+    "clip_norm": 1.0,
+    "frequency": "each optimizer update",
+    "nonfinite_gradient_skips": "observed in epochs 1, 3, 11; run continued"
+  },
+  "lineage": "H2",
+  "loss": {
+    "classification": "cross_entropy",
+    "formula": "cls_loss + seg_loss + lambda_kg*kg_loss + lambda_k*k_loss",
+    "k_reg": "exact detached-W_K cosine distance, mean across stages/groups/normal-abnormal",
+    "lambda_k": 0.002,
+    "lambda_kg": 0.01,
+    "segmentation": "calculate_seg_loss"
+  },
+  "master_extension": {
+    "arms": {
+      "R": "exact H2",
+      "RA": "exact H2 + image_adapter anchor",
+      "RCA": "exact H2 + image_adapter anchor + train-time CIR V2"
+    },
+    "common_e0": "/home/ai4/caohuy/ACD-CLIP-cir-dfg-rmt-v2/runs/h2_anchor_cir_master_20260901/common/e0.pth",
+    "common_e0_sha256": "e3eb453a984ea4116d18e125905d75508257aaf01efad421b309819e9d5dda0f",
+    "deployment": "historical native H2 evaluator, alpha=0",
+    "experiment_id": "h2_anchor_cir_master_20260901",
+    "new_medical_access_before_anchor_selection": false
+  },
+  "model": {
+    "conv_kernel_size_list": [
+      3,
+      5
+    ],
+    "conv_lora_alpha": 2.0,
+    "conv_lora_rank": 8,
+    "image_adapt_weight": 0.2,
+    "img_size": 518,
+    "lora_alpha": 2.0,
+    "lora_rank": 16,
+    "model_name": "ViT-L-14-336",
+    "n_groups": 3,
+    "text_adapt_weight": 0.2
+  },
+  "optimizer": {
+    "betas": [
+      0.9,
+      0.999
+    ],
+    "class": "torch.optim.Adam",
+    "eps": 1e-08,
+    "groups": [
+      "text_adapter",
+      "image_adapter",
+      "soft_prompt"
+    ],
+    "image_lr": 0.001,
+    "text_lr": 0.0005,
+    "weight_decay": 0.0
+  },
+  "precision": {
+    "attention_score_precision": "DFG weight-residual FP32 flag; no separate full-score override recovered",
+    "autocast": true,
+    "global_amp": true,
+    "grad_scaler": true,
+    "model_train_precision": "AMP mixed precision",
+    "tf32": "not explicitly configured"
+  },
+  "prompt": {
+    "alpha_max": 0.2,
+    "ctx_len": 4,
+    "freeze_epochs": 3,
+    "init": "phrase:a photo of a",
+    "mode": "hybrid",
+    "schedule": "epochs1-3=0; epoch4=.05; epoch5=.1; epoch6+=.2",
+    "soft_prompt_lr": 5e-05
+  },
+  "protocol": "historical Phase2B hybrid alpha0.2 + K-reg",
+  "repository": "/home/ai4/caohuy/ACD-CLIP-base-new-phase1",
+  "repository_commit": "e03966997d4cecfd985943a4053a93e1e40197ec",
+  "repository_remote": "https://github.com/XLaiHuy/ACD-CLIP-.git",
+  "run_directory": "/home/ai4/caohuy/ACD-CLIP-base-new-phase1/runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch",
+  "scheduler": {
+    "actual_behavior": "scheduler.step once after each epoch before candidate save; soft prompt constant policy reapplied",
+    "class": "StepLR",
+    "gamma": 0.9,
+    "step_size": 1
+  },
+  "seed": 0,
+  "selection": {
+    "rule": "retrospective best six-Medical pixel AP",
+    "selected_epoch": 10,
+    "status": "RETROSPECTIVE_BEST; target/Medical-informed"
+  },
+  "source_dataset": "VisA",
+  "source_root": "/home/ai4/caohuy/data/VisA_20220922"
+}
