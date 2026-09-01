@@ -5,7 +5,7 @@ Status: `PASS`
 This fixed-input test compares the historical H2 native DFG and deployment path with the extension reconstruction using the common E0 model state. It is a portability/implementation test, not a training or target-selection result.
 
 - H2 commit: `e03966997d4cecfd985943a4053a93e1e40197ec`
-- E0 SHA256: `e3eb453a984ea4116d18e125905d75508257aaf01efad421b309819e9d5dda0f`
+- E0 SHA256: `119ba08eb8aa8107f47bf0a62ccc1c9ee643cd1f395331a527b1c975ea1d3eca`
 - Fixed batch: `candle/Data/Images/Anomaly/004.JPG, candle/Data/Images/Anomaly/011.JPG`
 - Tolerance: `0.0001`
 - DFG weight max abs diff: `0`
