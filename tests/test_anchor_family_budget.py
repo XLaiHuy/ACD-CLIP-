@@ -117,6 +117,50 @@ def test_active_family_anchor_is_capped_before_optimizer_clipping():
     assert target.grad.view(-1)[0].item() == pytest.approx(1.1, rel=1e-6)
 
 
+def test_huge_lambda_is_capped_without_contaminating_non_image_gradients():
+    outer = nn.Module()
+    outer.image_adapter = FamilyModule()
+    outer.non_image = nn.Parameter(torch.tensor([7.0]))
+    named, task, raw = _maps(outer.image_adapter)
+    target_name, target = next(iter(partition_image_adapter_parameters(outer.image_adapter)["lora_adapters"]))
+    task[target_name].view(-1)[0] = 1.0
+    raw[target_name].view(-1)[0] = 100.0
+    outer.non_image.grad = torch.tensor([7.0])
+    before = outer.non_image.grad.clone()
+    metrics = apply_family_safe_anchor_budget(
+        outer.image_adapter,
+        _named(outer),
+        task_gradients=task,
+        raw_anchor_gradients=raw,
+        anchor_lambda=1.0e9,
+        rho=0.10,
+    )
+    row = metrics["families"]["lora_adapters"]
+    assert row["lambda_times_raw_over_task"] > 1.0e8
+    assert row["effective_ratio"] <= 0.10 + 1.0e-10
+    assert target.grad is not None
+    assert target.grad.view(-1)[0].item() == pytest.approx(1.1, rel=1e-6)
+    assert torch.equal(outer.non_image.grad, before)
+
+
+def test_budgeted_combination_remains_finite_under_amp_autocast():
+    module = FamilyModule()
+    named, task, raw = _maps(module)
+    target_name, target = next(iter(partition_image_adapter_parameters(module)["lora_adapters"]))
+    task[target_name].fill_(1.0)
+    raw[target_name].fill_(100.0)
+    with torch.autocast(device_type="cpu", dtype=torch.bfloat16):
+        metrics = apply_family_safe_anchor_budget(
+            module,
+            named,
+            task_gradients=task,
+            raw_anchor_gradients=raw,
+            anchor_lambda=1.0e9,
+            rho=0.10,
+        )
+    assert math.isfinite(metrics["families"]["lora_adapters"]["effective_ratio"])
+    assert torch.isfinite(target.grad).all()
+    assert target.grad.view(-1)[0].item() == pytest.approx(1.1, rel=1e-6)
 def test_near_zero_task_floor_removes_anchor_contribution():
     module = FamilyModule()
     named, task, raw = _maps(module)
@@ -217,10 +261,11 @@ def test_nonfinite_task_or_anchor_gradient_is_rejected():
 
 def test_training_source_keeps_budget_after_unscale_before_clip():
     source = (Path(__file__).resolve().parents[1] / "train.py").read_text()
-    backward = source.index("scaler.scale(loss).backward(retain_graph=anchor_gradient_budget)")
+    backward = source.index("scaler.scale(task_loss).backward(retain_graph=True)")
     unscale = source.index("scaler.unscale_(optimizer)", backward)
     budget = source.index("if anchor_gradient_budget:", unscale)
     apply = source.index("apply_family_safe_anchor_budget", budget)
     clip = source.index("clip_module_grad(model.image_adapter", apply)
     assert backward < unscale < budget < apply < clip
     assert "torch.autograd.grad(" in source[budget:apply]
+    assert "scaler.scale(loss).backward(retain_graph=anchor_gradient_budget)" not in source

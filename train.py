@@ -530,13 +530,17 @@ def train(
                 anchor_loss = anchor.loss(model.image_adapter) if anchor is not None else torch.zeros((), device=device)
                 if anchor_gradient_budget:
                     task_loss = loss_main + lambda_kg * kg_loss + lambda_k * k_loss
-                    loss = task_loss + anchor_lambda * anchor_loss
+                    # The weighted Anchor is applied only after the task
+                    # gradients have been unscaled and separated by family.
+                    # Keeping it out of this loss prevents a large raw
+                    # coefficient from affecting GradScaler before capping.
+                    loss = task_loss
                 else:
                     task_loss = None
                     loss = loss_main + lambda_kg * kg_loss + lambda_k * k_loss + anchor_lambda * anchor_loss
             if use_cir_training:
                 cir_stats_list.append(dict(getattr(model, "_last_cir_stats", {})))
-            if not torch.isfinite(loss).all():
+            if not torch.isfinite(loss).all() or not torch.isfinite(anchor_loss).all():
                 non_finite_loss_skips += 1
                 diag_path = save_nonfinite_diagnostics(
                     save_path=save_path,
@@ -579,13 +583,14 @@ def train(
                 logger.warning(
                     "non-finite loss at epoch %d batch=%d skip=%d "
                     "loss_finite=%s cls_loss_finite=%s seg_loss_finite=%s "
-                    "cls_pred_finite=%s seg_pred_finite=%s diag=%s",
+                    "anchor_loss_finite=%s cls_pred_finite=%s seg_pred_finite=%s diag=%s",
                     epoch_one_based,
                     batch_idx,
                     non_finite_loss_skips,
                     bool(torch.isfinite(loss).all().item()),
                     bool(torch.isfinite(cls_loss).all().item()),
                     bool(torch.isfinite(seg_loss).all().item()),
+                    bool(torch.isfinite(anchor_loss).all().item()),
                     bool(torch.isfinite(cls_pred).all().item()),
                     bool(torch.isfinite(seg_pred).all().item()),
                     diag_path,
@@ -623,7 +628,10 @@ def train(
                 )
             # backward
             optimizer.zero_grad(set_to_none=True)
-            scaler.scale(loss).backward(retain_graph=anchor_gradient_budget)
+            if anchor_gradient_budget:
+                scaler.scale(task_loss).backward(retain_graph=True)
+            else:
+                scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
             if has_non_finite_grad(optimizer):
                 logger.warning("non-finite gradient at epoch %d; skipping optimizer step", epoch + 1)

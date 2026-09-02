@@ -47,9 +47,28 @@
   "grad_checkpointing": true,
   "amp": true,
   "precision": "torch.float16_default_autocast",
-  "horizon": 15,
+  "horizon": 20,
+  "training_horizon": 20,
+  "primary_horizon": 15,
+  "secondary_horizon": 20,
   "confirmatory_final_epoch": 15,
+  "secondary_final_epoch": 20,
+  "target_valid_epochs": [15, 20],
   "diagnostic_epochs": [10],
+  "anchor_calibration": {
+    "source_audit": "audit/h2_redteam_visa_anchor.json",
+    "valid_rows": [
+      "historical_E5/vision_text_k",
+      "historical_E10/vision_text_k",
+      "historical_E15/vision_text_k"
+    ],
+    "r_med": 23.11184680352771,
+    "target_effective_ratio": 0.05,
+    "family_cap_rho": 0.1,
+    "lambda_old": 0.001,
+    "lambda_active": 0.0021633926715180626,
+    "lambda_sweep": "NO"
+  },
   "source_gate": {
     "enabled": false,
     "reason": "The historical 96-image gate overlaps the VisA training manifest and is not a generalization set."
@@ -57,18 +76,26 @@
   "arms": {
     "H": {
       "anchor": false,
+      "anchor_lambda": 0.0,
+      "anchor_gradient_budget": false,
+      "anchor_family_budget": 0.1,
       "cir_training": false,
       "cir_alpha": 0.0
     },
     "A": {
       "anchor": true,
-      "anchor_lambda": 0.001,
+      "anchor_lambda": 0.0021633926715180626,
+      "anchor_gradient_budget": true,
+      "anchor_family_budget": 0.1,
       "anchor_reference": "shared_full_state_E1_image_adapter",
       "cir_training": false,
       "cir_alpha": 0.0
     },
     "C": {
       "anchor": false,
+      "anchor_lambda": 0.0,
+      "anchor_gradient_budget": false,
+      "anchor_family_budget": 0.1,
       "cir_training": true,
       "cir_alpha": 0.5,
       "cir_peer_count": 8,
@@ -76,7 +103,9 @@
     },
     "AC": {
       "anchor": true,
-      "anchor_lambda": 0.001,
+      "anchor_lambda": 0.0021633926715180626,
+      "anchor_gradient_budget": true,
+      "anchor_family_budget": 0.1,
       "anchor_reference": "shared_full_state_E1_image_adapter",
       "cir_training": true,
       "cir_alpha": 0.5,
@@ -84,8 +113,8 @@
       "cir_spatial_radius": 3
     }
   },
-  "trajectory_rule": "run native shared E1 once, then branch all arms from that full-state checkpoint at E2",
-  "medical_rule": "evaluate only after fixed E15 checkpoint freeze",
+  "trajectory_rule": "run native shared E1 once, then branch H/A/C/AC from that exact full-state checkpoint at E2-E20",
+  "medical_rule": "evaluate only fixed E15 primary and E20 secondary checkpoints after both are frozen",
   "mvtec_rule": "evaluate only after final architecture decision",
   "geometry_authorized": false,
   "performance_winner_decided": false

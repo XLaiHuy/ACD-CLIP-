@@ -8,7 +8,15 @@ from pathlib import Path
 
 import torch
 
-from h2_clean.contract import RESUME_BRANCH_KEYS, state_dict_sha256
+from h2_clean.contract import (
+    ANCHOR_FAMILY_BUDGET_DEFAULT,
+    ANCHOR_LAMBDA_ACTIVE,
+    PRIMARY_HORIZON,
+    RESUME_BRANCH_KEYS,
+    SECONDARY_HORIZON,
+    TRAINING_HORIZON,
+    state_dict_sha256,
+)
 
 
 def load(path):
@@ -38,11 +46,21 @@ def main():
         raise AssertionError("H/A/C/AC parent scientific configs differ")
 
     expected = {
-        "H": {"use_safe_anchor": False, "anchor_lambda": 0.0, "anchor_reference_sha256": None, "use_cir_training": False, "cir_alpha": 0.0, "cir_peer_count": 8, "cir_spatial_radius": 3},
-        "A": {"use_safe_anchor": True, "anchor_lambda": 0.001, "use_cir_training": False, "cir_alpha": 0.0, "cir_peer_count": 8, "cir_spatial_radius": 3},
-        "C": {"use_safe_anchor": False, "anchor_lambda": 0.0, "use_cir_training": True, "cir_alpha": 0.5, "cir_peer_count": 8, "cir_spatial_radius": 3},
-        "AC": {"use_safe_anchor": True, "anchor_lambda": 0.001, "use_cir_training": True, "cir_alpha": 0.5, "cir_peer_count": 8, "cir_spatial_radius": 3},
+        "H": {"use_safe_anchor": False, "anchor_lambda": 0.0, "anchor_gradient_budget": False, "anchor_family_budget": ANCHOR_FAMILY_BUDGET_DEFAULT, "anchor_reference_sha256": None, "use_cir_training": False, "cir_alpha": 0.0, "cir_peer_count": 8, "cir_spatial_radius": 3},
+        "A": {"use_safe_anchor": True, "anchor_lambda": ANCHOR_LAMBDA_ACTIVE, "anchor_gradient_budget": True, "anchor_family_budget": ANCHOR_FAMILY_BUDGET_DEFAULT, "use_cir_training": False, "cir_alpha": 0.0, "cir_peer_count": 8, "cir_spatial_radius": 3},
+        "C": {"use_safe_anchor": False, "anchor_lambda": 0.0, "anchor_gradient_budget": False, "anchor_family_budget": ANCHOR_FAMILY_BUDGET_DEFAULT, "use_cir_training": True, "cir_alpha": 0.5, "cir_peer_count": 8, "cir_spatial_radius": 3},
+        "AC": {"use_safe_anchor": True, "anchor_lambda": ANCHOR_LAMBDA_ACTIVE, "anchor_gradient_budget": True, "anchor_family_budget": ANCHOR_FAMILY_BUDGET_DEFAULT, "use_cir_training": True, "cir_alpha": 0.5, "cir_peer_count": 8, "cir_spatial_radius": 3},
     }
+    expected_horizons = {
+        "epoch": TRAINING_HORIZON,
+        "training_horizon": TRAINING_HORIZON,
+        "primary_horizon": PRIMARY_HORIZON,
+        "secondary_horizon": SECONDARY_HORIZON,
+    }
+    for name in names:
+        for key, value in expected_horizons.items():
+            if configs[name].get(key) != value:
+                raise AssertionError(f"{name} {key}={configs[name].get(key)!r}, expected {value!r}")
     non_branch = sorted(set(configs["H"]) - set(RESUME_BRANCH_KEYS))
     for name in names:
         if any(configs[name][key] != configs["H"][key] for key in non_branch):

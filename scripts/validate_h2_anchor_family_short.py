@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the bounded source-only H_short/A_safe_short Anchor trajectory."""
+"""Validate the bounded source-only H_short/A_active_short Anchor trajectory."""
 from __future__ import annotations
 
 import argparse
@@ -11,11 +11,25 @@ from typing import Any
 
 import torch
 
-from h2_clean.contract import ANCHOR_FAMILY_NAMES, RESUME_BRANCH_KEYS, anchor_parameter_family
+from h2_clean.contract import (
+    ANCHOR_FAMILY_NAMES,
+    ANCHOR_LAMBDA_ACTIVE,
+    ANCHOR_LAMBDA_OLD,
+    ANCHOR_R_MED,
+    ANCHOR_TARGET_EFFECTIVE_RATIO,
+    PRIMARY_HORIZON,
+    RESUME_BRANCH_KEYS,
+    SECONDARY_HORIZON,
+    TRAINING_HORIZON,
+    sha256_file,
+    anchor_parameter_family,
+)
 
 
 RHO = 0.10
-EPOCHS = (2, 3)
+EPOCHS = (2, 3, 4, 5)
+MEANINGFUL_ACTIVE_RATIO_FLOOR = 0.02
+RATIO_TOLERANCE = 1.0e-6
 STEP_RE = re.compile(r"anchor_family_step epoch=(\d+) batch=(\d+) metrics=(\{.*\})$")
 SKIP_RE = re.compile(r"skip_counts epoch=(\d+) non_finite_loss=(\d+) non_finite_grad=(\d+)")
 
@@ -127,7 +141,7 @@ def summarize_steps(
                 raw_ratio = row.get("raw_gradient_ratio")
                 if raw_ratio is not None:
                     max_raw_ratio = max(max_raw_ratio, float(raw_ratio))
-                if row["status"] == "TASK_NEAR_ZERO" and abs(float(row["effective_anchor_grad_norm"])) > 1.0e-10:
+                if row["status"] == "TASK_NEAR_ZERO" and float(row["effective_anchor_grad_norm"]) != 0.0:
                     near_zero_ok = False
                 if enforce_budget and float(row["task_grad_norm"]) > float(row["task_floor"]):
                     if effective_ratio > RHO + 1.0e-6:
@@ -143,6 +157,16 @@ def summarize_steps(
             "task_floor_max": max(float(metrics["task_floor"]) for metrics in rows),
         }
     return summary, max_effective_ratio, max_raw_ratio, near_zero_ok, budget_ok
+
+
+def meaningful_active_ratio_max(steps: dict[tuple[int, int], dict[str, Any]]) -> float:
+    values = [
+        float(row["effective_ratio"])
+        for metrics in steps.values()
+        for row in metrics.get("families", {}).values()
+        if row.get("status") == "TASK_ACTIVE"
+    ]
+    return max(values, default=0.0)
 
 
 def family_drift(reference: dict[str, torch.Tensor], state: dict[str, torch.Tensor]) -> dict[str, float]:
@@ -174,7 +198,7 @@ def module_delta(left: dict[str, Any], right: dict[str, Any]) -> dict[str, float
 
 def validate_configs(shared: dict[str, Any], h: dict[str, Any], a: dict[str, Any]) -> dict[str, Any]:
     if h["parent_scientific_config"] != a["parent_scientific_config"]:
-        raise AssertionError("H_short and A_safe_short parent scientific configs differ")
+        raise AssertionError("H_short and A_active_short parent scientific configs differ")
     non_branch = sorted((set(h["resolved_scientific_config"]) | set(a["resolved_scientific_config"])) - set(RESUME_BRANCH_KEYS))
     mismatches = [
         key for key in non_branch
@@ -188,12 +212,19 @@ def validate_configs(shared: dict[str, Any], h: dict[str, Any], a: dict[str, Any
         "use_safe_anchor": False,
         "anchor_lambda": 0.0,
         "anchor_gradient_budget": False,
+        "anchor_family_budget": RHO,
         "use_cir_training": False,
         "cir_alpha": 0.0,
+        "training_horizon": TRAINING_HORIZON,
+        "primary_horizon": PRIMARY_HORIZON,
+        "secondary_horizon": SECONDARY_HORIZON,
+        "anchor_target_effective_ratio": ANCHOR_TARGET_EFFECTIVE_RATIO,
+        "anchor_r_med": ANCHOR_R_MED,
+        "anchor_lambda_old": ANCHOR_LAMBDA_OLD,
     }
     expected_a = {
         "use_safe_anchor": True,
-        "anchor_lambda": 0.001,
+        "anchor_lambda": ANCHOR_LAMBDA_ACTIVE,
         "anchor_gradient_budget": True,
         "anchor_family_budget": RHO,
         "use_cir_training": False,
@@ -204,11 +235,16 @@ def validate_configs(shared: dict[str, Any], h: dict[str, Any], a: dict[str, Any
             raise AssertionError(f"H_short {key}={h_config.get(key)!r}, expected {value!r}")
     for key, value in expected_a.items():
         if a_config.get(key) != value:
-            raise AssertionError(f"A_safe_short {key}={a_config.get(key)!r}, expected {value!r}")
+            raise AssertionError(f"A_active_short {key}={a_config.get(key)!r}, expected {value!r}")
     if h_config.get("anchor_family_budget") != RHO:
         raise AssertionError("H_short did not carry the fixed family rho in scientific identity")
     if not a_config.get("anchor_reference_sha256"):
-        raise AssertionError("A_safe_short has no E1 Anchor reference identity")
+        raise AssertionError("A_active_short has no E1 Anchor reference identity")
+    if shared["parent_scientific_config"] != h["parent_scientific_config"]:
+        raise AssertionError("shared E1 and H_short parent scientific configs differ")
+    for key in ("epoch", "training_horizon", "primary_horizon", "secondary_horizon"):
+        if shared["resolved_scientific_config"].get(key) != h_config.get(key):
+            raise AssertionError(f"shared E1 and H_short horizon identity differs for {key}")
     if shared["epoch"] != 1:
         raise AssertionError(f"shared checkpoint epoch is {shared['epoch']}, expected 1")
     return {"parent_equal": True, "non_branch_mismatches": [], "H_native": True, "A_anchor_budget": True}
@@ -222,8 +258,8 @@ def main() -> None:
     args = parser.parse_args()
     root = Path(args.root)
     shared_path = root / "shared_e1" / "adapter_1.pth"
-    h_path = root / "H_short" / "adapter_3.pth"
-    a_path = root / "A_safe_short" / "adapter_3.pth"
+    h_path = root / "H_short" / f"adapter_{EPOCHS[-1]}.pth"
+    a_path = root / "A_active_short" / f"adapter_{EPOCHS[-1]}.pth"
     for path in (shared_path, h_path, a_path):
         if not path.is_file():
             raise FileNotFoundError(path)
@@ -232,14 +268,14 @@ def main() -> None:
     a = load(a_path)
     config_result = validate_configs(shared, h, a)
     h_steps = parse_step_metrics(root / "H_short" / "train.log")
-    a_steps = parse_step_metrics(root / "A_safe_short" / "train.log")
+    a_steps = parse_step_metrics(root / "A_active_short" / "train.log")
     h_summary, h_max_effective, h_max_raw, h_near_zero_ok, h_budget_ok = summarize_steps(
         h_steps, args.expected_batches, label="H_short", enforce_budget=False
     )
     a_summary, a_max_effective, a_max_raw, a_near_zero_ok, a_budget_ok = summarize_steps(
-        a_steps, args.expected_batches, label="A_safe_short", enforce_budget=True
+        a_steps, args.expected_batches, label="A_active_short", enforce_budget=True
     )
-    for label, log_path in (("H_short", root / "H_short" / "train.log"), ("A_safe_short", root / "A_safe_short" / "train.log")):
+    for label, log_path in (("H_short", root / "H_short" / "train.log"), ("A_active_short", root / "A_active_short" / "train.log")):
         skips = parse_skip_counts(log_path)
         for epoch in EPOCHS:
             if skips.get(epoch) != (0, 0):
@@ -248,7 +284,7 @@ def main() -> None:
     identity_counts: dict[str, int] = {}
     for epoch in EPOCHS:
         h_ids = parse_batch_identities(root / "H_short" / "train.log", epoch)
-        a_ids = parse_batch_identities(root / "A_safe_short" / "train.log", epoch)
+        a_ids = parse_batch_identities(root / "A_active_short" / "train.log", epoch)
         identity_counts[f"epoch_{epoch}"] = len(h_ids)
         if len(h_ids) != args.expected_batches or len(a_ids) != args.expected_batches or h_ids != a_ids:
             identity_equal = False
@@ -259,13 +295,12 @@ def main() -> None:
     a_image = a["model_state"]["image_adapter"]
     h_drift = family_drift(shared_image, h_image)
     a_drift = family_drift(shared_image, a_image)
-    h_a_deltas = {
-        "E2": module_delta(
-            load(root / "H_short" / "adapter_2.pth")["model_state"],
-            load(root / "A_safe_short" / "adapter_2.pth")["model_state"],
-        ),
-        "E3": module_delta(h["model_state"], a["model_state"]),
-    }
+    h_a_deltas = {}
+    for epoch in EPOCHS:
+        h_a_deltas[f"E{epoch}"] = module_delta(
+            load(root / "H_short" / f"adapter_{epoch}.pth")["model_state"],
+            load(root / "A_active_short" / f"adapter_{epoch}.pth")["model_state"],
+        )
     image_delta = max(row.get("image_adapter", 0.0) for row in h_a_deltas.values())
     global_effective_ratios = [
         float(metrics["global_effective_ratio"])
@@ -274,36 +309,56 @@ def main() -> None:
     ]
     global_effective_nonzero = any(value > 1.0e-12 for value in global_effective_ratios)
     global_effective_not_tiny = max(global_effective_ratios, default=0.0) > 1.0e-6
-    if not h_near_zero_ok or not a_near_zero_ok:
-        raise AssertionError("near-zero task families retained an Anchor contribution")
+    meaningful_active_ratio = meaningful_active_ratio_max(a_steps)
     h_native = config_result["H_native"] and h_max_effective <= 1.0e-10 and h_budget_ok
-    a_safe = a_budget_ok and a_max_effective <= RHO + 1.0e-6 and a_near_zero_ok
+    a_safe = a_budget_ok and a_max_effective <= RHO + RATIO_TOLERANCE and a_near_zero_ok
     no_40000x_pathology = a_max_effective < 40000.0
-    expected_difference = identity_equal and a_safe
-    if not h_native:
-        raise AssertionError("H_short is not native H2 or its zero Anchor branch changed gradients")
-    if not a_safe:
-        raise AssertionError("A_safe_short violated the family cap or finite/near-zero checks")
-    if not expected_difference:
-        raise AssertionError("H/A short trajectory did not isolate a bounded Anchor-only difference")
-    if a_max_effective > RHO + 1.0e-6:
+    expected_difference = identity_equal and a_safe and image_delta > 0.0
+    hard_checks = {
+        "cap": a_safe,
+        "near_zero": h_near_zero_ok and a_near_zero_ok,
+        "finite": True,
+        "H_native": h_native,
+        "A_only": expected_difference,
+        "meaningful_active": meaningful_active_ratio >= MEANINGFUL_ACTIVE_RATIO_FLOOR - RATIO_TOLERANCE,
+        "anchor_after_drift": global_effective_nonzero and a_max_effective > 1.0e-12,
+        "no_40000x_pathology": no_40000x_pathology,
+    }
+    safety_gate = all(hard_checks[key] for key in ("cap", "near_zero", "finite", "H_native", "A_only", "no_40000x_pathology"))
+    activation_gate = safety_gate and hard_checks["meaningful_active"] and hard_checks["anchor_after_drift"]
+    if not safety_gate:
         anchor_status = "FAMILY_UNSAFE"
-    elif not global_effective_not_tiny:
+    elif not activation_gate:
         anchor_status = "FAMILY_SAFE_BUT_NEGLIGIBLE"
     else:
         anchor_status = "FAMILY_SAFE_ACTIVE"
     result = {
+        "SHARED_E1_CHECKPOINT_SHA256": sha256_file(shared_path),
+        "ACTIVATION_CODE_SHA": shared.get("implementation_git_sha"),
+        "ACTIVATION_WORKING_TREE_DIFF_SHA256": shared.get("working_tree_diff_sha256"),
+        "ACTIVATION_CONFIG_SHA256": shared.get("config_sha256"),
+        "ACTIVATION_CLIP_SHA256": shared.get("clip_sha256"),
+        "ACTIVATION_DATASET_MANIFEST_SHA256": shared.get("dataset_manifest_sha256"),
+        "ACTIVATION_BASE_H2_COMMIT": shared.get("base_h2_commit"),
         "scope": "VisA train source-only bounded mechanism validation; no Medical/MVTec/target labels; no full training",
         "shared_e1": str(shared_path),
+        "TRAINING_HORIZON": TRAINING_HORIZON,
+        "PRIMARY_HORIZON": PRIMARY_HORIZON,
+        "SECONDARY_HORIZON": SECONDARY_HORIZON,
+        "ANCHOR_R_MED": ANCHOR_R_MED,
+        "ANCHOR_TARGET_EFFECTIVE_RATIO": ANCHOR_TARGET_EFFECTIVE_RATIO,
+        "MEANINGFUL_ACTIVE_RATIO_FLOOR": MEANINGFUL_ACTIVE_RATIO_FLOOR,
+        "HARD_CHECKS": hard_checks,
+        "ACTIVATION_GATE": "PASS" if activation_gate else "FAIL",
         "H_short": {
-            "passed": True,
+            "passed": h_native,
             "epochs": list(EPOCHS),
             "summary": h_summary,
             "max_effective_active_family_ratio": h_max_effective,
             "max_raw_gradient_ratio": h_max_raw,
         },
-        "A_safe_short": {
-            "passed": True,
+        "A_active_short": {
+            "passed": a_safe,
             "epochs": list(EPOCHS),
             "summary": a_summary,
             "max_effective_active_family_ratio": a_max_effective,
@@ -315,11 +370,12 @@ def main() -> None:
         "H_A_ONLY_EXPECTED_DIFFERENCE": expected_difference,
         "same_batch_identity": identity_equal,
         "batch_identity_counts": identity_counts,
-        "drift_from_shared_e1": {"H_short": h_drift, "A_safe_short": a_drift},
+        "drift_from_shared_e1": {"H_short": h_drift, "A_active_short": a_drift},
         "H_vs_A_delta": h_a_deltas,
         "FAMILY_PARTITION_COMPLETE": True,
         "ANCHOR_FAMILY_BUDGET_RHO": RHO,
-        "ANCHOR_LAMBDA": 0.001,
+        "ANCHOR_LAMBDA": ANCHOR_LAMBDA_ACTIVE,
+        "MEANINGFUL_TASK_ACTIVE_RATIO_MAX": meaningful_active_ratio,
         "FINITE_SKIPS": "PASS",
         "ANCHOR_STATUS": anchor_status,
     }
@@ -327,6 +383,9 @@ def main() -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
     print(json.dumps(result, indent=2, sort_keys=True))
+    if not activation_gate:
+        failed = [key for key, passed in hard_checks.items() if not passed]
+        raise AssertionError(f"Anchor activation gate failed: {failed}")
 
 
 if __name__ == "__main__":

@@ -5,17 +5,22 @@ export PYTHONHASHSEED=0
 export CUBLAS_WORKSPACE_CONFIG=:4096:8
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SHORT_ROOT="${SHORT_ROOT:-/tmp/h2_anchor_family_short_v1}"
+SHORT_ROOT="${SHORT_ROOT:-/tmp/h2_anchor_family_short_e20_v1}"
 CONDA_ENV="${CONDA_ENV:-torchhuy}"
 RUN_SHORT="${RUN_SHORT:-NO}"
 SHORT_BATCHES="${SHORT_BATCHES:-2}"
 NUM_WORKERS="${NUM_WORKERS:-0}"
+TRAINING_HORIZON=20
+PRIMARY_HORIZON=15
+SECONDARY_HORIZON=20
+SHORT_END_EPOCH=5
+ANCHOR_LAMBDA_ACTIVE="0.0021633926715180626"
 PY=(conda run --no-capture-output -n "${CONDA_ENV}" python)
 SHARED_E1="${SHORT_ROOT}/shared_e1/adapter_1.pth"
 
 base_args=(
   "${ROOT}/train.py"
-  --protocol_horizon 3
+  --protocol_horizon "${TRAINING_HORIZON}"
   --dataset VisA
   --model_name ViT-L-14-336
   --img_size 518
@@ -62,7 +67,8 @@ base_args=(
 )
 
 if [[ "${RUN_SHORT}" != "YES" ]]; then
-  echo "Prepared only. Set RUN_SHORT=YES to run native H_short and family-safe A_safe_short E2-E3."
+  echo "Prepared only. Set RUN_SHORT=YES to run native H_short and calibrated A_active_short E2-E5."
+  echo "Scientific horizon: E20; target-valid checkpoints: E15 primary, E20 secondary."
   echo "Short root: ${SHORT_ROOT}"
   exit 0
 fi
@@ -81,18 +87,18 @@ mkdir -p "${SHORT_ROOT}"
 "${PY[@]}" -c 'import sys, torch; p=sys.argv[1]; x=torch.load(p,map_location="cpu",weights_only=False); required=("checkpoint_version","protocol_version","model_state","image_parameter_reference","optimizer_state","scheduler_state","scaler_state","python_random_state","numpy_random_state","torch_cpu_rng_state","torch_cuda_rng_state_all","dataloader_generator_state","epoch","global_step","parent_scientific_config","resolved_operational_config","resolved_scientific_config","config_sha256","base_h2_commit","implementation_git_sha","working_tree_diff_sha256","git_sha","clip_sha256","dataset_manifest_sha256","seed","precision","amp_enabled","tf32_enabled"); missing=[k for k in required if k not in x]; bad=int(x.get("checkpoint_version",0)) != 3 or x.get("protocol_version") != "H2_CLEAN_REPRO_ANCHOR_CIR_V2_REDTEAM"; assert not (missing or bad), "incomplete/wrong-protocol E1: missing=%r version=%r protocol=%r" % (missing,x.get("checkpoint_version"),x.get("protocol_version"))' "${SHARED_E1}"
 
 "${PY[@]}" "${base_args[@]}" \
-  --epoch 3 \
+  --epoch "${SHORT_END_EPOCH}" \
   --resume "${SHARED_E1}" \
   --max_batches "${SHORT_BATCHES}" \
   --save_path "${SHORT_ROOT}/H_short"
 
 "${PY[@]}" "${base_args[@]}" \
-  --epoch 3 \
+  --epoch "${SHORT_END_EPOCH}" \
   --resume "${SHARED_E1}" \
   --max_batches "${SHORT_BATCHES}" \
-  --save_path "${SHORT_ROOT}/A_safe_short" \
+  --save_path "${SHORT_ROOT}/A_active_short" \
   --use_safe_anchor \
-  --anchor_lambda 0.001 \
+  --anchor_lambda "${ANCHOR_LAMBDA_ACTIVE}" \
   --anchor_reference_path "${SHARED_E1}" \
   --anchor_gradient_budget \
   --anchor_family_budget 0.10
@@ -102,4 +108,4 @@ mkdir -p "${SHORT_ROOT}"
   --expected-batches "${SHORT_BATCHES}" \
   --output "${ROOT}/audit/h2_anchor_family_short.json"
 
-echo "H_short/A_safe_short E2-E3 family-budget validation completed: ${SHORT_ROOT}"
+echo "H_short/A_active_short E2-E5 activation-gate validation completed: ${SHORT_ROOT}"

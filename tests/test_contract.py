@@ -1,12 +1,23 @@
+import json
 import math
+from pathlib import Path
 
 import torch
 import pytest
 from torch import nn
 
 from h2_clean.contract import (
+    ANCHOR_FAMILY_BUDGET_DEFAULT,
+    ANCHOR_LAMBDA_ACTIVE,
+    ANCHOR_LAMBDA_OLD,
+    ANCHOR_R_MED,
+    ANCHOR_TARGET_EFFECTIVE_RATIO,
+    PRIMARY_HORIZON,
     SafeImageAdapterAnchor,
     CIR_LOGIT_SHIFT_EXPERIMENTAL,
+    SECONDARY_HORIZON,
+    TRAINING_HORIZON,
+    scientific_config_from_mapping,
 )
 from h2_clean.cir_v2 import select_gt_free_peers
 
@@ -66,3 +77,42 @@ def test_cir_peer_selector_has_finite_gt_free_indices():
     assert info["valid"].all()
     assert not info["peer_indices"].requires_grad
     assert not info["valid"].requires_grad
+
+
+def test_e20_protocol_identity_and_single_anchor_calibration():
+    repo = Path(__file__).resolve().parents[1]
+    config = json.loads((repo / "configs" / "h2_clean_factorial_v1.json").read_text())
+    assert config["horizon"] == TRAINING_HORIZON == 20
+    assert config["training_horizon"] == TRAINING_HORIZON
+    assert config["primary_horizon"] == PRIMARY_HORIZON == 15
+    assert config["secondary_horizon"] == SECONDARY_HORIZON == 20
+    assert config["target_valid_epochs"] == [PRIMARY_HORIZON, SECONDARY_HORIZON]
+    calibration = config["anchor_calibration"]
+    assert calibration["valid_rows"] == [
+        "historical_E5/vision_text_k",
+        "historical_E10/vision_text_k",
+        "historical_E15/vision_text_k",
+    ]
+    assert calibration["lambda_sweep"] == "NO"
+    assert calibration["r_med"] == ANCHOR_R_MED
+    assert calibration["target_effective_ratio"] == ANCHOR_TARGET_EFFECTIVE_RATIO
+    assert calibration["lambda_old"] == ANCHOR_LAMBDA_OLD
+    assert calibration["lambda_active"] == ANCHOR_LAMBDA_ACTIVE
+    identity = scientific_config_from_mapping(
+        {
+            "protocol_horizon": TRAINING_HORIZON,
+            "anchor_lambda": ANCHOR_LAMBDA_ACTIVE,
+            "anchor_gradient_budget": True,
+            "anchor_family_budget": ANCHOR_FAMILY_BUDGET_DEFAULT,
+        },
+        clip_sha256=None,
+        dataset_manifest_sha256=None,
+        implementation_git_sha=None,
+    )
+    assert identity["epoch"] == TRAINING_HORIZON
+    assert identity["training_horizon"] == TRAINING_HORIZON
+    assert identity["primary_horizon"] == PRIMARY_HORIZON
+    assert identity["secondary_horizon"] == SECONDARY_HORIZON
+    assert identity["anchor_lambda"] == ANCHOR_LAMBDA_ACTIVE
+    assert identity["anchor_gradient_budget"] is True
+    assert identity["anchor_family_budget"] == ANCHOR_FAMILY_BUDGET_DEFAULT

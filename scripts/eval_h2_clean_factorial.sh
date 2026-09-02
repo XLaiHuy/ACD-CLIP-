@@ -7,18 +7,24 @@ ARM="${ARM:-H}"
 CONDA_ENV="${CONDA_ENV:-torchhuy}"
 RUN_EVAL="${RUN_EVAL:-NO}"
 FINAL_FROZEN="${FINAL_FROZEN:-NO}"
+EVAL_EPOCH="${EVAL_EPOCH:-15}"
 EVALUATOR_MODE="${EVALUATOR_MODE:-benchmark_exact}"
 NUM_WORKERS="${NUM_WORKERS:-6}"
+
+if [[ "${EVAL_EPOCH}" != "15" && "${EVAL_EPOCH}" != "20" ]]; then
+  echo "EVAL_EPOCH must be 15 or 20" >&2
+  exit 2
+fi
 PY=(conda run --no-capture-output -n "${CONDA_ENV}" python)
 
 if [[ "${RUN_EVAL}" != "YES" || "${FINAL_FROZEN}" != "YES" ]]; then
-  echo "Prepared only. Set RUN_EVAL=YES FINAL_FROZEN=YES after the E15 checkpoint is frozen."
-  echo "This command evaluates only the fixed E15 checkpoint; it does not select a checkpoint."
+  echo "Prepared only. Set RUN_EVAL=YES FINAL_FROZEN=YES after the fixed E15/E20 checkpoint is frozen."
+  echo "Set EVAL_EPOCH=15 for primary or EVAL_EPOCH=20 for secondary; this command never selects a checkpoint."
   exit 0
 fi
 
 SAVE_PATH="${RUN_ROOT}/${ARM}"
-test -s "${SAVE_PATH}/adapter_15.pth"
+test -s "${SAVE_PATH}/adapter_${EVAL_EPOCH}.pth"
 
 for dataset in Brain Liver Retina Colon_clinicDB Colon_colonDB Colon_Kvasir; do
   "${PY[@]}" "${ROOT}/test.py" \
@@ -43,7 +49,7 @@ for dataset in Brain Liver Retina Colon_clinicDB Colon_colonDB Colon_Kvasir; do
     --batch_size 8 \
     --num_workers "${NUM_WORKERS}" \
     --save_path "${SAVE_PATH}" \
-    --epochs 15 \
+    --epochs "${EVAL_EPOCH}" \
     --evaluator_mode "${EVALUATOR_MODE}" \
     --pixel_stride 1
 done

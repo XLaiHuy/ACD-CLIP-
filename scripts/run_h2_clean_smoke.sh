@@ -7,6 +7,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SMOKE_ROOT="${SMOKE_ROOT:-${ROOT}/runs/h2_clean_smoke_v1}"
 CONDA_ENV="${CONDA_ENV:-torchhuy}"
 RUN_SMOKE="${RUN_SMOKE:-NO}"
+TRAINING_HORIZON=20
+ANCHOR_LAMBDA_ACTIVE="0.0021633926715180626"
 SMOKE_BATCHES="${SMOKE_BATCHES:-5}"
 NUM_WORKERS="${NUM_WORKERS:-0}"
 PY=(conda run --no-capture-output -n "${CONDA_ENV}" python)
@@ -14,7 +16,7 @@ SHARED_E1="${SMOKE_ROOT}/shared_e1/adapter_1.pth"
 
 base_args=(
   "${ROOT}/train.py"
-  --protocol_horizon 2
+  --protocol_horizon "${TRAINING_HORIZON}"
   --dataset VisA
   --model_name ViT-L-14-336
   --img_size 518
@@ -88,14 +90,14 @@ for arm in H A C AC; do
   )
   case "${arm}" in
     A)
-      args+=(--use_safe_anchor --anchor_lambda 0.001 --anchor_reference_path "${SHARED_E1}" --anchor_gradient_budget --anchor_family_budget 0.10)
+      args+=(--use_safe_anchor --anchor_lambda "${ANCHOR_LAMBDA_ACTIVE}" --anchor_reference_path "${SHARED_E1}" --anchor_gradient_budget --anchor_family_budget 0.10)
       ;;
     C)
       args+=(--use_cir_training --cir_alpha 0.5 --cir_peer_count 8 --cir_spatial_radius 3)
       ;;
     AC)
       args+=(
-        --use_safe_anchor --anchor_lambda 0.001 --anchor_reference_path "${SHARED_E1}"
+        --use_safe_anchor --anchor_lambda "${ANCHOR_LAMBDA_ACTIVE}" --anchor_reference_path "${SHARED_E1}"
         --anchor_gradient_budget --anchor_family_budget 0.10
         --use_cir_training --cir_alpha 0.5 --cir_peer_count 8 --cir_spatial_radius 3
       )

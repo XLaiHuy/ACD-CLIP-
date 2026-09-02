@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "protocol": "H2_CLEAN_REPRO_ANCHOR_CIR_V2_REDTEAM",
+  "base_h2_commit": "e03966997d4cecfd985943a4053a93e1e40197ec",
+  "source_audit": "audit/h2_redteam_visa_anchor.json",
+  "calibration_scope": "historical model-only VisA geometry; no optimizer or update-parity claim",
+  "valid_rows": [
+    {"checkpoint": "historical_E5", "family": "vision_text_k", "raw_ratio": 18.520829477442355},
+    {"checkpoint": "historical_E10", "family": "vision_text_k", "raw_ratio": 33.84580840834666},
+    {"checkpoint": "historical_E15", "family": "vision_text_k", "raw_ratio": 23.11184680352771}
+  ],
+  "r_med": 23.11184680352771,
+  "target_effective_ratio": 0.05,
+  "family_budget_rho": 0.1,
+  "lambda_old": 0.001,
+  "lambda_active": 0.0021633926715180626,
+  "lambda_sweep": "NO",
+  "invalid_rows_excluded": "vision_text_q is ANCHOR_MODERATE; near-zero, dormant, zero, and non-finite rows are excluded by the strict TASK_ACTIVE rule",
+  "active_rule": "lambda_active = target_effective_ratio / median(valid TASK_ACTIVE raw ratios)",
+  "activation_gate": "FAMILY_SAFE_ACTIVE",
+  "activation_audit": "audit/h2_anchor_family_short.json",
+  "shared_e1_checkpoint_sha256": "9e48d6a5b6b9433c4f18870f3ecee785504e4f32d42c16778b807dbeb761aa7d",
+  "activation_code_sha": "fa61677e240999f707153505327e7305048bbfb4",
+  "full_training_authorized": true
+}

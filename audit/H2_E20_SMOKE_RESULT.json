@@ -1,0 +1,42 @@
+{
+  "STATUS": "PASS",
+  "SCOPE": "Bounded deterministic H2 E20 preflight smoke; no target evaluation",
+  "COMMAND": "SMOKE_ROOT=/tmp/h2_clean_smoke_e20_20260902 RUN_SMOKE=YES SMOKE_BATCHES=5 NUM_WORKERS=0 bash scripts/run_h2_clean_smoke.sh",
+  "RUN_ROOT": "/tmp/h2_clean_smoke_e20_20260902",
+  "ARMS": [
+    "H",
+    "A",
+    "C",
+    "AC"
+  ],
+  "SHARED_E1": true,
+  "TRAINING_HORIZON": 20,
+  "EXPECTED_BATCHES": 5,
+  "E2_ARM_BATCH_IDENTITIES_EQUAL": true,
+  "RESUME_E3_BATCH_IDENTITIES_EQUAL": true,
+  "RESUME_E3_IMAGE_ADAPTER_STATES_EQUAL": true,
+  "CHECKPOINTS": {
+    "shared_e1": "/tmp/h2_clean_smoke_e20_20260902/shared_e1/adapter_1.pth",
+    "H_E2": "/tmp/h2_clean_smoke_e20_20260902/H/adapter_2.pth",
+    "A_E2": "/tmp/h2_clean_smoke_e20_20260902/A/adapter_2.pth",
+    "C_E2": "/tmp/h2_clean_smoke_e20_20260902/C/adapter_2.pth",
+    "AC_E2": "/tmp/h2_clean_smoke_e20_20260902/AC/adapter_2.pth"
+  },
+  "SOURCE_CHECKPOINT_METADATA": {
+    "implementation_git_sha": "fa61677e240999f707153505327e7305048bbfb4",
+    "base_h2_commit": "e03966997d4cecfd985943a4053a93e1e40197ec",
+    "clip_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+    "dataset_manifest_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+    "seed": 0,
+    "precision": "amp",
+    "amp_enabled": true,
+    "tf32_enabled": false,
+    "checkpoint_working_tree_diff_sha256": null
+  },
+  "NOT_RUN": [
+    "full factorial training",
+    "Medical evaluation",
+    "MVTec evaluation",
+    "target-label selection or tuning"
+  ]
+}
