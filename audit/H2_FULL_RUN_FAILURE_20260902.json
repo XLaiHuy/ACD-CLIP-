@@ -1,0 +1,29 @@
+{
+  "status": "INVALID_NOT_FOR_ANALYSIS",
+  "run_root": "/tmp/h2_clean_factorial_e20_20260902",
+  "started_code_sha": "ba96b3de54f35e83cd14cc444128d5494e4e4495",
+  "base_h2_commit": "e03966997d4cecfd985943a4053a93e1e40197ec",
+  "arm": "H",
+  "failure_epoch": 8,
+  "failure_batch": 257,
+  "non_finite_loss_skips": 21,
+  "non_finite_loss_abort_threshold": 20,
+  "first_diagnostic": "/tmp/h2_clean_factorial_e20_20260902/H/nonfinite_diagnostics/epoch_008_batch_00257_skip_0001.pth",
+  "observed_failure": {
+    "loss_finite": false,
+    "cls_loss_finite": false,
+    "seg_loss_finite": false,
+    "anchor_loss_finite": true,
+    "cls_pred_finite": false,
+    "seg_pred_finite": false,
+    "diagnostic_stage3_ss2d_finite": false
+  },
+  "root_cause": "train.main loaded and validated resume_payload and set start_epoch/global_step, but omitted resume_payload=resume_payload in the train() call. Arms therefore did not restore shared-E1 model, optimizer, scheduler, scaler, or RNG state.",
+  "disposition": "Discard all H/A/C/AC artifacts from this root for scientific analysis; the run did not satisfy the shared-E1 continuation contract.",
+  "fix_commit": "3f4347c99853f66ca6697150a87f48fb261ae6e1",
+  "fix": "Pass the validated resume_payload into train() and add an AST regression test for the CLI wiring.",
+  "validation": {
+    "main_pytest": "47 passed, 58 warnings in 2.04s",
+    "worktree_after_fix": "clean before audit-doc commit"
+  }
+}
