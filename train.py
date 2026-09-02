@@ -1,4 +1,5 @@
 import argparse
+import hashlib
 import logging
 import os
 from typing import Any
@@ -26,11 +27,14 @@ from h2_clean.contract import (
     SafeImageAdapterAnchor,
     build_full_checkpoint,
     environment_manifest,
-    canonical_json_hash,
     current_git_sha,
     make_dataloader_generator,
     EpochWorkerInit,
+    operational_config_from_mapping,
+    parent_scientific_config,
     restore_full_checkpoint,
+    scientific_config_from_mapping,
+    validate_resume_identity,
     seed_everything,
     sha256_file,
 )
@@ -72,9 +76,14 @@ def tensor_debug_stats(tensor):
         return stats
 
 
+def tensor_bytes_sha256(tensor: torch.Tensor) -> str:
+    value = tensor.detach().cpu().contiguous()
+    return hashlib.sha256(value.numpy().tobytes()).hexdigest()
+
 def diagnostics_to_python(diagnostics):
     converted = {}
-    for key, value in diagnostics.items():
+    for key in sorted(diagnostics):
+        value = diagnostics[key]
         if value is None:
             converted[key] = None
         elif torch.is_tensor(value):
@@ -108,7 +117,7 @@ def save_nonfinite_diagnostics(
         "batch_idx": batch_idx,
         "non_finite_loss_skips": non_finite_loss_skips,
         "metadata": metadata,
-        "tensor_stats": {name: tensor_debug_stats(value) for name, value in tensors.items()},
+        "tensor_stats": {name: tensor_debug_stats(tensors[name]) for name in sorted(tensors)},
         "dfg_diagnostics": diagnostics_to_python(model.get_dfg_diagnostics()),
     }
     torch.save(payload, diag_path)
@@ -152,7 +161,7 @@ def mean_stats(stats_list):
         return {}
     return {
         key: float(np.mean([stats[key] for stats in stats_list]))
-        for key in stats_list[0].keys()
+        for key in sorted(stats_list[0])
     }
 
 
@@ -161,6 +170,36 @@ def grad_norm_or_none(param: torch.nn.Parameter):
         return None
     return float(param.grad.detach().float().norm().item())
 
+
+def anchor_gradient_audit_ratio(
+        loss: torch.Tensor,
+        anchor_loss: torch.Tensor,
+        anchor_parameters: list[torch.nn.Parameter],
+        anchor_lambda: float,
+        device: str | torch.device,
+) -> float:
+    """Measure anchor/task gradient ratio without mutating gradients."""
+    anchor_grads = torch.autograd.grad(
+        anchor_lambda * anchor_loss,
+        anchor_parameters,
+        retain_graph=True,
+        allow_unused=True,
+    )
+    task_grads = torch.autograd.grad(
+        loss - anchor_lambda * anchor_loss,
+        anchor_parameters,
+        retain_graph=True,
+        allow_unused=True,
+    )
+    anchor_norm_sq = sum(
+        (gradient.detach().float().square().sum() for gradient in anchor_grads if gradient is not None),
+        torch.zeros((), device=device),
+    )
+    task_norm_sq = sum(
+        (gradient.detach().float().square().sum() for gradient in task_grads if gradient is not None),
+        torch.zeros((), device=device),
+    )
+    return float((anchor_norm_sq.sqrt() / task_norm_sq.sqrt().clamp_min(1e-12)).item())
 
 def get_hybrid_alpha_for_epoch(epoch_one_based: int, hybrid_alpha_max: float, soft_prompt_freeze_epochs: int):
     if epoch_one_based <= soft_prompt_freeze_epochs:
@@ -271,6 +310,8 @@ def train(
         start_epoch: int = 0,
         global_step: int = 0,
         checkpoint_config: dict[str, Any] | None = None,
+        parent_checkpoint_config: dict[str, Any] | None = None,
+        operational_checkpoint_config: dict[str, Any] | None = None,
         repo: str = ".",
         clip_sha256: str | None = None,
         dataset_manifest_sha256: str | None = None,
@@ -279,6 +320,8 @@ def train(
         tf32_enabled: bool = False,
         resume_payload: dict[str, Any] | None = None,
         max_batches: int | None = None,
+        anchor_grad_audit_interval: int = 0,
+        trace_batch_identity: bool = False,
 ):
     scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
     if resume_payload is not None:
@@ -289,6 +332,13 @@ def train(
             scheduler=scheduler,
             scaler=scaler,
             dataloader_generator=data_generator,
+            expected_scientific_config=checkpoint_config,
+            expected_parent_config=parent_checkpoint_config,
+            expected_total_epoch=total_epoch,
+            expected_seed=seed,
+            expected_clip_sha256=clip_sha256,
+            expected_manifest_sha256=dataset_manifest_sha256,
+            expected_git_sha=current_git_sha(repo),
         )
     if anchor_lambda > 0.0 and anchor is None:
         raise ValueError("anchor_lambda > 0 requires a SafeImageAdapterAnchor")
@@ -375,6 +425,12 @@ def train(
             mask = input_data["mask"].to(device)
             label = input_data["label"].to(device)
             class_names = input_data["class_name"]
+            if trace_batch_identity and batch_idx < 5:
+                logger.info(
+                    "batch_identity epoch=%d batch=%d file_names=%s image_sha256=%s mask_sha256=%s",
+                    epoch_one_based, batch_idx, list(input_data["file_name"]),
+                    tensor_bytes_sha256(image), tensor_bytes_sha256(mask),
+                )
             # get adapted text embedding
             epoch_text_feature_dict = {}
             kg_losses = []
@@ -530,30 +586,20 @@ def train(
             kg_loss_list.append(kg_loss.item())
             k_loss_list.append(k_loss.item())
             anchor_loss_list.append(anchor_loss.item())
-            if anchor is not None and anchor_lambda > 0.0:
-                anchor_parameters = [parameter for parameter in model.image_adapter.parameters() if parameter.requires_grad]
-                anchor_grads = torch.autograd.grad(
-                    anchor_lambda * anchor_loss,
-                    anchor_parameters,
-                    retain_graph=True,
-                    allow_unused=True,
-                )
-                task_grads = torch.autograd.grad(
-                    loss - anchor_lambda * anchor_loss,
-                    anchor_parameters,
-                    retain_graph=True,
-                    allow_unused=True,
-                )
-                anchor_norm_sq = sum(
-                    (gradient.detach().float().square().sum() for gradient in anchor_grads if gradient is not None),
-                    torch.zeros((), device=device),
-                )
-                task_norm_sq = sum(
-                    (gradient.detach().float().square().sum() for gradient in task_grads if gradient is not None),
-                    torch.zeros((), device=device),
-                )
+            if anchor is not None and anchor_lambda > 0.0 and anchor_grad_audit_interval > 0 and batch_idx % int(anchor_grad_audit_interval) == 0:
+                anchor_parameters = [
+                    parameter
+                    for _, parameter in sorted(model.image_adapter.named_parameters())
+                    if parameter.requires_grad
+                ]
                 anchor_gradient_ratio_list.append(
-                    float((anchor_norm_sq.sqrt() / task_norm_sq.sqrt().clamp_min(1e-12)).item())
+                    anchor_gradient_audit_ratio(
+                        loss,
+                        anchor_loss,
+                        anchor_parameters,
+                        anchor_lambda,
+                        device,
+                    )
                 )
             # backward
             optimizer.zero_grad(set_to_none=True)
@@ -699,12 +745,13 @@ def train(
                 use_hybrid_soft_prompt,
             )
         logger.info(
-            "anchor_state epoch=%d enabled=%s lambda=%s mean_anchor=%s gradient_ratio=%s formula=%s",
+            "anchor_state epoch=%d enabled=%s lambda=%s mean_anchor=%s gradient_ratio=%s audit_interval=%s formula=%s",
             epoch_one_based,
             anchor is not None and anchor_lambda > 0.0,
             anchor_lambda,
             float(np.mean(anchor_loss_list)) if anchor_loss_list else 0.0,
             float(np.mean(anchor_gradient_ratio_list)) if anchor_gradient_ratio_list else None,
+            anchor_grad_audit_interval,
             "global_sum_squared_delta_over_global_sum_squared_reference_plus_eps",
         )
         logger.info(
@@ -722,7 +769,8 @@ def train(
         )
         if model.dfg_mode == "attn":
             diagnostics = model.get_dfg_diagnostics()
-            for key, value in diagnostics.items():
+            for key in sorted(diagnostics):
+                value = diagnostics[key]
                 if value is None:
                     continue
                 if torch.is_tensor(value) and value.ndim > 0:
@@ -778,6 +826,8 @@ def train(
             epoch=epoch_one_based,
             global_step=global_step,
             config=checkpoint_config or {},
+            parent_config=parent_checkpoint_config,
+            operational_config=operational_checkpoint_config,
             repo=repo,
             clip_sha256=clip_sha256,
             dataset_manifest_sha256=dataset_manifest_sha256,
@@ -805,6 +855,7 @@ def main():
     parser.add_argument("--dataset", type=str, default="VisA")
     parser.add_argument("--batch_size", type=int, default=6)
     parser.add_argument("--epoch", type=int, default=20, help="epochs for training")
+    parser.add_argument("--protocol_horizon", type=int, default=None, help="scientific total epoch horizon")
 
     parser.add_argument("--cuda_device", type=int, default=0, help="cuda device id")
 
@@ -864,6 +915,7 @@ def main():
         help="beta schedule for weight_residual SS2D DFG",
     )
     parser.add_argument("--dfg_beta_target", type=float, default=0.10, help="target beta for beta schedules")
+    parser.add_argument("--dfg_weight_residual_fp32", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument(
         "--non_finite_loss_abort_threshold",
         type=int,
@@ -887,10 +939,18 @@ def main():
     parser.add_argument("--cir_alpha", type=float, default=0.0)
     parser.add_argument("--cir_peer_count", type=int, default=8)
     parser.add_argument("--cir_spatial_radius", type=int, default=3)
+    parser.add_argument("--cir_transport_direction", choices=["abnormal_minus_normal_plus"], default="abnormal_minus_normal_plus")
+    parser.add_argument("--cir_score_mode", choices=["exact_score_space"], default="exact_score_space")
     parser.add_argument("--resume", type=str, default=None)
     parser.add_argument("--max_batches", type=int, default=None, help="bounded smoke/debug batches per epoch")
+    parser.add_argument("--anchor_grad_audit_interval", type=int, default=0, help="0 disables per-batch anchor gradient telemetry")
+    parser.add_argument("--trace_batch_identity", action="store_true", help="log first five post-augmentation batch identities for smoke checks")
 
     args = parser.parse_args()
+    if args.protocol_horizon is None:
+        args.protocol_horizon = args.epoch
+    if args.anchor_grad_audit_interval < 0:
+        raise ValueError("--anchor_grad_audit_interval must be non-negative")
     if args.use_soft_prompt and args.use_hybrid_soft_prompt:
         raise ValueError("--use_soft_prompt and --use_hybrid_soft_prompt are mutually exclusive")
     if args.anchor_lambda < 0:
@@ -901,16 +961,39 @@ def main():
         raise ValueError("--use_cir_training requires a non-zero --cir_alpha")
     if args.cir_peer_count < 1 or args.cir_spatial_radius < 0:
         raise ValueError("invalid CIR peer geometry")
+    if args.use_cir_training and args.dfg_mode != "attn":
+        raise ValueError("exact CIR-V2 requires --dfg_mode attn")
     seed_everything(args.seed, deterministic_algorithms=args.deterministic_algorithms)
     repo = os.path.dirname(os.path.abspath(__file__))
     clip_path = os.path.join(repo, "model", "ViT-L-14-336px.pt")
     manifest_path = os.path.join(repo, "dataset", "hub", args.dataset + ".jsonl")
     clip_sha256 = sha256_file(clip_path) if os.path.isfile(clip_path) else None
     dataset_manifest_sha256 = sha256_file(manifest_path) if os.path.isfile(manifest_path) else None
-    checkpoint_config = dict(vars(args))
-    checkpoint_config["git_sha_at_start"] = current_git_sha(repo)
-    checkpoint_config["clip_sha256"] = clip_sha256
-    checkpoint_config["dataset_manifest_sha256"] = dataset_manifest_sha256
+    implementation_git_sha = current_git_sha(repo)
+    tf32_enabled = torch.backends.cuda.matmul.allow_tf32 if torch.cuda.is_available() else False
+    anchor_reference_sha256 = (
+        sha256_file(args.anchor_reference_path)
+        if args.anchor_reference_path is not None and os.path.isfile(args.anchor_reference_path)
+        else None
+    )
+    checkpoint_config = scientific_config_from_mapping(
+        vars(args),
+        clip_sha256=clip_sha256,
+        dataset_manifest_sha256=dataset_manifest_sha256,
+        implementation_git_sha=implementation_git_sha,
+        anchor_reference_sha256=anchor_reference_sha256,
+        tf32_enabled=tf32_enabled,
+    )
+    parent_checkpoint_config = scientific_config_from_mapping(
+        vars(args),
+        clip_sha256=clip_sha256,
+        dataset_manifest_sha256=dataset_manifest_sha256,
+        implementation_git_sha=implementation_git_sha,
+        anchor_reference_sha256=None,
+        tf32_enabled=tf32_enabled,
+        parent=True,
+    )
+    operational_checkpoint_config = operational_config_from_mapping(vars(args))
     # ========================================================
     # check save_path and setting logger
     os.makedirs(args.save_path, exist_ok=True)
@@ -956,6 +1039,7 @@ def main():
         dfg_beta_schedule=args.dfg_beta_schedule,
         dfg_beta_target=args.dfg_beta_target,
         dfg_beta_current=args.dfg_beta,
+        dfg_weight_residual_fp32=args.dfg_weight_residual_fp32,
         use_soft_prompt=args.use_soft_prompt,
         soft_prompt_ctx_len=args.soft_prompt_ctx_len,
         soft_prompt_init=args.soft_prompt_init,
@@ -1064,8 +1148,16 @@ def main():
     global_step = 0
     if args.resume is not None:
         resume_payload = torch.load(args.resume, map_location="cpu", weights_only=False)
-        if int(resume_payload.get("checkpoint_version", 0)) < 2:
-            raise ValueError("--resume accepts only clean full-state checkpoints; historical H2 adapter files are replay-only")
+        validate_resume_identity(
+            resume_payload,
+            expected_scientific_config=checkpoint_config,
+            expected_parent_config=parent_checkpoint_config,
+            expected_total_epoch=args.epoch,
+            expected_seed=args.seed,
+            expected_clip_sha256=clip_sha256,
+            expected_manifest_sha256=dataset_manifest_sha256,
+            expected_git_sha=implementation_git_sha,
+        )
         start_epoch = int(resume_payload["epoch"])
         global_step = int(resume_payload["global_step"])
         if args.use_safe_anchor and anchor is None:
@@ -1103,6 +1195,8 @@ def main():
         start_epoch=start_epoch,
         global_step=global_step,
         checkpoint_config=checkpoint_config,
+        parent_checkpoint_config=parent_checkpoint_config,
+        operational_checkpoint_config=operational_checkpoint_config,
         repo=repo,
         clip_sha256=clip_sha256,
         dataset_manifest_sha256=dataset_manifest_sha256,
@@ -1110,6 +1204,8 @@ def main():
         precision="amp" if args.amp else "fp32",
         tf32_enabled=torch.backends.cuda.matmul.allow_tf32 if torch.cuda.is_available() else False,
         max_batches=args.max_batches,
+        anchor_grad_audit_interval=args.anchor_grad_audit_interval,
+        trace_batch_identity=args.trace_batch_identity,
     )
 
 

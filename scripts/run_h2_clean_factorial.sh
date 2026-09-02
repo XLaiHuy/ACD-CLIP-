@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export PYTHONHASHSEED=0
+export CUBLAS_WORKSPACE_CONFIG=:4096:8
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUN_ROOT="${RUN_ROOT:-${ROOT}/runs/h2_clean_factorial_v1}"
@@ -10,6 +12,7 @@ SHARED_E1="${RUN_ROOT}/shared_e1/adapter_1.pth"
 
 base_args=(
   "${ROOT}/train.py"
+  --protocol_horizon 15
   --dataset VisA
   --model_name ViT-L-14-336
   --img_size 518
@@ -49,6 +52,8 @@ base_args=(
   --grad_checkpointing
   --amp
   --seed 0
+  --anchor_grad_audit_interval 0
+  --deterministic_algorithms
 )
 
 if [[ "${RUN_FULL_TRAIN}" != "YES" ]]; then
@@ -58,15 +63,18 @@ if [[ "${RUN_FULL_TRAIN}" != "YES" ]]; then
   exit 0
 fi
 
+if [[ -e "${RUN_ROOT}" ]]; then
+  echo "Refusing to reuse existing factorial root: ${RUN_ROOT}" >&2
+  exit 2
+fi
 mkdir -p "${RUN_ROOT}"
 
-if [[ ! -s "${SHARED_E1}" ]]; then
-  "${PY[@]}" "${base_args[@]}" \
-    --epoch 1 \
-    --save_path "${RUN_ROOT}/shared_e1"
-fi
+"${PY[@]}" "${base_args[@]}" \
+  --epoch 1 \
+  --save_path "${RUN_ROOT}/shared_e1"
+test -s "${SHARED_E1}"
 
-"${PY[@]}" -c 'import sys, torch; p=sys.argv[1]; x=torch.load(p,map_location="cpu",weights_only=False); required=("checkpoint_version","model_state","image_parameter_reference","optimizer_state","scheduler_state","scaler_state","python_random_state","numpy_random_state","torch_cpu_rng_state","torch_cuda_rng_state_all","dataloader_generator_state","epoch","global_step","resolved_scientific_config","config_sha256","git_sha","clip_sha256","dataset_manifest_sha256"); missing=[k for k in required if k not in x]; sys.exit(f"incomplete shared E1 checkpoint: {missing}") if missing or int(x["checkpoint_version"]) < 2 else None' "${SHARED_E1}"
+"${PY[@]}" -c 'import sys, torch; p=sys.argv[1]; x=torch.load(p,map_location="cpu",weights_only=False); required=("checkpoint_version","protocol_version","model_state","image_parameter_reference","optimizer_state","scheduler_state","scaler_state","python_random_state","numpy_random_state","torch_cpu_rng_state","torch_cuda_rng_state_all","dataloader_generator_state","epoch","global_step","parent_scientific_config","resolved_operational_config","resolved_scientific_config","config_sha256","base_h2_commit","implementation_git_sha","working_tree_diff_sha256","git_sha","clip_sha256","dataset_manifest_sha256","seed","precision","amp_enabled","tf32_enabled"); missing=[k for k in required if k not in x]; bad_version=int(x.get("checkpoint_version",0)) != 3 or x.get("protocol_version") != "H2_CLEAN_REPRO_ANCHOR_CIR_V2_REDTEAM"; sys.exit("incomplete or wrong-protocol shared E1 checkpoint: missing=%r version=%r protocol=%r" % (missing,x.get("checkpoint_version"),x.get("protocol_version"))) if missing or bad_version else None' "${SHARED_E1}"
 
 for arm in H A C AC; do
   args=(

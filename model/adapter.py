@@ -7,7 +7,14 @@ from torch.utils.checkpoint import checkpoint
 
 from .adapter_modules import TextLoraAdapter, MLPAdapter, ConvLoraAdapter, DFGSS2DResidualBranch
 from .soft_prompt import SoftPromptLearner
-from h2_clean.contract import cir_adjust_native_logits
+from h2_clean.cir_v2 import (
+    CIR_EPS,
+    FROZEN_CIR_COMMIT,
+    MAD_CONSTANT,
+    V2_TRANSPORT_DIRECTION,
+    cir_logits_from_native_weights,
+    peer_delta_from_native_margins,
+)
 
 
 class AddWeight(nn.Module):
@@ -340,28 +347,75 @@ class ACDCLIP(nn.Module):
             fused_feature = torch.matmul(img_feat, group_text_features)  # [bs, patch_num, 2]
             seg_logits = fused_feature.permute(0, 2, 1).view(B, 2, H, H)  # [bs, 2, H, H]
             group_seg_preds.append(seg_logits)  # [bs, 2, H, H]
-        # CIR is a train-only intervention.  The disabled/zero branch leaves
-        # the historical native tensor untouched, including its autograd path.
+        # CIR is a train-only intervention.  Alpha zero leaves the historical
+        # native tensor untouched, including its autograd path.  A non-zero
+        # branch uses the frozen H2 CIR-V2 weight transport in score space;
+        # there is deliberately no direct normal/abnormal logit shift here.
         if not test_mode and cir_training and float(cir_alpha) != 0.0:
-            native_logits = torch.stack(group_seg_preds, dim=0).flatten(start_dim=-2)
-            adjusted_logits, cir_stats = cir_adjust_native_logits(
-                native_logits,
+            if self.dfg_mode != "attn":
+                raise ValueError("exact CIR-V2 requires the historical H2 dfg_mode='attn' path")
+            group_text = text_features.permute(1, 0, 2, 3)
+            native_weights, native_logits = self._h2_cir_native_weights_logits(
                 vision_tokens,
-                cir_alpha,
+                text_features,
+            )
+            visual = F.normalize(vision_tokens.float(), dim=-1)
+            prompts = F.normalize(group_text.float(), dim=-2)
+            similarities = torch.einsum("sbpd,bgdc->sbpgc", visual, prompts)
+            group_margins = similarities[..., 1] - similarities[..., 0]
+            delta, cir_stats = peer_delta_from_native_margins(
+                vision_tokens.detach(),
+                group_margins.detach(),
                 peer_count=cir_peer_count,
                 spatial_radius=cir_spatial_radius,
+                eps=CIR_EPS,
+                mad_constant=MAD_CONSTANT,
             )
-            adjusted_logits = adjusted_logits.view(self.n_groups, B, 2, H, H)
-            group_seg_preds = [adjusted_logits[i] for i in range(self.n_groups)]
+            cir_logits, native_score_logits = cir_logits_from_native_weights(
+                vision_tokens,
+                group_text,
+                native_weights,
+                delta,
+                float(cir_alpha),
+                score_mode="optimized",
+                eps=CIR_EPS,
+                transport_direction=V2_TRANSPORT_DIRECTION,
+            )
+            if tuple(cir_logits.shape) != (self.n_groups, B, patch_size, 2):
+                raise ValueError(f"unexpected CIR-V2 logits shape: {tuple(cir_logits.shape)}")
+            if H != 37:
+                raise ValueError(f"exact CIR-V2 requires the frozen 37x37 patch grid, got {H}x{H}")
+            cir_maps = cir_logits.permute(0, 1, 3, 2).reshape(
+                self.n_groups, B, 2, H, H
+            )
+            cir_maps = F.interpolate(
+                cir_maps.reshape(-1, 2, H, H),
+                size=(int(img_size), int(img_size)),
+                mode="bilinear",
+                align_corners=True,
+            ).reshape(self.n_groups, B, 2, int(img_size), int(img_size))
+            final_seg_pred = F.softmax(cir_maps.mean(dim=0), dim=1)
             self._last_cir_stats = {
                 "enabled": True,
                 "alpha": float(cir_alpha),
+                "cir_reference_commit": FROZEN_CIR_COMMIT,
+                "transport_direction": V2_TRANSPORT_DIRECTION,
+                "score_mode": "exact_score_space",
                 "peer_valid_fraction": float(cir_stats["valid"].float().mean().item()),
                 "peer_candidate_mean": float(cir_stats["candidate_count"].float().mean().item()),
-                "delta_abs_mean": float(cir_stats["delta_abs_mean"].item()),
-                "delta_saturation_fraction": float(cir_stats["delta_saturation_fraction"].item()),
-                "delta_detached": not cir_stats["delta"].requires_grad,
+                "mad_mean": float(cir_stats["mad"].float().mean().item()),
+                "z_abs_p95": float(cir_stats["z"].float().abs().reshape(-1).quantile(0.95).item()),
+                "delta_abs_mean": float(delta.float().abs().mean().item()),
+                "delta_saturation_fraction": float((delta.float().abs() > 0.95).float().mean().item()),
+                "native_cir_score_max_abs_diff": float(
+                    (native_logits.float() - native_score_logits.float()).abs().max().item()
+                ),
+                "transport_l1": float(
+                    (cir_logits.float() - native_score_logits.float()).abs().mean().item()
+                ),
+                "delta_detached": not delta.requires_grad,
             }
+            return final_seg_pred
         else:
             self._last_cir_stats = {
                 "enabled": False,
@@ -395,6 +449,72 @@ class ACDCLIP(nn.Module):
             final_seg_pred = final_seg_pred[:, 1, :, :]
             # final_seg_pred = (final_seg_pred[:, 1, :, :] + 1 - final_seg_pred[:, 0, :, :]) / 2
         return final_seg_pred
+
+    def _h2_cir_dfg_weights(
+            self,
+            img_feat: torch.Tensor,
+            group_text: torch.Tensor,
+            group_index: int,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Exact frozen H2 DFG weights used before CIR-V2 transport."""
+        v_gap = img_feat.mean(dim=1)
+        v_ss2d = None
+        if self.use_ss2d_dfg:
+            v_ss2d = self.image_adapter["dfg_ss2d_branches"][group_index](img_feat)
+        text_normal = group_text[..., 0]
+        text_abnormal = group_text[..., 1]
+        k_normal = self.image_adapter["vision_text_k"][group_index](text_normal)
+        k_abnormal = self.image_adapter["vision_text_k"][group_index](text_abnormal)
+        scale = (self.dfg_attn_dim ** 0.5) * self.dfg_attn_tau
+        if self.use_ss2d_dfg and self.dfg_ss2d_fusion == "weight_residual":
+            q_gap = self.image_adapter["vision_text_q"][group_index](v_gap)
+            q_ss2d = self.image_adapter["vision_text_q"][group_index](v_ss2d)
+            if self.dfg_weight_residual_fp32:
+                q_gap_for_attn = q_gap.float()
+                q_ss2d_for_attn = q_ss2d.float()
+                k_normal_for_attn = k_normal.float()
+                k_abnormal_for_attn = k_abnormal.float()
+            else:
+                q_gap_for_attn = q_gap
+                q_ss2d_for_attn = q_ss2d
+                k_normal_for_attn = k_normal
+                k_abnormal_for_attn = k_abnormal
+            scores_gap_normal = torch.einsum("bd,bnd->bn", q_gap_for_attn, k_normal_for_attn) / scale
+            scores_gap_abnormal = torch.einsum("bd,bnd->bn", q_gap_for_attn, k_abnormal_for_attn) / scale
+            scores_ss2d_normal = torch.einsum("bd,bnd->bn", q_ss2d_for_attn, k_normal_for_attn) / scale
+            scores_ss2d_abnormal = torch.einsum("bd,bnd->bn", q_ss2d_for_attn, k_abnormal_for_attn) / scale
+            weights_normal = (1.0 - self.dfg_beta) * F.softmax(scores_gap_normal, dim=1)
+            weights_normal = weights_normal + self.dfg_beta * F.softmax(scores_ss2d_normal, dim=1)
+            weights_abnormal = (1.0 - self.dfg_beta) * F.softmax(scores_gap_abnormal, dim=1)
+            weights_abnormal = weights_abnormal + self.dfg_beta * F.softmax(scores_ss2d_abnormal, dim=1)
+            return weights_normal.to(dtype=text_normal.dtype), weights_abnormal.to(dtype=text_abnormal.dtype)
+        q = self.image_adapter["vision_text_q"][group_index](v_gap)
+        weights_normal = F.softmax(torch.einsum("bd,bnd->bn", q, k_normal) / scale, dim=1)
+        weights_abnormal = F.softmax(torch.einsum("bd,bnd->bn", q, k_abnormal) / scale, dim=1)
+        return weights_normal, weights_abnormal
+
+    def _h2_cir_native_weights_logits(
+            self,
+            seg_features: torch.Tensor,
+            text_features: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Reproduce frozen H2 native DFG weights and logits exactly."""
+        group_text = text_features.permute(1, 0, 2, 3)
+        weights = []
+        logits = []
+        for stage in range(int(seg_features.shape[0])):
+            normal, abnormal = self._h2_cir_dfg_weights(
+                seg_features[stage], group_text, stage
+            )
+            weights.append(torch.stack([normal, abnormal], dim=-1))
+            fused_normal = torch.einsum("bn,bnd->bd", normal, group_text[..., 0])
+            fused_abnormal = torch.einsum("bn,bnd->bd", abnormal, group_text[..., 1])
+            fused = torch.stack(
+                [F.normalize(fused_normal, dim=-1), F.normalize(fused_abnormal, dim=-1)],
+                dim=-1,
+            )
+            logits.append(torch.matmul(10.0 * seg_features[stage], fused))
+        return torch.stack(weights, dim=0), torch.stack(logits, dim=0)
 
     def _vision_text_attention_fusion(
             self,
@@ -521,9 +641,11 @@ class ACDCLIP(nn.Module):
 
     def get_dfg_diagnostics(self):
         diagnostics = {}
-        for group_index, stats in self._last_dfg_stats.items():
+        for group_index in sorted(self._last_dfg_stats):
+            stats = self._last_dfg_stats[group_index]
             prefix = f"stage{group_index + 1}"
-            for key, value in stats.items():
+            for key in sorted(stats):
+                value = stats[key]
                 diagnostics[f"{prefix}_{key}"] = value
         return diagnostics
 

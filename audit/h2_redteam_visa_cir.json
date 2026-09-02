@@ -1,0 +1,60 @@
+{
+  "cir": {
+    "alpha": 0.5,
+    "candidate_candidate_count_mean": 663.3521118164062,
+    "candidate_valid_fraction": 1.0,
+    "checkpoint": "/home/ai4/caohuy/ACD-CLIP-base-new-phase1/runs/phase2b/phase2b_hybrid_alpha02_kreg2e3_lkg1e2_lr5e5_train15_test6medical7to15_fromscratch/adapter_10.pth",
+    "cir_logit_max_abs_diff": 0.0,
+    "delta_max_abs_diff": 0.0,
+    "final_probability_max_abs_diff": 0.0,
+    "native_logit_max_abs_diff": 0.0,
+    "native_score_max_abs_diff": 0.0,
+    "native_weight_max_abs_diff": 0.0,
+    "parity_pass": true,
+    "peer_index_equal_including_ties": true,
+    "reference_candidate_count_mean": 663.3521118164062,
+    "reference_valid_fraction": 1.0,
+    "strict_atol": 3e-06,
+    "transport_weight_max_abs_diff": 0.0
+  },
+  "environment": {
+    "device": "cuda:0",
+    "pythonhashseed": "0",
+    "torch": "2.12.1+cu130"
+  },
+  "fixed_batch": {
+    "batch_size": 6,
+    "class_names": [
+      "pcb2",
+      "macaroni2",
+      "capsules",
+      "macaroni1",
+      "chewinggum",
+      "pcb2"
+    ],
+    "dataset": "VisA",
+    "file_names": [
+      "pcb2/Data/Images/Anomaly/064.JPG",
+      "macaroni2/Data/Images/Normal/0488.JPG",
+      "capsules/Data/Images/Anomaly/032.JPG",
+      "macaroni1/Data/Images/Normal/0615.JPG",
+      "chewinggum/Data/Images/Normal/181.JPG",
+      "pcb2/Data/Images/Normal/0954.JPG"
+    ],
+    "image_sha256": "e91c2570ae4570d12b589c929250c8269f113109ad6b1f063b8c3a75e53c2486",
+    "img_size": 518,
+    "labels": [
+      1,
+      0,
+      1,
+      0,
+      0,
+      0
+    ],
+    "mask_sha256": "d701b2037bdc97f574bed8c6aa04f89d289dd140f3bd09890b217e1b89da97e5",
+    "num_workers": 0,
+    "seed": 0,
+    "stage": "train"
+  },
+  "scope": "VisA train only; no Medical/MVTec/target labels; no training"
+}

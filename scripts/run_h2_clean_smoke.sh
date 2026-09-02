@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export PYTHONHASHSEED=0
+export CUBLAS_WORKSPACE_CONFIG=:4096:8
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SMOKE_ROOT="${SMOKE_ROOT:-${ROOT}/runs/h2_clean_smoke_v1}"
@@ -12,6 +14,7 @@ SHARED_E1="${SMOKE_ROOT}/shared_e1/adapter_1.pth"
 
 base_args=(
   "${ROOT}/train.py"
+  --protocol_horizon 2
   --dataset VisA
   --model_name ViT-L-14-336
   --img_size 518
@@ -48,13 +51,16 @@ base_args=(
   --non_finite_loss_abort_threshold 20
   --batch_size 6
   --num_workers "${NUM_WORKERS}"
+  --deterministic_algorithms
   --grad_checkpointing
   --amp
   --seed 0
+  --anchor_grad_audit_interval 0
+  --trace_batch_identity
 )
 
 if [[ "${RUN_SMOKE}" != "YES" ]]; then
-  echo "Prepared only. Set RUN_SMOKE=YES to run five-batch H/A/C/AC smoke checks."
+  echo "Prepared only. Set RUN_SMOKE=YES to run bounded H/A/C/AC smoke checks."
   echo "Smoke root: ${SMOKE_ROOT}"
   exit 0
 fi
@@ -98,4 +104,18 @@ for arm in H A C AC; do
   test -s "${SMOKE_ROOT}/${arm}/adapter_2.pth"
 done
 
-echo "H/A/C/AC smoke completed: ${SMOKE_ROOT}"
+
+for repeat in 1 2; do
+  "${PY[@]}" "${base_args[@]}" \
+    --epoch 3 \
+    --resume "${SMOKE_ROOT}/H/adapter_2.pth" \
+    --max_batches "${SMOKE_BATCHES}" \
+    --save_path "${SMOKE_ROOT}/H_resume_${repeat}"
+  test -s "${SMOKE_ROOT}/H_resume_${repeat}/adapter_3.pth"
+done
+
+"${PY[@]}" "${ROOT}/scripts/validate_h2_clean_smoke.py" \
+  --root "${SMOKE_ROOT}" \
+  --expected-batches "${SMOKE_BATCHES}"
+
+echo "H/A/C/AC smoke plus repeated resume completed: ${SMOKE_ROOT}"

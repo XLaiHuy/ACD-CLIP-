@@ -22,10 +22,14 @@ import torch
 import torch.nn.functional as F
 
 
-PROTOCOL_VERSION = "H2_CLEAN_REPRO_ANCHOR_CIR_V1"
+CHECKPOINT_VERSION = 3
+PROTOCOL_VERSION = "H2_CLEAN_REPRO_ANCHOR_CIR_V2_REDTEAM"
+H2_BASE_COMMIT = "e03966997d4cecfd985943a4053a93e1e40197ec"
 ANCHOR_FORMULA = "sum_i||theta_i-theta_ref_i||^2/(sum_i||theta_ref_i||^2+eps)"
 
 
+RESUME_BRANCH_KEYS = ("use_safe_anchor", "anchor_lambda", "anchor_reference_sha256", "use_cir_training", "cir_alpha", "cir_peer_count", "cir_spatial_radius")
+SCIENTIFIC_CONFIG_KEYS = ("model_name", "img_size", "dataset", "epoch", "n_groups", "image_adapt_weight", "text_adapt_weight", "lora_rank", "lora_alpha", "conv_lora_rank", "conv_lora_alpha", "conv_kernel_size_list", "batch_size", "image_lr", "text_lr", "use_soft_prompt", "use_hybrid_soft_prompt", "hybrid_alpha_max", "soft_prompt_freeze_epochs", "soft_prompt_ctx_len", "soft_prompt_lr", "soft_prompt_init", "soft_prompt_init_phrase", "lambda_kg", "lambda_k", "lr_gamma", "dfg_mode", "dfg_attn_dim", "dfg_attn_tau", "use_ss2d_dfg", "dfg_gamma_max", "dfg_ss2d_fusion", "dfg_beta", "dfg_beta_schedule", "dfg_beta_target", "dfg_weight_residual_fp32", "grad_clip_norm", "amp", "grad_checkpointing", "seed", "deterministic_algorithms", "tf32_enabled", "use_safe_anchor", "anchor_lambda", "anchor_reference_sha256", "use_cir_training", "cir_alpha", "cir_peer_count", "cir_spatial_radius", "cir_transport_direction", "cir_score_mode", "cir_reference_commit", "clip_sha256", "dataset_manifest_sha256", "base_h2_commit", "implementation_git_sha", "working_tree_diff_sha256")
 def sha256_file(path: str | os.PathLike[str]) -> str:
     digest = hashlib.sha256()
     with open(path, "rb") as handle:
@@ -56,6 +60,161 @@ def canonical_json_hash(value: Any) -> str:
     encoded = json.dumps(value, sort_keys=True, separators=(",", ":"), default=str).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
 
+
+def scientific_config_from_mapping(
+        raw: Mapping[str, Any],
+        *,
+        clip_sha256: str | None,
+        dataset_manifest_sha256: str | None,
+        implementation_git_sha: str | None,
+        working_tree_diff_sha256: str | None = None,
+        anchor_reference_sha256: str | None = None,
+        base_h2_commit: str = H2_BASE_COMMIT,
+        tf32_enabled: bool = False,
+        parent: bool = False,
+) -> dict[str, Any]:
+    """Build the scientific identity while excluding operational paths."""
+    source = dict(raw)
+    config: dict[str, Any] = {}
+    for key in SCIENTIFIC_CONFIG_KEYS:
+        if key == "epoch":
+            value = source.get("protocol_horizon", source.get("epoch"))
+        elif key == "tf32_enabled":
+            value = bool(tf32_enabled)
+        elif key == "anchor_reference_sha256":
+            value = anchor_reference_sha256
+        elif key == "clip_sha256":
+            value = clip_sha256
+        elif key == "dataset_manifest_sha256":
+            value = dataset_manifest_sha256
+        elif key == "base_h2_commit":
+            value = base_h2_commit
+        elif key == "implementation_git_sha":
+            value = implementation_git_sha
+        elif key == "working_tree_diff_sha256":
+            value = working_tree_diff_sha256
+        elif key == "dfg_weight_residual_fp32":
+            value = source.get(key, True)
+        elif key == "cir_transport_direction":
+            value = source.get(key, "abnormal_minus_normal_plus")
+        elif key == "cir_score_mode":
+            value = source.get(key, "exact_score_space")
+        elif key == "cir_reference_commit":
+            value = source.get(key, "9cc0ad4cc6b34e34a8c15e74df881866516b3181")
+        else:
+            value = source.get(key)
+        config[key] = value
+    if parent:
+        config = parent_scientific_config(config)
+    return config
+
+
+def parent_scientific_config(config: Mapping[str, Any]) -> dict[str, Any]:
+    """Return the immutable source-parent identity for an intervention arm."""
+    parent = dict(config)
+    parent.update({
+        "use_safe_anchor": False,
+        "anchor_lambda": 0.0,
+        "anchor_reference_sha256": None,
+        "use_cir_training": False,
+        "cir_alpha": 0.0,
+        "cir_peer_count": 8,
+        "cir_spatial_radius": 3,
+    })
+    return parent
+
+
+def operational_config_from_mapping(raw: Mapping[str, Any]) -> dict[str, Any]:
+    """Keep save/resume/runtime controls separate from scientific identity."""
+    source = dict(raw)
+    keys = (
+        "save_path", "resume", "max_batches", "num_workers", "cuda_device",
+        "non_finite_loss_abort_threshold", "anchor_reference_path",
+        "anchor_grad_audit_interval", "trace_batch_identity", "protocol_horizon",
+    )
+    return {key: source.get(key) for key in keys}
+
+
+def _branch_only_difference(left: Mapping[str, Any], right: Mapping[str, Any]) -> bool:
+    keys = sorted(set(left) | set(right))
+    return all(
+        key in RESUME_BRANCH_KEYS or left.get(key) == right.get(key)
+        for key in keys
+    )
+
+
+def validate_resume_identity(
+        payload: Mapping[str, Any],
+        *,
+        expected_scientific_config: Mapping[str, Any],
+        expected_parent_config: Mapping[str, Any] | None = None,
+        expected_epoch: int | None = None,
+        expected_total_epoch: int | None = None,
+        expected_seed: int | None = None,
+        expected_clip_sha256: str | None = None,
+        expected_manifest_sha256: str | None = None,
+        expected_git_sha: str | None = None,
+        expected_worktree_diff_sha256: str | None = None,
+) -> None:
+    """Reject stale or cross-protocol full-state checkpoints before training."""
+    required = checkpoint_required_keys()
+    missing = sorted(key for key in required if key not in payload)
+    if missing:
+        raise ValueError(f"resume checkpoint missing scientific identity fields: {missing}")
+    if int(payload.get("checkpoint_version", 0)) != CHECKPOINT_VERSION:
+        raise ValueError(
+            f"resume checkpoint_version mismatch: expected {CHECKPOINT_VERSION}, "
+            f"got {payload.get('checkpoint_version')}"
+        )
+    if payload.get("protocol_version") != PROTOCOL_VERSION:
+        raise ValueError(
+            f"resume protocol_version mismatch: expected {PROTOCOL_VERSION}, "
+            f"got {payload.get('protocol_version')}"
+        )
+    actual = payload.get("resolved_scientific_config")
+    if not isinstance(actual, Mapping):
+        raise ValueError("resume checkpoint has no resolved_scientific_config mapping")
+    expected = dict(expected_scientific_config)
+    expected_parent = dict(expected_parent_config or parent_scientific_config(expected))
+    actual_parent = payload.get("parent_scientific_config")
+    if not isinstance(actual_parent, Mapping) or dict(actual_parent) != expected_parent:
+        raise ValueError("resume scientific parent identity mismatch")
+    if dict(actual) != expected:
+        source_epoch = int(payload.get("epoch", -1))
+        if source_epoch != 1 or not _branch_only_difference(actual, expected):
+            raise ValueError("resume scientific configuration mismatch")
+    if payload.get("config_sha256") != canonical_json_hash(dict(actual)):
+        raise ValueError("resume config_sha256 does not match resolved scientific config")
+    if expected_epoch is not None and int(payload.get("epoch", -1)) != int(expected_epoch):
+        raise ValueError(
+            f"resume epoch mismatch: expected {expected_epoch}, got {payload.get('epoch')}"
+        )
+    if expected_total_epoch is not None and not (0 < int(payload.get("epoch", 0)) < int(expected_total_epoch)):
+        raise ValueError(
+            f"resume epoch {payload.get('epoch')} is not a valid parent of total_epoch={expected_total_epoch}"
+        )
+    if expected_seed is not None and int(payload.get("seed", -1)) != int(expected_seed):
+        raise ValueError("resume seed mismatch")
+    if expected_clip_sha256 is not None and payload.get("clip_sha256") != expected_clip_sha256:
+        raise ValueError("resume CLIP SHA mismatch")
+    if expected_manifest_sha256 is not None and payload.get("dataset_manifest_sha256") != expected_manifest_sha256:
+        raise ValueError("resume dataset manifest SHA mismatch")
+    if expected_git_sha is not None and payload.get("git_sha") != expected_git_sha:
+        raise ValueError("resume scientific Git revision mismatch")
+    if expected_worktree_diff_sha256 is not None and payload.get("working_tree_diff_sha256") != expected_worktree_diff_sha256:
+        raise ValueError("resume scientific worktree revision mismatch")
+    expected_amp = bool(expected.get("amp", False))
+    expected_precision = "amp" if expected_amp else "fp32"
+    if bool(payload.get("amp_enabled")) != expected_amp or str(payload.get("precision")) != expected_precision:
+        raise ValueError("resume AMP/precision identity mismatch")
+    if bool(payload.get("tf32_enabled")) != bool(expected.get("tf32_enabled", False)):
+        raise ValueError("resume TF32 identity mismatch")
+    if "seed" in expected and int(payload.get("seed", -1)) != int(expected["seed"]):
+        raise ValueError("resume scientific seed mismatch")
+    if expected_clip_sha256 is None and "clip_sha256" in expected and payload.get("clip_sha256") != expected["clip_sha256"]:
+        raise ValueError("resume scientific CLIP SHA mismatch")
+    if expected_manifest_sha256 is None and "dataset_manifest_sha256" in expected and payload.get("dataset_manifest_sha256") != expected["dataset_manifest_sha256"]:
+        raise ValueError("resume scientific manifest SHA mismatch")
 
 def current_git_sha(repo: str | os.PathLike[str] = ".") -> str | None:
     try:
@@ -217,7 +376,8 @@ class SafeImageAdapterAnchor:
             raise ValueError(f"anchor parameter identity mismatch; missing={missing[:3]} extra={extra[:3]}")
         numerator: torch.Tensor | None = None
         denominator = torch.zeros((), device=next(module.parameters()).device, dtype=torch.float32)
-        for name, parameter in live.items():
+        for name in sorted(live):
+            parameter = live[name]
             reference = self.reference[name].to(device=parameter.device, dtype=torch.float32)
             if tuple(parameter.shape) != tuple(reference.shape):
                 raise ValueError(f"anchor shape mismatch for {name}: {tuple(parameter.shape)} != {tuple(reference.shape)}")
@@ -339,7 +499,7 @@ def robust_peer_delta(
     }
 
 
-def cir_adjust_native_logits(
+def CIR_LOGIT_SHIFT_EXPERIMENTAL(
     native_logits: torch.Tensor,
     stage_features: torch.Tensor,
     alpha: float,
@@ -355,6 +515,7 @@ def cir_adjust_native_logits(
     is computed under ``no_grad`` and only shifts normal/abnormal logits in
     opposite directions.  Alpha zero returns the original tensor unchanged.
     """
+    raise RuntimeError("disabled experimental logit shift; use exact frozen CIR-V2")
     if float(alpha) == 0.0:
         return native_logits, {"enabled": False, "alpha": 0.0}
     if native_logits.ndim != 4 or stage_features.ndim != 4:
@@ -422,6 +583,8 @@ def build_full_checkpoint(
     seed: int,
     precision: str,
     tf32_enabled: bool,
+    parent_config: Mapping[str, Any] | None = None,
+    operational_config: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     image_state = {name: value.detach().cpu().clone() for name, value in model.image_adapter.state_dict().items()}
     image_parameter_reference = {
@@ -430,7 +593,7 @@ def build_full_checkpoint(
     }
     text_state = {name: value.detach().cpu().clone() for name, value in model.text_adapter.state_dict().items()}
     payload: dict[str, Any] = {
-        "checkpoint_version": 2,
+        "checkpoint_version": CHECKPOINT_VERSION,
         "protocol_version": PROTOCOL_VERSION,
         "epoch": int(epoch),
         "global_step": int(global_step),
@@ -444,8 +607,13 @@ def build_full_checkpoint(
         "scheduler_state": scheduler.state_dict(),
         "scaler_state": scaler.state_dict(),
         "resolved_scientific_config": dict(config),
+        "parent_scientific_config": dict(parent_config or parent_scientific_config(config)),
+        "resolved_operational_config": dict(operational_config or {}),
         "config_sha256": canonical_json_hash(dict(config)),
         "git_sha": current_git_sha(repo),
+        "base_h2_commit": config.get("base_h2_commit", H2_BASE_COMMIT),
+        "implementation_git_sha": config.get("implementation_git_sha", current_git_sha(repo)),
+        "working_tree_diff_sha256": config.get("working_tree_diff_sha256"),
         "clip_sha256": clip_sha256,
         "dataset_manifest_sha256": dataset_manifest_sha256,
         "seed": int(seed),
@@ -475,9 +643,31 @@ def restore_full_checkpoint(
     scheduler: torch.optim.lr_scheduler._LRScheduler,
     scaler: torch.cuda.amp.GradScaler,
     dataloader_generator: torch.Generator | None,
+    expected_scientific_config: Mapping[str, Any] | None = None,
+    expected_parent_config: Mapping[str, Any] | None = None,
+    expected_epoch: int | None = None,
+    expected_total_epoch: int | None = None,
+    expected_seed: int | None = None,
+    expected_clip_sha256: str | None = None,
+    expected_manifest_sha256: str | None = None,
+    expected_git_sha: str | None = None,
+    expected_worktree_diff_sha256: str | None = None,
 ) -> tuple[int, int]:
-    if int(payload.get("checkpoint_version", 0)) < 2:
-        raise ValueError("exact continuation requires checkpoint_version >= 2; model-only H2 checkpoints are replay-only")
+    if expected_scientific_config is not None:
+        validate_resume_identity(
+            payload,
+            expected_scientific_config=expected_scientific_config,
+            expected_parent_config=expected_parent_config,
+            expected_epoch=expected_epoch,
+            expected_total_epoch=expected_total_epoch,
+            expected_seed=expected_seed,
+            expected_clip_sha256=expected_clip_sha256,
+            expected_manifest_sha256=expected_manifest_sha256,
+            expected_git_sha=expected_git_sha,
+            expected_worktree_diff_sha256=expected_worktree_diff_sha256,
+        )
+    elif int(payload.get("checkpoint_version", 0)) != CHECKPOINT_VERSION or payload.get("protocol_version") != PROTOCOL_VERSION:
+        raise ValueError("exact continuation requires a clean full-state checkpoint from this protocol")
     state = payload.get("model_state", payload)
     model.image_adapter.load_state_dict(state["image_adapter"])
     model.text_adapter.load_state_dict(state["text_adapter"])
@@ -492,6 +682,17 @@ def restore_full_checkpoint(
 
 def checkpoint_required_keys() -> tuple[str, ...]:
     return (
+        "checkpoint_version",
+        "protocol_version",
+        "parent_scientific_config",
+        "resolved_operational_config",
+        "base_h2_commit",
+        "implementation_git_sha",
+        "working_tree_diff_sha256",
+        "seed",
+        "precision",
+        "amp_enabled",
+        "tf32_enabled",
         "model_state",
         "image_parameter_reference",
         "optimizer_state",
