@@ -306,15 +306,18 @@ def apply_score_rule(row, rule):
     raise ValueError(f"Unknown score rule: {rule}")
 
 
-def metric_or_none(scores, labels):
+def metric_or_none(scores, labels, *, round_result=True):
     label_tensor = torch.tensor(labels, dtype=torch.int32)
     if label_tensor.max() == label_tensor.min():
         return None, None
     score_tensor = torch.tensor(scores, dtype=torch.float32)
-    return (
-        round(auroc(score_tensor, label_tensor, task="binary").item(), 4) * 100,
-        round(average_precision(score_tensor, label_tensor, task="binary").item(), 4) * 100,
+    values = (
+        auroc(score_tensor, label_tensor, task="binary").item(),
+        average_precision(score_tensor, label_tensor, task="binary").item(),
     )
+    if round_result:
+        return tuple(round(value, 4) * 100 for value in values)
+    return tuple(value * 100 for value in values)
 
 
 def prepare_dataset(dataset, args):
@@ -335,6 +338,8 @@ def evaluate_dataset(
         args,
         epoch,
         prompt_config,
+        *,
+        round_result=True,
 ):
     dataloader = torch.utils.data.DataLoader(
         dataset,
@@ -403,8 +408,8 @@ def evaluate_dataset(
         "dataset": dataset_name,
         "epoch": epoch,
         "prompt_config": prompt_config,
-        "pixel_auc": round(pixel_auc.compute().item(), 4) * 100,
-        "pixel_ap": round(pixel_ap.compute().item(), 4) * 100,
+        "pixel_auc": (round(pixel_auc.compute().item(), 4) if round_result else pixel_auc.compute().item()) * 100,
+        "pixel_ap": (round(pixel_ap.compute().item(), 4) if round_result else pixel_ap.compute().item()) * 100,
     }
     return raw_rows, pixel_row
 
@@ -418,7 +423,7 @@ def write_csv(path, rows, fieldnames):
             writer.writerow(row)
 
 
-def aggregate_rows(raw_rows, pixel_rows, image_datasets, score_rules):
+def aggregate_rows(raw_rows, pixel_rows, image_datasets, score_rules, *, round_result=True):
     pixel_by_key = defaultdict(list)
     for row in pixel_rows:
         pixel_by_key[(row["epoch"], row["prompt_config"])].append(row)
@@ -441,14 +446,14 @@ def aggregate_rows(raw_rows, pixel_rows, image_datasets, score_rules):
                     continue
                 scores = [apply_score_rule(row, score_rule) for row in rows]
                 labels = [row["label"] for row in rows]
-                image_auc, image_ap = metric_or_none(scores, labels)
+                image_auc, image_ap = metric_or_none(scores, labels, round_result=round_result)
                 detail_rows.append({
                     "dataset": dataset_name,
                     "epoch": epoch,
                     "prompt_config": prompt_config,
                     "score_rule": score_rule,
-                    "image_auc": "" if image_auc is None else f"{image_auc:.2f}",
-                    "image_ap": "" if image_ap is None else f"{image_ap:.2f}",
+                    "image_auc": "" if image_auc is None else (f"{image_auc:.2f}" if round_result else image_auc),
+                    "image_ap": "" if image_ap is None else (f"{image_ap:.2f}" if round_result else image_ap),
                 })
                 if image_auc is not None and image_ap is not None:
                     image_auc_vals.append(image_auc)
@@ -457,10 +462,10 @@ def aggregate_rows(raw_rows, pixel_rows, image_datasets, score_rules):
                 "epoch": epoch,
                 "prompt_config": prompt_config,
                 "score_rule": score_rule,
-                "pixel_auc_6": f"{pixel_auc_6:.2f}",
-                "pixel_ap_6": f"{pixel_ap_6:.2f}",
-                "image_auc_3": "" if not image_auc_vals else f"{sum(image_auc_vals) / len(image_auc_vals):.2f}",
-                "image_ap_3": "" if not image_ap_vals else f"{sum(image_ap_vals) / len(image_ap_vals):.2f}",
+                "pixel_auc_6": f"{pixel_auc_6:.2f}" if round_result else pixel_auc_6,
+                "pixel_ap_6": f"{pixel_ap_6:.2f}" if round_result else pixel_ap_6,
+                "image_auc_3": "" if not image_auc_vals else (f"{sum(image_auc_vals) / len(image_auc_vals):.2f}" if round_result else sum(image_auc_vals) / len(image_auc_vals)),
+                "image_ap_3": "" if not image_ap_vals else (f"{sum(image_ap_vals) / len(image_ap_vals):.2f}" if round_result else sum(image_ap_vals) / len(image_ap_vals)),
                 "image_n": len(image_ap_vals),
             })
     return aggregate_rows_out, detail_rows

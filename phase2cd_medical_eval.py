@@ -44,7 +44,7 @@ def parse_args():
     parser.add_argument("--num-workers", type=int, default=6)
     parser.add_argument("--cuda-device", type=int, default=0)
     parser.add_argument("--img-size", type=int, default=518)
-    parser.add_argument("--pixel-stride", type=int, default=4)
+    parser.add_argument("--pixel-stride", type=int, default=1)
     parser.add_argument("--max-samples", type=int, default=None)
     return parser.parse_args()
 
@@ -124,6 +124,8 @@ def main():
         "tta": False,
         "gaussian_sigma": 1.5,
         "gaussian_kernel": 9,
+        "metric_precision": "raw_exact",
+        "rounding": False,
     }
     with (output_dir / "resolved_config.json").open("w", encoding="utf-8") as handle:
         json.dump(resolved, handle, indent=2, sort_keys=True)
@@ -139,13 +141,13 @@ def main():
             for class_name, dataset in datasets.items():
                 class_raw, pixel_row = evaluate_dataset(
                     model, dataset_name, class_name, prepare_dataset(dataset, config), text_cache,
-                    device, config, epoch, "current_shared"
+                    device, config, epoch, "current_shared", round_result=False
                 )
                 raw_rows.extend(class_raw)
                 pixel_rows.append(pixel_row)
 
     aggregate_rows_out, image_rows = aggregate_rows(
-        raw_rows, pixel_rows, IMAGE_DATASETS, ["cls_only"]
+        raw_rows, pixel_rows, IMAGE_DATASETS, ["cls_only"], round_result=False
     )
     for row in pixel_rows:
         row["metric_type"] = "pixel"
