@@ -263,14 +263,21 @@ class ACDCLIP(nn.Module):
                     break
             if index != -1:
                 t = x[1:, :, :]
-                adapt_out = self.image_adapter["lora_adapters"][index](t)
-                adapt_out = (
-                        adapt_out
-                        * t.norm(dim=-1, keepdim=True)
-                        / adapt_out.norm(dim=-1, keepdim=True).clamp_min(1e-6)
-                )
+                # Conv-LoRA's raw projection can exceed FP16 range after the
+                # image adapter has been trained for several epochs. Keep
+                # this rescale path in FP32 under AMP so an intermediate inf
+                # cannot become NaN before the normalized residual is merged
+                # back into the historical transformer stream.
+                with torch.autocast(device_type=t.device.type, enabled=False):
+                    t_fp32 = t.float()
+                    adapt_out = self.image_adapter["lora_adapters"][index](t_fp32)
+                    adapt_out = (
+                            adapt_out
+                            * t_fp32.norm(dim=-1, keepdim=True)
+                            / adapt_out.norm(dim=-1, keepdim=True).clamp_min(1e-6)
+                    )
+                    group_out = self.image_adapter["m_i_w"][index](t_fp32, adapt_out)
                 # [1369, bs, 1024]
-                group_out = self.image_adapter["m_i_w"][index](t, adapt_out)
                 # group_out = t * (1 - self.image_adapt_weight) + adapt_out * self.image_adapt_weight
                 group_outs.append(group_out)
                 x = torch.cat(
