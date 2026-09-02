@@ -1295,6 +1295,7 @@ def main():
         checkpoint_config=checkpoint_config,
         parent_checkpoint_config=parent_checkpoint_config,
         operational_checkpoint_config=operational_checkpoint_config,
+        resume_payload=resume_payload,
         repo=repo,
         clip_sha256=clip_sha256,
         dataset_manifest_sha256=dataset_manifest_sha256,
