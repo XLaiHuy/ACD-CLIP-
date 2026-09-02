@@ -40,6 +40,8 @@ def make_payload():
         "dfg_beta_schedule": "warmup010",
         "lambda_k": 0.002,
         "batch_size": 6,
+        "anchor_gradient_budget": False,
+        "anchor_family_budget": 0.10,
     }
     repo = Path(__file__).resolve().parents[1]
     payload = build_full_checkpoint(
@@ -83,6 +85,7 @@ def validate(payload, config, repo):
     ("field", "value"),
     [
         ("seed", 999),
+        ("anchor_family_budget", 0.20),
         ("dfg_attn_tau", 4.0),
         ("lambda_k", 0.0),
     ],
@@ -182,6 +185,7 @@ def test_shared_e1_can_fork_only_intervention_fields():
         "use_safe_anchor": True,
         "anchor_lambda": 0.001,
         "anchor_reference_sha256": "e1",
+        "anchor_gradient_budget": True,
         "use_cir_training": True,
         "cir_alpha": 0.5,
         "cir_peer_count": 8,

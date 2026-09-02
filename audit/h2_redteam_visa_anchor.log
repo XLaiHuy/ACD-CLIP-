@@ -155,7 +155,7 @@
       "global_lambda_times_ratio_max": 2.2492373317914082e-05,
       "global_lambda_times_ratio_min": 3.8510432618746625e-06,
       "lambda_changed": "NO",
-      "source_only_preregistered_scaling_rule": "If classified EFFECTIVELY_INACTIVE, set the future source-only anchor lambda to 0.1 divided by the median E5/E10/E15 raw global gradient ratio; do not apply this rule in this red-team run."
+      "source_only_preregistered_scaling_rule": "DEPRECATED_UNSAFE_GLOBAL_SCALING: historical evidence recorded the 0.1 divided by median E5/E10/E15 raw global gradient ratio rule; it is retained for provenance only and must not be executed (authorization=NO)."
     }
   },
   "environment": {

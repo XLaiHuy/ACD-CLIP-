@@ -85,7 +85,7 @@ for arm in H A C AC; do
   )
   case "${arm}" in
     A)
-      args+=(--use_safe_anchor --anchor_lambda 0.001 --anchor_reference_path "${SHARED_E1}")
+      args+=(--use_safe_anchor --anchor_lambda 0.001 --anchor_reference_path "${SHARED_E1}" --anchor_gradient_budget --anchor_family_budget 0.10)
       ;;
     C)
       args+=(--use_cir_training --cir_alpha 0.5 --cir_peer_count 8 --cir_spatial_radius 3)
@@ -93,6 +93,7 @@ for arm in H A C AC; do
     AC)
       args+=(
         --use_safe_anchor --anchor_lambda 0.001 --anchor_reference_path "${SHARED_E1}"
+        --anchor_gradient_budget --anchor_family_budget 0.10
         --use_cir_training --cir_alpha 0.5 --cir_peer_count 8 --cir_spatial_radius 3
       )
       ;;

@@ -15,7 +15,7 @@ import random
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Iterable, Mapping
 
 import numpy as np
 import torch
@@ -26,10 +26,28 @@ CHECKPOINT_VERSION = 3
 PROTOCOL_VERSION = "H2_CLEAN_REPRO_ANCHOR_CIR_V2_REDTEAM"
 H2_BASE_COMMIT = "e03966997d4cecfd985943a4053a93e1e40197ec"
 ANCHOR_FORMULA = "sum_i||theta_i-theta_ref_i||^2/(sum_i||theta_ref_i||^2+eps)"
+ANCHOR_FAMILY_BUDGET_DEFAULT = 0.10
+ANCHOR_TASK_FLOOR_MULTIPLIER = 1.0e-6
+ANCHOR_TASK_FLOOR_MIN = 1.0e-12
+ANCHOR_GRAD_EPS = 1.0e-12
+ANCHOR_FAMILY_NAMES = (
+    "lora_adapters",
+    "m_i_w",
+    "seg_proj",
+    "det_proj",
+    "seg_layer_norms",
+    "det_layer_norms",
+    "vision_text_q",
+    "vision_text_k",
+    "dfg_ss2d_branches",
+    "dfg_raw_gamma",
+    "direction_logits",
+    "remaining_image_adapter_params",
+)
 
 
-RESUME_BRANCH_KEYS = ("use_safe_anchor", "anchor_lambda", "anchor_reference_sha256", "use_cir_training", "cir_alpha", "cir_peer_count", "cir_spatial_radius")
-SCIENTIFIC_CONFIG_KEYS = ("model_name", "img_size", "dataset", "epoch", "n_groups", "image_adapt_weight", "text_adapt_weight", "lora_rank", "lora_alpha", "conv_lora_rank", "conv_lora_alpha", "conv_kernel_size_list", "batch_size", "image_lr", "text_lr", "use_soft_prompt", "use_hybrid_soft_prompt", "hybrid_alpha_max", "soft_prompt_freeze_epochs", "soft_prompt_ctx_len", "soft_prompt_lr", "soft_prompt_init", "soft_prompt_init_phrase", "lambda_kg", "lambda_k", "lr_gamma", "dfg_mode", "dfg_attn_dim", "dfg_attn_tau", "use_ss2d_dfg", "dfg_gamma_max", "dfg_ss2d_fusion", "dfg_beta", "dfg_beta_schedule", "dfg_beta_target", "dfg_weight_residual_fp32", "grad_clip_norm", "amp", "grad_checkpointing", "seed", "deterministic_algorithms", "tf32_enabled", "use_safe_anchor", "anchor_lambda", "anchor_reference_sha256", "use_cir_training", "cir_alpha", "cir_peer_count", "cir_spatial_radius", "cir_transport_direction", "cir_score_mode", "cir_reference_commit", "clip_sha256", "dataset_manifest_sha256", "base_h2_commit", "implementation_git_sha", "working_tree_diff_sha256")
+RESUME_BRANCH_KEYS = ("use_safe_anchor", "anchor_lambda", "anchor_reference_sha256", "anchor_gradient_budget", "use_cir_training", "cir_alpha", "cir_peer_count", "cir_spatial_radius")
+SCIENTIFIC_CONFIG_KEYS = ("model_name", "img_size", "dataset", "epoch", "n_groups", "image_adapt_weight", "text_adapt_weight", "lora_rank", "lora_alpha", "conv_lora_rank", "conv_lora_alpha", "conv_kernel_size_list", "batch_size", "image_lr", "text_lr", "use_soft_prompt", "use_hybrid_soft_prompt", "hybrid_alpha_max", "soft_prompt_freeze_epochs", "soft_prompt_ctx_len", "soft_prompt_lr", "soft_prompt_init", "soft_prompt_init_phrase", "lambda_kg", "lambda_k", "lr_gamma", "dfg_mode", "dfg_attn_dim", "dfg_attn_tau", "use_ss2d_dfg", "dfg_gamma_max", "dfg_ss2d_fusion", "dfg_beta", "dfg_beta_schedule", "dfg_beta_target", "dfg_weight_residual_fp32", "grad_clip_norm", "amp", "grad_checkpointing", "seed", "deterministic_algorithms", "tf32_enabled", "use_safe_anchor", "anchor_lambda", "anchor_reference_sha256", "anchor_gradient_budget", "anchor_family_budget", "use_cir_training", "cir_alpha", "cir_peer_count", "cir_spatial_radius", "cir_transport_direction", "cir_score_mode", "cir_reference_commit", "clip_sha256", "dataset_manifest_sha256", "base_h2_commit", "implementation_git_sha", "working_tree_diff_sha256")
 def sha256_file(path: str | os.PathLike[str]) -> str:
     digest = hashlib.sha256()
     with open(path, "rb") as handle:
@@ -83,6 +101,10 @@ def scientific_config_from_mapping(
             value = bool(tf32_enabled)
         elif key == "anchor_reference_sha256":
             value = anchor_reference_sha256
+        elif key == "anchor_gradient_budget":
+            value = bool(source.get(key, False))
+        elif key == "anchor_family_budget":
+            value = float(source.get(key, ANCHOR_FAMILY_BUDGET_DEFAULT))
         elif key == "clip_sha256":
             value = clip_sha256
         elif key == "dataset_manifest_sha256":
@@ -116,6 +138,7 @@ def parent_scientific_config(config: Mapping[str, Any]) -> dict[str, Any]:
         "use_safe_anchor": False,
         "anchor_lambda": 0.0,
         "anchor_reference_sha256": None,
+        "anchor_gradient_budget": False,
         "use_cir_training": False,
         "cir_alpha": 0.0,
         "cir_peer_count": 8,
@@ -130,7 +153,7 @@ def operational_config_from_mapping(raw: Mapping[str, Any]) -> dict[str, Any]:
     keys = (
         "save_path", "resume", "max_batches", "num_workers", "cuda_device",
         "non_finite_loss_abort_threshold", "anchor_reference_path",
-        "anchor_grad_audit_interval", "trace_batch_identity", "protocol_horizon",
+        "anchor_grad_audit_interval", "trace_batch_identity", "anchor_family_audit", "protocol_horizon",
     )
     return {key: source.get(key) for key in keys}
 
@@ -402,6 +425,405 @@ class SafeImageAdapterAnchor:
             "reference_epoch": self.reference_epoch,
             "reference_config_sha256": self.reference_config_sha256,
         }
+
+
+def anchor_parameter_family(name: str) -> str:
+    """Map every image-adapter parameter to exactly one semantic family."""
+    root = name.split(".", 1)[0]
+    if root == "dfg_ss2d_branches":
+        if name.endswith(".direction_logits"):
+            return "direction_logits"
+        return "dfg_ss2d_branches"
+    if root in (
+        "lora_adapters",
+        "m_i_w",
+        "seg_proj",
+        "det_proj",
+        "seg_layer_norms",
+        "det_layer_norms",
+        "vision_text_q",
+        "vision_text_k",
+        "dfg_raw_gamma",
+    ):
+        return root
+    if root == "direction_logits":
+        return "direction_logits"
+    return "remaining_image_adapter_params"
+
+
+def partition_image_adapter_parameters(
+        module: torch.nn.Module,
+) -> dict[str, list[tuple[str, torch.nn.Parameter]]]:
+    """Partition all image-adapter parameters without silent exclusions."""
+    families = {family: [] for family in ANCHOR_FAMILY_NAMES}
+    seen: dict[str, str] = {}
+    for name, parameter in sorted(module.named_parameters(), key=lambda item: item[0]):
+        if name in seen:
+            raise ValueError(f"duplicate image-adapter parameter: {name}")
+        family = anchor_parameter_family(name)
+        if family not in families:
+            raise ValueError(f"unknown Anchor family {family!r} for {name!r}")
+        families[family].append((name, parameter))
+        seen[name] = family
+    if len(seen) != sum(len(entries) for entries in families.values()):
+        raise ValueError("Anchor family partition is not complete and disjoint")
+    return families
+
+
+def _gradient_statistics(
+        task_gradients: Iterable[torch.Tensor | None],
+        raw_anchor_gradients: Iterable[torch.Tensor | None],
+) -> dict[str, float | None]:
+    task_list = list(task_gradients)
+    raw_list = list(raw_anchor_gradients)
+    values = [
+        gradient
+        for gradient in (*task_list, *raw_list)
+        if gradient is not None
+    ]
+    device = values[0].device if values else torch.device("cpu")
+    task_sq = torch.zeros((), device=device, dtype=torch.float32)
+    raw_sq = torch.zeros((), device=device, dtype=torch.float32)
+    dot = torch.zeros((), device=device, dtype=torch.float32)
+    for task_gradient, raw_gradient in zip(task_list, raw_list):
+        task_value = None if task_gradient is None else task_gradient.detach().float()
+        raw_value = None if raw_gradient is None else raw_gradient.detach().float()
+        if task_value is not None:
+            task_sq = task_sq + task_value.square().sum()
+        if raw_value is not None:
+            raw_sq = raw_sq + raw_value.square().sum()
+        if task_value is not None and raw_value is not None:
+            dot = dot + (task_value * raw_value).sum()
+    task_norm = float(task_sq.sqrt().item())
+    raw_norm = float(raw_sq.sqrt().item())
+    cosine = None
+    if task_norm > 0.0 and raw_norm > 0.0:
+        cosine = float((dot / (task_sq.sqrt() * raw_sq.sqrt())).item())
+    return {
+        "task_grad_norm": task_norm,
+        "anchor_grad_raw_norm": raw_norm,
+        "cosine_task_anchor_raw": cosine,
+    }
+
+
+def _resolve_task_gradients(
+        image_adapter: torch.nn.Module,
+        all_named_parameters: Iterable[tuple[str, torch.nn.Parameter]],
+        task_gradients: Mapping[str, torch.Tensor | None] | None,
+        raw_anchor_gradients: Mapping[str, torch.Tensor | None],
+        anchor_lambda: float,
+) -> tuple[dict[int, torch.Tensor], float, int, dict[int, str]]:
+    families = partition_image_adapter_parameters(image_adapter)
+    image_by_id = {
+        id(parameter): name
+        for entries in families.values()
+        for name, parameter in entries
+    }
+    explicit = dict(task_gradients or {})
+    named = list(all_named_parameters)
+    task_by_id: dict[int, torch.Tensor] = {}
+    global_sq: torch.Tensor | None = None
+    for _, parameter in sorted(named, key=lambda item: item[0]):
+        parameter_id = id(parameter)
+        if parameter_id in image_by_id:
+            name = image_by_id[parameter_id]
+            if name in explicit:
+                task_value = explicit[name]
+            else:
+                total_value = parameter.grad
+                raw_value = raw_anchor_gradients.get(name)
+                if total_value is None and raw_value is None:
+                    task_value = None
+                elif total_value is None:
+                    task_value = -float(anchor_lambda) * raw_value.detach().float()
+                elif raw_value is None:
+                    task_value = total_value.detach().float()
+                else:
+                    task_value = (
+                        total_value.detach().float()
+                        - float(anchor_lambda) * raw_value.detach().float()
+                    )
+        else:
+            task_value = None if parameter.grad is None else parameter.grad.detach().float()
+        if task_value is None:
+            continue
+        task_value = task_value.detach().float()
+        if not torch.isfinite(task_value).all():
+            raise FloatingPointError("non-finite task gradient in Anchor family budget")
+        task_by_id[parameter_id] = task_value
+        term = task_value.square().sum()
+        global_sq = term if global_sq is None else global_sq + term
+    total_trainable_parameters = sum(
+        parameter.numel()
+        for _, parameter in named
+        if parameter.requires_grad
+    )
+    global_task_norm = 0.0 if global_sq is None else float(global_sq.sqrt().item())
+    return task_by_id, global_task_norm, max(total_trainable_parameters, 1), image_by_id
+
+
+def _family_status(
+        task_norm: float,
+        lambda_anchor_norm: float,
+        task_floor: float,
+        rho: float,
+) -> str:
+    if task_norm <= task_floor:
+        return "TASK_NEAR_ZERO"
+    raw_ratio = lambda_anchor_norm / max(task_norm, ANCHOR_GRAD_EPS)
+    if raw_ratio > 1.0:
+        return "ANCHOR_DOMINANT"
+    if raw_ratio > rho:
+        return "ANCHOR_MODERATE"
+    if raw_ratio <= 0.01:
+        return "ANCHOR_NEGLIGIBLE"
+    return "TASK_ACTIVE"
+
+
+def _family_budget_core(
+        image_adapter: torch.nn.Module,
+        all_named_parameters: Iterable[tuple[str, torch.nn.Parameter]],
+        *,
+        task_gradients: Mapping[str, torch.Tensor | None] | None,
+        raw_anchor_gradients: Mapping[str, torch.Tensor | None] | None,
+        anchor_lambda: float,
+        rho: float,
+        total_trainable_parameters: int | None,
+        mutate: bool,
+) -> dict[str, Any]:
+    if not 0.0 <= float(rho) <= 1.0:
+        raise ValueError(f"Anchor family budget rho must be in [0, 1], got {rho}")
+    if float(anchor_lambda) < 0.0:
+        raise ValueError("Anchor lambda must be non-negative")
+    named = list(all_named_parameters)
+    raw = dict(raw_anchor_gradients or {})
+    task_by_id, global_task_norm, inferred_parameter_count, image_by_id = _resolve_task_gradients(
+        image_adapter,
+        named,
+        task_gradients,
+        raw,
+        float(anchor_lambda),
+    )
+    total_parameters = (
+        inferred_parameter_count
+        if total_trainable_parameters is None
+        else max(int(total_trainable_parameters), 1)
+    )
+    task_floor = max(
+        ANCHOR_TASK_FLOOR_MIN,
+        ANCHOR_TASK_FLOOR_MULTIPLIER
+        * global_task_norm
+        / (float(total_parameters) ** 0.5),
+    )
+    families = partition_image_adapter_parameters(image_adapter)
+    family_rows: dict[str, dict[str, Any]] = {}
+    global_effective_sq = 0.0
+    max_active_effective_ratio = 0.0
+    for family in ANCHOR_FAMILY_NAMES:
+        entries = families[family]
+        task_values = [task_by_id.get(id(parameter)) for _, parameter in entries]
+        raw_values = [raw.get(name) for name, _ in entries]
+        stats = _gradient_statistics(task_values, raw_values)
+        task_norm = float(stats["task_grad_norm"])
+        raw_norm = float(stats["anchor_grad_raw_norm"])
+        lambda_raw_norm = abs(float(anchor_lambda)) * raw_norm
+        if task_norm <= task_floor:
+            scale = 0.0
+        elif lambda_raw_norm <= 0.0:
+            scale = 1.0
+        else:
+            scale = min(
+                1.0,
+                float(rho) * task_norm
+                / (lambda_raw_norm + ANCHOR_GRAD_EPS),
+            )
+        effective_norm = abs(float(anchor_lambda)) * scale * raw_norm
+        raw_ratio = (
+            None
+            if task_norm <= task_floor
+            else raw_norm / max(task_norm, ANCHOR_GRAD_EPS)
+        )
+        lambda_times_raw_over_task = (
+            None
+            if raw_ratio is None
+            else abs(float(anchor_lambda)) * raw_ratio
+        )
+        effective_ratio = (
+            0.0
+            if task_norm <= task_floor
+            else effective_norm / max(task_norm, ANCHOR_GRAD_EPS)
+        )
+        status = _family_status(task_norm, lambda_raw_norm, task_floor, float(rho))
+        for (name, parameter), task_value, raw_value in zip(
+                entries, task_values, raw_values
+        ):
+            if raw_value is not None and not torch.isfinite(raw_value).all():
+                raise FloatingPointError(
+                    f"non-finite raw Anchor gradient in family {family}: {name}"
+                )
+            if mutate:
+                if task_value is None and raw_value is None:
+                    parameter.grad = None
+                    continue
+                task_tensor = (
+                    torch.zeros_like(raw_value.detach().float())
+                    if task_value is None
+                    else task_value.detach().float()
+                )
+                raw_tensor = (
+                    torch.zeros_like(task_tensor)
+                    if raw_value is None
+                    else raw_value.detach().float()
+                )
+                new_gradient = (
+                    task_tensor
+                    + float(anchor_lambda) * float(scale) * raw_tensor
+                )
+                if not torch.isfinite(new_gradient).all():
+                    raise FloatingPointError(
+                        f"non-finite effective Anchor gradient in family {family}: {name}"
+                    )
+                dtype = parameter.grad.dtype if parameter.grad is not None else parameter.dtype
+                parameter.grad = new_gradient.to(device=parameter.device, dtype=dtype)
+        global_effective_sq += effective_norm * effective_norm
+        if task_norm > task_floor:
+            max_active_effective_ratio = max(max_active_effective_ratio, effective_ratio)
+        family_rows[family] = {
+            **stats,
+            "parameter_count": int(sum(parameter.numel() for _, parameter in entries)),
+            "task_floor": task_floor,
+            "lambda_anchor_grad_norm": lambda_raw_norm,
+            "effective_anchor_grad_norm": effective_norm,
+            "raw_gradient_ratio": raw_ratio,
+            "lambda_times_raw_over_task": lambda_times_raw_over_task,
+            "effective_ratio": effective_ratio,
+            "scale": float(scale),
+            "status": status,
+            "finite": True,
+        }
+    global_effective_norm = global_effective_sq ** 0.5
+    return {
+        "rho": float(rho),
+        "anchor_lambda": float(anchor_lambda),
+        "task_floor": task_floor,
+        "global_task_grad_norm": global_task_norm,
+        "global_effective_anchor_grad_norm": global_effective_norm,
+        "global_effective_ratio": (
+            0.0
+            if global_task_norm <= 0.0
+            else global_effective_norm / max(global_task_norm, ANCHOR_GRAD_EPS)
+        ),
+        "max_effective_active_family_ratio": max_active_effective_ratio,
+        "total_trainable_parameters": total_parameters,
+        "family_partition_complete": True,
+        "families": family_rows,
+    }
+
+
+def collect_family_gradient_metrics(
+        image_adapter: torch.nn.Module,
+        all_named_parameters: Iterable[tuple[str, torch.nn.Parameter]],
+        *,
+        task_gradients: Mapping[str, torch.Tensor | None] | None = None,
+        raw_anchor_gradients: Mapping[str, torch.Tensor | None] | None = None,
+        anchor_lambda: float = 0.0,
+        rho: float = ANCHOR_FAMILY_BUDGET_DEFAULT,
+        total_trainable_parameters: int | None = None,
+) -> dict[str, Any]:
+    """Collect family metrics without mutating gradients."""
+    return _family_budget_core(
+        image_adapter,
+        all_named_parameters,
+        task_gradients=task_gradients,
+        raw_anchor_gradients=raw_anchor_gradients,
+        anchor_lambda=anchor_lambda,
+        rho=rho,
+        total_trainable_parameters=total_trainable_parameters,
+        mutate=False,
+    )
+
+
+def apply_family_safe_anchor_budget(
+        image_adapter: torch.nn.Module,
+        all_named_parameters: Iterable[tuple[str, torch.nn.Parameter]],
+        *,
+        task_gradients: Mapping[str, torch.Tensor | None],
+        raw_anchor_gradients: Mapping[str, torch.Tensor | None],
+        anchor_lambda: float,
+        rho: float = ANCHOR_FAMILY_BUDGET_DEFAULT,
+        total_trainable_parameters: int | None = None,
+) -> dict[str, Any]:
+    """Replace image-adapter grads with task plus a capped Anchor component."""
+    return _family_budget_core(
+        image_adapter,
+        all_named_parameters,
+        task_gradients=task_gradients,
+        raw_anchor_gradients=raw_anchor_gradients,
+        anchor_lambda=anchor_lambda,
+        rho=rho,
+        total_trainable_parameters=total_trainable_parameters,
+        mutate=True,
+    )
+
+
+def aggregate_anchor_family_metrics(
+        metrics: Iterable[Mapping[str, Any]],
+) -> dict[str, Any]:
+    """Aggregate per-step family telemetry once per epoch."""
+    rows = list(metrics)
+    if not rows:
+        return {}
+    def mean(key: str, values: Iterable[Mapping[str, Any]]) -> float | None:
+        numeric = [
+            float(row[key])
+            for row in values
+            if row.get(key) is not None
+        ]
+        return None if not numeric else float(np.mean(numeric))
+    families: dict[str, Any] = {}
+    for family in ANCHOR_FAMILY_NAMES:
+        family_rows = [row["families"][family] for row in rows]
+        aggregate = {
+            "parameter_count": family_rows[0]["parameter_count"],
+            "task_floor": mean("task_floor", family_rows),
+            "task_grad_norm": mean("task_grad_norm", family_rows),
+            "anchor_grad_raw_norm": mean("anchor_grad_raw_norm", family_rows),
+            "lambda_anchor_grad_norm": mean("lambda_anchor_grad_norm", family_rows),
+            "effective_anchor_grad_norm": mean("effective_anchor_grad_norm", family_rows),
+            "raw_gradient_ratio": mean("raw_gradient_ratio", family_rows),
+            "lambda_times_raw_over_task": mean("lambda_times_raw_over_task", family_rows),
+            "effective_ratio": mean("effective_ratio", family_rows),
+            "cosine_task_anchor_raw": mean("cosine_task_anchor_raw", family_rows),
+            "scale": mean("scale", family_rows),
+            "finite": all(bool(row["finite"]) for row in family_rows),
+        }
+        status_counts: dict[str, int] = {}
+        for row in family_rows:
+            status = str(row["status"])
+            status_counts[status] = status_counts.get(status, 0) + 1
+        aggregate["status_counts"] = {
+            key: status_counts[key] for key in sorted(status_counts)
+        }
+        families[family] = aggregate
+    return {
+        "steps": len(rows),
+        "rho": float(rows[0]["rho"]),
+        "anchor_lambda": float(rows[0]["anchor_lambda"]),
+        "task_floor": mean("task_floor", rows),
+        "global_task_grad_norm": mean("global_task_grad_norm", rows),
+        "global_effective_anchor_grad_norm": mean(
+            "global_effective_anchor_grad_norm", rows
+        ),
+        "global_effective_ratio": mean("global_effective_ratio", rows),
+        "max_effective_active_family_ratio": max(
+            float(row["max_effective_active_family_ratio"]) for row in rows
+        ),
+        "total_trainable_parameters": rows[0]["total_trainable_parameters"],
+        "family_partition_complete": all(
+            bool(row["family_partition_complete"]) for row in rows
+        ),
+        "families": families,
+    }
 
 
 def _midpoint_median(values: torch.Tensor, dim: int) -> torch.Tensor:

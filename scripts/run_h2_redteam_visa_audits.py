@@ -27,7 +27,15 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
 from dataset import get_text_and_image_dataset
-from h2_clean.contract import SafeImageAdapterAnchor, make_dataloader_generator, seed_everything
+from h2_clean.contract import (
+    ANCHOR_FAMILY_BUDGET_DEFAULT,
+    ANCHOR_FAMILY_NAMES,
+    SafeImageAdapterAnchor,
+    collect_family_gradient_metrics,
+    make_dataloader_generator,
+    partition_image_adapter_parameters,
+    seed_everything,
+)
 from model.adapter import ACDCLIP
 from model.clip import create_model
 from train import compute_hybrid_k_regularization
@@ -357,11 +365,6 @@ def build_text_features(
     return text_features, torch.stack(kg_losses).mean(), torch.stack(k_losses).mean()
 
 
-def family_for(name: str) -> str:
-    for prefix in ("dfg_ss2d_branches", "dfg_raw_gamma", "vision_text_q", "vision_text_k"):
-        if name.startswith(prefix):
-            return prefix
-    return "other_image_adapter"
 
 
 def norm_from_grads(
@@ -377,6 +380,31 @@ def norm_from_grads(
             total += float(grad.detach().float().square().sum().item())
     return total ** 0.5
 
+def cosine_from_grads(
+    names: list[str],
+    left: tuple[torch.Tensor | None, ...],
+    right: tuple[torch.Tensor | None, ...],
+    selected: set[str] | None = None,
+) -> float | None:
+    dot = 0.0
+    left_sq = 0.0
+    right_sq = 0.0
+    for name, left_grad, right_grad in zip(names, left, right):
+        if selected is not None and name not in selected:
+            continue
+        if left_grad is None or right_grad is None:
+            continue
+        left_value = left_grad.detach().float()
+        right_value = right_grad.detach().float()
+        dot += float((left_value * right_value).sum().item())
+        left_sq += float(left_value.square().sum().item())
+        right_sq += float(right_value.square().sum().item())
+    if left_sq <= 0.0 or right_sq <= 0.0:
+        return None
+    return dot / ((left_sq ** 0.5) * (right_sq ** 0.5))
+
+
+
 
 def anchor_measurement(
     model: ACDCLIP,
@@ -391,8 +419,9 @@ def anchor_measurement(
     }
     names = list(image_params)
     params = [image_params[name] for name in names]
+    family_entries = partition_image_adapter_parameters(model.image_adapter)
     rows: dict[str, Any] = {}
-    for epoch in (5, 10, 15):
+    for epoch in EPOCHS:
         load_h2_checkpoint(model, epoch)
         model.image_adapter.requires_grad_(True)
         model.text_adapter.requires_grad_(False)
@@ -430,24 +459,61 @@ def anchor_measurement(
         task_norm = norm_from_grads(names, task_grads)
         anchor_norm = norm_from_grads(names, anchor_grads)
         global_raw_ratio = anchor_norm / max(task_norm, 1e-12)
+        task_gradient_map = dict(zip(names, task_grads))
+        anchor_gradient_map = dict(zip(names, anchor_grads))
+        family_budget_metrics = collect_family_gradient_metrics(
+            model.image_adapter,
+            sorted(model.named_parameters(), key=lambda item: item[0]),
+            task_gradients=task_gradient_map,
+            raw_anchor_gradients=anchor_gradient_map,
+            anchor_lambda=ANCHOR_LAMBDA,
+            rho=ANCHOR_FAMILY_BUDGET_DEFAULT,
+        )
         families = {}
-        family_names = sorted({family_for(name) for name in names})
-        for family in family_names:
-            selected = {name for name in names if family_for(name) == family}
+        for family in ANCHOR_FAMILY_NAMES:
+            entries = family_entries[family]
+            selected = {name for name, _ in entries}
             task_family_norm = norm_from_grads(names, task_grads, selected)
             anchor_family_norm = norm_from_grads(names, anchor_grads, selected)
-            raw_ratio = anchor_family_norm / max(task_family_norm, 1e-12)
+            raw_ratio = family_budget_metrics["families"][family]["raw_gradient_ratio"]
+            reference_sq = 0.0
+            displacement_sq = 0.0
+            for name, parameter in entries:
+                reference = anchor.reference[name].to(
+                    device=parameter.device, dtype=torch.float32
+                )
+                live = parameter.detach().float()
+                reference_sq += float(reference.square().sum().item())
+                displacement_sq += float((live - reference).square().sum().item())
             families[family] = {
+                "parameter_count": int(sum(parameter.numel() for _, parameter in entries)),
+                "reference_norm": reference_sq ** 0.5,
+                "displacement_norm": displacement_sq ** 0.5,
                 "task_grad_norm": task_family_norm,
                 "anchor_grad_raw_norm": anchor_family_norm,
+                "raw_anchor_grad_norm": anchor_family_norm,
                 "raw_gradient_ratio": raw_ratio,
-                "lambda_times_ratio": ANCHOR_LAMBDA * raw_ratio,
+                "lambda_times_ratio": (
+                    None if raw_ratio is None else ANCHOR_LAMBDA * raw_ratio
+                ),
+                "lambda_times_raw_over_task": (
+                    None if raw_ratio is None else ANCHOR_LAMBDA * raw_ratio
+                ),
+                "cosine_task_anchor_raw": cosine_from_grads(
+                    names, task_grads, anchor_grads, selected
+                ),
+                "task_floor": family_budget_metrics["families"][family]["task_floor"],
+                "status": family_budget_metrics["families"][family]["status"],
+                "finite": bool(family_budget_metrics["families"][family]["finite"]),
             }
         rows[str(epoch)] = {
             "checkpoint": str(HISTORICAL_H2_ROOT / f"adapter_{epoch}.pth"),
             "checkpoint_sha256": hashlib.sha256(
                 (HISTORICAL_H2_ROOT / f"adapter_{epoch}.pth").read_bytes()
             ).hexdigest(),
+            "historical_checkpoint_is_model_only": True,
+            "geometry_only": True,
+            "optimizer_step_parity_claim": False,
             "raw_anchor_loss": float(raw_anchor_loss.detach().item()),
             "task_loss": float(task_loss.detach().item()),
             "cls_loss": float(cls_loss.detach().item()),
@@ -457,9 +523,13 @@ def anchor_measurement(
             "global": {
                 "task_grad_norm": task_norm,
                 "anchor_grad_raw_norm": anchor_norm,
+                "raw_anchor_grad_norm": anchor_norm,
                 "raw_gradient_ratio": global_raw_ratio,
                 "lambda": ANCHOR_LAMBDA,
                 "lambda_times_ratio": ANCHOR_LAMBDA * global_raw_ratio,
+                "lambda_times_raw_over_task": ANCHOR_LAMBDA * global_raw_ratio,
+                "task_floor": family_budget_metrics["task_floor"],
+                "total_trainable_parameters": family_budget_metrics["total_trainable_parameters"],
             },
             "families": families,
         }
@@ -485,10 +555,13 @@ def anchor_measurement(
         "lambda_changed": "NO",
         "global_lambda_times_ratio_min": min(ratios),
         "global_lambda_times_ratio_max": max(ratios),
+        "UNSAFE_GLOBAL_SCALING_DISABLED": "PASS",
+        "UNSAFE_GLOBAL_SCALING": "DEPRECATED_UNSAFE_GLOBAL_SCALING",
+        "GLOBAL_LAMBDA_UPSCALING_AUTHORIZED": "NO",
         "source_only_preregistered_scaling_rule": (
-            "If classified EFFECTIVELY_INACTIVE, set the future source-only "
-            "anchor lambda to 0.1 divided by the median E5/E10/E15 raw global "
-            "gradient ratio; do not apply this rule in this red-team run."
+            "DEPRECATED_UNSAFE_GLOBAL_SCALING: historical evidence recorded the "
+            "0.1 divided by median E5/E10/E15 raw global gradient ratio rule; it is "
+            "retained for provenance only and must not be executed (authorization=NO)."
         ),
     }
     return rows
@@ -648,7 +721,7 @@ def main() -> None:
     batch, batch_metadata = make_fixed_batch()
     model = make_model(device)
     report: dict[str, Any] = {
-        "scope": "VisA train only; no Medical/MVTec/target labels; no training",
+        "scope": "VisA train only; no Medical/MVTec/target labels; historical model-only gradient geometry; no optimizer updates; no training",
         "environment": {
             "pythonhashseed": os.environ.get("PYTHONHASHSEED"),
             "device": str(device),

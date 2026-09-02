@@ -1,0 +1,114 @@
+{
+  "ANCHOR_FAMILY_BUDGET_RHO": 0.1,
+  "ANCHOR_LAMBDA": 0.001,
+  "ANCHOR_STATUS": "FAMILY_SAFE_BUT_NEGLIGIBLE",
+  "A_safe_short": {
+    "epochs": [
+      2,
+      3
+    ],
+    "global_effective_nonzero_after_drift": true,
+    "global_effective_not_tiny_after_drift": false,
+    "max_effective_active_family_ratio": 0.0016128024402913622,
+    "max_raw_gradient_ratio": 1.612802440291362,
+    "no_40000x_pathology": true,
+    "passed": true,
+    "summary": {
+      "2": {
+        "family_effective_ratio_max": 0.0012698004899367487,
+        "global_effective_ratio_max": 2.1714872072173393e-07,
+        "global_effective_ratio_min": 5.481779703158181e-08,
+        "steps": 2,
+        "task_floor_max": 1.6228226757655985e-09,
+        "task_floor_min": 4.102126002040746e-10
+      },
+      "3": {
+        "family_effective_ratio_max": 0.0016128024402913622,
+        "global_effective_ratio_max": 8.507442859846122e-07,
+        "global_effective_ratio_min": 7.274848459831763e-07,
+        "steps": 2,
+        "task_floor_max": 1.3535061312984778e-10,
+        "task_floor_min": 1.3227167267064137e-10
+      }
+    }
+  },
+  "FAMILY_PARTITION_COMPLETE": true,
+  "FINITE_SKIPS": "PASS",
+  "H_A_ONLY_EXPECTED_DIFFERENCE": true,
+  "H_short": {
+    "epochs": [
+      2,
+      3
+    ],
+    "max_effective_active_family_ratio": 0.0,
+    "max_raw_gradient_ratio": 0.0,
+    "passed": true,
+    "summary": {
+      "2": {
+        "family_effective_ratio_max": 0.0,
+        "global_effective_ratio_max": 0.0,
+        "global_effective_ratio_min": 0.0,
+        "steps": 2,
+        "task_floor_max": 3.1466317447007693e-10,
+        "task_floor_min": 1.8579651402357776e-10
+      },
+      "3": {
+        "family_effective_ratio_max": 0.0,
+        "global_effective_ratio_max": 0.0,
+        "global_effective_ratio_min": 0.0,
+        "steps": 2,
+        "task_floor_max": 1.2729373210089217e-10,
+        "task_floor_min": 1.1480478978557181e-10
+      }
+    }
+  },
+  "H_vs_A_delta": {
+    "E2": {
+      "image_adapter": 4.979088503838076,
+      "soft_prompt": 0.0,
+      "text_adapter": 0.020737163756949308
+    },
+    "E3": {
+      "image_adapter": 7.6873256296012,
+      "soft_prompt": 0.0,
+      "text_adapter": 0.04936751020417479
+    }
+  },
+  "batch_identity_counts": {
+    "epoch_2": 2,
+    "epoch_3": 2
+  },
+  "drift_from_shared_e1": {
+    "A_safe_short": {
+      "det_layer_norms": 0.12647178347336777,
+      "det_proj": 2.4588718274335544,
+      "dfg_raw_gamma": 0.0,
+      "dfg_ss2d_branches": 0.0,
+      "direction_logits": 0.0,
+      "lora_adapters": 6.42726200675313,
+      "m_i_w": 0.13707032554405718,
+      "remaining_image_adapter_params": 0.0,
+      "seg_layer_norms": 0.11752123993285536,
+      "seg_proj": 2.1053175707715917,
+      "vision_text_k": 0.8191564042695852,
+      "vision_text_q": 0.8007287077995273
+    },
+    "H_short": {
+      "det_layer_norms": 0.1364804456005428,
+      "det_proj": 2.6271347156409774,
+      "dfg_raw_gamma": 0.0,
+      "dfg_ss2d_branches": 0.0,
+      "direction_logits": 0.0,
+      "lora_adapters": 4.983672783248563,
+      "m_i_w": 0.11078396619660154,
+      "remaining_image_adapter_params": 0.0,
+      "seg_layer_norms": 0.11528278905752969,
+      "seg_proj": 2.1620521621163094,
+      "vision_text_k": 1.0279434832314556,
+      "vision_text_q": 1.055167364522048
+    }
+  },
+  "same_batch_identity": true,
+  "scope": "VisA train source-only bounded mechanism validation; no Medical/MVTec/target labels; no full training",
+  "shared_e1": "/tmp/h2_anchor_family_short_20260902_retry2/shared_e1/adapter_1.pth"
+}

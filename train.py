@@ -1,5 +1,6 @@
 import argparse
 import hashlib
+import json
 import logging
 import os
 from typing import Any
@@ -24,8 +25,12 @@ from model.adapter import (
 )
 from model.clip import create_model
 from h2_clean.contract import (
+    ANCHOR_FAMILY_BUDGET_DEFAULT,
     SafeImageAdapterAnchor,
+    aggregate_anchor_family_metrics,
+    apply_family_safe_anchor_budget,
     build_full_checkpoint,
+    collect_family_gradient_metrics,
     environment_manifest,
     current_git_sha,
     make_dataloader_generator,
@@ -322,6 +327,9 @@ def train(
         max_batches: int | None = None,
         anchor_grad_audit_interval: int = 0,
         trace_batch_identity: bool = False,
+        anchor_gradient_budget: bool = False,
+        anchor_family_budget: float = ANCHOR_FAMILY_BUDGET_DEFAULT,
+        anchor_family_audit: bool = False,
 ):
     scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
     if resume_payload is not None:
@@ -340,6 +348,12 @@ def train(
             expected_manifest_sha256=dataset_manifest_sha256,
             expected_git_sha=current_git_sha(repo),
         )
+    if not 0.0 <= float(anchor_family_budget) <= 1.0:
+        raise ValueError("anchor_family_budget must be in [0, 1]")
+    if anchor_gradient_budget and (anchor is None or anchor_lambda <= 0.0):
+        raise ValueError(
+            "anchor_gradient_budget requires a positive anchor_lambda and Anchor"
+        )
     if anchor_lambda > 0.0 and anchor is None:
         raise ValueError("anchor_lambda > 0 requires a SafeImageAdapterAnchor")
     for epoch in range(int(start_epoch), total_epoch):
@@ -357,6 +371,7 @@ def train(
         use_soft_prompt = bool(getattr(model, "use_soft_prompt", False))
         soft_prompt_frozen = False
         hybrid_alpha_current = 0.0
+        anchor_family_metrics_list = []
         if use_hybrid_soft_prompt:
             hybrid_alpha_current = get_hybrid_alpha_for_epoch(
                 epoch_one_based,
@@ -513,7 +528,12 @@ def train(
                 seg_loss = calculate_seg_loss(seg_pred, mask)
                 loss_main = cls_loss + seg_loss
                 anchor_loss = anchor.loss(model.image_adapter) if anchor is not None else torch.zeros((), device=device)
-                loss = loss_main + lambda_kg * kg_loss + lambda_k * k_loss + anchor_lambda * anchor_loss
+                if anchor_gradient_budget:
+                    task_loss = loss_main + lambda_kg * kg_loss + lambda_k * k_loss
+                    loss = task_loss + anchor_lambda * anchor_loss
+                else:
+                    task_loss = None
+                    loss = loss_main + lambda_kg * kg_loss + lambda_k * k_loss + anchor_lambda * anchor_loss
             if use_cir_training:
                 cir_stats_list.append(dict(getattr(model, "_last_cir_stats", {})))
             if not torch.isfinite(loss).all():
@@ -586,7 +606,7 @@ def train(
             kg_loss_list.append(kg_loss.item())
             k_loss_list.append(k_loss.item())
             anchor_loss_list.append(anchor_loss.item())
-            if anchor is not None and anchor_lambda > 0.0 and anchor_grad_audit_interval > 0 and batch_idx % int(anchor_grad_audit_interval) == 0:
+            if not anchor_gradient_budget and anchor is not None and anchor_lambda > 0.0 and anchor_grad_audit_interval > 0 and batch_idx % int(anchor_grad_audit_interval) == 0:
                 anchor_parameters = [
                     parameter
                     for _, parameter in sorted(model.image_adapter.named_parameters())
@@ -603,7 +623,7 @@ def train(
                 )
             # backward
             optimizer.zero_grad(set_to_none=True)
-            scaler.scale(loss).backward()
+            scaler.scale(loss).backward(retain_graph=anchor_gradient_budget)
             scaler.unscale_(optimizer)
             if has_non_finite_grad(optimizer):
                 logger.warning("non-finite gradient at epoch %d; skipping optimizer step", epoch + 1)
@@ -611,6 +631,61 @@ def train(
                 scaler.update()
                 optimizer.zero_grad(set_to_none=True)
                 continue
+            if anchor_gradient_budget:
+                image_named_parameters = [
+                    (name, parameter)
+                    for name, parameter in sorted(
+                        model.image_adapter.named_parameters(),
+                        key=lambda item: item[0],
+                    )
+                    if parameter.requires_grad
+                ]
+                image_names = [name for name, _ in image_named_parameters]
+                image_parameters = [parameter for _, parameter in image_named_parameters]
+                task_gradients = torch.autograd.grad(
+                    task_loss,
+                    image_parameters,
+                    retain_graph=True,
+                    allow_unused=True,
+                )
+                raw_anchor_gradients = torch.autograd.grad(
+                    anchor_loss,
+                    image_parameters,
+                    retain_graph=False,
+                    allow_unused=True,
+                )
+                metrics = apply_family_safe_anchor_budget(
+                    model.image_adapter,
+                    sorted(model.named_parameters(), key=lambda item: item[0]),
+                    task_gradients=dict(zip(image_names, task_gradients)),
+                    raw_anchor_gradients=dict(zip(image_names, raw_anchor_gradients)),
+                    anchor_lambda=anchor_lambda,
+                    rho=anchor_family_budget,
+                    total_trainable_parameters=None,
+                )
+                if anchor_family_audit:
+                    anchor_family_metrics_list.append(metrics)
+                    logger.info(
+                        "anchor_family_step epoch=%d batch=%d metrics=%s",
+                        epoch_one_based,
+                        batch_idx,
+                        json.dumps(metrics, sort_keys=True),
+                    )
+            elif anchor_family_audit:
+                metrics = collect_family_gradient_metrics(
+                    model.image_adapter,
+                    sorted(model.named_parameters(), key=lambda item: item[0]),
+                    anchor_lambda=0.0,
+                    rho=anchor_family_budget,
+                    total_trainable_parameters=None,
+                )
+                anchor_family_metrics_list.append(metrics)
+                logger.info(
+                    "anchor_family_step epoch=%d batch=%d metrics=%s",
+                    epoch_one_based,
+                    batch_idx,
+                    json.dumps(metrics, sort_keys=True),
+                )
             if use_soft_prompt or use_hybrid_soft_prompt:
                 soft_prompt_grad_stats_list.append({
                     "ctx_grad_norm_normal": grad_norm_or_none(model.soft_prompt.ctx_normal),
@@ -744,6 +819,12 @@ def train(
                 mean_stats([s for s in soft_prompt_grad_stats_list if None not in s.values()]),
                 use_hybrid_soft_prompt,
             )
+        if anchor_family_metrics_list:
+            logger.info(
+                "anchor_family_epoch epoch=%d metrics=%s",
+                epoch_one_based,
+                json.dumps(aggregate_anchor_family_metrics(anchor_family_metrics_list), sort_keys=True),
+            )
         logger.info(
             "anchor_state epoch=%d enabled=%s lambda=%s mean_anchor=%s gradient_ratio=%s audit_interval=%s formula=%s",
             epoch_one_based,
@@ -806,6 +887,8 @@ def train(
             "hybrid_alpha_max": hybrid_alpha_max,
             "soft_prompt_freeze_epochs": soft_prompt_freeze_epochs,
             "grad_clip_norm": grad_clip_norm,
+            "anchor_gradient_budget": bool(anchor_gradient_budget),
+            "anchor_family_budget": float(anchor_family_budget),
             "lambda_kg": lambda_kg,
             "lambda_k": lambda_k,
             "k_reg_detached_wk": bool(lambda_k > 0),
@@ -935,6 +1018,9 @@ def main():
     parser.add_argument("--use_safe_anchor", action="store_true")
     parser.add_argument("--anchor_lambda", type=float, default=0.0)
     parser.add_argument("--anchor_reference_path", type=str, default=None)
+    parser.add_argument("--anchor_gradient_budget", action="store_true", help="cap Anchor gradients independently within each image-adapter family")
+    parser.add_argument("--anchor_family_budget", type=float, default=ANCHOR_FAMILY_BUDGET_DEFAULT, help="maximum effective Anchor/task gradient ratio per active family")
+    parser.add_argument("--anchor_family_audit", action="store_true", help="emit per-step and per-epoch Anchor family telemetry")
     parser.add_argument("--use_cir_training", action="store_true")
     parser.add_argument("--cir_alpha", type=float, default=0.0)
     parser.add_argument("--cir_peer_count", type=int, default=8)
@@ -955,6 +1041,10 @@ def main():
         raise ValueError("--use_soft_prompt and --use_hybrid_soft_prompt are mutually exclusive")
     if args.anchor_lambda < 0:
         raise ValueError("--anchor_lambda must be non-negative")
+    if not 0.0 <= args.anchor_family_budget <= 1.0:
+        raise ValueError("--anchor_family_budget must be in [0, 1]")
+    if args.anchor_gradient_budget and not args.use_safe_anchor:
+        raise ValueError("--anchor_gradient_budget requires --use_safe_anchor")
     if args.use_safe_anchor and args.anchor_lambda == 0.0:
         raise ValueError("--use_safe_anchor requires --anchor_lambda > 0")
     if args.use_cir_training and args.cir_alpha == 0.0:
@@ -1206,6 +1296,9 @@ def main():
         max_batches=args.max_batches,
         anchor_grad_audit_interval=args.anchor_grad_audit_interval,
         trace_batch_identity=args.trace_batch_identity,
+        anchor_gradient_budget=args.anchor_gradient_budget,
+        anchor_family_budget=args.anchor_family_budget,
+        anchor_family_audit=args.anchor_family_audit,
     )
 
 
