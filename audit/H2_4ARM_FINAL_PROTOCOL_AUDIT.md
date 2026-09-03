@@ -96,7 +96,7 @@ not used to retune or change the final selection.
 - Factorial effects: `results/H2_4ARM_FACTORIAL_EFFECTS.csv`
 - Decision: `results/H2_4ARM_FINAL_DECISION.md`
 - Medical provenance: `results/H2_4ARM_MEDICAL_EVAL_MANIFEST.json`
-- Result commit SHA: recorded in the final Git handoff
-- Remote head: recorded after push verification
-- Push status: pending final commit/push
-- Tracked worktree: pending final commit/push
+- Result payload commit SHA: `e776e65` (`Publish H2 factorial Medical and MVTec results`)
+- Result payload push to `huy/research/h2-clean-repro-anchor-cir-v1`: `PASS`
+- Final audit metadata update and its remote head: recorded in the final Git handoff
+- Tracked worktree: verified clean after the final audit metadata update

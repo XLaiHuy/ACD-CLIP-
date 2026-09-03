@@ -1,6 +1,6 @@
 # H2 four-arm factorial decision
 
-Status: `MEDICAL_COMPLETE_MVTEC_PENDING`
+Status: `MEDICAL_COMPLETE_MVTEC_COMPLETE`
 
 The frozen exact Medical evaluation completed for H/A/C/AC at E15 and E20.
 E15 is primary; E20 is secondary. The metrics are raw exact values from
@@ -58,5 +58,5 @@ was not used to alter the E15 decision.
 - Factorial contrasts: `H2_4ARM_FACTORIAL_EFFECTS.csv`
 - Evaluation provenance: `H2_4ARM_MEDICAL_EVAL_MANIFEST.json`
 
-The matched industrial transfer check remains pending and must not be used to
+The matched industrial transfer check is complete and must not be used to
 retune or change this selection.
