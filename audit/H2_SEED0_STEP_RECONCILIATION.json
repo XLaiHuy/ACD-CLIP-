@@ -1,0 +1,20 @@
+{
+  "audit": "H2_SEED0_STEP_RECONCILIATION",
+  "status": "PASS",
+  "loader_batches_per_epoch": 361,
+  "shared_e1": {"epoch": 1, "global_step": 359, "nonfinite_loss_skips": 0, "nonfinite_grad_skips": 0},
+  "segments": [
+    {"arm": "H", "epochs": "E2-E15", "attempted_batches": 5054, "nonfinite_loss_skips": 0, "nonfinite_grad_skips": 3, "successful_optimizer_steps": 5051, "start_step": 359, "end_step": 5410},
+    {"arm": "H", "epochs": "E16-E20", "attempted_batches": 1805, "nonfinite_loss_skips": 0, "nonfinite_grad_skips": 0, "successful_optimizer_steps": 1805, "start_step": 5410, "end_step": 7215},
+    {"arm": "A", "epochs": "E2-E15", "attempted_batches": 5054, "nonfinite_loss_skips": 0, "nonfinite_grad_skips": 2, "successful_optimizer_steps": 5052, "start_step": 359, "end_step": 5411},
+    {"arm": "A", "epochs": "E16-E20", "attempted_batches": 1805, "nonfinite_loss_skips": 0, "nonfinite_grad_skips": 0, "successful_optimizer_steps": 1805, "start_step": 5411, "end_step": 7216},
+    {"arm": "C", "epochs": "E2-E15", "attempted_batches": 5054, "nonfinite_loss_skips": 0, "nonfinite_grad_skips": 3, "successful_optimizer_steps": 5051, "start_step": 359, "end_step": 5410},
+    {"arm": "C", "epochs": "E16-E20", "attempted_batches": 1805, "nonfinite_loss_skips": 0, "nonfinite_grad_skips": 0, "successful_optimizer_steps": 1805, "start_step": 5410, "end_step": 7215},
+    {"arm": "AC", "epochs": "E2-E3", "attempted_batches": 722, "nonfinite_loss_skips": 0, "nonfinite_grad_skips": 0, "successful_optimizer_steps": 722, "start_step": 359, "end_step": 1081, "resume_boundary": "adapter_3"},
+    {"arm": "AC", "epochs": "E4-E15", "attempted_batches": 4332, "nonfinite_loss_skips": 0, "nonfinite_grad_skips": 1, "successful_optimizer_steps": 4331, "start_step": 1081, "end_step": 5412, "resume_boundary": "adapter_3"},
+    {"arm": "AC", "epochs": "E16-E20", "attempted_batches": 1805, "nonfinite_loss_skips": 0, "nonfinite_grad_skips": 1, "successful_optimizer_steps": 1804, "start_step": 5412, "end_step": 7216}
+  ],
+  "checkpoint_steps": {"H_E15": 5410, "H_E20": 7215, "A_E15": 5411, "A_E20": 7216, "C_E15": 5410, "C_E20": 7215, "AC_E15": 5412, "AC_E20": 7216},
+  "evidence_flags": {"duplicate_batches": false, "repeated_epochs": false, "skipped_resume_epoch": false, "hidden_extra_steps": false, "target_guided_retraining": false},
+  "original_freeze_skip_metadata": "incomplete_or_stale; corrected counts above are authoritative"
+}

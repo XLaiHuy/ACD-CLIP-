@@ -1,0 +1,19 @@
+{
+  "audit": "H2_SEED0_EXPORT_RECONCILIATION",
+  "status": "PASS",
+  "source_run_root": "/tmp/h2_clean_factorial_e20_20260902_ampfix",
+  "source_medical_root": "/home/ai4/caohuy/ACD-CLIP-medical-test/medical_phase2cd_results/h2_clean_factorial_e20_20260902_ampfix",
+  "canonical_join": ["horizon", "arm", "dataset", "metric_type"],
+  "final_export_rows": {"E15": 24, "E20": 24, "total": 48},
+  "pixel_bearing_datasets": ["Brain", "Liver", "Retina"],
+  "pixel_rows_complete": 24,
+  "image_only_datasets": ["Colon_clinicDB", "Colon_colonDB", "Colon_Kvasir"],
+  "macro_reproduction": {
+    "status": "PASS",
+    "max_abs_difference": 0.0,
+    "tolerance": 1e-12,
+    "summaries_checked": 8
+  },
+  "selection_or_tuning": false,
+  "note": "The prior export joined image and pixel metric rows by dataset only, overwriting pixel fields for Brain/Liver/Retina. The corrected export joins by metric_type and dataset and uses source evaluator rows without inference."
+}
