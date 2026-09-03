@@ -2,13 +2,14 @@ import argparse
 import csv
 import math
 import os
+import tempfile
 from collections import defaultdict
 from glob import glob
 from pathlib import Path
 
+import numpy as np
 import torch
 import torch.nn.functional as F
-from torchmetrics.classification import BinaryAUROC, BinaryAveragePrecision
 from torchmetrics.functional import auroc, average_precision
 from tqdm import tqdm
 
@@ -47,6 +48,174 @@ SCORE_RULES = [
     "0.8_cls_0.2_top1pct",
     "0.5_cls_0.5_max_current_medical",
 ]
+_PIXEL_RECORD_DTYPE = np.dtype([("score", "<f4"), ("target", "u1")])
+_PIXEL_SORT_CHUNK = 8_000_000
+_PIXEL_MERGE_CHUNK = 1_000_000
+
+
+def _write_sorted_pixel_runs(score_path, target_path, count, scratch):
+    scores = np.memmap(score_path, dtype=np.float32, mode="r", shape=(count,))
+    targets = np.memmap(target_path, dtype=np.uint8, mode="r", shape=(count,))
+    run_paths = []
+    for run_index, start in enumerate(range(0, count, _PIXEL_SORT_CHUNK)):
+        stop = min(start + _PIXEL_SORT_CHUNK, count)
+        local_scores = np.asarray(scores[start:stop], dtype=np.float32)
+        local_targets = np.asarray(targets[start:stop], dtype=np.uint8)
+        order = np.argsort(local_scores, kind="stable")[::-1]
+        records = np.empty(stop - start, dtype=_PIXEL_RECORD_DTYPE)
+        records["score"] = local_scores[order]
+        records["target"] = local_targets[order]
+        run_path = os.path.join(scratch, f"pixel_run_{run_index:05d}.bin")
+        records.tofile(run_path)
+        run_paths.append(run_path)
+    del scores, targets
+    return run_paths
+
+
+def _merge_sorted_pixel_runs(first_path, second_path, output_path):
+    first = np.memmap(first_path, dtype=_PIXEL_RECORD_DTYPE, mode="r")
+    second = np.memmap(second_path, dtype=_PIXEL_RECORD_DTYPE, mode="r")
+    first_pos = 0
+    second_pos = 0
+    first_remaining = np.empty(0, dtype=_PIXEL_RECORD_DTYPE)
+    second_remaining = np.empty(0, dtype=_PIXEL_RECORD_DTYPE)
+    with open(output_path, "wb") as output:
+        while True:
+            if first_pos < len(first) and len(first_remaining) < _PIXEL_MERGE_CHUNK:
+                first_take = min(
+                    _PIXEL_MERGE_CHUNK - len(first_remaining), len(first) - first_pos
+                )
+                first_stop = first_pos + first_take
+                first_part = np.asarray(first[first_pos:first_stop]).copy()
+                first_remaining = np.concatenate((first_remaining, first_part))
+                first_pos = first_stop
+            if second_pos < len(second) and len(second_remaining) < _PIXEL_MERGE_CHUNK:
+                second_take = min(
+                    _PIXEL_MERGE_CHUNK - len(second_remaining), len(second) - second_pos
+                )
+                second_stop = second_pos + second_take
+                second_part = np.asarray(second[second_pos:second_stop]).copy()
+                second_remaining = np.concatenate((second_remaining, second_part))
+                second_pos = second_stop
+            if not first_remaining.size and not second_remaining.size:
+                break
+            pieces = [first_remaining, second_remaining]
+            source_ids = np.concatenate(
+                (
+                    np.zeros(len(first_remaining), dtype=np.uint8),
+                    np.ones(len(second_remaining), dtype=np.uint8),
+                )
+            )
+            merged = np.concatenate([piece for piece in pieces if len(piece)])
+            order = np.argsort(merged["score"], kind="stable")[::-1]
+            take = min(_PIXEL_MERGE_CHUNK, len(merged))
+            selected_order = order[:take]
+            output.write(merged[selected_order].tobytes())
+            selected_sources = source_ids[selected_order]
+            first_remaining = first_remaining[np.count_nonzero(selected_sources == 0):]
+            second_remaining = second_remaining[np.count_nonzero(selected_sources == 1):]
+    del first, second
+
+
+def _scan_sorted_pixel_records(sorted_path, count, positives):
+    negatives = count - positives
+    if positives == 0 or negatives == 0:
+        return float("nan"), float("nan")
+
+    records = np.memmap(sorted_path, dtype=_PIXEL_RECORD_DTYPE, mode="r")
+    auc_numerator = 0.0
+    ap_numerator = 0.0
+    negatives_before = 0.0
+    positives_seen = 0.0
+    pending_score = None
+    pending_positives = 0
+    pending_negatives = 0
+
+    def consume(pos_counts, neg_counts):
+        nonlocal auc_numerator, ap_numerator, negatives_before, positives_seen
+        if len(pos_counts) == 0:
+            return
+        pos = pos_counts.astype(np.float64, copy=False)
+        neg = neg_counts.astype(np.float64, copy=False)
+        neg_before = negatives_before + np.cumsum(neg) - neg
+        auc_numerator += np.sum(pos * (negatives - neg_before - 0.5 * neg), dtype=np.float64)
+        pos_before = positives_seen + np.cumsum(pos) - pos
+        neg_before_for_ap = negatives_before + np.cumsum(neg) - neg
+        pos_after = pos_before + pos
+        neg_after = neg_before_for_ap + neg
+        ap_numerator += np.sum(
+            (pos / positives) * (pos_after / (pos_after + neg_after)),
+            dtype=np.float64,
+        )
+        positives_seen += float(pos.sum(dtype=np.float64))
+        negatives_before += float(neg.sum(dtype=np.float64))
+
+    for start in range(0, count, _PIXEL_MERGE_CHUNK):
+        stop = min(start + _PIXEL_MERGE_CHUNK, count)
+        block = np.asarray(records[start:stop])
+        scores = block["score"]
+        labels = block["target"]
+        changes = np.flatnonzero(scores[1:] != scores[:-1]) + 1
+        starts = np.concatenate((np.array([0]), changes))
+        ends = np.concatenate((changes, np.array([len(scores)])))
+        pos_counts = np.add.reduceat(labels, starts)
+        sizes = ends - starts
+        neg_counts = sizes - pos_counts
+
+        if pending_score is not None:
+            if float(scores[0]) == pending_score:
+                pending_positives += int(pos_counts[0])
+                pending_negatives += int(neg_counts[0])
+                pos_counts = pos_counts[1:]
+                neg_counts = neg_counts[1:]
+            else:
+                consume(
+                    np.array([pending_positives], dtype=np.uint64),
+                    np.array([pending_negatives], dtype=np.uint64),
+                )
+                pending_score = None
+                pending_positives = 0
+                pending_negatives = 0
+
+        if len(pos_counts):
+            if len(pos_counts) > 1:
+                consume(pos_counts[:-1], neg_counts[:-1])
+            pending_score = float(scores[-1])
+            pending_positives = int(pos_counts[-1])
+            pending_negatives = int(neg_counts[-1])
+
+    if pending_score is not None:
+        consume(
+            np.array([pending_positives], dtype=np.uint64),
+            np.array([pending_negatives], dtype=np.uint64),
+        )
+    del records
+    return auc_numerator / (positives * negatives), ap_numerator
+
+
+def _exact_binary_pixel_metrics_from_files(score_path, target_path, count):
+    targets = np.memmap(target_path, dtype=np.uint8, mode="r", shape=(count,))
+    positives = int(np.sum(targets, dtype=np.uint64))
+    del targets
+    with tempfile.TemporaryDirectory(prefix="acd_clip_pixel_exact_") as scratch:
+        run_paths = _write_sorted_pixel_runs(score_path, target_path, count, scratch)
+        while len(run_paths) > 1:
+            next_paths = []
+            for pair_index in range(0, len(run_paths), 2):
+                if pair_index + 1 == len(run_paths):
+                    next_paths.append(run_paths[pair_index])
+                    continue
+                output_path = os.path.join(
+                    scratch, f"pixel_merge_{len(run_paths):05d}_{pair_index:05d}.bin"
+                )
+                _merge_sorted_pixel_runs(
+                    run_paths[pair_index], run_paths[pair_index + 1], output_path
+                )
+                os.unlink(run_paths[pair_index])
+                os.unlink(run_paths[pair_index + 1])
+                next_paths.append(output_path)
+            run_paths = next_paths
+        return _scan_sorted_pixel_records(run_paths[0], count, positives)
 
 
 def parse_args():
@@ -348,8 +517,15 @@ def evaluate_dataset(
         num_workers=args.num_workers,
         pin_memory=device.type == "cuda",
     )
-    pixel_predictions = []
-    pixel_targets = []
+    score_temp = tempfile.NamedTemporaryFile(prefix="acd_clip_pixel_", suffix=".scores", delete=False)
+    target_temp = tempfile.NamedTemporaryFile(prefix="acd_clip_pixel_", suffix=".targets", delete=False)
+    score_path = score_temp.name
+    target_path = target_temp.name
+    score_temp.close()
+    target_temp.close()
+    score_handle = open(score_path, "wb")
+    target_handle = open(target_path, "wb")
+    pixel_count = 0
     raw_rows = []
     class_text = text_cache[class_name]
 
@@ -386,8 +562,12 @@ def evaluate_dataset(
         else:
             seg_eval = seg_pred
             mask_eval = mask
-        pixel_predictions.append(seg_eval.detach().flatten().cpu())
-        pixel_targets.append(mask_eval.detach().flatten().cpu())
+        pixel_scores = seg_eval.detach().flatten().to(dtype=torch.float32).cpu()
+        pixel_labels = mask_eval.detach().flatten().to(dtype=torch.uint8).cpu()
+        score_handle.write(pixel_scores.numpy().tobytes())
+        target_handle.write(pixel_labels.numpy().tobytes())
+        pixel_count += pixel_scores.numel()
+        del pixel_scores, pixel_labels
 
         for i, file_name in enumerate(file_names):
             raw_rows.append({
@@ -404,16 +584,18 @@ def evaluate_dataset(
         if device.type == "cuda":
             torch.cuda.empty_cache()
 
-    pixel_predictions = torch.cat(pixel_predictions)
-    pixel_targets = torch.cat(pixel_targets)
-    pixel_auc = BinaryAUROC(thresholds=args.metric_thresholds)
-    pixel_auc.update(pixel_predictions, pixel_targets)
-    pixel_auc_value = pixel_auc.compute().item()
-    del pixel_auc
-    pixel_ap = BinaryAveragePrecision(thresholds=args.metric_thresholds)
-    pixel_ap.update(pixel_predictions, pixel_targets)
-    pixel_ap_value = pixel_ap.compute().item()
-    del pixel_ap, pixel_predictions, pixel_targets
+    score_handle.close()
+    target_handle.close()
+    try:
+        pixel_auc_value, pixel_ap_value = _exact_binary_pixel_metrics_from_files(
+            score_path, target_path, pixel_count
+        )
+    finally:
+        for path in (score_path, target_path):
+            try:
+                os.unlink(path)
+            except FileNotFoundError:
+                pass
 
     pixel_row = {
         "dataset": dataset_name,
