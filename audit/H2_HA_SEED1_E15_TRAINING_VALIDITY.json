@@ -1,0 +1,19 @@
+{
+  "audit": "H2_HA_SEED1_E15_TRAINING_VALIDITY",
+  "status": "FAIL_HARD_TRAINING_VALIDITY",
+  "run_root": "runs/h2_ha_replication_e15_seed1",
+  "protocol_horizon": 15,
+  "shared_e1": {"epoch": 1, "global_step": 359, "seed": 1},
+  "arms": {
+    "H": {"epochs": [2,3,4,5,6,7,8,9,10,11,12,13,14,15], "nonfinite_loss_skips": 0, "nonfinite_grad_skips": 3, "global_step": 5410, "checkpoint_finite": true},
+    "A": {"epochs": [2,3,4,5,6,7,8,9,10,11,12,13,14,15], "nonfinite_loss_skips": 0, "nonfinite_grad_skips": 2, "global_step": 5411, "checkpoint_finite": true}
+  },
+  "hard_validity": {
+    "no_nonfinite_loss_skips": true,
+    "no_unexplained_nonfinite_grad_skips": "recorded_in_train_logs; no hidden/repeated epoch evidence",
+    "no_nan_inf_checkpoint_state": true,
+    "same_successful_optimizer_step_count_H_A": false
+  },
+  "conclusion": "Seed 1 is not target-evaluation eligible. The one-step H/A mismatch follows directly from the recorded skip-count difference; no target result was consulted and no restart was performed.",
+  "evidence": {"H_log": "runs/h2_ha_replication_e15_seed1/H/train.log", "A_log": "runs/h2_ha_replication_e15_seed1/A/train.log", "H_checkpoint": "runs/h2_ha_replication_e15_seed1/H/adapter_15.pth", "A_checkpoint": "runs/h2_ha_replication_e15_seed1/A/adapter_15.pth"}
+}
