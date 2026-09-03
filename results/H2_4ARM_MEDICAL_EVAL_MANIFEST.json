@@ -1,0 +1,46 @@
+{
+  "manifest_name": "H2_4ARM_MEDICAL_EVAL_MANIFEST",
+  "status": "COMPLETE",
+  "run_root": "/tmp/h2_clean_factorial_e20_20260902_ampfix",
+  "medical_results_root": "/home/ai4/caohuy/ACD-CLIP-medical-test/medical_phase2cd_results/h2_clean_factorial_e20_20260902_ampfix",
+  "freeze_manifest": "audit/H2_4ARM_E15_E20_FREEZE.json",
+  "freeze_commit": "e0edadd8d4433de94495a443b375f6b8a28e9eaa",
+  "evaluator_repo": "/home/ai4/caohuy/ACD-CLIP-medical-test",
+  "evaluator_branch": "phase-fewshot-medical",
+  "evaluator_commit": "6bd932fbce0a425af5c8d3f7230dd7dc041568bd",
+  "evaluation_contract": {
+    "mode": "benchmark_exact",
+    "pixel_stride": 1,
+    "metric_precision": "raw_exact",
+    "metric_thresholds": null,
+    "prompt_config": "current_shared",
+    "score_rule": "cls_only",
+    "checkpoint_selection": "none",
+    "tuning": false,
+    "primary_horizon": 15,
+    "secondary_horizon": 20
+  },
+  "runtime_compatibility": {
+    "TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD": "1",
+    "NUM_WORKERS": 0,
+    "note": "Trusted full-checkpoint loading compatibility; no scientific setting changed."
+  },
+  "selected_checkpoints": {
+    "H_E15": {"path": "/tmp/h2_clean_factorial_e20_20260902_ampfix/H/adapter_15.pth", "sha256": "6830137b52fc16321192909fe7b3ca7565664afe61a8592fe7b7a78d2dff4771"},
+    "A_E15": {"path": "/tmp/h2_clean_factorial_e20_20260902_ampfix/A/adapter_15.pth", "sha256": "727dc4813db1ef0c5a6db3a4cf15e916ad1413dcf629913358419d2734edecfe"},
+    "C_E15": {"path": "/tmp/h2_clean_factorial_e20_20260902/C/adapter_15.pth", "sha256": "3530d7cb9f912c37de07fb984beca927460237c222f4f3a09a5c1cad2e035b71"},
+    "AC_E15": {"path": "/tmp/h2_clean_factorial_e20_20260902_ampfix/AC/adapter_15.pth", "sha256": "2364984ad94faf3ab70833f6d0ad1e544daeebaf6e5ab0349a348b11322d608d"},
+    "H_E20": {"path": "/tmp/h2_clean_factorial_e20_20260902_ampfix/H/adapter_20.pth", "sha256": "a3857d018014b9ab77a06568e3c04e7fd8a4c0a7c24ccec3796e706c009dd087"},
+    "A_E20": {"path": "/tmp/h2_clean_factorial_e20_20260902_ampfix/A/adapter_20.pth", "sha256": "de3d160efc4cdc24454594274ca01c4d36724ecfa1ec75d2a660d4b6c037ff8c"},
+    "C_E20": {"path": "/tmp/h2_clean_factorial_e20_20260902_ampfix/C/adapter_20.pth", "sha256": "80be0b3c3e43f1afd2003cc1a7fb4193f24eb5a980da32d338523062d882451f"},
+    "AC_E20": {"path": "/tmp/h2_clean_factorial_e20_20260902_ampfix/AC/adapter_20.pth", "sha256": "b0b1b20e937577d006ad1910f0b93b099d7aff894d19936787fe634ff10dd934"}
+  },
+  "result_files": {
+    "E15_per_dataset": "results/H2_4ARM_E15_MEDICAL_PER_DATASET.csv",
+    "E15_summary": "results/H2_4ARM_E15_MEDICAL_SUMMARY.csv",
+    "E20_per_dataset": "results/H2_4ARM_E20_MEDICAL_PER_DATASET.csv",
+    "E20_summary": "results/H2_4ARM_E20_MEDICAL_SUMMARY.csv",
+    "factorial_effects": "results/H2_4ARM_FACTORIAL_EFFECTS.csv",
+    "final_decision": "results/H2_4ARM_FINAL_DECISION.md"
+  }
+}
