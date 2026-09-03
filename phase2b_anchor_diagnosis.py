@@ -348,8 +348,8 @@ def evaluate_dataset(
         num_workers=args.num_workers,
         pin_memory=device.type == "cuda",
     )
-    pixel_auc = BinaryAUROC(thresholds=args.metric_thresholds)
-    pixel_ap = BinaryAveragePrecision(thresholds=args.metric_thresholds)
+    pixel_predictions = []
+    pixel_targets = []
     raw_rows = []
     class_text = text_cache[class_name]
 
@@ -386,8 +386,8 @@ def evaluate_dataset(
         else:
             seg_eval = seg_pred
             mask_eval = mask
-        pixel_auc.update(seg_eval.detach().flatten().cpu(), mask_eval.detach().flatten().cpu())
-        pixel_ap.update(seg_eval.detach().flatten().cpu(), mask_eval.detach().flatten().cpu())
+        pixel_predictions.append(seg_eval.detach().flatten().cpu())
+        pixel_targets.append(mask_eval.detach().flatten().cpu())
 
         for i, file_name in enumerate(file_names):
             raw_rows.append({
@@ -404,12 +404,23 @@ def evaluate_dataset(
         if device.type == "cuda":
             torch.cuda.empty_cache()
 
+    pixel_predictions = torch.cat(pixel_predictions)
+    pixel_targets = torch.cat(pixel_targets)
+    pixel_auc = BinaryAUROC(thresholds=args.metric_thresholds)
+    pixel_auc.update(pixel_predictions, pixel_targets)
+    pixel_auc_value = pixel_auc.compute().item()
+    del pixel_auc
+    pixel_ap = BinaryAveragePrecision(thresholds=args.metric_thresholds)
+    pixel_ap.update(pixel_predictions, pixel_targets)
+    pixel_ap_value = pixel_ap.compute().item()
+    del pixel_ap, pixel_predictions, pixel_targets
+
     pixel_row = {
         "dataset": dataset_name,
         "epoch": epoch,
         "prompt_config": prompt_config,
-        "pixel_auc": (round(pixel_auc.compute().item(), 4) if round_result else pixel_auc.compute().item()) * 100,
-        "pixel_ap": (round(pixel_ap.compute().item(), 4) if round_result else pixel_ap.compute().item()) * 100,
+        "pixel_auc": (round(pixel_auc_value, 4) if round_result else pixel_auc_value) * 100,
+        "pixel_ap": (round(pixel_ap_value, 4) if round_result else pixel_ap_value) * 100,
     }
     return raw_rows, pixel_row
 
