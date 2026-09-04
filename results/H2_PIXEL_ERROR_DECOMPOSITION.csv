@@ -1,0 +1,12 @@
+scope,arm,seed,horizon,diagnostic,value,unit,status,evidence,interpretation
+Medical_macro,A,0,15,pixel_AUROC_minus_H,+0.4364540284135927,percentage_points,METRIC_ONLY,results/H2_4ARM_E15_MEDICAL_SUMMARY.csv,Aggregate A-H contrast is descriptive Seed-0 discovery evidence and not a curve decomposition.
+Medical_macro,A,0,15,pixel_AP_minus_H,+3.594116817186361,percentage_points,METRIC_ONLY,results/H2_4ARM_E15_MEDICAL_SUMMARY.csv,Aggregate A-H contrast is descriptive Seed-0 discovery evidence and not a curve decomposition.
+MVTec_macro,A,0,15,pixel_AUROC_minus_H,+3.172666,percentage_points,METRIC_ONLY,results/H2_4ARM_E15_MVTEC_SUMMARY.csv,Aggregate A-H contrast is descriptive Seed-0 discovery evidence and not a curve decomposition.
+MVTec_macro,A,0,15,pixel_AP_minus_H,+3.547043,percentage_points,METRIC_ONLY,results/H2_4ARM_E15_MVTEC_SUMMARY.csv,Aggregate A-H contrast is descriptive Seed-0 discovery evidence and not a curve decomposition.
+all_targets,H,0,15,full_precision_recall_curve,NA,NA,NOT_AVAILABLE_TARGET_SCORE_MAPS,No saved target score maps or PR arrays in the repository,The preregistered benchmark is preserved but diagnostic ranking curves were not stored.
+all_targets,A,0,15,full_precision_recall_curve,NA,NA,NOT_AVAILABLE_TARGET_SCORE_MAPS,No saved target score maps or PR arrays in the repository,The preregistered benchmark is preserved but diagnostic ranking curves were not stored.
+all_targets,H,1,15,full_precision_recall_curve,NA,NA,NOT_EVALUATED_HARD_TRAINING_INVALIDITY,results/H2_HA_REPLICATION_FINAL_AUDIT.md,Seed-1 target evaluation was forbidden after invalid training.
+all_targets,A,1,15,full_precision_recall_curve,NA,NA,NOT_EVALUATED_HARD_TRAINING_INVALIDITY,results/H2_HA_REPLICATION_FINAL_AUDIT.md,Seed-1 target evaluation was forbidden after invalid training.
+all_targets,H,2,15,full_precision_recall_curve,NA,NA,NOT_EVALUATED_HARD_TRAINING_INVALIDITY,results/H2_HA_REPLICATION_FINAL_AUDIT.md,Seed-2 target evaluation was forbidden after invalid training.
+all_targets,A,2,15,full_precision_recall_curve,NA,NA,NOT_EVALUATED_HARD_TRAINING_INVALIDITY,results/H2_HA_REPLICATION_FINAL_AUDIT.md,Seed-2 target evaluation was forbidden after invalid training.
+all_targets,H/A,0,15,ROC_PR_score_distributions_false_positive_tail_false_negative_tail,NA,NA,NOT_AVAILABLE_TARGET_SCORE_MAPS,No score maps rank arrays or pixel-level prediction dumps are archived,Low AP cannot be assigned to calibration ranking boundaries peaks or false-positive tails from current artifacts.
