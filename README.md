@@ -149,3 +149,5 @@ ACD-CLIP achieves state-of-the-art performance on a wide range of ZSAD benchmark
 
 The frozen H2 four-arm factorial and the descriptive Phase 2 comparison are
 published in [the ACD-CLIP Phase 2 / H2 results report](results/ACD_CLIP_PHASE_COMPARISON_PUBLISHED.md).
+The checkpoint and architecture transfer instructions are in the [current H2
+Git handoff](audit/H2_CURRENT_ARCHITECTURE_AND_GIT_HANDOFF.md).

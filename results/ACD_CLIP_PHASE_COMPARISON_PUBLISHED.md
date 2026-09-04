@@ -188,6 +188,7 @@ Medical preregistered selection.
 - [Factorial effects](./H2_4ARM_FACTORIAL_EFFECTS.csv)
 - [Frozen decision](./H2_4ARM_FINAL_DECISION.md)
 - [Final protocol audit](../audit/H2_4ARM_FINAL_PROTOCOL_AUDIT.md)
+- [Current architecture and cross-machine Git handoff](../audit/H2_CURRENT_ARCHITECTURE_AND_GIT_HANDOFF.md)
 - [E15/E20 freeze manifest](../audit/H2_4ARM_E15_E20_FREEZE.json)
 - [MVTec summary](./H2_4ARM_E15_MVTEC_SUMMARY.csv) and
   [per-class table](./H2_4ARM_E15_MVTEC_PER_CLASS.csv)
