@@ -24,7 +24,7 @@ evaluation. Do not interpret the status-only result CSVs as target metrics.
 ## Shared identity
 
 - Original scientific code: `31167af5ee3dfff80b74af1e9ee0da4ecc475d2e`
-- Replication implementation: `67888aa3eba2e7d2eecf90bfb8ba132c2c137aa`
+- Replication implementation: `67888aad3eba2e7d2eecf90bfb8ba132c2c137aa`
 - Base H2 commit: `e03966997d4cecfd985943a4053a93e1e40197ec`
 - CLIP SHA256: `3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02`
 - VisA manifest SHA256: `468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842`

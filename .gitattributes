@@ -1,3 +1,5 @@
 phase1_best_checkpoints/**/*.pth filter=lfs diff=lfs merge=lfs -text
 runs/h2_clean_factorial_e20_20260902_ampfix/**/*.pth filter=lfs diff=lfs merge=lfs -text
+forensic_archive/**/*.pth filter=lfs diff=lfs merge=lfs -text
+forensic_archive/machine_env/source_nvidia_smi.txt whitespace=-trailing-space
 model/ViT-L-14-336px.pt filter=lfs diff=lfs merge=lfs -text

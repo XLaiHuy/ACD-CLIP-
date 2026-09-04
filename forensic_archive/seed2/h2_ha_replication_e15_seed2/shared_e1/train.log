@@ -1,0 +1,127 @@
+2026-09-04 06:51:16 train.py 1107: environment: {'python': '3.11.15 (main, Jun 11 2026, 15:20:16) [GCC 14.3.0]', 'platform': 'Linux-7.0.0-28-generic-x86_64-with-glibc2.39', 'executable': '/home/ai4/ENTER/envs/torchhuy/bin/python', 'torch': '2.12.1+cu130', 'torchvision': '0.27.1+cu130', 'cuda_runtime': '13.0', 'cudnn': 92000, 'cuda_available': True, 'gpu': ['NVIDIA GeForce RTX 5060 Ti']}
+2026-09-04 06:51:16 train.py 1108: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'dataset': 'VisA', 'batch_size': 6, 'epoch': 1, 'protocol_horizon': 15, 'cuda_device': 0, 'save_path': '/home/ai4/caohuy/ACD-CLIP-base-new-phase1-h2-anchor-cir-20260901/runs/h2_ha_replication_e15_seed2/shared_e1', 'n_groups': 3, 'image_adapt_weight': 0.2, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'text_adapt_weight': 0.2, 'lora_rank': 16, 'lora_alpha': 2.0, 'image_lr': 0.001, 'text_lr': 0.0005, 'use_soft_prompt': False, 'use_hybrid_soft_prompt': True, 'hybrid_alpha_max': 0.2, 'soft_prompt_freeze_epochs': 3, 'soft_prompt_ctx_len': 4, 'soft_prompt_lr': 5e-05, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'lambda_kg': 0.01, 'lambda_k': 0.002, 'lr_gamma': 0.9, 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dfg_weight_residual_fp32': True, 'non_finite_loss_abort_threshold': 20, 'grad_clip_norm': 1.0, 'amp': True, 'grad_checkpointing': True, 'num_workers': 6, 'seed': 2, 'deterministic_algorithms': True, 'use_safe_anchor': False, 'anchor_lambda': 0.0, 'anchor_reference_path': None, 'anchor_gradient_budget': False, 'anchor_family_budget': 0.1, 'anchor_family_audit': False, 'use_cir_training': False, 'cir_alpha': 0.0, 'cir_peer_count': 8, 'cir_spatial_radius': 3, 'cir_transport_direction': 'abnormal_minus_normal_plus', 'cir_score_mode': 'exact_score_space', 'resume': None, 'max_batches': None, 'anchor_grad_audit_interval': 0, 'trace_batch_identity': False}
+2026-09-04 06:51:16 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-09-04 06:51:19 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-09-04 06:51:20 train.py 1171: trainable parameters: 14,095,887
+2026-09-04 06:51:20 train.py 1172: frozen parameters: 428,762,369
+2026-09-04 06:51:20 train.py 1173: dfg_weight_residual_fp32=True
+2026-09-04 06:51:20 train.py 1227: loading dataset ...
+2026-09-04 06:51:20 train.py 1264: training ...
+2026-09-04 06:51:20 train.py 393: training epoch 1 / 1
+2026-09-04 06:51:20 train.py 394: dfg_beta_state epoch=1 dfg_ss2d_fusion=weight_residual dfg_beta_schedule=warmup010 dfg_beta_target=0.1 dfg_beta_current=0.0
+2026-09-04 06:51:20 train.py 404: hybrid_state epoch=1 effective_prompt_mode=hybrid effective_alpha=0.0 hard_branch_lora_used=True soft_branch_lora_used=False soft_prompt_frozen=True soft_prompt_freeze_epochs=3 lambda_kg=0.01 lambda_k=0.002 grad_clip_norm=1.0 image_lr=0.001 text_lr=0.0005 soft_lr=0.0
+2026-09-04 06:54:26 train.py 637: non-finite gradient at epoch 1; skipping optimizer step
+2026-09-04 06:56:25 train.py 637: non-finite gradient at epoch 1; skipping optimizer step
+2026-09-04 07:02:24 train.py 796: mean_loss=1.3538129208479752, mean_loss_main=1.3480986047920078, mean_cls_loss=0.6852435687956372, mean_seg_loss=0.6631206772767441
+2026-09-04 07:02:24 train.py 804: soft_prompt_epoch epoch=1 prompt_mode=hybrid mean_kg_loss=0.5716760093733214 lambda_kg=0.01 mean_k_loss=-4.220895258057431e-08 weighted_k_loss=-8.441790516114863e-11 lambda_k=0.002 k_stats={'k_cos_abnormal': 1.0000000033283505, 'k_cos_mean': 1.0000000003396277, 'k_cos_normal': 1.000000002852872, 'stage1_k_cos_abnormal': 1.0000000300230802, 'stage1_k_cos_mean': 1.0000000188153693, 'stage1_k_cos_normal': 1.0000000251324428, 'stage1_k_loss': -4.2572321308612966e-08, 'stage2_k_cos_abnormal': 1.0000000311098887, 'stage2_k_cos_mean': 1.0000000201059542, 'stage2_k_cos_normal': 1.000000028087203, 'stage2_k_loss': -4.253835853388682e-08, 'stage3_k_cos_abnormal': 1.0000000267626554, 'stage3_k_cos_mean': 1.0000000177964865, 'stage3_k_cos_normal': 1.0000000265928415, 'stage3_k_loss': -4.154777800839841e-08} hybrid_alpha=0.0 effective_prompt_mode=hybrid effective_alpha=0.0 hard_branch_lora_used=True soft_branch_lora_used=False soft_prompt_frozen=True grad_clip_norm=1.0 stats={'delta_main_hard_abnormal': 2.6788999267830053e-08, 'delta_main_hard_normal': 2.5894707427502333e-08, 'delta_soft_hard_abnormal': 0.9482151192137998, 'delta_soft_hard_normal': 0.9843044719804726, 'g1_delta_main_hard_abnormal': 3.48926071934521e-08, 'g1_delta_main_hard_normal': 3.3835619682450125e-08, 'g1_delta_soft_hard_abnormal': 0.34896765898095916, 'g1_delta_soft_hard_normal': 0.3485339866234706, 'g1_hard_normal_abnormal_cos': 0.9763559369619755, 'g1_main_hard_cos_abnormal': 1.0000000427591156, 'g1_main_hard_cos_normal': 1.0000000446610302, 'g1_main_normal_abnormal_cos': 0.9763559384223742, 'g1_main_soft_cos_abnormal': 0.9385828754501125, 'g1_main_soft_cos_normal': 0.9385243117639482, 'g1_soft_hard_cos_abnormal': 0.9385828761293677, 'g1_soft_hard_cos_normal': 0.9385243100997729, 'g1_soft_normal_abnormal_cos': 0.9743247373830899, 'g2_delta_main_hard_abnormal': 2.1540917680923507e-08, 'g2_delta_main_hard_normal': 2.3473851187245445e-08, 'g2_delta_soft_hard_abnormal': 1.1214520973697346, 'g2_delta_soft_hard_normal': 1.20216793029057, 'g2_hard_normal_abnormal_cos': 0.01667833787805674, 'g2_main_hard_cos_abnormal': 1.0000000330797287, 'g2_main_hard_cos_normal': 1.0000000346420157, 'g2_main_normal_abnormal_cos': 0.016678338177353567, 'g2_main_soft_cos_abnormal': 0.3634153827982411, 'g2_main_soft_cos_normal': 0.26309833064505517, 'g2_soft_hard_cos_abnormal': 0.3634153815755817, 'g2_soft_hard_cos_normal': 0.26309833008042427, 'g2_soft_normal_abnormal_cos': 0.9587588922590272, 'g3_delta_main_hard_abnormal': 2.3933470913885798e-08, 'g3_delta_main_hard_normal': 2.037464954333503e-08, 'g3_delta_soft_hard_abnormal': 1.3742255314462886, 'g3_delta_soft_hard_normal': 1.4022114040165545, 'g3_hard_normal_abnormal_cos': -0.12038896418895646, 'g3_main_hard_cos_abnormal': 1.0000000334872818, 'g3_main_hard_cos_normal': 1.0000000335212447, 'g3_main_normal_abnormal_cos': -0.1203889643715063, 'g3_main_soft_cos_abnormal': 0.05060976912875121, 'g3_main_soft_cos_normal': 0.010521229882950118, 'g3_soft_hard_cos_abnormal': 0.05060976912026052, 'g3_soft_hard_cos_normal': 0.010521229942384948, 'g3_soft_normal_abnormal_cos': 0.9589459394118045, 'hard_normal_abnormal_cos': 0.29088177794744485, 'hard_proto_norm_max': 1.000000009203908, 'hard_proto_norm_min': 0.9999999422972699, 'hybrid_alpha': 0.0, 'kg_loss_abnormal': 0.5491306753240079, 'kg_loss_normal': 0.5959520614639646, 'main_hard_cos_abnormal': 1.0000000223814591, 'main_hard_cos_mean': 1.0000000122265937, 'main_hard_cos_normal': 1.0000000222456082, 'main_normal_abnormal_cos': 0.29088177813424004, 'main_proto_norm_max': 1.0000000192229224, 'main_proto_norm_min': 0.9999999944980328, 'main_soft_cos_abnormal': 0.4508693545462399, 'main_soft_cos_mean': 0.4274586627456198, 'main_soft_cos_normal': 0.40404796885628985, 'soft_hard_cos_abnormal': 0.45086935449529575, 'soft_hard_cos_mean': 0.42745866243995495, 'soft_hard_cos_normal': 0.4040479682279788, 'soft_normal_abnormal_cos': 0.9640098755176251, 'soft_proto_norm_max': 1.0000000423175996, 'soft_proto_norm_min': 0.9999999651202449} ctx_stats={'ctx_norm_normal': 0.34677815437316895, 'ctx_norm_abnormal': 0.34677815437316895, 'ctx_absmax_normal': 0.15734902024269104, 'ctx_absmax_abnormal': 0.15734902024269104} grad_stats={} text_encoder_frozen=True text_lora_used=True
+2026-09-04 07:02:24 train.py 836: anchor_state epoch=1 enabled=False lambda=0.0 mean_anchor=0.0 gradient_ratio=None audit_interval=0 formula=global_sum_squared_delta_over_global_sum_squared_reference_plus_eps
+2026-09-04 07:02:24 train.py 846: cir_state epoch=1 enabled=False alpha=0.0 stats={'enabled': False}
+2026-09-04 07:02:24 train.py 853: skip_counts epoch=1 non_finite_loss=0 non_finite_grad=2
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_dfg_beta=0.0
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_entropy_abnormal=0.9252033829689026
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_entropy_normal=0.8809971213340759
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_gamma=0.0
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_k_abnormal_absmax=0.58837890625
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_k_abnormal_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_k_abnormal_norm=4.69566535949707
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_k_normal_absmax=0.595703125
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_k_normal_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_k_normal_norm=5.064637184143066
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_q_gap_absmax=1.3935546875
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_q_gap_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_q_gap_norm=19.452571868896484
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_q_ss2d_absmax=5.21875
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_q_ss2d_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_q_ss2d_norm=28.658952713012695
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_raw_gamma=0.0
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_scores_gap_abnormal_absmax=1.1298828125
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_scores_gap_abnormal_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_scores_gap_normal_absmax=1.1435546875
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_scores_gap_normal_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_scores_ss2d_abnormal_absmax=1.2607421875
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_scores_ss2d_abnormal_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_scores_ss2d_normal_absmax=1.2763671875
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_scores_ss2d_normal_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_ss2d_ratio=0.0
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_v_gap_absmax=0.11410851776599884
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_v_gap_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_v_gap_norm=0.9854720830917358
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_v_ss2d_absmax=2.9700562953948975
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_v_ss2d_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_v_ss2d_norm=27.65186309814453
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_weights_abnormal=[0.08988887071609497, 0.5148669481277466, 0.39524418115615845]
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_weights_abnormal_sum_error=0.0
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_weights_normal=[0.14245721697807312, 0.2049846351146698, 0.6525582075119019]
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage1_weights_normal_sum_error=0.0
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_dfg_beta=0.0
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_entropy_abnormal=0.9150844216346741
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_entropy_normal=0.8481407761573792
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_gamma=0.0
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_k_abnormal_absmax=0.5908203125
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_k_abnormal_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_k_abnormal_norm=4.797666549682617
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_k_normal_absmax=0.6123046875
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_k_normal_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_k_normal_norm=5.28436803817749
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_q_gap_absmax=1.4892578125
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_q_gap_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_q_gap_norm=20.251449584960938
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_q_ss2d_absmax=4.421875
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_q_ss2d_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_q_ss2d_norm=22.067781448364258
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_raw_gamma=0.0
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_scores_gap_abnormal_absmax=1.20703125
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_scores_gap_abnormal_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_scores_gap_normal_absmax=1.2294921875
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_scores_gap_normal_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_scores_ss2d_abnormal_absmax=0.60205078125
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_scores_ss2d_abnormal_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_scores_ss2d_normal_absmax=0.6142578125
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_scores_ss2d_normal_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_ss2d_ratio=0.0
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_v_gap_absmax=0.11581292003393173
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_v_gap_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_v_gap_norm=0.9900743961334229
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_v_ss2d_absmax=3.343198776245117
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_v_ss2d_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_v_ss2d_norm=27.700149536132812
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_weights_abnormal=[0.08234354853630066, 0.5085407495498657, 0.40911564230918884]
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_weights_abnormal_sum_error=0.0
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_weights_normal=[0.13453158736228943, 0.18830183148384094, 0.6771665811538696]
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage2_weights_normal_sum_error=0.0
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_dfg_beta=0.0
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_entropy_abnormal=0.9446476697921753
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_entropy_normal=0.8721469044685364
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_gamma=0.0
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_k_abnormal_absmax=0.5673828125
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_k_abnormal_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_k_abnormal_norm=4.385341644287109
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_k_normal_absmax=0.55712890625
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_k_normal_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_k_normal_norm=5.206331253051758
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_q_gap_absmax=1.3876953125
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_q_gap_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_q_gap_norm=18.676010131835938
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_q_ss2d_absmax=5.4375
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_q_ss2d_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_q_ss2d_norm=35.23429870605469
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_raw_gamma=0.0
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_scores_gap_abnormal_absmax=1.095703125
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_scores_gap_abnormal_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_scores_gap_normal_absmax=1.0986328125
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_scores_gap_normal_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_scores_ss2d_abnormal_absmax=1.720703125
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_scores_ss2d_abnormal_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_scores_ss2d_normal_absmax=1.724609375
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_scores_ss2d_normal_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_ss2d_ratio=0.0
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_v_gap_absmax=0.11416733264923096
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_v_gap_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_v_gap_norm=0.9860854148864746
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_v_ss2d_absmax=3.232867956161499
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_v_ss2d_finite=True
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_v_ss2d_norm=27.706056594848633
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_weights_abnormal=[0.10237102210521698, 0.5074671506881714, 0.3901618421077728]
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_weights_abnormal_sum_error=0.0
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_weights_normal=[0.14041060209274292, 0.20021075010299683, 0.6593786478042603]
+2026-09-04 07:02:24 train.py 869: dfg_diag epoch=1 stage3_weights_normal_sum_error=5.960464477539063e-08
