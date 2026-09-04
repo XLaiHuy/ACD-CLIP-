@@ -144,3 +144,8 @@ ACD-CLIP achieves state-of-the-art performance on a wide range of ZSAD benchmark
 | **Medical (Image-level)**    | BrainMRI   | (82.0, 90.7) | (82.8, 85.5) | (86.1, 92.3) | (84.9, 94.2) | (89.1, 97.2)     | (86.8, 96.9)     | **(88.1, 97.3)** | (87.3, 97.1)     |
 |                              | Liver CT   | (64.2, 55.9) | (62.7, 51.6) | (61.6, 53.1) | (64.2, 56.7) | (60.2, 54.2)     | (65.8, 55.3)     | (64.4, 57.3)     | **(68.4, 58.9)** |
 |                              | Retina OCT | (42.5, 50.9) | (67.9, 71.3) | (75.7, 77.4) | (82.7, 80.3) | **(84.4, 85.6)** | (81.1, 80.9)     | (80.3, 79.1)     | (82.0, 79.7)     |
+
+## Reproducible factorial results
+
+The frozen H2 four-arm factorial and the descriptive Phase 2 comparison are
+published in [the ACD-CLIP Phase 2 / H2 results report](results/ACD_CLIP_PHASE_COMPARISON_PUBLISHED.md).
