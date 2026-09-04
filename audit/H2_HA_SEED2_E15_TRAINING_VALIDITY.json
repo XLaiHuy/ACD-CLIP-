@@ -1,0 +1,47 @@
+{
+  "audit": "H2_HA_SEED2_E15_TRAINING_VALIDITY",
+  "status": "FAIL_HARD_TRAINING_VALIDITY",
+  "run_root": "runs/h2_ha_replication_e15_seed2",
+  "protocol_horizon": 15,
+  "shared_e1": {
+    "epoch": 1,
+    "global_step": 359,
+    "seed": 2,
+    "checkpoint_sha256": "9da4ec04ac72c2a9937557e049a5c6ca1f9deb7369ce29aff5bd98da7419fc3d"
+  },
+  "arms": {
+    "H": {
+      "epochs": [2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+      "nonfinite_loss_skips": 0,
+      "nonfinite_grad_skips": 3,
+      "nonfinite_grad_skip_epochs": [2,6,7],
+      "global_step": 5410,
+      "checkpoint_finite": true,
+      "checkpoint_sha256": "c2a3725edd92dd65fc70e7d3b89579a913400aa0c122b9447378cc45dc2597fe"
+    },
+    "A": {
+      "epochs": [2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+      "nonfinite_loss_skips": 0,
+      "nonfinite_grad_skips": 2,
+      "nonfinite_grad_skip_epochs": [2,3],
+      "global_step": 5411,
+      "checkpoint_finite": true,
+      "checkpoint_sha256": "caba459d532b1bca0494b703b6f179fca0f40a163eed9c5da3c65a8dd8d1fda5"
+    }
+  },
+  "hard_validity": {
+    "no_nonfinite_loss_skips": true,
+    "no_unexplained_nonfinite_grad_skips": "recorded_in_train_logs; no hidden/repeated epoch evidence",
+    "no_nan_inf_checkpoint_state": true,
+    "same_successful_optimizer_step_count_H_A": false
+  },
+  "conclusion": "Seed 2 is not target-evaluation eligible. The one-step H/A mismatch follows directly from the recorded skip-count difference; no target result was consulted and no restart was performed.",
+  "evidence": {
+    "H_log": "runs/h2_ha_replication_e15_seed2/H/train.log",
+    "A_log": "runs/h2_ha_replication_e15_seed2/A/train.log",
+    "H_checkpoint": "runs/h2_ha_replication_e15_seed2/H/adapter_15.pth",
+    "A_checkpoint": "runs/h2_ha_replication_e15_seed2/A/adapter_15.pth",
+    "shared_e1_checkpoint": "runs/h2_ha_replication_e15_seed2/shared_e1/adapter_1.pth",
+    "training_complete_at": "runs/h2_ha_replication_e15_seed2/training_complete_at.txt"
+  }
+}
