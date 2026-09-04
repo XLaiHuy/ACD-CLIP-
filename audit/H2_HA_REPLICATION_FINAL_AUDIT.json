@@ -1,0 +1,77 @@
+{
+  "audit": "H2_HA_REPLICATION_FINAL_AUDIT",
+  "status": "FAIL_HARD_TRAINING_VALIDITY",
+  "protocol": {
+    "discovery_seed": 0,
+    "confirmatory_seeds": [1, 2],
+    "arms": ["H", "A"],
+    "horizon": 15,
+    "anchor_lambda": 0.0021633926715180626,
+    "anchor_family_budget_rho": 0.1,
+    "target_checkpoint_selection": false,
+    "target_hyperparameter_tuning": false,
+    "target_evaluation_before_valid_freeze": false
+  },
+  "identity": {
+    "original_scientific_code_sha": "31167af5ee3dfff80b74af1e9ee0da4ecc475d2e",
+    "replication_implementation_sha": "67888aa3eba2e7d2eecf90bfb8ba132c2c137aa",
+    "base_h2_commit": "e03966997d4cecfd985943a4053a93e1e40197ec",
+    "clip_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+    "visa_manifest_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+    "medical_evaluator_commit": "6bd932fbce0a425af5c8d3f7230dd7dc041568bd"
+  },
+  "pre_replication_audits": {
+    "seed0_persistence_backup": "PASS",
+    "medical_export_reconciliation": "PASS",
+    "c_e15_provenance_reconciliation": "PASS",
+    "seed0_step_reconciliation": "PASS",
+    "image_metric_historical_comparability": "NO",
+    "scientific_code_parity_with_seed0": "PASS",
+    "replication_preflight": "PASS"
+  },
+  "seeds": {
+    "1": {
+      "status": "FAIL_HARD_TRAINING_VALIDITY",
+      "run_root": "runs/h2_ha_replication_e15_seed1",
+      "shared_e1_sha256": "c893693d42a1d5221b4980a62e762de2dcf150e4b3871fbe3f0ff943d1d29888",
+      "h15_sha256": "2547b621341fe0ab79f516b406190b8ca35afab84e18427a525ec30f9cedd260",
+      "a15_sha256": "40db05af5ff9d75e6cae792a2df0cbdcc1afc1181cc88a9dac18ef2df6aaba99",
+      "shared_e1_global_step": 359,
+      "h_global_step": 5410,
+      "a_global_step": 5411,
+      "h_nonfinite_loss_skips": 0,
+      "a_nonfinite_loss_skips": 0,
+      "h_nonfinite_grad_skips": 3,
+      "a_nonfinite_grad_skips": 2,
+      "h_epochs": [2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+      "a_epochs": [2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+      "target_evaluation": "NOT_RUN_HARD_VALIDITY_FIREWALL"
+    },
+    "2": {
+      "status": "FAIL_HARD_TRAINING_VALIDITY",
+      "run_root": "runs/h2_ha_replication_e15_seed2",
+      "shared_e1_sha256": "9da4ec04ac72c2a9937557e049a5c6ca1f9deb7369ce29aff5bd98da7419fc3d",
+      "h15_sha256": "c2a3725edd92dd65fc70e7d3b89579a913400aa0c122b9447378cc45dc2597fe",
+      "a15_sha256": "caba459d532b1bca0494b703b6f179fca0f40a163eed9c5da3c65a8dd8d1fda5",
+      "shared_e1_global_step": 359,
+      "h_global_step": 5410,
+      "a_global_step": 5411,
+      "h_nonfinite_loss_skips": 0,
+      "a_nonfinite_loss_skips": 0,
+      "h_nonfinite_grad_skips": 3,
+      "a_nonfinite_grad_skips": 2,
+      "h_nonfinite_grad_skip_epochs": [2,6,7],
+      "a_nonfinite_grad_skip_epochs": [2,3],
+      "h_epochs": [2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+      "a_epochs": [2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+      "target_evaluation": "NOT_RUN_HARD_VALIDITY_FIREWALL"
+    }
+  },
+  "decision": {
+    "medical_replication": "FAIL_HARD_TRAINING_VALIDITY",
+    "mvtec_replication": "NOT_EVALUATED_HARD_VALIDITY_FIREWALL",
+    "anchor_replication_support": "NOT_CONFIRMED",
+    "metric_based_winner": "NOT_ESTIMABLE",
+    "redesign": "NO_REDESIGN_IN_THIS_RUN"
+  }
+}
