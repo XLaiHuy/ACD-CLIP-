@@ -3,7 +3,7 @@
 - Archive status: `ARCHIVAL_ONLY_NO_SCIENTIFIC_CODE_CHANGE`
 - Branch: `research/h2-clean-repro-anchor-cir-v1`
 - Pre-archive HEAD: `930d79dfaa5d3875f15a4967f0f795f7488d0e6d`
-- Post-archive HEAD: `<filled after archive commit>`
+- Post-archive HEAD: `600a920c68198b83a76b4a93a7146f9adf08e260`
 - Source timestamp: `2026-09-04T16:37:10.101113+07:00`
 
 ## Separation of scientific and forensic artifacts
