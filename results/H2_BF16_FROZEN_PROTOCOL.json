@@ -1,0 +1,42 @@
+{
+  "protocol_id": "H2_BF16_SCREENING_SEED1_V1",
+  "scientific_protocol_changed": true,
+  "parent_clean_handoff_sha": "27d869d96ffbfe9f5ff5d81553a1385af31cf226",
+  "scope": "fresh Seed1 VisA source H/A E15 only; target evaluation is a later gated stage",
+  "precision": {
+    "autocast": "cuda_bfloat16",
+    "parameter_storage": "float32",
+    "optimizer_state": "float32",
+    "gradscaler_enabled": false,
+    "tf32_enabled": false,
+    "legacy_local_fp32_islands": false
+  },
+  "scientific_invariants": {
+    "model": "ViT-L-14-336",
+    "dataset": "VisA",
+    "dataset_source": "/workspace/data/med-visa/data/VisA_20220922",
+    "seed": 1,
+    "source_horizon": 15,
+    "batch_size": 6,
+    "image_lr": 0.001,
+    "text_lr": 0.0005,
+    "soft_prompt_lr": 0.00005,
+    "lr_gamma": 0.9,
+    "grad_clip_norm": 1.0,
+    "safe_anchor_lambda": 0.0021633926715180626,
+    "anchor_family_budget": 0.1,
+    "deterministic_algorithms": true,
+    "grad_checkpointing": true
+  },
+  "selected_operational_config": {
+    "num_workers": 6,
+    "pin_memory": true,
+    "persistent_workers": false,
+    "prefetch_factor": 2,
+    "non_blocking_copy": false,
+    "telemetry_interval": 25,
+    "family_telemetry_interval": 25,
+    "abort_on_nonfinite": true
+  },
+  "comparison_rule": "BF16 Seed1 H/A are a new matched protocol. Do not aggregate or compare them as matched training outcomes with old FP16 Seed0/Seed1/Seed2 results."
+}

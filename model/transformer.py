@@ -194,6 +194,9 @@ class ResidualAttentionBlock(nn.Module):
         super().__init__()
 
         self.idx = idx
+        # Retained for historical FP16 checkpoints.  BF16 screening can bypass
+        # these FP16-specific islands only after its exact failure replays pass.
+        self.enable_fp16_numerical_islands = True
 
         self.ln_1 = norm_layer(d_model)
         self.attn = nn.MultiheadAttention(d_model, n_head)
@@ -232,6 +235,8 @@ class ResidualAttentionBlock(nn.Module):
         path unchanged when AMP is not active.
         """
         return (
+            self.enable_fp16_numerical_islands
+            and
             x.is_cuda
             and x.shape[-1] == 1024
             and 8 <= self.idx < 24
@@ -278,6 +283,8 @@ class ResidualAttentionBlock(nn.Module):
         # The fallback preserves the original PyTorch path for cross-attention,
         # custom attention modules, dropout-training, and non-half inputs.
         use_fp32_attention = (
+            self.enable_fp16_numerical_islands
+            and
             q_x.is_cuda
             and (
                 q_x.dtype in (torch.float16, torch.bfloat16)

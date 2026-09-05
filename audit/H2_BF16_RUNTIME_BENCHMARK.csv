@@ -1,0 +1,5 @@
+configuration,precision,legacy_local_fp32_islands,grad_checkpointing,num_workers,pin_memory,non_blocking_copy,measured_steps,warmup_excluded,mean_step_seconds,median_step_seconds,mean_data_wait_seconds,mean_samples_per_second,peak_allocated_gib,peak_reserved_gib,status,selection
+checkpoint_on_workers6_nb0,bf16,false,true,6,true,false,30,5,1.304997,1.314981,0.000469,4.6035,8.183,9.479,PASS,SELECTED
+checkpoint_on_workers6_nb1,bf16,false,true,6,true,true,30,5,1.310268,1.324216,0.000482,4.5851,8.183,9.479,PASS,not_selected
+checkpoint_on_workers8_nb1,bf16,false,true,8,true,true,30,5,1.318634,1.331374,0.000478,4.5561,8.183,9.479,PASS,not_selected
+checkpoint_off_workers6_nb1,bf16,false,false,6,true,true,0,0,,,,,,CUDA_OOM_first_forward,not_viable

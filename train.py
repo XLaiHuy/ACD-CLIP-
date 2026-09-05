@@ -1,8 +1,10 @@
 import argparse
+import csv
 import hashlib
 import json
 import logging
 import os
+import time
 from typing import Any
 
 import numpy as np
@@ -43,6 +45,7 @@ from h2_clean.contract import (
     seed_everything,
     sha256_file,
 )
+from h2_clean.precision import PrecisionPolicy, resolve_precision_policy
 
 
 def tensor_debug_stats(tensor):
@@ -142,6 +145,42 @@ def first_nonfinite_trainable_parameter(model: torch.nn.Module):
         if param.requires_grad and not torch.isfinite(param).all():
             return name, tensor_debug_stats(param)
     return None, None
+
+
+def optimizer_state_is_finite(optimizer: torch.optim.Optimizer) -> bool:
+    return all(
+        torch.isfinite(value).all().item()
+        for state in optimizer.state.values()
+        for value in state.values()
+        if torch.is_tensor(value)
+    )
+
+
+def module_parameter_norm(module: torch.nn.Module) -> float:
+    terms = [
+        parameter.detach().float().square().sum()
+        for parameter in module.parameters()
+        if parameter.requires_grad
+    ]
+    if not terms:
+        return 0.0
+    return float(torch.stack(terms).sum().sqrt().item())
+
+
+def module_gradient_norm(module: torch.nn.Module) -> float:
+    terms = [
+        parameter.grad.detach().float().square().sum()
+        for parameter in module.parameters()
+        if parameter.requires_grad and parameter.grad is not None
+    ]
+    if not terms:
+        return 0.0
+    return float(torch.stack(terms).sum().sqrt().item())
+
+
+def append_jsonl(path: str, row: dict[str, Any]) -> None:
+    with open(path, "a", encoding="utf-8") as handle:
+        handle.write(json.dumps(row, sort_keys=True) + "\n")
 
 
 def get_dfg_beta_for_epoch(
@@ -295,6 +334,7 @@ def train(
         save_path: str,
         logger: logging.Logger,
         use_amp: bool = False,
+        precision_policy: PrecisionPolicy | None = None,
         dfg_beta_schedule: str = "fixed",
         dfg_beta_target: float = 0.10,
         dfg_beta: float = 0.10,
@@ -330,8 +370,19 @@ def train(
         anchor_gradient_budget: bool = False,
         anchor_family_budget: float = ANCHOR_FAMILY_BUDGET_DEFAULT,
         anchor_family_audit: bool = False,
+        non_blocking_copy: bool = False,
+        telemetry_interval: int = 0,
+        family_telemetry_interval: int = 0,
+        abort_on_nonfinite: bool = False,
 ):
-    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+    precision_policy = precision_policy or resolve_precision_policy(
+        "fp16" if use_amp else "fp32"
+    )
+    scaler = (
+        torch.amp.GradScaler("cuda", enabled=True)
+        if precision_policy.gradscaler_enabled
+        else None
+    )
     if resume_payload is not None:
         restored_epoch, restored_step = restore_full_checkpoint(
             resume_payload,
@@ -356,6 +407,22 @@ def train(
         )
     if anchor_lambda > 0.0 and anchor is None:
         raise ValueError("anchor_lambda > 0 requires a SafeImageAdapterAnchor")
+    if telemetry_interval < 0 or family_telemetry_interval < 0:
+        raise ValueError("telemetry intervals must be non-negative")
+    metrics_path = os.path.join(save_path, "metrics.jsonl")
+    events_path = os.path.join(save_path, "events.jsonl")
+    runtime_path = os.path.join(save_path, "runtime.csv")
+    epoch_summary_path = os.path.join(save_path, "epoch_summary.json")
+    if telemetry_interval:
+        with open(runtime_path, "w", encoding="utf-8", newline="") as handle:
+            csv.DictWriter(
+                handle,
+                fieldnames=(
+                    "epoch", "batch", "global_step", "step_seconds", "data_wait_seconds",
+                    "samples_per_second", "peak_allocated_bytes", "peak_reserved_bytes",
+                ),
+            ).writeheader()
+    epoch_summaries: list[dict[str, Any]] = []
     for epoch in range(int(start_epoch), total_epoch):
         epoch_one_based = epoch + 1
         # Historical H2 keeps all modules in eval mode; trainable adapter
@@ -432,13 +499,18 @@ def train(
         cir_stats_list = []
         non_finite_loss_skips = 0
         non_finite_grad_skips = 0
+        last_batch_finished = time.perf_counter()
+        if torch.cuda.is_available():
+            torch.cuda.reset_peak_memory_stats(device)
         tqdm_train_loader = tqdm(train_loader)
         for batch_idx, input_data in enumerate(tqdm_train_loader):
             if max_batches is not None and batch_idx >= int(max_batches):
                 break
-            image = input_data["image"].to(device)
-            mask = input_data["mask"].to(device)
-            label = input_data["label"].to(device)
+            batch_started = time.perf_counter()
+            data_wait_seconds = batch_started - last_batch_finished
+            image = input_data["image"].to(device, non_blocking=non_blocking_copy)
+            mask = input_data["mask"].to(device, non_blocking=non_blocking_copy)
+            label = input_data["label"].to(device, non_blocking=non_blocking_copy)
             class_names = input_data["class_name"]
             if trace_batch_identity and batch_idx < 5:
                 logger.info(
@@ -503,7 +575,7 @@ def train(
                 k_reg_stats_list.extend(batch_k_stats)
             else:
                 k_loss = torch.zeros((), device=device)
-            with torch.cuda.amp.autocast(enabled=use_amp):
+            with precision_policy.autocast(device):
                 seg_tokens, det_tokens = model(image)  # [bs, patch_size, 768] * n_groups, [bs, 768] * n_groups
                 seg_features = torch.stack(seg_tokens, dim=0)  # [n_groups, bs, patch_num, 768]
                 det_features = torch.stack(det_tokens, dim=0)  # [n_groups, bs, 768]
@@ -595,7 +667,22 @@ def train(
                     bool(torch.isfinite(seg_pred).all().item()),
                     diag_path,
                 )
+                append_jsonl(events_path, {
+                    "event": "nonfinite_loss",
+                    "epoch": epoch_one_based,
+                    "batch": batch_idx,
+                    "global_step": global_step,
+                    "precision": precision_policy.name,
+                    "files": list(input_data["file_name"]),
+                    "diagnostic_path": diag_path,
+                })
                 optimizer.zero_grad(set_to_none=True)
+                if abort_on_nonfinite:
+                    raise FloatingPointError(
+                        "Aborting because a non-finite loss was detected at "
+                        f"epoch={epoch_one_based}, batch={batch_idx}; "
+                        "the BF16 screening protocol permits no skipped numerical batches."
+                    )
                 if (
                         non_finite_loss_abort_threshold >= 0
                         and non_finite_loss_skips > non_finite_loss_abort_threshold
@@ -628,16 +715,37 @@ def train(
                 )
             # backward
             optimizer.zero_grad(set_to_none=True)
-            if anchor_gradient_budget:
+            if scaler is None:
+                if anchor_gradient_budget:
+                    task_loss.backward(retain_graph=True)
+                else:
+                    loss.backward()
+            elif anchor_gradient_budget:
                 scaler.scale(task_loss).backward(retain_graph=True)
             else:
                 scaler.scale(loss).backward()
-            scaler.unscale_(optimizer)
+            if scaler is not None:
+                scaler.unscale_(optimizer)
             if has_non_finite_grad(optimizer):
                 logger.warning("non-finite gradient at epoch %d; skipping optimizer step", epoch + 1)
                 non_finite_grad_skips += 1
-                scaler.update()
+                if scaler is not None:
+                    scaler.update()
+                append_jsonl(events_path, {
+                    "event": "nonfinite_gradient",
+                    "epoch": epoch_one_based,
+                    "batch": batch_idx,
+                    "global_step": global_step,
+                    "precision": precision_policy.name,
+                    "files": list(input_data["file_name"]),
+                })
                 optimizer.zero_grad(set_to_none=True)
+                if abort_on_nonfinite:
+                    raise FloatingPointError(
+                        "Aborting because a non-finite gradient was detected at "
+                        f"epoch={epoch_one_based}, batch={batch_idx}; "
+                        "the BF16 screening protocol permits no skipped numerical steps."
+                    )
                 continue
             if anchor_gradient_budget:
                 image_named_parameters = [
@@ -671,7 +779,10 @@ def train(
                     rho=anchor_family_budget,
                     total_trainable_parameters=None,
                 )
-                if anchor_family_audit:
+                if anchor_family_audit and (
+                        family_telemetry_interval == 0
+                        or batch_idx % family_telemetry_interval == 0
+                ):
                     anchor_family_metrics_list.append(metrics)
                     logger.info(
                         "anchor_family_step epoch=%d batch=%d metrics=%s",
@@ -679,7 +790,10 @@ def train(
                         batch_idx,
                         json.dumps(metrics, sort_keys=True),
                     )
-            elif anchor_family_audit:
+            elif anchor_family_audit and (
+                    family_telemetry_interval == 0
+                    or batch_idx % family_telemetry_interval == 0
+            ):
                 metrics = collect_family_gradient_metrics(
                     model.image_adapter,
                     sorted(model.named_parameters(), key=lambda item: item[0]),
@@ -710,8 +824,11 @@ def train(
             else:
                 clip_module_grad(model.text_adapter, grad_clip_norm)
             # update parameters
-            scaler.step(optimizer)
-            scaler.update()
+            if scaler is None:
+                optimizer.step()
+            else:
+                scaler.step(optimizer)
+                scaler.update()
             global_step += 1
             bad_param_name, bad_param_stats = first_nonfinite_trainable_parameter(model)
             if bad_param_name is not None:
@@ -736,6 +853,8 @@ def train(
                         "bad_param_name": bad_param_name,
                         "bad_param_stats": bad_param_stats,
                         "use_amp": use_amp,
+                        "precision": precision_policy.name,
+                        "gradscaler_enabled": precision_policy.gradscaler_enabled,
                         "dfg_ss2d_fusion": model.dfg_ss2d_fusion,
                         "dfg_beta_schedule": dfg_beta_schedule,
                         "dfg_beta_target": dfg_beta_target,
@@ -759,10 +878,95 @@ def train(
                     bad_param_stats,
                     diag_path,
                 )
+                append_jsonl(events_path, {
+                    "event": "nonfinite_parameter_after_step",
+                    "epoch": epoch_one_based,
+                    "batch": batch_idx,
+                    "global_step": global_step,
+                    "precision": precision_policy.name,
+                    "parameter": bad_param_name,
+                    "diagnostic_path": diag_path,
+                })
                 raise RuntimeError(
                     "Aborting training because trainable parameter became non-finite after "
                     f"optimizer step: {bad_param_name}. Diagnostics: {diag_path}"
                 )
+            if not optimizer_state_is_finite(optimizer):
+                logger.error(
+                    "non-finite optimizer state after optimizer step at epoch=%d batch=%d",
+                    epoch_one_based,
+                    batch_idx,
+                )
+                append_jsonl(events_path, {
+                    "event": "nonfinite_optimizer_state_after_step",
+                    "epoch": epoch_one_based,
+                    "batch": batch_idx,
+                    "global_step": global_step,
+                    "precision": precision_policy.name,
+                })
+                raise RuntimeError(
+                    "Aborting training because optimizer state became non-finite after "
+                    f"epoch={epoch_one_based}, batch={batch_idx}."
+                )
+            if telemetry_interval and global_step % telemetry_interval == 0:
+                if torch.cuda.is_available():
+                    torch.cuda.synchronize(device)
+                step_seconds = time.perf_counter() - batch_started
+                peak_allocated = (
+                    int(torch.cuda.max_memory_allocated(device))
+                    if torch.cuda.is_available() else 0
+                )
+                peak_reserved = (
+                    int(torch.cuda.max_memory_reserved(device))
+                    if torch.cuda.is_available() else 0
+                )
+                family_row = None
+                if family_telemetry_interval and global_step % family_telemetry_interval == 0:
+                    family_row = {
+                        "image_adapter_grad_norm": module_gradient_norm(model.image_adapter),
+                        "image_adapter_parameter_norm": module_parameter_norm(model.image_adapter),
+                        "text_adapter_grad_norm": module_gradient_norm(model.text_adapter),
+                        "text_adapter_parameter_norm": module_parameter_norm(model.text_adapter),
+                        "soft_prompt_grad_norm": module_gradient_norm(model.soft_prompt),
+                        "soft_prompt_parameter_norm": module_parameter_norm(model.soft_prompt),
+                    }
+                row = {
+                    "epoch": epoch_one_based,
+                    "batch": batch_idx,
+                    "global_step": global_step,
+                    "precision": precision_policy.name,
+                    "gradscaler_enabled": precision_policy.gradscaler_enabled,
+                    "loss": float(loss.detach().item()),
+                    "loss_main": float(loss_main.detach().item()),
+                    "classification_loss": float(cls_loss.detach().item()),
+                    "segmentation_loss": float(seg_loss.detach().item()),
+                    "kg_loss": float(kg_loss.detach().item()),
+                    "k_loss": float(k_loss.detach().item()),
+                    "anchor_loss": float(anchor_loss.detach().item()),
+                    "lr": {group.get("name", str(index)): group["lr"] for index, group in enumerate(optimizer.param_groups)},
+                    "global_grad_norm": float(sum(
+                        parameter.grad.detach().float().square().sum()
+                        for parameter in model.parameters()
+                        if parameter.requires_grad and parameter.grad is not None
+                    ).sqrt().item()),
+                    "finite": True,
+                    "step_seconds": step_seconds,
+                    "data_wait_seconds": data_wait_seconds,
+                    "samples_per_second": float(image.shape[0] / max(step_seconds, 1.0e-12)),
+                    "peak_allocated_bytes": peak_allocated,
+                    "peak_reserved_bytes": peak_reserved,
+                    "family": family_row,
+                }
+                append_jsonl(metrics_path, row)
+                with open(runtime_path, "a", encoding="utf-8", newline="") as handle:
+                    csv.DictWriter(handle, fieldnames=(
+                        "epoch", "batch", "global_step", "step_seconds", "data_wait_seconds",
+                        "samples_per_second", "peak_allocated_bytes", "peak_reserved_bytes",
+                    )).writerow({key: row[key] for key in (
+                        "epoch", "batch", "global_step", "step_seconds", "data_wait_seconds",
+                        "samples_per_second", "peak_allocated_bytes", "peak_reserved_bytes",
+                    )})
+            last_batch_finished = time.perf_counter()
             loss_main_list.append(loss_main.item())
             loss_list.append(loss.item())
             cls_loss_list.append(cls_loss.item())
@@ -800,6 +1004,25 @@ def train(
             np.mean(cls_loss_list),
             np.mean(seg_loss_list),
         )
+        epoch_summaries.append({
+            "epoch": epoch_one_based,
+            "precision": precision_policy.name,
+            "attempted_batches": len(loss_list) + non_finite_loss_skips + non_finite_grad_skips,
+            "successful_optimizer_steps": global_step,
+            "nonfinite_loss_events": non_finite_loss_skips,
+            "nonfinite_gradient_events": non_finite_grad_skips,
+            "mean_loss": float(np.mean(loss_list)) if loss_list else None,
+            "mean_classification_loss": float(np.mean(cls_loss_list)) if cls_loss_list else None,
+            "mean_segmentation_loss": float(np.mean(seg_loss_list)) if seg_loss_list else None,
+            "mean_kg_loss": float(np.mean(kg_loss_list)) if kg_loss_list else None,
+            "mean_k_loss": float(np.mean(k_loss_list)) if k_loss_list else None,
+            "mean_anchor_loss": float(np.mean(anchor_loss_list)) if anchor_loss_list else None,
+            "parameter_finite": first_nonfinite_trainable_parameter(model)[0] is None,
+            "optimizer_state_finite": optimizer_state_is_finite(optimizer),
+            "lr": {group.get("name", str(index)): group["lr"] for index, group in enumerate(optimizer.param_groups)},
+        })
+        with open(epoch_summary_path, "w", encoding="utf-8") as handle:
+            json.dump(epoch_summaries, handle, indent=2, sort_keys=True)
         if use_soft_prompt or use_hybrid_soft_prompt:
             logger.info(
                 "soft_prompt_epoch epoch=%d prompt_mode=%s mean_kg_loss=%s lambda_kg=%s "
@@ -1014,13 +1237,37 @@ def main():
         help="Abort an epoch when non-finite loss skips exceed this value. Use -1 to disable.",
     )
     parser.add_argument("--grad_clip_norm", type=float, default=1.0, help="clip trainable adapter gradients; <=0 disables")
-    parser.add_argument("--amp", action="store_true", help="enable Automatic Mixed Precision training")
+    parser.add_argument("--amp", action="store_true", help="legacy alias for --precision fp16")
+    parser.add_argument(
+        "--precision",
+        choices=["fp32", "fp16", "bf16"],
+        default=None,
+        help="explicit compute precision; parameters and optimizer state remain FP32",
+    )
+    parser.add_argument(
+        "--bf16_local_fp32_islands",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="retain the historical FP16 numerical islands under BF16 until the simplified path is proven",
+    )
     parser.add_argument(
         "--grad_checkpointing",
         action="store_true",
         help="enable activation checkpointing to reduce ViT memory usage",
     )
     parser.add_argument("--num_workers", type=int, default=4 if os.name != "nt" else 0)
+    parser.add_argument("--pin_memory", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--persistent_workers", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--prefetch_factor", type=int, default=2)
+    parser.add_argument("--non_blocking_copy", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--telemetry_interval", type=int, default=0)
+    parser.add_argument("--family_telemetry_interval", type=int, default=0)
+    parser.add_argument(
+        "--abort_on_nonfinite",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="abort immediately after any non-finite numerical event",
+    )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--deterministic_algorithms", action="store_true")
     parser.add_argument("--use_safe_anchor", action="store_true")
@@ -1041,10 +1288,17 @@ def main():
     parser.add_argument("--trace_batch_identity", action="store_true", help="log first five post-augmentation batch identities for smoke checks")
 
     args = parser.parse_args()
+    precision_policy = resolve_precision_policy(args.precision, legacy_amp=args.amp)
+    args.precision = precision_policy.name
+    args.amp = precision_policy.autocast_enabled
     if args.protocol_horizon is None:
         args.protocol_horizon = args.epoch
     if args.anchor_grad_audit_interval < 0:
         raise ValueError("--anchor_grad_audit_interval must be non-negative")
+    if args.num_workers < 0 or args.prefetch_factor < 1:
+        raise ValueError("invalid DataLoader worker or prefetch configuration")
+    if args.telemetry_interval < 0 or args.family_telemetry_interval < 0:
+        raise ValueError("telemetry intervals must be non-negative")
     if args.use_soft_prompt and args.use_hybrid_soft_prompt:
         raise ValueError("--use_soft_prompt and --use_hybrid_soft_prompt are mutually exclusive")
     if args.anchor_lambda < 0:
@@ -1143,6 +1397,11 @@ def main():
         soft_prompt_init=args.soft_prompt_init,
         soft_prompt_init_phrase=args.soft_prompt_init_phrase,
     ).to(device)
+    for module in model.modules():
+        if hasattr(module, "enable_fp16_numerical_islands"):
+            module.enable_fp16_numerical_islands = bool(
+                args.bf16_local_fp32_islands or precision_policy.name != "bf16"
+            )
     model.eval()
     model.use_hybrid_soft_prompt = bool(args.use_hybrid_soft_prompt)
     model.prompt_mode = "hybrid" if args.use_hybrid_soft_prompt else ("soft" if args.use_soft_prompt else "hard")
@@ -1171,6 +1430,13 @@ def main():
     logger.info("trainable parameters: %s", f"{trainable_params:,}")
     logger.info("frozen parameters: %s", f"{frozen_params:,}")
     logger.info("dfg_weight_residual_fp32=%s", model.dfg_weight_residual_fp32)
+    logger.info(
+        "precision_policy=%s autocast_dtype=%s gradscaler_enabled=%s bf16_local_fp32_islands=%s",
+        precision_policy.name,
+        precision_policy.autocast_dtype,
+        precision_policy.gradscaler_enabled,
+        args.bf16_local_fp32_islands,
+    )
 
     # set optimizer
     if args.use_hybrid_soft_prompt:
@@ -1232,15 +1498,20 @@ def main():
     )
     data_generator = make_dataloader_generator(args.seed)
     worker_init = EpochWorkerInit(args.seed)
-    dataloader = torch.utils.data.DataLoader(
-        dataset,
-        batch_size=args.batch_size,
-        shuffle=True,
-        num_workers=args.num_workers,
-        pin_memory=torch.cuda.is_available(),
-        worker_init_fn=worker_init,
-        generator=data_generator,
-    )
+    dataloader_kwargs = {
+        "batch_size": args.batch_size,
+        "shuffle": True,
+        "num_workers": args.num_workers,
+        "pin_memory": bool(args.pin_memory and torch.cuda.is_available()),
+        "worker_init_fn": worker_init,
+        "generator": data_generator,
+    }
+    if args.num_workers > 0:
+        dataloader_kwargs.update({
+            "persistent_workers": args.persistent_workers,
+            "prefetch_factor": args.prefetch_factor,
+        })
+    dataloader = torch.utils.data.DataLoader(dataset, **dataloader_kwargs)
     resume_payload = None
     start_epoch = 0
     global_step = 0
@@ -1273,6 +1544,7 @@ def main():
         save_path=args.save_path,
         logger=logger,
         use_amp=args.amp,
+        precision_policy=precision_policy,
         dfg_beta_schedule=args.dfg_beta_schedule,
         dfg_beta_target=args.dfg_beta_target,
         dfg_beta=args.dfg_beta,
@@ -1300,7 +1572,7 @@ def main():
         clip_sha256=clip_sha256,
         dataset_manifest_sha256=dataset_manifest_sha256,
         seed=args.seed,
-        precision="amp" if args.amp else "fp32",
+        precision=precision_policy.name,
         tf32_enabled=torch.backends.cuda.matmul.allow_tf32 if torch.cuda.is_available() else False,
         max_batches=args.max_batches,
         anchor_grad_audit_interval=args.anchor_grad_audit_interval,
@@ -1308,6 +1580,10 @@ def main():
         anchor_gradient_budget=args.anchor_gradient_budget,
         anchor_family_budget=args.anchor_family_budget,
         anchor_family_audit=args.anchor_family_audit,
+        non_blocking_copy=args.non_blocking_copy,
+        telemetry_interval=args.telemetry_interval,
+        family_telemetry_interval=args.family_telemetry_interval,
+        abort_on_nonfinite=args.abort_on_nonfinite,
     )
 
 
