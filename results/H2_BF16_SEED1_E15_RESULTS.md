@@ -21,3 +21,11 @@ These are **Seed1-only BF16** outcomes under a changed precision policy. They
 are not a matched comparator for the historical FP16 Seed0 evidence and must
 not be pooled with it. No C/AC arm, no Seed2 BF16 arm, no hyperparameter
 tuning, and no further training was performed.
+
+## Frozen artifacts and descriptive diagnostics
+
+- [E15 checkpoint manifest](./H2_BF16_SEED1_E15_MANIFEST.json)
+- [per-dataset/per-class target metrics](./H2_BF16_SEED1_TARGET_PER_DATASET.csv)
+- [master comparison](./H2_BF16_SEED1_MASTER_COMPARISON.md)
+- [target-output diagnostic inventory](./H2_BF16_SEED1_TARGET_DIAGNOSTICS.md)
+- [final bottleneck decision](../audit/H2_BF16_SEED1_FINAL_BOTTLENECK_DECISION.md)

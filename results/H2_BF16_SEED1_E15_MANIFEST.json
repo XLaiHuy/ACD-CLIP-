@@ -1,0 +1,75 @@
+{
+  "checkpoints": {
+    "A_E15": {
+      "amp_enabled": true,
+      "clip_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+      "config_sha256": "4a9a6e8394ccff4cf4b2b8bf2283259ae83c6809782822783b6cf3b405749edb",
+      "dataset_manifest_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+      "epoch": 15,
+      "git_sha": "efdfc3747b100a56d91d9a0e04a7d420a863fcbf",
+      "global_step": 5415,
+      "gradscaler_enabled": false,
+      "implementation_git_sha": "efdfc3747b100a56d91d9a0e04a7d420a863fcbf",
+      "path": "/workspace/h2_bf16_screening/fresh_seed1_h_a_e15/A/adapter_15.pth",
+      "precision": "bf16",
+      "scaler_state": {},
+      "seed": 1,
+      "sha256": "6848b06983a6c5bc4abadf5b6b67640d74ea8c7ed1bbd7ec4111fe7d23c44718",
+      "tf32_enabled": false
+    },
+    "H_E15": {
+      "amp_enabled": true,
+      "clip_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+      "config_sha256": "fd421209e54c47b71a414c64a279ccb2fcf578d71b1dedc75bfa07c9f57c85dd",
+      "dataset_manifest_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+      "epoch": 15,
+      "git_sha": "efdfc3747b100a56d91d9a0e04a7d420a863fcbf",
+      "global_step": 5415,
+      "gradscaler_enabled": false,
+      "implementation_git_sha": "efdfc3747b100a56d91d9a0e04a7d420a863fcbf",
+      "path": "/workspace/h2_bf16_screening/fresh_seed1_h_a_e15/H/adapter_15.pth",
+      "precision": "bf16",
+      "scaler_state": {},
+      "seed": 1,
+      "sha256": "f7cfbdc9835991dfdb0235673f039e12d1d5358f4f954da7b5783741a2a6ef43",
+      "tf32_enabled": false
+    },
+    "shared_e1": {
+      "amp_enabled": true,
+      "clip_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+      "config_sha256": "fd421209e54c47b71a414c64a279ccb2fcf578d71b1dedc75bfa07c9f57c85dd",
+      "dataset_manifest_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+      "epoch": 1,
+      "git_sha": "efdfc3747b100a56d91d9a0e04a7d420a863fcbf",
+      "global_step": 361,
+      "gradscaler_enabled": false,
+      "implementation_git_sha": "efdfc3747b100a56d91d9a0e04a7d420a863fcbf",
+      "path": "/workspace/h2_bf16_screening/fresh_seed1_h_a_e15/shared_e1/adapter_1.pth",
+      "precision": "bf16",
+      "scaler_state": {},
+      "seed": 1,
+      "sha256": "04b1aec8b24f1cc9e8ca76dedf8ba19aec086e789def3c8fda91949ca763d9ed",
+      "tf32_enabled": false
+    }
+  },
+  "manifest_name": "H2_BF16_SEED1_E15_MANIFEST",
+  "parent_clean_handoff_sha": "27d869d96ffbfe9f5ff5d81553a1385af31cf226",
+  "protocol_id": "H2_BF16_SCREENING_SEED1_V1",
+  "scientific_protocol_changed": true,
+  "shared_lineage": "H and A resumed from the same fresh BF16 shared E1; Safe Anchor is the only intentional scientific arm difference.",
+  "status": "FROZEN_AND_VERIFIED",
+  "successful_steps": {
+    "A_E15": 5415,
+    "H_E15": 5415,
+    "shared_e1": 361
+  },
+  "validity": {
+    "A_E15_VALID": "PASS",
+    "CHECKPOINT_MANIFEST_FROZEN": "PASS",
+    "H_E15_VALID": "PASS",
+    "optimizer_state_finite": true,
+    "parameters_finite": true,
+    "zero_nonfinite_gradient_events": true,
+    "zero_nonfinite_loss_events": true
+  }
+}
