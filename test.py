@@ -358,7 +358,9 @@ def main():
         ckp_files = [file for file in ckp_files if get_epoch_from_checkpoint(file) in selected_epochs]
     assert len(ckp_files) > 0, "adapter checkpoint not found"
     for file in ckp_files:
-        checkpoint = torch.load(file, map_location=device)
+        # Clean H2 full-state checkpoints include trusted RNG/NumPy metadata.
+        # PyTorch >=2.6 defaults to weights_only=True, which cannot read it.
+        checkpoint = torch.load(file, map_location=device, weights_only=False)
         if checkpoint.get("dfg_mode", args.dfg_mode) != args.dfg_mode:
             raise ValueError(
                 f"Checkpoint DFG mode is {checkpoint['dfg_mode']!r}, "

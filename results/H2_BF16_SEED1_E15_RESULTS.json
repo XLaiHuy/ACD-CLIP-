@@ -1,0 +1,35 @@
+{
+  "protocol_id": "H2_BF16_SCREENING_SEED1_V1",
+  "scientific_protocol_changed": true,
+  "seed": 1,
+  "epoch": 15,
+  "checkpoints": {
+    "H": {
+      "path": "/workspace/h2_bf16_screening/fresh_seed1_h_a_e15/H/adapter_15.pth",
+      "sha256": "f7cfbdc9835991dfdb0235673f039e12d1d5358f4f954da7b5783741a2a6ef43"
+    },
+    "A": {
+      "path": "/workspace/h2_bf16_screening/fresh_seed1_h_a_e15/A/adapter_15.pth",
+      "sha256": "6848b06983a6c5bc4abadf5b6b67640d74ea8c7ed1bbd7ec4111fe7d23c44718"
+    }
+  },
+  "source_validity": {
+    "H_successful_steps": 5415,
+    "A_successful_steps": 5415,
+    "H_nonfinite_loss_events": 0,
+    "A_nonfinite_loss_events": 0,
+    "H_nonfinite_gradient_events": 0,
+    "A_nonfinite_gradient_events": 0,
+    "parameters_finite": true,
+    "optimizer_state_finite": true
+  },
+  "medical_raw_exact": {
+    "H": {"pixel_auroc": 87.15020776913754, "pixel_ap": 30.5610666289404, "image_auroc": 75.61270594596863, "image_ap": 76.81697805722554},
+    "A": {"pixel_auroc": 88.86938231901159, "pixel_ap": 34.64727107839215, "image_auroc": 75.85834264755249, "image_ap": 77.01988021532695}
+  },
+  "mvtec_benchmark_exact": {
+    "H": {"pixel_auroc": 84.134375, "pixel_ap": 40.431591, "image_auroc": 91.136356, "image_ap": 95.798899},
+    "A": {"pixel_auroc": 84.898284, "pixel_ap": 41.837265, "image_auroc": 89.958858, "image_ap": 95.174308}
+  },
+  "comparison_rule": "These are fresh matched Seed1 BF16 H/A outcomes only. They must not be aggregated with historical FP16 results."
+}
