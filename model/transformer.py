@@ -222,6 +222,42 @@ class ResidualAttentionBlock(nn.Module):
             else nn.Identity()
         )
 
+    def _use_fp32_visual_residual(self, x: torch.Tensor) -> bool:
+        """Whether this is one of the diagnosed post-adapter visual blocks.
+
+        The numerical repair is deliberately limited to the ViT-L visual
+        stream (width 1024) and blocks 9--24 (zero-based indices 8--23).
+        Text blocks and the pre-adapter visual blocks retain the original AMP
+        policy.  The dtype/autocast gate keeps the ordinary FP32 reference
+        path unchanged when AMP is not active.
+        """
+        return (
+            x.is_cuda
+            and x.shape[-1] == 1024
+            and 8 <= self.idx < 24
+            and (
+                x.dtype in (torch.float16, torch.bfloat16)
+                or torch.is_autocast_enabled(device_type=x.device.type)
+            )
+        )
+
+    def _fp32_mlp(self, x: torch.Tensor) -> torch.Tensor:
+        """Run only the residual MLP branch in FP32, preserving its math."""
+        mlp = self.mlp
+        with torch.autocast(device_type=x.device.type, enabled=False):
+            hidden = F.linear(
+                self.ln_2(x).float(),
+                mlp.c_fc.weight.float(),
+                mlp.c_fc.bias.float() if mlp.c_fc.bias is not None else None,
+            )
+            hidden = mlp.gelu(hidden)
+            hidden = F.linear(
+                hidden,
+                mlp.c_proj.weight.float(),
+                mlp.c_proj.bias.float() if mlp.c_proj.bias is not None else None,
+            )
+            return self.ls_2(hidden)
+
     def attention(
             self,
             q_x: torch.Tensor,
@@ -233,6 +269,95 @@ class ResidualAttentionBlock(nn.Module):
         v_x = v_x if v_x is not None else q_x
 
         attn_mask = attn_mask.to(q_x.dtype) if attn_mask is not None else None
+
+        # Under the historical FP16 AMP path, the visual self-attention
+        # score/softmax/output-BMM sequence can save an overflowing FP16
+        # attention-weight tensor for backward.  Keep the packed QKV and
+        # output projections in their surrounding precision policy, but carry
+        # only the mathematically equivalent attention calculation in FP32.
+        # The fallback preserves the original PyTorch path for cross-attention,
+        # custom attention modules, dropout-training, and non-half inputs.
+        use_fp32_attention = (
+            q_x.is_cuda
+            and (
+                q_x.dtype in (torch.float16, torch.bfloat16)
+                or torch.is_autocast_enabled(device_type=q_x.device.type)
+            )
+            and isinstance(self.attn, nn.MultiheadAttention)
+            and self.attn._qkv_same_embed_dim
+            and self.attn.bias_k is None
+            and self.attn.bias_v is None
+            and not self.attn.add_zero_attn
+            and (not self.training or self.attn.dropout == 0.0)
+        )
+        if use_fp32_attention:
+            q, k, v = F._in_projection_packed(
+                q_x,
+                k_x,
+                v_x,
+                self.attn.in_proj_weight,
+                self.attn.in_proj_bias,
+            )
+            target_length, batch_size, embed_dim = q.shape
+            source_length = k.shape[0]
+            num_heads = self.attn.num_heads
+            head_dim = embed_dim // num_heads
+            if head_dim * num_heads != embed_dim:
+                raise RuntimeError("multi-head attention embed_dim is not divisible by num_heads")
+
+            with torch.autocast(device_type=q_x.device.type, enabled=False):
+                q_fp32 = q.float().view(target_length, batch_size * num_heads, head_dim).transpose(0, 1)
+                k_fp32 = k.float().view(source_length, batch_size * num_heads, head_dim).transpose(0, 1)
+                v_fp32 = v.float().view(source_length, batch_size * num_heads, head_dim).transpose(0, 1)
+                q_fp32 = q_fp32 * (head_dim ** -0.5)
+                if attn_mask is None:
+                    attention_weights = torch.bmm(q_fp32, k_fp32.transpose(1, 2))
+                else:
+                    mask_fp32 = attn_mask.float()
+                    if mask_fp32.dim() == 2:
+                        mask_fp32 = mask_fp32.unsqueeze(0)
+                    attention_weights = torch.baddbmm(
+                        mask_fp32,
+                        q_fp32,
+                        k_fp32.transpose(1, 2),
+                    )
+                attention_weights = F.softmax(attention_weights, dim=-1)
+                attention_output = torch.bmm(attention_weights, v_fp32)
+                attention_output = (
+                    attention_output.transpose(0, 1)
+                    .contiguous()
+                    .view(target_length * batch_size, embed_dim)
+                )
+                attention_weights = attention_weights.view(
+                    batch_size,
+                    num_heads,
+                    target_length,
+                    source_length,
+                ).mean(dim=1)
+
+            # Post-adapter visual blocks also require the output projection to
+            # remain in the same FP32 island.  The projection parameters stay
+            # in their original storage dtype; only this operation is widened.
+            if self._use_fp32_visual_residual(q_x):
+                with torch.autocast(device_type=q_x.device.type, enabled=False):
+                    attention_output = F.linear(
+                        attention_output.float(),
+                        self.attn.out_proj.weight.float(),
+                        (
+                            self.attn.out_proj.bias.float()
+                            if self.attn.out_proj.bias is not None
+                            else None
+                        ),
+                    )
+            else:
+                attention_output = self.attn.out_proj(
+                    attention_output.to(dtype=q_x.dtype)
+                )
+            attention_output = attention_output.view(target_length, batch_size, embed_dim)
+            # PyTorch's need_weights=True path returns the averaged weights
+            # in FP32 under autocast; preserve that public interface.
+            return attention_output, attention_weights
+
         return self.attn(q_x, k_x, v_x, attn_mask=attn_mask)
 
     def forward(
@@ -253,7 +378,10 @@ class ResidualAttentionBlock(nn.Module):
             q_x=self.ln_1(q_x), k_x=k_x, v_x=v_x, attn_mask=attn_mask
         )
         x = q_x + self.ls_1(tmp)
-        x = x + self.ls_2(self.mlp(self.ln_2(x)))
+        if self._use_fp32_visual_residual(x):
+            x = x + self._fp32_mlp(x)
+        else:
+            x = x + self.ls_2(self.mlp(self.ln_2(x)))
         return x, attn
 
 
