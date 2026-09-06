@@ -21,7 +21,7 @@ from dataset import CLASS_NAMES
 from h2_clean.precision import PrecisionPolicy
 from model.adapter import ACDCLIP
 from model.clip import create_model
-from utils import get_multiple_adapted_text_embedding
+from utils import get_hybrid_soft_prompt_single_class_text_embedding, get_multiple_adapted_text_embedding
 from scripts.run_h2_mixed_generalization_audit import IMG, ARMS, MAP_ARMS, disable_later_islands, load_arm, parameter_family
 
 AUDIT=REPO/"audit"; LARGE=Path("/workspace/h2_mixed_generalization_audit_v1"); BINS=65536
@@ -51,6 +51,40 @@ def hist_curve(scores,masks,indices=None,bins=BINS):
 def dispersion(x):
     x=x[np.isfinite(x).all(1)]; mu=x.mean(0)
     return float(np.sqrt(np.mean(np.sum((x-mu)**2,axis=1)))),mu
+
+
+def base_feature_geometry(labels):
+    """Compute the protocol feature statistics without materializing NxN Grams."""
+    banks={arm:np.load(LARGE/f"{arm}_feature_means.npy",mmap_mode="r") for arm in ARMS}
+    rows=[]
+    for arm in ARMS:
+        for stage in range(3):
+            for ri,region in enumerate(("all","normal_patch","anomalous_patch")):
+                x=np.asarray(banks[arm][:,stage,ri],np.float32)
+                ref=np.asarray(banks["E1"][:,stage,ri],np.float32)
+                valid=np.isfinite(x).all(1)&np.isfinite(ref).all(1)
+                x=x[valid]; ref=ref[valid]
+                xc=x-x.mean(0); rc=ref-ref.mean(0)
+                # Nonzero eigenvalues of X X^T/(n-1) and X^T X/(n-1) agree.
+                cov=xc.T@xc/max(1,len(x)-1)
+                eig=np.maximum(np.linalg.eigvalsh(cov),0)
+                nz=eig[eig>max(float(eig.max())*1e-10,1e-12)]
+                p=eig/eig.sum() if eig.sum() else eig
+                erank=float(np.exp(-(p[p>0]*np.log(p[p>0])).sum())) if p.size else None
+                xnorm=np.linalg.norm(x,axis=1); rnorm=np.linalg.norm(ref,axis=1)
+                cosine=np.sum(x*ref,axis=1)/(xnorm*rnorm+1e-12)
+                unit=x/(xnorm[:,None]+1e-12)
+                xy=xc.T@rc
+                cka=float(np.square(xy).sum()/(np.square(xc.T@xc).sum()**.5*np.square(rc.T@rc).sum()**.5+1e-12))
+                rows.append({"arm":arm,"stage":stage+1,"region":region,"sample_count":len(x),
+                    "anomalous_image_count":int(labels[valid].sum()),"feature_norm_mean":float(xnorm.mean()),
+                    "feature_cosine_to_E1":float(cosine.mean()),"cosine_drift_from_E1":float((1-cosine).mean()),
+                    "linear_CKA_to_E1":cka,"effective_rank":erank,"covariance_trace":float(eig.sum()),
+                    "condition_number_nonzero":float(nz.max()/nz.min()) if nz.size else None,
+                    "anisotropy_mean_cosine":float(np.square(unit.mean(0)).sum()),
+                    "spectrum_top1_share":float(eig[-1]/eig.sum()) if eig.sum() else None,
+                    "spectrum_top10_share":float(eig[-10:].sum()/eig.sum()) if eig.sum() else None})
+    return rows
 
 
 def optimizer_family_rows(payloads):
@@ -107,14 +141,27 @@ def semantic_geometry(payloads,index_df):
         dfg_gamma_max=.2,dfg_ss2d_fusion="weight_residual",dfg_beta=.1,dfg_beta_schedule="warmup010",dfg_beta_target=.1,
         dfg_beta_current=.1,dfg_weight_residual_fp32=True,use_soft_prompt=False,soft_prompt_ctx_len=4,
         soft_prompt_init="phrase",soft_prompt_init_phrase="a photo of a").to(device).eval(); disable_later_islands(model)
-    rows=[]
+    rows=[]; prompt_rows=[]
     policy=PrecisionPolicy("fp16")
     categories=index_df.sort_values("index")["category"].to_numpy()
     for arm in ARMS:
         load_arm(model,payloads[arm]); feats=np.load(LARGE/f"{arm}_feature_means.npy",mmap_mode="r")
         text={}
         with torch.no_grad(), policy.autocast(device):
-            for cat in CLASS_NAMES["VisA"]: text[cat]=get_multiple_adapted_text_embedding(model,"VisA",device)[cat].float().cpu().numpy()
+            for cat in CLASS_NAMES["VisA"]:
+                text[cat]=get_multiple_adapted_text_embedding(model,"VisA",device)[cat].float().cpu().numpy()
+                main,_,stat,comp=get_hybrid_soft_prompt_single_class_text_embedding(
+                    model,"VisA",cat,device,return_kg=True,return_components=True)
+                hard,soft=comp["hard_text"],comp["soft_text"]
+                for stage in range(3):
+                    for branch,idx in (("normal",0),("abnormal",1)):
+                        prompt_rows.append({"arm":arm,"category":cat,"stage":stage+1,"branch":branch,
+                            "hard_norm":float(hard[stage,:,idx].norm()),"soft_norm":float(soft[stage,:,idx].norm()),
+                            "main_norm":float(main[stage,:,idx].norm()),
+                            "soft_hard_cos":float(F.cosine_similarity(soft[stage,:,idx],hard[stage,:,idx],dim=0)),
+                            "main_hard_cos":float(F.cosine_similarity(main[stage,:,idx],hard[stage,:,idx],dim=0)),
+                            "normal_abnormal_cos":float(F.cosine_similarity(main[stage,:,0],main[stage,:,1],dim=0)),
+                            "kg_loss":float(1-stat["soft_hard_cos_mean"])})
         for stage in range(3):
             margins={"normal_patch":[],"anomalous_patch":[]}
             for i,cat in enumerate(categories):
@@ -130,12 +177,14 @@ def semantic_geometry(payloads,index_df):
                          "prototype_margin_separation":float(np.mean(margins["anomalous_patch"])-np.mean(margins["normal_patch"])),
                          "within_normal_dispersion":wn,"within_anomaly_dispersion":wa,"between_region_centroid_l2":float(np.linalg.norm(amu-nmu)),
                          "between_region_centroid_cosine":float(np.dot(amu,nmu)/(np.linalg.norm(amu)*np.linalg.norm(nmu)+1e-12))})
-    return rows
+    return rows,prompt_rows
 
 
 def routing_derived(image_df):
     rdf=pd.read_csv(AUDIT/"H2_MIXED_DFG_ROUTING.csv")
-    base=rdf[rdf["index"].notna()].copy(); base["index"]=base["index"].astype(int)
+    # Retain only immutable inference rows so recovery reruns cannot duplicate
+    # previously appended paired/association records.
+    base=rdf[rdf["branch"].isin(("normal","abnormal"))].copy(); base["index"]=base["index"].astype(int)
     normal=base[base.branch=="normal"].set_index(["arm","index","stage"])
     abnormal=base[base.branch=="abnormal"].set_index(["arm","index","stage"])
     rows=[]
@@ -161,7 +210,7 @@ def routing_derived(image_df):
                 x=np.asarray([p[0] for p in pairs]); y=np.asarray([p[1] for p in pairs])
                 assoc.append({"record_type":"gap_dilution_association","arm":arm,"stage":stage,"covariate":"area_ratio","response":response,"n":len(x),
                               "pearson_r":float(stats.pearsonr(x,y).statistic),"spearman_rho":float(stats.spearmanr(x,y).statistic)})
-    all_rows=rdf.to_dict("records")+rows+assoc
+    all_rows=base.to_dict("records")+rows+assoc
     write_csv(AUDIT/"H2_MIXED_DFG_ROUTING.csv",all_rows)
     return {"paired_rows":rows,"associations":assoc}
 
@@ -172,6 +221,9 @@ def main():
     df=pd.read_csv(AUDIT/"H2_MIXED_SOURCE_PIXEL_RANKING.csv")
     images=df[df["index"].notna()].copy(); images["index"]=images["index"].astype(int)
     index_df=images[images.arm=="A"].sort_values("index").drop_duplicates("index")
+    if len(index_df)!=2162 or not np.array_equal(index_df["index"].to_numpy(),np.arange(2162)):
+        raise RuntimeError("source per-image index is not a complete 0..2161 population")
+    labels=index_df["label"].to_numpy(dtype=np.uint8)
     masks=np.load(LARGE/"masks.npy",mmap_mode="r")
     derived=[]; curve_manifest={}
     for arm in MAP_ARMS:
@@ -196,11 +248,16 @@ def main():
                 "positive_negative_mean_margin":float(np.mean(margins)),"p01_positive_minus_p99_negative":float(np.mean(tail_margins)),
                 "component_count":len(comp_areas),"component_area_mean_pixels":float(np.mean(comp_areas)),
                 "compactness_mean":float(np.mean(compact)),"boundary_area_ratio_mean":float(s.boundary_area_ratio.mean())})
-    routing=routing_derived(images); opt=optimizer_family_rows(payloads); param=parameter_geometry(payloads); semantic=semantic_geometry(payloads,index_df)
+    routing=routing_derived(images); feature=base_feature_geometry(labels)
+    opt=optimizer_family_rows(payloads); param=parameter_geometry(payloads); semantic,prompt=semantic_geometry(payloads,index_df)
     write_csv(AUDIT/"H2_MIXED_SOURCE_PIXEL_RANKING_DERIVED.csv",derived)
+    write_csv(AUDIT/"H2_MIXED_FEATURE_GEOMETRY.csv",feature)
     write_csv(AUDIT/"H2_MIXED_ADAPTER_UTILIZATION.csv",param+opt)
     write_csv(AUDIT/"H2_MIXED_SEMANTIC_GEOMETRY.csv",semantic)
-    out={"curve_manifest":curve_manifest,"size_and_curve_rows":derived,"routing_derived":routing,"optimizer_family":opt,"parameter_geometry":param,"semantic_geometry":semantic}
+    write_csv(AUDIT/"H2_MIXED_PROMPT_GEOMETRY.csv",prompt)
+    out={"curve_manifest":curve_manifest,"size_and_curve_rows":derived,"routing_derived":routing,"feature_geometry":feature,
+         "optimizer_family":opt,"parameter_geometry":param,"semantic_geometry":semantic}
+    out["prompt_geometry"]=prompt
     (AUDIT/"H2_MIXED_DERIVED_DIAGNOSTICS.json").write_text(json.dumps(out,indent=2)+"\n")
     print(json.dumps({"status":"PASS","derived_rows":len(derived),"external_curve_root":str(LARGE)}))
 
