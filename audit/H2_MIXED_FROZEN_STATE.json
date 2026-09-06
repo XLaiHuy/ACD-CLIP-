@@ -1,0 +1,59 @@
+{
+  "protocol_id": "H2_MIXED_GENERALIZATION_AUDIT_V1",
+  "audit_git_sha": "06704ee0219e9c3ea8664c7ee67c1252bb09b80c",
+  "audit_git_branch": "research/h2-mixed-fp16-fp32-final-v1",
+  "verified_checkpoints": {
+    "E1": {
+      "path": "runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth",
+      "sha256": "7f9176b7ef53b572935567c574535075a573175b2aa83505d043a71d45b12b35",
+      "checkpoint_version": 3,
+      "epoch": 1,
+      "global_step": 359,
+      "precision": "amp",
+      "amp_enabled": true,
+      "scaler_state_present": true,
+      "tf32_enabled": false,
+      "config_sha256": "6661bea0937edc174a62b1701c023a164eaddb56a9ad83006d8ebb844f15ae5f",
+      "clip_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+      "dataset_manifest_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+      "implementation_git_sha": "31167af5ee3dfff80b74af1e9ee0da4ecc475d2e"
+    },
+    "H": {
+      "path": "runs/h2_clean_factorial_e20_20260902_ampfix/H/adapter_15.pth",
+      "sha256": "6830137b52fc16321192909fe7b3ca7565664afe61a8592fe7b7a78d2dff4771",
+      "checkpoint_version": 3,
+      "epoch": 15,
+      "global_step": 5410,
+      "precision": "amp",
+      "amp_enabled": true,
+      "scaler_state_present": true,
+      "tf32_enabled": false,
+      "config_sha256": "6661bea0937edc174a62b1701c023a164eaddb56a9ad83006d8ebb844f15ae5f",
+      "clip_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+      "dataset_manifest_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+      "implementation_git_sha": "31167af5ee3dfff80b74af1e9ee0da4ecc475d2e"
+    },
+    "A": {
+      "path": "runs/h2_clean_factorial_e20_20260902_ampfix/A/adapter_15.pth",
+      "sha256": "727dc4813db1ef0c5a6db3a4cf15e916ad1413dcf629913358419d2734edecfe",
+      "checkpoint_version": 3,
+      "epoch": 15,
+      "global_step": 5411,
+      "precision": "amp",
+      "amp_enabled": true,
+      "scaler_state_present": true,
+      "tf32_enabled": false,
+      "config_sha256": "e6bf7958fa1d63c577292146c2e752f565a1492cad3ee879c30588114d020f74",
+      "clip_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+      "dataset_manifest_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+      "implementation_git_sha": "31167af5ee3dfff80b74af1e9ee0da4ecc475d2e"
+    }
+  },
+  "later_fp16_islands_disabled_count": 36,
+  "source_count": 2162,
+  "area_tertiles": [
+    0.001119293590336061,
+    0.003170296606590041
+  ],
+  "external_artifact_root": "/workspace/h2_mixed_generalization_audit_v1"
+}

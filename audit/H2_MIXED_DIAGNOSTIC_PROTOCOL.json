@@ -1,0 +1,129 @@
+{
+  "protocol_id": "H2_MIXED_GENERALIZATION_AUDIT_V1",
+  "frozen_before_new_metric_inspection": true,
+  "active_precision_regime": "HISTORICAL_MIXED_FP16_FP32_V1",
+  "scope": {
+    "source_dataset": "VisA test split",
+    "source_population": "all 2162 images in evaluator category-major, manifest-stable order",
+    "target_data_use": "existing aggregate and per-dataset metrics only; no target score-map computation, calibration, thresholding, or selection",
+    "training": "prohibited",
+    "parameter_updates": "prohibited"
+  },
+  "frozen_checkpoints": {
+    "E1": {
+      "path": "runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth",
+      "sha256": "7f9176b7ef53b572935567c574535075a573175b2aa83505d043a71d45b12b35"
+    },
+    "H_E15": {
+      "path": "runs/h2_clean_factorial_e20_20260902_ampfix/H/adapter_15.pth",
+      "sha256": "6830137b52fc16321192909fe7b3ca7565664afe61a8592fe7b7a78d2dff4771"
+    },
+    "A_E15": {
+      "path": "runs/h2_clean_factorial_e20_20260902_ampfix/A/adapter_15.pth",
+      "sha256": "727dc4813db1ef0c5a6db3a4cf15e916ad1413dcf629913358419d2734edecfe"
+    }
+  },
+  "pixel_ranking": {
+    "map_resolution": 518,
+    "raw_map": "native per-stage logits, mean across stages, class softmax, before evaluator Gaussian smoothing",
+    "final_map": "native evaluator output after configured smoothing",
+    "score_tail_fraction": 0.01,
+    "quantiles": [0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99],
+    "quantile_sampling": "deterministic global stride 257 for descriptive distributions; ROC/AP use all pixels",
+    "anomaly_size_strata": "source-mask-only tertiles computed and persisted before model inference",
+    "morphology": {
+      "structuring_element": "square",
+      "radius_output_pixels": 3,
+      "boundary": "positive mask minus 3-pixel erosion",
+      "interior": "3-pixel erosion",
+      "near_background": "3-pixel dilation minus positive mask",
+      "far_background": "remaining negative pixels"
+    },
+    "connected_components": "8-connected components on resized binary source masks; fixed before scores"
+  },
+  "routing": {
+    "grain": "arm x image x stage x semantic branch",
+    "saved_components": ["raw_gap_scores", "raw_ss2d_scores", "gap_softmax", "ss2d_softmax", "final_weights"],
+    "diagnostics": ["entropy", "gap_ss2d_l1", "gap_ss2d_js", "normal_abnormal_l1", "normal_abnormal_js", "max_weight", "effective_group_count"],
+    "gap_dilution_covariates": ["anomaly_area_ratio", "connected_component_count", "boundary_to_area_ratio"],
+    "association_statistics": ["pearson_r", "spearman_rho"],
+    "interpretation_thresholds": {
+      "moderate_absolute_correlation": 0.3,
+      "strong_absolute_correlation": 0.5
+    }
+  },
+  "source_perturbation_suite": {
+    "selection": "first 4 normal and first 4 anomalous images per VisA category in frozen evaluator order",
+    "expected_count": 96,
+    "transforms": {
+      "brightness": 1.1,
+      "contrast": 1.1,
+      "gamma": 1.1,
+      "saturation": 1.1,
+      "gaussian_blur": {"kernel": 5, "sigma": 1.0},
+      "gaussian_noise": {"std_on_unit_scale": 0.02, "seed_rule": "91001 + global_image_index"},
+      "jpeg": {"quality": 80},
+      "resize_cycle": {"scale": 0.9, "down": "bilinear", "up": "bilinear"}
+    },
+    "comparison": "each transformed input versus its own clean frozen A_E15 inference"
+  },
+  "feature_geometry": {
+    "arms": ["E1", "H_E15", "A_E15"],
+    "regions": ["all", "normal_patch", "anomalous_patch"],
+    "metrics": ["feature_norm", "cosine_drift_from_E1", "linear_CKA", "effective_rank", "spectrum", "anisotropy", "covariance_trace", "covariance_condition", "prototype_margin"],
+    "patch_mask": "nearest-neighbor resize of source mask to the native 37x37 patch grid",
+    "large_arrays": "external artifact root; compact aggregates only in Git"
+  },
+  "gradient_probe": {
+    "selection": "first two normal and first two anomalous images per first three VisA categories, partitioned into fixed batches of four",
+    "checkpoint": "A_E15",
+    "execution": "eval mode, historical FP16 autocast policy, no optimizer step, no scaler step",
+    "terms": ["classification", "focal", "dice_normal", "dice_abnormal", "KG", "K", "Anchor"],
+    "parameter_families": ["conv_lora", "image_projection", "dfg_qk", "ss2d", "text_adapter", "soft_prompt"],
+    "reported_scales": ["raw_term", "configured_weighted_term"],
+    "metrics": ["gradient_norm", "pairwise_cosine", "weighted_gradient_share"]
+  },
+  "local_sensitivity": {
+    "checkpoint": "A_E15",
+    "population": "same fixed 96-image source perturbation subset, clean inputs only",
+    "finite_difference": "centered where feasible; descriptive derivatives only, never model selection",
+    "beta_values": [0.08, 0.1, 0.12],
+    "tau_values": [7.2, 8.0, 8.8],
+    "stage_weight_vectors": [[0.3533333333, 0.3233333333, 0.3233333333], [0.3233333333, 0.3533333333, 0.3233333333], [0.3233333333, 0.3233333333, 0.3533333333]],
+    "baseline_stage_weights": [0.3333333333, 0.3333333333, 0.3333333333]
+  },
+  "causal_evidence_policy": {
+    "allowed_statuses": ["CONFIRMED", "LIKELY", "POSSIBLE", "NOT_SUPPORTED", "UNKNOWN"],
+    "confirmed": "direct frozen-model measurement plus a predeclared counterfactual or perturbation changes the predicted mediator and endpoint in the expected direction",
+    "likely": "multiple independent frozen-model measurements align, including at least one robustness or temporal comparison, but intervention is incomplete",
+    "possible": "one or more associations are directionally consistent but alternative explanations remain material",
+    "not_supported": "predeclared measurement has adequate coverage and contradicts or fails to show the hypothesized signature",
+    "unknown": "required observable is unavailable or evidence is too weak/incomplete",
+    "ranking_rule": "exactly one primary, one secondary, and one tertiary bottleneck; all others unranked",
+    "solution_limit": 3,
+    "selection_rule": "select exactly one minimal mechanism using source-only evidence, parameter/compute simplicity, and compatibility with the frozen diagnosis; do not implement or train it",
+    "pre_result_classification_thresholds": {
+      "routing_stability": {
+        "HEALTHY": "mean map Spearman >= 0.90, top-1% overlap >= 0.70, and mean routing L1 <= 0.10 across the fixed suite",
+        "SUSPICIOUS": "any HEALTHY condition fails without meeting UNSTABLE",
+        "UNSTABLE": "mean map Spearman < 0.75, top-1% overlap < 0.50, or mean routing L1 > 0.25"
+      },
+      "feature_geometry_stability": {
+        "HEALTHY": "all-stage mean feature cosine >= 0.98 and linear CKA >= 0.95",
+        "DEGRADED": "either HEALTHY condition fails without meeting STRONGLY_DEGRADED",
+        "STRONGLY_DEGRADED": "all-stage mean feature cosine < 0.90 or linear CKA < 0.85"
+      },
+      "gradient_conflict": {
+        "systematic": "cosine <= -0.20 in at least two of three fixed batches for an active, decision-relevant family",
+        "severe": "cosine <= -0.50 in at least two of three fixed batches",
+        "occasional": "negative cosine occurs but the systematic rule is not met"
+      },
+      "family_utilization": {
+        "UNDERUTILIZED": "both weighted gradient share < 1% and drift-energy share < 1%",
+        "OVERACTIVE": "drift-energy share > 60% or update-to-weight ratio exceeds the family median by > 10x with degraded functional geometry",
+        "HEALTHY": "neither UNDERUTILIZED nor OVERACTIVE and the family is connected to at least one task loss",
+        "UNKNOWN": "required gradient or optimizer mapping is unavailable"
+      }
+    }
+  }
+}
