@@ -1,0 +1,107 @@
+{
+  "review_status": "COMPLETE_PENDING_USER_APPROVAL",
+  "review_scope": "source_evidence_and_mechanism_selection_only",
+  "remote_sync": "PASS",
+  "branch": "research/h2-functional-anchor-bounded-r1",
+  "durable_head": "bf7f34a02e6c61686a123e245a8824398d87c0de",
+  "new_training_run": false,
+  "optimizer_step_used": false,
+  "medical_inference_run": false,
+  "mvtec_inference_run": false,
+  "full_e15_started": false,
+  "target_tuning_used": false,
+  "r1_mechanism_failure": "CONFIRMED",
+  "r1_did_diagnosis_fail": false,
+  "r1_control": {
+    "arm": "A_SHORT_R1",
+    "attempted": 500,
+    "successful": 498,
+    "nonfinite_gradient_skips": 2,
+    "nonfinite_loss_skips": 0
+  },
+  "r1_candidate": {
+    "arm": "A_FUNC_SHORT_R1",
+    "attempted": 500,
+    "successful": 500,
+    "nonfinite_gradient_skips": 0,
+    "nonfinite_loss_skips": 0
+  },
+  "same_transformed_batches": true,
+  "r1_effects": {
+    "stage2_cosine_to_e1_delta": 0.029286444187164307,
+    "stage3_cosine_to_e1_delta": 0.035591185092926025,
+    "stage2_ap_delta": -0.018536450077715816,
+    "stage3_ap_delta": -0.02271921032745594,
+    "final_auroc_delta": -0.10801081376132027,
+    "final_ap_delta": -0.0175148815679275,
+    "positive_mean_delta": -0.0377112478017807,
+    "interior_mean_delta": -0.038509391248226166,
+    "stage1_ap_delta": -0.0004685559396181427
+  },
+  "primary_bottleneck": "late_stage_functional_overadaptation_and_anomaly_undercoverage",
+  "primary_confidence": "LIKELY_SOURCE_POSSIBLE_TARGET",
+  "secondary_bottleneck": "segmentation_gradient_imbalance_and_conflict",
+  "secondary_confidence": "POSSIBLE",
+  "tertiary_bottleneck": "rare_fp16_gradient_invalidity",
+  "tertiary_confidence": "CONFIRMED_VALIDITY_UNKNOWN_TARGET_CONTRIBUTION",
+  "bottleneck_diagnosis_invalidated": false,
+  "candidates": [
+    {
+      "rank": 1,
+      "name": "stage2_stage3_frozen_e1_functional_feature_anchor",
+      "status": "FAILED_R1_DO_NOT_RETRY"
+    },
+    {
+      "rank": 2,
+      "name": "family_scoped_abnormal_dice_classification_conflict_projection",
+      "status": "NOT_SELECTED_POSSIBLE_ONLY"
+    },
+    {
+      "rank": 3,
+      "name": "fixed_e1_calibrated_reliability_residual_stage_fusion",
+      "status": "SELECTED_FOR_ONE_BOUNDED_SCREEN",
+      "mechanism_fit": "STRONG",
+      "evidence_support": "LIKELY_ENOUGH_FOR_BOUNDED_TEST"
+    }
+  ],
+  "selected_next_mechanism": "fixed_e1_calibrated_reliability_residual_stage_fusion",
+  "why_selected": "Directly reduces the measured harmful late-stage contribution, leaves anomaly residuals unconstrained, has a favorable frozen source counterfactual, and is simpler than conflict projection or a learned gate.",
+  "why_not_conflict_projection": "Conflict evidence is only POSSIBLE, no severe conflict rule was met, complete per-term gradients are unavailable, and it is more invasive than the direct stage-contribution intervention.",
+  "why_not_stage_fusion": "NOT_APPLICABLE; stage fusion is selected. The protocol uses a fixed source-calibrated residual rather than a learned or swept gate.",
+  "next_bounded_experiment_justified": true,
+  "evidence_artifacts": [
+    "audit/H2_DIAGNOSTIC_COMPLETION_MAP_V2.md",
+    "audit/H2_FUNC_ANCHOR_R1_DECISION.json",
+    "audit/H2_FUNC_ANCHOR_R1_SOURCE_EVAL.json",
+    "audit/H2_MIXED_GENERALIZATION_BOTTLENECK_FINAL.md",
+    "audit/H2_MIXED_FEATURE_GEOMETRY.csv",
+    "audit/H2_MIXED_ADAPTER_UTILIZATION.csv",
+    "audit/H2_MIXED_LOSS_GRADIENT_CONFLICT.csv"
+  ],
+  "literature": [
+    {
+      "title": "Explicit Inductive Bias for Transfer Learning with Convolutional Networks",
+      "year": 2018,
+      "url": "https://proceedings.mlr.press/v80/li18a.html",
+      "use": "reference-parameter preservation context"
+    },
+    {
+      "title": "Gradient Surgery for Multi-Task Learning",
+      "year": 2020,
+      "url": "https://papers.neurips.cc/paper_files/paper/2020/file/3fe78a8acf5fda99de95303940a2420c-Paper.pdf",
+      "use": "conflict-projection candidate context"
+    },
+    {
+      "title": "Prototypical Residual Networks for Anomaly Detection and Localization",
+      "year": 2022,
+      "url": "https://arxiv.org/abs/2212.02031",
+      "use": "anomaly residual and multi-scale preservation context"
+    },
+    {
+      "title": "MFFA: Multi-level feature fusion and anomaly map compensation for anomaly detection",
+      "year": 2023,
+      "url": "https://journals.sagepub.com/doi/abs/10.3233/JIFS-222595",
+      "use": "multi-level anomaly-map fusion context"
+    }
+  ]
+}

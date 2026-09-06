@@ -1,0 +1,115 @@
+{
+  "protocol_status": "PREREGISTERED_NOT_EXECUTED",
+  "user_approval_required": true,
+  "protocol_id": "H2_FIXED_E1_RELIABILITY_RESIDUAL_STAGE_FUSION_R1",
+  "source": "VisA",
+  "source_only": true,
+  "target_inference": false,
+  "target_tuning": false,
+  "medical": false,
+  "mvtec": false,
+  "full_e15": false,
+  "hyperparameter_sweep": false,
+  "max_attempts_per_arm": 500,
+  "arms": {
+    "control": {
+      "name": "A_FUSE_SHORT_R1_CONTROL",
+      "safe_anchor": true,
+      "functional_feature_anchor": false,
+      "stage_fusion_weights": [0.3333333333333333, 0.3333333333333333, 0.3333333333333333]
+    },
+    "candidate": {
+      "name": "A_FUSE_SHORT_R1_CANDIDATE",
+      "safe_anchor": true,
+      "functional_feature_anchor": false,
+      "stage_fusion_weights": [0.3736138197153701, 0.3270300383596602, 0.2993561419249697]
+    }
+  },
+  "only_scientific_difference": "Fixed convex stage-fusion weights during the bounded source run and endpoint evaluation; all training, model, loss, optimizer, precision, prompt, DFG, SS2D, Safe Anchor, data order, and seed settings are identical.",
+  "start_checkpoint": {
+    "path": "runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth",
+    "sha256": "7f9176b7ef53b572935567c574535075a573175b2aa83505d043a71d45b12b35",
+    "role": "shared E1 full-state checkpoint"
+  },
+  "seed": 0,
+  "precision": {
+    "protocol": "HISTORICAL_MIXED_FP16_FP32_V1",
+    "autocast": "fp16",
+    "parameter_storage": "fp32",
+    "optimizer_state": "fp32",
+    "gradscaler": true,
+    "deterministic_algorithms": true
+  },
+  "safe_anchor": {
+    "enabled": true,
+    "anchor_lambda": 0.0021633926715180626,
+    "family_budget_rho": 0.1,
+    "functional_anchor": "disabled"
+  },
+  "calibration": {
+    "rule": "Use frozen shared-E1 stage AP on the fixed 96-image VisA source subset and normalize the three AP values to sum to one.",
+    "source_subset": "first four normal and first four anomalous manifest-order images per VisA category",
+    "e1_stage_ap": [0.25648650726844374, 0.22450666405925707, 0.20550848823040294],
+    "weights": [0.3736138197153701, 0.3270300383596602, 0.2993561419249697],
+    "target_data_used": false,
+    "sweep": false
+  },
+  "preflight": {
+    "batches": 16,
+    "manifest": "audit/H2_FUNC_ANCHOR_R1_BATCH_MANIFEST.csv",
+    "required": "exact file names, labels, transformed-image hashes, and mask hashes"
+  },
+  "numerical_validity": {
+    "max_isolated_recoverable_nonfinite_gradient_skips_per_arm": 1,
+    "consecutive_skips_allowed": 0,
+    "nonfinite_loss_allowed": false,
+    "nonfinite_parameter_allowed": false,
+    "nonfinite_optimizer_allowed": false,
+    "unequal_successful_steps_allowed": false
+  },
+  "endpoint": {
+    "source_subset_count": 96,
+    "source_subset_rule": "first four normal and first four anomalous manifest-order images per VisA category",
+    "medical_inference": false,
+    "mvtec_inference": false,
+    "required_metrics": [
+      "final pixel AUROC and AP",
+      "stage1/stage2/stage3 pixel AUROC and AP",
+      "positive/interior/boundary/negative/near-background/far-background mean median p99 coverage",
+      "stage1 health",
+      "stage1/stage2/stage3 E1 cosine and CKA/drift descriptive geometry",
+      "parameter-family drift and update telemetry",
+      "numerical validity and exact batch parity",
+      "late-stage contribution ratio before softmax"
+    ]
+  },
+  "mechanism_metric": {
+    "name": "R_late",
+    "definition": "mean_over_images((w2*mean_abs(logit_stage2)+w3*mean_abs(logit_stage3))/(w1*mean_abs(logit_stage1)+w2*mean_abs(logit_stage2)+w3*mean_abs(logit_stage3)+1e-12))",
+    "candidate_must_be_lower_than_control": true,
+    "e1_cosine_alone_is_not_a_pass": true
+  },
+  "pass_gates": {
+    "numeric_validity": true,
+    "late_stage_contribution_reduced": true,
+    "final_ap_noninferior_delta_tolerance": -1e-6,
+    "final_auroc_noninferior_delta_tolerance": -1e-6,
+    "positive_mean_noninferior_delta_tolerance": -1e-6,
+    "positive_median_noninferior_delta_tolerance": -1e-6,
+    "interior_mean_noninferior_delta_tolerance": -1e-6,
+    "interior_median_noninferior_delta_tolerance": -1e-6,
+    "stage1_ap_noninferior_delta_tolerance": -1e-6,
+    "stage1_auroc_noninferior_delta_tolerance": -1e-6,
+    "stage2_stage3_ranking_reported": true,
+    "geometry_only_pass_forbidden": true
+  },
+  "stop_conditions": [
+    "no full E15/E20",
+    "no seed search",
+    "no lambda or horizon change",
+    "no functional-anchor retry",
+    "no Medical inference",
+    "no MVTec inference",
+    "no additional candidate"
+  ]
+}
