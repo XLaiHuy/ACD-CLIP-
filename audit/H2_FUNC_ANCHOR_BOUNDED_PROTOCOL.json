@@ -1,0 +1,22 @@
+{
+  "protocol_id": "H2_FUNCTIONAL_FEATURE_ANCHOR_BOUNDED_V1",
+  "baseline_precision": "HISTORICAL_MIXED_FP16_FP32_V1",
+  "source_dataset": "VisA",
+  "target_data": "prohibited",
+  "full_training": "prohibited",
+  "arms": ["A_SHORT", "A_FUNC_SHORT"],
+  "max_optimizer_step_attempts_per_arm": 500,
+  "functional_anchor": {
+    "teacher": "frozen shared E1, eval, no grad",
+    "stages": [2, 3],
+    "loss": "mean token-wise 1 - normalized cosine",
+    "stage_weights": [0.5, 0.5],
+    "stage1": "excluded",
+    "variants": 1
+  },
+  "calibration": {
+    "batches": 8,
+    "target_auxiliary_gradient_ratio": 0.1,
+    "method": "discarded task-only shadow updates after exact-E1 zero-gradient state"
+  }
+}
