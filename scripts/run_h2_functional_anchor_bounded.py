@@ -31,6 +31,7 @@ from h2_clean.contract import (
 from h2_clean.functional_anchor import (
     FUNCTIONAL_ANCHOR_STAGES, bounded_config_mismatches, freeze_e1_teacher,
     functional_feature_anchor_loss, lambda_from_gradient_norms, require_source_only,
+    cap_functional_gradient, restore_rng_state, snapshot_rng_state,
 )
 from h2_clean.precision import PrecisionPolicy
 from model.adapter import ACDCLIP
@@ -154,7 +155,9 @@ def gradient_list_norm(grads) -> float:
 
 def calibrate(payload, reference_path: Path, output: Path):
     device = torch.device("cuda:0"); policy = PrecisionPolicy("fp16")
-    student = make_model(payload, device); teacher = freeze_e1_teacher(make_model(payload, device, checkpointing=False))
+    restore_rng_state({"python":payload["python_random_state"],"numpy":payload["numpy_random_state"],"torch_cpu":payload["torch_cpu_rng_state"],"torch_cuda":payload["torch_cuda_rng_state_all"]})
+    student = make_model(payload, device); rng_after_student=snapshot_rng_state()
+    teacher = freeze_e1_teacher(make_model(payload, device, checkpointing=False)); restore_rng_state(rng_after_student)
     optimizer, _, scaler = make_optimizer(student, payload); anchor = SafeImageAdapterAnchor.from_checkpoint(reference_path, device)
     dataset = get_text_and_image_dataset("VisA", IMG, "train")
     task_norms=[]; func_norms=[]; rows=[]; epoch=2; configure_epoch(student, optimizer, epoch)
@@ -184,12 +187,41 @@ def calibrate(payload, reference_path: Path, output: Path):
     print(json.dumps({"status":"PASS","lambda_func":lam,"median_ratio":raw}))
 
 
+def preflight(payload, output: Path):
+    """No-update 16-batch parity check, including candidate teacher construction."""
+    device=torch.device("cuda:0"); dataset=get_text_and_image_dataset("VisA",IMG,"train")
+    def collect(candidate):
+        restore_rng_state({"python":payload["python_random_state"],"numpy":payload["numpy_random_state"],"torch_cpu":payload["torch_cpu_rng_state"],"torch_cuda":payload["torch_cuda_rng_state_all"]})
+        student=make_model(payload,device)
+        if candidate:
+            state=snapshot_rng_state(); freeze_e1_teacher(make_model(payload,device,checkpointing=False)); restore_rng_state(state)
+        rows=[]
+        for epoch in (2,3):
+            for batch_idx,batch in enumerate(loader_for_epoch(dataset,epoch)):
+                image=batch["image"].to(device); mask=batch["mask"].to(device); label=batch["label"].to(device)
+                rows.append({"file_names":json.dumps(list(batch["file_name"])),"image_sha256":tensor_hash(image),"mask_sha256":tensor_hash(mask),"labels":json.dumps(label.cpu().tolist())})
+                if len(rows)==16:return rows
+        return rows
+    control,candidate=collect(False),collect(True); passed=control==candidate
+    output.write_text("# R1 no-update augmented-batch parity preflight\n\nPREFLIGHT_BATCH_PARITY="+("PASS" if passed else "FAIL")+"\n")
+    json_dump(output.with_suffix('.json'),{"PREFLIGHT_BATCH_PARITY":"PASS" if passed else "FAIL","control":control,"candidate":candidate})
+    if not passed: raise RuntimeError("PREFLIGHT_BATCH_PARITY=FAIL")
+
+
 def run_arm(payload, reference_path: Path, root: Path, arm: str, lambda_func: float):
-    candidate=arm=="A_FUNC_SHORT"; device=torch.device("cuda:0"); policy=PrecisionPolicy("fp16")
+    candidate=arm.endswith("FUNC_SHORT_R1") or arm=="A_FUNC_SHORT"; device=torch.device("cuda:0"); policy=PrecisionPolicy("fp16")
+    restore_rng_state({"python":payload["python_random_state"],"numpy":payload["numpy_random_state"],"torch_cpu":payload["torch_cpu_rng_state"],"torch_cuda":payload["torch_cuda_rng_state_all"]})
     model=make_model(payload,device); teacher=None
-    if candidate: teacher=freeze_e1_teacher(make_model(payload,device,checkpointing=False))
+    if candidate:
+        rng_after_student=snapshot_rng_state()
+        teacher=freeze_e1_teacher(make_model(payload,device,checkpointing=False))
+        restore_rng_state(rng_after_student)
     optimizer,scheduler,scaler=make_optimizer(model,payload); anchor=SafeImageAdapterAnchor.from_checkpoint(reference_path,device)
     dataset=get_text_and_image_dataset("VisA",IMG,"train"); attempted=successful=loss_skips=grad_skips=0; rows=[]; ids=[]
+    manifest_path=REPO/"audit/H2_FUNC_ANCHOR_R1_BATCH_MANIFEST.csv"
+    expected=[]
+    if candidate:
+        with manifest_path.open(newline="") as f: expected=list(csv.DictReader(f))
     config={"precision_protocol":"HISTORICAL_MIXED_FP16_FP32_V1","shared_e1_sha256":sha256_file(reference_path),
         "use_safe_anchor":True,"anchor_lambda":ANCHOR_LAMBDA,"anchor_gradient_budget":True,"anchor_family_budget":.1,
         "functional_anchor_stages":[2,3],"use_functional_feature_anchor":candidate,
@@ -200,7 +232,11 @@ def run_arm(payload, reference_path: Path, root: Path, arm: str, lambda_func: fl
         for batch_idx,batch in enumerate(loader_for_epoch(dataset,epoch)):
             if attempted>=MAX_ATTEMPTS: break
             attempted+=1; image=batch["image"].to(device); mask=batch["mask"].to(device); label=batch["label"].to(device)
-            ids.append({"epoch":epoch,"batch":batch_idx,"image_sha256":tensor_hash(image),"mask_sha256":tensor_hash(mask),"files":list(batch["file_name"])})
+            identity={"attempt_index":attempted-1,"epoch":epoch,"batch":batch_idx,"file_names":json.dumps(list(batch["file_name"])),"image_sha256":tensor_hash(image),"mask_sha256":tensor_hash(mask),"labels":json.dumps(label.detach().cpu().tolist())}
+            if candidate:
+                if attempted-1 >= len(expected) or any(str(identity[k]) != str(expected[attempted-1][k]) for k in identity):
+                    raise RuntimeError(f"BATCH_MATCH_GATE=FAIL attempt={attempted-1}")
+            ids.append(identity)
             base,seg,terms=text_and_task(model,image,mask,label,batch["class_name"],device,policy)
             functional=torch.zeros((),device=device); fmetrics={"functional_anchor_total":0.,"functional_anchor_stage2":0.,"functional_anchor_stage3":0.}
             if candidate:
@@ -209,17 +245,27 @@ def run_arm(payload, reference_path: Path, root: Path, arm: str, lambda_func: fl
             total=base+lambda_func*functional
             anchor_loss=anchor.loss(model.image_adapter)
             if not torch.isfinite(total) or not torch.isfinite(anchor_loss): loss_skips+=1; continue
-            optimizer.zero_grad(set_to_none=True); scaler.scale(total).backward(retain_graph=True); scaler.unscale_(optimizer)
+            optimizer.zero_grad(set_to_none=True); scaler.scale(base).backward(retain_graph=True); scaler.unscale_(optimizer)
             if has_non_finite_grad(optimizer): grad_skips+=1; scaler.update(); optimizer.zero_grad(set_to_none=True); continue
             pairs=[(name,p) for name,p in sorted(model.image_adapter.named_parameters()) if p.requires_grad]
             names=[x[0] for x in pairs]; pars=[x[1] for x in pairs]
-            task_grads=torch.autograd.grad(total,pars,retain_graph=True,allow_unused=True)
+            task_grads=torch.autograd.grad(base,pars,retain_graph=True,allow_unused=True)
             task_grad_norm=gradient_list_norm(task_grads)
-            functional_grad_norm=image_grad_norm(functional,model) if candidate else 0.
+            functional_grads=torch.autograd.grad(functional,pars,retain_graph=True,allow_unused=True) if candidate else [None]*len(pars)
+            functional_grad_norm=gradient_list_norm(functional_grads)
             anchor_grads=torch.autograd.grad(anchor_loss,pars,allow_unused=True)
             ametrics=apply_family_safe_anchor_budget(model.image_adapter,sorted(model.named_parameters()),
                 task_gradients=dict(zip(names,task_grads)),raw_anchor_gradients=dict(zip(names,anchor_grads)),
                 anchor_lambda=ANCHOR_LAMBDA,rho=.1,total_trainable_parameters=None)
+            raw_ratio=effective_ratio=0.; cap_active=False
+            if candidate:
+                base_vec=torch.cat([g.detach().float().reshape(-1) for g in task_grads if g is not None])
+                func_vec=torch.cat([g.detach().float().reshape(-1) for g in functional_grads if g is not None])
+                _,raw_ratio,effective_ratio,cap_active=cap_functional_gradient(base_vec,func_vec,lambda_func,.10)
+                scale=effective_ratio/max(raw_ratio,1e-12)
+                for parameter,grad in zip(pars,functional_grads):
+                    if grad is not None:
+                        parameter.grad.add_(grad.detach().to(parameter.grad.dtype),alpha=lambda_func*scale)
             torch.nn.utils.clip_grad_norm_(model.image_adapter.parameters(),1.0); torch.nn.utils.clip_grad_norm_(model.text_adapter.parameters(),1.0)
             if not frozen: torch.nn.utils.clip_grad_norm_(model.soft_prompt.parameters(),1.0)
             scaler.step(optimizer); scaler.update(); successful+=1
@@ -227,7 +273,8 @@ def run_arm(payload, reference_path: Path, root: Path, arm: str, lambda_func: fl
             rows.append({"epoch":epoch,"batch":batch_idx,"attempt":attempted,"successful":successful,"base_task_loss":float(base.detach()),
                 "functional_loss":float(functional.detach()),"total_loss":float(total.detach()),"anchor_loss":float(anchor_loss.detach()),
                 "task_gradient_norm":task_grad_norm,"functional_gradient_norm":functional_grad_norm,
-                "functional_effective_ratio":(lambda_func*functional_grad_norm/max(task_grad_norm,1e-12)) if candidate else 0.,
+                "raw_func_task_ratio":raw_ratio,"functional_effective_ratio":effective_ratio,"functional_cap_active":cap_active,
+                "functional_cap_scale":effective_ratio/max(raw_ratio,1e-12) if candidate else 1.,
                 "safe_anchor_global_effective_ratio":ametrics["global_effective_ratio"],"segmentation_loss":float(terms["segmentation"].detach()),
                 "classification_loss":float(terms["classification"].detach()),**fmetrics})
         if attempted>=MAX_ATTEMPTS: break
@@ -238,15 +285,19 @@ def run_arm(payload, reference_path: Path, root: Path, arm: str, lambda_func: fl
         "optimizer_state":optimizer.state_dict(),"scheduler_state":scheduler.state_dict(),"scaler_state":scaler.state_dict(),"config":config,
         "attempted_steps":attempted,"successful_steps":successful,"nonfinite_loss_skips":loss_skips,"nonfinite_grad_skips":grad_skips},out/"final.pth")
     json_dump(out/"summary.json",{"arm":arm,"config":config,"attempted_steps":attempted,"successful_steps":successful,"nonfinite_loss_skips":loss_skips,"nonfinite_grad_skips":grad_skips,"batch_identities":ids,"metrics":rows})
+    if not candidate:
+        with manifest_path.open("w",newline="") as f:
+            w=csv.DictWriter(f,fieldnames=list(ids[0])); w.writeheader(); w.writerows(ids)
     print(json.dumps({"status":"PASS","arm":arm,"attempted":attempted,"successful":successful,"grad_skips":grad_skips}))
 
 
 def main():
-    p=argparse.ArgumentParser(); p.add_argument("--mode",choices=("calibrate","run"),required=True); p.add_argument("--arm",choices=("A_SHORT","A_FUNC_SHORT")); p.add_argument("--shared-e1",required=True); p.add_argument("--root",required=True); p.add_argument("--calibration-csv",default=str(REPO/"audit/H2_FUNC_ANCHOR_CALIBRATION.csv")); p.add_argument("--lambda-func",type=float)
+    p=argparse.ArgumentParser(); p.add_argument("--mode",choices=("preflight","calibrate","run"),required=True); p.add_argument("--arm",choices=("A_SHORT_R1","A_FUNC_SHORT_R1")); p.add_argument("--shared-e1",required=True); p.add_argument("--root",required=True); p.add_argument("--calibration-csv",default=str(REPO/"audit/H2_FUNC_ANCHOR_R1_CALIBRATION.csv")); p.add_argument("--lambda-func",type=float)
     a=p.parse_args(); require_source_only("VisA"); torch.backends.cuda.matmul.allow_tf32=False; torch.backends.cudnn.allow_tf32=False
     if not torch.cuda.is_available(): raise RuntimeError("CUDA required")
     shared=Path(a.shared_e1); payload=torch.load(shared,map_location="cpu",weights_only=False)
     if payload.get("epoch")!=1 or payload.get("precision") not in ("amp","fp16"): raise RuntimeError("shared E1 identity mismatch")
+    if a.mode=="preflight": preflight(payload,REPO/"audit/H2_FUNC_ANCHOR_R1_PREFLIGHT.md"); return
     if a.mode=="calibrate": calibrate(payload,shared,Path(a.calibration_csv)); return
     if a.arm is None or a.lambda_func is None or a.lambda_func<=0: raise ValueError("run requires arm and positive frozen lambda")
     run_arm(payload,shared,Path(a.root),a.arm,a.lambda_func)

@@ -1,5 +1,7 @@
 import pytest
 import torch
+import random
+import numpy as np
 
 from h2_clean.functional_anchor import (
     FUNCTIONAL_ANCHOR_STAGES,
@@ -8,6 +10,7 @@ from h2_clean.functional_anchor import (
     functional_feature_anchor_loss,
     lambda_from_gradient_norms,
     require_source_only,
+    cap_functional_gradient, restore_rng_state, snapshot_rng_state,
 )
 
 
@@ -61,3 +64,15 @@ def test_only_feature_anchor_config_can_differ_and_target_paths_rejected():
     require_source_only("VisA")
     with pytest.raises(ValueError, match="source-only"):
         require_source_only("MVTec")
+
+
+def test_teacher_rng_snapshot_restore_and_functional_cap_preserve_task_vector():
+    random.seed(3); np.random.seed(3); torch.manual_seed(3)
+    state=snapshot_rng_state(); expected=(random.random(),float(np.random.rand()),float(torch.rand(())))
+    restore_rng_state(state); _=(random.random(),float(np.random.rand()),float(torch.rand(())))
+    restore_rng_state(state); assert (random.random(),float(np.random.rand()),float(torch.rand(())))==expected
+    base=torch.tensor([3.,4.]); func=torch.tensor([30.,40.])
+    added,raw,effective,capped=cap_functional_gradient(base,func,1.,.1)
+    assert raw==10. and effective==pytest.approx(.1) and capped
+    assert torch.equal(base,torch.tensor([3.,4.]))
+    assert added.norm().item()/base.norm().item()==pytest.approx(.1)

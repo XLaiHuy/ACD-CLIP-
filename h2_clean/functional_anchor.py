@@ -6,6 +6,9 @@ frozen E1 teacher.  It has no projection, parameters, or target-data path.
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+import random
+
+import numpy as np
 
 import torch
 import torch.nn.functional as F
@@ -101,3 +104,30 @@ def bounded_config_mismatches(
 def require_source_only(dataset: str) -> None:
     if dataset != "VisA":
         raise ValueError("bounded functional-anchor test is source-only and requires dataset=VisA")
+
+
+def snapshot_rng_state() -> dict[str, object]:
+    """Capture every RNG stream that can affect H2 source augmentation."""
+    return {
+        "python": random.getstate(), "numpy": np.random.get_state(),
+        "torch_cpu": torch.get_rng_state(),
+        "torch_cuda": torch.cuda.get_rng_state_all() if torch.cuda.is_available() else [],
+    }
+
+
+def restore_rng_state(state: Mapping[str, object]) -> None:
+    random.setstate(state["python"])
+    np.random.set_state(state["numpy"])
+    torch.set_rng_state(state["torch_cpu"])
+    if torch.cuda.is_available():
+        torch.cuda.set_rng_state_all(state["torch_cuda"])
+
+
+def cap_functional_gradient(
+        base_grad: torch.Tensor, functional_grad: torch.Tensor, nominal_lambda: float, rho: float = .10,
+) -> tuple[torch.Tensor, float, float, bool]:
+    """Scale only the functional vector; the ordinary task vector is untouched."""
+    base_norm=float(base_grad.float().norm()); func_norm=float(functional_grad.float().norm())
+    raw=abs(float(nominal_lambda))*func_norm/max(base_norm,1e-12)
+    scale=min(1.,float(rho)/max(raw,1e-12)); effective=raw*scale
+    return functional_grad*(float(nominal_lambda)*scale),raw,effective,scale<1.
