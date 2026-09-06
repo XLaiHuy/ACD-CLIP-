@@ -148,6 +148,10 @@ def image_grad_norm(loss, model):
     return float(sum(g.detach().float().square().sum() for g in grads if g is not None).sqrt().cpu())
 
 
+def gradient_list_norm(grads) -> float:
+    return float(sum(g.detach().float().square().sum() for g in grads if g is not None).sqrt().cpu())
+
+
 def calibrate(payload, reference_path: Path, output: Path):
     device = torch.device("cuda:0"); policy = PrecisionPolicy("fp16")
     student = make_model(payload, device); teacher = freeze_e1_teacher(make_model(payload, device, checkpointing=False))
@@ -210,6 +214,8 @@ def run_arm(payload, reference_path: Path, root: Path, arm: str, lambda_func: fl
             pairs=[(name,p) for name,p in sorted(model.image_adapter.named_parameters()) if p.requires_grad]
             names=[x[0] for x in pairs]; pars=[x[1] for x in pairs]
             task_grads=torch.autograd.grad(total,pars,retain_graph=True,allow_unused=True)
+            task_grad_norm=gradient_list_norm(task_grads)
+            functional_grad_norm=image_grad_norm(functional,model) if candidate else 0.
             anchor_grads=torch.autograd.grad(anchor_loss,pars,allow_unused=True)
             ametrics=apply_family_safe_anchor_budget(model.image_adapter,sorted(model.named_parameters()),
                 task_gradients=dict(zip(names,task_grads)),raw_anchor_gradients=dict(zip(names,anchor_grads)),
@@ -220,8 +226,8 @@ def run_arm(payload, reference_path: Path, root: Path, arm: str, lambda_func: fl
             if not optimizer_state_is_finite(optimizer): raise FloatingPointError("non-finite optimizer state")
             rows.append({"epoch":epoch,"batch":batch_idx,"attempt":attempted,"successful":successful,"base_task_loss":float(base.detach()),
                 "functional_loss":float(functional.detach()),"total_loss":float(total.detach()),"anchor_loss":float(anchor_loss.detach()),
-                "task_gradient_norm":image_grad_norm(total,model),"functional_gradient_norm":image_grad_norm(functional,model) if candidate else 0.,
-                "functional_effective_ratio":(lambda_func*image_grad_norm(functional,model)/max(image_grad_norm(total,model),1e-12)) if candidate else 0.,
+                "task_gradient_norm":task_grad_norm,"functional_gradient_norm":functional_grad_norm,
+                "functional_effective_ratio":(lambda_func*functional_grad_norm/max(task_grad_norm,1e-12)) if candidate else 0.,
                 "safe_anchor_global_effective_ratio":ametrics["global_effective_ratio"],"segmentation_loss":float(terms["segmentation"].detach()),
                 "classification_loss":float(terms["classification"].detach()),**fmetrics})
         if attempted>=MAX_ATTEMPTS: break
