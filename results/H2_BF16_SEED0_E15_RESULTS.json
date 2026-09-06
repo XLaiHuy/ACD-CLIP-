@@ -1,0 +1,61 @@
+{
+  "protocol": "H2_POST_SOURCE_DIAGNOSIS_MINIMUM_COMPUTE",
+  "new_bf16_seed0": {
+    "Medical": {
+      "pixel_AUROC": 90.22589606736774,
+      "pixel_AP": 36.33414757086647,
+      "image_AUROC": 76.51085654894511,
+      "image_AP": 77.32416192690532
+    },
+    "MVTec": {
+      "pixel_AUROC": 86.116899,
+      "pixel_AP": 40.541493,
+      "image_AUROC": 89.252427,
+      "image_AP": 95.275538
+    }
+  },
+  "historical_fp16_fp32_seed0": {
+    "Medical": {
+      "pixel_AUROC": 91.25178605739472,
+      "pixel_AP": 39.46836969631676,
+      "image_AUROC": 75.2827266852061,
+      "image_AP": 76.34336352348328
+    },
+    "MVTec": {
+      "pixel_AUROC": 90.041289,
+      "pixel_AP": 45.159349,
+      "image_AUROC": 89.816913,
+      "image_AP": 94.779362
+    }
+  },
+  "existing_bf16_seed1": {
+    "Medical": {
+      "pixel_AUROC": 88.86938231901159,
+      "pixel_AP": 34.64727107839215,
+      "image_AUROC": 75.85834264755249,
+      "image_AP": 77.01988021532695
+    },
+    "MVTec": {
+      "pixel_AUROC": 84.898284,
+      "pixel_AP": 41.837265,
+      "image_AUROC": 89.958858,
+      "image_AP": 95.174308
+    }
+  },
+  "mean_pixel_AP_delta_bf16_seed0_vs_mixed_seed0": -3.8760390627251446,
+  "mean_pixel_AUROC_delta_bf16_seed0_vs_mixed_seed0": -2.4751399950134925,
+  "decision": {
+    "PRECISION_QUALITY_DEGRADATION": "LIKELY",
+    "SEED_INITIALIZATION_SENSITIVITY": "POSSIBLE",
+    "GENERALIZATION_BOTTLENECK": "POSSIBLE",
+    "RECOMMENDED_PRECISION": "MIXED_FP16_FP32",
+    "PRIMARY_BOTTLENECK": "BF16 precision-policy quality degradation",
+    "SECONDARY_BOTTLENECK": "seed/trajectory sensitivity"
+  },
+  "historical_source_audit": "UNAVAILABLE",
+  "historical_target_protocol": "EXACT",
+  "new_target_contract": "Medical raw_exact stride=1; MVTec benchmark_exact stride=1",
+  "max_additional_full_trains": 1,
+  "actual_additional_full_trains": 1,
+  "more_training_authorized": false
+}
