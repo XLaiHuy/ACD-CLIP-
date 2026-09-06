@@ -187,6 +187,12 @@ def patch_resume_identity() -> None:
             actual = dict(payload["resolved_scientific_config"])
             actual["implementation_git_sha"] = expected["implementation_git_sha"]
             actual["working_tree_diff_sha256"] = expected.get("working_tree_diff_sha256")
+            # These runtime precision identities were added after the
+            # historical E1 payload was written; the current parser resolves
+            # them deterministically from the recorded AMP protocol.
+            for key in ("precision", "precision_protocol", "bf16_local_fp32_islands", "later_transformer_fp32_islands"):
+                if key not in actual:
+                    actual[key] = expected[key]
             payload["resolved_scientific_config"] = actual
             payload["config_sha256"] = contract.canonical_json_hash(actual)
             payload["parent_scientific_config"] = dict(parent)
