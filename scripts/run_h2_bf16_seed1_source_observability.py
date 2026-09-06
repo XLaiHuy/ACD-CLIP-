@@ -85,6 +85,8 @@ def entropy(w):
 def raw_pre_smoothing_map(model, vision, text):
     """The existing native fusion path through the point immediately before blur."""
     b, patches, _ = vision.shape[1:]
+    if text.ndim == 3:
+        text = text.unsqueeze(1).repeat(1, b, 1, 1)
     side = int(math.sqrt(patches)); groups = []
     for stage in range(model.n_groups):
         fused_text = model._vision_text_attention_fusion(vision[stage], text.permute(1,0,2,3), stage)
