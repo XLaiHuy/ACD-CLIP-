@@ -1,0 +1,910 @@
+{
+  "arms": {
+    "A_FUNC_SHORT_R1": {
+      "checkpoint": "/workspace/h2_functional_anchor_bounded_r1/A_FUNC_SHORT_R1/final.pth",
+      "coverage": {
+        "boundary": {
+          "count": 25806,
+          "mean": 0.02718755602836609,
+          "median": 8.31597276373941e-07,
+          "p99": 0.6440706849098206
+        },
+        "far_background": {
+          "count": 25637728,
+          "mean": 4.547585376712959e-06,
+          "median": 1.2349667954936194e-08,
+          "p99": 3.470791298809672e-08
+        },
+        "interior": {
+          "count": 56049,
+          "mean": 0.11842072755098343,
+          "median": 2.018491329636163e-08,
+          "p99": 0.9934663772583008
+        },
+        "near_background": {
+          "count": 39521,
+          "mean": 0.009142437018454075,
+          "median": 2.3316179920129798e-07,
+          "p99": 0.2696974277496338
+        },
+        "negative": {
+          "count": 25677249,
+          "mean": 1.8612116036820225e-05,
+          "median": 1.2361521584125512e-08,
+          "p99": 3.684855798269382e-08
+        },
+        "positive": {
+          "count": 81855,
+          "mean": 0.08965811133384705,
+          "median": 3.00154923138507e-08,
+          "p99": 0.9902262687683105
+        }
+      },
+      "file_names": [
+        "candle/Data/Images/Normal/0994.JPG",
+        "candle/Data/Images/Normal/0214.JPG",
+        "candle/Data/Images/Normal/0844.JPG",
+        "candle/Data/Images/Normal/0659.JPG",
+        "candle/Data/Images/Anomaly/004.JPG",
+        "candle/Data/Images/Anomaly/011.JPG",
+        "candle/Data/Images/Anomaly/010.JPG",
+        "candle/Data/Images/Anomaly/071.JPG",
+        "pcb3/Data/Images/Normal/0725.JPG",
+        "pcb3/Data/Images/Normal/0940.JPG",
+        "pcb3/Data/Images/Normal/0215.JPG",
+        "pcb3/Data/Images/Normal/0024.JPG",
+        "pcb3/Data/Images/Anomaly/062.JPG",
+        "pcb3/Data/Images/Anomaly/024.JPG",
+        "pcb3/Data/Images/Anomaly/078.JPG",
+        "pcb3/Data/Images/Anomaly/057.JPG",
+        "capsules/Data/Images/Normal/179.JPG",
+        "capsules/Data/Images/Normal/016.JPG",
+        "capsules/Data/Images/Normal/417.JPG",
+        "capsules/Data/Images/Normal/402.JPG",
+        "capsules/Data/Images/Anomaly/050.JPG",
+        "capsules/Data/Images/Anomaly/056.JPG",
+        "capsules/Data/Images/Anomaly/090.JPG",
+        "capsules/Data/Images/Anomaly/041.JPG",
+        "pipe_fryum/Data/Images/Normal/098.JPG",
+        "pipe_fryum/Data/Images/Normal/084.JPG",
+        "pipe_fryum/Data/Images/Normal/369.JPG",
+        "pipe_fryum/Data/Images/Normal/484.JPG",
+        "pipe_fryum/Data/Images/Anomaly/069.JPG",
+        "pipe_fryum/Data/Images/Anomaly/054.JPG",
+        "pipe_fryum/Data/Images/Anomaly/067.JPG",
+        "pipe_fryum/Data/Images/Anomaly/017.JPG",
+        "pcb4/Data/Images/Normal/0654.JPG",
+        "pcb4/Data/Images/Normal/0377.JPG",
+        "pcb4/Data/Images/Normal/0994.JPG",
+        "pcb4/Data/Images/Normal/0952.JPG",
+        "pcb4/Data/Images/Anomaly/024.JPG",
+        "pcb4/Data/Images/Anomaly/077.JPG",
+        "pcb4/Data/Images/Anomaly/049.JPG",
+        "pcb4/Data/Images/Anomaly/011.JPG",
+        "macaroni2/Data/Images/Normal/0920.JPG",
+        "macaroni2/Data/Images/Normal/0694.JPG",
+        "macaroni2/Data/Images/Normal/0187.JPG",
+        "macaroni2/Data/Images/Normal/0377.JPG",
+        "macaroni2/Data/Images/Anomaly/026.JPG",
+        "macaroni2/Data/Images/Anomaly/083.JPG",
+        "macaroni2/Data/Images/Anomaly/040.JPG",
+        "macaroni2/Data/Images/Anomaly/070.JPG",
+        "pcb2/Data/Images/Normal/0168.JPG",
+        "pcb2/Data/Images/Normal/0923.JPG",
+        "pcb2/Data/Images/Normal/0178.JPG",
+        "pcb2/Data/Images/Normal/0800.JPG",
+        "pcb2/Data/Images/Anomaly/062.JPG",
+        "pcb2/Data/Images/Anomaly/055.JPG",
+        "pcb2/Data/Images/Anomaly/091.JPG",
+        "pcb2/Data/Images/Anomaly/034.JPG",
+        "chewinggum/Data/Images/Normal/307.JPG",
+        "chewinggum/Data/Images/Normal/006.JPG",
+        "chewinggum/Data/Images/Normal/377.JPG",
+        "chewinggum/Data/Images/Normal/244.JPG",
+        "chewinggum/Data/Images/Anomaly/074.JPG",
+        "chewinggum/Data/Images/Anomaly/006.JPG",
+        "chewinggum/Data/Images/Anomaly/008.JPG",
+        "chewinggum/Data/Images/Anomaly/045.JPG",
+        "macaroni1/Data/Images/Normal/0920.JPG",
+        "macaroni1/Data/Images/Normal/0654.JPG",
+        "macaroni1/Data/Images/Normal/0935.JPG",
+        "macaroni1/Data/Images/Normal/0617.JPG",
+        "macaroni1/Data/Images/Anomaly/017.JPG",
+        "macaroni1/Data/Images/Anomaly/086.JPG",
+        "macaroni1/Data/Images/Anomaly/045.JPG",
+        "macaroni1/Data/Images/Anomaly/039.JPG",
+        "cashew/Data/Images/Normal/130.JPG",
+        "cashew/Data/Images/Normal/166.JPG",
+        "cashew/Data/Images/Normal/460.JPG",
+        "cashew/Data/Images/Normal/089.JPG",
+        "cashew/Data/Images/Anomaly/054.JPG",
+        "cashew/Data/Images/Anomaly/077.JPG",
+        "cashew/Data/Images/Anomaly/081.JPG",
+        "cashew/Data/Images/Anomaly/041.JPG",
+        "fryum/Data/Images/Normal/389.JPG",
+        "fryum/Data/Images/Normal/446.JPG",
+        "fryum/Data/Images/Normal/084.JPG",
+        "fryum/Data/Images/Normal/398.JPG",
+        "fryum/Data/Images/Anomaly/009.JPG",
+        "fryum/Data/Images/Anomaly/020.JPG",
+        "fryum/Data/Images/Anomaly/060.JPG",
+        "fryum/Data/Images/Anomaly/028.JPG",
+        "pcb1/Data/Images/Normal/0215.JPG",
+        "pcb1/Data/Images/Normal/0488.JPG",
+        "pcb1/Data/Images/Normal/0027.JPG",
+        "pcb1/Data/Images/Normal/0615.JPG",
+        "pcb1/Data/Images/Anomaly/043.JPG",
+        "pcb1/Data/Images/Anomaly/068.JPG",
+        "pcb1/Data/Images/Anomaly/001.JPG",
+        "pcb1/Data/Images/Anomaly/057.JPG"
+      ],
+      "geometry": [
+        {
+          "cosine_to_e1_mean": 0.955295205116272,
+          "cosine_to_e1_median": 0.9560108780860901,
+          "stage": 1
+        },
+        {
+          "cosine_to_e1_mean": 0.9962866306304932,
+          "cosine_to_e1_median": 0.9973850846290588,
+          "stage": 2
+        },
+        {
+          "cosine_to_e1_mean": 0.9887455701828003,
+          "cosine_to_e1_median": 0.9896301627159119,
+          "stage": 3
+        }
+      ],
+      "ranking": {
+        "final": {
+          "ap": 0.3031312599736458,
+          "auroc": 0.783803401244908
+        },
+        "stage_1": {
+          "ap": 0.2856853172605481,
+          "auroc": 0.8262710223585501
+        },
+        "stage_2": {
+          "ap": 0.25550882094936206,
+          "auroc": 0.5407380133057296
+        },
+        "stage_3": {
+          "ap": 0.19456533671519288,
+          "auroc": 0.5068499977104363
+        }
+      },
+      "sample_count": 96,
+      "stage_coverage": [
+        {
+          "boundary": {
+            "count": 25806,
+            "mean": 0.05019434168934822,
+            "median": 6.059451038709085e-07,
+            "p99": 0.9940826296806335
+          },
+          "far_background": {
+            "count": 25637728,
+            "mean": 7.977485438459553e-06,
+            "median": 9.213342977432148e-09,
+            "p99": 3.133419852474617e-07
+          },
+          "interior": {
+            "count": 56049,
+            "mean": 0.1384219527244568,
+            "median": 2.5038827899948046e-08,
+            "p99": 0.9998406171798706
+          },
+          "near_background": {
+            "count": 39521,
+            "mean": 0.015296434983611107,
+            "median": 9.377411203104202e-08,
+            "p99": 0.7602205276489258
+          },
+          "negative": {
+            "count": 25677249,
+            "mean": 3.1508636311627924e-05,
+            "median": 9.21689391475411e-09,
+            "p99": 3.4390694736430305e-07
+          },
+          "positive": {
+            "count": 81855,
+            "mean": 0.11060689389705658,
+            "median": 6.53192060440233e-08,
+            "p99": 0.9998047947883606
+          }
+        },
+        {
+          "boundary": {
+            "count": 25806,
+            "mean": 0.3681550621986389,
+            "median": 3.720368113135919e-06,
+            "p99": 1.0
+          },
+          "far_background": {
+            "count": 25637728,
+            "mean": 0.0004555452323984355,
+            "median": 1.4040875129239794e-08,
+            "p99": 2.6859972024340095e-08
+          },
+          "interior": {
+            "count": 56049,
+            "mean": 0.25904300808906555,
+            "median": 1.1425192347758184e-08,
+            "p99": 1.0
+          },
+          "near_background": {
+            "count": 39521,
+            "mean": 0.267518013715744,
+            "median": 1.0763771030042335e-07,
+            "p99": 1.0
+          },
+          "negative": {
+            "count": 25677249,
+            "mean": 0.0008665929199196398,
+            "median": 1.404218785694411e-08,
+            "p99": 2.704865131875067e-08
+          },
+          "positive": {
+            "count": 81855,
+            "mean": 0.2934421896934509,
+            "median": 1.2253024372910204e-08,
+            "p99": 1.0
+          }
+        },
+        {
+          "boundary": {
+            "count": 25806,
+            "mean": 0.2769089341163635,
+            "median": 4.4512080421554856e-07,
+            "p99": 0.9999984502792358
+          },
+          "far_background": {
+            "count": 25637728,
+            "mean": 0.000287768169073388,
+            "median": 1.2910880364813693e-08,
+            "p99": 2.1353784518396424e-08
+          },
+          "interior": {
+            "count": 56049,
+            "mean": 0.15475758910179138,
+            "median": 1.0667584149359755e-08,
+            "p99": 0.9999978542327881
+          },
+          "near_background": {
+            "count": 39521,
+            "mean": 0.21026885509490967,
+            "median": 7.095230358800109e-08,
+            "p99": 0.9999977350234985
+          },
+          "negative": {
+            "count": 25677249,
+            "mean": 0.0006109594251029193,
+            "median": 1.2913491609367611e-08,
+            "p99": 2.1562268415209473e-08
+          },
+          "positive": {
+            "count": 81855,
+            "mean": 0.1932675987482071,
+            "median": 1.105586378002954e-08,
+            "p99": 0.9999980926513672
+          }
+        }
+      ]
+    },
+    "A_SHORT_R1": {
+      "checkpoint": "/workspace/h2_functional_anchor_bounded_r1/A_SHORT_R1/final.pth",
+      "coverage": {
+        "boundary": {
+          "count": 25806,
+          "mean": 0.06316528469324112,
+          "median": 7.5572365858533885e-06,
+          "p99": 0.9515226483345032
+        },
+        "far_background": {
+          "count": 25637728,
+          "mean": 1.5064100807649083e-05,
+          "median": 1.1866641003166478e-08,
+          "p99": 9.672019274375998e-08
+        },
+        "interior": {
+          "count": 56049,
+          "mean": 0.1569301187992096,
+          "median": 5.211318665487852e-08,
+          "p99": 0.9993098378181458
+        },
+        "near_background": {
+          "count": 39521,
+          "mean": 0.024321533739566803,
+          "median": 2.0490679162321612e-06,
+          "p99": 0.7248544096946716
+        },
+        "negative": {
+          "count": 25677249,
+          "mean": 5.2475272241281345e-05,
+          "median": 1.188775566873801e-08,
+          "p99": 1.0857010579456983e-07
+        },
+        "positive": {
+          "count": 81855,
+          "mean": 0.12736935913562775,
+          "median": 1.175103392370147e-07,
+          "p99": 0.9990931153297424
+        }
+      },
+      "file_names": [
+        "candle/Data/Images/Normal/0994.JPG",
+        "candle/Data/Images/Normal/0214.JPG",
+        "candle/Data/Images/Normal/0844.JPG",
+        "candle/Data/Images/Normal/0659.JPG",
+        "candle/Data/Images/Anomaly/004.JPG",
+        "candle/Data/Images/Anomaly/011.JPG",
+        "candle/Data/Images/Anomaly/010.JPG",
+        "candle/Data/Images/Anomaly/071.JPG",
+        "pcb3/Data/Images/Normal/0725.JPG",
+        "pcb3/Data/Images/Normal/0940.JPG",
+        "pcb3/Data/Images/Normal/0215.JPG",
+        "pcb3/Data/Images/Normal/0024.JPG",
+        "pcb3/Data/Images/Anomaly/062.JPG",
+        "pcb3/Data/Images/Anomaly/024.JPG",
+        "pcb3/Data/Images/Anomaly/078.JPG",
+        "pcb3/Data/Images/Anomaly/057.JPG",
+        "capsules/Data/Images/Normal/179.JPG",
+        "capsules/Data/Images/Normal/016.JPG",
+        "capsules/Data/Images/Normal/417.JPG",
+        "capsules/Data/Images/Normal/402.JPG",
+        "capsules/Data/Images/Anomaly/050.JPG",
+        "capsules/Data/Images/Anomaly/056.JPG",
+        "capsules/Data/Images/Anomaly/090.JPG",
+        "capsules/Data/Images/Anomaly/041.JPG",
+        "pipe_fryum/Data/Images/Normal/098.JPG",
+        "pipe_fryum/Data/Images/Normal/084.JPG",
+        "pipe_fryum/Data/Images/Normal/369.JPG",
+        "pipe_fryum/Data/Images/Normal/484.JPG",
+        "pipe_fryum/Data/Images/Anomaly/069.JPG",
+        "pipe_fryum/Data/Images/Anomaly/054.JPG",
+        "pipe_fryum/Data/Images/Anomaly/067.JPG",
+        "pipe_fryum/Data/Images/Anomaly/017.JPG",
+        "pcb4/Data/Images/Normal/0654.JPG",
+        "pcb4/Data/Images/Normal/0377.JPG",
+        "pcb4/Data/Images/Normal/0994.JPG",
+        "pcb4/Data/Images/Normal/0952.JPG",
+        "pcb4/Data/Images/Anomaly/024.JPG",
+        "pcb4/Data/Images/Anomaly/077.JPG",
+        "pcb4/Data/Images/Anomaly/049.JPG",
+        "pcb4/Data/Images/Anomaly/011.JPG",
+        "macaroni2/Data/Images/Normal/0920.JPG",
+        "macaroni2/Data/Images/Normal/0694.JPG",
+        "macaroni2/Data/Images/Normal/0187.JPG",
+        "macaroni2/Data/Images/Normal/0377.JPG",
+        "macaroni2/Data/Images/Anomaly/026.JPG",
+        "macaroni2/Data/Images/Anomaly/083.JPG",
+        "macaroni2/Data/Images/Anomaly/040.JPG",
+        "macaroni2/Data/Images/Anomaly/070.JPG",
+        "pcb2/Data/Images/Normal/0168.JPG",
+        "pcb2/Data/Images/Normal/0923.JPG",
+        "pcb2/Data/Images/Normal/0178.JPG",
+        "pcb2/Data/Images/Normal/0800.JPG",
+        "pcb2/Data/Images/Anomaly/062.JPG",
+        "pcb2/Data/Images/Anomaly/055.JPG",
+        "pcb2/Data/Images/Anomaly/091.JPG",
+        "pcb2/Data/Images/Anomaly/034.JPG",
+        "chewinggum/Data/Images/Normal/307.JPG",
+        "chewinggum/Data/Images/Normal/006.JPG",
+        "chewinggum/Data/Images/Normal/377.JPG",
+        "chewinggum/Data/Images/Normal/244.JPG",
+        "chewinggum/Data/Images/Anomaly/074.JPG",
+        "chewinggum/Data/Images/Anomaly/006.JPG",
+        "chewinggum/Data/Images/Anomaly/008.JPG",
+        "chewinggum/Data/Images/Anomaly/045.JPG",
+        "macaroni1/Data/Images/Normal/0920.JPG",
+        "macaroni1/Data/Images/Normal/0654.JPG",
+        "macaroni1/Data/Images/Normal/0935.JPG",
+        "macaroni1/Data/Images/Normal/0617.JPG",
+        "macaroni1/Data/Images/Anomaly/017.JPG",
+        "macaroni1/Data/Images/Anomaly/086.JPG",
+        "macaroni1/Data/Images/Anomaly/045.JPG",
+        "macaroni1/Data/Images/Anomaly/039.JPG",
+        "cashew/Data/Images/Normal/130.JPG",
+        "cashew/Data/Images/Normal/166.JPG",
+        "cashew/Data/Images/Normal/460.JPG",
+        "cashew/Data/Images/Normal/089.JPG",
+        "cashew/Data/Images/Anomaly/054.JPG",
+        "cashew/Data/Images/Anomaly/077.JPG",
+        "cashew/Data/Images/Anomaly/081.JPG",
+        "cashew/Data/Images/Anomaly/041.JPG",
+        "fryum/Data/Images/Normal/389.JPG",
+        "fryum/Data/Images/Normal/446.JPG",
+        "fryum/Data/Images/Normal/084.JPG",
+        "fryum/Data/Images/Normal/398.JPG",
+        "fryum/Data/Images/Anomaly/009.JPG",
+        "fryum/Data/Images/Anomaly/020.JPG",
+        "fryum/Data/Images/Anomaly/060.JPG",
+        "fryum/Data/Images/Anomaly/028.JPG",
+        "pcb1/Data/Images/Normal/0215.JPG",
+        "pcb1/Data/Images/Normal/0488.JPG",
+        "pcb1/Data/Images/Normal/0027.JPG",
+        "pcb1/Data/Images/Normal/0615.JPG",
+        "pcb1/Data/Images/Anomaly/043.JPG",
+        "pcb1/Data/Images/Anomaly/068.JPG",
+        "pcb1/Data/Images/Anomaly/001.JPG",
+        "pcb1/Data/Images/Anomaly/057.JPG"
+      ],
+      "geometry": [
+        {
+          "cosine_to_e1_mean": 0.9492058157920837,
+          "cosine_to_e1_median": 0.951674222946167,
+          "stage": 1
+        },
+        {
+          "cosine_to_e1_mean": 0.9670001864433289,
+          "cosine_to_e1_median": 0.9683208465576172,
+          "stage": 2
+        },
+        {
+          "cosine_to_e1_mean": 0.9531543850898743,
+          "cosine_to_e1_median": 0.9532417058944702,
+          "stage": 3
+        }
+      ],
+      "ranking": {
+        "final": {
+          "ap": 0.32064614122433327,
+          "auroc": 0.8918142150062283
+        },
+        "stage_1": {
+          "ap": 0.2861538732001662,
+          "auroc": 0.864802315400006
+        },
+        "stage_2": {
+          "ap": 0.2740452710270779,
+          "auroc": 0.6465302391786529
+        },
+        "stage_3": {
+          "ap": 0.21728454704264882,
+          "auroc": 0.7318388031989188
+        }
+      },
+      "sample_count": 96,
+      "stage_coverage": [
+        {
+          "boundary": {
+            "count": 25806,
+            "mean": 0.1832277774810791,
+            "median": 0.00014138486585579813,
+            "p99": 0.9991956353187561
+          },
+          "far_background": {
+            "count": 25637728,
+            "mean": 0.00032254908001050353,
+            "median": 1.0029720165505296e-08,
+            "p99": 1.9221912225475535e-05
+          },
+          "interior": {
+            "count": 56049,
+            "mean": 0.23514331877231598,
+            "median": 1.2165307339273568e-07,
+            "p99": 0.9998874664306641
+          },
+          "near_background": {
+            "count": 39521,
+            "mean": 0.07369118928909302,
+            "median": 4.545247065834701e-06,
+            "p99": 0.9943141341209412
+          },
+          "negative": {
+            "count": 25677249,
+            "mean": 0.0004354740376584232,
+            "median": 1.003438843127924e-08,
+            "p99": 2.400421908532735e-05
+          },
+          "positive": {
+            "count": 81855,
+            "mean": 0.2187761813402176,
+            "median": 1.4753176174053806e-06,
+            "p99": 0.9998717308044434
+          }
+        },
+        {
+          "boundary": {
+            "count": 25806,
+            "mean": 0.4124167561531067,
+            "median": 0.0001272860390599817,
+            "p99": 1.0
+          },
+          "far_background": {
+            "count": 25637728,
+            "mean": 0.0005804242100566626,
+            "median": 9.973272874219674e-09,
+            "p99": 1.861937271030456e-08
+          },
+          "interior": {
+            "count": 56049,
+            "mean": 0.2617875635623932,
+            "median": 9.742652018474018e-09,
+            "p99": 1.0
+          },
+          "near_background": {
+            "count": 39521,
+            "mean": 0.31649965047836304,
+            "median": 1.5791871419423842e-06,
+            "p99": 1.0
+          },
+          "negative": {
+            "count": 25677249,
+            "mean": 0.0010666695889085531,
+            "median": 9.975612336177164e-09,
+            "p99": 1.9285597119278464e-08
+          },
+          "positive": {
+            "count": 81855,
+            "mean": 0.30927568674087524,
+            "median": 1.1039133163137649e-08,
+            "p99": 1.0
+          }
+        },
+        {
+          "boundary": {
+            "count": 25806,
+            "mean": 0.2908884882926941,
+            "median": 0.0001232053036801517,
+            "p99": 0.9999902248382568
+          },
+          "far_background": {
+            "count": 25637728,
+            "mean": 0.00041873729787766933,
+            "median": 1.1455697723761205e-08,
+            "p99": 6.414713737967759e-08
+          },
+          "interior": {
+            "count": 56049,
+            "mean": 0.19327206909656525,
+            "median": 1.3183063529709216e-08,
+            "p99": 0.9999879002571106
+          },
+          "near_background": {
+            "count": 39521,
+            "mean": 0.21902583539485931,
+            "median": 1.4070268662180752e-05,
+            "p99": 0.9999731779098511
+          },
+          "negative": {
+            "count": 25677249,
+            "mean": 0.0007552052848041058,
+            "median": 1.1460506321725461e-08,
+            "p99": 7.589397199581072e-08
+          },
+          "positive": {
+            "count": 81855,
+            "mean": 0.22404706478118896,
+            "median": 1.936456683893084e-08,
+            "p99": 0.9999890327453613
+          }
+        }
+      ]
+    },
+    "E1": {
+      "checkpoint": "/workspace/ACD-CLIP-/runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth",
+      "coverage": {
+        "boundary": {
+          "count": 25806,
+          "mean": 0.083123117685318,
+          "median": 2.3127056181238004e-07,
+          "p99": 0.990574061870575
+        },
+        "far_background": {
+          "count": 25637728,
+          "mean": 2.2268321117735468e-05,
+          "median": 8.87862228182712e-09,
+          "p99": 7.205471064253288e-08
+        },
+        "interior": {
+          "count": 56049,
+          "mean": 0.1561991274356842,
+          "median": 2.658560660506737e-08,
+          "p99": 0.9999579191207886
+        },
+        "near_background": {
+          "count": 39521,
+          "mean": 0.03418789803981781,
+          "median": 1.2135492966081074e-07,
+          "p99": 0.8898923397064209
+        },
+        "negative": {
+          "count": 25677249,
+          "mean": 7.485415699193254e-05,
+          "median": 8.88040041502336e-09,
+          "p99": 7.811448199390725e-08
+        },
+        "positive": {
+          "count": 81855,
+          "mean": 0.13316084444522858,
+          "median": 3.746462340359358e-08,
+          "p99": 0.9999327063560486
+        }
+      },
+      "file_names": [
+        "candle/Data/Images/Normal/0994.JPG",
+        "candle/Data/Images/Normal/0214.JPG",
+        "candle/Data/Images/Normal/0844.JPG",
+        "candle/Data/Images/Normal/0659.JPG",
+        "candle/Data/Images/Anomaly/004.JPG",
+        "candle/Data/Images/Anomaly/011.JPG",
+        "candle/Data/Images/Anomaly/010.JPG",
+        "candle/Data/Images/Anomaly/071.JPG",
+        "pcb3/Data/Images/Normal/0725.JPG",
+        "pcb3/Data/Images/Normal/0940.JPG",
+        "pcb3/Data/Images/Normal/0215.JPG",
+        "pcb3/Data/Images/Normal/0024.JPG",
+        "pcb3/Data/Images/Anomaly/062.JPG",
+        "pcb3/Data/Images/Anomaly/024.JPG",
+        "pcb3/Data/Images/Anomaly/078.JPG",
+        "pcb3/Data/Images/Anomaly/057.JPG",
+        "capsules/Data/Images/Normal/179.JPG",
+        "capsules/Data/Images/Normal/016.JPG",
+        "capsules/Data/Images/Normal/417.JPG",
+        "capsules/Data/Images/Normal/402.JPG",
+        "capsules/Data/Images/Anomaly/050.JPG",
+        "capsules/Data/Images/Anomaly/056.JPG",
+        "capsules/Data/Images/Anomaly/090.JPG",
+        "capsules/Data/Images/Anomaly/041.JPG",
+        "pipe_fryum/Data/Images/Normal/098.JPG",
+        "pipe_fryum/Data/Images/Normal/084.JPG",
+        "pipe_fryum/Data/Images/Normal/369.JPG",
+        "pipe_fryum/Data/Images/Normal/484.JPG",
+        "pipe_fryum/Data/Images/Anomaly/069.JPG",
+        "pipe_fryum/Data/Images/Anomaly/054.JPG",
+        "pipe_fryum/Data/Images/Anomaly/067.JPG",
+        "pipe_fryum/Data/Images/Anomaly/017.JPG",
+        "pcb4/Data/Images/Normal/0654.JPG",
+        "pcb4/Data/Images/Normal/0377.JPG",
+        "pcb4/Data/Images/Normal/0994.JPG",
+        "pcb4/Data/Images/Normal/0952.JPG",
+        "pcb4/Data/Images/Anomaly/024.JPG",
+        "pcb4/Data/Images/Anomaly/077.JPG",
+        "pcb4/Data/Images/Anomaly/049.JPG",
+        "pcb4/Data/Images/Anomaly/011.JPG",
+        "macaroni2/Data/Images/Normal/0920.JPG",
+        "macaroni2/Data/Images/Normal/0694.JPG",
+        "macaroni2/Data/Images/Normal/0187.JPG",
+        "macaroni2/Data/Images/Normal/0377.JPG",
+        "macaroni2/Data/Images/Anomaly/026.JPG",
+        "macaroni2/Data/Images/Anomaly/083.JPG",
+        "macaroni2/Data/Images/Anomaly/040.JPG",
+        "macaroni2/Data/Images/Anomaly/070.JPG",
+        "pcb2/Data/Images/Normal/0168.JPG",
+        "pcb2/Data/Images/Normal/0923.JPG",
+        "pcb2/Data/Images/Normal/0178.JPG",
+        "pcb2/Data/Images/Normal/0800.JPG",
+        "pcb2/Data/Images/Anomaly/062.JPG",
+        "pcb2/Data/Images/Anomaly/055.JPG",
+        "pcb2/Data/Images/Anomaly/091.JPG",
+        "pcb2/Data/Images/Anomaly/034.JPG",
+        "chewinggum/Data/Images/Normal/307.JPG",
+        "chewinggum/Data/Images/Normal/006.JPG",
+        "chewinggum/Data/Images/Normal/377.JPG",
+        "chewinggum/Data/Images/Normal/244.JPG",
+        "chewinggum/Data/Images/Anomaly/074.JPG",
+        "chewinggum/Data/Images/Anomaly/006.JPG",
+        "chewinggum/Data/Images/Anomaly/008.JPG",
+        "chewinggum/Data/Images/Anomaly/045.JPG",
+        "macaroni1/Data/Images/Normal/0920.JPG",
+        "macaroni1/Data/Images/Normal/0654.JPG",
+        "macaroni1/Data/Images/Normal/0935.JPG",
+        "macaroni1/Data/Images/Normal/0617.JPG",
+        "macaroni1/Data/Images/Anomaly/017.JPG",
+        "macaroni1/Data/Images/Anomaly/086.JPG",
+        "macaroni1/Data/Images/Anomaly/045.JPG",
+        "macaroni1/Data/Images/Anomaly/039.JPG",
+        "cashew/Data/Images/Normal/130.JPG",
+        "cashew/Data/Images/Normal/166.JPG",
+        "cashew/Data/Images/Normal/460.JPG",
+        "cashew/Data/Images/Normal/089.JPG",
+        "cashew/Data/Images/Anomaly/054.JPG",
+        "cashew/Data/Images/Anomaly/077.JPG",
+        "cashew/Data/Images/Anomaly/081.JPG",
+        "cashew/Data/Images/Anomaly/041.JPG",
+        "fryum/Data/Images/Normal/389.JPG",
+        "fryum/Data/Images/Normal/446.JPG",
+        "fryum/Data/Images/Normal/084.JPG",
+        "fryum/Data/Images/Normal/398.JPG",
+        "fryum/Data/Images/Anomaly/009.JPG",
+        "fryum/Data/Images/Anomaly/020.JPG",
+        "fryum/Data/Images/Anomaly/060.JPG",
+        "fryum/Data/Images/Anomaly/028.JPG",
+        "pcb1/Data/Images/Normal/0215.JPG",
+        "pcb1/Data/Images/Normal/0488.JPG",
+        "pcb1/Data/Images/Normal/0027.JPG",
+        "pcb1/Data/Images/Normal/0615.JPG",
+        "pcb1/Data/Images/Anomaly/043.JPG",
+        "pcb1/Data/Images/Anomaly/068.JPG",
+        "pcb1/Data/Images/Anomaly/001.JPG",
+        "pcb1/Data/Images/Anomaly/057.JPG"
+      ],
+      "geometry": [
+        {
+          "cosine_to_e1_mean": 1.0,
+          "cosine_to_e1_median": 1.0,
+          "stage": 1
+        },
+        {
+          "cosine_to_e1_mean": 1.0,
+          "cosine_to_e1_median": 1.0,
+          "stage": 2
+        },
+        {
+          "cosine_to_e1_mean": 1.0,
+          "cosine_to_e1_median": 1.0,
+          "stage": 3
+        }
+      ],
+      "ranking": {
+        "final": {
+          "ap": 0.28141930988116276,
+          "auroc": 0.8941702378862544
+        },
+        "stage_1": {
+          "ap": 0.25648650726844374,
+          "auroc": 0.8733914020893275
+        },
+        "stage_2": {
+          "ap": 0.22450666405925707,
+          "auroc": 0.6494983205799959
+        },
+        "stage_3": {
+          "ap": 0.20550848823040294,
+          "auroc": 0.6404126490746306
+        }
+      },
+      "sample_count": 96,
+      "stage_coverage": [
+        {
+          "boundary": {
+            "count": 25806,
+            "mean": 0.17913590371608734,
+            "median": 6.393792773451423e-06,
+            "p99": 0.9991357922554016
+          },
+          "far_background": {
+            "count": 25637728,
+            "mean": 0.000567333830986172,
+            "median": 8.86819684353668e-09,
+            "p99": 1.6508118278579786e-05
+          },
+          "interior": {
+            "count": 56049,
+            "mean": 0.23198989033699036,
+            "median": 5.620460186150922e-08,
+            "p99": 0.9996870160102844
+          },
+          "near_background": {
+            "count": 39521,
+            "mean": 0.08110347390174866,
+            "median": 5.229539965512231e-07,
+            "p99": 0.9930403232574463
+          },
+          "negative": {
+            "count": 25677249,
+            "mean": 0.0006912905955687165,
+            "median": 8.869990075766054e-09,
+            "p99": 2.1235640815575607e-05
+          },
+          "positive": {
+            "count": 81855,
+            "mean": 0.21532689034938812,
+            "median": 3.222779412226373e-07,
+            "p99": 0.9996753931045532
+          }
+        },
+        {
+          "boundary": {
+            "count": 25806,
+            "mean": 0.2919591963291168,
+            "median": 1.5418180510096136e-08,
+            "p99": 1.0
+          },
+          "far_background": {
+            "count": 25637728,
+            "mean": 0.00035677049891091883,
+            "median": 8.548509455863496e-09,
+            "p99": 1.2641151236891801e-08
+          },
+          "interior": {
+            "count": 56049,
+            "mean": 0.2303224354982376,
+            "median": 8.306432874860548e-09,
+            "p99": 1.0
+          },
+          "near_background": {
+            "count": 39521,
+            "mean": 0.20588737726211548,
+            "median": 1.1872754335229274e-08,
+            "p99": 1.0
+          },
+          "negative": {
+            "count": 25677249,
+            "mean": 0.0006731118191964924,
+            "median": 8.549585928108172e-09,
+            "p99": 1.2792826353802411e-08
+          },
+          "positive": {
+            "count": 81855,
+            "mean": 0.24975432455539703,
+            "median": 8.50584758183004e-09,
+            "p99": 1.0
+          }
+        },
+        {
+          "boundary": {
+            "count": 25806,
+            "mean": 0.29750075936317444,
+            "median": 8.698160058884241e-08,
+            "p99": 0.999971866607666
+          },
+          "far_background": {
+            "count": 25637728,
+            "mean": 0.00046605136594735086,
+            "median": 8.845964849513166e-09,
+            "p99": 2.224424378027834e-08
+          },
+          "interior": {
+            "count": 56049,
+            "mean": 0.22200657427310944,
+            "median": 8.45354186651548e-09,
+            "p99": 0.9999562501907349
+          },
+          "near_background": {
+            "count": 39521,
+            "mean": 0.24042847752571106,
+            "median": 4.69077043874222e-08,
+            "p99": 0.9999631643295288
+          },
+          "negative": {
+            "count": 25677249,
+            "mean": 0.0008353882003575563,
+            "median": 8.852783395241204e-09,
+            "p99": 2.329581327842334e-08
+          },
+          "positive": {
+            "count": 81855,
+            "mean": 0.24580726027488708,
+            "median": 9.383706256471669e-09,
+            "p99": 0.9999617338180542
+          }
+        }
+      ]
+    }
+  },
+  "candidate_minus_control": {
+    "final_ap_delta": -0.017514881250687453,
+    "final_auroc_delta": -0.10801081376132027,
+    "interior_median_delta": -3.192827335851689e-08,
+    "positive_median_delta": -8.7494846923164e-08,
+    "stage1_ap_delta": -0.0004685559396181427,
+    "stage2_cosine_to_e1_delta": 0.029286444187164307,
+    "stage3_cosine_to_e1_delta": 0.035591185092926025
+  },
+  "categories": [
+    "candle",
+    "pcb3",
+    "capsules",
+    "pipe_fryum",
+    "pcb4",
+    "macaroni2",
+    "pcb2",
+    "chewinggum",
+    "macaroni1",
+    "cashew",
+    "fryum",
+    "pcb1"
+  ],
+  "gate_definitions": {
+    "interior_coverage_improves_or_preserved": false,
+    "positive_coverage_improves_or_preserved": false,
+    "stage1_not_degraded_in_ap": false,
+    "stage2_geometry_improves": true,
+    "stage3_geometry_improves": true
+  },
+  "sample_count": 96,
+  "scope": "VisA clean source-only fixed subset; no optimizer steps; no Medical/MVTec/target data",
+  "selection_rule": "first four normal and first four anomalous clean manifest-order images per VisA category"
+}

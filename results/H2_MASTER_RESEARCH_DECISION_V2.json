@@ -1,0 +1,52 @@
+{
+  "recovery_status": "PARTIAL",
+  "three_layer_audit": {
+    "tier1_recovery": "PASS",
+    "tier2_scientific_parity": "PARTIAL",
+    "tier3_evidence_completeness": "PARTIAL"
+  },
+  "primary_bottleneck": "late_stage_functional_overadaptation_and_anomaly_undercoverage",
+  "secondary_bottleneck": "segmentation_gradient_imbalance_and_conflict",
+  "tertiary_bottleneck": "rare_fp16_gradient_invalidity",
+  "evidence_strength": {
+    "primary": "LIKELY_SOURCE_POSSIBLE_TARGET",
+    "secondary": "POSSIBLE",
+    "tertiary": "CONFIRMED_VALIDITY_ONLY"
+  },
+  "top_3_solutions": [
+    {
+      "rank": 1,
+      "name": "stage2_stage3_frozen_E1_functional_feature_anchor",
+      "selected_for_bounded_test": true,
+      "bounded_result": "FAIL"
+    },
+    {
+      "rank": 2,
+      "name": "family_scoped_abnormal_dice_classification_conflict_projection",
+      "selected_for_bounded_test": false,
+      "status": "NOT_RUN_POSSIBLE_ONLY"
+    },
+    {
+      "rank": 3,
+      "name": "bounded_reliability_residual_stage_fusion",
+      "selected_for_bounded_test": false,
+      "status": "NOT_RUN_LESS_DIRECT_MORE_COMPLEX"
+    }
+  ],
+  "selected_solution": "stage2_stage3_frozen_E1_functional_feature_anchor",
+  "mechanism_rationale": "Directly targets measured stage-2/stage-3 geometry failure without inference overhead; fixed R1 screen improved geometry but harmed source ranking and anomaly coverage.",
+  "novelty_positioning": "Training-only functional preservation at selected late stages; not supported as a full-run direction by the bounded screen.",
+  "expected_failure_mode_fixed": "late-stage feature drift and anomaly undercoverage",
+  "bounded_screen_result": "FAIL",
+  "why_not_alternatives": "Top2 has only possible conflict evidence; Top3 is less direct and more complex; no alternate screen is authorized without new diagnostics.",
+  "published_comparator_status": "PARTIAL_PROTOCOL_MATCH_CONTEXT_ONLY",
+  "target_tuning_used": false,
+  "next_full_e15_justified": "NO",
+  "full_e15_started": false,
+  "medical_inference_run": false,
+  "mvtec_inference_run": false,
+  "hyperparameter_sweep": false,
+  "source_eval_sample_count": 96,
+  "same_augmented_batches": true,
+  "mechanism_supported": "NO"
+}

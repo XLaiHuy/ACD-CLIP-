@@ -1,0 +1,50 @@
+{
+  "bounded_test_status": "FAIL",
+  "protocol_id": "FUNCTIONAL_ANCHOR_BOUNDED_RETRY_R1",
+  "bounded_test_reused": true,
+  "bounded_test_run": true,
+  "control": {
+    "arm": "A_SHORT_R1",
+    "endpoint_sha256": "bd60d7cda5bc09ec6ae3ea62886324cb6bc3dc855ef50a90bcd3ccf634d9c109",
+    "attempted_steps": 500,
+    "successful_steps": 498,
+    "nonfinite_loss_skips": 0,
+    "nonfinite_grad_skips": 2,
+    "numerical_validity": "FAIL_R1_SKIP_RULE"
+  },
+  "candidate": {
+    "arm": "A_FUNC_SHORT_R1",
+    "endpoint_sha256": "4a16b2746adecda8bd0c09195034b13c930217f163cd809f21a0d767c488ae8a",
+    "attempted_steps": 500,
+    "successful_steps": 500,
+    "nonfinite_loss_skips": 0,
+    "nonfinite_grad_skips": 0,
+    "numerical_validity": "PASS_R1_SKIP_RULE",
+    "functional_effective_ratio_median": 0.1,
+    "functional_effective_ratio_max": 0.10000000000000002,
+    "functional_cap_active_steps": 494
+  },
+  "same_augmented_batches": true,
+  "fixed_source_evaluation": {
+    "sample_count": 96,
+    "stage2_cosine_to_e1_delta": 0.029286444187164307,
+    "stage3_cosine_to_e1_delta": 0.035591185092926025,
+    "final_auroc_delta": -0.10801081376132027,
+    "final_ap_delta": -0.017514881250687453,
+    "positive_mean_control": 0.12736935913562775,
+    "positive_mean_candidate": 0.08965811133384705,
+    "interior_mean_control": 0.1569301187992096,
+    "interior_mean_candidate": 0.11842072755098343,
+    "stage1_ap_delta": -0.0004685559396181427,
+    "source_eval_artifact": "audit/H2_FUNC_ANCHOR_R1_SOURCE_EVAL.json"
+  },
+  "did_mechanism_fail": true,
+  "did_diagnosis_fail": false,
+  "mechanism_supported": "NO",
+  "next_full_e15_justified": "NO",
+  "candidate_2_run": false,
+  "medical_inference_run": false,
+  "mvtec_inference_run": false,
+  "target_tuning_used": false,
+  "hyperparameter_sweep": false
+}
