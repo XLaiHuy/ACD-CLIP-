@@ -1,0 +1,54 @@
+{
+  "audit_date": "2026-09-06",
+  "start_branch": "research/h2-functional-anchor-bounded-r1",
+  "start_head": "d28516f2dafb1eb23c5af634d920fa14e585c26c",
+  "remote_branch_head": "d28516f2dafb1eb23c5af634d920fa14e585c26c",
+  "tier1_recovery": "PASS",
+  "tier2_scientific_parity": "PARTIAL",
+  "tier3_evidence_completeness": "PARTIAL",
+  "recovery_status": "PARTIAL",
+  "environment": {
+    "python": "3.12.3",
+    "archived_python": "3.11.15",
+    "torch": "2.12.1+cu130",
+    "torchvision": "0.27.1+cu130",
+    "cuda_runtime": "13.0",
+    "cudnn": 92000,
+    "gpu": "NVIDIA GeForce RTX 3090",
+    "vram_bytes": 25298141184,
+    "tf32_matmul": false,
+    "cuda_available": true,
+    "archived_gpu": "NVIDIA GeForce RTX 5060 Ti"
+  },
+  "artifacts": {
+    "clip_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+    "shared_e1_sha256": "7f9176b7ef53b572935567c574535075a573175b2aa83505d043a71d45b12b35",
+    "h_e15_sha256": "6830137b52fc16321192909fe7b3ca7565664afe61a8592fe7b7a78d2dff4771",
+    "a_e15_sha256": "727dc4813db1ef0c5a6db3a4cf15e916ad1413dcf629913358419d2734edecfe",
+    "visa_manifest_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+    "visa_rows": 2162,
+    "visa_classes": 12,
+    "visa_anomaly_masks": 1200,
+    "visa_missing_paths": 0
+  },
+  "evidence": {
+    "mixed_source_images": 2162,
+    "mixed_exact_cohorts": 48,
+    "mixed_routing_classification": "HEALTHY",
+    "mixed_feature_geometry_classification": "STRONGLY_DEGRADED",
+    "conv_lora_a_drift_energy_share": 0.625798,
+    "severe_gradient_conflict": false,
+    "r1_preflight": "PASS",
+    "r1_calibration_batches": 8,
+    "r1_lambda_func": 37.42480105109332,
+    "external_large_array_root_present": false
+  },
+  "authorization": {
+    "full_e15": false,
+    "medical_inference": false,
+    "mvtec_inference": false,
+    "target_tuning": false,
+    "hyperparameter_sweep": false,
+    "next_action": "one bounded source-only R1 mechanism screen"
+  }
+}

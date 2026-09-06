@@ -1,0 +1,43 @@
+{
+  "decision_version": "H2_GENERALIZATION_BOTTLENECK_V2",
+  "frozen_before_new_candidate_endpoint": true,
+  "primary_bottleneck": "late_stage_functional_overadaptation_and_anomaly_undercoverage",
+  "primary_confidence": "LIKELY_SOURCE_POSSIBLE_TARGET",
+  "secondary_bottleneck": "segmentation_gradient_imbalance_and_conflict",
+  "secondary_confidence": "POSSIBLE",
+  "tertiary_bottleneck": "rare_fp16_gradient_invalidity",
+  "tertiary_confidence": "CONFIRMED_VALIDITY_UNKNOWN_TARGET_CONTRIBUTION",
+  "rejected_bottlenecks": [
+    "DFG_ROUTING_INSTABILITY",
+    "DFG_BETA_TAU_SENSITIVITY",
+    "SMALL_ANOMALY_SPECIFICITY",
+    "LR_OR_ADAM_FAILURE",
+    "PROMPT_GEOMETRY_AS_PRIMARY",
+    "INSUFFICIENT_CAPACITY"
+  ],
+  "top_3_solutions": [
+    {
+      "rank": 1,
+      "name": "stage2_stage3_frozen_E1_functional_feature_anchor",
+      "selected": true,
+      "new_inference_parameters": 0,
+      "new_inference_compute": 0
+    },
+    {
+      "rank": 2,
+      "name": "family_scoped_abnormal_dice_classification_conflict_projection",
+      "selected": false
+    },
+    {
+      "rank": 3,
+      "name": "bounded_reliability_residual_stage_fusion",
+      "selected": false
+    }
+  ],
+  "selected_mechanism": "stage2_stage3_frozen_E1_functional_feature_anchor",
+  "bounded_protocol": "FUNCTIONAL_ANCHOR_BOUNDED_RETRY_R1",
+  "target_tuning_used": false,
+  "full_e15_authorized": false,
+  "medical_inference_authorized": false,
+  "mvtec_inference_authorized": false
+}
