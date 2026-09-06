@@ -1,7 +1,14 @@
 {
   "protocol_status": "PREREGISTERED_NOT_EXECUTED",
   "user_approval_required": true,
-  "protocol_id": "H2_FIXED_E1_RELIABILITY_RESIDUAL_STAGE_FUSION_R1",
+  "protocol_id": "H2_FIXED_E1_RELIABILITY_RESIDUAL_STAGE_FUSION_R2",
+  "amendment": {
+    "reason": "Remove source calibration/endpoint-evaluation overlap by freezing a disjoint endpoint subset.",
+    "mechanism_changed": false,
+    "stage_weights_changed": false,
+    "training_contract_changed": false,
+    "only_evaluation_split_changed": true
+  },
   "source": "VisA",
   "source_only": true,
   "target_inference": false,
@@ -47,17 +54,34 @@
     "functional_anchor": "disabled"
   },
   "calibration": {
-    "rule": "Use frozen shared-E1 stage AP on the fixed 96-image VisA source subset and normalize the three AP values to sum to one.",
+    "rule": "Preserve the already frozen shared-E1 stage AP and weights from the first four normal and first four anomaly records per category; calibration is historical and calibration-only.",
     "source_subset": "first four normal and first four anomalous manifest-order images per VisA category",
+    "subset_role": "CALIBRATION_ONLY",
+    "identity_artifact": "audit/H2_FUSION_CALIBRATION_SUBSET.csv",
     "e1_stage_ap": [0.25648650726844374, 0.22450666405925707, 0.20550848823040294],
     "weights": [0.3736138197153701, 0.3270300383596602, 0.2993561419249697],
+    "weights_frozen": true,
+    "weights_recomputed": false,
     "target_data_used": false,
     "sweep": false
+  },
+  "split_identity": {
+    "artifact": "audit/H2_FUSION_SPLIT_IDENTITY.json",
+    "calibration_artifact": "audit/H2_FUSION_CALIBRATION_SUBSET.csv",
+    "endpoint_eval_artifact": "audit/H2_FUSION_ENDPOINT_EVAL_SUBSET.csv",
+    "calibration_count": 96,
+    "endpoint_eval_count": 96,
+    "intersection_count": 0,
+    "calibration_rule": "first 4 normal and first 4 anomaly records per category",
+    "endpoint_rule": "next 4 normal and next 4 anomaly records per category",
+    "disjoint_split_preflight": "PASS",
+    "canonical_sha256": "1c793fbec91d29dcfa638967d32a7e01d8bbc2e4397816acc786cedb3ea3651b"
   },
   "preflight": {
     "batches": 16,
     "manifest": "audit/H2_FUNC_ANCHOR_R1_BATCH_MANIFEST.csv",
-    "required": "exact file names, labels, transformed-image hashes, and mask hashes"
+    "required": "exact file names, labels, transformed-image hashes, and mask hashes",
+    "split_data_availability": "PASS: every VisA category has at least 8 normal and 8 anomaly records"
   },
   "numerical_validity": {
     "max_isolated_recoverable_nonfinite_gradient_skips_per_arm": 1,
@@ -69,7 +93,10 @@
   },
   "endpoint": {
     "source_subset_count": 96,
-    "source_subset_rule": "first four normal and first four anomalous manifest-order images per VisA category",
+    "source_subset_rule": "next 4 normal and next 4 anomaly manifest-order images per VisA category (positions 5-8)",
+    "subset_role": "ENDPOINT_EVAL",
+    "identity_artifact": "audit/H2_FUSION_ENDPOINT_EVAL_SUBSET.csv",
+    "calibration_subset_excluded": true,
     "medical_inference": false,
     "mvtec_inference": false,
     "required_metrics": [

@@ -4,7 +4,15 @@
 
 `USER_APPROVAL_REQUIRED=YES`
 
-`PROTOCOL_ID=H2_FIXED_E1_RELIABILITY_RESIDUAL_STAGE_FUSION_R1`
+`PROTOCOL_ID=H2_FIXED_E1_RELIABILITY_RESIDUAL_STAGE_FUSION_R2`
+
+`MECHANISM_CHANGED=NO`
+
+`STAGE_WEIGHTS_CHANGED=NO`
+
+`TRAINING_CONTRACT_CHANGED=NO`
+
+`ONLY_EVALUATION_SPLIT_CHANGED=YES`
 
 `SOURCE=VisA_ONLY`
 
@@ -103,14 +111,16 @@ hashes at every attempted batch.
 
 ## Source-only coefficient calibration
 
-The candidate weights are fixed before training by one deterministic rule; no
-coefficient is selected from a candidate endpoint and no target score is
-observed.
+The candidate weights were frozen before this amendment and are now formally
+`CALIBRATION_ONLY`. The calibration subset is never used for bounded endpoint
+pass/fail metrics. No coefficient is selected from a candidate endpoint, and
+no target score is observed.
 
-1. Use the already frozen 96-image VisA source evaluation subset: first four
-   normal and first four anomalous manifest-order images in each VisA category.
-2. Use the shared E1 checkpoint and compute the three stage AP values already
-   recorded in `audit/H2_FUNC_ANCHOR_R1_SOURCE_EVAL.json`:
+1. The calibration subset is the first four normal and first four anomalous
+   manifest-order images in each VisA category. Its complete identity is
+   recorded in `audit/H2_FUSION_CALIBRATION_SUBSET.csv`.
+2. Preserve the already frozen E1 stage AP values recorded in
+   `audit/H2_FUNC_ANCHOR_R1_SOURCE_EVAL.json`:
 
    ```text
    AP_E1 = [0.25648650726844374,
@@ -118,8 +128,9 @@ observed.
             0.20550848823040294]
    ```
 
-3. Set `w_i = AP_E1_i / sum_j(AP_E1_j)`, with no smoothing, clipping, or
-   search. The resulting fixed weights are:
+3. Preserve the resulting fixed weights exactly; do not recompute, smooth,
+   renormalize from another subset, inspect candidate performance, or search
+   alternatives:
 
    ```text
    w = [0.3736138197153701,
@@ -128,8 +139,33 @@ observed.
    ```
 
 The equal-fusion control uses `[1/3, 1/3, 1/3]`; it does not use the calibrated
-weights. This rule is source-only, deterministic, and frozen before either
-bounded arm is run.
+weights. The frozen weights and the calibration-only role are recorded in
+`audit/H2_FUSION_SPLIT_IDENTITY.json`.
+
+## Disjoint source split identity
+
+The data-availability preflight passed before this amendment: every one of the
+12 VisA categories has at least eight normal and eight anomalous records under
+the exact frozen manifest ordering. No fallback or random selection is used.
+
+The endpoint subset is frozen before either arm runs and is disjoint from
+calibration:
+
+* calibration: normal positions 1--4 and anomaly positions 1--4 per category;
+* endpoint evaluation: normal positions 5--8 and anomaly positions 5--8 per
+  category;
+* calibration count: `96`;
+* endpoint-evaluation count: `96`;
+* intersection count: `0`.
+
+The compact identity artifacts are:
+
+* `audit/H2_FUSION_CALIBRATION_SUBSET.csv`;
+* `audit/H2_FUSION_ENDPOINT_EVAL_SUBSET.csv`;
+* `audit/H2_FUSION_SPLIT_IDENTITY.json`.
+
+The old 96 images are calibration-only and cannot contribute endpoint
+pass/fail metrics.
 
 ## Bounded execution and numerical validity
 
@@ -151,8 +187,11 @@ seed, lambda, or horizon in this protocol.
 
 ## Fixed endpoint evaluation
 
-Evaluate both endpoints on the same 96-image clean VisA subset used for the
-coefficient rule. Do not evaluate Medical or MVTec. Record:
+Evaluate both endpoints only on the disjoint 96-image endpoint subset:
+manifest-order normal positions 5--8 and anomaly positions 5--8 in each VisA
+category. Freeze this endpoint list before either arm runs. Do not evaluate
+endpoint pass/fail on the calibration subset, and do not evaluate Medical or
+MVTec. Record:
 
 * final pixel AUROC and AP;
 * stage-1, stage-2, and stage-3 pixel AUROC and AP;
@@ -164,6 +203,10 @@ coefficient rule. Do not evaluate Medical or MVTec. Record:
 * parameter-family drift and update telemetry using the existing family
   partition; no family is newly masked;
 * numerical validity, successful steps, and exact batch parity.
+
+The endpoint identity is recorded in
+`audit/H2_FUSION_ENDPOINT_EVAL_SUBSET.csv`; the calibration subset may only
+document the already-frozen coefficient rule.
 
 ## Mechanism metric and pass/fail gates
 

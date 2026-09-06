@@ -1,0 +1,424 @@
+{
+  "protocol_id": "H2_FIXED_E1_RELIABILITY_RESIDUAL_STAGE_FUSION_R2",
+  "dataset": "VisA",
+  "manifest": "dataset/hub/VisA.jsonl",
+  "manifest_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+  "manifest_order": "CLASS_NAMES[VisA] category order; within each category, original manifest order filtered by label_type",
+  "disjoint_split_preflight": "PASS",
+  "preflight_requirement": "every category has at least 8 normal and 8 anomaly records",
+  "calibration_rule": "first 4 normal and first 4 anomaly records per category",
+  "endpoint_rule": "next 4 normal and next 4 anomaly records per category",
+  "calibration_count": 96,
+  "endpoint_eval_count": 96,
+  "intersection_count": 0,
+  "per_category_counts": [
+    {
+      "category": "candle",
+      "calibration": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "endpoint_eval": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "available": {
+        "normal": 8,
+        "anomaly": 8
+      }
+    },
+    {
+      "category": "pcb3",
+      "calibration": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "endpoint_eval": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "available": {
+        "normal": 8,
+        "anomaly": 8
+      }
+    },
+    {
+      "category": "capsules",
+      "calibration": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "endpoint_eval": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "available": {
+        "normal": 8,
+        "anomaly": 8
+      }
+    },
+    {
+      "category": "pipe_fryum",
+      "calibration": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "endpoint_eval": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "available": {
+        "normal": 8,
+        "anomaly": 8
+      }
+    },
+    {
+      "category": "pcb4",
+      "calibration": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "endpoint_eval": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "available": {
+        "normal": 8,
+        "anomaly": 8
+      }
+    },
+    {
+      "category": "macaroni2",
+      "calibration": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "endpoint_eval": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "available": {
+        "normal": 8,
+        "anomaly": 8
+      }
+    },
+    {
+      "category": "pcb2",
+      "calibration": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "endpoint_eval": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "available": {
+        "normal": 8,
+        "anomaly": 8
+      }
+    },
+    {
+      "category": "chewinggum",
+      "calibration": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "endpoint_eval": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "available": {
+        "normal": 8,
+        "anomaly": 8
+      }
+    },
+    {
+      "category": "macaroni1",
+      "calibration": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "endpoint_eval": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "available": {
+        "normal": 8,
+        "anomaly": 8
+      }
+    },
+    {
+      "category": "cashew",
+      "calibration": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "endpoint_eval": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "available": {
+        "normal": 8,
+        "anomaly": 8
+      }
+    },
+    {
+      "category": "fryum",
+      "calibration": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "endpoint_eval": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "available": {
+        "normal": 8,
+        "anomaly": 8
+      }
+    },
+    {
+      "category": "pcb1",
+      "calibration": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "endpoint_eval": {
+        "normal": 4,
+        "anomaly": 4,
+        "total": 8
+      },
+      "available": {
+        "normal": 8,
+        "anomaly": 8
+      }
+    }
+  ],
+  "ordered_file_names": {
+    "calibration": [
+      "candle/Data/Images/Normal/0994.JPG",
+      "candle/Data/Images/Normal/0214.JPG",
+      "candle/Data/Images/Normal/0844.JPG",
+      "candle/Data/Images/Normal/0659.JPG",
+      "candle/Data/Images/Anomaly/004.JPG",
+      "candle/Data/Images/Anomaly/011.JPG",
+      "candle/Data/Images/Anomaly/010.JPG",
+      "candle/Data/Images/Anomaly/071.JPG",
+      "pcb3/Data/Images/Normal/0725.JPG",
+      "pcb3/Data/Images/Normal/0940.JPG",
+      "pcb3/Data/Images/Normal/0215.JPG",
+      "pcb3/Data/Images/Normal/0024.JPG",
+      "pcb3/Data/Images/Anomaly/062.JPG",
+      "pcb3/Data/Images/Anomaly/024.JPG",
+      "pcb3/Data/Images/Anomaly/078.JPG",
+      "pcb3/Data/Images/Anomaly/057.JPG",
+      "capsules/Data/Images/Normal/179.JPG",
+      "capsules/Data/Images/Normal/016.JPG",
+      "capsules/Data/Images/Normal/417.JPG",
+      "capsules/Data/Images/Normal/402.JPG",
+      "capsules/Data/Images/Anomaly/050.JPG",
+      "capsules/Data/Images/Anomaly/056.JPG",
+      "capsules/Data/Images/Anomaly/090.JPG",
+      "capsules/Data/Images/Anomaly/041.JPG",
+      "pipe_fryum/Data/Images/Normal/098.JPG",
+      "pipe_fryum/Data/Images/Normal/084.JPG",
+      "pipe_fryum/Data/Images/Normal/369.JPG",
+      "pipe_fryum/Data/Images/Normal/484.JPG",
+      "pipe_fryum/Data/Images/Anomaly/069.JPG",
+      "pipe_fryum/Data/Images/Anomaly/054.JPG",
+      "pipe_fryum/Data/Images/Anomaly/067.JPG",
+      "pipe_fryum/Data/Images/Anomaly/017.JPG",
+      "pcb4/Data/Images/Normal/0654.JPG",
+      "pcb4/Data/Images/Normal/0377.JPG",
+      "pcb4/Data/Images/Normal/0994.JPG",
+      "pcb4/Data/Images/Normal/0952.JPG",
+      "pcb4/Data/Images/Anomaly/024.JPG",
+      "pcb4/Data/Images/Anomaly/077.JPG",
+      "pcb4/Data/Images/Anomaly/049.JPG",
+      "pcb4/Data/Images/Anomaly/011.JPG",
+      "macaroni2/Data/Images/Normal/0920.JPG",
+      "macaroni2/Data/Images/Normal/0694.JPG",
+      "macaroni2/Data/Images/Normal/0187.JPG",
+      "macaroni2/Data/Images/Normal/0377.JPG",
+      "macaroni2/Data/Images/Anomaly/026.JPG",
+      "macaroni2/Data/Images/Anomaly/083.JPG",
+      "macaroni2/Data/Images/Anomaly/040.JPG",
+      "macaroni2/Data/Images/Anomaly/070.JPG",
+      "pcb2/Data/Images/Normal/0168.JPG",
+      "pcb2/Data/Images/Normal/0923.JPG",
+      "pcb2/Data/Images/Normal/0178.JPG",
+      "pcb2/Data/Images/Normal/0800.JPG",
+      "pcb2/Data/Images/Anomaly/062.JPG",
+      "pcb2/Data/Images/Anomaly/055.JPG",
+      "pcb2/Data/Images/Anomaly/091.JPG",
+      "pcb2/Data/Images/Anomaly/034.JPG",
+      "chewinggum/Data/Images/Normal/307.JPG",
+      "chewinggum/Data/Images/Normal/006.JPG",
+      "chewinggum/Data/Images/Normal/377.JPG",
+      "chewinggum/Data/Images/Normal/244.JPG",
+      "chewinggum/Data/Images/Anomaly/074.JPG",
+      "chewinggum/Data/Images/Anomaly/006.JPG",
+      "chewinggum/Data/Images/Anomaly/008.JPG",
+      "chewinggum/Data/Images/Anomaly/045.JPG",
+      "macaroni1/Data/Images/Normal/0920.JPG",
+      "macaroni1/Data/Images/Normal/0654.JPG",
+      "macaroni1/Data/Images/Normal/0935.JPG",
+      "macaroni1/Data/Images/Normal/0617.JPG",
+      "macaroni1/Data/Images/Anomaly/017.JPG",
+      "macaroni1/Data/Images/Anomaly/086.JPG",
+      "macaroni1/Data/Images/Anomaly/045.JPG",
+      "macaroni1/Data/Images/Anomaly/039.JPG",
+      "cashew/Data/Images/Normal/130.JPG",
+      "cashew/Data/Images/Normal/166.JPG",
+      "cashew/Data/Images/Normal/460.JPG",
+      "cashew/Data/Images/Normal/089.JPG",
+      "cashew/Data/Images/Anomaly/054.JPG",
+      "cashew/Data/Images/Anomaly/077.JPG",
+      "cashew/Data/Images/Anomaly/081.JPG",
+      "cashew/Data/Images/Anomaly/041.JPG",
+      "fryum/Data/Images/Normal/389.JPG",
+      "fryum/Data/Images/Normal/446.JPG",
+      "fryum/Data/Images/Normal/084.JPG",
+      "fryum/Data/Images/Normal/398.JPG",
+      "fryum/Data/Images/Anomaly/009.JPG",
+      "fryum/Data/Images/Anomaly/020.JPG",
+      "fryum/Data/Images/Anomaly/060.JPG",
+      "fryum/Data/Images/Anomaly/028.JPG",
+      "pcb1/Data/Images/Normal/0215.JPG",
+      "pcb1/Data/Images/Normal/0488.JPG",
+      "pcb1/Data/Images/Normal/0027.JPG",
+      "pcb1/Data/Images/Normal/0615.JPG",
+      "pcb1/Data/Images/Anomaly/043.JPG",
+      "pcb1/Data/Images/Anomaly/068.JPG",
+      "pcb1/Data/Images/Anomaly/001.JPG",
+      "pcb1/Data/Images/Anomaly/057.JPG"
+    ],
+    "endpoint_eval": [
+      "candle/Data/Images/Normal/0518.JPG",
+      "candle/Data/Images/Normal/0685.JPG",
+      "candle/Data/Images/Normal/0705.JPG",
+      "candle/Data/Images/Normal/0237.JPG",
+      "candle/Data/Images/Anomaly/026.JPG",
+      "candle/Data/Images/Anomaly/023.JPG",
+      "candle/Data/Images/Anomaly/045.JPG",
+      "candle/Data/Images/Anomaly/033.JPG",
+      "pcb3/Data/Images/Normal/0402.JPG",
+      "pcb3/Data/Images/Normal/0545.JPG",
+      "pcb3/Data/Images/Normal/0900.JPG",
+      "pcb3/Data/Images/Normal/0196.JPG",
+      "pcb3/Data/Images/Anomaly/070.JPG",
+      "pcb3/Data/Images/Anomaly/043.JPG",
+      "pcb3/Data/Images/Anomaly/084.JPG",
+      "pcb3/Data/Images/Anomaly/082.JPG",
+      "capsules/Data/Images/Normal/576.JPG",
+      "capsules/Data/Images/Normal/469.JPG",
+      "capsules/Data/Images/Normal/552.JPG",
+      "capsules/Data/Images/Normal/237.JPG",
+      "capsules/Data/Images/Anomaly/096.JPG",
+      "capsules/Data/Images/Anomaly/085.JPG",
+      "capsules/Data/Images/Anomaly/073.JPG",
+      "capsules/Data/Images/Anomaly/024.JPG",
+      "pipe_fryum/Data/Images/Normal/309.JPG",
+      "pipe_fryum/Data/Images/Normal/377.JPG",
+      "pipe_fryum/Data/Images/Normal/276.JPG",
+      "pipe_fryum/Data/Images/Normal/389.JPG",
+      "pipe_fryum/Data/Images/Anomaly/014.JPG",
+      "pipe_fryum/Data/Images/Anomaly/021.JPG",
+      "pipe_fryum/Data/Images/Anomaly/019.JPG",
+      "pipe_fryum/Data/Images/Anomaly/084.JPG",
+      "pcb4/Data/Images/Normal/0615.JPG",
+      "pcb4/Data/Images/Normal/0617.JPG",
+      "pcb4/Data/Images/Normal/0024.JPG",
+      "pcb4/Data/Images/Normal/0013.JPG",
+      "pcb4/Data/Images/Anomaly/048.JPG",
+      "pcb4/Data/Images/Anomaly/041.JPG",
+      "pcb4/Data/Images/Anomaly/058.JPG",
+      "pcb4/Data/Images/Anomaly/093.JPG",
+      "macaroni2/Data/Images/Normal/0457.JPG",
+      "macaroni2/Data/Images/Normal/0892.JPG",
+      "macaroni2/Data/Images/Normal/0685.JPG",
+      "macaroni2/Data/Images/Normal/0026.JPG",
+      "macaroni2/Data/Images/Anomaly/052.JPG",
+      "macaroni2/Data/Images/Anomaly/016.JPG",
+      "macaroni2/Data/Images/Anomaly/017.JPG",
+      "macaroni2/Data/Images/Anomaly/034.JPG",
+      "pcb2/Data/Images/Normal/0013.JPG",
+      "pcb2/Data/Images/Normal/0514.JPG",
+      "pcb2/Data/Images/Normal/0107.JPG",
+      "pcb2/Data/Images/Normal/0811.JPG",
+      "pcb2/Data/Images/Anomaly/044.JPG",
+      "pcb2/Data/Images/Anomaly/063.JPG",
+      "pcb2/Data/Images/Anomaly/029.JPG",
+      "pcb2/Data/Images/Anomaly/012.JPG",
+      "chewinggum/Data/Images/Normal/143.JPG",
+      "chewinggum/Data/Images/Normal/460.JPG",
+      "chewinggum/Data/Images/Normal/309.JPG",
+      "chewinggum/Data/Images/Normal/392.JPG",
+      "chewinggum/Data/Images/Anomaly/034.JPG",
+      "chewinggum/Data/Images/Anomaly/072.JPG",
+      "chewinggum/Data/Images/Anomaly/021.JPG",
+      "chewinggum/Data/Images/Anomaly/091.JPG",
+      "macaroni1/Data/Images/Normal/0187.JPG",
+      "macaroni1/Data/Images/Normal/0483.JPG",
+      "macaroni1/Data/Images/Normal/0811.JPG",
+      "macaroni1/Data/Images/Normal/0569.JPG",
+      "macaroni1/Data/Images/Anomaly/037.JPG",
+      "macaroni1/Data/Images/Anomaly/073.JPG",
+      "macaroni1/Data/Images/Anomaly/065.JPG",
+      "macaroni1/Data/Images/Anomaly/052.JPG",
+      "cashew/Data/Images/Normal/023.JPG",
+      "cashew/Data/Images/Normal/369.JPG",
+      "cashew/Data/Images/Normal/228.JPG",
+      "cashew/Data/Images/Normal/484.JPG",
+      "cashew/Data/Images/Anomaly/004.JPG",
+      "cashew/Data/Images/Anomaly/062.JPG",
+      "cashew/Data/Images/Anomaly/092.JPG",
+      "cashew/Data/Images/Anomaly/016.JPG",
+      "fryum/Data/Images/Normal/384.JPG",
+      "fryum/Data/Images/Normal/484.JPG",
+      "fryum/Data/Images/Normal/460.JPG",
+      "fryum/Data/Images/Normal/276.JPG",
+      "fryum/Data/Images/Anomaly/026.JPG",
+      "fryum/Data/Images/Anomaly/033.JPG",
+      "fryum/Data/Images/Anomaly/004.JPG",
+      "fryum/Data/Images/Anomaly/019.JPG",
+      "pcb1/Data/Images/Normal/0923.JPG",
+      "pcb1/Data/Images/Normal/0657.JPG",
+      "pcb1/Data/Images/Normal/0024.JPG",
+      "pcb1/Data/Images/Normal/0187.JPG",
+      "pcb1/Data/Images/Anomaly/070.JPG",
+      "pcb1/Data/Images/Anomaly/071.JPG",
+      "pcb1/Data/Images/Anomaly/017.JPG",
+      "pcb1/Data/Images/Anomaly/072.JPG"
+    ]
+  },
+  "canonical_sha256": "1c793fbec91d29dcfa638967d32a7e01d8bbc2e4397816acc786cedb3ea3651b",
+  "canonicalization": "UTF-8 bytes of 'calibration\\n' + calibration ordered file names joined by '\\n' + '\\nendpoint_eval\\n' + endpoint ordered file names joined by '\\n', with no trailing newline",
+  "calibration_artifact": "audit/H2_FUSION_CALIBRATION_SUBSET.csv",
+  "endpoint_eval_artifact": "audit/H2_FUSION_ENDPOINT_EVAL_SUBSET.csv",
+  "calibration_role": "CALIBRATION",
+  "endpoint_eval_role": "ENDPOINT_EVAL"
+}
