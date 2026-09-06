@@ -23,13 +23,12 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-import phase2b_anchor_diagnosis as pinned_metrics
-
 REPO = Path(__file__).resolve().parents[1]
 EXTERNAL_EVALUATOR = Path("/workspace/ACD-CLIP-medical-test")
 sys.path.insert(0, str(REPO))
 sys.path.insert(1, str(EXTERNAL_EVALUATOR))
 
+import phase2b_anchor_diagnosis as pinned_metrics
 from dataset import CLASS_NAMES, DOMAINS, get_text_and_image_dataset
 from h2_clean.stage_fusion import (
     H2_EQUAL_STAGE_FUSION_WEIGHTS,
