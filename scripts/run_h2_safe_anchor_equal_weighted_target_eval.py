@@ -17,6 +17,7 @@ import os
 import sys
 import tempfile
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import torch
@@ -208,7 +209,27 @@ def open_spool() -> tuple[tempfile.NamedTemporaryFile, tempfile.NamedTemporaryFi
     return score, target
 
 
-def evaluate_dataset_pair(model, dataset_name: str, class_name: str, dataset, text_cache, device, config, epoch: int, image_score_rule: str):
+def unlink_spools(spools) -> None:
+    for pair in spools.values():
+        for item in pair:
+            try:
+                Path(item.name).unlink()
+            except FileNotFoundError:
+                pass
+
+
+def evaluate_dataset_pair(
+        model,
+        dataset_name: str,
+        class_name: str,
+        dataset,
+        text_cache,
+        device,
+        config,
+        epoch: int,
+        image_score_rule: str,
+        metric_executor: ThreadPoolExecutor | None = None,
+):
     loader = DataLoader(
         dataset,
         batch_size=config.batch_size,
@@ -266,58 +287,107 @@ def evaluate_dataset_pair(model, dataset_name: str, class_name: str, dataset, te
         for score, target in handles.values():
             score.close()
             target.close()
-    metrics = {}
-    try:
-        for mode in MODES:
-            auc_value, ap_value = exact_pixel_metrics(
+    pixel_tasks = {
+        mode: (
+            metric_executor.submit(
+                exact_pixel_metrics,
+                Path(spools[mode][0].name),
+                Path(spools[mode][1].name),
+                counts[mode],
+            )
+            if metric_executor is not None
+            else exact_pixel_metrics(
                 Path(spools[mode][0].name), Path(spools[mode][1].name), counts[mode]
             )
-            if image_score_rule == "cls_only":
-                image_scores = [row["cls_score"] for row in raw_rows[mode]]
-            elif image_score_rule == "0.9_cls_0.1_max":
-                image_scores = [0.9 * row["cls_score"] + 0.1 * row["max_pixel"] for row in raw_rows[mode]]
-            else:
-                raise ValueError(f"unknown image score rule: {image_score_rule}")
-            labels = [row["label"] for row in raw_rows[mode]]
-            image_auc, image_ap = metric_or_none(image_scores, labels, round_result=False)
-            metrics[mode] = {
-                "mode": mode,
-                "dataset": dataset_name,
-                "class_name": class_name,
-                "epoch": epoch,
-                "prompt_config": "current_shared",
-                "score_rule": image_score_rule,
-                "pixel_auroc": auc_value * 100.0,
-                "pixel_ap": ap_value * 100.0,
-                "image_auroc": image_auc,
-                "image_ap": image_ap,
-                "sample_count": len(raw_rows[mode]),
-                "pixel_count": counts[mode],
-            }
-    finally:
-        for pair in spools.values():
-            for item in pair:
-                try:
-                    Path(item.name).unlink()
-                except FileNotFoundError:
-                    pass
+        )
+        for mode in MODES
+    }
+    metrics = {}
+    for mode in MODES:
+        if image_score_rule == "cls_only":
+            image_scores = [row["cls_score"] for row in raw_rows[mode]]
+        elif image_score_rule == "0.9_cls_0.1_max":
+            image_scores = [0.9 * row["cls_score"] + 0.1 * row["max_pixel"] for row in raw_rows[mode]]
+        else:
+            raise ValueError(f"unknown image score rule: {image_score_rule}")
+        labels = [row["label"] for row in raw_rows[mode]]
+        image_auc, image_ap = metric_or_none(image_scores, labels, round_result=False)
+        if metric_executor is None:
+            auc_value, ap_value = pixel_tasks[mode]
+        else:
+            auc_value = ap_value = None
+        metrics[mode] = {
+            "mode": mode,
+            "dataset": dataset_name,
+            "class_name": class_name,
+            "epoch": epoch,
+            "prompt_config": "current_shared",
+            "score_rule": image_score_rule,
+            "pixel_auroc": None if auc_value is None else auc_value * 100.0,
+            "pixel_ap": None if ap_value is None else ap_value * 100.0,
+            "image_auroc": image_auc,
+            "image_ap": image_ap,
+            "sample_count": len(raw_rows[mode]),
+            "pixel_count": counts[mode],
+        }
+        if metric_executor is not None:
+            metrics[mode]["_pixel_future"] = pixel_tasks[mode]
+            metrics[mode]["_score_path"] = spools[mode][0].name
+            metrics[mode]["_target_path"] = spools[mode][1].name
+    if metric_executor is None:
+        unlink_spools(spools)
     return metrics
+
+
+def resolve_pixel_metrics(rows: list[dict]) -> None:
+    for row in rows:
+        future = row.pop("_pixel_future", None)
+        if future is None:
+            continue
+        try:
+            auc_value, ap_value = future.result()
+            row["pixel_auroc"] = float(auc_value * 100.0)
+            row["pixel_ap"] = float(ap_value * 100.0)
+        finally:
+            for key in ("_score_path", "_target_path"):
+                path = row.pop(key, None)
+                if path is not None:
+                    try:
+                        Path(path).unlink()
+                    except FileNotFoundError:
+                        pass
 
 
 def evaluate_medical(model, config, checkpoints: dict[int, Path], summary: dict) -> dict:
     rows = []
-    for epoch, checkpoint in checkpoints.items():
-        validate_checkpoint(checkpoint, epoch, summary)
-        load_checkpoint(model, checkpoint, config)
-        for dataset_name in MEDICAL_PIXEL_DATASETS:
-            datasets = get_text_and_image_dataset(dataset_name, config.img_size, "test")
-            text_cache = build_text_cache(model, dataset_name, list(datasets), model.device if hasattr(model, "device") else next(model.parameters()).device, "current_shared")
-            for class_name, dataset in datasets.items():
-                pair = evaluate_dataset_pair(
-                    model, dataset_name, class_name, prepare_dataset(dataset, config),
-                    text_cache, next(model.parameters()).device, config, epoch, "cls_only"
-                )
-                rows.extend(pair.values())
+    pending = []
+    executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="pinned-pixel")
+    try:
+        for epoch, checkpoint in checkpoints.items():
+            validate_checkpoint(checkpoint, epoch, summary)
+            load_checkpoint(model, checkpoint, config)
+            for dataset_name in MEDICAL_PIXEL_DATASETS:
+                datasets = get_text_and_image_dataset(dataset_name, config.img_size, "test")
+                device = next(model.parameters()).device
+                text_cache = build_text_cache(model, dataset_name, list(datasets), device, "current_shared")
+                for class_name, dataset in datasets.items():
+                    pair = evaluate_dataset_pair(
+                        model, dataset_name, class_name, prepare_dataset(dataset, config),
+                        text_cache, device, config, epoch, "cls_only", executor
+                    )
+                    pending.extend(pair.values())
+                    rows.extend(pair.values())
+        resolve_pixel_metrics(pending)
+    finally:
+        executor.shutdown(wait=True)
+        for row in pending:
+            for key in ("_score_path", "_target_path"):
+                path = row.pop(key, None)
+                if path is not None:
+                    try:
+                        Path(path).unlink()
+                    except FileNotFoundError:
+                        pass
     return build_trajectory(rows, "Medical", summary)
 
 
@@ -329,19 +399,34 @@ def evaluate_mvtec(model, config, checkpoints: dict[int, Path], summary: dict) -
     if freeze_payload.get("mvtec_observed_before_selection") is not False:
         raise RuntimeError("MVTec ordering guard failed")
     rows = []
-    for epoch, checkpoint in checkpoints.items():
-        validate_checkpoint(checkpoint, epoch, summary)
-        load_checkpoint(model, checkpoint, config)
-        dataset_name = "MVTec"
-        datasets = get_text_and_image_dataset(dataset_name, config.img_size, "test")
-        text_cache = build_text_cache(model, dataset_name, list(datasets), next(model.parameters()).device, "current_shared")
-        for class_name, dataset in datasets.items():
-            pair = evaluate_dataset_pair(
-                model, dataset_name, class_name, prepare_dataset(dataset, config),
-                text_cache, next(model.parameters()).device, config, epoch, "0.9_cls_0.1_max"
-            )
-            for mode, row in pair.items():
-                rows.append(row)
+    pending = []
+    executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="pinned-pixel")
+    try:
+        for epoch, checkpoint in checkpoints.items():
+            validate_checkpoint(checkpoint, epoch, summary)
+            load_checkpoint(model, checkpoint, config)
+            dataset_name = "MVTec"
+            datasets = get_text_and_image_dataset(dataset_name, config.img_size, "test")
+            device = next(model.parameters()).device
+            text_cache = build_text_cache(model, dataset_name, list(datasets), device, "current_shared")
+            for class_name, dataset in datasets.items():
+                pair = evaluate_dataset_pair(
+                    model, dataset_name, class_name, prepare_dataset(dataset, config),
+                    text_cache, device, config, epoch, "0.9_cls_0.1_max", executor
+                )
+                pending.extend(pair.values())
+                rows.extend(pair.values())
+        resolve_pixel_metrics(pending)
+    finally:
+        executor.shutdown(wait=True)
+        for row in pending:
+            for key in ("_score_path", "_target_path"):
+                path = row.pop(key, None)
+                if path is not None:
+                    try:
+                        Path(path).unlink()
+                    except FileNotFoundError:
+                        pass
     return build_trajectory(rows, "MVTec", summary, mvtec_image_rule=True)
 
 
