@@ -198,6 +198,7 @@ def patch_resume_identity() -> None:
             payload["parent_scientific_config"] = dict(parent)
             payload["git_sha"] = kwargs.get("expected_git_sha")
             payload["implementation_git_sha"] = expected["implementation_git_sha"]
+            payload["precision"] = expected["precision"]
             # The historical E1 payload predates this redundant identity key;
             # derive it from the already-recorded AMP precision state without
             # changing any model, optimizer, scheduler, scaler, or RNG state.
