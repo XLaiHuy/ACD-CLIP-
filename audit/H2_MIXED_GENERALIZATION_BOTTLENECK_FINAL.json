@@ -1,0 +1,67 @@
+{
+  "status": "PASS",
+  "baseline": "HISTORICAL_MIXED_FP16_FP32_V1",
+  "source_inference_reused": true,
+  "source_image_count": 2162,
+  "exact_metric_cohort_count": 48,
+  "training_run": false,
+  "target_inference_run": false,
+  "target_tuning": false,
+  "hyperparameter_search": false,
+  "routing_stability": {
+    "classification": "HEALTHY",
+    "mean_map_spearman": 0.9404258120152617,
+    "mean_top1_overlap": 0.8196141407317679,
+    "mean_routing_l1": 0.0013556403296711831
+  },
+  "feature_geometry_stability": {
+    "classification": "STRONGLY_DEGRADED",
+    "A_all_region_stage_mean_cosine_to_E1": 0.8593326012293497,
+    "A_all_region_stage_mean_linear_CKA_to_E1": 0.44249675174554187
+  },
+  "family_utilization": {
+    "conv_lora": "OVERACTIVE",
+    "conv_lora_A_drift_energy_share": 0.625798,
+    "image_projection": "HEALTHY",
+    "dfg_qk": "HEALTHY_LOW_INSTANTANEOUS_GRADIENT",
+    "ss2d": "HEALTHY_LOW_INSTANTANEOUS_GRADIENT",
+    "text_adapter": "HEALTHY",
+    "soft_prompt": "HEALTHY"
+  },
+  "severe_gradient_conflict": false,
+  "ranking": [
+    {
+      "rank": "primary",
+      "mechanism": "late_stage_functional_overadaptation_and_anomaly_undercoverage",
+      "causal_status": "LIKELY_SOURCE_POSSIBLE_TARGET"
+    },
+    {
+      "rank": "secondary",
+      "mechanism": "segmentation_gradient_imbalance_and_conflict",
+      "causal_status": "POSSIBLE"
+    },
+    {
+      "rank": "tertiary",
+      "mechanism": "rare_fp16_gradient_invalidity",
+      "causal_status": "CONFIRMED_VALIDITY_UNKNOWN_TARGET_CONTRIBUTION"
+    }
+  ],
+  "candidate_solutions": [
+    {
+      "name": "stage2_stage3_frozen_E1_functional_feature_anchor",
+      "selected": true,
+      "new_inference_parameters": 0,
+      "new_inference_compute": 0
+    },
+    {
+      "name": "family_scoped_abnormal_dice_classification_conflict_projection",
+      "selected": false
+    },
+    {
+      "name": "bounded_reliability_residual_stage_fusion",
+      "selected": false
+    }
+  ],
+  "selected_solution_count": 1,
+  "full_training_authorized": false
+}
