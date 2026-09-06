@@ -21,10 +21,9 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.nn.functional as F
-from scipy import ndimage
-from sklearn.metrics import average_precision_score, roc_auc_score
 from torch.utils.data import DataLoader
 from PIL import Image
+from torchmetrics.functional import auroc, average_precision
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
@@ -127,11 +126,22 @@ def load(model, payload):
 def stat_metrics(scores, labels):
     y = np.asarray(labels, dtype=np.uint8).reshape(-1); x = np.asarray(scores, dtype=np.float32).reshape(-1)
     if y.min() == y.max(): return {"auroc":None,"ap":None}
-    return {"auroc":float(roc_auc_score(y,x)), "ap":float(average_precision_score(y,x))}
+    xt=torch.from_numpy(x); yt=torch.from_numpy(y)
+    return {"auroc":float(auroc(xt,yt,task="binary")), "ap":float(average_precision(xt,yt,task="binary"))}
 
 
 def map_metrics(scores, mask):
     return stat_metrics(scores, mask)
+
+
+def morphology_partitions(mask):
+    """Fixed 3-output-pixel square-structuring-element morphology."""
+    x=torch.from_numpy(mask.astype(np.float32))[None,None]
+    kernel=2*BOUNDARY_WIDTH+1
+    dilated=F.max_pool2d(x,kernel,stride=1,padding=BOUNDARY_WIDTH).bool()[0,0].numpy()
+    eroded=(1-F.max_pool2d(1-x,kernel,stride=1,padding=BOUNDARY_WIDTH)).bool()[0,0].numpy()
+    pos=mask.astype(bool); neg=~pos
+    return pos & ~eroded, eroded, dilated & neg
 
 
 def state_drift(current, reference, prefix):
@@ -249,8 +259,7 @@ def main():
             for bi in range(len(labels)):
                 pos=mask_np[bi].astype(bool); neg=~pos
                 # deterministic boundary/interior/background partitions.
-                boundary=pos & (ndimage.distance_transform_edt(pos)<=BOUNDARY_WIDTH); interior=pos & ~boundary
-                ring=ndimage.binary_dilation(pos,iterations=BOUNDARY_WIDTH)&neg
+                boundary,interior,ring=morphology_partitions(pos)
                 area=float(pos.mean()) if labels[bi] else 0.0
                 stratum=None if not labels[bi] else ("small" if area<=q[0] else "medium" if area<=q[1] else "large")
                 for arm in ("H","A"):
