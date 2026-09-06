@@ -1,0 +1,118 @@
+{
+  "BOUNDED_SCREEN": "FAIL",
+  "FULL_E15_STARTED": false,
+  "MECHANISM_STATUS": "NOT_SUPPORTED_BY_R2",
+  "R_late": {
+    "candidate_lower": true,
+    "candidate_mean": 0.6262476444244385,
+    "candidate_minus_control": -0.03113776445388794,
+    "control_mean": 0.6573854088783264
+  },
+  "arms": {
+    "A_FUSE_SHORT_R2_CANDIDATE": {
+      "attempted_steps": 500,
+      "max_consecutive_nonfinite_grad_skips": 1,
+      "nonfinite_grad_skips": 1,
+      "nonfinite_loss_skips": 0,
+      "optimizer_state_failures": 0,
+      "parameter_corruption": 0,
+      "successful_steps": 499
+    },
+    "A_FUSE_SHORT_R2_CONTROL": {
+      "attempted_steps": 500,
+      "max_consecutive_nonfinite_grad_skips": 1,
+      "nonfinite_grad_skips": 1,
+      "nonfinite_loss_skips": 0,
+      "optimizer_state_failures": 0,
+      "parameter_corruption": 0,
+      "successful_steps": 499
+    }
+  },
+  "branch": "research/h2-fixed-fusion-bounded-r2",
+  "calibration_subset_used_for_pass_fail": false,
+  "decision_head": "06e2107823fadc29ffdf0337c9acb7b8055b889a",
+  "endpoint_absolute_metrics": {
+    "candidate": {
+      "final": {
+        "ap": 0.3619623353317852,
+        "auroc": 0.8688290333246864
+      },
+      "stage1": {
+        "ap": 0.2986537187491768,
+        "auroc": 0.8950547322313427
+      },
+      "stage2": {
+        "ap": 0.34803912683719496,
+        "auroc": 0.7390371230470038
+      },
+      "stage3": {
+        "ap": 0.300662460781894,
+        "auroc": 0.8292943730461778
+      }
+    },
+    "control": {
+      "final": {
+        "ap": 0.36735722441869584,
+        "auroc": 0.8586242108010145
+      },
+      "stage1": {
+        "ap": 0.31143993600969505,
+        "auroc": 0.8952258622573654
+      },
+      "stage2": {
+        "ap": 0.3656722202635266,
+        "auroc": 0.7584629469002174
+      },
+      "stage3": {
+        "ap": 0.2883014235044692,
+        "auroc": 0.7409282716819409
+      }
+    }
+  },
+  "endpoint_metric_deltas_candidate_minus_control": {
+    "final_ap_delta": -0.005394889086910659,
+    "final_auroc_delta": 0.010204822523671941,
+    "interior_mean_delta": 0.012264832854270935,
+    "interior_median_delta": 1.711181027985731e-06,
+    "positive_mean_delta": 0.009969443082809448,
+    "positive_median_delta": 1.6026943967517582e-06,
+    "stage1_ap_delta": -0.012786217260518262,
+    "stage1_auroc_delta": -0.00017113002602275884,
+    "stage2_ap_delta": -0.017633093426331625,
+    "stage3_ap_delta": 0.012361037277424824
+  },
+  "exact_batch_identity_match": true,
+  "gates": {
+    "R_late_lower": true,
+    "exact_batch_identity_match": true,
+    "final_ap_noninferior": false,
+    "final_auroc_noninferior": true,
+    "interior_mean_noninferior": true,
+    "interior_median_noninferior": true,
+    "numerical_validity": true,
+    "positive_mean_noninferior": true,
+    "positive_median_noninferior": true,
+    "stage1_ap_noninferior": false,
+    "stage1_auroc_noninferior": false
+  },
+  "implementation_parity": "PASS",
+  "medical_evaluated": false,
+  "mvtec_evaluated": false,
+  "next_full_e15": "NOT_STARTED; requires a new explicit user approval after this bounded R2 decision",
+  "preflight": "PASS",
+  "prohibitions_after_decision": [
+    "Do not start full E15 from this result without new user approval.",
+    "Do not reinterpret geometry alone as a mechanism pass.",
+    "Do not use calibration or target data to revise this decision."
+  ],
+  "protocol_id": "H2_FIXED_E1_RELIABILITY_RESIDUAL_STAGE_FUSION_R2",
+  "scientific_gate": false,
+  "split": {
+    "calibration_count": 96,
+    "endpoint_count": 96,
+    "intersection_count": 0
+  },
+  "start_checkpoint": "runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth",
+  "start_checkpoint_sha256": "7f9176b7ef53b572935567c574535075a573175b2aa83505d043a71d45b12b35",
+  "target_data_used": false
+}
