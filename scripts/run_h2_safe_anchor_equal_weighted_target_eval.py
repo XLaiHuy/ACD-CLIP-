@@ -23,6 +23,8 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+import phase2b_anchor_diagnosis as pinned_metrics
+
 REPO = Path(__file__).resolve().parents[1]
 EXTERNAL_EVALUATOR = Path("/workspace/ACD-CLIP-medical-test")
 sys.path.insert(0, str(REPO))
@@ -46,6 +48,14 @@ from phase2b_anchor_diagnosis import (
     prepare_dataset,
 )
 from phase2cd_medical_eval import evaluator_args
+
+
+# Keep the pinned evaluator's exact sort/merge implementation, but use larger
+# internal chunks for this run's billion-pixel medical datasets.  These values
+# change only I/O and working-set size, not ordering, tie handling, or metric
+# formulas.
+pinned_metrics._PIXEL_SORT_CHUNK = 64_000_000
+pinned_metrics._PIXEL_MERGE_CHUNK = 8_000_000
 
 
 PROTOCOL_ID = "H2_SAFE_ANCHOR_E20_MEDICAL_SELECTED"
