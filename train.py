@@ -93,6 +93,18 @@ def tensor_bytes_sha256(tensor: torch.Tensor) -> str:
     value = tensor.detach().cpu().contiguous()
     return hashlib.sha256(value.numpy().tobytes()).hexdigest()
 
+
+def _atomic_torch_save(payload, path: str) -> None:
+    """Publish epoch checkpoints atomically so readers never see a partial file."""
+    temporary = f"{path}.tmp.{os.getpid()}"
+    try:
+        torch.save(payload, temporary)
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
 def diagnostics_to_python(diagnostics):
     converted = {}
     for key in sorted(diagnostics):
@@ -1298,7 +1310,7 @@ def train(
         }
         if use_soft_prompt or use_hybrid_soft_prompt:
             model_dict["soft_prompt"] = model.soft_prompt.state_dict()
-        torch.save(model_dict, ckp_path)
+        _atomic_torch_save(model_dict, ckp_path)
         # New clean runs carry a resumable optimizer/RNG/scheduler payload;
         # the historical top-level adapter aliases are retained above.
         model_dict.update(build_full_checkpoint(
@@ -1323,7 +1335,7 @@ def train(
             later_transformer_fp32_islands=later_transformer_fp32_islands,
             tf32_enabled=tf32_enabled,
         ))
-        torch.save(model_dict, ckp_path)
+        _atomic_torch_save(model_dict, ckp_path)
     return model
 
 
