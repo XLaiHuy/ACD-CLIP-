@@ -150,7 +150,8 @@ def image_grad_norm(loss, model):
 
 
 def gradient_list_norm(grads) -> float:
-    return float(sum(g.detach().float().square().sum() for g in grads if g is not None).sqrt().cpu())
+    values=[g.detach().float().square().sum() for g in grads if g is not None]
+    return float(torch.stack(values).sum().sqrt().cpu()) if values else 0.0
 
 
 def calibrate(payload, reference_path: Path, output: Path):
