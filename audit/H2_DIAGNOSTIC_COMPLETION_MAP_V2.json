@@ -1,0 +1,27 @@
+{
+  "version": "H2_DIAGNOSTIC_COMPLETION_MAP_V2",
+  "first_incomplete_at_recovery_start": "17_cheap_fixed_source_counterfactual",
+  "phases": [
+    {"phase": 0, "name": "baseline verification", "classification": "COMPLETE_VALID", "evidence": "audit/H2_EXACT_LOCAL_IDENTITY.json and SHA256 checks"},
+    {"phase": 1, "name": "gap reconstruction", "classification": "COMPLETE_VALID", "evidence": "audit/H2_GENERALIZATION_GAP_RECONSTRUCTION.md"},
+    {"phase": 2, "name": "pixel ranking/localization/morphology", "classification": "COMPLETE_VALID", "evidence": "audit/H2_MIXED_SOURCE_PIXEL_RANKING.csv"},
+    {"phase": 3, "name": "DFG/SS2D routing", "classification": "COMPLETE_VALID", "evidence": "audit/H2_MIXED_DFG_ROUTING.csv and audit/H2_MIXED_DFG_STABILITY.csv"},
+    {"phase": 4, "name": "feature geometry", "classification": "COMPLETE_VALID", "evidence": "audit/H2_MIXED_FEATURE_GEOMETRY.csv"},
+    {"phase": 5, "name": "parameter-family utilization", "classification": "COMPLETE_VALID", "evidence": "audit/H2_MIXED_ADAPTER_UTILIZATION.csv"},
+    {"phase": 6, "name": "optimization/LR dynamics", "classification": "COMPLETE_VALID", "evidence": "audit/H2_OPTIMIZATION_FORENSICS.md"},
+    {"phase": 7, "name": "loss-gradient conflict", "classification": "COMPLETE_VALID", "evidence": "audit/H2_MIXED_LOSS_GRADIENT_CONFLICT.csv/json"},
+    {"phase": 8, "name": "prompt/text geometry", "classification": "COMPLETE_VALID", "evidence": "audit/H2_MIXED_PROMPT_GEOMETRY.csv and semantic geometry"},
+    {"phase": 9, "name": "fixed inference-only sensitivity", "classification": "COMPLETE_VALID", "evidence": "frozen protocol and final bottleneck report"},
+    {"phase": 10, "name": "frozen post-hoc source analysis", "classification": "COMPLETE_VALID", "evidence": "H2_MIXED_GENERALIZATION_BOTTLENECK_FINAL.json"},
+    {"phase": 11, "name": "master causal scorecard", "classification": "COMPLETE_VALID", "evidence": "H2_MIXED_GENERALIZATION_BOTTLENECK_FINAL.md/json"},
+    {"phase": 12, "name": "primary/secondary/tertiary assignment", "classification": "COMPLETE_VALID", "evidence": "H2_GENERALIZATION_BOTTLENECK_V2_DECISION.md/json"},
+    {"phase": 13, "name": "targeted mechanism research", "classification": "COMPLETE_VALID", "evidence": "frozen Top-3 table"},
+    {"phase": 14, "name": "simplicity filtering", "classification": "COMPLETE_VALID", "evidence": "Top-3 rationale"},
+    {"phase": 15, "name": "mathematical/adversarial red-team", "classification": "COMPLETE_VALID", "evidence": "DFG, loss-gradient, and numerical audits"},
+    {"phase": 16, "name": "Top-K <= 3", "classification": "COMPLETE_VALID", "evidence": "exactly three candidates and one selected"},
+    {"phase": 17, "name": "cheap fixed source counterfactual", "classification": "COMPLETE_VALID", "evidence": "H2_FUNC_ANCHOR_R1_SOURCE_EVAL.json/csv"},
+    {"phase": 18, "name": "final selected direction", "classification": "COMPLETE_VALID", "evidence": "results/H2_MASTER_RESEARCH_DECISION_V2.md/json"}
+  ],
+  "remaining_limitation": "historical external large-array root absent; compact evidence is available",
+  "no_remaining_diagnostic_phase_required": true
+}
