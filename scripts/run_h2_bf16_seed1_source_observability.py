@@ -274,7 +274,7 @@ def main():
                     im=map_metrics(final,pos) if labels[bi] and pos.any() and neg.any() else {"auroc":None,"ap":None}
                     rows.append({"arm":arm,"index":index,"image_id":batch["file_name"][bi],"category":category,"label":int(labels[bi]),"anomaly_pixels":int(pos.sum()),"area_ratio":area,"stratum":stratum,"pixel_auroc":im["auroc"],"pixel_ap":im["ap"],"image_score":float(states[arm]["image"][bi]),"top_1pct_normal_quantile":float(np.quantile(final[neg],1-TOP_K_FRACTION))})
                 # paired feature distances at each frozen stage, including E1.
-                patchmask=F.interpolate(mask[bi:bi+1].float(),size=(37,37),mode="nearest")[0,0].bool()
+                patchmask=F.interpolate(mask[bi:bi+1].float(),size=(37,37),mode="nearest")[0,0].bool().flatten()
                 for stage in range(3):
                     h,a,e=(states[x]["vision"][stage,bi] for x in ("H","A","E1"))
                     for name,x,y in (("H_A",h,a),("H_E1",h,e),("A_E1",a,e)):
