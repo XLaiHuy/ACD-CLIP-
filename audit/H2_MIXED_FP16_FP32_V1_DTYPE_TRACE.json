@@ -1,0 +1,166 @@
+{
+  "autocast_dtype": "torch.float16",
+  "bf16_tensor_observed": false,
+  "dfg_runtime_dtypes": {
+    "stage1_runtime_dtype_dfg_residual_key": "torch.float32",
+    "stage1_runtime_dtype_dfg_residual_query": "torch.float32",
+    "stage1_runtime_dtype_dfg_residual_scores": "torch.float16",
+    "stage1_runtime_dtype_k_normal": "torch.float16",
+    "stage1_runtime_dtype_q_gap": "torch.float16",
+    "stage1_runtime_dtype_q_ss2d": "torch.float16",
+    "stage2_runtime_dtype_dfg_residual_key": "torch.float32",
+    "stage2_runtime_dtype_dfg_residual_query": "torch.float32",
+    "stage2_runtime_dtype_dfg_residual_scores": "torch.float16",
+    "stage2_runtime_dtype_k_normal": "torch.float16",
+    "stage2_runtime_dtype_q_gap": "torch.float16",
+    "stage2_runtime_dtype_q_ss2d": "torch.float16",
+    "stage3_runtime_dtype_dfg_residual_key": "torch.float32",
+    "stage3_runtime_dtype_dfg_residual_query": "torch.float32",
+    "stage3_runtime_dtype_dfg_residual_scores": "torch.float16",
+    "stage3_runtime_dtype_k_normal": "torch.float16",
+    "stage3_runtime_dtype_q_gap": "torch.float16",
+    "stage3_runtime_dtype_q_ss2d": "torch.float16"
+  },
+  "gradient_dtypes": [
+    "torch.float32"
+  ],
+  "gradscaler_enabled": true,
+  "input_dtypes": [
+    "torch.float32"
+  ],
+  "later_transformer_fp32_islands_active": false,
+  "loss_dtypes": {
+    "anchor": "torch.float32",
+    "classification": "torch.float32",
+    "k": "torch.float32",
+    "kg": "torch.float32",
+    "segmentation": "torch.float32",
+    "total": "torch.float32"
+  },
+  "operations": {
+    "attention_projections": {
+      "evidence": "observed at the native MultiheadAttention module boundary",
+      "input_dtypes": [
+        "torch.float16"
+      ],
+      "module": "native nn.MultiheadAttention packed QKV/out projection",
+      "output_dtypes": [
+        "torch.float16"
+      ]
+    },
+    "attention_score_path": {
+      "evidence": "second native MultiheadAttention return tensor",
+      "input_dtypes": [
+        "torch.float16"
+      ],
+      "module": "native nn.MultiheadAttention returned attention weights",
+      "output_dtypes": [
+        "torch.float32"
+      ]
+    },
+    "clip_visual_block": {
+      "input_dtypes": [
+        "torch.float16"
+      ],
+      "module": "clipmodel.visual.transformer.resblocks.0",
+      "output_dtypes": [
+        "torch.float16",
+        "torch.float32"
+      ]
+    },
+    "conv_lora": {
+      "input_dtypes": [
+        "torch.float32"
+      ],
+      "module": "image_adapter.lora_adapters.0",
+      "output_dtypes": [
+        "torch.float32"
+      ]
+    },
+    "dfg_weight_residual": {
+      "evidence": "historical explicit FP32 q/k operands execute under outer FP16 autocast; score output remains historical FP16",
+      "input_dtypes": [
+        "torch.float16",
+        "torch.float32"
+      ],
+      "module": "ACDCLIP._vision_text_attention_fusion",
+      "output_dtypes": [
+        "torch.float16"
+      ]
+    },
+    "image_adapter": {
+      "input_dtypes": [
+        "torch.float32"
+      ],
+      "module": "image_adapter.m_i_w.0",
+      "output_dtypes": [
+        "torch.float32"
+      ]
+    },
+    "native_attention": {
+      "input_dtypes": [
+        "torch.float16"
+      ],
+      "module": "clipmodel.visual.transformer.resblocks.0.attn",
+      "output_dtypes": [
+        "torch.float16",
+        "torch.float32"
+      ]
+    },
+    "native_mlp_fc": {
+      "input_dtypes": [
+        "torch.float16"
+      ],
+      "module": "clipmodel.visual.transformer.resblocks.0.mlp.c_fc",
+      "output_dtypes": [
+        "torch.float16"
+      ]
+    },
+    "native_mlp_projection": {
+      "input_dtypes": [
+        "torch.float16"
+      ],
+      "module": "clipmodel.visual.transformer.resblocks.0.mlp.c_proj",
+      "output_dtypes": [
+        "torch.float16"
+      ]
+    },
+    "ss2d": {
+      "input_dtypes": [
+        "torch.float32"
+      ],
+      "module": "image_adapter.dfg_ss2d_branches.0",
+      "output_dtypes": [
+        "torch.float32"
+      ]
+    },
+    "soft_prompt": {
+      "evidence": "prompt context is consumed by embedding assembly rather than module.__call__",
+      "gradient_dtypes": [],
+      "input_dtypes": [],
+      "module": "soft_prompt trainable context state",
+      "output_dtypes": [
+        "torch.float32"
+      ]
+    },
+    "text_adapter": {
+      "input_dtypes": [
+        "torch.float32"
+      ],
+      "module": "text_adapter.lora_adapters.0",
+      "output_dtypes": [
+        "torch.float32"
+      ]
+    }
+  },
+  "optimizer_state_dtypes": [
+    "torch.float32"
+  ],
+  "parameter_dtypes": [
+    "torch.float32"
+  ],
+  "precision_protocol": "HISTORICAL_MIXED_FP16_FP32_V1",
+  "schema": "H2_RUNTIME_DTYPE_TRACE_V1",
+  "status": "PASS",
+  "transformer_path": "native_nn.MultiheadAttention_and_native_AMP_MLP"
+}

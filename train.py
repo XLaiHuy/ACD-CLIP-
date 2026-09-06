@@ -45,7 +45,12 @@ from h2_clean.contract import (
     seed_everything,
     sha256_file,
 )
-from h2_clean.precision import PrecisionPolicy, resolve_precision_policy
+from h2_clean.precision import (
+    NAMED_PRECISION_PROTOCOLS,
+    PrecisionPolicy,
+    resolve_precision_policy,
+    resolve_precision_runtime_mode,
+)
 
 
 def tensor_debug_stats(tensor):
@@ -181,6 +186,145 @@ def module_gradient_norm(module: torch.nn.Module) -> float:
 def append_jsonl(path: str, row: dict[str, Any]) -> None:
     with open(path, "a", encoding="utf-8") as handle:
         handle.write(json.dumps(row, sort_keys=True) + "\n")
+
+
+def tensor_dtypes(value: Any) -> list[str]:
+    """Return tensor dtypes recursively without retaining graph tensors."""
+    if torch.is_tensor(value):
+        return [str(value.dtype)]
+    if isinstance(value, dict):
+        return sorted({dtype for item in value.values() for dtype in tensor_dtypes(item)})
+    if isinstance(value, (tuple, list)):
+        return sorted({dtype for item in value for dtype in tensor_dtypes(item)})
+    return []
+
+
+class RuntimeDTypeTrace:
+    """One-batch, observational runtime dtype trace for precision audits."""
+
+    def __init__(self, model: torch.nn.Module, path: str | None):
+        self.model = model
+        self.path = path
+        self.operations: dict[str, dict[str, Any]] = {}
+        self.handles = []
+        if path:
+            self._register()
+
+    def _capture(self, category: str, module_name: str):
+        def hook(_module, inputs, output):
+            if category not in self.operations:
+                self.operations[category] = {
+                    "module": module_name,
+                    "input_dtypes": tensor_dtypes(inputs),
+                    "output_dtypes": tensor_dtypes(output),
+                }
+        return hook
+
+    def _register(self):
+        selectors = (
+            ("clip_visual_block", "clipmodel.visual.transformer.resblocks.0"),
+            ("native_attention", "clipmodel.visual.transformer.resblocks.0.attn"),
+            ("attention_projection", "clipmodel.visual.transformer.resblocks.0.attn.out_proj"),
+            ("native_mlp_fc", "clipmodel.visual.transformer.resblocks.0.mlp.c_fc"),
+            ("native_mlp_projection", "clipmodel.visual.transformer.resblocks.0.mlp.c_proj"),
+        )
+        modules = dict(self.model.named_modules())
+        for category, module_name in selectors:
+            if module_name in modules:
+                self.handles.append(modules[module_name].register_forward_hook(self._capture(category, module_name)))
+        class_categories = {
+            "ConvLoraAdapter": "conv_lora",
+            "DFGSS2DResidualBranch": "ss2d",
+            "TextLoraAdapter": "text_adapter",
+            "SoftPromptLearner": "soft_prompt",
+        }
+        for module_name, module in modules.items():
+            category = class_categories.get(type(module).__name__)
+            if category and category not in self.operations:
+                self.handles.append(module.register_forward_hook(self._capture(category, module_name)))
+        for module_name, module in modules.items():
+            if module_name.startswith("image_adapter") and len(list(module.children())) == 0:
+                self.handles.append(module.register_forward_hook(self._capture("image_adapter", module_name)))
+                break
+
+    def finish(self, *, input_tensor, losses, optimizer, scaler, precision_protocol, later_islands):
+        if not self.path:
+            return
+        for handle in self.handles:
+            handle.remove()
+        parameters = sorted({str(parameter.dtype) for parameter in self.model.parameters()})
+        gradients = sorted({str(parameter.grad.dtype) for parameter in self.model.parameters() if parameter.grad is not None})
+        optimizer_states = sorted({
+            str(value.dtype)
+            for state in optimizer.state.values()
+            for value in state.values()
+            if torch.is_tensor(value) and value.is_floating_point()
+        })
+        dfg = diagnostics_to_python(self.model.get_dfg_diagnostics())
+        dfg_dtypes = {key: value for key, value in dfg.items() if "runtime_dtype" in key}
+        if "native_attention" in self.operations:
+            native = self.operations["native_attention"]
+            self.operations.setdefault("attention_projections", {
+                "module": "native nn.MultiheadAttention packed QKV/out projection",
+                "input_dtypes": native["input_dtypes"],
+                "output_dtypes": native["output_dtypes"][:1],
+                "evidence": "observed at the native MultiheadAttention module boundary",
+            })
+            self.operations.setdefault("attention_score_path", {
+                "module": "native nn.MultiheadAttention returned attention weights",
+                "input_dtypes": native["input_dtypes"],
+                "output_dtypes": native["output_dtypes"][1:],
+                "evidence": "second native MultiheadAttention return tensor",
+            })
+        if "soft_prompt" not in self.operations and hasattr(self.model, "soft_prompt"):
+            self.operations["soft_prompt"] = {
+                "module": "soft_prompt trainable context state",
+                "input_dtypes": [],
+                "output_dtypes": sorted({str(parameter.dtype) for parameter in self.model.soft_prompt.parameters()}),
+                "gradient_dtypes": sorted({str(parameter.grad.dtype) for parameter in self.model.soft_prompt.parameters() if parameter.grad is not None}),
+                "evidence": "prompt context is consumed by embedding assembly rather than module.__call__",
+            }
+        self.operations["dfg_weight_residual"] = {
+            "module": "ACDCLIP._vision_text_attention_fusion",
+            "input_dtypes": sorted(set(dfg_dtypes.values())),
+            "output_dtypes": sorted({value for key, value in dfg_dtypes.items() if key.endswith("residual_scores")}),
+            "evidence": "historical explicit FP32 q/k operands execute under outer FP16 autocast; score output remains historical FP16",
+        }
+        all_dtypes = tensor_dtypes(input_tensor) + tensor_dtypes(losses) + parameters + gradients + optimizer_states
+        all_dtypes += [dtype for operation in self.operations.values() for dtype in operation["input_dtypes"] + operation["output_dtypes"]]
+        all_dtypes += list(dfg_dtypes.values())
+        payload = {
+            "schema": "H2_RUNTIME_DTYPE_TRACE_V1",
+            "precision_protocol": precision_protocol,
+            "autocast_dtype": "torch.float16",
+            "gradscaler_enabled": bool(scaler is not None and scaler.is_enabled()),
+            "later_transformer_fp32_islands_active": bool(later_islands),
+            "transformer_path": "native_nn.MultiheadAttention_and_native_AMP_MLP" if not later_islands else "repaired_fp32_islands",
+            "input_dtypes": tensor_dtypes(input_tensor),
+            "operations": self.operations,
+            "loss_dtypes": {name: str(value.dtype) for name, value in losses.items()},
+            "parameter_dtypes": parameters,
+            "gradient_dtypes": gradients,
+            "optimizer_state_dtypes": optimizer_states,
+            "dfg_runtime_dtypes": dfg_dtypes,
+            "bf16_tensor_observed": "torch.bfloat16" in all_dtypes,
+        }
+        payload["status"] = "PASS" if (
+            not payload["bf16_tensor_observed"]
+            and parameters == ["torch.float32"]
+            and gradients == ["torch.float32"]
+            and optimizer_states == ["torch.float32"]
+            and dfg_dtypes
+            and set(dfg_dtypes.values()) <= {"torch.float16", "torch.float32"}
+            and all(value == "torch.float32" for key, value in dfg_dtypes.items() if key.endswith(("residual_query", "residual_key")))
+            and all(value == "torch.float16" for key, value in dfg_dtypes.items() if key.endswith("residual_scores"))
+            and not later_islands
+        ) else "FAIL"
+        os.makedirs(os.path.dirname(os.path.abspath(self.path)), exist_ok=True)
+        with open(self.path, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle, indent=2, sort_keys=True)
+            handle.write("\n")
+        self.path = None
 
 
 def get_dfg_beta_for_epoch(
@@ -362,6 +506,8 @@ def train(
         dataset_manifest_sha256: str | None = None,
         seed: int = 0,
         precision: str = "amp",
+        precision_protocol: str | None = None,
+        later_transformer_fp32_islands: bool | None = None,
         tf32_enabled: bool = False,
         resume_payload: dict[str, Any] | None = None,
         max_batches: int | None = None,
@@ -374,6 +520,7 @@ def train(
         telemetry_interval: int = 0,
         family_telemetry_interval: int = 0,
         abort_on_nonfinite: bool = False,
+        dtype_trace_path: str | None = None,
 ):
     precision_policy = precision_policy or resolve_precision_policy(
         "fp16" if use_amp else "fp32"
@@ -423,6 +570,7 @@ def train(
                 ),
             ).writeheader()
     epoch_summaries: list[dict[str, Any]] = []
+    dtype_trace = RuntimeDTypeTrace(model, dtype_trace_path)
     for epoch in range(int(start_epoch), total_epoch):
         epoch_one_based = epoch + 1
         # Historical H2 keeps all modules in eval mode; trainable adapter
@@ -830,6 +978,21 @@ def train(
                 scaler.step(optimizer)
                 scaler.update()
             global_step += 1
+            dtype_trace.finish(
+                input_tensor=image,
+                losses={
+                    "classification": cls_loss,
+                    "segmentation": seg_loss,
+                    "kg": kg_loss,
+                    "k": k_loss,
+                    "anchor": anchor_loss,
+                    "total": loss,
+                },
+                optimizer=optimizer,
+                scaler=scaler,
+                precision_protocol=precision_protocol,
+                later_islands=later_transformer_fp32_islands,
+            )
             bad_param_name, bad_param_stats = first_nonfinite_trainable_parameter(model)
             if bad_param_name is not None:
                 diag_path = save_nonfinite_diagnostics(
@@ -1007,6 +1170,11 @@ def train(
         epoch_summaries.append({
             "epoch": epoch_one_based,
             "precision": precision_policy.name,
+            "precision_protocol": precision_protocol,
+            "later_transformer_fp32_islands": later_transformer_fp32_islands,
+            "hybrid_alpha": hybrid_alpha_current,
+            "soft_prompt_frozen": soft_prompt_frozen,
+            "dfg_beta": model.dfg_beta,
             "attempted_batches": len(loss_list) + non_finite_loss_skips + non_finite_grad_skips,
             "successful_optimizer_steps": global_step,
             "nonfinite_loss_events": non_finite_loss_skips,
@@ -1019,6 +1187,7 @@ def train(
             "mean_anchor_loss": float(np.mean(anchor_loss_list)) if anchor_loss_list else None,
             "parameter_finite": first_nonfinite_trainable_parameter(model)[0] is None,
             "optimizer_state_finite": optimizer_state_is_finite(optimizer),
+            "trainable_parameter_count": sum(parameter.numel() for parameter in model.parameters() if parameter.requires_grad),
             "lr": {group.get("name", str(index)): group["lr"] for index, group in enumerate(optimizer.param_groups)},
         })
         with open(epoch_summary_path, "w", encoding="utf-8") as handle:
@@ -1150,6 +1319,8 @@ def train(
             anchor_lambda=anchor_lambda,
             seed=seed,
             precision=precision,
+            precision_protocol=precision_protocol,
+            later_transformer_fp32_islands=later_transformer_fp32_islands,
             tf32_enabled=tf32_enabled,
         ))
         torch.save(model_dict, ckp_path)
@@ -1245,9 +1416,15 @@ def main():
         help="explicit compute precision; parameters and optimizer state remain FP32",
     )
     parser.add_argument(
+        "--precision_protocol",
+        choices=NAMED_PRECISION_PROTOCOLS,
+        default=None,
+        help="named scientific precision runtime, including transformer-island semantics",
+    )
+    parser.add_argument(
         "--bf16_local_fp32_islands",
         action=argparse.BooleanOptionalAction,
-        default=True,
+        default=None,
         help="retain the historical FP16 numerical islands under BF16 until the simplified path is proven",
     )
     parser.add_argument(
@@ -1286,11 +1463,24 @@ def main():
     parser.add_argument("--max_batches", type=int, default=None, help="bounded smoke/debug batches per epoch")
     parser.add_argument("--anchor_grad_audit_interval", type=int, default=0, help="0 disables per-batch anchor gradient telemetry")
     parser.add_argument("--trace_batch_identity", action="store_true", help="log first five post-augmentation batch identities for smoke checks")
+    parser.add_argument("--dtype_trace_path", type=str, default=None, help="write one successful batch runtime dtype trace")
 
     args = parser.parse_args()
-    precision_policy = resolve_precision_policy(args.precision, legacy_amp=args.amp)
+    precision_runtime = resolve_precision_runtime_mode(
+        args.precision_protocol,
+        args.precision,
+        legacy_amp=args.amp,
+        legacy_local_fp32_islands=args.bf16_local_fp32_islands,
+    )
+    precision_policy = precision_runtime.policy
     args.precision = precision_policy.name
     args.amp = precision_policy.autocast_enabled
+    args.precision_protocol = precision_runtime.protocol_name
+    args.later_transformer_fp32_islands = precision_runtime.later_transformer_fp32_islands
+    args.bf16_local_fp32_islands = precision_runtime.later_transformer_fp32_islands
+    if torch.cuda.is_available():
+        torch.backends.cuda.matmul.allow_tf32 = False
+        torch.backends.cudnn.allow_tf32 = False
     if args.protocol_horizon is None:
         args.protocol_horizon = args.epoch
     if args.anchor_grad_audit_interval < 0:
@@ -1399,9 +1589,7 @@ def main():
     ).to(device)
     for module in model.modules():
         if hasattr(module, "enable_fp16_numerical_islands"):
-            module.enable_fp16_numerical_islands = bool(
-                args.bf16_local_fp32_islands or precision_policy.name != "bf16"
-            )
+            module.enable_fp16_numerical_islands = args.later_transformer_fp32_islands
     model.eval()
     model.use_hybrid_soft_prompt = bool(args.use_hybrid_soft_prompt)
     model.prompt_mode = "hybrid" if args.use_hybrid_soft_prompt else ("soft" if args.use_soft_prompt else "hard")
@@ -1431,11 +1619,13 @@ def main():
     logger.info("frozen parameters: %s", f"{frozen_params:,}")
     logger.info("dfg_weight_residual_fp32=%s", model.dfg_weight_residual_fp32)
     logger.info(
-        "precision_policy=%s autocast_dtype=%s gradscaler_enabled=%s bf16_local_fp32_islands=%s",
+        "precision_protocol=%s precision_policy=%s autocast_dtype=%s gradscaler_enabled=%s "
+        "later_transformer_fp32_islands=%s",
+        args.precision_protocol,
         precision_policy.name,
         precision_policy.autocast_dtype,
         precision_policy.gradscaler_enabled,
-        args.bf16_local_fp32_islands,
+        args.later_transformer_fp32_islands,
     )
 
     # set optimizer
@@ -1573,6 +1763,8 @@ def main():
         dataset_manifest_sha256=dataset_manifest_sha256,
         seed=args.seed,
         precision=precision_policy.name,
+        precision_protocol=args.precision_protocol,
+        later_transformer_fp32_islands=args.later_transformer_fp32_islands,
         tf32_enabled=torch.backends.cuda.matmul.allow_tf32 if torch.cuda.is_available() else False,
         max_batches=args.max_batches,
         anchor_grad_audit_interval=args.anchor_grad_audit_interval,
@@ -1584,6 +1776,7 @@ def main():
         telemetry_interval=args.telemetry_interval,
         family_telemetry_interval=args.family_telemetry_interval,
         abort_on_nonfinite=args.abort_on_nonfinite,
+        dtype_trace_path=args.dtype_trace_path,
     )
 
 

@@ -631,6 +631,12 @@ class ACDCLIP(nn.Module):
             "scores_ss2d_normal_absmax": None if scores_ss2d_normal is None else scores_ss2d_normal.detach().float().abs().max().cpu(),
             "scores_ss2d_abnormal_finite": None if scores_ss2d_abnormal is None else torch.isfinite(scores_ss2d_abnormal).all().detach().cpu(),
             "scores_ss2d_abnormal_absmax": None if scores_ss2d_abnormal is None else scores_ss2d_abnormal.detach().float().abs().max().cpu(),
+            "runtime_dtype_q_gap": None if q_gap is None else str(q_gap.dtype),
+            "runtime_dtype_q_ss2d": None if q_ss2d is None else str(q_ss2d.dtype),
+            "runtime_dtype_k_normal": str(k_normal.dtype),
+            "runtime_dtype_dfg_residual_query": None if q_ss2d is None else str(q_ss2d_for_attn.dtype),
+            "runtime_dtype_dfg_residual_key": None if q_ss2d is None else str(k_normal_for_attn.dtype),
+            "runtime_dtype_dfg_residual_scores": None if scores_ss2d_normal is None else str(scores_ss2d_normal.dtype),
         }
         text_normal = torch.einsum("bn,bnd->bd", weights_normal, text_normal)
         text_abnormal = torch.einsum("bn,bnd->bd", weights_abnormal, text_abnormal)

@@ -10,6 +10,14 @@ import torch
 
 
 _VALID_PRECISIONS = ("fp32", "fp16", "bf16")
+HISTORICAL_MIXED_FP16_FP32_V1 = "HISTORICAL_MIXED_FP16_FP32_V1"
+BF16_V1 = "BF16_V1"
+REPAIRED_MIXED_FP16_FP32_EXPERIMENTAL = "REPAIRED_MIXED_FP16_FP32_EXPERIMENTAL"
+NAMED_PRECISION_PROTOCOLS = (
+    HISTORICAL_MIXED_FP16_FP32_V1,
+    BF16_V1,
+    REPAIRED_MIXED_FP16_FP32_EXPERIMENTAL,
+)
 
 
 @dataclass(frozen=True)
@@ -54,6 +62,52 @@ class PrecisionPolicy:
             dtype=self.autocast_dtype,
             enabled=True,
         )
+
+
+@dataclass(frozen=True)
+class PrecisionRuntimeMode:
+    """Named scientific precision runtime, separate from autocast dtype."""
+
+    protocol_name: str
+    policy: PrecisionPolicy
+    later_transformer_fp32_islands: bool
+
+
+def resolve_precision_runtime_mode(
+        protocol_name: str | None,
+        precision: str | None,
+        *,
+        legacy_amp: bool = False,
+        legacy_local_fp32_islands: bool | None = None,
+) -> PrecisionRuntimeMode:
+    definitions = {
+        HISTORICAL_MIXED_FP16_FP32_V1: ("fp16", False),
+        BF16_V1: ("bf16", False),
+        REPAIRED_MIXED_FP16_FP32_EXPERIMENTAL: ("fp16", True),
+    }
+    if protocol_name is not None:
+        if protocol_name not in definitions:
+            raise ValueError(
+                f"unsupported precision protocol {protocol_name!r}; "
+                f"expected one of {NAMED_PRECISION_PROTOCOLS}"
+            )
+        expected_precision, expected_islands = definitions[protocol_name]
+        if precision is not None and precision != expected_precision:
+            raise ValueError(f"{protocol_name} requires --precision {expected_precision}")
+        if legacy_amp and expected_precision != "fp16":
+            raise ValueError(f"--amp conflicts with {protocol_name}")
+        if legacy_local_fp32_islands is not None and bool(legacy_local_fp32_islands) != expected_islands:
+            raise ValueError(f"{protocol_name} requires later transformer FP32 islands={expected_islands}")
+        return PrecisionRuntimeMode(protocol_name, PrecisionPolicy(expected_precision), expected_islands)
+
+    policy = resolve_precision_policy(precision, legacy_amp=legacy_amp)
+    islands = True if legacy_local_fp32_islands is None else bool(legacy_local_fp32_islands)
+    inferred = {
+        ("fp16", False): HISTORICAL_MIXED_FP16_FP32_V1,
+        ("fp16", True): REPAIRED_MIXED_FP16_FP32_EXPERIMENTAL,
+        ("bf16", False): BF16_V1,
+    }.get((policy.name, islands), f"LEGACY_{policy.name.upper()}_UNNAMED")
+    return PrecisionRuntimeMode(inferred, policy, islands)
 
 
 def resolve_precision_policy(
