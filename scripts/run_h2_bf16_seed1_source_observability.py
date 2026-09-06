@@ -235,7 +235,7 @@ def main():
     q=np.quantile(areas,[1/3,2/3]); frozen["source_split"]["area_boundaries"]={"small_le":float(q[0]),"medium_le":float(q[1]),"large_gt":float(q[1])}
     index=0
     for category in CLASS_NAMES["VisA"]:
-        loader=DataLoader(datasets[category],batch_size=6,shuffle=False,num_workers=2,pin_memory=True)
+        loader=DataLoader(datasets[category],batch_size=18,shuffle=False,num_workers=2,pin_memory=True)
         for batch in loader:
             image=batch["image"].to(device,non_blocking=True); mask=batch["mask"].to(device); label=batch["label"].to(device)
             states={}; text_cache={}
@@ -282,6 +282,8 @@ def main():
                         for region,sel in (("all",torch.ones_like(patchmask)),("anomalous_pixel",patchmask),("normal_pixel",~patchmask)):
                             if sel.any(): feature_rows.append({"comparison":name,"stage":stage+1,"region":region,"category":category,"cosine_distance":float(cos[sel].mean()),"l2_distance":float(l2[sel].mean())})
                 index+=1
+            if index % 180 == 0 or index == n:
+                print(f"source_observability_processed={index}/{n}", flush=True)
             # prototype and feature-to-prototype distributions, aggregated per batch/state.
             for arm in ("H","A","E1"):
                 t=text_cache[arm]; hard=get_hard_anchor_single_class_text_embedding(model,"VisA",category,device) if arm=="E1" else None
