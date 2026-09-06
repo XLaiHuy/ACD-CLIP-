@@ -1,0 +1,45 @@
+{
+  "IMPLEMENTATION_PARITY": "PASS",
+  "added_trainable_parameter": false,
+  "base_commit": "40b1c0438b39578fd3be879c7ed324f91fe43e51",
+  "candidate_weights": [
+    0.3736138197153701,
+    0.3270300383596602,
+    0.2993561419249697
+  ],
+  "candidate_weights_exact_frozen_vector": true,
+  "candidate_weights_sum": 1.0,
+  "dfg_function_unchanged": true,
+  "equal_reproduces_historical_torch_mean_exactly": true,
+  "equal_weights": [
+    0.3333333333333333,
+    0.3333333333333333,
+    0.3333333333333333
+  ],
+  "files": {
+    "adapter_sha256": "92bb734d7264111e9dd652506c2f472eb5f6010c5f5fb517dc391946b8ae69a7",
+    "runner_sha256": "97ba8fcf67d4583ee9baacebdca583a7588ab785d9410feb0764079a7872c94b",
+    "stage_fusion_sha256": "107203876d02ddab911187629876e32a274a213213a6c93f8e3f2d91d87e477a"
+  },
+  "focused_tests": {
+    "command": "/workspace/venv-acdclip/bin/pytest -q tests/test_stage_fusion.py",
+    "status": "PASS"
+  },
+  "fusion_call": "fuse_stage_logits(all_group_preds, self.stage_fusion_weights)",
+  "fusion_call_count": 1,
+  "fusion_is_before_softmax": true,
+  "interpolation_align_corners_true_preserved": true,
+  "protocol_id": "H2_FIXED_E1_RELIABILITY_RESIDUAL_STAGE_FUSION_R2",
+  "smoothing_path_preserved": true,
+  "source_only_visA_runner": true,
+  "split_calibration_count": 96,
+  "split_disjoint": true,
+  "split_endpoint_count": 96,
+  "split_intersection_count": 0,
+  "ss2d_dfg_function_unchanged": true,
+  "stage_order": [
+    "stage1",
+    "stage2",
+    "stage3"
+  ]
+}

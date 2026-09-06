@@ -15,6 +15,11 @@ from h2_clean.cir_v2 import (
     cir_logits_from_native_weights,
     peer_delta_from_native_margins,
 )
+from h2_clean.stage_fusion import (
+    H2_EQUAL_STAGE_FUSION_WEIGHTS,
+    fuse_stage_logits,
+    validate_stage_fusion_weights,
+)
 
 
 class AddWeight(nn.Module):
@@ -58,6 +63,7 @@ class ACDCLIP(nn.Module):
             dfg_beta_target: float | None = None,
             dfg_beta_current: float | None = None,
             dfg_weight_residual_fp32: bool = True,
+            stage_fusion_weights: tuple[float, float, float] | None = None,
             use_soft_prompt: bool = False,
             soft_prompt_ctx_len: int = 4,
             soft_prompt_init: str = "phrase",
@@ -105,6 +111,9 @@ class ACDCLIP(nn.Module):
         self.dfg_beta_schedule = dfg_beta_schedule
         self.dfg_beta_target = dfg_beta_target
         self.dfg_weight_residual_fp32 = dfg_weight_residual_fp32
+        self.stage_fusion_weights = validate_stage_fusion_weights(
+            H2_EQUAL_STAGE_FUSION_WEIGHTS if stage_fusion_weights is None else stage_fusion_weights
+        )
         self.use_soft_prompt = use_soft_prompt
         self.soft_prompt_ctx_len = soft_prompt_ctx_len
         self.soft_prompt_init = soft_prompt_init
@@ -449,7 +458,7 @@ class ACDCLIP(nn.Module):
             # [1, bs, 2, img_size, img_size]
         ]  # [1, bs, 2, img_size, img_size] * n_groups
         all_group_preds = torch.cat(group_seg_preds, dim=0)  # [n_groups, bs, 2, img_size, img_size]
-        final_seg_pred = torch.mean(all_group_preds, dim=0)  # [bs, 2, img_size, img_size]
+        final_seg_pred = fuse_stage_logits(all_group_preds, self.stage_fusion_weights)
         final_seg_pred = F.softmax(final_seg_pred, dim=1)  # [bs, 2, img_size, img_size]
         if test_mode:
             # [bs, img_size, img_size]
