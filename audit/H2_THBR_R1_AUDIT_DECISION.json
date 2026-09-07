@@ -1,0 +1,71 @@
+{
+  "audit_scope": "source-only frozen 96-image VisA endpoint plus fixed 16 source gradient batches",
+  "boundary_artifact_risk": "LOW",
+  "boundary_near_fraction_by_arm": {
+    "A_GRADBUDGET_R1_DESCRIPTIVE_INVALID": 0.16324557454449903,
+    "A_LATE_CONVLORA_FREEZE_R1": 0.16602274754637608,
+    "A_SAFE_ANCHOR_E10": 0.1634557082900837
+  },
+  "endpoint_evidence": {
+    "gradbudget_descriptive_invalid": {
+      "pixel_metrics": {
+        "ap": 0.3886175441527322,
+        "auroc": 0.856353718901133
+      },
+      "top1_background_mass": 0.9966292061268112,
+      "top_P_near_fraction": 0.27129062068985915
+    },
+    "late_freeze": {
+      "pixel_metrics": {
+        "ap": 0.4088530469979116,
+        "auroc": 0.8887913675956424
+      },
+      "top1_background_mass": 0.9949721762489571,
+      "top_P_near_fraction": 0.2904791407372565
+    },
+    "safe_anchor_e10": {
+      "pixel_metrics": {
+        "ap": 0.3909678186930318,
+        "auroc": 0.8702439293867495
+      },
+      "top1_background_mass": 0.9980220332221782,
+      "top_P_near_fraction": 0.2786043708849341
+    }
+  },
+  "focal_redundancy": "LOW",
+  "gradient_redundancy_evidence": {
+    "existing_task_grad_norm_median": 2.2881261110305786,
+    "focal_top_k_overlap_with_thbr_hard_background_mean": 0.10299576166279395,
+    "thbr_cosine_defined_counts": {
+      "abnormal_dice": 16,
+      "existing_task": 16,
+      "focal": 15,
+      "normal_dice": 0
+    },
+    "thbr_cosine_to_abnormal_dice_median": 0.20759348571300507,
+    "thbr_cosine_to_existing_task_median": 0.14993363618850708,
+    "thbr_cosine_to_focal_median": 0.09488262981176376,
+    "thbr_cosine_to_normal_dice_median": NaN,
+    "thbr_grad_norm_median": 0.9150032103061676,
+    "thbr_to_existing_task_ratio_median": 0.2670493421165961,
+    "zero_gradient_counts": {
+      "abnormal_dice": 0,
+      "focal": 1,
+      "normal_dice": 16,
+      "thbr": 0
+    }
+  },
+  "hard_background_tail_premise": "SUPPORTED",
+  "no_optimizer_update_in_audit": true,
+  "no_target_inference": true,
+  "prior_gradbudget_numerical_status": "INVALID_NUMERICAL",
+  "protocol_id": "H2_THBR_R1",
+  "rubric": {
+    "boundary_dominant": "minimum arm mean top-background-1% near-boundary fraction >= 0.80",
+    "boundary_material": "minimum arm mean top-background-1% near-boundary fraction >= 0.50",
+    "focal_material": "median cosine >= 0.70 or overlap >= 0.50",
+    "focal_near_equivalent": "median THBR/focal parameter-gradient cosine >= 0.95 and focal top-K overlap with THBR hard background >= 0.80",
+    "hard_tail_support": "mean top-1% background score-mass concentration > uniform 1% baseline and nonzero mean near-background fraction in top-P predictions across audited arms"
+  },
+  "thbr_training_authorized": true
+}
