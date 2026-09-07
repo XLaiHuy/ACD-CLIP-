@@ -369,7 +369,8 @@ def evaluate_medical(model, config, checkpoints: dict[int, Path], summary: dict)
             for dataset_name in MEDICAL_PIXEL_DATASETS:
                 datasets = get_text_and_image_dataset(dataset_name, config.img_size, "test")
                 device = next(model.parameters()).device
-                text_cache = build_text_cache(model, dataset_name, list(datasets), device, "current_shared")
+                with torch.no_grad():
+                    text_cache = build_text_cache(model, dataset_name, list(datasets), device, "current_shared")
                 for class_name, dataset in datasets.items():
                     pair = evaluate_dataset_pair(
                         model, dataset_name, class_name, prepare_dataset(dataset, config),
@@ -408,7 +409,8 @@ def evaluate_mvtec(model, config, checkpoints: dict[int, Path], summary: dict) -
             dataset_name = "MVTec"
             datasets = get_text_and_image_dataset(dataset_name, config.img_size, "test")
             device = next(model.parameters()).device
-            text_cache = build_text_cache(model, dataset_name, list(datasets), device, "current_shared")
+            with torch.no_grad():
+                text_cache = build_text_cache(model, dataset_name, list(datasets), device, "current_shared")
             for class_name, dataset in datasets.items():
                 pair = evaluate_dataset_pair(
                     model, dataset_name, class_name, prepare_dataset(dataset, config),
