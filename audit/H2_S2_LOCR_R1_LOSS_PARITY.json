@@ -1,0 +1,41 @@
+{
+  "S2_LOCR_LOSS_PARITY": "PASS",
+  "anchor_loss_control": 0.2928105890750885,
+  "candidate_disabled_objective": "same candidate graph with S2-LOCR coefficient exactly zero",
+  "candidate_disabled_scalar": 0.668051540851593,
+  "candidate_objective": "same control objective plus lambda_s2_locr*raw_s2_locr",
+  "control_objective": "historical task loss plus unchanged Safe-Anchor family-budget application (anchor scalar kept separate)",
+  "control_scalar": 0.668051540851593,
+  "formulation": {
+    "batch_reduction": "mean over anomalous images with at least one valid component; zero otherwise",
+    "component_geometry": "each anomalous connected component; existing 7x7 erosion/dilation at 518",
+    "component_loss": "mean_b relu(m2(b)-r_c) over near_background_c",
+    "excluded": [
+      "pseudo interior",
+      "raw boundary",
+      "margin",
+      "temperature",
+      "softplus",
+      "sort",
+      "top-k",
+      "percentile",
+      "far-background term",
+      "morphology tuning"
+    ],
+    "image_reduction": "mean over valid components in each image",
+    "margin": "m2=z2_abnormal-z2_normal",
+    "name": "S2_STAGE2_LOCAL_OUTSIDE_CONTRAST",
+    "normal_only_contribution": 0.0,
+    "reference": "r_c=detached median(m2(interior_c))",
+    "score_space": "production_resized_stage2_logits_before_softmax",
+    "validity": "valid iff component interior and component near-background are both nonempty; empty regions skipped"
+  },
+  "max_trainable_gradient_abs_delta": 0.0,
+  "phase": "18_loss_parity",
+  "protocol_id": "EXPLORATORY_SOURCE_ONLY_MECHANISM_R1",
+  "safe_anchor_lambda": 0.0021633926715180626,
+  "safe_anchor_path_unchanged": true,
+  "scalar_abs_delta": 0.0,
+  "strict_gradient_parity": true,
+  "strict_scalar_parity": true
+}

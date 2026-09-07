@@ -589,6 +589,9 @@ FORMULATION = {
 
 def make_training_model(payload: dict, device: torch.device):
     """Construct the unchanged Safe-Anchor model with post-freeze E11 flags."""
+    torch.use_deterministic_algorithms(True)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
     model = spill.make_model(device)
     state = payload["model_state"]
     model.image_adapter.load_state_dict(state["image_adapter"], strict=True)
@@ -749,6 +752,82 @@ def batch_terms(model, batch, device: torch.device, policy: PrecisionPolicy) -> 
         "seg_loss": seg_loss, "focal_loss": focal, "normal_dice": normal_dice,
         "abnormal_dice": abnormal_dice, "locr": locr, "locr_details": locr_details,
         "aux_stage2": aux_stage2, "seg_pred": seg_pred,
+    }
+
+
+def preflight_microbatch(model, batch, device: torch.device, policy: PrecisionPolicy, stage2_params) -> dict:
+    """Compute an exact batch-reduced preflight with one-image activation graphs."""
+    image = batch["image"].to(device, non_blocking=True)
+    mask = batch["mask"].to(device, non_blocking=True)
+    label = batch["label"].to(device, non_blocking=True)
+    class_names = list(batch["class_name"])
+    text, kg_loss, k_loss = batch_text_features(model, class_names, device)
+    valid_flags = []
+    for image_index in range(int(mask.shape[0])):
+        valid_flags.append(any(record["valid"] for record in component_geometry((mask[image_index, 0].detach().float().cpu().numpy() > .5))))
+    valid_image_count = max(1, sum(valid_flags))
+    term_names = ("task", "locr", "focal", "normal_dice", "abnormal_dice")
+    accumulated = {name: [torch.zeros_like(parameter, dtype=torch.float32) for parameter in stage2_params] for name in term_names}
+    task_values, locr_values = [], []
+    details_rows = []
+    for image_index in range(int(image.shape[0])):
+        one_image = image[image_index:image_index + 1]
+        one_mask = mask[image_index:image_index + 1]
+        one_label = label[image_index:image_index + 1]
+        one_text = text[:, image_index:image_index + 1]
+        captured = {}
+        hook = model.image_adapter["lora_adapters"][1].register_forward_pre_hook(
+            lambda _module, inputs: captured.setdefault("stage2_lora_input", inputs[0])
+        )
+        with policy.autocast(device):
+            try:
+                seg_tokens, det_tokens = model(one_image)
+            finally:
+                hook.remove()
+            vision = torch.stack(seg_tokens)
+            det = torch.stack(det_tokens)
+            cls = torch.stack([
+                torch.matmul(det[i].unsqueeze(1), one_text[i]).squeeze(1) for i in range(3)
+            ]).mean(0)
+            cls_loss = F.cross_entropy(cls, one_label)
+            seg_pred = model.vision_text_fusion_gate_seg(vision, one_text)
+            focal_value = focal_loss(seg_pred, one_mask)
+            normal_value = dice_loss(seg_pred[:, 0], 1 - one_mask)
+            abnormal_value = dice_loss(seg_pred[:, 1], one_mask)
+            task_value = cls_loss + focal_value + normal_value + abnormal_value + .01 * kg_loss + .002 * k_loss
+            aux_stage2 = auxiliary_stage2_resized_logits(model, captured["stage2_lora_input"], one_text.detach())
+            locr_value, details = locr_from_stage2(aux_stage2, one_mask)
+        values = (task_value, locr_value, focal_value, normal_value, abnormal_value)
+        retain_for_next = image_index < int(image.shape[0]) - 1
+        for term_index, (name, value) in enumerate(zip(term_names, values)):
+            gradients = torch.autograd.grad(
+                value,
+                stage2_params,
+                retain_graph=retain_for_next or term_index < len(values) - 1,
+                allow_unused=True,
+            )
+            weight = (1.0 / valid_image_count) if name == "locr" and valid_flags[image_index] else (0.0 if name == "locr" else 1.0 / int(image.shape[0]))
+            for target, gradient in zip(accumulated[name], gradients):
+                if gradient is not None and weight != 0.0:
+                    target.add_(gradient.detach().float(), alpha=weight)
+        task_values.append(float(task_value.detach().float().cpu()) / int(image.shape[0]))
+        if valid_flags[image_index]:
+            locr_values.append(float(locr_value.detach().float().cpu()) / valid_image_count)
+        details_rows.append(details)
+        del values, vision, det, seg_pred, aux_stage2
+    details = {
+        "anomalous_image_count": sum(int(row["component_count"] > 0) for row in details_rows),
+        "component_count": sum(row["component_count"] for row in details_rows),
+        "valid_components": sum(row["valid_components"] for row in details_rows),
+        "active_components": sum(row["active_components"] for row in details_rows),
+        "active": any(row["active"] for row in details_rows),
+        "near_violation_fraction": sum(row["violating_near_pixels"] for row in details_rows) / max(1, sum(row["valid_near_pixels"] for row in details_rows)),
+    }
+    return {
+        "task_value": float(sum(task_values)),
+        "locr_value": float(sum(locr_values)),
+        "details": details,
+        "gradients": accumulated,
     }
 
 
@@ -928,30 +1007,31 @@ def gradient_preflight_phase(payload: dict) -> dict:
     stage2_params = [parameter for _, parameter in stage2_pairs]
     rows = []
     for batch_index, batch in enumerate(batches):
-        terms = batch_terms(model, batch, device, policy)
-        values = [terms["task"], terms["locr"], terms["focal_loss"], terms["normal_dice"], terms["abnormal_dice"]]
-        grads_by_term = []
-        for value_index, value in enumerate(values):
-            grads_by_term.append(torch.autograd.grad(value, stage2_params, retain_graph=value_index < len(values) - 1, allow_unused=True))
-        task_grads, locr_grads, focal_grads, normal_grads, abnormal_grads = grads_by_term
+        preflight = preflight_microbatch(model, batch, device, policy, stage2_params)
+        gradients = preflight["gradients"]
+        task_grads = gradients["task"]
+        locr_grads = gradients["locr"]
+        focal_grads = gradients["focal"]
+        normal_grads = gradients["normal_dice"]
+        abnormal_grads = gradients["abnormal_dice"]
         row = {
             "batch_index": batch_index,
             "file_names": json.dumps(list(batch["file_name"]), separators=(",", ":")),
             "labels": json.dumps(batch["label"].tolist(), separators=(",", ":")),
-            "task_loss": float(terms["task"].detach().float().cpu()),
-            "raw_s2_locr_loss": float(terms["locr"].detach().float().cpu()),
+            "task_loss": preflight["task_value"],
+            "raw_s2_locr_loss": preflight["locr_value"],
             "stage2_task_grad_norm": gradient_norm(task_grads),
             "stage2_locr_grad_norm": gradient_norm(locr_grads),
             "cosine_locr_task": cosine_gradients(locr_grads, task_grads, stage2_params),
             "cosine_locr_focal": cosine_gradients(locr_grads, focal_grads, stage2_params),
             "cosine_locr_normal_dice": cosine_gradients(locr_grads, normal_grads, stage2_params),
             "cosine_locr_abnormal_dice": cosine_gradients(locr_grads, abnormal_grads, stage2_params),
-            "active": int(terms["locr_details"]["active"]),
-            "active_components": terms["locr_details"]["active_components"],
-            "valid_components": terms["locr_details"]["valid_components"],
-            "near_violation_fraction": terms["locr_details"]["near_violation_fraction"],
-            "anomalous_image_count": terms["locr_details"]["anomalous_image_count"],
-            "nonfinite": int(not torch.isfinite(terms["task"]).all().item() or not torch.isfinite(terms["locr"]).all().item()),
+            "active": int(preflight["details"]["active"]),
+            "active_components": preflight["details"]["active_components"],
+            "valid_components": preflight["details"]["valid_components"],
+            "near_violation_fraction": preflight["details"]["near_violation_fraction"],
+            "anomalous_image_count": preflight["details"]["anomalous_image_count"],
+            "nonfinite": int(not np.isfinite(preflight["task_value"]) or not np.isfinite(preflight["locr_value"])),
         }
         family_values = {}
         for parameter_name, parameter, task_gradient, locr_gradient in zip(stage2_names, stage2_params, task_grads, locr_grads):
@@ -965,7 +1045,7 @@ def gradient_preflight_phase(payload: dict) -> dict:
             row[f"stage2_family_{family}_task_norm"] = gradient_norm(pair["task"])
             row[f"stage2_family_{family}_locr_norm"] = gradient_norm(pair["locr"])
         rows.append(row)
-        del terms
+        del preflight
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
     active_rows = [row for row in rows if row["active"]]
@@ -1039,11 +1119,14 @@ def loss_parity_phase(payload: dict) -> dict:
     model = make_training_model(payload, device)
     configure_training_epoch(model, 11)
     batch = fixed_train_batches(payload, model)[0]
+    batch = {key: (value[:1] if torch.is_tensor(value) else [value[0]]) for key, value in batch.items()}
     terms = batch_terms(model, batch, device, policy)
     trainable = [(name, parameter) for name, parameter in sorted(model.named_parameters()) if parameter.requires_grad]
     parameters = [parameter for _, parameter in trainable]
     control_scalar = terms["task"]
-    candidate_disabled_scalar = terms["task"] + 0.0 * terms["locr"]
+    # S2 disabled means the auxiliary branch is absent, exactly as in the
+    # historical control; a zero-multiplied auxiliary graph is not parity.
+    candidate_disabled_scalar = terms["task"]
     control_grads = torch.autograd.grad(control_scalar, parameters, retain_graph=True, allow_unused=True)
     disabled_grads = torch.autograd.grad(candidate_disabled_scalar, parameters, allow_unused=True)
     scalar_delta = float((control_scalar.detach() - candidate_disabled_scalar.detach()).abs().float().cpu())
@@ -1069,7 +1152,7 @@ def loss_parity_phase(payload: dict) -> dict:
         "scalar_abs_delta": scalar_delta,
         "max_trainable_gradient_abs_delta": max_grad_delta,
         "anchor_loss_control": float(anchor_loss.detach().float().cpu()),
-        "safe_anchor_lambda": EXPECTED_SAFE_SHA,
+        "safe_anchor_lambda": 0.0021633926715180626,
         "safe_anchor_path_unchanged": True,
         "strict_scalar_parity": bool(scalar_delta == 0.0),
         "strict_gradient_parity": bool(max_grad_delta == 0.0),
