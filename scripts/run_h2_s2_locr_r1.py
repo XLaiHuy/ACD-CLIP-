@@ -77,6 +77,17 @@ OUT_PREFLIGHT_CSV = REPO / "audit/H2_S2_LOCR_R1_GRADIENT_PREFLIGHT.csv"
 OUT_PREFLIGHT_JSON = REPO / "audit/H2_S2_LOCR_R1_GRADIENT_PREFLIGHT.json"
 OUT_CALIBRATION_JSON = REPO / "audit/H2_S2_LOCR_R1_LAMBDA_CALIBRATION.json"
 OUT_PARITY_JSON = REPO / "audit/H2_S2_LOCR_R1_LOSS_PARITY.json"
+OUT_MANIFEST_JSON = REPO / "audit/H2_S2_LOCR_R1_ATTEMPT_MANIFEST.json"
+OUT_CONTROL_CSV = REPO / "audit/H2_S2_LOCR_R1_CONTROL.csv"
+OUT_CANDIDATE_CSV = REPO / "audit/H2_S2_LOCR_R1_CANDIDATE.csv"
+OUT_ENDPOINT_CSV = REPO / "audit/H2_S2_LOCR_R1_ENDPOINT.csv"
+OUT_ENDPOINT_JSON = REPO / "audit/H2_S2_LOCR_R1_ENDPOINT.json"
+OUT_DECISION_MD = REPO / "results/H2_S2_LOCR_R1_BOUNDED_DECISION.md"
+OUT_DECISION_JSON = REPO / "results/H2_S2_LOCR_R1_BOUNDED_DECISION.json"
+RUN_ROOT = Path("/workspace/h2_s2_locr_r1")
+ARM_CONTROL = "A_S2_LOCR_R1_CONTROL"
+ARM_CANDIDATE = "A_S2_LOCR_R1_CANDIDATE"
+MAX_ATTEMPTS = 500
 
 
 def dump_json(path: Path, value) -> None:
@@ -99,6 +110,12 @@ def write_csv(path: Path, rows: list[dict]) -> None:
         writer.writeheader()
         writer.writerows(rows or [{"status": "NO_ROWS"}])
     os.replace(tmp, path)
+
+
+def tensor_hash(tensor: torch.Tensor) -> str:
+    return hashlib.sha256(
+        tensor.detach().cpu().contiguous().numpy().tobytes()
+    ).hexdigest()
 
 
 def write_parent_identity() -> None:
@@ -710,6 +727,8 @@ def locr_from_stage2(stage2_logits: torch.Tensor, mask: torch.Tensor) -> tuple[t
         "median_r_c": float(np.median(reference_values)) if reference_values else None,
         "violating_margin_mean": float(np.mean(violating_values)) if violating_values else None,
         "violating_margin_max": float(np.max(violating_values)) if violating_values else None,
+        "violating_margin_count": len(violating_values),
+        "violating_margin_sum": float(np.sum(violating_values)) if violating_values else 0.0,
         "image_details": image_details,
     }
     return loss, details
@@ -889,6 +908,501 @@ def check_coverage() -> dict:
     if coverage.get("GEOMETRY_COVERAGE") != "ADEQUATE":
         raise RuntimeError("GEOMETRY_COVERAGE=INADEQUATE")
     return coverage
+
+
+def all_training_gates_pass() -> bool:
+    if not OUT_ORACLE_JSON.is_file() or not OUT_COVERAGE_JSON.is_file() or not OUT_LOCALITY_JSON.is_file() or not OUT_PREFLIGHT_JSON.is_file() or not OUT_CALIBRATION_JSON.is_file() or not OUT_PARITY_JSON.is_file():
+        return False
+    oracle = json.loads(OUT_ORACLE_JSON.read_text())
+    coverage = json.loads(OUT_COVERAGE_JSON.read_text())
+    locality = json.loads(OUT_LOCALITY_JSON.read_text())
+    preflight = json.loads(OUT_PREFLIGHT_JSON.read_text())
+    calibration = json.loads(OUT_CALIBRATION_JSON.read_text())
+    parity = json.loads(OUT_PARITY_JSON.read_text())
+    return bool(
+        oracle.get("local_oracle_causal_support") == "PASS"
+        and coverage.get("GEOMETRY_COVERAGE") == "ADEQUATE"
+        and locality.get("S2_LOCR_AUXILIARY_LOCALITY") == "PASS"
+        and preflight.get("S2_LOCR_GRADIENT_PREFLIGHT") == "PASS"
+        and calibration.get("S2_LOCR_LAMBDA_CALIBRATION") == "PASS"
+        and parity.get("S2_LOCR_LOSS_PARITY") == "PASS"
+    )
+
+
+def manifest_row(attempt: int, epoch: int, batch_index: int, batch: dict) -> dict:
+    image = batch["image"]
+    mask = batch["mask"]
+    return {
+        "attempt_index": int(attempt),
+        "epoch": int(epoch),
+        "batch": int(batch_index),
+        "file_names": list(batch["file_name"]),
+        "labels": [int(value) for value in batch["label"].tolist()],
+        "image_sha256": tensor_hash(image),
+        "mask_sha256": tensor_hash(mask),
+        "image_sha256_per_item": [tensor_hash(image[i:i + 1]) for i in range(image.shape[0])],
+        "mask_sha256_per_item": [tensor_hash(mask[i:i + 1]) for i in range(mask.shape[0])],
+    }
+
+
+def generate_attempt_manifest(payload: dict) -> dict:
+    if not all_training_gates_pass():
+        raise RuntimeError("S2_LOCR_TRAINING_AUTHORIZED=NO: all pre-training gates must pass")
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is required for the historical source screen")
+    # Constructing the model before restoring E10 RNG matches the resume path;
+    # no optimizer or model update occurs during manifest generation.
+    model = make_training_model(payload, torch.device("cuda:0"))
+    del model
+    torch.cuda.empty_cache()
+    restore_checkpoint_rng(payload)
+    dataset = spill.get_text_and_image_dataset("VisA", IMG, "train")
+    attempts = []
+    epoch = 11
+    while len(attempts) < MAX_ATTEMPTS:
+        for batch_index, batch in enumerate(loader_for_epoch(dataset, epoch)):
+            attempts.append(manifest_row(len(attempts), epoch, batch_index, batch))
+            if len(attempts) == MAX_ATTEMPTS:
+                break
+        epoch += 1
+        if epoch > 100:
+            raise RuntimeError("manifest generation exceeded epoch safety bound")
+    artifact = {
+        "protocol_id": "EXPLORATORY_SOURCE_ONLY_MECHANISM_R1",
+        "phase": "20_fixed_500_attempt_manifest",
+        "source_dataset": "VisA",
+        "target_inference": False,
+        "attempt_count": len(attempts),
+        "batch_size": 6,
+        "image_size": IMG,
+        "seed": 0,
+        "start_checkpoint": str(SAFE_ANCHOR),
+        "start_checkpoint_sha256": EXPECTED_SAFE_SHA,
+        "loader_definition": "shuffle=True, num_workers=0, pin_memory=True, epoch seed=104729*epoch, epoch starts at 11",
+        "no_optimizer_updates_during_generation": True,
+        "attempts": attempts,
+    }
+    dump_json(OUT_MANIFEST_JSON, artifact)
+    return artifact
+
+
+def make_training_optimizer(model, payload: dict):
+    optimizer = torch.optim.Adam([
+        {"name": "text_adapter", "params": model.text_adapter.parameters(), "lr": .0005},
+        {"name": "image_adapter", "params": model.image_adapter.parameters(), "lr": .001},
+        {"name": "soft_prompt", "params": model.soft_prompt.parameters(), "lr": 0.0, "constant_lr": .00005},
+    ])
+    optimizer.load_state_dict(payload["optimizer_state"])
+    scheduler = StepLR(optimizer, step_size=1, gamma=.9)
+    scheduler.load_state_dict(payload["scheduler_state"])
+    scaler = torch.amp.GradScaler("cuda", enabled=True)
+    scaler.load_state_dict(payload["scaler_state"])
+    return optimizer, scheduler, scaler
+
+
+def aggregate_locr_details(details_rows: list[dict]) -> dict:
+    component_count = sum(row["component_count"] for row in details_rows)
+    valid_components = sum(row["valid_components"] for row in details_rows)
+    skipped_interior = sum(row["skipped_empty_interior"] for row in details_rows)
+    skipped_near = sum(row["skipped_empty_near"] for row in details_rows)
+    active_components = sum(row["active_components"] for row in details_rows)
+    valid_near_pixels = sum(row["valid_near_pixels"] for row in details_rows)
+    violating_near_pixels = sum(row["violating_near_pixels"] for row in details_rows)
+    reference_values = [row["median_r_c"] for row in details_rows if row["median_r_c"] is not None]
+    violating_count = sum(row["violating_margin_count"] for row in details_rows)
+    violating_sum = sum(row["violating_margin_sum"] for row in details_rows)
+    violating_max = [row["violating_margin_max"] for row in details_rows if row["violating_margin_max"] is not None]
+    return {
+        "anomalous_image_count": sum(int(row["component_count"] > 0) for row in details_rows),
+        "component_count": component_count,
+        "valid_components": valid_components,
+        "skipped_empty_interior": skipped_interior,
+        "skipped_empty_near": skipped_near,
+        "active_components": active_components,
+        "active": bool(active_components > 0),
+        "valid_near_pixels": valid_near_pixels,
+        "violating_near_pixels": violating_near_pixels,
+        "near_violation_fraction": violating_near_pixels / max(1, valid_near_pixels),
+        "median_r_c": float(np.median(reference_values)) if reference_values else None,
+        "violating_margin_mean": violating_sum / violating_count if violating_count else None,
+        "violating_margin_max": float(max(violating_max)) if violating_max else None,
+    }
+
+
+def training_microbatch(model, batch, device: torch.device, policy: PrecisionPolicy, candidate: bool, lambda_s2: float, trainable):
+    """Run one historical batch as exact-reduction one-image graphs."""
+    image = batch["image"].to(device, non_blocking=True)
+    mask = batch["mask"].to(device, non_blocking=True)
+    label = batch["label"].to(device, non_blocking=True)
+    class_names = list(batch["class_name"])
+    text, kg_loss, k_loss = batch_text_features(model, class_names, device)
+    valid_flags = [any(record["valid"] for record in component_geometry(mask[i, 0].detach().float().cpu().numpy() > .5)) for i in range(int(mask.shape[0]))]
+    valid_image_count = max(1, sum(valid_flags))
+    accum = [torch.zeros_like(parameter, dtype=torch.float32) for _, parameter in trainable]
+    task_values, raw_locr_values, weighted_locr_values, details_rows = [], [], [], []
+    for image_index in range(int(image.shape[0])):
+        one_image = image[image_index:image_index + 1]
+        one_mask = mask[image_index:image_index + 1]
+        one_label = label[image_index:image_index + 1]
+        one_text = text[:, image_index:image_index + 1]
+        capture = {}
+        hook = model.image_adapter["lora_adapters"][1].register_forward_pre_hook(
+            lambda _module, inputs: capture.setdefault("stage2_lora_input", inputs[0])
+        )
+        with policy.autocast(device):
+            try:
+                seg_tokens, det_tokens = model(one_image)
+            finally:
+                hook.remove()
+            vision = torch.stack(seg_tokens)
+            det = torch.stack(det_tokens)
+            cls = torch.stack([torch.matmul(det[i].unsqueeze(1), one_text[i]).squeeze(1) for i in range(3)]).mean(0)
+            cls_loss = F.cross_entropy(cls, one_label)
+            seg_pred = model.vision_text_fusion_gate_seg(vision, one_text)
+            focal_value = focal_loss(seg_pred, one_mask)
+            normal_value = dice_loss(seg_pred[:, 0], 1 - one_mask)
+            abnormal_value = dice_loss(seg_pred[:, 1], one_mask)
+            task_value = cls_loss + focal_value + normal_value + abnormal_value + .01 * kg_loss + .002 * k_loss
+            if candidate:
+                aux_stage2 = auxiliary_stage2_resized_logits(model, capture["stage2_lora_input"], one_text.detach())
+                locr_value, details = locr_from_stage2(aux_stage2, one_mask)
+            else:
+                with torch.no_grad():
+                    aux_stage2 = auxiliary_stage2_resized_logits(model, capture["stage2_lora_input"], one_text.detach())
+                    locr_value, details = locr_from_stage2(aux_stage2, one_mask)
+            objective = task_value / int(image.shape[0])
+            if candidate and valid_flags[image_index]:
+                objective = objective + lambda_s2 * locr_value / valid_image_count
+        gradients = torch.autograd.grad(
+            objective,
+            [parameter for _, parameter in trainable],
+            retain_graph=image_index < int(image.shape[0]) - 1,
+            allow_unused=True,
+        )
+        for index, gradient in enumerate(gradients):
+            if gradient is not None:
+                accum[index].add_(gradient.detach().float())
+        task_values.append(float(task_value.detach().float().cpu()) / int(image.shape[0]))
+        if valid_flags[image_index]:
+            raw_locr_values.append(float(locr_value.detach().float().cpu()) / valid_image_count)
+            weighted_locr_values.append(float(locr_value.detach().float().cpu()) * lambda_s2 / valid_image_count if candidate else 0.0)
+        details_rows.append(details)
+        del objective, gradients, vision, det, seg_pred, aux_stage2
+    details = aggregate_locr_details(details_rows)
+    return {
+        "task_loss": float(sum(task_values)),
+        "raw_locr_loss": float(sum(raw_locr_values)),
+        "weighted_locr_loss": float(sum(weighted_locr_values)),
+        "candidate_loss": float(sum(task_values) + sum(weighted_locr_values)),
+        "details": details,
+        "gradients": accum,
+    }
+
+
+def finite_model_parameters(model) -> bool:
+    return all(torch.isfinite(parameter).all().item() for parameter in model.parameters())
+
+
+def optimizer_state_is_finite(optimizer) -> bool:
+    return all(torch.isfinite(value).all().item() for state in optimizer.state.values() for value in state.values() if torch.is_tensor(value))
+
+
+def batch_identity_matches(manifest, batch) -> bool:
+    current = manifest_row(manifest["attempt_index"], manifest["epoch"], manifest["batch"], batch)
+    fields = ("file_names", "labels", "image_sha256", "mask_sha256", "image_sha256_per_item", "mask_sha256_per_item")
+    return all(current[field] == manifest[field] for field in fields)
+
+
+def csv_identity(manifest: dict) -> dict:
+    return {
+        "attempt_index": manifest["attempt_index"],
+        "epoch": manifest["epoch"],
+        "batch": manifest["batch"],
+        "file_names": json.dumps(manifest["file_names"], separators=(",", ":")),
+        "labels": json.dumps(manifest["labels"], separators=(",", ":")),
+        "image_sha256": manifest["image_sha256"],
+        "mask_sha256": manifest["mask_sha256"],
+        "image_sha256_per_item": json.dumps(manifest["image_sha256_per_item"], separators=(",", ":")),
+        "mask_sha256_per_item": json.dumps(manifest["mask_sha256_per_item"], separators=(",", ":")),
+    }
+
+
+def final_training_state(model, optimizer, scheduler, scaler, payload: dict, epoch: int, global_step: int, arm: str, lambda_s2: float, attempted: int, successful: int, natural_skips: int, forced_skips: int) -> dict:
+    return {
+        "epoch": int(epoch),
+        "global_step": int(global_step),
+        "n_groups": 3,
+        "dfg_mode": "attn",
+        "dfg_attn_dim": 256,
+        "dfg_attn_tau": 8.0,
+        "use_ss2d_dfg": True,
+        "dfg_gamma_max": .2,
+        "dfg_ss2d_fusion": "weight_residual",
+        "dfg_beta": .1,
+        "dfg_beta_schedule": "warmup010",
+        "dfg_beta_target": .1,
+        "dfg_beta_current": float(model.dfg_beta),
+        "dfg_weight_residual_fp32": True,
+        "prompt_mode": "hybrid",
+        "use_soft_prompt": False,
+        "use_hybrid_soft_prompt": True,
+        "soft_prompt_ctx_len": 4,
+        "soft_prompt_init": "phrase",
+        "soft_prompt_init_phrase": "a photo of a",
+        "hybrid_alpha_current": float(model.hybrid_alpha_current),
+        "hybrid_alpha_max": .2,
+        "soft_prompt_freeze_epochs": 3,
+        "grad_clip_norm": 1.0,
+        "anchor_gradient_budget": True,
+        "anchor_family_budget": .1,
+        "lambda_kg": .01,
+        "lambda_k": .002,
+        "k_reg_detached_wk": True,
+        "k_reg_per_stage": True,
+        "checkpoint_version": 3,
+        "protocol_version": payload.get("protocol_version"),
+        "model_state": {
+            "image_adapter": model.image_adapter.state_dict(),
+            "text_adapter": model.text_adapter.state_dict(),
+            "soft_prompt": model.soft_prompt.state_dict(),
+        },
+        "optimizer_state": optimizer.state_dict(),
+        "scheduler_state": scheduler.state_dict(),
+        "scaler_state": scaler.state_dict(),
+        "resolved_scientific_config": payload["resolved_scientific_config"],
+        "parent_scientific_config": payload.get("parent_scientific_config"),
+        "resolved_operational_config": payload.get("resolved_operational_config"),
+        "seed": 0,
+        "precision": "fp16",
+        "precision_protocol": "HISTORICAL_MIXED_FP16_FP32_V1",
+        "amp_enabled": True,
+        "gradscaler_enabled": True,
+        "tf32_enabled": False,
+        "python_random_state": random.getstate(),
+        "numpy_random_state": np.random.get_state(),
+        "torch_cpu_rng_state": torch.get_rng_state(),
+        "torch_cuda_rng_state_all": torch.cuda.get_rng_state_all(),
+        "dataloader_generator_state": payload.get("dataloader_generator_state"),
+        "image_anchor": payload.get("image_anchor"),
+        "image_anchor_reference": payload.get("image_anchor_reference"),
+        "s2_locr": {
+            "arm": arm,
+            "lambda_s2_locr": lambda_s2,
+            "attempted": attempted,
+            "successful": successful,
+            "natural_skips": natural_skips,
+            "forced_parity_skips": forced_skips,
+            "formulation": FORMULATION,
+        },
+    }
+
+
+def load_control_rows() -> list[dict]:
+    with OUT_CONTROL_CSV.open(newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    if len(rows) != MAX_ATTEMPTS:
+        raise RuntimeError(f"control CSV must contain {MAX_ATTEMPTS} attempts, got {len(rows)}")
+    return rows
+
+
+def run_training_arm(payload: dict, arm: str, manifest: dict, control_rows: list[dict] | None = None) -> dict:
+    if arm not in (ARM_CONTROL, ARM_CANDIDATE):
+        raise ValueError(arm)
+    candidate = arm == ARM_CANDIDATE
+    if len(manifest["attempts"]) != MAX_ATTEMPTS:
+        raise RuntimeError("exact 500-attempt manifest is required")
+    calibration = json.loads(OUT_CALIBRATION_JSON.read_text())
+    lambda_s2 = float(calibration["lambda_s2_locr"])
+    device = torch.device("cuda:0")
+    policy = PrecisionPolicy("fp16")
+    model = make_training_model(payload, device)
+    optimizer, scheduler, scaler = make_training_optimizer(model, payload)
+    apply_soft_prompt_lr_policy(optimizer, False)
+    anchor = SafeImageAdapterAnchor.from_checkpoint(SAFE_ANCHOR, device)
+    trainable = [(name, parameter) for name, parameter in sorted(model.named_parameters()) if parameter.requires_grad]
+    image_named = [(name, parameter) for name, parameter in sorted(model.image_adapter.named_parameters()) if parameter.requires_grad]
+    image_names = [name for name, _ in image_named]
+    image_params = [parameter for _, parameter in image_named]
+    trainable_index = {name: index for index, (name, _) in enumerate(trainable)}
+    dataset = spill.get_text_and_image_dataset("VisA", IMG, "train")
+    restore_checkpoint_rng(payload)
+    control_skip = {}
+    if candidate:
+        if control_rows is None:
+            control_rows = load_control_rows()
+        control_skip = {int(row["attempt_index"]): row for row in control_rows if row.get("natural_skip") == "1"}
+    rows = []
+    attempt = 0
+    successful = 0
+    natural_skips = 0
+    forced_skips = 0
+    additional_natural_skips = 0
+    numerical_failure = None
+    global_step = int(payload["global_step"])
+    manifest_by_epoch = {}
+    for item in manifest["attempts"]:
+        manifest_by_epoch.setdefault(int(item["epoch"]), []).append(item)
+    last_epoch = None
+    full_batches = int(math.ceil(len(dataset) / 6))
+    for epoch, epoch_manifest in manifest_by_epoch.items():
+        configure_training_epoch(model, epoch)
+        apply_soft_prompt_lr_policy(optimizer, False)
+        processed = 0
+        for batch_index, batch in enumerate(loader_for_epoch(dataset, epoch)):
+            if processed >= len(epoch_manifest):
+                break
+            expected = epoch_manifest[processed]
+            if int(expected["attempt_index"]) != attempt or int(expected["batch"]) != batch_index or not batch_identity_matches(expected, batch):
+                raise RuntimeError(f"attempt manifest mismatch at attempt {attempt}, epoch {epoch}, batch {batch_index}")
+            identity = csv_identity(expected)
+            optimizer.zero_grad(set_to_none=True)
+            metrics = training_microbatch(model, batch, device, policy, candidate, lambda_s2, trainable)
+            anchor_loss = anchor.loss(model.image_adapter)
+            objective_value = metrics["candidate_loss"] if candidate else metrics["task_loss"]
+            forced = bool(candidate and attempt in control_skip)
+            control_status = control_skip.get(attempt, {}).get("status") if forced else None
+            row = {
+                **identity,
+                "arm": arm,
+                "status": "pending",
+                "successful_update": 0,
+                "natural_skip": 0,
+                "forced_parity_skip": 0,
+                "base_task_loss": metrics["task_loss"],
+                "safe_anchor_loss": float(anchor_loss.detach().float().cpu()) if torch.isfinite(anchor_loss).item() else None,
+                "raw_s2_locr_loss": metrics["raw_locr_loss"],
+                "weighted_s2_locr_loss": metrics["weighted_locr_loss"],
+                "anomalous_image_count": metrics["details"]["anomalous_image_count"],
+                "connected_component_count": metrics["details"]["component_count"],
+                "valid_component_count": metrics["details"]["valid_components"],
+                "skipped_component_count": metrics["details"]["skipped_empty_interior"] + metrics["details"]["skipped_empty_near"],
+                "active_component_count": metrics["details"]["active_components"],
+                "near_violation_fraction": metrics["details"]["near_violation_fraction"],
+                "median_r_c": metrics["details"]["median_r_c"],
+                "violating_margin_mean": metrics["details"]["violating_margin_mean"],
+                "violating_margin_max": metrics["details"]["violating_margin_max"],
+                "grad_scaler_scale_before": float(scaler.get_scale()),
+                "grad_scaler_scale_after": None,
+                "optimizer_state_finite": None,
+                "parameters_finite": None,
+                "global_step_before": global_step,
+                "global_step_after": global_step,
+            }
+            loss_finite = bool(np.isfinite(objective_value) and torch.isfinite(anchor_loss).all().item())
+            if not loss_finite:
+                natural_skips += 1
+                row.update(status="natural_loss_skip", natural_skip=1)
+                if candidate and forced:
+                    row["forced_parity_skip"] = 1
+                    if control_status != "natural_loss_skip":
+                        additional_natural_skips += 1
+                optimizer.zero_grad(set_to_none=True)
+                rows.append(row)
+                attempt += 1
+                processed += 1
+                continue
+            scale = float(scaler.get_scale())
+            for (name, parameter), gradient in zip(trainable, metrics["gradients"]):
+                if gradient is not None:
+                    parameter.grad = (gradient * scale).to(dtype=parameter.dtype)
+            # GradScaler lazily materializes its device scale on the first
+            # scale() call. The gradients above are accumulated explicitly to
+            # preserve batch reductions, so initialize that same scale without
+            # introducing another loss or backward path.
+            scaler.scale(torch.ones((), device=device))
+            scaler.unscale_(optimizer)
+            finite_grad = all(parameter.grad is None or torch.isfinite(parameter.grad).all().item() for _, parameter in trainable)
+            if not finite_grad:
+                natural_skips += 1
+                row.update(status="natural_grad_skip", natural_skip=1)
+                scaler.update()
+                if candidate and forced:
+                    row["forced_parity_skip"] = 1
+                    if control_status != "natural_grad_skip":
+                        additional_natural_skips += 1
+                optimizer.zero_grad(set_to_none=True)
+                rows.append(row)
+                attempt += 1
+                processed += 1
+                continue
+            task_gradient_map = {
+                name: metrics["gradients"][trainable_index[f"image_adapter.{name}"]]
+                for name in image_names
+            }
+            anchor_gradients = torch.autograd.grad(anchor_loss, image_params, allow_unused=True)
+            anchor_metrics = apply_family_safe_anchor_budget(
+                model.image_adapter,
+                sorted(model.named_parameters()),
+                task_gradients=task_gradient_map,
+                raw_anchor_gradients=dict(zip(image_names, anchor_gradients)),
+                anchor_lambda=0.0021633926715180626,
+                rho=.1,
+                total_trainable_parameters=None,
+            )
+            forced_skip = bool(candidate and forced)
+            if forced_skip:
+                forced_skips += 1
+                row.update(status="forced_parity_skip", forced_parity_skip=1)
+                # The control's natural skip is intentionally not counted as a
+                # candidate numerical failure or replaced by a compensating step.
+                optimizer.zero_grad(set_to_none=True)
+            else:
+                torch.nn.utils.clip_grad_norm_(model.image_adapter.parameters(), 1.0)
+                torch.nn.utils.clip_grad_norm_(model.text_adapter.parameters(), 1.0)
+                torch.nn.utils.clip_grad_norm_(model.soft_prompt.parameters(), 1.0)
+                scaler.step(optimizer)
+                scaler.update()
+                successful += 1
+                global_step += 1
+                row.update(status="success", successful_update=1, global_step_after=global_step)
+                state_finite = optimizer_state_is_finite(optimizer)
+                params_finite = finite_model_parameters(model)
+                row["optimizer_state_finite"] = int(state_finite)
+                row["parameters_finite"] = int(params_finite)
+                if not state_finite or not params_finite:
+                    numerical_failure = numerical_failure or "nonfinite_state_after_update"
+            row["grad_scaler_scale_after"] = float(scaler.get_scale())
+            if row["optimizer_state_finite"] is None:
+                row["optimizer_state_finite"] = int(optimizer_state_is_finite(optimizer))
+            if row["parameters_finite"] is None:
+                row["parameters_finite"] = int(finite_model_parameters(model))
+            row["safe_anchor_effective_ratio"] = anchor_metrics["global_effective_ratio"]
+            row["safe_anchor_max_family_ratio"] = anchor_metrics["max_effective_active_family_ratio"]
+            rows.append(row)
+            attempt += 1
+            processed += 1
+            del metrics, anchor_loss
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+        if len(epoch_manifest) == full_batches and processed == len(epoch_manifest) and attempt < MAX_ATTEMPTS:
+            scheduler.step()
+            apply_soft_prompt_lr_policy(optimizer, False)
+        last_epoch = epoch
+        if attempt >= MAX_ATTEMPTS:
+            break
+    if attempt != MAX_ATTEMPTS:
+        raise RuntimeError(f"expected exactly {MAX_ATTEMPTS} attempts, got {attempt}")
+    output_dir = RUN_ROOT / arm
+    output_dir.mkdir(parents=True, exist_ok=True)
+    final_path = output_dir / "final.pth"
+    torch.save(final_training_state(model, optimizer, scheduler, scaler, payload, last_epoch or 11, global_step, arm, lambda_s2, attempt, successful, natural_skips, forced_skips), final_path)
+    output_csv = OUT_CANDIDATE_CSV if candidate else OUT_CONTROL_CSV
+    write_csv(output_csv, rows)
+    summary = {
+        "protocol_id": "EXPLORATORY_SOURCE_ONLY_MECHANISM_R1",
+        "arm": arm,
+        "attempted": attempt,
+        "successful": successful,
+        "natural_skips": natural_skips,
+        "forced_parity_skips": forced_skips,
+        "additional_natural_skips": additional_natural_skips,
+        "numerical_failure": numerical_failure,
+        "final_checkpoint": str(final_path),
+        "final_checkpoint_sha256": spill.sha256_file(final_path),
+        "rows": rows,
+    }
+    dump_json(output_dir / "summary.json", summary)
+    return summary
 
 
 def auxiliary_locality_phase(payload: dict) -> dict:
@@ -1166,7 +1680,7 @@ def loss_parity_phase(payload: dict) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--phase", choices=("identity", "oracle", "coverage", "locality", "preflight", "calibration", "parity"), required=True)
+    parser.add_argument("--phase", choices=("identity", "oracle", "coverage", "locality", "preflight", "calibration", "parity", "manifest", "control", "candidate"), required=True)
     args = parser.parse_args()
     rows, _ = spill.load_rows()
     if args.phase in {"identity", "oracle"}:
@@ -1188,6 +1702,18 @@ def main() -> None:
         lambda_calibration_phase()
     elif args.phase == "parity":
         loss_parity_phase(torch.load(SAFE_ANCHOR, map_location="cpu", weights_only=False))
+    elif args.phase == "manifest":
+        generate_attempt_manifest(torch.load(SAFE_ANCHOR, map_location="cpu", weights_only=False))
+    elif args.phase == "control":
+        if not OUT_MANIFEST_JSON.is_file():
+            raise RuntimeError("attempt manifest is required before control")
+        manifest = json.loads(OUT_MANIFEST_JSON.read_text())
+        run_training_arm(torch.load(SAFE_ANCHOR, map_location="cpu", weights_only=False), ARM_CONTROL, manifest)
+    elif args.phase == "candidate":
+        if not OUT_MANIFEST_JSON.is_file() or not OUT_CONTROL_CSV.is_file():
+            raise RuntimeError("manifest and control artifacts are required before candidate")
+        manifest = json.loads(OUT_MANIFEST_JSON.read_text())
+        run_training_arm(torch.load(SAFE_ANCHOR, map_location="cpu", weights_only=False), ARM_CANDIDATE, manifest, load_control_rows())
 
 
 if __name__ == "__main__":
