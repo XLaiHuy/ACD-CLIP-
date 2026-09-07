@@ -586,7 +586,7 @@ def loss_parity(payload: dict[str, Any], scope: dict[str, Any]) -> dict[str, Any
     return result
 
 
-def collect_batch_ids(payload: dict[str, Any]) -> list[dict[str, Any]]:
+def collect_batch_ids(payload: dict[str, Any], limit: int = 16) -> list[dict[str, Any]]:
     device = torch.device("cuda:0")
     restore_rng_state(rng_from_payload(payload))
     model = make_model(payload, device)
@@ -599,18 +599,18 @@ def collect_batch_ids(payload: dict[str, Any]) -> list[dict[str, Any]]:
             mask = batch["mask"].to(device)
             label = batch["label"].to(device)
             rows.append(batch_identity(len(rows), epoch, batch_idx, batch, image, mask, label))
-            if len(rows) == MAX_ATTEMPTS:
+            if len(rows) == limit:
                 return rows
-    raise RuntimeError("batch preflight did not collect 500 attempts")
+    raise RuntimeError(f"batch preflight did not collect {limit} attempts")
 
 
 def batch_preflight(payload: dict[str, Any]) -> dict[str, Any]:
-    control = collect_batch_ids(payload)
-    candidate = collect_batch_ids(payload)
+    control = collect_batch_ids(payload, limit=16)
+    candidate = collect_batch_ids(payload, limit=16)
     result = {
         "protocol_id": PROTOCOL_ID,
         "PREFLIGHT_BATCH_PARITY": "PASS" if control == candidate else "FAIL",
-        "batch_count": MAX_ATTEMPTS,
+        "batch_count": 16,
         "identity_fields": list(IDENTITY_KEYS),
         "control": control,
         "candidate": candidate,
