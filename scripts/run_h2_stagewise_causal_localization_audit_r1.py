@@ -570,9 +570,307 @@ def calibration_phase() -> dict:
     return artifact
 
 
+MILESTONES = (0, 25, 50, 100, 200, 300, 500)
+
+
+def save_replay_state(path: Path, model, optimizer, scheduler, scaler, payload, epoch, global_step, arm, lambda_s2, attempted, successful, natural_skips, forced_skips):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    state = s2.final_training_state(model, optimizer, scheduler, scaler, payload, epoch, global_step, arm, lambda_s2, attempted, successful, natural_skips, forced_skips)
+    torch.save(state, path)
+
+
+def replay_arm(payload: dict, arm: str, manifest: dict, control_rows: list[dict] | None) -> dict:
+    """Exact copy of the committed R1 update schedule with milestone saves."""
+    candidate = arm == s2.ARM_CANDIDATE
+    device = torch.device("cuda:0")
+    policy = PrecisionPolicy("fp16")
+    model = s2.make_training_model(payload, device)
+    optimizer, scheduler, scaler = s2.make_training_optimizer(model, payload)
+    s2.apply_soft_prompt_lr_policy(optimizer, False)
+    anchor = s2.SafeImageAdapterAnchor.from_checkpoint(SAFE_ANCHOR, device)
+    trainable = [(name, parameter) for name, parameter in sorted(model.named_parameters()) if parameter.requires_grad]
+    image_named = [(name, parameter) for name, parameter in sorted(model.image_adapter.named_parameters()) if parameter.requires_grad]
+    image_names = [name for name, _ in image_named]
+    image_params = [parameter for _, parameter in image_named]
+    trainable_index = {name: index for index, (name, _) in enumerate(trainable)}
+    dataset = get_text_and_image_dataset("VisA", IMG, "train")
+    s2.restore_checkpoint_rng(payload)
+    control_skip = {}
+    if candidate:
+        control_skip = {int(row["attempt_index"]): row for row in control_rows if row.get("natural_skip") == "1"}
+    lambda_s2 = float(json.loads(s2.OUT_CALIBRATION_JSON.read_text())["lambda_s2_locr"])
+    snapshot_dir = RUN_ROOT / "trajectory" / arm
+    snapshot_dir.mkdir(parents=True, exist_ok=True)
+    save_replay_state(snapshot_dir / "step_0.pth", model, optimizer, scheduler, scaler, payload, 11, int(payload["global_step"]), arm, lambda_s2, 0, 0, 0, 0)
+    attempt = successful = natural_skips = forced_skips = 0
+    global_step = int(payload["global_step"])
+    manifest_by_epoch = {}
+    for item in manifest["attempts"]:
+        manifest_by_epoch.setdefault(int(item["epoch"]), []).append(item)
+    full_batches = int(math.ceil(len(dataset) / 6))
+    last_epoch = 11
+    for epoch, epoch_manifest in manifest_by_epoch.items():
+        s2.configure_training_epoch(model, epoch)
+        s2.apply_soft_prompt_lr_policy(optimizer, False)
+        processed = 0
+        for batch_index, batch in enumerate(s2.loader_for_epoch(dataset, epoch)):
+            if processed >= len(epoch_manifest):
+                break
+            expected = epoch_manifest[processed]
+            if int(expected["attempt_index"]) != attempt or int(expected["batch"]) != batch_index or not s2.batch_identity_matches(expected, batch):
+                raise RuntimeError(f"replay manifest mismatch at attempt {attempt}, epoch {epoch}, batch {batch_index}")
+            optimizer.zero_grad(set_to_none=True)
+            metrics = s2.training_microbatch(model, batch, device, policy, candidate, lambda_s2, trainable)
+            anchor_loss = anchor.loss(model.image_adapter)
+            objective_value = metrics["candidate_loss"] if candidate else metrics["task_loss"]
+            forced = bool(candidate and attempt in control_skip)
+            row_control_status = control_skip.get(attempt, {}).get("status") if forced else None
+            loss_finite = bool(np.isfinite(objective_value) and torch.isfinite(anchor_loss).all().item())
+            if not loss_finite:
+                natural_skips += 1
+                if candidate and forced and row_control_status != "natural_loss_skip":
+                    pass
+                optimizer.zero_grad(set_to_none=True)
+                attempt += 1; processed += 1
+                continue
+            scale = float(scaler.get_scale())
+            for (name, parameter), gradient in zip(trainable, metrics["gradients"]):
+                if gradient is not None:
+                    parameter.grad = (gradient * scale).to(dtype=parameter.dtype)
+            scaler.scale(torch.ones((), device=device))
+            scaler.unscale_(optimizer)
+            finite_grad = all(parameter.grad is None or torch.isfinite(parameter.grad).all().item() for _, parameter in trainable)
+            if not finite_grad:
+                natural_skips += 1
+                scaler.update()
+                optimizer.zero_grad(set_to_none=True)
+                attempt += 1; processed += 1
+                continue
+            task_gradient_map = {name: metrics["gradients"][trainable_index[f"image_adapter.{name}"]] for name in image_names}
+            anchor_gradients = torch.autograd.grad(anchor_loss, image_params, allow_unused=True)
+            s2.apply_family_safe_anchor_budget(
+                model.image_adapter, sorted(model.named_parameters()), task_gradients=task_gradient_map,
+                raw_anchor_gradients=dict(zip(image_names, anchor_gradients)), anchor_lambda=0.0021633926715180626,
+                rho=.1, total_trainable_parameters=None,
+            )
+            if candidate and forced:
+                forced_skips += 1
+                optimizer.zero_grad(set_to_none=True)
+            else:
+                torch.nn.utils.clip_grad_norm_(model.image_adapter.parameters(), 1.0)
+                torch.nn.utils.clip_grad_norm_(model.text_adapter.parameters(), 1.0)
+                torch.nn.utils.clip_grad_norm_(model.soft_prompt.parameters(), 1.0)
+                scaler.step(optimizer); scaler.update()
+                successful += 1; global_step += 1
+                if successful in MILESTONES[1:]:
+                    save_replay_state(snapshot_dir / f"step_{successful}.pth", model, optimizer, scheduler, scaler, payload, epoch, global_step, arm, lambda_s2, attempt + 1, successful, natural_skips, forced_skips)
+            attempt += 1; processed += 1
+            del metrics, anchor_loss
+            if device.type == "cuda": torch.cuda.empty_cache()
+        if len(epoch_manifest) == full_batches and processed == len(epoch_manifest) and attempt < s2.MAX_ATTEMPTS:
+            scheduler.step(); s2.apply_soft_prompt_lr_policy(optimizer, False)
+        last_epoch = epoch
+        if attempt >= s2.MAX_ATTEMPTS: break
+    if attempt != s2.MAX_ATTEMPTS or successful != 500:
+        raise RuntimeError(f"replay count mismatch: attempts={attempt}, successful={successful}")
+    final_path = snapshot_dir / "replay_final.pth"
+    save_replay_state(final_path, model, optimizer, scheduler, scaler, payload, last_epoch, global_step, arm, lambda_s2, attempt, successful, natural_skips, forced_skips)
+    committed = Path(json.loads(R1_ENDPOINT.read_text())["candidate" if candidate else "control"]["checkpoint"])
+    committed_payload = torch.load(committed, map_location="cpu", weights_only=False)
+    replay_payload = torch.load(final_path, map_location="cpu", weights_only=False)
+    max_abs = 0.0; max_rel = 0.0
+    for module_name in ("image_adapter", "text_adapter", "soft_prompt"):
+        for name, value in committed_payload["model_state"][module_name].items():
+            observed = replay_payload["model_state"][module_name][name].float()
+            expected = value.float()
+            max_abs = max(max_abs, float((observed - expected).abs().max()))
+            max_rel = max(max_rel, float(((observed - expected).abs() / expected.abs().clamp_min(1e-12)).max()))
+    valid = bool(max_abs <= 1e-6 and max_rel <= 1e-5)
+    return {"arm": arm, "successful": successful, "natural_skips": natural_skips, "forced_parity_skips": forced_skips, "replay_final": str(final_path), "replay_final_sha256": sha_file(final_path), "committed_endpoint": str(committed), "committed_endpoint_sha256": sha_file(committed), "model_max_abs_diff": max_abs, "model_max_relative_diff": max_rel, "endpoint_reproduction": "PASS" if valid else "FAIL", "snapshot_paths": {str(step): str(snapshot_dir / f"step_{step}.pth") for step in MILESTONES}}
+
+
+def light_metric(score, mask, labels) -> dict:
+    out = {"ap": audit_binary_metrics(score, mask)["ap"], "auroc": audit_binary_metrics(score, mask)["auroc"]}
+    out.update({k: v for k, v in region_fields(score, mask).items() if k in ("positive_mean", "interior_mean", "boundary_mean", "near_p95", "near_p99")})
+    return out
+
+
+def trajectory_phase() -> dict:
+    if not torch.cuda.is_available(): raise RuntimeError("CUDA required for deterministic replay")
+    payload = torch.load(SAFE_ANCHOR, map_location="cpu", weights_only=False)
+    manifest = json.loads(R1_MANIFEST.read_text())
+    with R1_CONTROL_CSV.open(newline="") as f: control_rows = list(csv.DictReader(f))
+    replay = [replay_arm(payload, s2.ARM_CONTROL, manifest, control_rows), replay_arm(payload, s2.ARM_CANDIDATE, manifest, control_rows)]
+    valid = all(x["endpoint_reproduction"] == "PASS" for x in replay)
+    rows = []
+    if valid:
+        probe = load_cohort("A")
+        for arm_info in replay:
+            arm = "CONTROL" if "CONTROL" in arm_info["arm"] else "CANDIDATE"
+            for step in MILESTONES:
+                path = Path(arm_info["snapshot_paths"][str(step)])
+                data = evaluate_exact(path, probe, torch.device("cuda:0"))
+                final = light_metric(data["fused_prob"], data["mask"], data["labels"])
+                local_margin, _ = local_or_far(data["resized_margin"], data["mask"], 1, False)
+                local = light_metric(1.0 / (1.0 + np.exp(-np.clip(local_margin.mean(1), -80.0, 80.0))), data["mask"], data["labels"])
+                contribution = []
+                for stage in range(3):
+                    sm = data["resized_margin"][:, stage]
+                    pos = np.concatenate([s[m.astype(bool)] for s, m in zip(sm, data["mask"]) if m.any()])
+                    bg = np.concatenate([s[~m.astype(bool)] for s, m in zip(sm, data["mask"])])
+                    contribution.append(float((pos.mean() - bg.mean()) / 3.0))
+                row = {"arm": arm, "step": step, "checkpoint": str(path), "final_ap": final["ap"], "final_auroc": final["auroc"], "local_ap": local["ap"], "local_auroc": local["auroc"], "near_p95": final["near_p95"], "near_p99": final["near_p99"], "positive_mean": final["positive_mean"], "interior_mean": final["interior_mean"], "boundary_mean": final["boundary_mean"], "s1_margin_contribution": contribution[0], "s2_margin_contribution": contribution[1], "s3_margin_contribution": contribution[2]}
+                rows.append(row)
+    artifact = {"protocol_id": "H2_STAGEWISE_CAUSAL_LOCALIZATION_AUDIT_R1", "replay_required": True, "replay_validity": "PASS" if valid else "FAIL", "replay_contract": {"start_checkpoint": str(SAFE_ANCHOR), "start_checkpoint_sha256": SAFE_SHA, "manifest": str(R1_MANIFEST), "manifest_sha256": sha_file(R1_MANIFEST), "lambda_s2": 0.03437818501650427, "attempts": 500, "milestones": MILESTONES, "no_new_training": True}, "replay_arms": replay, "rows": rows, "trajectory_inference_authorized": valid, "notes": "Trajectory rows are on the fixed Cohort A endpoint probe. Local means the existing GT-assisted Stage-2 near-background oracle; it is not deployable."}
+    write_csv(OUT_TRAJ_CSV, rows); dump_json(OUT_TRAJ_JSON, artifact)
+    return artifact
+
+
+def load_snapshot_model(payload: dict, path: Path, device: torch.device):
+    model = s2.make_training_model(payload, device)
+    state = torch.load(path, map_location="cpu", weights_only=False)
+    model.image_adapter.load_state_dict(state["model_state"]["image_adapter"], strict=True)
+    model.text_adapter.load_state_dict(state["model_state"]["text_adapter"], strict=True)
+    model.soft_prompt.load_state_dict(state["model_state"]["soft_prompt"], strict=True)
+    model.hybrid_alpha_current = float(state.get("hybrid_alpha_current", .2))
+    model.set_dfg_beta(float(state.get("dfg_beta_current", .1)))
+    s2.configure_training_epoch(model, int(state.get("epoch", 11)))
+    return model, state
+
+
+def family_key(name: str) -> str:
+    parts = name.split(".")
+    if parts[0] == "image_adapter" and len(parts) >= 3:
+        return f"stage{int(parts[2]) + 1}_{parts[1]}"
+    return parts[0]
+
+
+def task_gradient_phase() -> dict:
+    traj = json.loads(OUT_TRAJ_JSON.read_text())
+    if traj.get("replay_validity") != "PASS":
+        artifact = {"protocol_id": "H2_STAGEWISE_CAUSAL_LOCALIZATION_AUDIT_R1", "status": "TRAJECTORY_INVALID", "rows": []}
+        write_csv(OUT_TASK_CSV, []); dump_json(OUT_TASK_JSON, artifact); return artifact
+    payload = torch.load(SAFE_ANCHOR, map_location="cpu", weights_only=False)
+    fixed = s2.fixed_train_batches(payload, None)
+    probe = fixed[0]
+    rows = []
+    for arm_info in traj["replay_arms"]:
+        arm = "CONTROL" if "CONTROL" in arm_info["arm"] else "CANDIDATE"
+        for step in MILESTONES:
+            model, state = load_snapshot_model(payload, Path(arm_info["snapshot_paths"][str(step)]), torch.device("cuda:0"))
+            model.zero_grad(set_to_none=True)
+            terms = s2.batch_terms(model, probe, torch.device("cuda:0"), PrecisionPolicy("fp16"))
+            trainable = [(n, p) for n, p in sorted(model.named_parameters()) if p.requires_grad]
+            grads = torch.autograd.grad(terms["task"], [p for _, p in trainable], allow_unused=True)
+            grouped = {}
+            for (name, _), grad in zip(trainable, grads):
+                key = family_key(name)
+                grouped.setdefault(key, []).append(grad.detach().float() if grad is not None else None)
+            for family, values in sorted(grouped.items()):
+                norm = float(torch.stack([v.square().sum() for v in values if v is not None]).sum().sqrt().cpu()) if any(v is not None for v in values) else 0.0
+                rows.append({"arm": arm, "step": step, "family": family, "task_gradient_norm": norm, "probe_definition": "first batch of the fixed 16-batch epoch-11 R1 preflight set", "probe_batch_count": 1})
+            del terms, grads, model
+            torch.cuda.empty_cache()
+    comparisons = []
+    for step in MILESTONES:
+        families = sorted({r["family"] for r in rows if r["step"] == step})
+        for family in families:
+            c = next(r for r in rows if r["step"] == step and r["family"] == family and r["arm"] == "CONTROL")
+            a = next(r for r in rows if r["step"] == step and r["family"] == family and r["arm"] == "CANDIDATE")
+            comparisons.append({"step": step, "family": family, "control_task_gradient_norm": c["task_gradient_norm"], "candidate_task_gradient_norm": a["task_gradient_norm"], "candidate_minus_control": a["task_gradient_norm"] - c["task_gradient_norm"]})
+    artifact = {"protocol_id": "H2_STAGEWISE_CAUSAL_LOCALIZATION_AUDIT_R1", "status": "PASS", "rows": rows, "comparisons": comparisons, "probe_definition": "one fixed deterministic source probe batch: first batch of the exact 16-batch epoch-11 R1 preflight set; no optimizer step"}
+    write_csv(OUT_TASK_CSV, rows + [{"scope": "comparison", **r} for r in comparisons]); dump_json(OUT_TASK_JSON, artifact)
+    return artifact
+
+
+def directional_phase() -> dict:
+    payload = torch.load(SAFE_ANCHOR, map_location="cpu", weights_only=False)
+    model = s2.make_training_model(payload, torch.device("cuda:0"))
+    s2.configure_training_epoch(model, 11)
+    fixed = s2.fixed_train_batches(payload, model)
+    stage2_named = s2.stage_parameters(model, 1)
+    stage2_names = [n for n, _ in stage2_named]
+    stage2_params = [p for _, p in stage2_named]
+    family_indices = {}
+    for i, name in enumerate(stage2_names): family_indices.setdefault(name.split(".", 1)[0], []).append(i)
+    accumulated = {name: torch.zeros_like(p, dtype=torch.float32) for name, p in stage2_named}
+    preflight_rows = []
+    for batch in fixed:
+        result = s2.preflight_microbatch(model, batch, torch.device("cuda:0"), PrecisionPolicy("fp16"), stage2_params)
+        preflight_rows.append({"raw_locr_loss": result["locr_value"], "active": result["details"]["active"], "valid_components": result["details"]["valid_components"]})
+        for (name, _), grad in zip(stage2_named, result["gradients"]["locr"]):
+            if grad is not None: accumulated[name].add_(grad.detach().float())
+        del result
+    family_grad = {}
+    for family, indices in family_indices.items():
+        family_grad[family] = [accumulated[stage2_names[i]].detach().float().clone() for i in indices]
+    probe = fixed[0]
+    model.zero_grad(set_to_none=True)
+    image = probe["image"].to("cuda:0")
+    class_names = list(probe["class_name"])
+    text, _, _ = s2.batch_text_features(model, class_names, torch.device("cuda:0"))
+    with PrecisionPolicy("fp16").autocast(torch.device("cuda:0")):
+        seg_tokens, _ = model(image)
+        z = s2.production_resized_logits(model, torch.stack(seg_tokens), text)
+    margins = z[:, :, 1] - z[:, :, 0]
+    mask_np = (probe["mask"][:, 0].numpy() > .5)
+    region_masks = {"near": [], "interior": [], "boundary": [], "positive": [], "far": []}
+    for m in mask_np:
+        b, i, n, f = spill.morphology(m)
+        for key, value in (("near", n), ("interior", i), ("boundary", b), ("positive", m), ("far", f)): region_masks[key].append(torch.from_numpy(value).to("cuda:0"))
+    region_masks = {k: torch.stack(v) for k, v in region_masks.items()}
+    objectives = {}
+    for stage, label in ((0, "s1"), (1, "s2"), (2, "s3")):
+        for region in ("near", "interior", "boundary", "positive", "far"):
+            selected = margins[stage][region_masks[region]]
+            objectives[f"{label}_{region}_margin"] = selected.mean() if selected.numel() else margins[stage].sum() * 0.0
+    fused = margins.mean(0)
+    for region in ("near", "interior", "boundary"):
+        selected = fused[region_masks[region]]
+        objectives[f"fused_{region}_margin"] = selected.mean() if selected.numel() else fused.sum() * 0.0
+    terms = s2.batch_terms(model, probe, torch.device("cuda:0"), PrecisionPolicy("fp16"))
+    objectives["main_task_loss"] = terms["task"]
+    rows = []
+    for family, glist in sorted(family_grad.items()):
+        norm = float(torch.stack([g.square().sum() for g in glist]).sum().sqrt().cpu())
+        directional = {"family": family, "locr_gradient_norm_16_batch_sum": norm, "active_preflight_batches": sum(int(x["active"]) for x in preflight_rows)}
+        if norm > 0:
+            for name, objective in objectives.items():
+                grads = torch.autograd.grad(objective, stage2_params, retain_graph=True, allow_unused=True)
+                value = 0.0
+                for i in family_indices[family]:
+                    g = grads[i]
+                    if g is not None: value += float((g.float() * (-accumulated[stage2_names[i]] / norm)).sum().detach().cpu())
+                directional[name] = value
+        else:
+            for name in objectives: directional[name] = 0.0
+        directional["task_alignment"] = directional.get("main_task_loss", 0.0)
+        directional["profile"] = "INACTIVE" if norm <= 1e-12 else "UNCLASSIFIED"
+        near = directional.get("s2_near_margin", 0.0); interior = directional.get("s2_interior_margin", 0.0); positive = directional.get("s2_positive_margin", 0.0)
+        cross = max(abs(directional.get("s1_near_margin", 0.0)), abs(directional.get("s3_near_margin", 0.0)))
+        if norm <= 1e-12: profile = "INACTIVE"
+        elif near < 0 and interior >= 0 and positive >= 0 and cross <= abs(near): profile = "CLEAN_LOCAL_SEPARATION"
+        elif near < 0 and (interior < 0 or positive < 0): profile = "COUPLED_SUPPRESSION"
+        elif cross > abs(near): profile = "CROSS_STAGE_COUPLED"
+        else: profile = "COUPLED_SUPPRESSION"
+        directional["profile"] = profile
+        rows.append(directional)
+    module_map = {"attention": ["vision_text_q", "vision_text_k"], "ss2d": ["dfg_ss2d_branches", "dfg_raw_gamma"], "convlora": ["lora_adapters"], "seg_projection": ["seg_proj"]}
+    module_assessment = {}
+    for module, families in module_map.items():
+        available = [r for r in rows if r["family"] in families]
+        if not available or all(r["profile"] == "INACTIVE" for r in available): evidence = "NOT_SUPPORTED"
+        elif any(r["profile"] in ("COUPLED_SUPPRESSION", "CROSS_STAGE_COUPLED") for r in available): evidence = "SUPPORTED"
+        else: evidence = "WEAK"
+        module_assessment[module] = {"evidence": evidence, "families": families, "profiles": {r["family"]: r["profile"] for r in available}}
+    artifact = {"protocol_id": "H2_STAGEWISE_CAUSAL_LOCALIZATION_AUDIT_R1", "rows": rows, "module_assessment": module_assessment, "preflight_batches": 16, "probe_batch_count": 1, "direction": "unit descent direction d_f=-g_LOCR_f/||g_LOCR_f||; no parameter update", "preflight_summary": preflight_rows}
+    write_csv(OUT_DIR_CSV, rows); dump_json(OUT_DIR_JSON, artifact)
+    return artifact
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--phase", choices=("identity", "oracle", "occupancy", "calibration", "all"), default="identity")
+    parser.add_argument("--phase", choices=("identity", "oracle", "occupancy", "calibration", "trajectory", "task", "directional", "all"), default="identity")
     args = parser.parse_args()
     if args.phase in ("identity", "all"):
         identity_and_cohorts()
@@ -582,6 +880,12 @@ def main() -> None:
         occupancy_phase()
     if args.phase in ("calibration", "all"):
         calibration_phase()
+    if args.phase in ("trajectory", "all"):
+        trajectory_phase()
+    if args.phase in ("task", "all"):
+        task_gradient_phase()
+    if args.phase in ("directional", "all"):
+        directional_phase()
 
 
 if __name__ == "__main__":
