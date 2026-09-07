@@ -1,0 +1,1168 @@
+{
+  "bins": [
+    {
+      "interval": "==0",
+      "name": "EXACT_0"
+    },
+    {
+      "interval": "(0.0,0.25]",
+      "name": "LOW"
+    },
+    {
+      "interval": "(0.25,0.5]",
+      "name": "MID_LOW"
+    },
+    {
+      "interval": "(0.5,0.75]",
+      "name": "MID_HIGH"
+    },
+    {
+      "interval": "(0.75,1.0]",
+      "name": "HIGH"
+    },
+    {
+      "interval": "==1",
+      "name": "EXACT_1"
+    }
+  ],
+  "cohort_summary": [
+    {
+      "cohort": "A",
+      "partial_occ_score": 0.18119677901268005,
+      "stage": 1,
+      "zero_occ_far_score": 0.000508905912283808,
+      "zero_occ_near_score": 0.00394023209810257
+    },
+    {
+      "cohort": "A",
+      "partial_occ_score": 0.39017316699028015,
+      "stage": 2,
+      "zero_occ_far_score": 0.00048516265815123916,
+      "zero_occ_near_score": 0.010925432667136192
+    },
+    {
+      "cohort": "A",
+      "partial_occ_score": 0.23551280796527863,
+      "stage": 3,
+      "zero_occ_far_score": 7.683751755394042e-05,
+      "zero_occ_near_score": 0.0035713461693376303
+    },
+    {
+      "cohort": "B",
+      "partial_occ_score": 0.28851318359375,
+      "stage": 1,
+      "zero_occ_far_score": 0.0005096521344967186,
+      "zero_occ_near_score": 0.003660176880657673
+    },
+    {
+      "cohort": "B",
+      "partial_occ_score": 0.5022485852241516,
+      "stage": 2,
+      "zero_occ_far_score": 0.00027264253003522754,
+      "zero_occ_near_score": 0.027630869299173355
+    },
+    {
+      "cohort": "B",
+      "partial_occ_score": 0.254524827003479,
+      "stage": 3,
+      "zero_occ_far_score": 5.321369462762959e-05,
+      "zero_occ_near_score": 0.006174832582473755
+    }
+  ],
+  "diagnosis": "PATCH_FOOTPRINT_ALIASING_LIKELY",
+  "mapping": {
+    "conv_patch_kernel": 14,
+    "conv_patch_stride": 14,
+    "exact_mapping": "PASS",
+    "footprint": "native patch (r,c) maps to input rows [14r,14r+13] and columns [14c,14c+13]",
+    "image_size": 518,
+    "native_grid": [
+      37,
+      37
+    ]
+  },
+  "no_threshold_tuning": true,
+  "protocol_id": "H2_STAGEWISE_CAUSAL_LOCALIZATION_AUDIT_R1",
+  "rows": [
+    {
+      "count": 261378,
+      "distance_region": "all",
+      "margin_mean": -18.604833602905273,
+      "margin_median": -19.0,
+      "occupancy_bin": "EXACT_0",
+      "prob_mean": 0.0005837497883476317,
+      "prob_median": 5.602796449011294e-09,
+      "stage": 1
+    },
+    {
+      "count": 0,
+      "distance_region": "positive",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "EXACT_0",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 1
+    },
+    {
+      "count": 5937,
+      "distance_region": "near",
+      "margin_mean": -17.57868766784668,
+      "margin_median": -18.53125,
+      "occupancy_bin": "EXACT_0",
+      "prob_mean": 0.0037879166193306446,
+      "prob_median": 8.953243479936646e-09,
+      "stage": 1
+    },
+    {
+      "count": 255441,
+      "distance_region": "far",
+      "margin_mean": -18.628684997558594,
+      "margin_median": -19.0,
+      "occupancy_bin": "EXACT_0",
+      "prob_mean": 0.0005092780338600278,
+      "prob_median": 5.602796449011294e-09,
+      "stage": 1
+    },
+    {
+      "count": 0,
+      "distance_region": "boundary",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "EXACT_0",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 1
+    },
+    {
+      "count": 0,
+      "distance_region": "interior",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "EXACT_0",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 1
+    },
+    {
+      "count": 672,
+      "distance_region": "all",
+      "margin_mean": -13.790629386901855,
+      "margin_median": -16.90625,
+      "occupancy_bin": "LOW",
+      "prob_mean": 0.07537998259067535,
+      "prob_median": 4.54683188877425e-08,
+      "stage": 1
+    },
+    {
+      "count": 147,
+      "distance_region": "positive",
+      "margin_mean": -13.907575607299805,
+      "margin_median": -16.640625,
+      "occupancy_bin": "LOW",
+      "prob_mean": 0.0737035870552063,
+      "prob_median": 5.930186475211485e-08,
+      "stage": 1
+    },
+    {
+      "count": 456,
+      "distance_region": "near",
+      "margin_mean": -13.71717357635498,
+      "margin_median": -16.9453125,
+      "occupancy_bin": "LOW",
+      "prob_mean": 0.0775434598326683,
+      "prob_median": 4.372778761307927e-08,
+      "stage": 1
+    },
+    {
+      "count": 69,
+      "distance_region": "far",
+      "margin_mean": -14.026933670043945,
+      "margin_median": -17.25,
+      "occupancy_bin": "LOW",
+      "prob_mean": 0.06465363502502441,
+      "prob_median": 3.224186784223093e-08,
+      "stage": 1
+    },
+    {
+      "count": 147,
+      "distance_region": "boundary",
+      "margin_mean": -13.907575607299805,
+      "margin_median": -16.640625,
+      "occupancy_bin": "LOW",
+      "prob_mean": 0.0737035870552063,
+      "prob_median": 5.930186475211485e-08,
+      "stage": 1
+    },
+    {
+      "count": 0,
+      "distance_region": "interior",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "LOW",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 1
+    },
+    {
+      "count": 311,
+      "distance_region": "all",
+      "margin_mean": -6.781686305999756,
+      "margin_median": -10.3515625,
+      "occupancy_bin": "MID_LOW",
+      "prob_mean": 0.2792838215827942,
+      "prob_median": 3.194181772414595e-05,
+      "stage": 1
+    },
+    {
+      "count": 111,
+      "distance_region": "positive",
+      "margin_mean": -8.142428398132324,
+      "margin_median": -11.8125,
+      "occupancy_bin": "MID_LOW",
+      "prob_mean": 0.21698278188705444,
+      "prob_median": 7.411279511870816e-06,
+      "stage": 1
+    },
+    {
+      "count": 190,
+      "distance_region": "near",
+      "margin_mean": -5.765746593475342,
+      "margin_median": -9.5390625,
+      "occupancy_bin": "MID_LOW",
+      "prob_mean": 0.32275182008743286,
+      "prob_median": 7.198131061159074e-05,
+      "stage": 1
+    },
+    {
+      "count": 10,
+      "distance_region": "far",
+      "margin_mean": -10.980298042297363,
+      "margin_median": -17.15625,
+      "occupancy_bin": "MID_LOW",
+      "prob_mean": 0.1449335217475891,
+      "prob_median": 3.752358423980695e-08,
+      "stage": 1
+    },
+    {
+      "count": 111,
+      "distance_region": "boundary",
+      "margin_mean": -8.142428398132324,
+      "margin_median": -11.8125,
+      "occupancy_bin": "MID_LOW",
+      "prob_mean": 0.21698278188705444,
+      "prob_median": 7.411279511870816e-06,
+      "stage": 1
+    },
+    {
+      "count": 0,
+      "distance_region": "interior",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "MID_LOW",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 1
+    },
+    {
+      "count": 177,
+      "distance_region": "all",
+      "margin_mean": -0.17411692440509796,
+      "margin_median": 0.57421875,
+      "occupancy_bin": "MID_HIGH",
+      "prob_mean": 0.5194445252418518,
+      "prob_median": 0.6397360563278198,
+      "stage": 1
+    },
+    {
+      "count": 81,
+      "distance_region": "positive",
+      "margin_mean": -1.487422227859497,
+      "margin_median": -3.73046875,
+      "occupancy_bin": "MID_HIGH",
+      "prob_mean": 0.4474957287311554,
+      "prob_median": 0.023419946432113647,
+      "stage": 1
+    },
+    {
+      "count": 90,
+      "distance_region": "near",
+      "margin_mean": 0.5255036354064941,
+      "margin_median": 3.8583984375,
+      "occupancy_bin": "MID_HIGH",
+      "prob_mean": 0.574383020401001,
+      "prob_median": 0.9786818027496338,
+      "stage": 1
+    },
+    {
+      "count": 6,
+      "distance_region": "far",
+      "margin_mean": 7.061197757720947,
+      "margin_median": 17.203125,
+      "occupancy_bin": "MID_HIGH",
+      "prob_mean": 0.6666762232780457,
+      "prob_median": 1.0,
+      "stage": 1
+    },
+    {
+      "count": 81,
+      "distance_region": "boundary",
+      "margin_mean": -1.487422227859497,
+      "margin_median": -3.73046875,
+      "occupancy_bin": "MID_HIGH",
+      "prob_mean": 0.4474957287311554,
+      "prob_median": 0.023419946432113647,
+      "stage": 1
+    },
+    {
+      "count": 0,
+      "distance_region": "interior",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "MID_HIGH",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 1
+    },
+    {
+      "count": 310,
+      "distance_region": "all",
+      "margin_mean": 0.6054672002792358,
+      "margin_median": 5.443359375,
+      "occupancy_bin": "HIGH",
+      "prob_mean": 0.5712958574295044,
+      "prob_median": 0.9956936836242676,
+      "stage": 1
+    },
+    {
+      "count": 258,
+      "distance_region": "positive",
+      "margin_mean": 1.2053184509277344,
+      "margin_median": 7.31640625,
+      "occupancy_bin": "HIGH",
+      "prob_mean": 0.5935947299003601,
+      "prob_median": 0.9993345737457275,
+      "stage": 1
+    },
+    {
+      "count": 52,
+      "distance_region": "near",
+      "margin_mean": -2.370718240737915,
+      "margin_median": -6.076171875,
+      "occupancy_bin": "HIGH",
+      "prob_mean": 0.46065905690193176,
+      "prob_median": 0.002339712344110012,
+      "stage": 1
+    },
+    {
+      "count": 0,
+      "distance_region": "far",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "HIGH",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 1
+    },
+    {
+      "count": 258,
+      "distance_region": "boundary",
+      "margin_mean": 1.2053184509277344,
+      "margin_median": 7.31640625,
+      "occupancy_bin": "HIGH",
+      "prob_mean": 0.5935947299003601,
+      "prob_median": 0.9993345737457275,
+      "stage": 1
+    },
+    {
+      "count": 0,
+      "distance_region": "interior",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "HIGH",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 1
+    },
+    {
+      "count": 143,
+      "distance_region": "all",
+      "margin_mean": 1.768558144569397,
+      "margin_median": 8.2265625,
+      "occupancy_bin": "EXACT_1",
+      "prob_mean": 0.6182573437690735,
+      "prob_median": 0.9997325539588928,
+      "stage": 1
+    },
+    {
+      "count": 143,
+      "distance_region": "positive",
+      "margin_mean": 1.768558144569397,
+      "margin_median": 8.2265625,
+      "occupancy_bin": "EXACT_1",
+      "prob_mean": 0.6182573437690735,
+      "prob_median": 0.9997325539588928,
+      "stage": 1
+    },
+    {
+      "count": 0,
+      "distance_region": "near",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "EXACT_1",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 1
+    },
+    {
+      "count": 0,
+      "distance_region": "far",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "EXACT_1",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 1
+    },
+    {
+      "count": 143,
+      "distance_region": "boundary",
+      "margin_mean": 1.768558144569397,
+      "margin_median": 8.2265625,
+      "occupancy_bin": "EXACT_1",
+      "prob_mean": 0.6182573437690735,
+      "prob_median": 0.9997325539588928,
+      "stage": 1
+    },
+    {
+      "count": 0,
+      "distance_region": "interior",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "EXACT_1",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 1
+    },
+    {
+      "count": 261378,
+      "distance_region": "all",
+      "margin_mean": -19.247438430786133,
+      "margin_median": -19.296875,
+      "occupancy_bin": "EXACT_0",
+      "prob_mean": 0.0008251057588495314,
+      "prob_median": 4.163644984345183e-09,
+      "stage": 2
+    },
+    {
+      "count": 0,
+      "distance_region": "positive",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "EXACT_0",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 2
+    },
+    {
+      "count": 5937,
+      "distance_region": "near",
+      "margin_mean": -18.085630416870117,
+      "margin_median": -19.28125,
+      "occupancy_bin": "EXACT_0",
+      "prob_mean": 0.020011141896247864,
+      "prob_median": 4.229212535733495e-09,
+      "stage": 2
+    },
+    {
+      "count": 255441,
+      "distance_region": "far",
+      "margin_mean": -19.274442672729492,
+      "margin_median": -19.296875,
+      "occupancy_bin": "EXACT_0",
+      "prob_mean": 0.0003791809140238911,
+      "prob_median": 4.163644984345183e-09,
+      "stage": 2
+    },
+    {
+      "count": 0,
+      "distance_region": "boundary",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "EXACT_0",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 2
+    },
+    {
+      "count": 0,
+      "distance_region": "interior",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "EXACT_0",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 2
+    },
+    {
+      "count": 672,
+      "distance_region": "all",
+      "margin_mean": -8.037254333496094,
+      "margin_median": -15.41796875,
+      "occupancy_bin": "LOW",
+      "prob_mean": 0.28186991810798645,
+      "prob_median": 2.016605122889814e-07,
+      "stage": 2
+    },
+    {
+      "count": 147,
+      "distance_region": "positive",
+      "margin_mean": -7.240347385406494,
+      "margin_median": -13.171875,
+      "occupancy_bin": "LOW",
+      "prob_mean": 0.31953486800193787,
+      "prob_median": 1.903384486467985e-06,
+      "stage": 2
+    },
+    {
+      "count": 456,
+      "distance_region": "near",
+      "margin_mean": -8.212760925292969,
+      "margin_median": -14.96875,
+      "occupancy_bin": "LOW",
+      "prob_mean": 0.26667851209640503,
+      "prob_median": 3.1622923302165873e-07,
+      "stage": 2
+    },
+    {
+      "count": 69,
+      "distance_region": "far",
+      "margin_mean": -8.575139045715332,
+      "margin_median": -18.78125,
+      "occupancy_bin": "LOW",
+      "prob_mean": 0.3020226061344147,
+      "prob_median": 6.972792565562713e-09,
+      "stage": 2
+    },
+    {
+      "count": 147,
+      "distance_region": "boundary",
+      "margin_mean": -7.240347385406494,
+      "margin_median": -13.171875,
+      "occupancy_bin": "LOW",
+      "prob_mean": 0.31953486800193787,
+      "prob_median": 1.903384486467985e-06,
+      "stage": 2
+    },
+    {
+      "count": 0,
+      "distance_region": "interior",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "LOW",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 2
+    },
+    {
+      "count": 311,
+      "distance_region": "all",
+      "margin_mean": 0.8421108722686768,
+      "margin_median": 6.15625,
+      "occupancy_bin": "MID_LOW",
+      "prob_mean": 0.5656380653381348,
+      "prob_median": 0.9978843331336975,
+      "stage": 2
+    },
+    {
+      "count": 111,
+      "distance_region": "positive",
+      "margin_mean": -2.9444591999053955,
+      "margin_median": -5.2734375,
+      "occupancy_bin": "MID_LOW",
+      "prob_mean": 0.4474940001964569,
+      "prob_median": 0.005099818576127291,
+      "stage": 2
+    },
+    {
+      "count": 190,
+      "distance_region": "near",
+      "margin_mean": 3.6315841674804688,
+      "margin_median": 10.34765625,
+      "occupancy_bin": "MID_LOW",
+      "prob_mean": 0.6491654515266418,
+      "prob_median": 0.9999678730964661,
+      "stage": 2
+    },
+    {
+      "count": 10,
+      "distance_region": "far",
+      "margin_mean": -10.126953125,
+      "margin_median": -19.234375,
+      "occupancy_bin": "MID_LOW",
+      "prob_mean": 0.29001790285110474,
+      "prob_median": 4.432718192504126e-09,
+      "stage": 2
+    },
+    {
+      "count": 111,
+      "distance_region": "boundary",
+      "margin_mean": -2.9444591999053955,
+      "margin_median": -5.2734375,
+      "occupancy_bin": "MID_LOW",
+      "prob_mean": 0.4474940001964569,
+      "prob_median": 0.005099818576127291,
+      "stage": 2
+    },
+    {
+      "count": 0,
+      "distance_region": "interior",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "MID_LOW",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 2
+    },
+    {
+      "count": 177,
+      "distance_region": "all",
+      "margin_mean": 5.536531448364258,
+      "margin_median": 13.21875,
+      "occupancy_bin": "MID_HIGH",
+      "prob_mean": 0.7046653032302856,
+      "prob_median": 0.9999982118606567,
+      "stage": 2
+    },
+    {
+      "count": 81,
+      "distance_region": "positive",
+      "margin_mean": 3.570586681365967,
+      "margin_median": 10.8125,
+      "occupancy_bin": "MID_HIGH",
+      "prob_mean": 0.654787540435791,
+      "prob_median": 0.9999798536300659,
+      "stage": 2
+    },
+    {
+      "count": 90,
+      "distance_region": "near",
+      "margin_mean": 7.256927967071533,
+      "margin_median": 14.8203125,
+      "occupancy_bin": "MID_HIGH",
+      "prob_mean": 0.7520886063575745,
+      "prob_median": 0.9999996423721313,
+      "stage": 2
+    },
+    {
+      "count": 6,
+      "distance_region": "far",
+      "margin_mean": 6.270833492279053,
+      "margin_median": 18.8828125,
+      "occupancy_bin": "MID_HIGH",
+      "prob_mean": 0.6666666865348816,
+      "prob_median": 1.0,
+      "stage": 2
+    },
+    {
+      "count": 81,
+      "distance_region": "boundary",
+      "margin_mean": 3.570586681365967,
+      "margin_median": 10.8125,
+      "occupancy_bin": "MID_HIGH",
+      "prob_mean": 0.654787540435791,
+      "prob_median": 0.9999798536300659,
+      "stage": 2
+    },
+    {
+      "count": 0,
+      "distance_region": "interior",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "MID_HIGH",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 2
+    },
+    {
+      "count": 310,
+      "distance_region": "all",
+      "margin_mean": 5.046535015106201,
+      "margin_median": 15.48046875,
+      "occupancy_bin": "HIGH",
+      "prob_mean": 0.6664407253265381,
+      "prob_median": 0.9999997615814209,
+      "stage": 2
+    },
+    {
+      "count": 258,
+      "distance_region": "positive",
+      "margin_mean": 5.049464225769043,
+      "margin_median": 15.4921875,
+      "occupancy_bin": "HIGH",
+      "prob_mean": 0.66227787733078,
+      "prob_median": 0.9999997615814209,
+      "stage": 2
+    },
+    {
+      "count": 52,
+      "distance_region": "near",
+      "margin_mean": 5.03200101852417,
+      "margin_median": 14.6328125,
+      "occupancy_bin": "HIGH",
+      "prob_mean": 0.6870949864387512,
+      "prob_median": 0.9999995231628418,
+      "stage": 2
+    },
+    {
+      "count": 0,
+      "distance_region": "far",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "HIGH",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 2
+    },
+    {
+      "count": 258,
+      "distance_region": "boundary",
+      "margin_mean": 5.049464225769043,
+      "margin_median": 15.4921875,
+      "occupancy_bin": "HIGH",
+      "prob_mean": 0.66227787733078,
+      "prob_median": 0.9999997615814209,
+      "stage": 2
+    },
+    {
+      "count": 0,
+      "distance_region": "interior",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "HIGH",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 2
+    },
+    {
+      "count": 143,
+      "distance_region": "all",
+      "margin_mean": 5.809099197387695,
+      "margin_median": 16.328125,
+      "occupancy_bin": "EXACT_1",
+      "prob_mean": 0.6835669875144958,
+      "prob_median": 0.9999998807907104,
+      "stage": 2
+    },
+    {
+      "count": 143,
+      "distance_region": "positive",
+      "margin_mean": 5.809099197387695,
+      "margin_median": 16.328125,
+      "occupancy_bin": "EXACT_1",
+      "prob_mean": 0.6835669875144958,
+      "prob_median": 0.9999998807907104,
+      "stage": 2
+    },
+    {
+      "count": 0,
+      "distance_region": "near",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "EXACT_1",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 2
+    },
+    {
+      "count": 0,
+      "distance_region": "far",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "EXACT_1",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 2
+    },
+    {
+      "count": 143,
+      "distance_region": "boundary",
+      "margin_mean": 5.809099197387695,
+      "margin_median": 16.328125,
+      "occupancy_bin": "EXACT_1",
+      "prob_mean": 0.6835669875144958,
+      "prob_median": 0.9999998807907104,
+      "stage": 2
+    },
+    {
+      "count": 0,
+      "distance_region": "interior",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "EXACT_1",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 2
+    },
+    {
+      "count": 261378,
+      "distance_region": "all",
+      "margin_mean": -18.238819122314453,
+      "margin_median": -18.25,
+      "occupancy_bin": "EXACT_0",
+      "prob_mean": 0.00017686202772893012,
+      "prob_median": 1.1861120086109622e-08,
+      "stage": 3
+    },
+    {
+      "count": 0,
+      "distance_region": "positive",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "EXACT_0",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 3
+    },
+    {
+      "count": 5937,
+      "distance_region": "near",
+      "margin_mean": -17.847057342529297,
+      "margin_median": -18.3125,
+      "occupancy_bin": "EXACT_0",
+      "prob_mean": 0.0049873236566782,
+      "prob_median": 1.1142491374016572e-08,
+      "stage": 3
+    },
+    {
+      "count": 255441,
+      "distance_region": "far",
+      "margin_mean": -18.2479248046875,
+      "margin_median": -18.25,
+      "occupancy_bin": "EXACT_0",
+      "prob_mean": 6.50565343676135e-05,
+      "prob_median": 1.1861120086109622e-08,
+      "stage": 3
+    },
+    {
+      "count": 0,
+      "distance_region": "boundary",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "EXACT_0",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 3
+    },
+    {
+      "count": 0,
+      "distance_region": "interior",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "EXACT_0",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 3
+    },
+    {
+      "count": 672,
+      "distance_region": "all",
+      "margin_mean": -11.996675491333008,
+      "margin_median": -17.921875,
+      "occupancy_bin": "LOW",
+      "prob_mean": 0.16954076290130615,
+      "prob_median": 1.6469545727204604e-08,
+      "stage": 3
+    },
+    {
+      "count": 147,
+      "distance_region": "positive",
+      "margin_mean": -11.944437026977539,
+      "margin_median": -17.875,
+      "occupancy_bin": "LOW",
+      "prob_mean": 0.1516774296760559,
+      "prob_median": 1.7257827167327378e-08,
+      "stage": 3
+    },
+    {
+      "count": 456,
+      "distance_region": "near",
+      "margin_mean": -12.10953426361084,
+      "margin_median": -17.90625,
+      "occupancy_bin": "LOW",
+      "prob_mean": 0.1703270822763443,
+      "prob_median": 1.6726861673532767e-08,
+      "stage": 3
+    },
+    {
+      "count": 69,
+      "distance_region": "far",
+      "margin_mean": -11.362106323242188,
+      "margin_median": -18.0,
+      "occupancy_bin": "LOW",
+      "prob_mean": 0.20240089297294617,
+      "prob_median": 1.5229979055675358e-08,
+      "stage": 3
+    },
+    {
+      "count": 147,
+      "distance_region": "boundary",
+      "margin_mean": -11.944437026977539,
+      "margin_median": -17.875,
+      "occupancy_bin": "LOW",
+      "prob_mean": 0.1516774296760559,
+      "prob_median": 1.7257827167327378e-08,
+      "stage": 3
+    },
+    {
+      "count": 0,
+      "distance_region": "interior",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "LOW",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 3
+    },
+    {
+      "count": 311,
+      "distance_region": "all",
+      "margin_mean": -8.51987361907959,
+      "margin_median": -9.296875,
+      "occupancy_bin": "MID_LOW",
+      "prob_mean": 0.27917706966400146,
+      "prob_median": 9.17019642656669e-05,
+      "stage": 3
+    },
+    {
+      "count": 111,
+      "distance_region": "positive",
+      "margin_mean": -9.766236305236816,
+      "margin_median": -13.59375,
+      "occupancy_bin": "MID_LOW",
+      "prob_mean": 0.2243368923664093,
+      "prob_median": 1.248270905307436e-06,
+      "stage": 3
+    },
+    {
+      "count": 190,
+      "distance_region": "near",
+      "margin_mean": -7.542019844055176,
+      "margin_median": -6.74609375,
+      "occupancy_bin": "MID_LOW",
+      "prob_mean": 0.3153925836086273,
+      "prob_median": 0.001174162607640028,
+      "stage": 3
+    },
+    {
+      "count": 10,
+      "distance_region": "far",
+      "margin_mean": -13.264452934265137,
+      "margin_median": -18.1953125,
+      "occupancy_bin": "MID_LOW",
+      "prob_mean": 0.19980791211128235,
+      "prob_median": 1.252822201536219e-08,
+      "stage": 3
+    },
+    {
+      "count": 111,
+      "distance_region": "boundary",
+      "margin_mean": -9.766236305236816,
+      "margin_median": -13.59375,
+      "occupancy_bin": "MID_LOW",
+      "prob_mean": 0.2243368923664093,
+      "prob_median": 1.248270905307436e-06,
+      "stage": 3
+    },
+    {
+      "count": 0,
+      "distance_region": "interior",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "MID_LOW",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 3
+    },
+    {
+      "count": 177,
+      "distance_region": "all",
+      "margin_mean": -6.155208587646484,
+      "margin_median": -2.333984375,
+      "occupancy_bin": "MID_HIGH",
+      "prob_mean": 0.3787003755569458,
+      "prob_median": 0.08834723383188248,
+      "stage": 3
+    },
+    {
+      "count": 81,
+      "distance_region": "positive",
+      "margin_mean": -6.554084777832031,
+      "margin_median": -3.46484375,
+      "occupancy_bin": "MID_HIGH",
+      "prob_mean": 0.3676421344280243,
+      "prob_median": 0.030329255387187004,
+      "stage": 3
+    },
+    {
+      "count": 90,
+      "distance_region": "near",
+      "margin_mean": -5.257999897003174,
+      "margin_median": -1.556640625,
+      "occupancy_bin": "MID_HIGH",
+      "prob_mean": 0.4028560221195221,
+      "prob_median": 0.17448307573795319,
+      "stage": 3
+    },
+    {
+      "count": 6,
+      "distance_region": "far",
+      "margin_mean": -14.228515625,
+      "margin_median": -18.0859375,
+      "occupancy_bin": "MID_HIGH",
+      "prob_mean": 0.16565436124801636,
+      "prob_median": 1.398647953010368e-08,
+      "stage": 3
+    },
+    {
+      "count": 81,
+      "distance_region": "boundary",
+      "margin_mean": -6.554084777832031,
+      "margin_median": -3.46484375,
+      "occupancy_bin": "MID_HIGH",
+      "prob_mean": 0.3676421344280243,
+      "prob_median": 0.030329255387187004,
+      "stage": 3
+    },
+    {
+      "count": 0,
+      "distance_region": "interior",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "MID_HIGH",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 3
+    },
+    {
+      "count": 310,
+      "distance_region": "all",
+      "margin_mean": -6.884704113006592,
+      "margin_median": -4.37890625,
+      "occupancy_bin": "HIGH",
+      "prob_mean": 0.3310368061065674,
+      "prob_median": 0.012431951239705086,
+      "stage": 3
+    },
+    {
+      "count": 258,
+      "distance_region": "positive",
+      "margin_mean": -6.683591842651367,
+      "margin_median": -3.837890625,
+      "occupancy_bin": "HIGH",
+      "prob_mean": 0.33077913522720337,
+      "prob_median": 0.021093323826789856,
+      "stage": 3
+    },
+    {
+      "count": 52,
+      "distance_region": "near",
+      "margin_mean": -7.882530689239502,
+      "margin_median": -7.404296875,
+      "occupancy_bin": "HIGH",
+      "prob_mean": 0.3323151171207428,
+      "prob_median": 0.0009391703060828149,
+      "stage": 3
+    },
+    {
+      "count": 0,
+      "distance_region": "far",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "HIGH",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 3
+    },
+    {
+      "count": 258,
+      "distance_region": "boundary",
+      "margin_mean": -6.683591842651367,
+      "margin_median": -3.837890625,
+      "occupancy_bin": "HIGH",
+      "prob_mean": 0.33077913522720337,
+      "prob_median": 0.021093323826789856,
+      "stage": 3
+    },
+    {
+      "count": 0,
+      "distance_region": "interior",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "HIGH",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 3
+    },
+    {
+      "count": 143,
+      "distance_region": "all",
+      "margin_mean": -6.871302127838135,
+      "margin_median": -3.76171875,
+      "occupancy_bin": "EXACT_1",
+      "prob_mean": 0.3085080683231354,
+      "prob_median": 0.02271575853228569,
+      "stage": 3
+    },
+    {
+      "count": 143,
+      "distance_region": "positive",
+      "margin_mean": -6.871302127838135,
+      "margin_median": -3.76171875,
+      "occupancy_bin": "EXACT_1",
+      "prob_mean": 0.3085080683231354,
+      "prob_median": 0.02271575853228569,
+      "stage": 3
+    },
+    {
+      "count": 0,
+      "distance_region": "near",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "EXACT_1",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 3
+    },
+    {
+      "count": 0,
+      "distance_region": "far",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "EXACT_1",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 3
+    },
+    {
+      "count": 143,
+      "distance_region": "boundary",
+      "margin_mean": -6.871302127838135,
+      "margin_median": -3.76171875,
+      "occupancy_bin": "EXACT_1",
+      "prob_mean": 0.3085080683231354,
+      "prob_median": 0.02271575853228569,
+      "stage": 3
+    },
+    {
+      "count": 0,
+      "distance_region": "interior",
+      "margin_mean": null,
+      "margin_median": null,
+      "occupancy_bin": "EXACT_1",
+      "prob_mean": null,
+      "prob_median": null,
+      "stage": 3
+    }
+  ]
+}

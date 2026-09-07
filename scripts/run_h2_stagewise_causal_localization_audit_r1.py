@@ -492,8 +492,12 @@ def occupancy_phase() -> dict:
     if 37 * 14 != 518:
         raise RuntimeError("exact patch mapping failed")
     device = torch.device("cuda:0")
-    rows_all = load_cohort("A") + load_cohort("B")
-    data = evaluate_exact(SAFE_ANCHOR, rows_all, device)
+    # Each cohort is independently category-ordered by the production
+    # evaluator; concatenate the two already-validated outputs only after
+    # evaluation so the cohort boundary remains explicit.
+    da = evaluate_exact(SAFE_ANCHOR, load_cohort("A"), device)
+    db = evaluate_exact(SAFE_ANCHOR, load_cohort("B"), device)
+    data = {key: np.concatenate([da[key], db[key]], axis=0) for key in ("native_margin", "resized_margin", "mask")}
     masks = data["mask"].astype(bool)
     occupancy = masks.reshape(len(masks), PATCH, PATCH_SIZE, PATCH, PATCH_SIZE).mean(axis=(2, 4))
     native_masks = spill.flatten_masks_native(data["mask"])
