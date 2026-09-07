@@ -1,0 +1,107 @@
+{
+  "protocol_id": "H2_SAFE_ANCHOR_E20_MEDICAL_SELECTED",
+  "branch": "research/h2-safe-anchor-e20-medical-selected",
+  "configuration_identity": "audit/H2_SAFE_ANCHOR_E20_CONFIG_IDENTITY.json",
+  "training_summary": "audit/H2_SAFE_ANCHOR_E20_TRAINING_SUMMARY.json",
+  "training": {
+    "source_only_dataset": "VisA",
+    "train_through_epoch": 20,
+    "e10_to_e20_checkpoints_complete": true,
+    "all_retained_checkpoints_numerically_valid": true,
+    "functional_feature_anchor": false,
+    "safe_anchor": true,
+    "anchor_lambda": 0.0021633926715180626,
+    "anchor_family_budget_rho": 0.1,
+    "train_time_stage_fusion": [0.3333333333333333, 0.3333333333333333, 0.3333333333333333],
+    "medical_used_during_training": false,
+    "mvtec_used_during_training": false,
+    "nonfinite_grad_skips_retained_epochs": {"E10": 0, "E11": 1, "E12": 0, "E13": 0, "E14": 0, "E15": 0, "E16": 0, "E17": 1, "E18": 0, "E19": 0, "E20": 0},
+    "nonfinite_loss_skips_retained_epochs": 0
+  },
+  "resume": {
+    "start_checkpoint": "runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth",
+    "start_checkpoint_sha256": "7f9176b7ef53b572935567c574535075a573175b2aa83505d043a71d45b12b35",
+    "run_root": "/workspace/h2_safe_anchor_e20_medical_selected"
+  },
+  "selection": {
+    "selected_epoch": 15,
+    "selection_metric": "WEIGHTED_MACRO_PIXEL_AP",
+    "selection_rule": "argmax weighted Medical macro pixel AP; tie by higher weighted Medical macro pixel AUROC; remaining tie by earlier epoch",
+    "selected_checkpoint": "/workspace/h2_safe_anchor_e20_medical_selected/adapter_15.pth",
+    "selected_checkpoint_sha256": "11deefa24b1a6138bc833689cdee6ab247c8b420ba8fb160334abd1e2991e094",
+    "selected_medical": {
+      "equal_pixel_auroc": 89.0802473607016,
+      "equal_pixel_ap": 35.48717926990417,
+      "weighted_pixel_auroc": 89.28949333223254,
+      "weighted_pixel_ap": 35.472911947909374,
+      "weighted_minus_equal_pixel_auroc": 0.20924597153093316,
+      "weighted_minus_equal_pixel_ap": -0.014267321994793747,
+      "equal_image_auroc": 74.99794363975525,
+      "equal_image_ap": 77.58847077687581,
+      "weighted_image_auroc": 74.99794363975525,
+      "weighted_image_ap": 77.58847077687581
+    },
+    "medical_role": "TARGET_VALIDATION_FOR_EPOCH_SELECTION",
+    "medical_target_selection_used": true,
+    "medical_untouched_zero_shot_claim_allowed": false,
+    "best_observed_medical_by_macro_pixel_ap": {"weighted_epoch": 15, "equal_epoch": 15},
+    "best_observed_medical_by_macro_pixel_auroc": {"weighted_epoch": 15, "equal_epoch": 15}
+  },
+  "mvtec": {
+    "role": "POST_SELECTION_HOLDOUT_TARGET",
+    "observed_before_selection": false,
+    "used_for_selection": false,
+    "selected_epoch": 15,
+    "selected_equal": {
+      "pixel_auroc": 86.89838438614198,
+      "pixel_ap": 41.89632001389817,
+      "image_auroc": 88.09939543406169,
+      "image_ap": 94.42826112111409
+    },
+    "selected_weighted": {
+      "pixel_auroc": 87.19126575759987,
+      "pixel_ap": 41.82859892570771,
+      "image_auroc": 88.07996153831482,
+      "image_ap": 94.41276510556538
+    },
+    "selected_weighted_minus_equal": {
+      "pixel_auroc": 0.29288137145788085,
+      "pixel_ap": -0.06772108819045997,
+      "image_auroc": -0.0194338957468716,
+      "image_ap": -0.015496015548710297
+    },
+    "best_observed_by_macro_pixel_ap": {
+      "weighted_epoch": 13,
+      "weighted_pixel_ap": 43.00698587751858,
+      "equal_epoch": 13,
+      "equal_pixel_ap": 43.08985637782816
+    },
+    "best_observed_by_macro_pixel_auroc": {
+      "weighted_epoch": 12,
+      "weighted_pixel_auroc": 90.13182210689297,
+      "equal_epoch": 12,
+      "equal_pixel_auroc": 90.22504062260553
+    }
+  },
+  "fusion": {
+    "equal": [0.3333333333333333, 0.3333333333333333, 0.3333333333333333],
+    "weighted": [0.3736138197153701, 0.3270300383596602, 0.2993561419249697],
+    "train_time_weighted": false,
+    "fusion_weight_sweep": false,
+    "target_hyperparameter_sweep": false
+  },
+  "provenance": {
+    "medical_trajectory": "results/H2_E10_E20_MEDICAL_EQUAL_WEIGHTED.json",
+    "mvtec_trajectory": "results/H2_E10_E20_MVTEC_EQUAL_WEIGHTED.json",
+    "evaluator_repo": "/workspace/ACD-CLIP-medical-test",
+    "evaluator_commit": "6bd932fbce0a425af5c8d3f7230dd7dc041568bd",
+    "metric_precision": "raw_exact",
+    "pixel_stride": 1,
+    "prompt_config": "current_shared",
+    "medical_image_score_rule": "cls_only",
+    "mvtec_image_score_rule": "0.9_cls_0.1_max",
+    "inference_batch_size": 32,
+    "num_workers": 0,
+    "cuda_device": 0
+  }
+}
