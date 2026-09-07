@@ -1,0 +1,18 @@
+{
+  "protocol_id": "H2_STAGEWISE_CAUSAL_LOCALIZATION_AUDIT_R1",
+  "research_access": "AVAILABLE",
+  "diagnosis_frozen_before_search": true,
+  "primary_diagnosis": "CONTEXTUAL_MIXING_WITH_PATCH_AMBIGUITY",
+  "papers": [
+    {"title": "PointRend: Image Segmentation As Rendering", "venue": "CVPR", "year": 2020, "urls": ["https://openaccess.thecvf.com/content_CVPR_2020/papers/Kirillov_PointRend_Image_Segmentation_As_Rendering_CVPR_2020_paper.pdf", "https://doi.org/10.1109/CVPR42600.2020.00982", "https://arxiv.org/abs/1912.08193"], "mechanism": "uncertainty-guided point rendering with coarse and fine features", "evidence": "crisper boundaries and gains on COCO and Cityscapes", "architecture_similarity_difference": "addresses coarse-grid boundary undersampling; adds an adaptive point path unlike current Gaussian/bilinear expansion", "novelty_conflict": "MEDIUM", "adaptability": "HIGH", "implementation_complexity": "MEDIUM", "training_overhead": "MEDIUM", "inference_overhead": "LOW-to-MEDIUM"},
+    {"title": "Masked-attention Mask Transformer for Universal Image Segmentation", "venue": "CVPR", "year": 2022, "urls": ["https://openaccess.thecvf.com/content/CVPR2022/html/Cheng_Masked-Attention_Mask_Transformer_for_Universal_Image_Segmentation_CVPR_2022_paper.html", "https://doi.org/10.1109/CVPR52688.2022.00135", "https://arxiv.org/abs/2112.01527"], "mechanism": "mask-constrained cross-attention", "evidence": "strong semantic, instance, and panoptic segmentation results", "architecture_similarity_difference": "spatially restricts attention; current DFG has no predicted-mask support and is not a query-mask decoder", "novelty_conflict": "HIGH", "adaptability": "MEDIUM", "implementation_complexity": "HIGH", "training_overhead": "HIGH", "inference_overhead": "MEDIUM-to-HIGH"},
+    {"title": "Glancing at the Patch: Anomaly Localization With Global and Local Feature Comparison", "venue": "CVPR", "year": 2021, "urls": ["https://openaccess.thecvf.com/content/CVPR2021/html/Wang_Glancing_at_the_Patch_Anomaly_Localization_With_Global_and_Local_CVPR_2021_paper.html"], "mechanism": "separate local patch and surrounding global context with inconsistency/distortion heads", "evidence": "improved anomaly localization on industrial benchmarks", "architecture_similarity_difference": "shares local-context motivation; current S2-LOCR acts on near logits and current families can couple Stage 2 to Stage 3", "novelty_conflict": "MEDIUM", "adaptability": "HIGH", "implementation_complexity": "MEDIUM", "training_overhead": "MEDIUM", "inference_overhead": "MEDIUM"}
+  ],
+  "candidate_directions": [
+    {"rank": 1, "id": "CANDIDATE_1", "name": "UNCERTAINTY_GUIDED_NATIVE_FOOTPRINT_REFINEMENT_HEAD_WITH_STAGEWISE_MARGIN_GATING", "fit": "HIGH", "causal_evidence": "HIGH", "novelty": "MEDIUM", "simplicity": "MEDIUM", "adaptability": "HIGH", "conflict": "MEDIUM", "compute": "MEDIUM", "survival_probability": "HIGH"},
+    {"rank": 2, "id": "CANDIDATE_3", "name": "EXPLICIT_LOCAL_CONTEXT_RESIDUAL_BRANCH_WITH_STAGE_ISOLATED_HEADS", "fit": "MEDIUM-HIGH", "causal_evidence": "MEDIUM", "novelty": "MEDIUM", "simplicity": "MEDIUM", "adaptability": "HIGH", "conflict": "MEDIUM", "compute": "MEDIUM", "survival_probability": "MEDIUM"},
+    {"rank": 3, "id": "CANDIDATE_2", "name": "MASK_CONDITIONED_STAGE_RESPONSIBILITY_ROUTING", "fit": "MEDIUM", "causal_evidence": "LOW-MEDIUM", "novelty": "LOW-MEDIUM", "simplicity": "LOW", "adaptability": "MEDIUM", "conflict": "HIGH", "compute": "HIGH", "survival_probability": "LOW-MEDIUM"}
+  ],
+  "recommended_next_direction": "UNCERTAINTY_GUIDED_NATIVE_FOOTPRINT_REFINEMENT_HEAD_WITH_STAGEWISE_MARGIN_GATING",
+  "implementation_authorized": "NO"
+}

@@ -1,0 +1,239 @@
+{
+  "branch": "research/h2-stagewise-causal-localization-audit-r1",
+  "cohorts": {
+    "A_count": 96,
+    "B_count": 96,
+    "disjoint": "YES"
+  },
+  "final_bottleneck": {
+    "confidence": "MEDIUM",
+    "paragraph": "The strongest reviewer-defensible conclusion is a Stage-2-localized but not Stage-2-exclusive failure: a GT-assisted local Stage-2 oracle improves final AP/AUROC on both disjoint cohorts and matched far replacement does not reproduce it, while exact 14x14 patch occupancy shows elevated zero-footprint near scores and large partial-footprint scores. The no-step directional audit localizes suppression to segmentation projection, Conv-LoRA, and image-side mixing, with Conv-LoRA transferring a strong effect into Stage 3. Absolute positive/interior/boundary scores shrink and anomaly-versus-near ranking worsens despite endpoint pixel-ranking gains, so the result is mixed localization and calibration behavior rather than a pure score rescaling claim. Candidate replay parity fails, so update-time trajectory causality is not established.",
+    "primary_diagnosis": "CONTEXTUAL_MIXING_WITH_PATCH_AMBIGUITY",
+    "stage2_is_root_cause": "YES"
+  },
+  "metric_materialization": {
+    "full_spatial_maps_retained": true,
+    "per_image_region_cap": 2048,
+    "pixel_cap": 200000,
+    "seed": 1729
+  },
+  "parameter_family": {
+    "best_preservation_family": "vision_text_k",
+    "module_causal_evidence": {
+      "attention": "WEAK",
+      "convlora": "SUPPORTED",
+      "seg_projection": "SUPPORTED",
+      "ss2d": "WEAK"
+    },
+    "profiles": {
+      "det_layer_norms": "INACTIVE",
+      "det_proj": "INACTIVE",
+      "dfg_raw_gamma": "INACTIVE",
+      "dfg_ss2d_branches": "COUPLED_SUPPRESSION",
+      "lora_adapters": "COUPLED_SUPPRESSION",
+      "m_i_w": "COUPLED_SUPPRESSION",
+      "seg_layer_norms": "COUPLED_SUPPRESSION",
+      "seg_proj": "COUPLED_SUPPRESSION",
+      "vision_text_k": "COUPLED_SUPPRESSION",
+      "vision_text_q": "COUPLED_SUPPRESSION"
+    }
+  },
+  "parent_head": "f44cca2e163585dba3bbffc99c45518501db4852",
+  "parent_identity": "PASS",
+  "patch_footprint": {
+    "diagnosis": "PATCH_FOOTPRINT_ALIASING_LIKELY",
+    "exact_patch_mapping": "PASS",
+    "summary": [
+      {
+        "cohort": "A",
+        "partial_occ_score": 0.18119677901268005,
+        "stage": 1,
+        "zero_occ_far_score": 0.000508905912283808,
+        "zero_occ_near_score": 0.00394023209810257
+      },
+      {
+        "cohort": "A",
+        "partial_occ_score": 0.39017316699028015,
+        "stage": 2,
+        "zero_occ_far_score": 0.00048516265815123916,
+        "zero_occ_near_score": 0.010925432667136192
+      },
+      {
+        "cohort": "A",
+        "partial_occ_score": 0.23551280796527863,
+        "stage": 3,
+        "zero_occ_far_score": 7.683751755394042e-05,
+        "zero_occ_near_score": 0.0035713461693376303
+      },
+      {
+        "cohort": "B",
+        "partial_occ_score": 0.28851318359375,
+        "stage": 1,
+        "zero_occ_far_score": 0.0005096521344967186,
+        "zero_occ_near_score": 0.003660176880657673
+      },
+      {
+        "cohort": "B",
+        "partial_occ_score": 0.5022485852241516,
+        "stage": 2,
+        "zero_occ_far_score": 0.00027264253003522754,
+        "zero_occ_near_score": 0.027630869299173355
+      },
+      {
+        "cohort": "B",
+        "partial_occ_score": 0.254524827003479,
+        "stage": 3,
+        "zero_occ_far_score": 5.321369462762959e-05,
+        "zero_occ_near_score": 0.006174832582473755
+      }
+    ]
+  },
+  "prohibitions": {
+    "hyperparameter_sweep": "NO",
+    "medical_inference_run": "NO",
+    "mvtec_inference_run": "NO",
+    "new_mechanism_training_run": "NO",
+    "s2_locr_r1_decision_modified": "NO",
+    "target_tuning_used": "NO"
+  },
+  "protocol_id": "H2_STAGEWISE_CAUSAL_LOCALIZATION_AUDIT_R1",
+  "red_team": {
+    "aupro_status": "NOT_AVAILABLE",
+    "comparisons": [
+      {
+        "anomaly_vs_near_ap_delta": -0.006503908102563738,
+        "anomaly_vs_near_auroc_delta": -0.027205554026783554,
+        "boundary_vs_near_auroc_delta": -0.002420882513130218,
+        "cohort": "A",
+        "interior_vs_near_auroc_delta": 0.005479084157138825,
+        "pixel_ap_delta": 0.011249758554671863,
+        "pixel_auroc_delta": 0.05102367352392401,
+        "recall_at_1pct_fpr_delta": -0.0018588475145410177,
+        "recall_at_5pct_fpr_delta": 0.03186024664707887
+      },
+      {
+        "anomaly_vs_near_ap_delta": -0.0025472327234458136,
+        "anomaly_vs_near_auroc_delta": -0.013138756502548152,
+        "boundary_vs_near_auroc_delta": -0.00583751748825867,
+        "cohort": "B",
+        "interior_vs_near_auroc_delta": -0.01907893855919862,
+        "pixel_ap_delta": 0.014230246132125868,
+        "pixel_auroc_delta": 0.006485340105129911,
+        "recall_at_1pct_fpr_delta": 0.009421010273162,
+        "recall_at_5pct_fpr_delta": -0.0020356956871656617
+      }
+    ],
+    "interpretation": "MIXED"
+  },
+  "research": {
+    "access": "AVAILABLE",
+    "candidate_1": {
+      "adaptability": "HIGH",
+      "causal_evidence": "HIGH",
+      "compute": "MEDIUM",
+      "conflict": "MEDIUM",
+      "fit": "HIGH",
+      "id": "CANDIDATE_1",
+      "name": "UNCERTAINTY_GUIDED_NATIVE_FOOTPRINT_REFINEMENT_HEAD_WITH_STAGEWISE_MARGIN_GATING",
+      "novelty": "MEDIUM",
+      "rank": 1,
+      "simplicity": "MEDIUM",
+      "survival_probability": "HIGH"
+    },
+    "candidate_2": {
+      "adaptability": "MEDIUM",
+      "causal_evidence": "LOW-MEDIUM",
+      "compute": "HIGH",
+      "conflict": "HIGH",
+      "fit": "MEDIUM",
+      "id": "CANDIDATE_2",
+      "name": "MASK_CONDITIONED_STAGE_RESPONSIBILITY_ROUTING",
+      "novelty": "LOW-MEDIUM",
+      "rank": 3,
+      "simplicity": "LOW",
+      "survival_probability": "LOW-MEDIUM"
+    },
+    "candidate_3": {
+      "adaptability": "HIGH",
+      "causal_evidence": "MEDIUM",
+      "compute": "MEDIUM",
+      "conflict": "MEDIUM",
+      "fit": "MEDIUM-HIGH",
+      "id": "CANDIDATE_3",
+      "name": "EXPLICIT_LOCAL_CONTEXT_RESIDUAL_BRANCH_WITH_STAGE_ISOLATED_HEADS",
+      "novelty": "MEDIUM",
+      "rank": 2,
+      "simplicity": "MEDIUM",
+      "survival_probability": "MEDIUM"
+    },
+    "implementation_authorized": "NO",
+    "recommended_next_direction": "UNCERTAINTY_GUIDED_NATIVE_FOOTPRINT_REFINEMENT_HEAD_WITH_STAGEWISE_MARGIN_GATING"
+  },
+  "stagewise_oracle": {
+    "A": {
+      "1": {
+        "anomaly_vs_near_ap_delta": 0.010789581068282872,
+        "anomaly_vs_near_auroc_delta": 0.049912453294173126,
+        "far_final_ap_delta": -5.426909832628724e-07,
+        "far_final_auroc_delta": -3.0480676086352965e-05,
+        "final_ap_delta": -0.035839631857368104,
+        "final_auroc_delta": 1.58427936762795e-05,
+        "ranking_improvement": -0.0004938272996768874
+      },
+      "2": {
+        "anomaly_vs_near_ap_delta": -0.0032241816257732037,
+        "anomaly_vs_near_auroc_delta": -0.0169079123371979,
+        "far_final_ap_delta": -2.4945679156229694e-06,
+        "far_final_auroc_delta": -7.222309707521912e-05,
+        "final_ap_delta": 0.030307388618280084,
+        "final_auroc_delta": 6.1319246609237155e-06,
+        "ranking_improvement": 0.0007241812367119391
+      },
+      "3": {
+        "anomaly_vs_near_ap_delta": 0.00430991295395422,
+        "anomaly_vs_near_auroc_delta": 0.0201402651290555,
+        "far_final_ap_delta": 2.0477756657033552e-07,
+        "far_final_auroc_delta": 0.00010108131838770795,
+        "final_ap_delta": -0.017316968684058798,
+        "final_auroc_delta": -7.217537781767369e-06,
+        "ranking_improvement": -0.02364192423558791
+      }
+    },
+    "B": {
+      "1": {
+        "anomaly_vs_near_ap_delta": 0.002932712926863701,
+        "anomaly_vs_near_auroc_delta": 0.015893119210499084,
+        "far_final_ap_delta": 1.5177369028229748e-08,
+        "far_final_auroc_delta": -1.8263322609790578e-07,
+        "final_ap_delta": -0.02827075251735034,
+        "final_auroc_delta": -4.701664116291138e-05,
+        "ranking_improvement": -0.0011160368847813705
+      },
+      "2": {
+        "anomaly_vs_near_ap_delta": -0.0007547892250965305,
+        "anomaly_vs_near_auroc_delta": -0.004371320712439299,
+        "far_final_ap_delta": -3.894403349802289e-07,
+        "far_final_auroc_delta": -8.309811790896404e-06,
+        "final_ap_delta": 0.05720773002184354,
+        "final_auroc_delta": 0.00014434873613644594,
+        "ranking_improvement": 0.007890356846077562
+      },
+      "3": {
+        "anomaly_vs_near_ap_delta": 0.0026836323399140882,
+        "anomaly_vs_near_auroc_delta": 0.012133053414323986,
+        "far_final_ap_delta": 4.332040515198088e-08,
+        "far_final_auroc_delta": 1.7920885317934676e-06,
+        "final_ap_delta": -0.08008539119284763,
+        "final_auroc_delta": -0.00011197699679721396,
+        "ranking_improvement": -0.06294906019663968
+      }
+    },
+    "stage2_unique_causal_support": "YES"
+  },
+  "trajectory": {
+    "compensation_diagnosis": "TRAJECTORY_INVALID; independent endpoint directional evidence remains CROSS_STAGE_COUPLED",
+    "replay_required": "YES",
+    "validity": "FAIL"
+  },
+  "waiting_for_user_approval": "YES"
+}

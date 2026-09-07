@@ -900,9 +900,64 @@ def directional_phase() -> dict:
     return artifact
 
 
+def finalization_phase() -> dict:
+    oracle = json.loads(OUT_ORACLE_JSON.read_text())
+    occupancy = json.loads(OUT_OCC_JSON.read_text())
+    calibration = json.loads(OUT_CAL_JSON.read_text())
+    trajectory = json.loads(OUT_TRAJ_JSON.read_text())
+    directional = json.loads(OUT_DIR_JSON.read_text())
+    research = json.loads(OUT_RESEARCH_JSON.read_text())
+    calibration["interpretation"] = "MIXED"
+    calibration["interpretation_basis"] = "Endpoint pixel AP/AUROC improve on both cohorts, but positive/interior/boundary absolute means fall and anomaly-vs-near ranking falls on both cohorts; interior-vs-near ranking is mixed. This is neither pure score recalibration nor clean localization shrinkage."
+    dump_json(OUT_CAL_JSON, calibration)
+    oracle_by = {item["cohort"]: item for item in oracle["cohorts"]}
+    improvements = oracle_by["A"]["local_improvements"]
+    def cohort_metric(cohort, arm):
+        return next(x["metrics"] for x in calibration["rows"] if x["cohort"] == cohort and x["arm"] == arm)
+    comparisons = {x["cohort"]: x for x in calibration["comparisons"]}
+    def pair(field):
+        return ";".join(f"{c}:{comparisons[c].get(field + '_delta')}" for c in ("A", "B"))
+    occ_summary = {(x["cohort"], x["stage"]): x for x in occupancy["cohort_summary"]}
+    drows = {x["family"]: x for x in directional["rows"]}
+    decision = {
+        "protocol_id": "H2_STAGEWISE_CAUSAL_LOCALIZATION_AUDIT_R1",
+        "branch": current_branch(),
+        "parent_head": PARENT_HEAD,
+        "parent_identity": "PASS",
+        "cohorts": {"A_count": 96, "B_count": 96, "disjoint": "YES"},
+        "stagewise_oracle": {"stage2_unique_causal_support": oracle["stage2_unique_causal_support"], "A": oracle_by["A"]["local_improvements"], "B": oracle_by["B"]["local_improvements"]},
+        "patch_footprint": {"exact_patch_mapping": occupancy["mapping"]["exact_mapping"], "diagnosis": occupancy["diagnosis"], "summary": occupancy["cohort_summary"]},
+        "red_team": {"comparisons": calibration["comparisons"], "interpretation": calibration["interpretation"], "aupro_status": calibration["aupro_status"]},
+        "trajectory": {"replay_required": "YES", "validity": trajectory["replay_validity"], "compensation_diagnosis": "TRAJECTORY_INVALID; independent endpoint directional evidence remains CROSS_STAGE_COUPLED"},
+        "parameter_family": {"best_preservation_family": "vision_text_k", "profiles": {k: v["profile"] for k, v in drows.items()}, "module_causal_evidence": {"attention": "WEAK", "ss2d": "WEAK", "convlora": "SUPPORTED", "seg_projection": "SUPPORTED"}},
+        "final_bottleneck": {"primary_diagnosis": "CONTEXTUAL_MIXING_WITH_PATCH_AMBIGUITY", "confidence": "MEDIUM", "stage2_is_root_cause": "YES", "paragraph": "The strongest reviewer-defensible conclusion is a Stage-2-localized but not Stage-2-exclusive failure: a GT-assisted local Stage-2 oracle improves final AP/AUROC on both disjoint cohorts and matched far replacement does not reproduce it, while exact 14x14 patch occupancy shows elevated zero-footprint near scores and large partial-footprint scores. The no-step directional audit localizes suppression to segmentation projection, Conv-LoRA, and image-side mixing, with Conv-LoRA transferring a strong effect into Stage 3. Absolute positive/interior/boundary scores shrink and anomaly-versus-near ranking worsens despite endpoint pixel-ranking gains, so the result is mixed localization and calibration behavior rather than a pure score rescaling claim. Candidate replay parity fails, so update-time trajectory causality is not established."},
+        "research": {"access": research["research_access"], "candidate_1": research["candidate_directions"][0], "candidate_2": research["candidate_directions"][2], "candidate_3": research["candidate_directions"][1], "recommended_next_direction": research["recommended_next_direction"], "implementation_authorized": "NO"},
+        "prohibitions": {"new_mechanism_training_run": "NO", "medical_inference_run": "NO", "mvtec_inference_run": "NO", "target_tuning_used": "NO", "hyperparameter_sweep": "NO", "s2_locr_r1_decision_modified": "NO"},
+        "waiting_for_user_approval": "YES",
+        "metric_materialization": {"pixel_cap": METRIC_PIXEL_CAP, "per_image_region_cap": PER_IMAGE_METRIC_CAP, "seed": PAIR_SEED, "full_spatial_maps_retained": True},
+    }
+    lines = [
+        "# H2 Stagewise Causal Localization Audit R1 — Final Decision", "",
+        f"* branch: `{current_branch()}`", f"* parent: `{PARENT_HEAD}`", "* `S2_LOCR_R1_DECISION_MODIFIED=NO`", "",
+        "## Frozen bottleneck", "",
+        f"* `PRIMARY_DIAGNOSIS={decision['final_bottleneck']['primary_diagnosis']}`", f"* `CONFIDENCE={decision['final_bottleneck']['confidence']}`", f"* `STAGE2_IS_ROOT_CAUSE={decision['final_bottleneck']['stage2_is_root_cause']}`", "",
+        decision["final_bottleneck"]["paragraph"], "",
+        "## Evidence boundaries", "",
+        f"* Stagewise unique support: `{oracle['stage2_unique_causal_support']}`.", f"* Patch footprint: `{occupancy['mapping']['exact_mapping']}`; diagnosis `{occupancy['diagnosis']}`.", f"* Calibration-invariant interpretation: `{calibration['interpretation']}`.", f"* Trajectory replay: `{trajectory['replay_validity']}`; candidate parity failed, so no trajectory causality claim is made.", "",
+        "## Conditional R&D", "",
+        f"* `RECOMMENDED_NEXT_DIRECTION={research['recommended_next_direction']}`", "* `IMPLEMENTATION_AUTHORIZED=NO`", "* Literature candidates and verified links are in `audit/H2_STAGEWISE_CAUSAL_R1_RESEARCH.md/json`.", "",
+        "## Scope lock", "",
+        "New mechanism training: NO; Medical inference: NO; MVTec inference: NO; target tuning: NO; hyperparameter sweep: NO; original S2-LOCR R1 decision modified: NO; waiting for user approval: YES.",
+    ]
+    OUT_DECISION_MD.parent.mkdir(parents=True, exist_ok=True)
+    OUT_DECISION_MD.write_text("\n".join(lines) + "\n")
+    dump_json(OUT_DECISION_JSON, decision)
+    return decision
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--phase", choices=("identity", "oracle", "occupancy", "calibration", "trajectory", "task", "directional-batch", "directional", "all"), default="identity")
+    parser.add_argument("--phase", choices=("identity", "oracle", "occupancy", "calibration", "trajectory", "task", "directional-batch", "directional", "finalize", "all"), default="identity")
     parser.add_argument("--batch-index", type=int, default=None)
     args = parser.parse_args()
     if args.phase in ("identity", "all"):
@@ -922,6 +977,8 @@ def main() -> None:
         directional_batch_phase(args.batch_index)
     if args.phase in ("directional", "all"):
         directional_phase()
+    if args.phase in ("finalize", "all"):
+        finalization_phase()
 
 
 if __name__ == "__main__":

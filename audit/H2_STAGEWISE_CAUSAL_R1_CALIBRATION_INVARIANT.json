@@ -25,7 +25,8 @@
       "recall_at_5pct_fpr_delta": -0.0020356956871656617
     }
   ],
-  "interpretation": "INCONCLUSIVE_PENDING_TRAJECTORY",
+  "interpretation": "MIXED",
+  "interpretation_basis": "Endpoint pixel AP/AUROC improve on both cohorts, but positive/interior/boundary absolute means fall and anomaly-vs-near ranking falls on both cohorts; interior-vs-near ranking is mixed. This is neither pure score recalibration nor clean localization shrinkage.",
   "protocol_id": "H2_STAGEWISE_CAUSAL_LOCALIZATION_AUDIT_R1",
   "rows": [
     {
