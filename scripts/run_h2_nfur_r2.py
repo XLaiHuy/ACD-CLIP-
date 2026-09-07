@@ -460,7 +460,12 @@ def ensure_prefix_checkpoints() -> None:
     RUN_ROOT.mkdir(parents=True, exist_ok=True)
     for epoch in range(1, 11):
         target = RUN_ROOT / f"adapter_{epoch}.pth"
-        source = Path("/workspace/h2_safe_anchor_e20_medical_selected") / target.name
+        source_root = (
+            Path("/workspace/ACD-CLIP-/runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1")
+            if epoch == 1
+            else Path("/workspace/h2_safe_anchor_e20_medical_selected")
+        )
+        source = source_root / target.name
         if not source.is_file():
             raise FileNotFoundError(source)
         if target.exists() or target.is_symlink():
