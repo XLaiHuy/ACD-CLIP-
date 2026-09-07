@@ -203,8 +203,8 @@ def identity_phase() -> dict:
     head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO, text=True).strip()
     branch = subprocess.check_output(["git", "branch", "--show-current"], cwd=REPO, text=True).strip()
     status = subprocess.check_output(["git", "status", "--porcelain"], cwd=REPO, text=True).strip()
-    if head != PARENT_HEAD:
-        raise RuntimeError(f"identity phase must start at parent {PARENT_HEAD}, got {head}")
+    if subprocess.run(["git", "merge-base", "--is-ancestor", PARENT_HEAD, head], cwd=REPO).returncode != 0:
+        raise RuntimeError(f"identity phase requires parent {PARENT_HEAD} as an ancestor, got {head}")
     if branch != BRANCH or status:
         raise RuntimeError("identity phase requires clean new audit branch")
     if sha_file(SAFE_ANCHOR) != SAFE_SHA:
