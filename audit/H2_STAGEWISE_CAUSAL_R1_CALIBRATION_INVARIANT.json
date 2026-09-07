@@ -1,0 +1,200 @@
+{
+  "aupro_search": "No committed AUPRO/PRO evaluator was found in repository audit/scripts/results; implementing one solely for this audit is prohibited.",
+  "aupro_status": "NOT_AVAILABLE",
+  "comparisons": [
+    {
+      "anomaly_vs_near_ap_delta": -0.006503908102563738,
+      "anomaly_vs_near_auroc_delta": -0.027205554026783554,
+      "boundary_vs_near_auroc_delta": -0.002420882513130218,
+      "cohort": "A",
+      "interior_vs_near_auroc_delta": 0.005479084157138825,
+      "pixel_ap_delta": 0.011249758554671863,
+      "pixel_auroc_delta": 0.05102367352392401,
+      "recall_at_1pct_fpr_delta": -0.0018588475145410177,
+      "recall_at_5pct_fpr_delta": 0.03186024664707887
+    },
+    {
+      "anomaly_vs_near_ap_delta": -0.0025472327234458136,
+      "anomaly_vs_near_auroc_delta": -0.013138756502548152,
+      "boundary_vs_near_auroc_delta": -0.00583751748825867,
+      "cohort": "B",
+      "interior_vs_near_auroc_delta": -0.01907893855919862,
+      "pixel_ap_delta": 0.014230246132125868,
+      "pixel_auroc_delta": 0.006485340105129911,
+      "recall_at_1pct_fpr_delta": 0.009421010273162,
+      "recall_at_5pct_fpr_delta": -0.0020356956871656617
+    }
+  ],
+  "interpretation": "INCONCLUSIVE_PENDING_TRAJECTORY",
+  "protocol_id": "H2_STAGEWISE_CAUSAL_LOCALIZATION_AUDIT_R1",
+  "rows": [
+    {
+      "arm": "CONTROL",
+      "cohort": "A",
+      "fpr": {
+        "1pct": {
+          "background_count": 25709073,
+          "positive_count": 50031,
+          "recall": 0.5988687014051288,
+          "threshold": 5.96152744947176e-07
+        },
+        "5pct": {
+          "background_count": 25709073,
+          "positive_count": 50031,
+          "recall": 0.6693250184885371,
+          "threshold": 4.7125709556894435e-08
+        }
+      },
+      "metrics": {
+        "anomaly_vs_near_ap": 0.5493841319932974,
+        "anomaly_vs_near_auroc": 0.07673280457815937,
+        "arm": "CONTROL",
+        "boundary_mean": 0.14423024654388428,
+        "boundary_median": 0.0009397795656695962,
+        "boundary_vs_near_auroc": 0.5522854637926693,
+        "checkpoint": "/workspace/h2_s2_locr_r1/A_S2_LOCR_R1_CONTROL/final.pth",
+        "checkpoint_sha256": "2d4e8d43b2b47edb05ebcc6e3faf25bfd8f7ffd93517d42eb05e8441683e5ba5",
+        "cohort": "A",
+        "far_p95": 3.154802641347487e-08,
+        "far_p99": 3.529804004642756e-08,
+        "interior_mean": 0.3658146858215332,
+        "interior_median": 0.041896749287843704,
+        "interior_vs_near_auroc": 0.6259416751438174,
+        "near_p95": 0.5539747476577759,
+        "near_p99": 0.8946758508682251,
+        "pixel_ap": 0.360675019959306,
+        "pixel_auroc": 0.7921380673223293,
+        "positive_mean": 0.2268558293581009,
+        "positive_median": 0.010499553754925728,
+        "recall_at_1pct_fpr": 0.5988687014051288,
+        "recall_at_5pct_fpr": 0.6693250184885371
+      }
+    },
+    {
+      "arm": "CANDIDATE",
+      "cohort": "A",
+      "fpr": {
+        "1pct": {
+          "background_count": 25709073,
+          "positive_count": 50031,
+          "recall": 0.5970098538905878,
+          "threshold": 1.7684345721136197e-07
+        },
+        "5pct": {
+          "background_count": 25709073,
+          "positive_count": 50031,
+          "recall": 0.701185265135616,
+          "threshold": 2.3487951139600227e-08
+        }
+      },
+      "metrics": {
+        "anomaly_vs_near_ap": 0.5428802238907336,
+        "anomaly_vs_near_auroc": 0.049527250551375815,
+        "arm": "CANDIDATE",
+        "boundary_mean": 0.07008273154497147,
+        "boundary_median": 0.0001676215761108324,
+        "boundary_vs_near_auroc": 0.5498645812795391,
+        "checkpoint": "/workspace/h2_s2_locr_r1/A_S2_LOCR_R1_CANDIDATE/final.pth",
+        "checkpoint_sha256": "bc79ac7ed75de405a592458563e3a98d742aaa4ab12b4e7a2d5d9adeb21938a3",
+        "cohort": "A",
+        "far_p95": 1.0793282712029395e-08,
+        "far_p99": 1.4457220309793684e-08,
+        "interior_mean": 0.29851216077804565,
+        "interior_median": 0.016634847968816757,
+        "interior_vs_near_auroc": 0.6314207593009562,
+        "near_p95": 0.15424290299415588,
+        "near_p99": 0.5802381038665771,
+        "pixel_ap": 0.37192477851397787,
+        "pixel_auroc": 0.8431617408462533,
+        "positive_mean": 0.14785531163215637,
+        "positive_median": 0.0018553229747340083,
+        "recall_at_1pct_fpr": 0.5970098538905878,
+        "recall_at_5pct_fpr": 0.701185265135616
+      }
+    },
+    {
+      "arm": "CONTROL",
+      "cohort": "B",
+      "fpr": {
+        "1pct": {
+          "background_count": 25695735,
+          "positive_count": 63369,
+          "recall": 0.9001088860483832,
+          "threshold": 5.671338385582203e-06
+        },
+        "5pct": {
+          "background_count": 25695735,
+          "positive_count": 63369,
+          "recall": 0.9759030440751787,
+          "threshold": 4.8905061333925914e-08
+        }
+      },
+      "metrics": {
+        "anomaly_vs_near_ap": 0.5053790278048369,
+        "anomaly_vs_near_auroc": 0.01632474913411004,
+        "arm": "CONTROL",
+        "boundary_mean": 0.3158441483974457,
+        "boundary_median": 0.03164239227771759,
+        "boundary_vs_near_auroc": 0.609045468337055,
+        "checkpoint": "/workspace/h2_s2_locr_r1/A_S2_LOCR_R1_CONTROL/final.pth",
+        "checkpoint_sha256": "2d4e8d43b2b47edb05ebcc6e3faf25bfd8f7ffd93517d42eb05e8441683e5ba5",
+        "cohort": "B",
+        "far_p95": 3.126795533603399e-08,
+        "far_p99": 3.467694043024494e-08,
+        "interior_mean": 0.6285814046859741,
+        "interior_median": 0.9259229302406311,
+        "interior_vs_near_auroc": 0.7892756547707801,
+        "near_p95": 0.9677331447601318,
+        "near_p99": 0.9975728988647461,
+        "pixel_ap": 0.5610628896189379,
+        "pixel_auroc": 0.9875211282386707,
+        "positive_mean": 0.39442551136016846,
+        "positive_median": 0.08950334787368774,
+        "recall_at_1pct_fpr": 0.9001088860483832,
+        "recall_at_5pct_fpr": 0.9759030440751787
+      }
+    },
+    {
+      "arm": "CANDIDATE",
+      "cohort": "B",
+      "fpr": {
+        "1pct": {
+          "background_count": 25695735,
+          "positive_count": 63369,
+          "recall": 0.9095298963215452,
+          "threshold": 7.387861273855378e-07
+        },
+        "5pct": {
+          "background_count": 25695735,
+          "positive_count": 63369,
+          "recall": 0.973867348388013,
+          "threshold": 2.3933370840723e-08
+        }
+      },
+      "metrics": {
+        "anomaly_vs_near_ap": 0.5028317950813911,
+        "anomaly_vs_near_auroc": 0.003185992631561887,
+        "arm": "CANDIDATE",
+        "boundary_mean": 0.13458509743213654,
+        "boundary_median": 0.002156225498765707,
+        "boundary_vs_near_auroc": 0.6032079508487963,
+        "checkpoint": "/workspace/h2_s2_locr_r1/A_S2_LOCR_R1_CANDIDATE/final.pth",
+        "checkpoint_sha256": "bc79ac7ed75de405a592458563e3a98d742aaa4ab12b4e7a2d5d9adeb21938a3",
+        "cohort": "B",
+        "far_p95": 1.0687064566639037e-08,
+        "far_p99": 1.2915992719797487e-08,
+        "interior_mean": 0.42505893111228943,
+        "interior_median": 0.2918734848499298,
+        "interior_vs_near_auroc": 0.7701967162115815,
+        "near_p95": 0.47568538784980774,
+        "near_p99": 0.8823502063751221,
+        "pixel_ap": 0.5752931357510638,
+        "pixel_auroc": 0.9940064683438006,
+        "positive_mean": 0.23943763971328735,
+        "positive_median": 0.00526988273486495,
+        "recall_at_1pct_fpr": 0.9095298963215452,
+        "recall_at_5pct_fpr": 0.973867348388013
+      }
+    }
+  ]
+}
