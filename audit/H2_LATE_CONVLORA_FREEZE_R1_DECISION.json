@@ -1,0 +1,110 @@
+{
+  "bounded_screen": "FAIL",
+  "branch": "research/h2-late-convlora-freeze-r1",
+  "candidate": {
+    "attempted": 500,
+    "final_global_step": 4107,
+    "final_scaler": 16384.0,
+    "forced_parity_skips": 0,
+    "natural_grad_skips": 0,
+    "natural_loss_skips": 0,
+    "natural_skips": 0,
+    "successful": 500
+  },
+  "candidate_frozen_param_byte_identity": true,
+  "candidate_pre_suppression_stage2_gradient_nonzero_fraction": 1.0,
+  "candidate_pre_suppression_stage3_gradient_nonzero_fraction": 1.0,
+  "candidate_stage2_drift": 0.0,
+  "candidate_stage3_drift": 0.0,
+  "control": {
+    "attempted": 500,
+    "final_global_step": 4107,
+    "final_scaler": 16384.0,
+    "natural_grad_skips": 0,
+    "natural_loss_skips": 0,
+    "natural_skips": 0,
+    "successful": 500
+  },
+  "control_stage2_drift": 12.053261674891617,
+  "control_stage3_drift": 7.916185463326486,
+  "direct_gates": {
+    "candidate_stage2_convlora_drift_exactly_zero": true,
+    "candidate_stage2_pre_suppression_gradient_meaningful": true,
+    "candidate_stage3_convlora_drift_exactly_zero": true,
+    "candidate_stage3_pre_suppression_gradient_meaningful": true,
+    "control_stage2_convlora_drift_gt_zero": true,
+    "control_stage3_convlora_drift_gt_zero": true,
+    "implementation_parity_pass": true,
+    "non_selected_training_continues": true
+  },
+  "exact_batch_match": true,
+  "final_ap": {
+    "candidate": 0.4088530469979116,
+    "control": 0.4147142522361892,
+    "delta": -0.0058612052382776
+  },
+  "final_auroc": {
+    "candidate": 0.8887913675956424,
+    "control": 0.8438308373977176,
+    "delta": 0.044960530197924786
+  },
+  "interior_deltas": {
+    "mean": 0.011896312236785889,
+    "median": 3.992695565102622e-05
+  },
+  "interpretation": "SIMPLE_LATE_STAGE23_FREEZE_NOT_SUPPORTED",
+  "inversion_deltas": {
+    "near_background_gt_interior": -0.008668872184739884,
+    "near_background_gt_positive": -0.005652784467866101
+  },
+  "late_convlora_causal_hypothesis": "NOT_SUPPORTED",
+  "mechanism_test": "SUPPORTED",
+  "near_background_deltas": {
+    "p95": 0.03233134001493454,
+    "p99": 0.05800473690032959
+  },
+  "no_target_inference": true,
+  "numerical_validity": "PASS",
+  "parameter_scope_identity": "image_adapter.lora_adapters.stage2+stage3.all_parameters",
+  "parent_head": "47158bd1a64d23f5f4752fb066e5dd4b91ef07d9",
+  "positive_deltas": {
+    "mean": 0.008315116167068481,
+    "median": 2.369519461353775e-05
+  },
+  "protocol_id": "H2_LATE_CONVLORA_FREEZE_R1",
+  "scientific_gates": {
+    "exact_500_attempted_batch_stream": true,
+    "final_ap_not_below_control_minus_1e6": false,
+    "final_auroc_not_below_control_minus_1e6": true,
+    "interior_mean_not_below_control": true,
+    "interior_median_not_below_control": true,
+    "near_background_gt_interior_inversion_not_above_control": true,
+    "near_background_gt_positive_inversion_not_above_control": true,
+    "near_background_p95_not_above_control": false,
+    "near_background_p99_not_above_control": false,
+    "numerical_validity": true,
+    "positive_mean_not_below_control": true,
+    "positive_median_not_below_control": true,
+    "successful_count_match": true,
+    "true_freeze": true
+  },
+  "soft_drift_governor_justified": "NO",
+  "stage1_convlora_frozen": false,
+  "stage2_convlora_frozen": true,
+  "stage3_convlora_frozen": true,
+  "stage_metric_deltas": {
+    "stage1_ap": 0.0018058886480256109,
+    "stage1_auroc": -0.017378751836297,
+    "stage2_ap": -0.010826014936135164,
+    "stage2_auroc": 0.011891954816753314,
+    "stage3_ap": -0.03678393515844569,
+    "stage3_auroc": 0.128030440761998
+  },
+  "stage_metrics_and_geometry_are_reporting_only": true,
+  "start_checkpoint_sha256": "64b72dc3d1155285c826781bee4c5970bd45218e95b21675fd19d9a6b2ab54a7",
+  "start_epoch": 10,
+  "start_global_step": 3607,
+  "successful_count_match": true,
+  "true_freeze_implementation": true,
+  "waiting_for_user_approval": "YES"
+}
