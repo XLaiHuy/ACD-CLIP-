@@ -319,6 +319,45 @@ optimizer operation.
 
 All interpolation statements are observational comparisons of the exact
 current path; no alternative interpolation is evaluated or selected.
+
+## Prior evidence recorded for triangulation
+
+* `research/h2-late-convlora-freeze-r1` at `4eb3e134e2126afa980fa15f1e7b5a9da9d9141e`:
+  `MECHANISM_TEST=SUPPORTED`, `BOUNDED_SCREEN=FAIL`, and
+  `LATE_CONVLORA_CAUSAL_HYPOTHESIS=NOT_SUPPORTED`. Its candidate-minus-control
+  near-background p95/p99 deltas were `+0.03233134001493454` and
+  `+0.05800473690032959`, while AP delta was `-0.0058612052382776`.
+  Its retained final checkpoint is `/workspace/h2_late_convlora_freeze_r1/A_LATE_FREEZE_R1_STAGE23_CONVLORA/final.pth`, SHA-256
+  `4a5f3fd0e54b53f8cc78060a4092e3d1240792f2809d7ebfe57e9340789fc9f8`.
+* `research/h2-thbr-r1` at `5d84c3d857f43ae3f7d39210fff2faf983429513`:
+  `DECISION=FAIL`, `HARD_BACKGROUND_TAIL_PREMISE=SUPPORTED`,
+  `BOUNDARY_ARTIFACT_RISK=LOW`, and `FOCAL_REDUNDANCY=LOW`. Its candidate-minus-
+  control near-background p95/p99 deltas were `+0.008221146836876858` and
+  `+0.06695230543613492`, with AP delta `-0.010847331119427928`; its audit
+  explicitly says far-background improved while near-background worsened.
+  The retained THBR control and candidate endpoint checkpoints are identified
+  by SHA-256 `3c337dc581aabd491f05e9788e07711963aebd6bee7379f92156e206fd8cf0b8`
+  and `96f2a93fc2018b16d6376a9c6933ff9512f99ab1db94ce0e971a1942a39390ba`.
+* `audit/H2_THBR_R1_AUDIT_DECISION.md` on that evidence branch records a
+  source-only audit, the existing 7x7 semantics, and that the numerically
+  invalid GradBudget endpoint is descriptive only. No GradBudget endpoint is
+  used as primary evidence here.
+
+## Explicit map contract
+
+| map | native tensor / score tensor | spatial resolution | score space | logits or probabilities | interpolation afterward | fusion afterward |
+|---|---|---|---|---|---|---|
+| stage1 native | `[B,2,37,37]` / `[B,37,37]` | 37x37 | class anomaly score | native logits; stage anomaly probability for regional statistics | none for native audit; current production branch applies Gaussian7 then bilinear518 | none as an individual stage |
+| stage2 native | `[B,2,37,37]` / `[B,37,37]` | 37x37 | class anomaly score | native logits; stage anomaly probability for regional statistics | none for native audit; current production branch applies Gaussian7 then bilinear518 | none as an individual stage |
+| stage3 native | `[B,2,37,37]` / `[B,37,37]` | 37x37 | class anomaly score | native logits; stage anomaly probability for regional statistics | none for native audit; current production branch applies Gaussian7 then bilinear518 | none as an individual stage |
+| pre-fusion combined | `[B,2,37,37]` / `[B,37,37]` | 37x37 | equal fused class logit / probability | equal mean of native stage logits, then softmax | none in native diagnostic map | equal pre-softmax mean of stage logits |
+| resized stage1/2/3 | `[B,2,518,518]` / `[B,518,518]` | 518x518 | class anomaly score | blurred/resized logits; stage anomaly probability | existing Gaussian7 sigma1 then bilinear, `align_corners=True` | none as an individual stage |
+| final fused | `[B,2,518,518]` / `[B,518,518]` | 518x518 | equal fused class logit margin / anomaly probability | equal mean of resized stage logits; softmax probability | no further resize | equal pre-softmax mean |
+| final resized/evaluator | `[B,518,518]` | 518x518 | anomaly probability | alias of final fused production output | no further resize | already equal-fused; this is the current evaluator output |
+
+The `final fused` and `final resized/evaluator` rows intentionally refer to
+the same current production output; the audit does not create a second final
+prediction.
 """
     )
 
@@ -632,13 +671,19 @@ def interpolation_phase(data: dict) -> tuple[list[dict], dict]:
             row[f"{prefix}_near_p95_over_interior_p95"] = summary["ratios"]["near_p95_over_interior_p95"]
             row[f"{prefix}_near_p99_over_interior_p99"] = summary["ratios"]["near_p99_over_interior_p99"]
             row[f"{prefix}_interior_mean_minus_near_mean"] = summary["contrasts"]["interior_mean_minus_near_mean"]
+            row[f"{prefix}_boundary_mean_minus_near_mean"] = summary["contrasts"]["boundary_mean_minus_near_mean"]
         row["delta_near_mean_resized_minus_native"] = safe_delta(row["resized_near_mean"], row["native_near_mean"])
         row["delta_near_p95_resized_minus_native"] = safe_delta(row["resized_near_p95"], row["native_near_p95"])
         row["delta_near_p99_resized_minus_native"] = safe_delta(row["resized_near_p99"], row["native_near_p99"])
         row["delta_boundary_mean_resized_minus_native"] = safe_delta(row["resized_boundary_mean"], row["native_boundary_mean"])
         row["delta_interior_mean_resized_minus_native"] = safe_delta(row["resized_interior_mean"], row["native_interior_mean"])
+        row["delta_boundary_local_contrast_resized_minus_native"] = safe_delta(row["resized_boundary_mean_minus_near_mean"], row["native_boundary_mean_minus_near_mean"])
+        row["delta_interior_local_contrast_resized_minus_native"] = safe_delta(row["resized_interior_mean_minus_near_mean"], row["native_interior_mean_minus_near_mean"])
         row["interpolation_amplification_ratio_p95"] = safe_delta(row["resized_near_p95_over_interior_p95"], row["native_near_p95_over_interior_p95"])
         row["interpolation_amplification_ratio_p99"] = safe_delta(row["resized_near_p99_over_interior_p99"], row["native_near_p99_over_interior_p99"])
+        row["interpolation_amplification_near_mean"] = row["delta_near_mean_resized_minus_native"]
+        row["interpolation_amplification_near_p95"] = row["delta_near_p95_resized_minus_native"]
+        row["interpolation_amplification_near_p99"] = row["delta_near_p99_resized_minus_native"]
         rows.append(row)
     structured = {"protocol_id": "H2_BOUNDARY_SPILLOVER_AUDIT_R1", "rows": rows,
                   "amplification_definition": "resized leakage ratio minus native leakage ratio, with raw near/boundary/interior deltas beside it",
@@ -776,33 +821,36 @@ def final_summary_for_comparator(model: ACDCLIP, path: Path, label: str, rows: l
 
 def severity_and_decision(data: dict, interp: dict, fusion: dict, image_struct: dict, tri_rows: list[dict], distance_struct: dict) -> tuple[dict, dict]:
     stage_rows = json.loads(OUT_NATIVE_JSON.read_text())["stage_rows"]
-    ratios95 = np.asarray([r["near_p95_over_interior_p95"] for r in stage_rows if r["near_p95_over_interior_p95"] is not None], dtype=float)
-    ratios99 = np.asarray([r["near_p99_over_interior_p99"] for r in stage_rows if r["near_p99_over_interior_p99"] is not None], dtype=float)
+    # Native interiors are empty under the exact 7x7 morphology on this
+    # 37x37 cohort. Phase 11 is therefore computed on the exact same stage
+    # score maps after the current production resize, where the mandated
+    # morphology has non-empty interiors; the native raw tails remain beside
+    # the score as Phase 5 evidence.
+    resized_stage_rows = interp["rows"]
+    ratios95 = np.asarray([r["resized_near_p95_over_interior_p95"] for r in resized_stage_rows if r["resized_near_p95_over_interior_p95"] is not None], dtype=float)
+    ratios99 = np.asarray([r["resized_near_p99_over_interior_p99"] for r in resized_stage_rows if r["resized_near_p99_over_interior_p99"] is not None], dtype=float)
     ratio_available = bool(ratios95.size == 3 and ratios99.size == 3)
     if ratio_available:
-        severity_metric = "requested_near_tail_over_interior_tail_ratios"
+        severity_metric = "requested_near_tail_over_interior_tail_ratios_at_current_production_518x518_stage_maps"
         severity95, severity99 = ratios95, ratios99
     else:
-        # The prescribed native 7x7 morphology leaves no eroded interior on
-        # this 37x37 cohort. Keep the requested ratios null and rank stages
-        # using raw near tails as a transparent geometry-limited fallback.
-        severity_metric = "geometry_limited_raw_near_p95_and_near_p99_fallback_no_native_interior"
+        severity_metric = "geometry_limited_raw_near_p95_and_near_p99_fallback_no_resized_interior"
         severity95 = np.asarray([r["near_p95"] for r in stage_rows if r["near_p95"] is not None], dtype=float)
         severity99 = np.asarray([r["near_p99"] for r in stage_rows if r["near_p99"] is not None], dtype=float)
     lo95, hi95 = float(severity95.min()), float(severity95.max())
     lo99, hi99 = float(severity99.min()), float(severity99.max())
     severity_rows = []
-    for row in stage_rows:
-        a = row["near_p95_over_interior_p95"] if ratio_available else row["near_p95"]
-        b = row["near_p99_over_interior_p99"] if ratio_available else row["near_p99"]
+    for row, resized_row in zip(stage_rows, resized_stage_rows):
+        a = resized_row["resized_near_p95_over_interior_p95"] if ratio_available else row["near_p95"]
+        b = resized_row["resized_near_p99_over_interior_p99"] if ratio_available else row["near_p99"]
         n95 = 0.0 if hi95 == lo95 else (a - lo95) / (hi95 - lo95)
         n99 = 0.0 if hi99 == lo99 else (b - lo99) / (hi99 - lo99)
-        severity_rows.append({"checkpoint": "SAFE_ANCHOR_E10", "stage": row["stage"], "near_p95_over_interior_p95": row["near_p95_over_interior_p95"], "near_p99_over_interior_p99": row["near_p99_over_interior_p99"], "raw_near_p95": row["near_p95"], "raw_near_p99": row["near_p99"], "normalized_p95": n95, "normalized_p99": n99, "S_stage": .5 * (n95 + n99), "severity_metric": severity_metric})
+        severity_rows.append({"checkpoint": "SAFE_ANCHOR_E10", "stage": row["stage"], "severity_resolution": "518x518" if ratio_available else "37x37_fallback", "near_p95_over_interior_p95": resized_row["resized_near_p95_over_interior_p95"] if ratio_available else None, "near_p99_over_interior_p99": resized_row["resized_near_p99_over_interior_p99"] if ratio_available else None, "raw_native_near_p95": row["near_p95"], "raw_native_near_p99": row["near_p99"], "raw_resized_near_p95": resized_row["resized_near_p95"], "raw_resized_near_p99": resized_row["resized_near_p99"], "normalized_p95": n95, "normalized_p99": n99, "S_stage": .5 * (n95 + n99), "severity_metric": severity_metric})
     severity_rows.sort(key=lambda row: row["S_stage"], reverse=True)
     tri_rows_with_kind = list(tri_rows) + severity_rows
     write_csv(OUT_TRI_CSV, tri_rows_with_kind)
     tri_json = json.loads(OUT_TRI_JSON.read_text()) if OUT_TRI_JSON.exists() else {}
-    tri_json["stage_severity"] = {"formula": "0.5*minmax_normalized(near_p95/interior_p95)+0.5*minmax_normalized(near_p99/interior_p99), within Safe-Anchor E10 and this cohort only", "ratio_available": ratio_available, "geometry_limited_fallback": None if ratio_available else severity_metric, "rows_ranked": severity_rows}
+    tri_json["stage_severity"] = {"formula": "0.5*minmax_normalized(near_p95/interior_p95)+0.5*minmax_normalized(near_p99/interior_p99), within Safe-Anchor E10 and this cohort only", "resolution": "518x518 current-production resized stage maps", "ratio_available": ratio_available, "geometry_limited_fallback": None if ratio_available else severity_metric, "rows_ranked": severity_rows}
 
     final_row = next(row for row in tri_rows if row["checkpoint"] == "SAFE_ANCHOR_E10")
     distance_final = next(row for row in distance_struct["summaries"] if row["map"] == "final_fused")
