@@ -1606,7 +1606,16 @@ def decision_phase() -> dict:
         mechanism = "NOT_SUPPORTED"
         confirmatory = "NO"
         recommendation = "NOT_TRIGGERED"
-        interpretation = "CASE_F_OR_MECHANISM_GATE_FAILURE"
+        if gates["stage2_near_p95_decreases"] and gates["stage2_near_p99_decreases"] and not all((gates["positive_mean_non_decrease"], gates["positive_median_non_decrease"], gates["interior_mean_non_decrease"], gates["interior_median_non_decrease"])):
+            interpretation = "CASE_B"
+        elif gates["stage2_near_p95_decreases"] and gates["stage2_near_p99_decreases"] and not (gates["final_near_p95_not_increased"] and gates["final_near_p99_not_increased"]):
+            interpretation = "CASE_C"
+        elif gates["final_ap_non_decrease"] and not gates["final_auroc_non_decrease"]:
+            interpretation = "CASE_D"
+        elif gates["final_auroc_non_decrease"] and not gates["final_ap_non_decrease"]:
+            interpretation = "CASE_E"
+        else:
+            interpretation = "CASE_F"
     final_metrics = {
         "final_auroc_control": control_final["auroc"],
         "final_auroc_candidate": candidate_final["auroc"],
