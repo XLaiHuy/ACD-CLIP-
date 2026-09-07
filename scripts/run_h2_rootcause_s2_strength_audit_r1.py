@@ -720,3 +720,157 @@ def leakage_phase() -> dict:
     del model
     torch.cuda.empty_cache()
     return artifact
+
+
+def seg_from_pre_lora(model, tokens_lbc: torch.Tensor, stage: int) -> torch.Tensor:
+    """Replay only the valid Stage-X local adapter path from its input."""
+    with torch.autocast(device_type=tokens_lbc.device.type, enabled=False):
+        t = tokens_lbc.float()
+        adapter = model.image_adapter["lora_adapters"][stage]
+        delta_out = adapter(t)
+        delta_out = delta_out * t.norm(dim=-1, keepdim=True) / delta_out.norm(dim=-1, keepdim=True).clamp_min(1e-6)
+        merged = model.image_adapter["m_i_w"][stage](t, delta_out)
+        group = merged.permute(1, 0, 2)
+        projected = model.image_adapter["seg_proj"][stage](group)
+        projected = model.image_adapter["seg_layer_norms"][stage](projected)
+        return F.normalize(projected, dim=-1)
+
+
+def stage_from_seg(model, features: torch.Tensor, text: torch.Tensor, stage: int, *, beta_override: float | None = None):
+    group_text = text.unsqueeze(1).repeat(1, features.shape[0], 1, 1).permute(1, 0, 2, 3) if text.ndim == 3 else text.permute(1, 0, 2, 3)
+    fused, diagnostic = dfg_instrumented(model, features, group_text, stage, beta_override=beta_override)
+    logits = torch.matmul(10.0 * features, fused).permute(0, 2, 1).view(features.shape[0], 2, NATIVE, NATIVE)
+    blurred = gaussian_blur2d(logits, (7, 7), (1, 1))
+    resized = F.interpolate(blurred, (IMG, IMG), mode="bilinear", align_corners=True)
+    return logits, blurred, resized, diagnostic
+
+
+def region_flat(score: np.ndarray, mask: np.ndarray, resolution: str) -> dict[str, np.ndarray]:
+    regions = point_region_arrays(score, mask, resolution)
+    out = {name: [] for name in ("zero_near", "zero_far", "partial", "full")}
+    for index, current in enumerate(regions):
+        for name in out:
+            if current[name].any():
+                out[name].append(score[index][current[name]].reshape(-1))
+    return {name: np.concatenate(values) if values else np.empty(0, dtype=np.float32) for name, values in out.items()}
+
+
+def module_row(cohort: str, stage: int, module: str, current: np.ndarray, variant: np.ndarray, mask: np.ndarray, resolution: str, comparison: str, valid_counterfactual: bool) -> dict:
+    current_regions = region_flat(current, mask, resolution)
+    variant_regions = region_flat(variant, mask, resolution)
+    row = {"cohort": cohort, "stage": stage + 1, "module": module, "resolution": resolution, "comparison": comparison, "valid_counterfactual": valid_counterfactual}
+    for name in ("zero_near", "zero_far", "partial", "full"):
+        cs, vs = stats(current_regions[name]), stats(variant_regions[name])
+        for stat_name in ("mean", "median", "p95", "p99"):
+            row[f"current_{name}_{stat_name}"] = cs[stat_name]
+            row[f"variant_{name}_{stat_name}"] = vs[stat_name]
+            row[f"delta_{name}_{stat_name}"] = safe_delta(cs[stat_name], vs[stat_name])
+        row[f"amplification_ratio_{name}"] = None
+    row["amplification_ratio_zero_near_relative_to_zero_far"] = safe_ratio(row["delta_zero_near_mean"], row["delta_zero_far_mean"])
+    row["near_minus_far_delta"] = safe_delta(row["delta_zero_near_mean"], row["delta_zero_far_mean"])
+    row["near_selective_abs"] = None if row["delta_zero_near_mean"] is None or row["delta_zero_far_mean"] is None else abs(row["delta_zero_near_mean"]) > abs(row["delta_zero_far_mean"])
+    return row
+
+
+def collect_module_cohort(model, rows: list[dict], device: torch.device) -> dict:
+    datasets, indices = selected_datasets(rows)
+    policy = PrecisionPolicy("fp16")
+    capture = {}
+    handles = install_capture_hooks(model, capture)
+    actual_native, actual_resize, actual_final, masks = [], [], [], []
+    variants = {name: [] for name in ("convlora", "seg_projection", "dfg_qk", "ss2d", "no_blur")}
+    try:
+        with torch.no_grad():
+            for category in spill.CLASS_NAMES["VisA"]:
+                loader = DataLoader(Subset(datasets[category], indices[category]), batch_size=BATCH, shuffle=False, num_workers=0)
+                text, _, _ = spill.get_hybrid_soft_prompt_single_class_text_embedding(model, "VisA", category, device, return_kg=False)
+                for batch in loader:
+                    capture.clear()
+                    image = batch["image"].to(device, non_blocking=True)
+                    with policy.autocast(device):
+                        seg_tokens, _ = model(image)
+                        native, blurred, resized, _ = production_from_tokens(model, seg_tokens, text)
+                        no_lora_native, no_lora_resize = [], []
+                        no_ss2d_native, no_ss2d_resize = [], []
+                        raw_projection = []
+                        for stage in range(3):
+                            base_tokens = capture[f"pre_lora_{stage}"]
+                            # Conv-LoRA delta removed means the frozen/base
+                            # operation t itself, never an identity 1024->768 projection.
+                            base_group = base_tokens.permute(1, 0, 2).float()
+                            base_projected = model.image_adapter["seg_proj"][stage](base_group)
+                            base_projected = model.image_adapter["seg_layer_norms"][stage](base_projected)
+                            base_seg = F.normalize(base_projected, dim=-1)
+                            nl, nb, nr, _ = stage_from_seg(model, base_seg, text, stage)
+                            no_lora_native.append(nl)
+                            no_lora_resize.append(nr)
+                            sl, sb, sr, _ = stage_from_seg(model, seg_tokens[stage], text, stage, beta_override=0.0)
+                            no_ss2d_native.append(sl)
+                            no_ss2d_resize.append(sr)
+                            raw_projection.append(direct_margin(capture[f"seg_proj_raw_{stage}"].permute(1, 0, 2), text[stage]))
+                    actual_native.append(((native[:, :, 1] - native[:, :, 0]).permute(1, 0, 2, 3)).float().cpu().numpy())
+                    actual_resize.append(((resized[:, :, 1] - resized[:, :, 0]).permute(1, 0, 2, 3)).float().cpu().numpy())
+                    actual_final.append(((resized[:, :, 1] - resized[:, :, 0]).mean(dim=0)).float().cpu().numpy())
+                    masks.append((batch["mask"][:, 0].numpy() > .5).astype(np.uint8))
+                    variants["convlora"].append(np.stack([x[:, 1].sub(x[:, 0]).float().cpu().numpy() for x in no_lora_native], axis=1))
+                    variants["seg_projection"].append(np.stack([x.float().cpu().numpy().reshape(-1, NATIVE, NATIVE) for x in raw_projection], axis=1))
+                    variants["dfg_qk"].append(np.stack([direct_margin(seg_tokens[s], text[s]).float().cpu().numpy().reshape(-1, NATIVE, NATIVE) for s in range(3)], axis=1))
+                    variants["ss2d"].append(np.stack([x[:, 1].sub(x[:, 0]).float().cpu().numpy() for x in no_ss2d_native], axis=1))
+                    variants["no_blur"].append(np.stack([F.interpolate(native[s], (IMG, IMG), mode="bilinear", align_corners=True)[:, 1].sub(F.interpolate(native[s], (IMG, IMG), mode="bilinear", align_corners=True)[:, 0]).float().cpu().numpy() for s in range(3)], axis=1))
+                    del image, seg_tokens, native, blurred, resized
+                    if device.type == "cuda":
+                        torch.cuda.empty_cache()
+    finally:
+        for handle in handles:
+            handle.remove()
+    return {
+        "native": np.concatenate(actual_native, axis=0), "resize": np.concatenate(actual_resize, axis=0),
+        "final": np.concatenate(actual_final, axis=0), "mask": np.concatenate(masks, axis=0),
+        "variants": {key: np.concatenate(value, axis=0) for key, value in variants.items()},
+    }
+
+
+def module_phase() -> dict:
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is required for module attribution")
+    device = torch.device("cuda:0")
+    model = make_model(device)
+    load_endpoint(model, SAFE_ANCHOR)
+    data = {cohort: collect_module_cohort(model, load_cohort(path, cohort), device) for cohort, path in (("A", COHORT_A), ("B", COHORT_B))}
+    rows = []
+    for cohort, current in data.items():
+        mask = current["mask"]
+        for stage in range(3):
+            base_native = current["native"][:, stage]
+            rows.append(module_row(cohort, stage, "convlora", base_native, current["variants"]["convlora"][:, stage], mask, "native", "current stage logits minus valid Conv-LoRA residual-removed local replay", True))
+            rows.append(module_row(cohort, stage, "seg_projection", current["native"][:, stage], current["variants"]["seg_projection"][:, stage], mask, "native", "post-seg normalized margin versus pre-LayerNorm raw projection; representation attribution only, no identity bypass", False))
+            rows.append(module_row(cohort, stage, "dfg_qk", base_native, current["variants"]["dfg_qk"][:, stage], mask, "native", "stage native margin versus exact DFG-input direct text margin", False))
+            rows.append(module_row(cohort, stage, "ss2d", base_native, current["variants"]["ss2d"][:, stage], mask, "native", "current weight-residual DFG versus exact beta=0 GAP-only component", True))
+            base_resize = current["resize"][:, stage]
+            rows.append(module_row(cohort, stage, "interpolation", base_resize, current["variants"]["no_blur"][:, stage], mask, "full", "existing Gaussian7+resize versus same resize without blur", False))
+            final = current["final"]
+            rows.append(module_row(cohort, stage, "stage_fusion", final, base_resize, mask, "full", "equal pre-softmax final fusion versus the corresponding individual resized stage", False))
+    statuses = {}
+    for module in ("convlora", "seg_projection", "dfg_qk", "ss2d", "interpolation", "stage_fusion"):
+        subset = [row for row in rows if row["module"] == module]
+        supported_by_cohort = {}
+        for cohort in ("A", "B"):
+            cohort_rows = [row for row in subset if row["cohort"] == cohort]
+            supported_by_cohort[cohort] = any(row["near_selective_abs"] for row in cohort_rows)
+        statuses[module] = "SUPPORTED" if all(supported_by_cohort.values()) else "MIXED" if any(supported_by_cohort.values()) else "NOT_SUPPORTED"
+    candidate_rows = [row for row in rows if row["module"] in ("convlora", "seg_projection", "dfg_qk", "ss2d") and row["near_minus_far_delta"] is not None]
+    by_module = {module: float(np.mean([abs(row["near_minus_far_delta"]) for row in candidate_rows if row["module"] == module])) for module in ("convlora", "seg_projection", "dfg_qk", "ss2d")}
+    primary = max(by_module, key=by_module.get) if by_module else "NONE"
+    secondary = sorted(by_module, key=by_module.get, reverse=True)[1] if len(by_module) > 1 else "NONE"
+    artifact = {
+        "protocol_id": "H2_ROOTCAUSE_S2_STRENGTH_AUDIT_R1", "rows": rows,
+        "module_status": statuses, "module_selective_score": by_module,
+        "primary_amplifier": primary, "secondary_amplifier": secondary,
+        "amplification_definition": "current minus valid local variant for additive residuals; seg projection and DFG use pre/post representation attribution; amplification ratio is delta ZERO_NEAR relative to delta ZERO_FAR",
+        "interpretation": "The status is descriptive. A supported module is not by itself a causal proof because Stage-2/3 transformer streams carry prior-stage effects.",
+    }
+    write_csv(OUT_MODULE_CSV, rows)
+    dump_json(OUT_MODULE_JSON, artifact)
+    del model
+    torch.cuda.empty_cache()
+    return artifact
