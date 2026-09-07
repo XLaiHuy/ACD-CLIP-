@@ -4,10 +4,12 @@
 
 `RESEARCH_ACCESS=AVAILABLE` on 2026-09-07. The diagnosis was frozen before
 searching. The evidence points to `CONTEXTUAL_MIXING_WITH_PATCH_AMBIGUITY`:
-Stage 2 has unique oracle support, zero-footprint near scores are elevated,
-partial footprints carry much larger scores, and the strongest directional
-families suppress Stage 2 while Conv-LoRA also changes Stage 3. The candidate
-replay is invalid, so no trajectory result is used to rank literature.
+Stage 2 improves final pooled metrics under a local oracle but does not satisfy
+the protocol's unique local-ranking gate, zero-footprint near scores are
+elevated, partial footprints carry much larger scores, and the strongest
+directional families suppress Stage 2 while Conv-LoRA also changes Stage 3.
+Stage 2 is not established as the sole root cause. The candidate replay is
+invalid, so no trajectory result is used to rank literature.
 
 The sources below are scholarly primary papers or official open-access paper
 pages. They motivate candidate mechanisms only; none is implemented here.

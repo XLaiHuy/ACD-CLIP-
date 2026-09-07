@@ -7,18 +7,20 @@
   },
   "final_bottleneck": {
     "confidence": "MEDIUM",
-    "paragraph": "The strongest reviewer-defensible conclusion is a Stage-2-localized but not Stage-2-exclusive failure: a GT-assisted local Stage-2 oracle improves final AP/AUROC on both disjoint cohorts and matched far replacement does not reproduce it, while exact 14x14 patch occupancy shows elevated zero-footprint near scores and large partial-footprint scores. The no-step directional audit localizes suppression to segmentation projection, Conv-LoRA, and image-side mixing, with Conv-LoRA transferring a strong effect into Stage 3. Absolute positive/interior/boundary scores shrink and anomaly-versus-near ranking worsens despite endpoint pixel-ranking gains, so the result is mixed localization and calibration behavior rather than a pure score rescaling claim. Candidate replay parity fails, so update-time trajectory causality is not established.",
+    "paragraph": "Measured facts are that the GT-assisted Stage-2 replacement improves pooled endpoint AP/AUROC on both disjoint cohorts, while its anomaly-versus-near AP/AUROC do not improve and matched far-background replacement does not reproduce the endpoint benefit; exact 14x14 occupancy also shows elevated zero-footprint near scores and larger partial-footprint scores at Stage 2. The no-step directional audit finds coupled suppression in segmentation projection and Conv-LoRA, with a strong Stage-3 directional effect for Conv-LoRA, but these are infinitesimal diagnostics rather than updates. The most plausible interpretation is contextual mixing combined with patch-footprint ambiguity and mixed score/localization behavior. Stage 2 is therefore an informative intervention site, not an established sole root cause; attention/SS2D-only causation and update-time compensation remain unsupported because candidate replay parity failed.",
     "primary_diagnosis": "CONTEXTUAL_MIXING_WITH_PATCH_AMBIGUITY",
-    "stage2_is_root_cause": "YES"
+    "stage2_is_root_cause": "NOT_ESTABLISHED"
   },
   "metric_materialization": {
+    "exact_finite_pixel_metrics": true,
     "full_spatial_maps_retained": true,
-    "per_image_region_cap": 2048,
-    "pixel_cap": 200000,
+    "inversion_definition": "exact per-image mean pairwise inversion rate; fixed seed is retained only for provenance and no metric sampling is used",
+    "per_image_region_cap": null,
+    "pixel_cap": null,
     "seed": 1729
   },
   "parameter_family": {
-    "best_preservation_family": "vision_text_k",
+    "best_preservation_family": "NONE",
     "module_causal_evidence": {
       "attention": "WEAK",
       "convlora": "SUPPORTED",
@@ -30,12 +32,18 @@
       "det_proj": "INACTIVE",
       "dfg_raw_gamma": "INACTIVE",
       "dfg_ss2d_branches": "COUPLED_SUPPRESSION",
-      "lora_adapters": "COUPLED_SUPPRESSION",
-      "m_i_w": "COUPLED_SUPPRESSION",
+      "lora_adapters": "CROSS_STAGE_COUPLED",
+      "m_i_w": "CROSS_STAGE_COUPLED",
       "seg_layer_norms": "COUPLED_SUPPRESSION",
       "seg_proj": "COUPLED_SUPPRESSION",
       "vision_text_k": "COUPLED_SUPPRESSION",
       "vision_text_q": "COUPLED_SUPPRESSION"
+    },
+    "requested_profiles": {
+      "convlora": "CROSS_STAGE_COUPLED",
+      "dfg_qk": "Q=COUPLED_SUPPRESSION;K=COUPLED_SUPPRESSION",
+      "seg_projection": "COUPLED_SUPPRESSION",
+      "ss2d": "branches=COUPLED_SUPPRESSION;raw_gamma=INACTIVE"
     }
   },
   "parent_head": "f44cca2e163585dba3bbffc99c45518501db4852",
@@ -101,24 +109,24 @@
     "aupro_status": "NOT_AVAILABLE",
     "comparisons": [
       {
-        "anomaly_vs_near_ap_delta": -0.006503908102563738,
-        "anomaly_vs_near_auroc_delta": -0.027205554026783554,
-        "boundary_vs_near_auroc_delta": -0.002420882513130218,
+        "anomaly_vs_near_ap_delta": -0.0001976972330425264,
+        "anomaly_vs_near_auroc_delta": 0.002110545471116998,
+        "boundary_vs_near_auroc_delta": 0.0001506369782638961,
         "cohort": "A",
-        "interior_vs_near_auroc_delta": 0.005479084157138825,
-        "pixel_ap_delta": 0.011249758554671863,
-        "pixel_auroc_delta": 0.05102367352392401,
+        "interior_vs_near_auroc_delta": 0.0042967757438423515,
+        "pixel_ap_delta": 0.01746368192171943,
+        "pixel_auroc_delta": 0.04727321433327025,
         "recall_at_1pct_fpr_delta": -0.0018588475145410177,
         "recall_at_5pct_fpr_delta": 0.03186024664707887
       },
       {
-        "anomaly_vs_near_ap_delta": -0.0025472327234458136,
-        "anomaly_vs_near_auroc_delta": -0.013138756502548152,
-        "boundary_vs_near_auroc_delta": -0.00583751748825867,
+        "anomaly_vs_near_ap_delta": -0.001857189797294656,
+        "anomaly_vs_near_auroc_delta": -0.00876999499762221,
+        "boundary_vs_near_auroc_delta": -0.0038931354223175063,
         "cohort": "B",
-        "interior_vs_near_auroc_delta": -0.01907893855919862,
-        "pixel_ap_delta": 0.014230246132125868,
-        "pixel_auroc_delta": 0.006485340105129911,
+        "interior_vs_near_auroc_delta": -0.013290785245260506,
+        "pixel_ap_delta": 0.010877559912160328,
+        "pixel_auroc_delta": 0.004477122238627729,
         "recall_at_1pct_fpr_delta": 0.009421010273162,
         "recall_at_5pct_fpr_delta": -0.0020356956871656617
       }
@@ -172,66 +180,75 @@
   "stagewise_oracle": {
     "A": {
       "1": {
-        "anomaly_vs_near_ap_delta": 0.010789581068282872,
-        "anomaly_vs_near_auroc_delta": 0.049912453294173126,
-        "far_final_ap_delta": -5.426909832628724e-07,
-        "far_final_auroc_delta": -3.0480676086352965e-05,
-        "final_ap_delta": -0.035839631857368104,
-        "final_auroc_delta": 1.58427936762795e-05,
-        "ranking_improvement": -0.0004938272996768874
+        "anomaly_vs_near_ap_delta": -0.022362787171868237,
+        "anomaly_vs_near_auroc_delta": 0.017851666156898816,
+        "far_final_ap_delta": -3.599465331349805e-07,
+        "far_final_auroc_delta": -2.520924010596115e-05,
+        "final_ap_delta": -0.029324173040590984,
+        "final_auroc_delta": 2.4913380970326138e-05,
+        "ranking_improvement": -0.021346504515092995
       },
       "2": {
-        "anomaly_vs_near_ap_delta": -0.0032241816257732037,
-        "anomaly_vs_near_auroc_delta": -0.0169079123371979,
-        "far_final_ap_delta": -2.4945679156229694e-06,
-        "far_final_auroc_delta": -7.222309707521912e-05,
-        "final_ap_delta": 0.030307388618280084,
-        "final_auroc_delta": 6.1319246609237155e-06,
-        "ranking_improvement": 0.0007241812367119391
+        "anomaly_vs_near_ap_delta": 0.032534144259080966,
+        "anomaly_vs_near_auroc_delta": 0.0028498911404604144,
+        "far_final_ap_delta": -2.5207353173128944e-06,
+        "far_final_auroc_delta": -7.511702124884945e-05,
+        "final_ap_delta": 0.027379477161725674,
+        "final_auroc_delta": 3.977243529074137e-06,
+        "ranking_improvement": 0.01886528402277023
       },
       "3": {
-        "anomaly_vs_near_ap_delta": 0.00430991295395422,
-        "anomaly_vs_near_auroc_delta": 0.0201402651290555,
-        "far_final_ap_delta": 2.0477756657033552e-07,
-        "far_final_auroc_delta": 0.00010108131838770795,
-        "final_ap_delta": -0.017316968684058798,
-        "final_auroc_delta": -7.217537781767369e-06,
-        "ranking_improvement": -0.02364192423558791
+        "anomaly_vs_near_ap_delta": -0.022982470394941612,
+        "anomaly_vs_near_auroc_delta": -0.010554403899115217,
+        "far_final_ap_delta": 1.7749450664794608e-07,
+        "far_final_auroc_delta": 8.74876087636478e-05,
+        "final_ap_delta": -0.01985369839222595,
+        "final_auroc_delta": -1.4729487037401512e-05,
+        "ranking_improvement": -0.04509294508093855
       }
     },
     "B": {
       "1": {
-        "anomaly_vs_near_ap_delta": 0.002932712926863701,
-        "anomaly_vs_near_auroc_delta": 0.015893119210499084,
-        "far_final_ap_delta": 1.5177369028229748e-08,
-        "far_final_auroc_delta": -1.8263322609790578e-07,
-        "final_ap_delta": -0.02827075251735034,
-        "final_auroc_delta": -4.701664116291138e-05,
-        "ranking_improvement": -0.0011160368847813705
+        "anomaly_vs_near_ap_delta": -0.031504503844998255,
+        "anomaly_vs_near_auroc_delta": -0.02595794376360938,
+        "far_final_ap_delta": 2.0901325781252922e-08,
+        "far_final_auroc_delta": -7.438410040139232e-07,
+        "final_ap_delta": -0.027423621819140487,
+        "final_auroc_delta": -4.3067032662436056e-05,
+        "ranking_improvement": -0.025236940910399946
       },
       "2": {
-        "anomaly_vs_near_ap_delta": -0.0007547892250965305,
-        "anomaly_vs_near_auroc_delta": -0.004371320712439299,
-        "far_final_ap_delta": -3.894403349802289e-07,
-        "far_final_auroc_delta": -8.309811790896404e-06,
-        "final_ap_delta": 0.05720773002184354,
-        "final_auroc_delta": 0.00014434873613644594,
-        "ranking_improvement": 0.007890356846077562
+        "anomaly_vs_near_ap_delta": 0.06355073427971325,
+        "anomaly_vs_near_auroc_delta": 0.07484221130812085,
+        "far_final_ap_delta": -4.6471775849710184e-07,
+        "far_final_auroc_delta": -6.940564733826093e-06,
+        "final_ap_delta": 0.04564686787698502,
+        "final_auroc_delta": 0.0001241713129624955,
+        "ranking_improvement": 0.05558031764239507
       },
       "3": {
-        "anomaly_vs_near_ap_delta": 0.0026836323399140882,
-        "anomaly_vs_near_auroc_delta": 0.012133053414323986,
-        "far_final_ap_delta": 4.332040515198088e-08,
-        "far_final_auroc_delta": 1.7920885317934676e-06,
-        "final_ap_delta": -0.08008539119284763,
-        "final_auroc_delta": -0.00011197699679721396,
-        "ranking_improvement": -0.06294906019663968
+        "anomaly_vs_near_ap_delta": -0.07842790191579851,
+        "anomaly_vs_near_auroc_delta": -0.057270544650056654,
+        "far_final_ap_delta": 3.4856673880589994e-08,
+        "far_final_auroc_delta": 2.7075165619505626e-06,
+        "final_ap_delta": -0.06918375223542217,
+        "final_auroc_delta": -9.501801989797443e-05,
+        "ranking_improvement": -0.11150437466542541
       }
     },
-    "stage2_unique_causal_support": "YES"
+    "stage2_unique_causal_support": "NO"
   },
   "trajectory": {
-    "compensation_diagnosis": "TRAJECTORY_INVALID; independent endpoint directional evidence remains CROSS_STAGE_COUPLED",
+    "compensation_diagnosis": "TRAJECTORY_INVALID",
+    "inference_authorized": false,
+    "onsets": {
+      "definition": "first snapshot with absolute normalized progress >= 0.25; not computed because candidate replay parity failed",
+      "t25_interior_mean_change": "NOT_AVAILABLE_TRAJECTORY_INVALID",
+      "t25_positive_mean_change": "NOT_AVAILABLE_TRAJECTORY_INVALID",
+      "t25_stage1_change": "NOT_AVAILABLE_TRAJECTORY_INVALID",
+      "t25_stage2_near_reduction": "NOT_AVAILABLE_TRAJECTORY_INVALID",
+      "t25_stage3_change": "NOT_AVAILABLE_TRAJECTORY_INVALID"
+    },
     "replay_required": "YES",
     "validity": "FAIL"
   },

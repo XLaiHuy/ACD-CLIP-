@@ -2,7 +2,8 @@
   "direction": "unit descent direction d_f=-g_LOCR_f/||g_LOCR_f||; no parameter update",
   "module_assessment": {
     "attention": {
-      "evidence": "SUPPORTED",
+      "evidence": "WEAK",
+      "evidence_basis": "descriptive no-step directional family audit plus committed historical preflight; module label is not a bypass or update authorization",
       "families": [
         "vision_text_q",
         "vision_text_k"
@@ -14,15 +15,17 @@
     },
     "convlora": {
       "evidence": "SUPPORTED",
+      "evidence_basis": "descriptive no-step directional family audit plus committed historical preflight; module label is not a bypass or update authorization",
       "families": [
         "lora_adapters"
       ],
       "profiles": {
-        "lora_adapters": "COUPLED_SUPPRESSION"
+        "lora_adapters": "CROSS_STAGE_COUPLED"
       }
     },
     "seg_projection": {
       "evidence": "SUPPORTED",
+      "evidence_basis": "descriptive no-step directional family audit plus committed historical preflight; module label is not a bypass or update authorization",
       "families": [
         "seg_proj"
       ],
@@ -31,7 +34,8 @@
       }
     },
     "ss2d": {
-      "evidence": "SUPPORTED",
+      "evidence": "WEAK",
+      "evidence_basis": "descriptive no-step directional family audit plus committed historical preflight; module label is not a bypass or update authorization",
       "families": [
         "dfg_ss2d_branches",
         "dfg_raw_gamma"
@@ -242,7 +246,7 @@
       "fused_near_margin": -3.6340084886178374,
       "locr_gradient_norm_16_batch_sum": 8.341964721679688,
       "main_task_loss": 1.8787975828745402,
-      "profile": "COUPLED_SUPPRESSION",
+      "profile": "CROSS_STAGE_COUPLED",
       "s1_boundary_margin": 0.0,
       "s1_far_margin": 0.0,
       "s1_interior_margin": 0.0,
@@ -268,7 +272,7 @@
       "fused_near_margin": -0.5657910704612732,
       "locr_gradient_norm_16_batch_sum": 5.787503719329834,
       "main_task_loss": 0.4205414652824402,
-      "profile": "COUPLED_SUPPRESSION",
+      "profile": "CROSS_STAGE_COUPLED",
       "s1_boundary_margin": 0.0,
       "s1_far_margin": 0.0,
       "s1_interior_margin": 0.0,

@@ -2,11 +2,14 @@
 
 ## Frozen diagnosis context
 
-The endpoint oracle supports `STAGE2_UNIQUE_CAUSAL_SUPPORT=YES` on both frozen
-VisA cohorts: local Stage-2 replacement preserves/improves endpoint AP and
-AUROC, has the strongest local-ranking improvement of S1/S2/S3, and matched
-far-background replacement does not reproduce it. Exact patch occupancy also
-shows elevated zero-footprint near scores and large partial-footprint scores.
+The endpoint oracle supports final AP/AUROC improvement from a local Stage-2
+replacement on both frozen VisA cohorts, and matched far-background
+replacement does not reproduce that endpoint benefit. However, the required
+local-ranking gate is not satisfied on both cohorts: Stage 2 does not beat both
+Stage 1 and Stage 3 on both anomaly-vs-near AP and AUROC. Therefore
+`STAGE2_UNIQUE_CAUSAL_SUPPORT=NO`, and Stage 2 is not an established sole root
+cause. Exact patch occupancy also shows elevated zero-footprint near scores
+and large partial-footprint scores.
 The deterministic trajectory replay is invalid for causal trajectory claims:
 the control replay is exact, but the candidate replay differs from the
 committed candidate endpoint by max absolute model-state difference 0.1016087.
@@ -48,10 +51,11 @@ task loss along LOCR descent (`+1.8788`); `m_i_w` also increased task loss
 
 Facts are the exact cohort manifests, endpoint oracle metrics, occupancy
 statistics, committed R1 red-team deltas, and no-step directional derivatives.
-The causal conclusion supported by those facts is that Stage 2 is a useful
-localized intervention site and that the dominant trainable pathways are
-coupled suppression through segmentation projection / Conv-LoRA / image-side
-mixing, with Conv-LoRA visibly transporting effect into Stage 3. Patch
+The causal conclusion supported by those facts is that Stage 2 is an
+informative intervention site, while the dominant no-step directional
+pathways are coupled suppression through segmentation projection / Conv-LoRA /
+image-side mixing, with Conv-LoRA visibly transporting effect into Stage 3.
+Patch
 footprint aliasing is a plausible co-mechanism because zero-footprint near
 scores exceed zero-footprint far scores and partial-footprint scores are much
 larger. Unsupported claims are that attention or SS2D alone is the root cause,

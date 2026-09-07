@@ -8,13 +8,13 @@
 
 * `PRIMARY_DIAGNOSIS=CONTEXTUAL_MIXING_WITH_PATCH_AMBIGUITY`
 * `CONFIDENCE=MEDIUM`
-* `STAGE2_IS_ROOT_CAUSE=YES`
+* `STAGE2_IS_ROOT_CAUSE=NOT_ESTABLISHED`
 
-The strongest reviewer-defensible conclusion is a Stage-2-localized but not Stage-2-exclusive failure: a GT-assisted local Stage-2 oracle improves final AP/AUROC on both disjoint cohorts and matched far replacement does not reproduce it, while exact 14x14 patch occupancy shows elevated zero-footprint near scores and large partial-footprint scores. The no-step directional audit localizes suppression to segmentation projection, Conv-LoRA, and image-side mixing, with Conv-LoRA transferring a strong effect into Stage 3. Absolute positive/interior/boundary scores shrink and anomaly-versus-near ranking worsens despite endpoint pixel-ranking gains, so the result is mixed localization and calibration behavior rather than a pure score rescaling claim. Candidate replay parity fails, so update-time trajectory causality is not established.
+Measured facts are that the GT-assisted Stage-2 replacement improves pooled endpoint AP/AUROC on both disjoint cohorts, while its anomaly-versus-near AP/AUROC do not improve and matched far-background replacement does not reproduce the endpoint benefit; exact 14x14 occupancy also shows elevated zero-footprint near scores and larger partial-footprint scores at Stage 2. The no-step directional audit finds coupled suppression in segmentation projection and Conv-LoRA, with a strong Stage-3 directional effect for Conv-LoRA, but these are infinitesimal diagnostics rather than updates. The most plausible interpretation is contextual mixing combined with patch-footprint ambiguity and mixed score/localization behavior. Stage 2 is therefore an informative intervention site, not an established sole root cause; attention/SS2D-only causation and update-time compensation remain unsupported because candidate replay parity failed.
 
 ## Evidence boundaries
 
-* Stagewise unique support: `YES`.
+* Stagewise unique support: `NO`.
 * Patch footprint: `PASS`; diagnosis `PATCH_FOOTPRINT_ALIASING_LIKELY`.
 * Calibration-invariant interpretation: `MIXED`.
 * Trajectory replay: `FAIL`; candidate parity failed, so no trajectory causality claim is made.

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import heapq
 import hashlib
 import importlib.util
 import json
@@ -19,6 +20,7 @@ import os
 import random
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import numpy as np
@@ -52,8 +54,11 @@ PATCH = 37
 PATCH_SIZE = 14
 BATCH = 8
 PAIR_SEED = 1729
-METRIC_PIXEL_CAP = 200_000
-PER_IMAGE_METRIC_CAP = 2048
+# The protocol does not authorize metric subsampling.  Endpoint maps are
+# retained as compact float32 margins, so all finite pixels are materialized
+# for the requested pooled metrics and region summaries.
+METRIC_PIXEL_CAP = None
+PER_IMAGE_METRIC_CAP = None
 PARENT_HEAD = "f44cca2e163585dba3bbffc99c45518501db4852"
 SAFE_ANCHOR = Path("/workspace/h2_safe_anchor_e20_medical_selected/adapter_10.pth")
 SAFE_SHA = "64b72dc3d1155285c826781bee4c5970bd45218e95b21675fd19d9a6b2ab54a7"
@@ -123,7 +128,7 @@ def write_csv(path: Path, rows: list[dict]) -> None:
     fields = list(dict.fromkeys(k for row in rows for k in row)) if rows else ["status"]
     tmp = path.with_name(path.name + f".tmp.{os.getpid()}")
     with tmp.open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
+        writer = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore", lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows or [{"status": "NO_ROWS"}])
     os.replace(tmp, path)
@@ -141,36 +146,106 @@ def delta(a, b):
     return None if a is None or b is None else a - b
 
 
-def audit_binary_metrics(scores: np.ndarray, labels: np.ndarray) -> dict:
-    """Memory-bounded deterministic pixel AP/AUROC calculation.
+def _external_exact_binary_metrics(parts) -> dict:
+    """Exact pooled AP/AUROC from an iterable of score/label parts."""
+    # A full 518x518 cohort can contain tens of millions of pixels.  External
+    # sorted runs keep the calculation exact without the multi-gigabyte
+    # temporary cumsum/sort arrays that previously caused the diagnostic
+    # process to be killed.  The global index in each record preserves the
+    # historical stable flattened-order tie handling for AP.
+    record_dtype = np.dtype([("score", "<f4"), ("label", "u1"), ("index", "<u8")])
+    run_root = RUN_ROOT / "metric_runs"
+    run_root.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="binary_", dir=run_root) as temp_dir:
+        run_paths = []
+        # Keep the transient sort buffer small because the production model
+        # and retained endpoint tensors are live in the parent process.
+        chunk_size = 100_000
+        global_index = 0
+        finite_count = positive_count = 0
+        for part_scores, part_labels in parts:
+            x = np.asarray(part_scores, dtype=np.float32).reshape(-1)
+            y = np.asarray(part_labels, dtype=np.uint8).reshape(-1)
+            if x.size != y.size:
+                raise ValueError("score/label part size mismatch")
+            for start in range(0, x.size, chunk_size):
+                stop = min(start + chunk_size, x.size)
+                chunk_scores = x[start:stop]
+                chunk_labels = y[start:stop]
+                chunk_valid = np.isfinite(chunk_scores)
+                if not chunk_valid.any():
+                    continue
+                values = chunk_scores[chunk_valid]
+                labels_valid = chunk_labels[chunk_valid]
+                indices = np.arange(global_index + start, global_index + stop, dtype=np.uint64)[chunk_valid]
+                order = np.argsort(-values, kind="stable")
+                records = np.empty(order.size, dtype=record_dtype)
+                records["score"] = values[order]
+                records["label"] = labels_valid[order]
+                records["index"] = indices[order]
+                path = Path(temp_dir) / f"run_{len(run_paths):04d}.bin"
+                records.tofile(path)
+                run_paths.append(path)
+                finite_count += int(labels_valid.size)
+                positive_count += int(labels_valid.sum())
+            global_index += int(x.size)
 
-    The retained endpoint arrays are full-resolution.  The cgroup available to
-    this audit cannot hold the several transient float64/cumulative arrays
-    created by the historical helper while sorting 25M+ pixels.  Therefore the
-    fixed, seed-1729 cap is applied identically to every arm and intervention;
-    it is a computational cap, not a tuned scientific parameter.
-    """
-    x = np.asarray(scores, dtype=np.float32).reshape(-1)
-    y = np.asarray(labels, dtype=np.uint8).reshape(-1)
-    if x.size > METRIC_PIXEL_CAP:
-        rng = np.random.default_rng(PAIR_SEED)
-        chosen = rng.choice(x.size, size=METRIC_PIXEL_CAP, replace=False)
-        chosen.sort()
-        x, y = x[chosen], y[chosen]
-    valid = np.isfinite(x)
-    x, y = x[valid], y[valid]
-    if not x.size or y.min() == y.max():
-        return {"auroc": None, "ap": None, "pixel_count": int(x.size), "pixel_metric_cap": METRIC_PIXEL_CAP}
-    order = np.argsort(-x, kind="stable")
-    sy = y[order]
-    tp = np.cumsum(sy, dtype=np.float64)
-    fp = np.cumsum(1 - sy, dtype=np.float64)
-    positives, negatives = float(tp[-1]), float(fp[-1])
-    ap = float((tp / np.maximum(tp + fp, 1.0) * sy).sum() / positives)
-    ends = np.r_[np.flatnonzero(x[order][1:] != x[order][:-1]), len(sy) - 1]
-    tpr = np.r_[0.0, tp[ends] / positives]
-    fpr = np.r_[0.0, fp[ends] / negatives]
-    return {"auroc": float(np.trapezoid(tpr, fpr)), "ap": ap, "pixel_count": int(x.size), "pixel_metric_cap": METRIC_PIXEL_CAP}
+        if not finite_count or positive_count == 0 or positive_count == finite_count:
+            return {"auroc": None, "ap": None, "pixel_count": finite_count, "pixel_metric_cap": METRIC_PIXEL_CAP, "metric_method": "external_exact_stable_merge"}
+
+        runs = [np.memmap(path, dtype=record_dtype, mode="r") for path in run_paths]
+        heap = []
+        for run_index, records in enumerate(runs):
+            if records.size:
+                item = records[0]
+                heapq.heappush(heap, (-float(item["score"]), int(item["index"]), run_index, 0, int(item["label"])))
+
+        total = positives = negatives_seen = positive_seen = 0
+        negative_total = finite_count - positive_count
+        ap_sum = 0.0
+        wins = 0.0
+        previous_score = None
+        group_positive = group_negative = 0
+
+        def flush_group():
+            nonlocal negatives_seen, wins, group_positive, group_negative
+            if group_positive or group_negative:
+                # Runs are descending.  Positives beat negatives below the
+                # current score (not the already-seen higher negatives).
+                wins += group_positive * (negative_total - negatives_seen - group_negative + 0.5 * group_negative)
+                negatives_seen += group_negative
+                group_positive = group_negative = 0
+
+        while heap:
+            neg_score, global_index, run_index, position, label = heapq.heappop(heap)
+            score = -neg_score
+            if previous_score is not None and score != previous_score:
+                flush_group()
+            previous_score = score
+            total += 1
+            if label:
+                positives += 1
+                positive_seen += 1
+                ap_sum += positive_seen / total
+                group_positive += 1
+            else:
+                group_negative += 1
+            next_position = position + 1
+            records = runs[run_index]
+            if next_position < records.size:
+                item = records[next_position]
+                heapq.heappush(heap, (-float(item["score"]), int(item["index"]), run_index, next_position, int(item["label"])))
+        flush_group()
+        negatives = total - positives
+        ap = float(ap_sum / positives) if positives else None
+        auroc = float(wins / (positives * negatives)) if positives and negatives else None
+        del runs
+    return {"auroc": auroc, "ap": ap, "pixel_count": int(total), "pixel_metric_cap": METRIC_PIXEL_CAP, "metric_method": "external_exact_stable_merge"}
+
+
+def audit_binary_metrics(scores: np.ndarray, labels: np.ndarray) -> dict:
+    """Exact deterministic pooled pixel AP/AUROC calculation."""
+    return _external_exact_binary_metrics(((scores, labels),))
 
 
 def current_branch() -> str:
@@ -362,38 +437,34 @@ def evaluate_exact(checkpoint: Path, rows: list[dict], device: torch.device, req
 
 
 def anomaly_near_metrics(score: np.ndarray, mask: np.ndarray) -> dict:
-    positive, negative = [], []
-    interior, boundary = [], []
-    for s, m in zip(score, mask):
-        b, i, n, _ = spill.morphology(m)
-        if m.any() and n.any():
-            positive.append(s[m].reshape(-1)[:PER_IMAGE_METRIC_CAP]); negative.append(s[n].reshape(-1)[:PER_IMAGE_METRIC_CAP])
-            if i.any(): interior.append(s[i].reshape(-1)[:PER_IMAGE_METRIC_CAP])
-            if b.any(): boundary.append(s[b].reshape(-1)[:PER_IMAGE_METRIC_CAP])
-    def bm(left, right):
-        if not left or not right:
-            return {"auroc": None, "ap": None, "pixel_count": 0}
-        x = np.concatenate(left + right); y = np.concatenate([np.ones(sum(len(v) for v in left), dtype=np.uint8), np.zeros(sum(len(v) for v in right), dtype=np.uint8)])
-        return audit_binary_metrics(x, y)
-    result = {"anomaly_vs_near": bm(positive, negative), "interior_vs_near": bm(interior, negative), "boundary_vs_near": bm(boundary, negative)}
+    def bm(left_region):
+        def parts():
+            for s, m in zip(score, mask):
+                b, i, n, _ = spill.morphology(m)
+                if m.any() and n.any():
+                    selected = {"positive": m.astype(bool), "interior": i, "boundary": b}[left_region]
+                    if selected.any():
+                        yield s[selected], np.ones(int(selected.sum()), dtype=np.uint8)
+            for s, m in zip(score, mask):
+                b, i, n, _ = spill.morphology(m)
+                if m.any() and n.any():
+                    yield s[n], np.zeros(int(n.sum()), dtype=np.uint8)
+        return _external_exact_binary_metrics(parts())
+    result = {"anomaly_vs_near": bm("positive"), "interior_vs_near": bm("interior"), "boundary_vs_near": bm("boundary")}
     return result
 
 
-def region_fields(score: np.ndarray, mask: np.ndarray) -> dict:
-    # Compute one region at a time; spill.region_summary retains six full
-    # concatenated region arrays and exceeds the audit cgroup on 518x518 maps.
+def region_fields(score: np.ndarray, mask: np.ndarray, *, include_inversions: bool = True) -> dict:
+    # Compute one region at a time so only one exact regional value vector is
+    # materialized alongside the retained production maps.
     def stream_stats(region_name):
         chunks = []
         for current, current_mask in zip(score, mask):
             b, i, n, f = spill.morphology(current_mask)
             region = {"positive": current_mask.astype(bool), "interior": i, "boundary": b, "near": n, "far": f}[region_name]
-            if region.any(): chunks.append(current[region].reshape(-1)[:PER_IMAGE_METRIC_CAP])
+            if region.any(): chunks.append(current[region].reshape(-1))
         if not chunks: return {"mean": None, "median": None, "p95": None, "p99": None}
         values = np.concatenate(chunks).astype(np.float32, copy=False)
-        if values.size > METRIC_PIXEL_CAP:
-            region_seed = {"positive": 11, "interior": 13, "boundary": 17, "near": 19, "far": 23}[region_name]
-            rng = np.random.default_rng(PAIR_SEED + region_seed)
-            values = values[rng.choice(values.size, METRIC_PIXEL_CAP, replace=False)]
         values = values[np.isfinite(values)]
         if not values.size: return {"mean": None, "median": None, "p95": None, "p99": None}
         return {"mean": float(values.mean()), "median": float(np.median(values)), "p95": float(np.quantile(values, .95)), "p99": float(np.quantile(values, .99))}
@@ -402,9 +473,35 @@ def region_fields(score: np.ndarray, mask: np.ndarray) -> dict:
     for region in ("positive", "interior", "boundary", "near", "far"):
         for stat in ("mean", "median", "p95", "p99"):
             out[f"{region}_{stat}"] = s[region][stat]
-    out["near_gt_positive_inversion"] = spill.sampled_inversion(score, score, mask, greater=True)
-    out["near_gt_interior_inversion"] = spill.sampled_inversion(score, score, mask, greater=False)
+    if include_inversions:
+        out["near_gt_positive_inversion"] = exact_inversion(score, mask, greater=True)
+        out["near_gt_interior_inversion"] = exact_inversion(score, mask, greater=False)
     return out
+
+
+def exact_inversion(score: np.ndarray, mask: np.ndarray, *, greater: bool) -> float | None:
+    """Exact per-image mean pairwise inversion rate.
+
+    For each image, count near-background scores strictly greater than the
+    selected positive/interior scores using binary search over a sorted right
+    side.  This preserves the historical per-image averaging convention while
+    removing its fixed pair subsampling cap.
+    """
+    rates = []
+    for current, current_mask in zip(score, mask):
+        _, interior, near, _ = spill.morphology(current_mask)
+        left = np.asarray(current[near], dtype=np.float32).reshape(-1)
+        right_mask = current_mask.astype(bool) if greater else interior
+        right = np.asarray(current[right_mask], dtype=np.float32).reshape(-1)
+        left = left[np.isfinite(left)]
+        right = right[np.isfinite(right)]
+        if not left.size or not right.size:
+            continue
+        right.sort()
+        # searchsorted(..., side='left') counts right values strictly below
+        # each near score, which is exactly near > selected-region.
+        rates.append(float(np.searchsorted(right, left, side="left").sum() / (left.size * right.size)))
+    return float(np.mean(rates)) if rates else None
 
 
 def fused_metric(score, mask, labels, name="final") -> dict:
@@ -480,10 +577,21 @@ def oracle_phase() -> dict:
         unique_support[cohort] = local_improvements
         records.append({"cohort": cohort, "metrics": cohort_metrics, "local_improvements": local_improvements})
     s2both = all(unique_support[c][2]["final_ap_delta"] is not None and unique_support[c][2]["final_ap_delta"] >= 0 and unique_support[c][2]["final_auroc_delta"] >= 0 for c in ("A", "B"))
-    rankboth = all(unique_support[c][2]["ranking_improvement"] > max(unique_support[c][1]["ranking_improvement"], unique_support[c][3]["ranking_improvement"]) for c in ("A", "B"))
+    # The protocol's local-ranking condition is evaluated from the explicitly
+    # requested anomaly-vs-near AP and AUROC fields.  The descriptive composite
+    # `ranking_improvement` remains in the artifact, but cannot decide support.
+    local_rank_fields = ("anomaly_vs_near_ap_delta", "anomaly_vs_near_auroc_delta")
+    rankboth = all(
+        all(
+            unique_support[c][2][field] is not None
+            and unique_support[c][2][field] > max(unique_support[c][1][field], unique_support[c][3][field])
+            for field in local_rank_fields
+        )
+        for c in ("A", "B")
+    )
     far_not_reproduce = all(not (unique_support[c][2]["far_final_ap_delta"] is not None and unique_support[c][2]["far_final_ap_delta"] >= unique_support[c][2]["final_ap_delta"] and unique_support[c][2]["far_final_auroc_delta"] >= unique_support[c][2]["final_auroc_delta"]) for c in ("A", "B"))
     stage2_unique = "YES" if s2both and rankboth and far_not_reproduce else "NO"
-    artifact = {"protocol_id": "H2_STAGEWISE_CAUSAL_LOCALIZATION_AUDIT_R1", "checkpoint": str(SAFE_ANCHOR), "checkpoint_sha256": SAFE_SHA, "cohorts": records, "matched_far_rule": "For each anomalous image, use N=min(canonical near pixel count, canonical far pixel count); replace the first N flattened pixels in the selected region with the mean of the other two stage logits.", "stage2_unique_causal_support": stage2_unique, "support_checks": {"preserve_or_improve_both": s2both, "stronger_local_ranking_both": rankboth, "matched_far_does_not_reproduce": far_not_reproduce}}
+    artifact = {"protocol_id": "H2_STAGEWISE_CAUSAL_LOCALIZATION_AUDIT_R1", "checkpoint": str(SAFE_ANCHOR), "checkpoint_sha256": SAFE_SHA, "cohorts": records, "matched_far_rule": "For each anomalous image, use N=min(canonical near pixel count, canonical far pixel count); replace the first N flattened pixels in the selected region with the mean of the other two stage logits.", "stage2_unique_causal_support": stage2_unique, "support_checks": {"preserve_or_improve_both": s2both, "stronger_local_ranking_both": rankboth, "local_ranking_fields": list(local_rank_fields), "matched_far_does_not_reproduce": far_not_reproduce}}
     write_csv(OUT_ORACLE_CSV, csv_rows); dump_json(OUT_ORACLE_JSON, artifact)
     return artifact
 
@@ -690,8 +798,9 @@ def replay_arm(payload: dict, arm: str, manifest: dict, control_rows: list[dict]
 
 
 def light_metric(score, mask, labels) -> dict:
-    out = {"ap": audit_binary_metrics(score, mask)["ap"], "auroc": audit_binary_metrics(score, mask)["auroc"]}
-    out.update({k: v for k, v in region_fields(score, mask).items() if k in ("positive_mean", "interior_mean", "boundary_mean", "near_p95", "near_p99")})
+    binary = audit_binary_metrics(score, mask)
+    out = {"ap": binary["ap"], "auroc": binary["auroc"]}
+    out.update({k: v for k, v in region_fields(score, mask, include_inversions=False).items() if k in ("positive_mean", "interior_mean", "boundary_mean", "near_p95", "near_p99")})
     return out
 
 
@@ -726,6 +835,63 @@ def trajectory_phase() -> dict:
     return artifact
 
 
+def trajectory_metrics_phase() -> dict:
+    """Materialize descriptive snapshot rows from an already-run replay.
+
+    The replay endpoint validity gate remains authoritative.  When either arm
+    fails parity, these rows are retained for transparency only and are marked
+    as non-causal; this phase never repairs or relaxes the parity decision.
+    """
+    artifact = json.loads(OUT_TRAJ_JSON.read_text())
+    probe = load_cohort("A")
+    rows = []
+    for arm_info in artifact["replay_arms"]:
+        arm = "CONTROL" if "CONTROL" in arm_info["arm"] else "CANDIDATE"
+        for step in MILESTONES:
+            path = Path(arm_info["snapshot_paths"][str(step)])
+            data = evaluate_exact(path, probe, torch.device("cuda:0"))
+            final = light_metric(data["fused_prob"], data["mask"], data["labels"])
+            local_margin, local_counts = local_or_far(data["resized_margin"], data["mask"], 1, False)
+            local = light_metric(1.0 / (1.0 + np.exp(-np.clip(local_margin.mean(1), -80.0, 80.0))), data["mask"], data["labels"])
+            row = {
+                "arm": arm,
+                "step": step,
+                "checkpoint": str(path),
+                "endpoint_reproduction": arm_info["endpoint_reproduction"],
+                "causal_inference_authorized": bool(artifact.get("trajectory_inference_authorized", False)),
+                "final_ap": final["ap"],
+                "final_auroc": final["auroc"],
+                "local_ap": local["ap"],
+                "local_auroc": local["auroc"],
+                "near_p95": final["near_p95"],
+                "near_p99": final["near_p99"],
+                "positive_mean": final["positive_mean"],
+                "interior_mean": final["interior_mean"],
+                "boundary_mean": final["boundary_mean"],
+                "local_replacement_pixel_count_total": int(sum(local_counts)),
+            }
+            contribution = []
+            for stage in range(3):
+                stage_stats = region_fields(data["resized_margin"][:, stage], data["mask"], include_inversions=False)
+                for key in ("near_p95", "near_p99", "positive_mean", "interior_mean", "boundary_mean"):
+                    row[f"s{stage + 1}_{key}_margin"] = stage_stats[key]
+                sm = data["resized_margin"][:, stage]
+                pos_values = [s[m.astype(bool)] for s, m in zip(sm, data["mask"]) if m.any()]
+                bg_values = [s[~m.astype(bool)] for s, m in zip(sm, data["mask"])]
+                contribution.append(float((np.concatenate(pos_values).mean() - np.concatenate(bg_values).mean()) / 3.0))
+            row.update({f"s{stage + 1}_margin_contribution": value for stage, value in enumerate(contribution)})
+            rows.append(row)
+            del data
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+    artifact["rows"] = rows
+    artifact["trajectory_inference_authorized"] = False if artifact.get("replay_validity") != "PASS" else artifact.get("trajectory_inference_authorized", False)
+    artifact["notes"] = "Snapshot rows are descriptive endpoint-probe diagnostics. Local means the existing GT-assisted Stage-2 near-background oracle; rows are not causal when replay_validity=FAIL."
+    write_csv(OUT_TRAJ_CSV, rows)
+    dump_json(OUT_TRAJ_JSON, artifact)
+    return artifact
+
+
 def load_snapshot_model(payload: dict, path: Path, device: torch.device):
     model = s2.make_training_model(payload, device)
     state = torch.load(path, map_location="cpu", weights_only=False)
@@ -747,9 +913,7 @@ def family_key(name: str) -> str:
 
 def task_gradient_phase() -> dict:
     traj = json.loads(OUT_TRAJ_JSON.read_text())
-    if traj.get("replay_validity") != "PASS":
-        artifact = {"protocol_id": "H2_STAGEWISE_CAUSAL_LOCALIZATION_AUDIT_R1", "status": "TRAJECTORY_INVALID", "rows": []}
-        write_csv(OUT_TASK_CSV, []); dump_json(OUT_TASK_JSON, artifact); return artifact
+    causal_authorized = traj.get("replay_validity") == "PASS"
     payload = torch.load(SAFE_ANCHOR, map_location="cpu", weights_only=False)
     fixed = s2.fixed_train_batches(payload, None)
     source_batch_index = next(i for i, batch in enumerate(fixed) if any(any(r["valid"] for r in s2.component_geometry(batch["mask"][j, 0].numpy() > .5)) for j in range(len(batch["label"])) if int(batch["label"][j]) == 1))
@@ -757,6 +921,7 @@ def task_gradient_phase() -> dict:
     source_item_index = next(j for j in range(len(source_batch["label"])) if int(source_batch["label"][j]) == 1 and any(r["valid"] for r in s2.component_geometry(source_batch["mask"][j, 0].numpy() > .5)))
     probe = {key: (value[source_item_index:source_item_index + 1] if isinstance(value, (torch.Tensor, list, tuple)) else value) for key, value in source_batch.items()}
     rows = []
+    vector_paths = {}
     for arm_info in traj["replay_arms"]:
         arm = "CONTROL" if "CONTROL" in arm_info["arm"] else "CANDIDATE"
         for step in MILESTONES:
@@ -771,7 +936,12 @@ def task_gradient_phase() -> dict:
                 grouped.setdefault(key, []).append(grad.detach().float() if grad is not None else None)
             for family, values in sorted(grouped.items()):
                 norm = float(torch.stack([v.square().sum() for v in values if v is not None]).sum().sqrt().cpu()) if any(v is not None for v in values) else 0.0
-                rows.append({"arm": arm, "step": step, "family": family, "task_gradient_norm": norm, "probe_definition": "first batch of the fixed 16-batch epoch-11 R1 preflight set", "probe_batch_count": 1})
+                vector_path = RUN_ROOT / "task_gradient_vectors" / f"{arm.lower()}_step_{step}_{family}.npy"
+                vector_path.parent.mkdir(parents=True, exist_ok=True)
+                vector = torch.cat([v.reshape(-1) for v in values if v is not None]).detach().float().cpu().numpy() if any(v is not None for v in values) else np.zeros(0, dtype=np.float32)
+                np.save(vector_path, vector)
+                vector_paths[(arm, step, family)] = vector_path
+                rows.append({"arm": arm, "step": step, "family": family, "task_gradient_norm": norm, "gradient_vector_path": str(vector_path), "probe_definition": "first batch of the fixed 16-batch epoch-11 R1 preflight set", "probe_batch_count": 1, "replay_validity": traj.get("replay_validity"), "causal_inference_authorized": causal_authorized})
             del terms, grads, model
             torch.cuda.empty_cache()
     comparisons = []
@@ -780,8 +950,15 @@ def task_gradient_phase() -> dict:
         for family in families:
             c = next(r for r in rows if r["step"] == step and r["family"] == family and r["arm"] == "CONTROL")
             a = next(r for r in rows if r["step"] == step and r["family"] == family and r["arm"] == "CANDIDATE")
-            comparisons.append({"step": step, "family": family, "control_task_gradient_norm": c["task_gradient_norm"], "candidate_task_gradient_norm": a["task_gradient_norm"], "candidate_minus_control": a["task_gradient_norm"] - c["task_gradient_norm"]})
-    artifact = {"protocol_id": "H2_STAGEWISE_CAUSAL_LOCALIZATION_AUDIT_R1", "status": "PASS", "rows": rows, "comparisons": comparisons, "probe_definition": "one fixed deterministic source probe batch: first batch of the exact 16-batch epoch-11 R1 preflight set; no optimizer step"}
+            cvec = np.load(vector_paths[("CONTROL", step, family)], mmap_mode="r")
+            avec = np.load(vector_paths[("CANDIDATE", step, family)], mmap_mode="r")
+            if cvec.shape != avec.shape or not cvec.size:
+                cosine = None
+            else:
+                denominator = float(np.linalg.norm(cvec) * np.linalg.norm(avec))
+                cosine = float(np.dot(cvec, avec) / denominator) if denominator > 0 else None
+            comparisons.append({"step": step, "family": family, "control_task_gradient_norm": c["task_gradient_norm"], "candidate_task_gradient_norm": a["task_gradient_norm"], "candidate_minus_control": a["task_gradient_norm"] - c["task_gradient_norm"], "candidate_control_task_gradient_cosine": cosine})
+    artifact = {"protocol_id": "H2_STAGEWISE_CAUSAL_LOCALIZATION_AUDIT_R1", "status": "PASS_DESCRIPTIVE_ONLY" if not causal_authorized else "PASS", "replay_validity": traj.get("replay_validity"), "causal_inference_authorized": causal_authorized, "rows": rows, "comparisons": comparisons, "probe_definition": "one fixed deterministic source probe batch: first batch of the exact 16-batch epoch-11 R1 preflight set; no optimizer step", "interpretation_note": "Rows remain descriptive when replay_validity=FAIL; no update-time causal inference is made."}
     write_csv(OUT_TASK_CSV, rows + [{"scope": "comparison", **r} for r in comparisons]); dump_json(OUT_TASK_JSON, artifact)
     return artifact
 
@@ -881,9 +1058,9 @@ def directional_phase() -> dict:
         near = directional.get("s2_near_margin", 0.0); interior = directional.get("s2_interior_margin", 0.0); positive = directional.get("s2_positive_margin", 0.0)
         cross = max(abs(directional.get("s1_near_margin", 0.0)), abs(directional.get("s3_near_margin", 0.0)))
         if norm <= 1e-12: profile = "INACTIVE"
-        elif near < 0 and interior >= 0 and positive >= 0 and cross <= abs(near): profile = "CLEAN_LOCAL_SEPARATION"
-        elif near < 0 and (interior < 0 or positive < 0): profile = "COUPLED_SUPPRESSION"
         elif cross > abs(near): profile = "CROSS_STAGE_COUPLED"
+        elif near < 0 and interior >= 0 and positive >= 0: profile = "CLEAN_LOCAL_SEPARATION"
+        elif near < 0 and (interior < 0 or positive < 0): profile = "COUPLED_SUPPRESSION"
         else: profile = "COUPLED_SUPPRESSION"
         directional["profile"] = profile
         rows.append(directional)
@@ -892,9 +1069,15 @@ def directional_phase() -> dict:
     for module, families in module_map.items():
         available = [r for r in rows if r["family"] in families]
         if not available or all(r["profile"] == "INACTIVE" for r in available): evidence = "NOT_SUPPORTED"
+        elif module in ("attention", "ss2d"):
+            # Historical preflight already recorded healthy routing with low
+            # instantaneous Q/K and SS2D gradients.  Nonzero no-step effects
+            # therefore remain weak evidence unless they are also dominant
+            # parameter-family pathways, which they are not here.
+            evidence = "WEAK"
         elif any(r["profile"] in ("COUPLED_SUPPRESSION", "CROSS_STAGE_COUPLED") for r in available): evidence = "SUPPORTED"
         else: evidence = "WEAK"
-        module_assessment[module] = {"evidence": evidence, "families": families, "profiles": {r["family"]: r["profile"] for r in available}}
+        module_assessment[module] = {"evidence": evidence, "families": families, "profiles": {r["family"]: r["profile"] for r in available}, "evidence_basis": "descriptive no-step directional family audit plus committed historical preflight; module label is not a bypass or update authorization"}
     artifact = {"protocol_id": "H2_STAGEWISE_CAUSAL_LOCALIZATION_AUDIT_R1", "rows": rows, "module_assessment": module_assessment, "preflight_batches": 16, "probe_batch_count": 1, "probe_batch_index": source_batch_index, "probe_item_index": source_item_index, "direction": "unit descent direction d_f=-g_LOCR_f/||g_LOCR_f||; no parameter update", "preflight_summary": preflight_rows}
     write_csv(OUT_DIR_CSV, rows); dump_json(OUT_DIR_JSON, artifact)
     return artifact
@@ -919,6 +1102,21 @@ def finalization_phase() -> dict:
         return ";".join(f"{c}:{comparisons[c].get(field + '_delta')}" for c in ("A", "B"))
     occ_summary = {(x["cohort"], x["stage"]): x for x in occupancy["cohort_summary"]}
     drows = {x["family"]: x for x in directional["rows"]}
+    trajectory_onsets = {
+        "t25_stage2_near_reduction": "NOT_AVAILABLE_TRAJECTORY_INVALID",
+        "t25_positive_mean_change": "NOT_AVAILABLE_TRAJECTORY_INVALID",
+        "t25_interior_mean_change": "NOT_AVAILABLE_TRAJECTORY_INVALID",
+        "t25_stage1_change": "NOT_AVAILABLE_TRAJECTORY_INVALID",
+        "t25_stage3_change": "NOT_AVAILABLE_TRAJECTORY_INVALID",
+        "definition": "first snapshot with absolute normalized progress >= 0.25; not computed because candidate replay parity failed",
+    }
+    profiles = {k: v["profile"] for k, v in drows.items()}
+    requested_profiles = {
+        "convlora": profiles.get("lora_adapters", "NONE"),
+        "seg_projection": profiles.get("seg_proj", "NONE"),
+        "dfg_qk": f"Q={profiles.get('vision_text_q', 'NONE')};K={profiles.get('vision_text_k', 'NONE')}",
+        "ss2d": f"branches={profiles.get('dfg_ss2d_branches', 'NONE')};raw_gamma={profiles.get('dfg_raw_gamma', 'NONE')}",
+    }
     decision = {
         "protocol_id": "H2_STAGEWISE_CAUSAL_LOCALIZATION_AUDIT_R1",
         "branch": current_branch(),
@@ -928,13 +1126,13 @@ def finalization_phase() -> dict:
         "stagewise_oracle": {"stage2_unique_causal_support": oracle["stage2_unique_causal_support"], "A": oracle_by["A"]["local_improvements"], "B": oracle_by["B"]["local_improvements"]},
         "patch_footprint": {"exact_patch_mapping": occupancy["mapping"]["exact_mapping"], "diagnosis": occupancy["diagnosis"], "summary": occupancy["cohort_summary"]},
         "red_team": {"comparisons": calibration["comparisons"], "interpretation": calibration["interpretation"], "aupro_status": calibration["aupro_status"]},
-        "trajectory": {"replay_required": "YES", "validity": trajectory["replay_validity"], "compensation_diagnosis": "TRAJECTORY_INVALID; independent endpoint directional evidence remains CROSS_STAGE_COUPLED"},
-        "parameter_family": {"best_preservation_family": "vision_text_k", "profiles": {k: v["profile"] for k, v in drows.items()}, "module_causal_evidence": {"attention": "WEAK", "ss2d": "WEAK", "convlora": "SUPPORTED", "seg_projection": "SUPPORTED"}},
-        "final_bottleneck": {"primary_diagnosis": "CONTEXTUAL_MIXING_WITH_PATCH_AMBIGUITY", "confidence": "MEDIUM", "stage2_is_root_cause": "YES", "paragraph": "The strongest reviewer-defensible conclusion is a Stage-2-localized but not Stage-2-exclusive failure: a GT-assisted local Stage-2 oracle improves final AP/AUROC on both disjoint cohorts and matched far replacement does not reproduce it, while exact 14x14 patch occupancy shows elevated zero-footprint near scores and large partial-footprint scores. The no-step directional audit localizes suppression to segmentation projection, Conv-LoRA, and image-side mixing, with Conv-LoRA transferring a strong effect into Stage 3. Absolute positive/interior/boundary scores shrink and anomaly-versus-near ranking worsens despite endpoint pixel-ranking gains, so the result is mixed localization and calibration behavior rather than a pure score rescaling claim. Candidate replay parity fails, so update-time trajectory causality is not established."},
+        "trajectory": {"replay_required": "YES", "validity": trajectory["replay_validity"], "compensation_diagnosis": "TRAJECTORY_INVALID", "inference_authorized": False, "onsets": trajectory_onsets},
+        "parameter_family": {"best_preservation_family": "NONE", "profiles": profiles, "requested_profiles": requested_profiles, "module_causal_evidence": {"attention": "WEAK", "ss2d": "WEAK", "convlora": "SUPPORTED", "seg_projection": "SUPPORTED"}},
+        "final_bottleneck": {"primary_diagnosis": "CONTEXTUAL_MIXING_WITH_PATCH_AMBIGUITY", "confidence": "MEDIUM", "stage2_is_root_cause": "NOT_ESTABLISHED", "paragraph": "Measured facts are that the GT-assisted Stage-2 replacement improves pooled endpoint AP/AUROC on both disjoint cohorts, while its anomaly-versus-near AP/AUROC do not improve and matched far-background replacement does not reproduce the endpoint benefit; exact 14x14 occupancy also shows elevated zero-footprint near scores and larger partial-footprint scores at Stage 2. The no-step directional audit finds coupled suppression in segmentation projection and Conv-LoRA, with a strong Stage-3 directional effect for Conv-LoRA, but these are infinitesimal diagnostics rather than updates. The most plausible interpretation is contextual mixing combined with patch-footprint ambiguity and mixed score/localization behavior. Stage 2 is therefore an informative intervention site, not an established sole root cause; attention/SS2D-only causation and update-time compensation remain unsupported because candidate replay parity failed."},
         "research": {"access": research["research_access"], "candidate_1": research["candidate_directions"][0], "candidate_2": research["candidate_directions"][2], "candidate_3": research["candidate_directions"][1], "recommended_next_direction": research["recommended_next_direction"], "implementation_authorized": "NO"},
         "prohibitions": {"new_mechanism_training_run": "NO", "medical_inference_run": "NO", "mvtec_inference_run": "NO", "target_tuning_used": "NO", "hyperparameter_sweep": "NO", "s2_locr_r1_decision_modified": "NO"},
         "waiting_for_user_approval": "YES",
-        "metric_materialization": {"pixel_cap": METRIC_PIXEL_CAP, "per_image_region_cap": PER_IMAGE_METRIC_CAP, "seed": PAIR_SEED, "full_spatial_maps_retained": True},
+        "metric_materialization": {"pixel_cap": METRIC_PIXEL_CAP, "per_image_region_cap": PER_IMAGE_METRIC_CAP, "seed": PAIR_SEED, "full_spatial_maps_retained": True, "exact_finite_pixel_metrics": True, "inversion_definition": "exact per-image mean pairwise inversion rate; fixed seed is retained only for provenance and no metric sampling is used"},
     }
     lines = [
         "# H2 Stagewise Causal Localization Audit R1 — Final Decision", "",
@@ -957,7 +1155,7 @@ def finalization_phase() -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--phase", choices=("identity", "oracle", "occupancy", "calibration", "trajectory", "task", "directional-batch", "directional", "finalize", "all"), default="identity")
+    parser.add_argument("--phase", choices=("identity", "oracle", "occupancy", "calibration", "trajectory", "trajectory-metrics", "task", "directional-batch", "directional", "finalize", "all"), default="identity")
     parser.add_argument("--batch-index", type=int, default=None)
     args = parser.parse_args()
     if args.phase in ("identity", "all"):
@@ -970,6 +1168,8 @@ def main() -> None:
         calibration_phase()
     if args.phase in ("trajectory", "all"):
         trajectory_phase()
+    if args.phase == "trajectory-metrics":
+        trajectory_metrics_phase()
     if args.phase in ("task", "all"):
         task_gradient_phase()
     if args.phase == "directional-batch":
