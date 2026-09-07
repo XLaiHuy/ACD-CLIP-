@@ -971,7 +971,7 @@ def run_arm(payload: dict[str, Any], scope: dict[str, Any], root: Path, arm: str
         "batch_match_gate": "FAIL" if batch_mismatch else "PASS",
         "batch_mismatch": batch_mismatch,
         "numerical_failure": numerical_failure,
-        "stage1_outside_scope": stage1_outside_scope,
+        "stage1_outside_scope": stage_drift_outside_scope,
         "rows": rows,
     }
     torch.save({
