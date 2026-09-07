@@ -19,6 +19,7 @@ import importlib.util
 import json
 import math
 import os
+import random
 import subprocess
 import sys
 from pathlib import Path
@@ -34,6 +35,8 @@ sys.path.insert(0, str(REPO))
 
 from dataset import CLASS_NAMES
 from h2_clean.precision import PrecisionPolicy
+from h2_clean.contract import EpochWorkerInit, make_dataloader_generator
+from scipy import ndimage
 
 SPILLOVER_PATH = REPO / "scripts/run_h2_boundary_spillover_audit_r1.py"
 SPEC = importlib.util.spec_from_file_location("h2_spillover", SPILLOVER_PATH)
@@ -54,6 +57,8 @@ OUT_PARENT = REPO / "audit/H2_S2_LOCR_R1_PARENT_IDENTITY.md"
 OUT_ORACLE_CSV = REPO / "audit/H2_S2_LOCR_R1_ORACLE.csv"
 OUT_ORACLE_JSON = REPO / "audit/H2_S2_LOCR_R1_ORACLE.json"
 OUT_ORACLE_DECISION = REPO / "audit/H2_S2_LOCR_R1_ORACLE_DECISION.md"
+OUT_COVERAGE_CSV = REPO / "audit/H2_S2_LOCR_R1_GEOMETRY_COVERAGE.csv"
+OUT_COVERAGE_JSON = REPO / "audit/H2_S2_LOCR_R1_GEOMETRY_COVERAGE.json"
 
 
 def dump_json(path: Path, value) -> None:
@@ -355,9 +360,171 @@ def run_oracle(rows: list[dict], identity: dict) -> dict:
     return artifact
 
 
+def restore_checkpoint_rng(payload: dict) -> None:
+    random.setstate(payload["python_random_state"])
+    np.random.set_state(payload["numpy_random_state"])
+    torch.set_rng_state(payload["torch_cpu_rng_state"])
+    if torch.cuda.is_available():
+        torch.cuda.set_rng_state_all(payload["torch_cuda_rng_state_all"])
+
+
+def loader_for_epoch(dataset, epoch: int):
+    generator = make_dataloader_generator(0)
+    generator.manual_seed(104729 * epoch)
+    worker = EpochWorkerInit(0)
+    worker.set_epoch(epoch)
+    return DataLoader(dataset, batch_size=6, shuffle=True, num_workers=0,
+                      pin_memory=True, generator=generator, worker_init_fn=worker)
+
+
+def component_geometry(mask: np.ndarray) -> list[dict]:
+    mask = mask.astype(bool)
+    if not mask.any():
+        return []
+    labels, count = ndimage.label(mask, structure=np.ones((3, 3), dtype=bool))
+    structure = np.ones((7, 7), dtype=bool)
+    records = []
+    for component_id in range(1, int(count) + 1):
+        component = labels == component_id
+        interior = ndimage.binary_erosion(component, structure=structure)
+        near = ndimage.binary_dilation(component, structure=structure) & ~component
+        records.append({
+            "component_id": component_id,
+            "component_pixels": int(component.sum()),
+            "interior_pixels": int(interior.sum()),
+            "near_pixels": int(near.sum()),
+            "interior_mask": interior,
+            "near_mask": near,
+            "valid": bool(interior.any() and near.any()),
+            "skip_empty_interior": bool(not interior.any()),
+            "skip_empty_near": bool(not near.any()),
+        })
+    return records
+
+
+def stage2_margins_for_batch(model, image: torch.Tensor, class_names, device: torch.device) -> np.ndarray:
+    """Compute production-resized Stage-2 logit margins without gradients."""
+    policy = PrecisionPolicy("fp16")
+    output = np.empty((len(class_names), IMG, IMG), dtype=np.float32)
+    with torch.no_grad():
+        for category in sorted(set(class_names)):
+            selected = [i for i, name in enumerate(class_names) if name == category]
+            text, _, _ = spill.get_hybrid_soft_prompt_single_class_text_embedding(
+                model, "VisA", category, device, return_kg=False,
+            )
+            with policy.autocast(device):
+                seg_tokens, _ = model(image[selected])
+                vision = torch.stack(seg_tokens)
+                logits = production_resized_logits(model, vision, text)
+                margin = logits[1, :, 1] - logits[1, :, 0]
+            output[selected] = margin.float().cpu().numpy()
+    return output
+
+
+def analyze_geometry(scope: str, category: str, image_index: int, file_name: str, mask: np.ndarray, margin: np.ndarray) -> tuple[list[dict], dict]:
+    components = component_geometry(mask)
+    component_rows = []
+    valid_count = 0
+    active_count = 0
+    valid_near_pixels = 0
+    violating_near_pixels = 0
+    for record in components:
+        row = {"scope": scope, "category": category, "image_index": image_index, "file_name": file_name, "component_id": record["component_id"], "component_pixels": record["component_pixels"], "interior_pixels": record["interior_pixels"], "near_pixels": record["near_pixels"], "valid": record["valid"], "skip_empty_interior": record["skip_empty_interior"], "skip_empty_near": record["skip_empty_near"], "active": False, "r_c": None, "l_c": 0.0, "violating_near_pixels": 0, "near_violation_fraction": None}
+        if record["valid"]:
+            valid_count += 1
+            interior = record["interior_mask"]
+            near = record["near_mask"]
+            reference = float(np.median(margin[interior]))
+            violation = margin[near] > reference
+            loss = float(np.maximum(margin[near] - reference, 0.0).mean())
+            active = bool(violation.any())
+            active_count += int(active)
+            valid_near_pixels += int(near.sum())
+            violating_near_pixels += int(violation.sum())
+            row.update({"active": active, "r_c": reference, "l_c": loss, "violating_near_pixels": int(violation.sum()), "near_violation_fraction": float(violation.mean())})
+        component_rows.append(row)
+    image_row = {"scope": scope, "category": category, "image_index": image_index, "file_name": file_name, "anomalous": bool(mask.any()), "component_count": len(components), "valid_component_count": valid_count, "skipped_empty_interior": sum(int(r["skip_empty_interior"]) for r in components), "skipped_empty_near": sum(int(r["skip_empty_near"]) for r in components), "active_component_count": active_count, "active": bool(active_count), "valid_near_pixels": valid_near_pixels, "violating_near_pixels": violating_near_pixels, "near_violation_fraction": float(violating_near_pixels / valid_near_pixels) if valid_near_pixels else None}
+    return component_rows, image_row
+
+
+def summarize_geometry(image_rows: list[dict], component_rows: list[dict]) -> dict:
+    anomalous = [row for row in image_rows if row["anomalous"]]
+    valid_components = [row for row in component_rows if row["valid"]]
+    return {
+        "total_anomalous_images": len(anomalous),
+        "total_connected_components": len(component_rows),
+        "valid_components": len(valid_components),
+        "skipped_empty_interior_components": sum(int(row["skip_empty_interior"]) for row in component_rows),
+        "skipped_empty_near_bg_components": sum(int(row["skip_empty_near"]) for row in component_rows),
+        "images_with_at_least_one_valid_component": sum(int(row["valid_component_count"] > 0) for row in anomalous),
+        "images_where_s2_locr_is_active": sum(int(row["active"]) for row in anomalous),
+        "valid_component_fraction": float(len(valid_components) / len(component_rows)) if component_rows else 0.0,
+        "active_anomaly_image_fraction": float(sum(int(row["active"]) for row in anomalous) / len(anomalous)) if anomalous else 0.0,
+        "fraction_valid_components_with_at_least_one_violation": float(sum(int(row["active"]) for row in valid_components) / len(valid_components)) if valid_components else 0.0,
+        "fraction_near_bg_pixels_violating_r_c": float(sum(int(row["violating_near_pixels"]) for row in valid_components) / max(1, sum(int(row["near_pixels"]) for row in valid_components))),
+    }
+
+
+def geometry_phase(identity: dict, rows: list[dict]) -> dict:
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is required for exact historical inference")
+    torch.backends.cuda.matmul.allow_tf32 = False
+    torch.backends.cudnn.allow_tf32 = False
+    device = torch.device("cuda:0")
+    model = spill.make_model(device)
+    spill.load_endpoint(model, SAFE_ANCHOR)
+    datasets, indices = spill.load_selection_datasets(rows)
+    all_image_rows, all_component_rows = [], []
+    endpoint_by_category = {}
+    with torch.no_grad():
+        for category in CLASS_NAMES["VisA"]:
+            loader = DataLoader(Subset(datasets[category], indices[category]), batch_size=8, shuffle=False, num_workers=0)
+            for batch in loader:
+                margins = stage2_margins_for_batch(model, batch["image"].to(device), list(batch["class_name"]), device)
+                for j, name in enumerate(batch["file_name"]):
+                    component_rows, image_row = analyze_geometry("endpoint_cohort", category, len(all_image_rows), name, (batch["mask"][j, 0].numpy() > .5), margins[j])
+                    all_image_rows.append(image_row)
+                    all_component_rows.extend(component_rows)
+            endpoint_by_category[category] = summarize_geometry([r for r in all_image_rows if r["category"] == category], [r for r in all_component_rows if r["category"] == category])
+    endpoint_summary = summarize_geometry(all_image_rows, all_component_rows)
+
+    # Fixed 16 source batches are the first deterministic post-E10 batches of
+    # epoch 11, matching the repository training loader's seed convention.
+    payload = torch.load(SAFE_ANCHOR, map_location="cpu", weights_only=False)
+    restore_checkpoint_rng(payload)
+    train_dataset = spill.get_text_and_image_dataset("VisA", IMG, "train")
+    train_image_rows, train_component_rows = [], []
+    for batch_index, batch in enumerate(loader_for_epoch(train_dataset, 11)):
+        if batch_index >= 16:
+            break
+        margins = stage2_margins_for_batch(model, batch["image"].to(device), list(batch["class_name"]), device)
+        for j, name in enumerate(batch["file_name"]):
+            component_rows, image_row = analyze_geometry("fixed_train_16", str(batch["class_name"][j]), batch_index * 6 + j, name, (batch["mask"][j, 0].numpy() > .5), margins[j])
+            train_image_rows.append(image_row)
+            train_component_rows.extend(component_rows)
+    train_summary = summarize_geometry(train_image_rows, train_component_rows)
+    by_category = {}
+    for category in CLASS_NAMES["VisA"]:
+        by_category[category] = {
+            "endpoint_cohort": summarize_geometry([r for r in all_image_rows if r["category"] == category], [r for r in all_component_rows if r["category"] == category]),
+            "fixed_train_16": summarize_geometry([r for r in train_image_rows if r["category"] == category], [r for r in train_component_rows if r["category"] == category]),
+        }
+    adequate = bool(endpoint_summary["valid_components"] > 0 and train_summary["valid_components"] > 0 and min(endpoint_summary["active_anomaly_image_fraction"], train_summary["active_anomaly_image_fraction"]) >= .05)
+    summary = {"protocol_id": "EXPLORATORY_SOURCE_ONLY_MECHANISM_R1", "method": "S2_STAGE2_LOCAL_OUTSIDE_CONTRAST", "morphology": "existing 7x7 component erosion/dilation at 518x518", "fixed_train_batch_definition": "first 16 deterministic batches from epoch 11 loader seeded 104729*11, batch_size=6, seed=0", "endpoint_cohort": endpoint_summary, "fixed_train_16": train_summary, "by_category": by_category, "GEOMETRY_COVERAGE": "ADEQUATE" if adequate else "INADEQUATE", "nontrivial_active_image_fraction_threshold": .05, "no_geometry_tuning": True}
+    rows_out = []
+    for scope, value in (("endpoint_cohort", endpoint_summary), ("fixed_train_16", train_summary)):
+        rows_out.append({"scope": scope, **value})
+    for category, values in by_category.items():
+        for scope, value in values.items():
+            rows_out.append({"scope": scope, "category": category, **value})
+    write_csv(OUT_COVERAGE_CSV, rows_out)
+    dump_json(OUT_COVERAGE_JSON, summary)
+    return summary
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--phase", choices=("identity", "oracle"), required=True)
+    parser.add_argument("--phase", choices=("identity", "oracle", "coverage"), required=True)
     args = parser.parse_args()
     rows, _ = spill.load_rows()
     if args.phase in {"identity", "oracle"}:
@@ -365,7 +532,12 @@ def main() -> None:
     identity = validate_inputs(rows)
     if args.phase == "identity":
         return
-    run_oracle(rows, identity)
+    if args.phase == "oracle":
+        run_oracle(rows, identity)
+    elif args.phase == "coverage":
+        if not OUT_ORACLE_JSON.is_file():
+            raise RuntimeError("oracle artifact is required before coverage")
+        geometry_phase(identity, rows)
 
 
 if __name__ == "__main__":
