@@ -1059,3 +1059,193 @@ def context_phase() -> dict:
     del model
     torch.cuda.empty_cache()
     return artifact
+
+
+def endpoint_payloads():
+    endpoint = json.loads(R1_ENDPOINT.read_text())
+    control_path = Path(endpoint["control"]["checkpoint"])
+    candidate_path = Path(endpoint["candidate"]["checkpoint"])
+    control = torch.load(control_path, map_location="cpu", weights_only=False)
+    candidate = torch.load(candidate_path, map_location="cpu", weights_only=False)
+    return control, candidate, control_path, candidate_path
+
+
+def parameter_signature(payload: dict) -> dict:
+    state = payload["model_state"]
+    return {
+        module: {key: (tuple(value.shape), str(value.dtype)) for key, value in sorted(state[module].items())}
+        for module in ("image_adapter", "text_adapter", "soft_prompt")
+    }
+
+
+def load_interpolated(model, control: dict, candidate: dict, alpha: float) -> None:
+    if parameter_signature(control) != parameter_signature(candidate):
+        raise RuntimeError("control/candidate parameter-key identity mismatch")
+    for module in ("image_adapter", "text_adapter", "soft_prompt"):
+        c_state, r_state = control["model_state"][module], candidate["model_state"][module]
+        values = {key: c_state[key] + float(alpha) * (r_state[key] - c_state[key]) for key in c_state}
+        getattr(model, module).load_state_dict(values, strict=True)
+    model.dfg_beta = float(control.get("dfg_beta_current", .1))
+    model.hybrid_alpha_current = float(control.get("hybrid_alpha_current", .2))
+    model.hybrid_alpha_max = float(control.get("hybrid_alpha_max", .2))
+    model.stage_fusion_weights = (1.0 / 3.0,) * 3
+    model.eval()
+    model.requires_grad_(False)
+    if not all(torch.isfinite(parameter).all().item() for parameter in model.parameters()):
+        raise RuntimeError(f"non-finite interpolated parameters at alpha={alpha}")
+
+
+def collect_production_cohort(model, rows: list[dict], device: torch.device) -> dict:
+    datasets, indices = selected_datasets(rows)
+    policy = PrecisionPolicy("fp16")
+    native, resized, masks, labels, names = [], [], [], [], []
+    with torch.no_grad():
+        for category in spill.CLASS_NAMES["VisA"]:
+            loader = DataLoader(Subset(datasets[category], indices[category]), batch_size=BATCH, shuffle=False, num_workers=0)
+            text, _, _ = spill.get_hybrid_soft_prompt_single_class_text_embedding(model, "VisA", category, device, return_kg=False)
+            for batch in loader:
+                image = batch["image"].to(device, non_blocking=True)
+                with policy.autocast(device):
+                    seg_tokens, _ = model(image)
+                    stage_native, _, stage_resized, _ = production_from_tokens(model, seg_tokens, text)
+                native.append((stage_native[:, :, 1] - stage_native[:, :, 0]).permute(1, 0, 2, 3).float().cpu().numpy())
+                resized.append((stage_resized[:, :, 1] - stage_resized[:, :, 0]).permute(1, 0, 2, 3).float().cpu().numpy())
+                masks.append((batch["mask"][:, 0].numpy() > .5).astype(np.uint8))
+                labels.append(batch["label"].numpy().astype(np.uint8))
+                names.extend(batch["file_name"])
+                del image, seg_tokens, stage_native, stage_resized
+                if device.type == "cuda":
+                    torch.cuda.empty_cache()
+    if names != [row["file_name"] for row in rows]:
+        raise RuntimeError("strength evaluator order mismatch")
+    return {
+        "native_margin": np.concatenate(native, axis=0), "resized_margin": np.concatenate(resized, axis=0),
+        "mask": np.concatenate(masks, axis=0), "labels": np.concatenate(labels, axis=0),
+        "names": np.asarray(names, dtype=object),
+    }
+
+
+def full_region_values(score: np.ndarray, mask: np.ndarray) -> dict[str, np.ndarray]:
+    values = {name: [] for name in ("positive", "interior", "boundary", "near", "far")}
+    for current, current_mask in zip(score, mask):
+        boundary, interior, near, far = morphology(current_mask)
+        for name, region in (("positive", current_mask.astype(bool)), ("interior", interior), ("boundary", boundary), ("near", near), ("far", far)):
+            if region.any():
+                values[name].append(current[region].reshape(-1))
+    return {name: np.concatenate(current) if current else np.empty(0, dtype=np.float32) for name, current in values.items()}
+
+
+def fpr_recalls(score: np.ndarray, mask: np.ndarray) -> dict:
+    regions = full_region_values(score, mask)
+    bg = regions["far"]
+    result = {}
+    for name, rate in (("1pct", .01), ("5pct", .05)):
+        threshold = float(np.quantile(bg, 1.0 - rate)) if bg.size else None
+        result[name] = {
+            "threshold": threshold,
+            "recall": float((regions["positive"] > threshold).mean()) if threshold is not None and regions["positive"].size else None,
+            "background_count": int(bg.size), "positive_count": int(regions["positive"].size),
+        }
+    return result
+
+
+def strength_metrics(data: dict) -> dict:
+    score = 1.0 / (1.0 + np.exp(-np.clip(data["resized_margin"].mean(axis=1), -80.0, 80.0)))
+    stage2 = 1.0 / (1.0 + np.exp(-np.clip(data["resized_margin"][:, 1], -80.0, 80.0)))
+    mask, labels = data["mask"], data["labels"]
+    pixel_labels = mask.astype(np.uint8)
+    global_metric = exact_binary(score, pixel_labels)
+    local = exact.anomaly_near_metrics(score, mask)
+    regions = full_region_values(score, mask)
+    stage2_regions = full_region_values(stage2, mask)
+    fpr = fpr_recalls(score, mask)
+    return {
+        "pixel_ap": global_metric["ap"], "pixel_auroc": global_metric["auroc"],
+        "anomaly_vs_near_ap": local["anomaly_vs_near"]["ap"], "anomaly_vs_near_auroc": local["anomaly_vs_near"]["auroc"],
+        "interior_vs_near_auroc": local["interior_vs_near"]["auroc"], "boundary_vs_near_auroc": local["boundary_vs_near"]["auroc"],
+        "stage2_near_p95": stats(stage2_regions["near"])["p95"], "stage2_near_p99": stats(stage2_regions["near"])["p99"],
+        "final_near_p95": stats(regions["near"])["p95"], "final_near_p99": stats(regions["near"])["p99"],
+        "positive_mean": stats(regions["positive"])["mean"], "positive_median": stats(regions["positive"])["median"],
+        "interior_mean": stats(regions["interior"])["mean"], "interior_median": stats(regions["interior"])["median"],
+        "boundary_mean": stats(regions["boundary"])["mean"], "boundary_median": stats(regions["boundary"])["median"],
+        "recall_at_1pct_fpr": fpr["1pct"]["recall"], "recall_at_5pct_fpr": fpr["5pct"]["recall"],
+        "fpr_threshold_1pct": fpr["1pct"]["threshold"], "fpr_threshold_5pct": fpr["5pct"]["threshold"],
+        "pixel_count": global_metric["pixel_count"],
+    }
+
+
+ALPHAS = (0.00, 0.25, 0.50, 0.75, 1.00)
+
+
+def strength_phase() -> dict:
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is required for the retained endpoint interpolation path")
+    control, candidate, control_path, candidate_path = endpoint_payloads()
+    if parameter_signature(control) != parameter_signature(candidate):
+        raise RuntimeError("control/candidate parameter-key identity mismatch")
+    device = torch.device("cuda:0")
+    model = make_model(device)
+    rows = []
+    for alpha in ALPHAS:
+        load_interpolated(model, control, candidate, alpha)
+        for cohort_id, path in (("A", COHORT_A), ("B", COHORT_B)):
+            data = collect_production_cohort(model, load_cohort(path, cohort_id), device)
+            metric = strength_metrics(data)
+            rows.append({"alpha": alpha, "cohort": cohort_id, "checkpoint": "theta_control_plus_alpha_endpoint_delta", "control_checkpoint": str(control_path), "candidate_checkpoint": str(candidate_path), "parameter_key_identity": True, "finite_parameters": True, "architecture_identity": True, **metric})
+    control_rows = {(row["cohort"], row["alpha"]): row for row in rows}
+    decisions = []
+    for alpha in ALPHAS[1:]:
+        cohort_checks = {}
+        for cohort in ("A", "B"):
+            current = control_rows[(cohort, alpha)]
+            base = control_rows[(cohort, 0.0)]
+            checks = {
+                "ap_gt_control": current["pixel_ap"] > base["pixel_ap"],
+                "auroc_ge_control": current["pixel_auroc"] >= base["pixel_auroc"],
+                "near_p95_lt_control": current["final_near_p95"] < base["final_near_p95"],
+                "near_p99_lt_control": current["final_near_p99"] < base["final_near_p99"],
+                "local_auroc_ge_control": current["anomaly_vs_near_auroc"] >= base["anomaly_vs_near_auroc"],
+                "interior_ranking_ge_control": current["interior_vs_near_auroc"] >= base["interior_vs_near_auroc"],
+                "boundary_ranking_ge_control": current["boundary_vs_near_auroc"] >= base["boundary_vs_near_auroc"],
+                "recall_1pct_ge_control": current["recall_at_1pct_fpr"] >= base["recall_at_1pct_fpr"],
+                "recall_5pct_ge_control": current["recall_at_5pct_fpr"] >= base["recall_at_5pct_fpr"],
+            }
+            cohort_checks[cohort] = checks
+        decisions.append({"alpha": alpha, "cohort_checks": cohort_checks, "both_cohorts_supported": all(all(checks.values()) for checks in cohort_checks.values())})
+    supported_alphas = [x["alpha"] for x in decisions if x["both_cohorts_supported"]]
+    endpoint = next(x for x in decisions if x["alpha"] == 1.0)
+    if supported_alphas:
+        hypothesis = "SUPPORTED"
+    elif endpoint["cohort_checks"]["A"]["ap_gt_control"] and endpoint["cohort_checks"]["B"]["ap_gt_control"]:
+        hypothesis = "NOT_SUPPORTED"
+    else:
+        a_ap = [control_rows[("A", alpha)]["pixel_ap"] for alpha in ALPHAS]
+        b_ap = [control_rows[("B", alpha)]["pixel_ap"] for alpha in ALPHAS]
+        hypothesis = "MIXED" if any((control_rows[("A", alpha)]["pixel_ap"] > control_rows[("A", 0.0)]["pixel_ap"]) != (control_rows[("B", alpha)]["pixel_ap"] > control_rows[("B", 0.0)]["pixel_ap"]) for alpha in ALPHAS[1:]) else "INCONCLUSIVE"
+    all_aps = {cohort: [control_rows[(cohort, alpha)]["pixel_ap"] for alpha in ALPHAS] for cohort in ("A", "B")}
+    all_near = {cohort: [control_rows[(cohort, alpha)]["final_near_p95"] for alpha in ALPHAS] for cohort in ("A", "B")}
+    if supported_alphas and 1.0 not in supported_alphas:
+        curve = "EARLY_USEFUL_THEN_OVERSUPPRESSED"
+    elif supported_alphas == [0.25, 0.50, 0.75, 1.00]:
+        curve = "MONOTONIC_USEFUL"
+    elif all(all_near[c][i] > all_near[c][0] for c in ("A", "B") for i in (1,)):
+        curve = "IMMEDIATE_COUPLING"
+    elif not supported_alphas:
+        curve = "NO_USEFUL_REGION"
+    else:
+        curve = "NONLINEAR_UNSTABLE"
+    artifact = {
+        "protocol_id": "H2_ROOTCAUSE_S2_STRENGTH_AUDIT_R1", "alphas": list(ALPHAS), "rows": rows,
+        "parameter_key_identity": parameter_signature(control) == parameter_signature(candidate),
+        "interpolated_modules": ["image_adapter", "text_adapter", "soft_prompt"],
+        "non_model_state_interpolation": False,
+        "interpretation_warning": "Weight interpolation is a diagnostic endpoint direction, not lambda interpolation or a training trajectory.",
+        "decisions": decisions, "supported_alphas_both_cohorts": supported_alphas,
+        "s2_strength_hypothesis": hypothesis, "strength_curve": curve,
+        "control_checkpoint_sha256": sha_file(control_path), "candidate_checkpoint_sha256": sha_file(candidate_path),
+    }
+    write_csv(OUT_STRENGTH_CSV, rows)
+    dump_json(OUT_STRENGTH_JSON, artifact)
+    del model
+    torch.cuda.empty_cache()
+    return artifact
