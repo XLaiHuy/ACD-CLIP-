@@ -783,11 +783,30 @@ def task_gradient_phase() -> dict:
     return artifact
 
 
-def directional_phase() -> dict:
+def directional_batch_phase(batch_index: int) -> None:
+    """One isolated, no-step LOCR preflight batch for the parent audit."""
     payload = torch.load(SAFE_ANCHOR, map_location="cpu", weights_only=False)
     model = s2.make_training_model(payload, torch.device("cuda:0"))
     s2.configure_training_epoch(model, 11)
-    fixed = s2.fixed_train_batches(payload, model)
+    batches = s2.fixed_train_batches(payload, model)
+    stage2_named = s2.stage_parameters(model, 1)
+    result = s2.preflight_microbatch(model, batches[batch_index], torch.device("cuda:0"), PrecisionPolicy("fp16"), [p for _, p in stage2_named])
+    output = {"batch_index": batch_index, "raw_locr_loss": result["locr_value"], "active": result["details"]["active"], "valid_components": result["details"]["valid_components"], "gradients": {name: (grad.detach().cpu() if grad is not None else None) for (name, _), grad in zip(stage2_named, result["gradients"]["locr"])}}
+    RUN_ROOT.mkdir(parents=True, exist_ok=True)
+    torch.save(output, RUN_ROOT / f"directional_locr_batch_{batch_index}.pth")
+
+
+def directional_phase() -> dict:
+    payload = torch.load(SAFE_ANCHOR, map_location="cpu", weights_only=False)
+    # Build the fixed CPU batches before launching isolated GPU workers; the
+    # parent holds no CUDA model while each child runs its one-batch preflight.
+    fixed = s2.fixed_train_batches(payload, None)
+    for batch_index in range(16):
+        gradient_path = RUN_ROOT / f"directional_locr_batch_{batch_index}.pth"
+        if not gradient_path.is_file():
+            subprocess.run([sys.executable, str(Path(__file__)), "--phase", "directional-batch", "--batch-index", str(batch_index)], cwd=REPO, check=True)
+    model = s2.make_training_model(payload, torch.device("cuda:0"))
+    s2.configure_training_epoch(model, 11)
     stage2_named = s2.stage_parameters(model, 1)
     stage2_names = [n for n, _ in stage2_named]
     stage2_params = [p for _, p in stage2_named]
@@ -795,11 +814,12 @@ def directional_phase() -> dict:
     for i, name in enumerate(stage2_names): family_indices.setdefault(name.split(".", 1)[0], []).append(i)
     accumulated = {name: torch.zeros_like(p, dtype=torch.float32) for name, p in stage2_named}
     preflight_rows = []
-    for batch in fixed:
-        result = s2.preflight_microbatch(model, batch, torch.device("cuda:0"), PrecisionPolicy("fp16"), stage2_params)
-        preflight_rows.append({"raw_locr_loss": result["locr_value"], "active": result["details"]["active"], "valid_components": result["details"]["valid_components"]})
-        for (name, _), grad in zip(stage2_named, result["gradients"]["locr"]):
-            if grad is not None: accumulated[name].add_(grad.detach().float())
+    for batch_index in range(16):
+        gradient_path = RUN_ROOT / f"directional_locr_batch_{batch_index}.pth"
+        result = torch.load(gradient_path, map_location="cpu", weights_only=False)
+        preflight_rows.append({"raw_locr_loss": result["raw_locr_loss"], "active": result["active"], "valid_components": result["valid_components"]})
+        for name, grad in result["gradients"].items():
+            if grad is not None: accumulated[name].add_(grad.float())
         del result
     family_grad = {}
     for family, indices in family_indices.items():
@@ -870,7 +890,8 @@ def directional_phase() -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--phase", choices=("identity", "oracle", "occupancy", "calibration", "trajectory", "task", "directional", "all"), default="identity")
+    parser.add_argument("--phase", choices=("identity", "oracle", "occupancy", "calibration", "trajectory", "task", "directional-batch", "directional", "all"), default="identity")
+    parser.add_argument("--batch-index", type=int, default=None)
     args = parser.parse_args()
     if args.phase in ("identity", "all"):
         identity_and_cohorts()
@@ -884,6 +905,9 @@ def main() -> None:
         trajectory_phase()
     if args.phase in ("task", "all"):
         task_gradient_phase()
+    if args.phase == "directional-batch":
+        if args.batch_index is None or not 0 <= args.batch_index < 16: raise RuntimeError("directional-batch requires --batch-index in [0,15]")
+        directional_batch_phase(args.batch_index)
     if args.phase in ("directional", "all"):
         directional_phase()
 
