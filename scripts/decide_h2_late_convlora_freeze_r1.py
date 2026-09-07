@@ -191,6 +191,7 @@ def main() -> None:
         "waiting_for_user_approval": "YES",
     }
     json_dump(REPO / "audit/H2_LATE_CONVLORA_FREEZE_R1_DECISION.json", result)
+    json_dump(REPO / "results/H2_LATE_CONVLORA_FREEZE_R1_DECISION.json", result)
     lines = [
         f"# {PROTOCOL_ID} decision",
         "",
