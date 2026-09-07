@@ -55,7 +55,7 @@ ANCHOR_FAMILY_NAMES = (
 
 RESUME_BRANCH_KEYS = ("use_safe_anchor", "anchor_lambda", "anchor_reference_sha256", "anchor_gradient_budget", "use_cir_training", "cir_alpha", "cir_peer_count", "cir_spatial_radius")
 SCIENTIFIC_CONFIG_KEYS = ("model_name", "img_size", "dataset", "epoch", "n_groups", "image_adapt_weight", "text_adapt_weight", "lora_rank", "lora_alpha", "conv_lora_rank", "conv_lora_alpha", "conv_kernel_size_list", "batch_size", "image_lr", "text_lr", "use_soft_prompt", "use_hybrid_soft_prompt", "hybrid_alpha_max", "soft_prompt_freeze_epochs", "soft_prompt_ctx_len", "soft_prompt_lr", "soft_prompt_init", "soft_prompt_init_phrase", "lambda_kg", "lambda_k", "lr_gamma", "dfg_mode", "dfg_attn_dim", "dfg_attn_tau", "use_ss2d_dfg", "dfg_gamma_max", "dfg_ss2d_fusion", "dfg_beta", "dfg_beta_schedule", "dfg_beta_target", "dfg_weight_residual_fp32", "grad_clip_norm", "amp", "precision", "precision_protocol", "bf16_local_fp32_islands", "later_transformer_fp32_islands", "grad_checkpointing", "seed", "deterministic_algorithms", "tf32_enabled", "use_safe_anchor", "anchor_lambda", "anchor_reference_sha256", "anchor_gradient_budget", "anchor_family_budget", "use_cir_training", "cir_alpha", "cir_peer_count", "cir_spatial_radius", "cir_transport_direction", "cir_score_mode", "cir_reference_commit", "clip_sha256", "dataset_manifest_sha256", "base_h2_commit", "implementation_git_sha", "working_tree_diff_sha256")
-SCIENTIFIC_CONFIG_KEYS = SCIENTIFIC_CONFIG_KEYS + ("training_horizon", "primary_horizon", "secondary_horizon", "anchor_target_effective_ratio", "anchor_r_med", "anchor_lambda_old")
+SCIENTIFIC_CONFIG_KEYS = SCIENTIFIC_CONFIG_KEYS + ("training_horizon", "primary_horizon", "secondary_horizon", "anchor_target_effective_ratio", "anchor_r_med", "anchor_lambda_old", "use_nfur", "nfur_hidden_channels", "nfur_delta_bound")
 def sha256_file(path: str | os.PathLike[str]) -> str:
     digest = hashlib.sha256()
     with open(path, "rb") as handle:
@@ -1081,6 +1081,12 @@ def build_full_checkpoint(
             name: value.detach().cpu().clone() for name, value in model.soft_prompt.state_dict().items()
         }
         payload["model_state"]["soft_prompt"] = payload["soft_prompt"]
+    if hasattr(model, "nfur_refiner"):
+        payload["nfur_refiner"] = {
+            name: value.detach().cpu().clone()
+            for name, value in model.nfur_refiner.state_dict().items()
+        }
+        payload["model_state"]["nfur_refiner"] = payload["nfur_refiner"]
     if anchor is not None:
         payload["image_anchor"] = anchor.metadata(anchor_lambda)
         payload["image_anchor_reference"] = {
@@ -1127,6 +1133,8 @@ def restore_full_checkpoint(
     model.text_adapter.load_state_dict(state["text_adapter"])
     if "soft_prompt" in state and hasattr(model, "soft_prompt"):
         model.soft_prompt.load_state_dict(state["soft_prompt"])
+    if "nfur_refiner" in state and hasattr(model, "nfur_refiner"):
+        model.nfur_refiner.load_state_dict(state["nfur_refiner"])
     optimizer.load_state_dict(payload["optimizer_state"])
     scheduler.load_state_dict(payload["scheduler_state"])
     if scaler is not None:

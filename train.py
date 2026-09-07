@@ -657,6 +657,7 @@ def train(
         anchor_loss_list = []
         anchor_gradient_ratio_list = []
         cir_stats_list = []
+        nfur_stats_list = []
         non_finite_loss_skips = 0
         non_finite_grad_skips = 0
         last_batch_finished = time.perf_counter()
@@ -757,6 +758,14 @@ def train(
                     cir_peer_count=cir_peer_count,
                     cir_spatial_radius=cir_spatial_radius,
                 )
+                nfur_batch_stats = getattr(model, "_last_nfur_stats", {})
+                if nfur_batch_stats.get("enabled"):
+                    nfur_stats_list.append({
+                        key: float(value)
+                        for key, value in nfur_batch_stats.items()
+                        if key not in {"enabled", "activity", "native_grid", "input_channels", "delta_requires_grad"}
+                        and isinstance(value, (int, float))
+                    })
                 seg_loss = calculate_seg_loss(seg_pred, mask)
                 loss_main = cls_loss + seg_loss
                 anchor_loss = anchor.loss(model.image_adapter) if anchor is not None else torch.zeros((), device=device)
@@ -975,6 +984,8 @@ def train(
                 })
             # clip gradient
             clip_module_grad(model.image_adapter, grad_clip_norm)
+            if hasattr(model, "nfur_refiner"):
+                clip_module_grad(model.nfur_refiner, grad_clip_norm)
             if use_hybrid_soft_prompt:
                 clip_module_grad(model.text_adapter, grad_clip_norm)
                 if not soft_prompt_frozen:
@@ -1131,6 +1142,7 @@ def train(
                     "peak_allocated_bytes": peak_allocated,
                     "peak_reserved_bytes": peak_reserved,
                     "family": family_row,
+                    "nfur": dict(getattr(model, "_last_nfur_stats", {})),
                 }
                 append_jsonl(metrics_path, row)
                 with open(runtime_path, "a", encoding="utf-8", newline="") as handle:
@@ -1201,6 +1213,8 @@ def train(
             "optimizer_state_finite": optimizer_state_is_finite(optimizer),
             "trainable_parameter_count": sum(parameter.numel() for parameter in model.parameters() if parameter.requires_grad),
             "lr": {group.get("name", str(index)): group["lr"] for index, group in enumerate(optimizer.param_groups)},
+            "nfur_activity_batches": len(nfur_stats_list),
+            "nfur_stats": mean_stats(nfur_stats_list),
         })
         with open(epoch_summary_path, "w", encoding="utf-8") as handle:
             json.dump(epoch_summaries, handle, indent=2, sort_keys=True)
@@ -1305,9 +1319,14 @@ def train(
             "lambda_k": lambda_k,
             "k_reg_detached_wk": bool(lambda_k > 0),
             "k_reg_per_stage": bool(lambda_k > 0),
+            "use_nfur": bool(getattr(model, "use_nfur", False)),
+            "nfur_hidden_channels": getattr(model, "nfur_hidden_channels", None),
+            "nfur_delta_bound": getattr(model, "nfur_delta_bound", None),
             "text_adapter": model.text_adapter.state_dict(),
             "image_adapter": model.image_adapter.state_dict()
         }
+        if hasattr(model, "nfur_refiner"):
+            model_dict["nfur_refiner"] = model.nfur_refiner.state_dict()
         if use_soft_prompt or use_hybrid_soft_prompt:
             model_dict["soft_prompt"] = model.soft_prompt.state_dict()
         _atomic_torch_save(model_dict, ckp_path)

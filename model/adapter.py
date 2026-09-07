@@ -68,6 +68,9 @@ class ACDCLIP(nn.Module):
             soft_prompt_ctx_len: int = 4,
             soft_prompt_init: str = "phrase",
             soft_prompt_init_phrase: str = "a photo of a",
+            use_nfur: bool = False,
+            nfur_hidden_channels: int = 32,
+            nfur_delta_bound: float = 0.25,
             **kwargs,
     ):
         super().__init__()
@@ -118,7 +121,16 @@ class ACDCLIP(nn.Module):
         self.soft_prompt_ctx_len = soft_prompt_ctx_len
         self.soft_prompt_init = soft_prompt_init
         self.soft_prompt_init_phrase = soft_prompt_init_phrase
+        self.use_nfur = bool(use_nfur)
+        self.nfur_hidden_channels = int(nfur_hidden_channels)
+        self.nfur_delta_bound = float(nfur_delta_bound)
+        if self.nfur_hidden_channels < 1:
+            raise ValueError("nfur_hidden_channels must be positive")
+        if self.nfur_delta_bound <= 0:
+            raise ValueError("nfur_delta_bound must be positive")
+        self.nfur_enabled = bool(use_nfur)
         self._last_dfg_stats = {}
+        self._last_nfur_stats = {"enabled": False, "activity": False}
 
         image_adapt_weights = nn.ModuleList(
             [AddWeight(image_adapt_weight) for _ in range(n_groups)]
@@ -194,6 +206,18 @@ class ACDCLIP(nn.Module):
                 "lora_adapters": text_lora_adapters,
             }
         )
+        if self.use_nfur:
+            # Native 37x37 visual features plus score-space uncertainty.  The
+            # zero-initialized final layer makes the initial branch an exact
+            # identity while retaining a nonzero gradient for learning.
+            nfur_in_channels = 768 + n_groups + 1
+            self.nfur_refiner = nn.Sequential(
+                nn.Conv2d(nfur_in_channels, self.nfur_hidden_channels, kernel_size=3, padding=1),
+                nn.GELU(),
+                nn.Conv2d(self.nfur_hidden_channels, 1, kernel_size=1),
+            )
+            nn.init.zeros_(self.nfur_refiner[-1].weight)
+            nn.init.zeros_(self.nfur_refiner[-1].bias)
         init_phrase = soft_prompt_init_phrase if soft_prompt_init == "phrase" else "random"
         self.soft_prompt = SoftPromptLearner(
             ctx_len=soft_prompt_ctx_len,
@@ -222,6 +246,91 @@ class ACDCLIP(nn.Module):
         if not 0 <= beta <= 1:
             raise ValueError(f"dfg beta must be in [0, 1], got {beta}")
         self.dfg_beta = float(beta)
+
+    def set_nfur_enabled(self, enabled: bool):
+        """Enable or disable only the NFUR residual branch."""
+        self.nfur_enabled = bool(enabled) and self.use_nfur
+
+    @staticmethod
+    def _nfur_uncertainty(
+            native_margins: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Compute frozen, target-free uncertainty in the existing score space."""
+        fused_margin = native_margins.mean(dim=0)
+        margin_uncertainty = 1.0 - torch.tanh(fused_margin.abs() / 10.0)
+        stage_disagreement = 1.0 - torch.exp(
+            -native_margins.std(dim=0, unbiased=False)
+        )
+        uncertainty = (0.5 * (margin_uncertainty + stage_disagreement)).clamp(0.0, 1.0).unsqueeze(1)
+        return uncertainty, fused_margin, stage_disagreement
+
+    def _nfur_residual(
+            self,
+            vision_tokens: torch.Tensor,
+            native_stage_logits: torch.Tensor,
+            base_logits: torch.Tensor,
+            test_mode: bool,
+            domain: str,
+    ) -> torch.Tensor:
+        """Add an uncertainty-gated native-resolution correction to base logits."""
+        if not (self.use_nfur and self.nfur_enabled):
+            self._last_nfur_stats = {"enabled": False, "activity": False}
+            return base_logits
+        groups, batch, patch_count, channels = vision_tokens.shape
+        height = int(np.sqrt(patch_count))
+        if height * height != patch_count:
+            raise ValueError(f"NFUR requires a square native grid, got {patch_count} tokens")
+        if groups != self.n_groups or channels != 768:
+            raise ValueError(f"unexpected NFUR feature shape: {tuple(vision_tokens.shape)}")
+        if tuple(native_stage_logits.shape[:2]) != (groups, batch):
+            raise ValueError("NFUR feature/logit batch shape mismatch")
+
+        native_margins = native_stage_logits[:, :, 1] - native_stage_logits[:, :, 0]
+        uncertainty, fused_margin, stage_disagreement = self._nfur_uncertainty(native_margins)
+        native_feature = vision_tokens.mean(dim=0).permute(0, 2, 1).reshape(
+            batch, channels, height, height
+        )
+        refiner_input = torch.cat(
+            [native_feature, native_margins.permute(1, 0, 2, 3), fused_margin.unsqueeze(1)],
+            dim=1,
+        )
+        delta_native = self.nfur_delta_bound * torch.tanh(self.nfur_refiner(refiner_input))
+        correction_native = uncertainty * delta_native
+        if test_mode:
+            sigma = 1 if domain == "Industrial" else 1.5
+            kernel_size = 7 if domain == "Industrial" else 9
+            correction_native = gaussian_blur2d(
+                correction_native,
+                (kernel_size, kernel_size),
+                (sigma, sigma),
+            )
+        correction = F.interpolate(
+            correction_native,
+            size=base_logits.shape[-2:],
+            mode="bilinear",
+            align_corners=True,
+        )
+        final_logits = torch.stack(
+            [base_logits[:, 0] - 0.5 * correction[:, 0],
+             base_logits[:, 1] + 0.5 * correction[:, 0]],
+            dim=1,
+        )
+        self._last_nfur_stats = {
+            "enabled": True,
+            "activity": True,
+            "native_grid": [height, height],
+            "input_channels": int(refiner_input.shape[1]),
+            "uncertainty_mean": float(uncertainty.detach().float().mean().item()),
+            "uncertainty_p95": float(uncertainty.detach().float().reshape(-1).quantile(0.95).item()),
+            "margin_uncertainty_mean": float((1.0 - torch.tanh(fused_margin.abs() / 10.0)).detach().float().mean().item()),
+            "stage_disagreement_mean": float(stage_disagreement.detach().float().mean().item()),
+            "delta_native_abs_mean": float(delta_native.detach().float().abs().mean().item()),
+            "delta_native_abs_p95": float(delta_native.detach().float().abs().reshape(-1).quantile(0.95).item()),
+            "gated_correction_abs_mean": float(correction_native.detach().float().abs().mean().item()),
+            "gated_correction_abs_p95": float(correction_native.detach().float().abs().reshape(-1).quantile(0.95).item()),
+            "delta_requires_grad": bool(delta_native.requires_grad),
+        }
+        return final_logits
 
     def forward_original(self, x, modality="visual"):
         if modality == "visual":
@@ -438,6 +547,7 @@ class ACDCLIP(nn.Module):
                 "alpha": float(cir_alpha),
                 "inference_or_zero": True,
             }
+        native_stage_logits = torch.stack(group_seg_preds, dim=0)
         if test_mode:
             sigma = 1 if domain == "Industrial" else 1.5
             kernel_size = 7 if domain == "Industrial" else 9
@@ -459,6 +569,16 @@ class ACDCLIP(nn.Module):
         ]  # [1, bs, 2, img_size, img_size] * n_groups
         all_group_preds = torch.cat(group_seg_preds, dim=0)  # [n_groups, bs, 2, img_size, img_size]
         final_seg_pred = fuse_stage_logits(all_group_preds, self.stage_fusion_weights)
+        if self.use_nfur and self.nfur_enabled:
+            final_seg_pred = self._nfur_residual(
+                vision_tokens,
+                native_stage_logits,
+                final_seg_pred,
+                test_mode=test_mode,
+                domain=domain,
+            )
+        else:
+            self._last_nfur_stats = {"enabled": False, "activity": False}
         final_seg_pred = F.softmax(final_seg_pred, dim=1)  # [bs, 2, img_size, img_size]
         if test_mode:
             # [bs, img_size, img_size]

@@ -1,0 +1,30 @@
+{
+  "protocol_id": "H2_NFUR_R2_E20_MEDICAL_SELECTED",
+  "design": "NFUR-R2",
+  "status": "frozen_before_source_training",
+  "source_dataset_only_for_training": "VisA",
+  "target_dependency_inference": false,
+  "gt_dependency_inference": false,
+  "category_dependency": false,
+  "native_grid": [37, 37],
+  "genuinely_finer_existing_feature": false,
+  "feature_inventory": [
+    {"name": "frozen_patch_and_early_visual_tokens", "shape": "[B,1369,1024]", "resolution": "37x37", "trainable": false},
+    {"name": "stage_conv_lora_outputs", "shape": "[B,1369,1024]", "resolution": "37x37", "trainable": true},
+    {"name": "stage_projected_segmentation_tokens", "shape": "[B,1369,768]", "resolution": "37x37", "trainable": true},
+    {"name": "stage_margins", "shape": "[B,3,37,37]", "resolution": "37x37", "trainable": false},
+    {"name": "fused_margin", "shape": "[B,1,37,37]", "resolution": "37x37", "trainable": false}
+  ],
+  "inputs": {"native_visual_channels": 768, "stage_margin_channels": 3, "fused_margin_channels": 1, "total_channels": 772},
+  "uncertainty_formula": "g=clamp(0.5*((1-tanh(abs(mean_i(m_i))/10))+(1-exp(-std_i(m_i)))),0,1), population std over stages",
+  "delta_formula": "delta_s=0.25*tanh(Conv1x1(GELU(Conv3x3(concat(mean_i(v_i),m_1,m_2,m_3,m_f)))))",
+  "residual_formula": "s_refined=s_base+g_uncert*delta_s, implemented symmetrically as normal-0.5*c and abnormal+0.5*c",
+  "head": {"conv3x3": {"in_channels": 772, "out_channels": 32}, "conv1x1": {"in_channels": 32, "out_channels": 1}, "parameters": 222401, "delta_bound": 0.25},
+  "initialization": {"last_conv_weight": 0.0, "last_conv_bias": 0.0, "delta_s": 0.0, "identity_preserving": true},
+  "gradient_path": "existing VisA final segmentation objective -> native logits -> continuous gate/refiner -> residual head",
+  "inference_path": "native stage logits/features -> frozen uncertainty -> bounded residual -> existing blur/interpolation -> softmax",
+  "identity_off_contract": "use_nfur=False or set_nfur_enabled(False) returns historical fused logits without residual branch",
+  "addresses_root_cause": "MULTI_MODULE_CONTEXTUAL_COUPLING via small score-space correction conditioned on native context and cross-stage disagreement",
+  "limitations": ["no finer-than-37x37 feature exists in retained H2 path", "cannot recover sub-patch detail", "Medical epoch selection uses target validation"],
+  "changed_files": ["model/adapter.py", "h2_clean/contract.py", "train.py"]
+}
