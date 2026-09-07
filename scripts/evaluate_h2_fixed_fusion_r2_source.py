@@ -92,6 +92,7 @@ def coverage(scores: np.ndarray, masks: np.ndarray) -> dict[str, dict[str, float
             "count": int(x.size),
             "mean": float(x.mean()) if x.size else float("nan"),
             "median": float(np.median(x)) if x.size else float("nan"),
+            "p95": float(np.quantile(x, .95)) if x.size else float("nan"),
             "p99": float(np.quantile(x, .99)) if x.size else float("nan"),
         }
     return result
@@ -187,6 +188,9 @@ def linear_cka(x: np.ndarray, y: np.ndarray) -> float:
 def parameter_drift(e1_state: dict, endpoint_state_value: dict) -> dict:
     groups = {
         "Conv-LoRA": lambda name: name.startswith("lora_adapters."),
+        "Conv-LoRA_stage1": lambda name: name.startswith("lora_adapters.0."),
+        "Conv-LoRA_stage2": lambda name: name.startswith("lora_adapters.1."),
+        "Conv-LoRA_stage3": lambda name: name.startswith("lora_adapters.2."),
         "image_projection": lambda name: any(name.startswith(prefix) for prefix in ("m_i_w.", "seg_proj.", "det_proj.", "seg_layer_norms.", "det_layer_norms.")),
         "DFG_QK": lambda name: name.startswith("vision_text_q.") or name.startswith("vision_text_k."),
         "SS2D": lambda name: name.startswith("dfg_ss2d_branches.") or name.startswith("dfg_raw_gamma.") or name.startswith("direction_logits."),
@@ -247,6 +251,11 @@ def evaluate_arm(
     stages = []
     late_ratios = []
     pooled_chunks = [[] for _ in range(3)]
+    inversion_chunks = {
+        "near_background": [],
+        "positive": [],
+        "interior": [],
+    }
     with torch.no_grad():
         for category in CLASS_NAMES["VisA"]:
             rows = selected_by_category[category]
@@ -288,6 +297,15 @@ def evaluate_arm(
                 late_ratios.append(late.float().cpu().numpy())
                 for stage in range(3):
                     pooled_chunks[stage].append(pooled[stage].cpu().numpy())
+                final_cpu = final.float().cpu().numpy()
+                for score, sample_mask in zip(final_cpu, mask):
+                    boundary, interior, near, _ = morphology(sample_mask.astype(bool))
+                    if near.any():
+                        inversion_chunks["near_background"].append(score[near].astype(np.float32))
+                    if sample_mask.astype(bool).any():
+                        inversion_chunks["positive"].append(score[sample_mask.astype(bool)].astype(np.float32))
+                    if interior.any():
+                        inversion_chunks["interior"].append(score[interior].astype(np.float32))
     if names != expected_names:
         raise RuntimeError("endpoint evaluation order does not match frozen subset")
     masks_array = np.concatenate(masks, axis=0)
@@ -295,6 +313,16 @@ def evaluate_arm(
     stages_array = np.concatenate(stages, axis=0)
     late_array = np.concatenate(late_ratios, axis=0)
     pooled_array = np.stack([np.concatenate(chunks, axis=0) for chunks in pooled_chunks], axis=0)
+    def inversion_rate(left_key: str, right_key: str) -> float:
+        left = np.concatenate(inversion_chunks[left_key]) if inversion_chunks[left_key] else np.empty(0, dtype=np.float32)
+        right = np.concatenate(inversion_chunks[right_key]) if inversion_chunks[right_key] else np.empty(0, dtype=np.float32)
+        if not left.size or not right.size:
+            return float("nan")
+        # AUC with right_key as the positive class; 1-AUC is the probability
+        # that a near-background score exceeds the comparison-region score.
+        return float(1.0 - binary_metrics(np.concatenate([left, right]), np.concatenate([
+            np.zeros(left.size, dtype=np.uint8), np.ones(right.size, dtype=np.uint8),
+        ]))["auroc"])
     ranking = {"final": binary_metrics(finals_array, masks_array)}
     for stage in range(3):
         ranking[f"stage_{stage + 1}"] = binary_metrics(stages_array[:, stage], masks_array)
@@ -320,6 +348,11 @@ def evaluate_arm(
         "file_names": names,
         "ranking": ranking,
         "coverage": coverage(finals_array, masks_array),
+        "inversion_rates": {
+            "near_background_gt_positive": inversion_rate("near_background", "positive"),
+            "near_background_gt_interior": inversion_rate("near_background", "interior"),
+            "definition": "1 - pixel-level AUROC for near-background versus comparison region; ties receive half credit",
+        },
         "stage_coverage": [coverage(stages_array[:, stage], masks_array) for stage in range(3)],
         "R_late": {
             "mean": float(late_array.mean()),
