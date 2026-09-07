@@ -908,9 +908,12 @@ CONTEXT_POINTS = (
     "convlora_output",
     "post_seg_projection",
     "dfg_qk_compatibility",
+    "ss2d_input",
+    "ss2d_output",
     "stage_logits_pre_blur",
     "stage_logits_post_blur",
     "stage_map_post_resize",
+    "final_fusion",
 )
 
 
@@ -926,6 +929,8 @@ def context_point_values(model, tokens_lbc: torch.Tensor, text: torch.Tensor, st
         "convlora_output": feature_margin(model, merged, text, stage).view(-1, NATIVE, NATIVE),
         "post_seg_projection": direct_margin(norm_seg, text[stage]).view(-1, NATIVE, NATIVE),
         "dfg_qk_compatibility": diag["qk_margin"].view(-1, 1, 1).expand(-1, NATIVE, NATIVE),
+        "ss2d_input": diag["ss2d_input_margin"].view(-1, 1, 1).expand(-1, NATIVE, NATIVE),
+        "ss2d_output": (diag["ss2d_output_margin"] if diag["ss2d_output_margin"] is not None else torch.zeros_like(diag["ss2d_input_margin"])).view(-1, 1, 1).expand(-1, NATIVE, NATIVE),
         "stage_logits_pre_blur": (native[:, 1] - native[:, 0]),
         "stage_logits_post_blur": (blurred[:, 1] - blurred[:, 0]),
         "stage_map_post_resize": (resized[:, 1] - resized[:, 0]),
@@ -974,11 +979,13 @@ def context_phase() -> dict:
                                     "post_seg_projection": direct_margin(seg_tokens[stage], text[stage]).view(-1, NATIVE, NATIVE),
                                     "dfg_qk_compatibility": base_diag[stage]["qk_margin"].view(-1, 1, 1).expand(-1, NATIVE, NATIVE),
                                 })
-                                native, blurred, resized, _ = stage_from_seg(model, seg_tokens[stage], text, stage)
+                                native, blurred, resized, stage_diag = stage_from_seg(model, seg_tokens[stage], text, stage)
                                 base_points[-1].update({
                                     "stage_logits_pre_blur": native[:, 1] - native[:, 0],
                                     "stage_logits_post_blur": blurred[:, 1] - blurred[:, 0],
                                     "stage_map_post_resize": resized[:, 1] - resized[:, 0],
+                                    "ss2d_input": stage_diag["ss2d_input_margin"].view(-1, 1, 1).expand(-1, NATIVE, NATIVE),
+                                    "ss2d_output": (stage_diag["ss2d_output_margin"] if stage_diag["ss2d_output_margin"] is not None else torch.zeros_like(stage_diag["ss2d_input_margin"])).view(-1, 1, 1).expand(-1, NATIVE, NATIVE),
                                 })
                             for image_index, current_mask in enumerate((batch["mask"][:, 0].numpy() > .5).astype(np.uint8)):
                                 if not int(batch["label"][image_index]):
@@ -1010,10 +1017,19 @@ def context_phase() -> dict:
                                     control_points = context_point_values(model, control, text, stage)
                                     stage_base = {key: value[image_index:image_index + 1] for key, value in base_points[stage].items()}
                                     for point in CONTEXT_POINTS:
-                                        resolution = "full" if point == "stage_map_post_resize" else "native"
-                                        baseline_value = target_value(stage_base[point][0], target, resolution)
-                                        candidate_value = target_value(candidate_points[point][0], target, resolution)
-                                        control_value = target_value(control_points[point][0], target, resolution)
+                                        resolution = "full" if point in ("stage_map_post_resize", "final_fusion") else "native"
+                                        if point == "final_fusion":
+                                            other = sum((base_points[other_stage]["stage_map_post_resize"][image_index] for other_stage in range(3) if other_stage != stage), start=torch.zeros_like(base_points[stage]["stage_map_post_resize"][image_index]))
+                                            baseline_score = (stage_base["stage_map_post_resize"][0] + other) / 3.0
+                                            candidate_score = (candidate_points["stage_map_post_resize"][0] + other) / 3.0
+                                            control_score = (control_points["stage_map_post_resize"][0] + other) / 3.0
+                                        else:
+                                            baseline_score = stage_base[point][0]
+                                            candidate_score = candidate_points[point][0]
+                                            control_score = control_points[point][0]
+                                        baseline_value = target_value(baseline_score, target, resolution)
+                                        candidate_value = target_value(candidate_score, target, resolution)
+                                        control_value = target_value(control_score, target, resolution)
                                         details.append({
                                             "cohort": cohort_id, "file_name": str(batch["file_name"][image_index]), "stage": stage + 1, "point": point,
                                             "target_count": int(target.sum()), "context_count": int(count), "resolution": resolution,
@@ -1048,7 +1064,7 @@ def context_phase() -> dict:
             first_sensitive = point
             break
     support = "YES" if first_sensitive != "NOT_ESTABLISHED" else "NO"
-    labels = {"convlora_output": "CONVLORA_AMPLIFIES_CONTEXT", "post_seg_projection": "SEG_PROJECTION_AMPLIFIES_CONTEXT", "dfg_qk_compatibility": "DFG_AMPLIFIES_CONTEXT", "stage_logits_pre_blur": "DFG_AMPLIFIES_CONTEXT", "stage_logits_post_blur": "MIXED", "stage_map_post_resize": "MIXED"}
+    labels = {"convlora_output": "CONVLORA_AMPLIFIES_CONTEXT", "post_seg_projection": "SEG_PROJECTION_AMPLIFIES_CONTEXT", "dfg_qk_compatibility": "DFG_AMPLIFIES_CONTEXT", "ss2d_input": "SS2D_AMPLIFIES_CONTEXT", "ss2d_output": "SS2D_AMPLIFIES_CONTEXT", "stage_logits_pre_blur": "DFG_AMPLIFIES_CONTEXT", "stage_logits_post_blur": "MIXED", "stage_map_post_resize": "MIXED", "final_fusion": "MIXED"}
     artifact = {
         "protocol_id": "H2_ROOTCAUSE_S2_STRENGTH_AUDIT_R1", "details": details, "rows": aggregate,
         "intervention": "For each anomalous ZERO_NEAR target, keep target token unchanged and replace canonical neighbouring occupancy>0 tokens with same-image canonical ZERO_FAR tokens; Control A replaces the same number of ZERO_FAR tokens cyclically; Control B is the untouched baseline.",
