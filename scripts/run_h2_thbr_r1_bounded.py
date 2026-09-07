@@ -468,6 +468,8 @@ def run_arm(payload: dict, manifest: list[dict], root: Path, arm: str) -> dict:
             if batch_mismatch or attempted >= MAX_ATTEMPTS:
                 break
             scheduler.step()
+        if batch_mismatch:
+            break
         if not made_progress:
             break
 
