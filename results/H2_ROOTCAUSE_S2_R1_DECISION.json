@@ -1,0 +1,40 @@
+{
+  "best_source_pareto_alpha": "NONE",
+  "best_source_pareto_deltas": {
+    "ap": null,
+    "auroc": null,
+    "interior_recall": null,
+    "near_p95": null
+  },
+  "branch": "research/h2-rootcause-s2-strength-audit-r1",
+  "contextual_propagation_support": "YES",
+  "first_context_sensitive_module": "convlora_output",
+  "leakage_onset_point": "stage1_frozen_patch",
+  "module_status": {
+    "convlora": "SUPPORTED",
+    "dfg_qk": "MIXED",
+    "interpolation": "SUPPORTED",
+    "seg_projection": "NOT_SUPPORTED",
+    "ss2d": "NOT_SUPPORTED",
+    "stage_fusion": "SUPPORTED"
+  },
+  "parent_head": "3c97eed761df4669d4143aa7b5d7b586f97d001c",
+  "primary_amplifier": "convlora",
+  "primary_root_cause": "MULTI_MODULE_CONTEXTUAL_COUPLING",
+  "protocol": {
+    "lambda_sweep": "NO",
+    "medical_inference_run": "NO",
+    "mvtec_inference_run": "NO",
+    "new_training_run": "NO",
+    "s2_locr_r1_decision_modified": "NO",
+    "target_tuning_used": "NO"
+  },
+  "protocol_id": "H2_ROOTCAUSE_S2_STRENGTH_AUDIT_R1",
+  "r2_formulation_research_authorized": "YES",
+  "r2_research_direction": "NATIVE_FOOTPRINT_UNCERTAINTY_REFINEMENT",
+  "r2_training_authorized": "NO",
+  "root_cause_confidence": "MEDIUM",
+  "s2_strength_hypothesis": "NOT_SUPPORTED",
+  "secondary_amplifier": "dfg_qk",
+  "strength_curve": "EARLY_USEFUL_THEN_OVERSUPPRESSED"
+}
