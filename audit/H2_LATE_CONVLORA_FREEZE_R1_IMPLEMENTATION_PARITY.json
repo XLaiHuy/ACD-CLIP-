@@ -1,0 +1,50 @@
+{
+  "at_least_one_non_frozen_trainable_parameter_changed": true,
+  "candidate_frozen_param_byte_identity_after_optimizer_step": true,
+  "forward_backward_safe_anchor_preserved": true,
+  "forward_max_abs_diffs": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "forward_outputs_before_first_update_identical": true,
+  "protocol_id": "H2_LATE_CONVLORA_FREEZE_R1",
+  "selected_gradient_flow_preserved": true,
+  "selected_gradient_norms_before_suppression": {
+    "image_adapter.lora_adapters.1.conv_lora_blocks.0.conv_lora_A.weight": 0.014084809459745884,
+    "image_adapter.lora_adapters.1.conv_lora_blocks.0.conv_lora_B.weight": 0.006013480480760336,
+    "image_adapter.lora_adapters.1.conv_lora_blocks.0.lora_A": 0.012858406640589237,
+    "image_adapter.lora_adapters.1.conv_lora_blocks.0.lora_B": 0.0033816879149526358,
+    "image_adapter.lora_adapters.1.conv_lora_blocks.1.conv_lora_A.weight": 0.013057814911007881,
+    "image_adapter.lora_adapters.1.conv_lora_blocks.1.conv_lora_B.weight": 0.010514196008443832,
+    "image_adapter.lora_adapters.1.conv_lora_blocks.1.lora_A": 0.006752020213752985,
+    "image_adapter.lora_adapters.1.conv_lora_blocks.1.lora_B": 0.0037624151445925236,
+    "image_adapter.lora_adapters.1.fusion_conv.weight": 0.014877812005579472,
+    "image_adapter.lora_adapters.2.conv_lora_blocks.0.conv_lora_A.weight": 0.007466517388820648,
+    "image_adapter.lora_adapters.2.conv_lora_blocks.0.conv_lora_B.weight": 0.001381263486109674,
+    "image_adapter.lora_adapters.2.conv_lora_blocks.0.lora_A": 0.007834961637854576,
+    "image_adapter.lora_adapters.2.conv_lora_blocks.0.lora_B": 0.00045671299449168146,
+    "image_adapter.lora_adapters.2.conv_lora_blocks.1.conv_lora_A.weight": 0.0015799242537468672,
+    "image_adapter.lora_adapters.2.conv_lora_blocks.1.conv_lora_B.weight": 0.0010950464056804776,
+    "image_adapter.lora_adapters.2.conv_lora_blocks.1.lora_A": 0.000931630318518728,
+    "image_adapter.lora_adapters.2.conv_lora_blocks.1.lora_B": 0.0008679708698764443,
+    "image_adapter.lora_adapters.2.fusion_conv.weight": 0.001188651891425252
+  },
+  "selected_nonzero_gradient_parameter_count": 18,
+  "selected_optimizer_state_keys_preserved": true,
+  "selected_optimizer_state_values_unchanged_by_suppressed_step": true,
+  "selected_parameter_count": 18,
+  "selected_requires_grad": true,
+  "stage1_convlora_changed_normally": true,
+  "suppression_location": "immediately_before_scaler.step; selected param.grad=None only",
+  "test_batch_identity": {
+    "attempt_index": 0,
+    "batch": 0,
+    "epoch": 11,
+    "file_names": "[\"pcb1/Data/Images/Normal/0417.JPG\",\"pcb2/Data/Images/Normal/0935.JPG\",\"macaroni1/Data/Images/Normal/0178.JPG\",\"pcb2/Data/Images/Normal/0968.JPG\",\"capsules/Data/Images/Anomaly/040.JPG\",\"capsules/Data/Images/Normal/026.JPG\"]",
+    "image_sha256": "780f1b1bc3dfc840e1c456c6e4e970d59f95b28d85c4a8c4dc00cc15e49c51f5",
+    "labels": "[0,0,0,0,1,0]",
+    "mask_sha256": "0831d1dfe2d406990266ea89494279390debcb23ccbf6b8d69e774660093a7d8"
+  },
+  "true_freeze_implementation": true
+}
