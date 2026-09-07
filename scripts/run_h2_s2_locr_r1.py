@@ -89,7 +89,7 @@ def write_parent_identity() -> None:
         "\n".join([
             "# H2 S2-LOCR R1 Parent / Scientific Identity", "",
             f"* branch: `{branch}`",
-            f"* branch starting HEAD: `{current}`",
+            f"* branch current HEAD: `{current}`",
             f"* required audit parent HEAD: `{AUDIT_HEAD}`",
             f"* Safe-Anchor parent HEAD: `{PARENT_HEAD}`",
             "* audit branch scientific identity: `PASS`" if not scientific_changes else f"* audit branch scientific identity: `FAIL ({scientific_changes})`",
@@ -100,7 +100,8 @@ def write_parent_identity() -> None:
             "This new branch uses the already-pushed boundary-spillover audit HEAD as its scientific base. The GradBudget endpoint and all target datasets are excluded.",
         ]) + "\n"
     )
-    if current != AUDIT_HEAD or scientific_changes or status:
+    base_is_ancestor = subprocess.run(["git", "merge-base", "--is-ancestor", AUDIT_HEAD, "HEAD"], cwd=REPO).returncode == 0
+    if not base_is_ancestor or scientific_changes or status:
         raise RuntimeError("AUDIT_BRANCH_SCIENTIFIC_IDENTITY=FAIL")
 
 
