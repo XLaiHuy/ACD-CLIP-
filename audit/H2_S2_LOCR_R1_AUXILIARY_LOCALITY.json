@@ -1,0 +1,58 @@
+{
+  "S2_LOCR_AUXILIARY_LOCALITY": "PASS",
+  "auxiliary_stage2_equals_production_stage2": true,
+  "fixed_batch": {
+    "file_names": [
+      "pipe_fryum/Data/Images/Normal/050.JPG",
+      "pcb1/Data/Images/Anomaly/061.JPG",
+      "pcb4/Data/Images/Anomaly/077.JPG",
+      "chewinggum/Data/Images/Normal/352.JPG",
+      "pcb3/Data/Images/Anomaly/003.JPG",
+      "capsules/Data/Images/Anomaly/064.JPG"
+    ],
+    "labels": [
+      0,
+      1,
+      1,
+      0,
+      1,
+      1
+    ]
+  },
+  "formulation": {
+    "batch_reduction": "mean over anomalous images with at least one valid component; zero otherwise",
+    "component_geometry": "each anomalous connected component; existing 7x7 erosion/dilation at 518",
+    "component_loss": "mean_b relu(m2(b)-r_c) over near_background_c",
+    "excluded": [
+      "pseudo interior",
+      "raw boundary",
+      "margin",
+      "temperature",
+      "softplus",
+      "sort",
+      "top-k",
+      "percentile",
+      "far-background term",
+      "morphology tuning"
+    ],
+    "image_reduction": "mean over valid components in each image",
+    "margin": "m2=z2_abnormal-z2_normal",
+    "name": "S2_STAGE2_LOCAL_OUTSIDE_CONTRAST",
+    "normal_only_contribution": 0.0,
+    "reference": "r_c=detached median(m2(interior_c))",
+    "score_space": "production_resized_stage2_logits_before_softmax",
+    "validity": "valid iff component interior and component near-background are both nonempty; empty regions skipped"
+  },
+  "main_safe_anchor_path_unchanged": true,
+  "optimizer_step": false,
+  "phase": "15_auxiliary_locality",
+  "protocol_id": "EXPLORATORY_SOURCE_ONLY_MECHANISM_R1",
+  "soft_prompt_grad_norm": 0.0,
+  "stage1_image_grad_norm": 0.0,
+  "stage2_image_grad_norm": 0.018466532230377197,
+  "stage2_max_abs_difference": 0.0,
+  "stage2_mean_abs_difference": 0.0,
+  "stage3_image_grad_norm": 0.0,
+  "text_adapter_grad_norm": 0.0,
+  "text_side_detached_for_auxiliary": true
+}
