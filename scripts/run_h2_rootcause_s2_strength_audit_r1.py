@@ -859,10 +859,13 @@ def module_phase() -> dict:
             cohort_rows = [row for row in subset if row["cohort"] == cohort]
             supported_by_cohort[cohort] = any(row["near_selective_abs"] for row in cohort_rows)
         statuses[module] = "SUPPORTED" if all(supported_by_cohort.values()) else "MIXED" if any(supported_by_cohort.values()) else "NOT_SUPPORTED"
-    candidate_rows = [row for row in rows if row["module"] in ("convlora", "seg_projection", "dfg_qk", "ss2d") and row["near_minus_far_delta"] is not None]
-    by_module = {module: float(np.mean([abs(row["near_minus_far_delta"]) for row in candidate_rows if row["module"] == module])) for module in ("convlora", "seg_projection", "dfg_qk", "ss2d")}
-    primary = max(by_module, key=by_module.get) if by_module else "NONE"
-    secondary = sorted(by_module, key=by_module.get, reverse=True)[1] if len(by_module) > 1 else "NONE"
+    candidate_modules = ("convlora", "dfg_qk", "ss2d")
+    candidate_rows = [row for row in rows if row["module"] in candidate_modules and row["near_minus_far_delta"] is not None]
+    by_module = {module: float(np.mean([abs(row["near_minus_far_delta"]) for row in candidate_rows if row["module"] == module])) for module in candidate_modules}
+    supported_modules = [module for module in candidate_modules if statuses[module] == "SUPPORTED"]
+    primary = max(supported_modules, key=lambda module: by_module[module]) if supported_modules else "NONE"
+    secondary_candidates = [module for module in candidate_modules if module != primary and module in by_module]
+    secondary = max(secondary_candidates, key=lambda module: by_module[module]) if secondary_candidates else "NONE"
     artifact = {
         "protocol_id": "H2_ROOTCAUSE_S2_STRENGTH_AUDIT_R1", "rows": rows,
         "module_status": statuses, "module_selective_score": by_module,
@@ -1224,7 +1227,16 @@ def strength_phase() -> dict:
         hypothesis = "MIXED" if any((control_rows[("A", alpha)]["pixel_ap"] > control_rows[("A", 0.0)]["pixel_ap"]) != (control_rows[("B", alpha)]["pixel_ap"] > control_rows[("B", 0.0)]["pixel_ap"]) for alpha in ALPHAS[1:]) else "INCONCLUSIVE"
     all_aps = {cohort: [control_rows[(cohort, alpha)]["pixel_ap"] for alpha in ALPHAS] for cohort in ("A", "B")}
     all_near = {cohort: [control_rows[(cohort, alpha)]["final_near_p95"] for alpha in ALPHAS] for cohort in ("A", "B")}
-    if supported_alphas and 1.0 not in supported_alphas:
+    intermediate_global_region = []
+    for alpha in ALPHAS[1:-1]:
+        ok = True
+        for cohort in ("A", "B"):
+            current, base = control_rows[(cohort, alpha)], control_rows[(cohort, 0.0)]
+            ok = ok and current["pixel_ap"] > base["pixel_ap"] and current["pixel_auroc"] >= base["pixel_auroc"] and current["final_near_p95"] < base["final_near_p95"] and current["final_near_p99"] < base["final_near_p99"]
+        if ok:
+            intermediate_global_region.append(alpha)
+    endpoint_worse_than_best = any(control_rows[(cohort, 1.0)]["pixel_ap"] < max(control_rows[(cohort, alpha)]["pixel_ap"] for alpha in ALPHAS[1:-1]) for cohort in ("A", "B"))
+    if intermediate_global_region and endpoint_worse_than_best:
         curve = "EARLY_USEFUL_THEN_OVERSUPPRESSED"
     elif supported_alphas == [0.25, 0.50, 0.75, 1.00]:
         curve = "MONOTONIC_USEFUL"
@@ -1249,3 +1261,134 @@ def strength_phase() -> dict:
     del model
     torch.cuda.empty_cache()
     return artifact
+
+
+def pareto_phase() -> dict:
+    strength = refresh_strength_curve()
+    rows = strength["rows"]
+    by_key = {(float(row["alpha"]), row["cohort"]): row for row in rows}
+    pareto_rows = []
+    for row in rows:
+        base = by_key[(0.0, row["cohort"])]
+        current = dict(row)
+        for field in ("pixel_ap", "pixel_auroc", "anomaly_vs_near_ap", "anomaly_vs_near_auroc", "interior_vs_near_auroc", "boundary_vs_near_auroc", "stage2_near_p95", "stage2_near_p99", "final_near_p95", "final_near_p99", "recall_at_1pct_fpr", "recall_at_5pct_fpr", "positive_mean", "interior_mean", "boundary_mean"):
+            current[f"{field}_delta_vs_control"] = safe_delta(row.get(field), base.get(field))
+        pareto_rows.append(current)
+    supported = strength.get("supported_alphas_both_cohorts", [])
+    best = None
+    if supported:
+        best = max(supported, key=lambda alpha: np.mean([by_key[(float(alpha), cohort)]["pixel_ap"] for cohort in ("A", "B")]))
+    artifact = {
+        "protocol_id": "H2_ROOTCAUSE_S2_STRENGTH_AUDIT_R1", "rows": pareto_rows,
+        "best_source_pareto_alpha": best if best is not None else "NONE",
+        "best_source_pareto_deltas": {
+            "ap": None if best is None else float(np.mean([by_key[(float(best), c)]["pixel_ap"] - by_key[(0.0, c)]["pixel_ap"] for c in ("A", "B")])),
+            "auroc": None if best is None else float(np.mean([by_key[(float(best), c)]["pixel_auroc"] - by_key[(0.0, c)]["pixel_auroc"] for c in ("A", "B")])),
+            "near_p95": None if best is None else float(np.mean([by_key[(float(best), c)]["final_near_p95"] - by_key[(0.0, c)]["final_near_p95"] for c in ("A", "B")])),
+            "interior_recall": None if best is None else float(np.mean([by_key[(float(best), c)]["interior_vs_near_auroc"] - by_key[(0.0, c)]["interior_vs_near_auroc"] for c in ("A", "B")])),
+        },
+        "strength_hypothesis": strength["s2_strength_hypothesis"], "strength_curve": strength["strength_curve"],
+        "gate_definition": "A source Pareto alpha must be one of the preregistered intermediate values, improve AP on both cohorts, not reduce AUROC, reduce both final near-background tails, and preserve local/interior/boundary ranking plus fixed-FPR recall on both cohorts.",
+        "weight_interpolation_warning": strength["interpretation_warning"],
+    }
+    dump_json(OUT_PARETO_JSON, artifact)
+    lines = ["# H2 Root-Cause / S2-LOCR R1 Pareto Audit", "", f"* Hypothesis: `{artifact['strength_hypothesis']}`", f"* Curve: `{artifact['strength_curve']}`", f"* Best source Pareto alpha: `{artifact['best_source_pareto_alpha']}`", "", "The five alpha values are fixed endpoint weight interpolations, not lambda interpolation and not a training trajectory.", "", "| alpha | A AP | B AP | A AUROC | B AUROC | A final near p95 | B final near p95 |", "|---:|---:|---:|---:|---:|---:|---:|"]
+    for alpha in ALPHAS:
+        a, b = by_key[(alpha, "A")], by_key[(alpha, "B")]
+        lines.append(f"| {alpha:g} | {a['pixel_ap']:.9f} | {b['pixel_ap']:.9f} | {a['pixel_auroc']:.9f} | {b['pixel_auroc']:.9f} | {a['final_near_p95']:.9f} | {b['final_near_p95']:.9f} |")
+    lines += ["", "No alpha is called a source Pareto point unless every preregistered preservation check passes on both cohorts. Raw positive/interior means are retained as diagnostics but are not used as the sole gate.", "", f"`R2_TRAINING_AUTHORIZED=NO`; this report only authorizes a source-only formulation direction after final diagnosis."]
+    OUT_PARETO_MD.write_text("\n".join(lines) + "\n")
+    return artifact
+
+
+def refresh_strength_curve() -> dict:
+    """Recompute only the descriptive curve label from retained results."""
+    strength = json.loads(OUT_STRENGTH_JSON.read_text())
+    rows = strength["rows"]
+    by_key = {(float(row["alpha"]), row["cohort"]): row for row in rows}
+    intermediate_global_region = []
+    for alpha in ALPHAS[1:-1]:
+        ok = True
+        for cohort in ("A", "B"):
+            current, base = by_key[(alpha, cohort)], by_key[(0.0, cohort)]
+            ok = ok and current["pixel_ap"] > base["pixel_ap"] and current["pixel_auroc"] >= base["pixel_auroc"] and current["final_near_p95"] < base["final_near_p95"] and current["final_near_p99"] < base["final_near_p99"]
+        if ok:
+            intermediate_global_region.append(alpha)
+    endpoint_worse_than_best = any(by_key[(1.0, cohort)]["pixel_ap"] < max(by_key[(alpha, cohort)]["pixel_ap"] for alpha in ALPHAS[1:-1]) for cohort in ("A", "B"))
+    if intermediate_global_region and endpoint_worse_than_best:
+        curve = "EARLY_USEFUL_THEN_OVERSUPPRESSED"
+    elif strength.get("supported_alphas_both_cohorts") == [0.25, 0.5, 0.75, 1.0]:
+        curve = "MONOTONIC_USEFUL"
+    elif all(by_key[(cohort, 0.25)]["final_near_p95"] > by_key[(cohort, 0.0)]["final_near_p95"] for cohort in ("A", "B")):
+        curve = "IMMEDIATE_COUPLING"
+    elif not strength.get("supported_alphas_both_cohorts"):
+        curve = "NO_USEFUL_REGION"
+    else:
+        curve = "NONLINEAR_UNSTABLE"
+    strength["strength_curve"] = curve
+    dump_json(OUT_STRENGTH_JSON, strength)
+    return strength
+
+
+def finalization_phase() -> dict:
+    leak = json.loads(OUT_LEAK_JSON.read_text())
+    module = json.loads(OUT_MODULE_JSON.read_text())
+    context = json.loads(OUT_CONTEXT_JSON.read_text())
+    strength = json.loads(OUT_STRENGTH_JSON.read_text())
+    pareto = json.loads(OUT_PARETO_JSON.read_text())
+    onset = leak["leakage_onset_point"]
+    first_context = context["first_context_sensitive_module"]
+    primary_amp = module.get("primary_amplifier", "NONE")
+    secondary_amp = module.get("secondary_amplifier", "NONE")
+    root_cause = "MULTI_MODULE_CONTEXTUAL_COUPLING" if context["contextual_propagation_support"] == "YES" and onset != "NOT_ESTABLISHED" else "ROOT_CAUSE_NOT_ESTABLISHED"
+    if onset.startswith("stage1_frozen_patch") and context["contextual_propagation_support"] == "YES":
+        direction = "NATIVE_FOOTPRINT_UNCERTAINTY_REFINEMENT"
+    elif primary_amp == "convlora":
+        direction = "CONVLORA_LOCAL_CONTEXT_CONTROL"
+    elif primary_amp == "dfg_qk":
+        direction = "LOCALIZED_DFG_CONTEXT_GATING"
+    else:
+        direction = "NONE_YET"
+    confidence = "MEDIUM" if root_cause != "ROOT_CAUSE_NOT_ESTABLISHED" else "LOW"
+    decision = {
+        "protocol_id": "H2_ROOTCAUSE_S2_STRENGTH_AUDIT_R1", "branch": BRANCH,
+        "parent_head": PARENT_HEAD,
+        "leakage_onset_point": onset, "first_context_sensitive_module": first_context,
+        "primary_amplifier": primary_amp, "secondary_amplifier": secondary_amp,
+        "primary_root_cause": root_cause, "root_cause_confidence": confidence,
+        "module_status": module["module_status"], "contextual_propagation_support": context["contextual_propagation_support"],
+        "s2_strength_hypothesis": strength["s2_strength_hypothesis"], "strength_curve": strength["strength_curve"],
+        "best_source_pareto_alpha": pareto["best_source_pareto_alpha"], "best_source_pareto_deltas": pareto["best_source_pareto_deltas"],
+        "r2_research_direction": direction, "r2_formulation_research_authorized": "YES", "r2_training_authorized": "NO",
+        "protocol": {"new_training_run": "NO", "lambda_sweep": "NO", "medical_inference_run": "NO", "mvtec_inference_run": "NO", "target_tuning_used": "NO", "s2_locr_r1_decision_modified": "NO"},
+    }
+    dump_json(OUT_DECISION_JSON, decision)
+    lines = ["# H2 Root-Cause / S2-LOCR R1 Final Decision", "", f"* Branch: `{BRANCH}`", f"* Parent: `{PARENT_HEAD}`", f"* Leakage onset: `{onset}`", f"* First context-sensitive module: `{first_context}`", f"* Primary amplifier: `{primary_amp}`; secondary: `{secondary_amp}`", f"* Primary root cause: `{root_cause}`", f"* Confidence: `{confidence}`", "", "## Module conclusions", ""]
+    lines.extend(f"* `{key}={value}`" for key, value in module["module_status"].items())
+    lines += [f"* `CONTEXTUAL_PROPAGATION_SUPPORT={context['contextual_propagation_support']}`", "", "## S2 strength", "", f"* `S2_STRENGTH_HYPOTHESIS={strength['s2_strength_hypothesis']}`", f"* `STRENGTH_CURVE={strength['strength_curve']}`", f"* `BEST_SOURCE_PARETO_ALPHA={pareto['best_source_pareto_alpha']}`", "", "## Joint decision", "", f"* `R2_RESEARCH_DIRECTION={direction}`", "* `R2_FORMULATION_RESEARCH_AUTHORIZED=YES`", "* `R2_TRAINING_AUTHORIZED=NO`", "", "The original S2-LOCR R1 decision is not modified. Weight interpolation is diagnostic only; it does not represent lambda interpolation or optimizer dynamics."]
+    OUT_DECISION_MD.write_text("\n".join(lines) + "\n")
+    return decision
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--phase", required=True, choices=("provenance", "leakage", "module", "context", "strength", "pareto", "final"))
+    args = parser.parse_args()
+    if args.phase == "provenance":
+        identity_phase(); graph_phase()
+    elif args.phase == "leakage":
+        leakage_phase()
+    elif args.phase == "module":
+        module_phase()
+    elif args.phase == "context":
+        context_phase()
+    elif args.phase == "strength":
+        strength_phase()
+    elif args.phase == "pareto":
+        pareto_phase()
+    elif args.phase == "final":
+        finalization_phase()
+
+
+if __name__ == "__main__":
+    main()
