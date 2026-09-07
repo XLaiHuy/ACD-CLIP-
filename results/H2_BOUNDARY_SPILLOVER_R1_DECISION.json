@@ -1,0 +1,43 @@
+{
+  "automatic_intervention_executed": "NO",
+  "backward_executed": "NO",
+  "boundary_annotation_artifact_dominant": false,
+  "epoch_selection_or_sweep": "NO",
+  "fusion_contribution": "NONE",
+  "fusion_diagnostic_justified": "NO",
+  "inference_resampling_diagnostic_justified": "NO",
+  "interpolation_contribution": "MINOR",
+  "local_boundary_contrast_justified": "YES",
+  "medical_evaluation_executed": "NO",
+  "morphology_radius_sweep": "NO",
+  "most_responsible_stage": "STAGE2",
+  "mvtec_evaluation_executed": "NO",
+  "new_loss_or_regularizer": "NO",
+  "optimizer_step_executed": "NO",
+  "primary_diagnosis": "STAGE_LOCAL_SPILLOVER_LIKELY",
+  "protocol_id": "H2_BOUNDARY_SPILLOVER_AUDIT_R1",
+  "return_to_representation_diagnosis": "NO",
+  "rubric_observations": {
+    "boundary_artifact_possible": false,
+    "fusion_spillover_likely": false,
+    "global_calibration_problem": false,
+    "native_persistence_beyond_1px": true,
+    "near_far_local_signature": true,
+    "robust_multiple_images_categories": true,
+    "stage_local_spillover_likely": true,
+    "upsampling_amplification_likely": false
+  },
+  "spillover_confidence": "HIGH",
+  "target_inference_or_tuning": "NO",
+  "threshold_or_topk_sweep": "NO",
+  "thresholds_used_for_labels": {
+    "boundary_artifact_3_4_mean_le_25pct_1px_and_spearman_gt_-0.05": true,
+    "fusion_near_p99_delta_gt_0.01": true,
+    "global_near_far_absolute_p95_delta_lt_0.01": true,
+    "interpolation_ratio_amplification_gt_0.10_and_native_ratio_lt_1": true,
+    "robust_image_fraction_ge_0.25_and_category_fraction_ge_0.25": true,
+    "stage_S_gap_gt_0.10": true
+  },
+  "training_executed": "NO",
+  "waiting_for_user_approval": "YES"
+}

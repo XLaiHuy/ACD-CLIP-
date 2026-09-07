@@ -778,33 +778,50 @@ def severity_and_decision(data: dict, interp: dict, fusion: dict, image_struct: 
     stage_rows = json.loads(OUT_NATIVE_JSON.read_text())["stage_rows"]
     ratios95 = np.asarray([r["near_p95_over_interior_p95"] for r in stage_rows if r["near_p95_over_interior_p95"] is not None], dtype=float)
     ratios99 = np.asarray([r["near_p99_over_interior_p99"] for r in stage_rows if r["near_p99_over_interior_p99"] is not None], dtype=float)
-    lo95, hi95 = float(ratios95.min()), float(ratios95.max())
-    lo99, hi99 = float(ratios99.min()), float(ratios99.max())
+    ratio_available = bool(ratios95.size == 3 and ratios99.size == 3)
+    if ratio_available:
+        severity_metric = "requested_near_tail_over_interior_tail_ratios"
+        severity95, severity99 = ratios95, ratios99
+    else:
+        # The prescribed native 7x7 morphology leaves no eroded interior on
+        # this 37x37 cohort. Keep the requested ratios null and rank stages
+        # using raw near tails as a transparent geometry-limited fallback.
+        severity_metric = "geometry_limited_raw_near_p95_and_near_p99_fallback_no_native_interior"
+        severity95 = np.asarray([r["near_p95"] for r in stage_rows if r["near_p95"] is not None], dtype=float)
+        severity99 = np.asarray([r["near_p99"] for r in stage_rows if r["near_p99"] is not None], dtype=float)
+    lo95, hi95 = float(severity95.min()), float(severity95.max())
+    lo99, hi99 = float(severity99.min()), float(severity99.max())
     severity_rows = []
     for row in stage_rows:
-        a = row["near_p95_over_interior_p95"]; b = row["near_p99_over_interior_p99"]
+        a = row["near_p95_over_interior_p95"] if ratio_available else row["near_p95"]
+        b = row["near_p99_over_interior_p99"] if ratio_available else row["near_p99"]
         n95 = 0.0 if hi95 == lo95 else (a - lo95) / (hi95 - lo95)
         n99 = 0.0 if hi99 == lo99 else (b - lo99) / (hi99 - lo99)
-        severity_rows.append({"checkpoint": "SAFE_ANCHOR_E10", "stage": row["stage"], "near_p95_over_interior_p95": a, "near_p99_over_interior_p99": b, "normalized_p95": n95, "normalized_p99": n99, "S_stage": .5 * (n95 + n99)})
+        severity_rows.append({"checkpoint": "SAFE_ANCHOR_E10", "stage": row["stage"], "near_p95_over_interior_p95": row["near_p95_over_interior_p95"], "near_p99_over_interior_p99": row["near_p99_over_interior_p99"], "raw_near_p95": row["near_p95"], "raw_near_p99": row["near_p99"], "normalized_p95": n95, "normalized_p99": n99, "S_stage": .5 * (n95 + n99), "severity_metric": severity_metric})
     severity_rows.sort(key=lambda row: row["S_stage"], reverse=True)
     tri_rows_with_kind = list(tri_rows) + severity_rows
     write_csv(OUT_TRI_CSV, tri_rows_with_kind)
     tri_json = json.loads(OUT_TRI_JSON.read_text()) if OUT_TRI_JSON.exists() else {}
-    tri_json["stage_severity"] = {"formula": "0.5*minmax_normalized(near_p95/interior_p95)+0.5*minmax_normalized(near_p99/interior_p99), within Safe-Anchor E10 and this cohort only", "rows_ranked": severity_rows}
+    tri_json["stage_severity"] = {"formula": "0.5*minmax_normalized(near_p95/interior_p95)+0.5*minmax_normalized(near_p99/interior_p99), within Safe-Anchor E10 and this cohort only", "ratio_available": ratio_available, "geometry_limited_fallback": None if ratio_available else severity_metric, "rows_ranked": severity_rows}
 
     final_row = next(row for row in tri_rows if row["checkpoint"] == "SAFE_ANCHOR_E10")
     distance_final = next(row for row in distance_struct["summaries"] if row["map"] == "final_fused")
     distance_1 = next(row for row in json.loads(OUT_DISTANCE_JSON.read_text())["rows"] if row["map"] == "final_fused" and row["bin"] == "1")
     distance_34 = next(row for row in json.loads(OUT_DISTANCE_JSON.read_text())["rows"] if row["map"] == "final_fused" and row["bin"] == "3-4")
     interp_rows = interp["rows"]
-    native_max = max(float(r["native_near_p99_over_interior_p99"]) for r in interp_rows if r["native_near_p99_over_interior_p99"] is not None)
-    resized_max = max(float(r["resized_near_p99_over_interior_p99"]) for r in interp_rows if r["resized_near_p99_over_interior_p99"] is not None)
+    native_ratio_values = [float(r["native_near_p99_over_interior_p99"]) for r in interp_rows if r["native_near_p99_over_interior_p99"] is not None]
+    resized_ratio_values = [float(r["resized_near_p99_over_interior_p99"]) for r in interp_rows if r["resized_near_p99_over_interior_p99"] is not None]
+    native_max = max(native_ratio_values) if native_ratio_values else None
+    resized_max = max(resized_ratio_values) if resized_ratio_values else None
     fusion_max_stage = max(float(r["near_p99"]) for r in fusion["rows"][:3] if r["near_p99"] is not None)
     fusion_delta = float(final_row["near_p99"] - fusion_max_stage)
     # Fixed descriptive rubric, stated explicitly in the artifact. It is not a
     # tuned decision threshold and does not authorize an intervention.
     boundary_artifact_possible = bool(distance_1.get("mean") is not None and distance_34.get("mean") is not None and distance_34["mean"] <= 0.25 * max(distance_1["mean"], 1e-12) and distance_final.get("distance_spearman") is not None and distance_final["distance_spearman"] > -0.05)
-    interpolation_likely = bool(resized_max - native_max > 0.10 and native_max < 1.0)
+    if native_max is not None and resized_max is not None:
+        interpolation_likely = bool(resized_max - native_max > 0.10 and native_max < 1.0)
+    else:
+        interpolation_likely = bool(sum(float(r["resized_near_p95"]) > float(r["native_near_p95"]) + 0.10 and float(r["native_near_p95"]) < 0.10 for r in interp_rows) >= 2)
     stage_severity_gap = float(severity_rows[0]["S_stage"] - severity_rows[1]["S_stage"]) if len(severity_rows) > 1 else 0.0
     stage_local_likely = bool(stage_severity_gap > 0.10)
     fusion_likely = bool(fusion_delta > 0.01 or float(final_row.get("near_p95", 0.0)) > max(float(r["near_p95"]) for r in fusion["rows"][:3] if r["near_p95"] is not None) + 0.01)
@@ -812,7 +829,8 @@ def severity_and_decision(data: dict, interp: dict, fusion: dict, image_struct: 
     global_calibration = bool(final_row.get("near_p95") is not None and final_row.get("far_p95") is not None and abs(final_row["near_p95"] - final_row["far_p95"]) < 0.01)
     persistent = bool(distance_34.get("mean") is not None and distance_1.get("mean") is not None and distance_34["mean"] > distance_1["mean"] * 0.25)
     robust = bool((image_struct.get("anomalous_image_fraction") or 0.0) >= 0.25 and (image_struct.get("category_fraction_majority_rule") or 0.0) >= 0.25)
-    native_local = bool(native_max > 1.0 and persistent)
+    native_local = bool(((native_max is not None and native_max > 1.0) or (native_max is None and max(float(r["near_p99"]) for r in stage_rows) > 2.0 * max(float(r["far_p99"]) for r in stage_rows))) and persistent)
+    interpolation_minor = bool(any(float(r["delta_near_p95_resized_minus_native"]) > 0.005 for r in interp_rows))
     if boundary_artifact_possible:
         primary = "BOUNDARY_ANNOTATION_ARTIFACT_POSSIBLE"
     elif interpolation_likely:
@@ -834,8 +852,8 @@ def severity_and_decision(data: dict, interp: dict, fusion: dict, image_struct: 
         "protocol_id": "H2_BOUNDARY_SPILLOVER_AUDIT_R1",
         "primary_diagnosis": primary,
         "spillover_confidence": confidence,
-        "most_responsible_stage": f"STAGE_{severity_rows[0]['stage']}" if primary == "STAGE_LOCAL_SPILLOVER_LIKELY" else ("MIXED" if primary == "TRUE_LOCAL_BOUNDARY_SPILLOVER_SUPPORTED" else "NONE"),
-        "interpolation_contribution": "MATERIAL" if interpolation_likely else "NONE",
+        "most_responsible_stage": f"STAGE{severity_rows[0]['stage']}" if primary == "STAGE_LOCAL_SPILLOVER_LIKELY" else ("MIXED" if primary == "TRUE_LOCAL_BOUNDARY_SPILLOVER_SUPPORTED" else "NONE"),
+        "interpolation_contribution": "MATERIAL" if interpolation_likely else ("MINOR" if interpolation_minor else "NONE"),
         "fusion_contribution": "MATERIAL" if fusion_likely else "NONE",
         "boundary_annotation_artifact_dominant": boundary_dominant,
         "rubric_observations": {"boundary_artifact_possible": boundary_artifact_possible, "upsampling_amplification_likely": interpolation_likely, "stage_local_spillover_likely": stage_local_likely, "fusion_spillover_likely": fusion_likely, "global_calibration_problem": global_calibration, "near_far_local_signature": near_far_local, "native_persistence_beyond_1px": persistent, "robust_multiple_images_categories": robust},
