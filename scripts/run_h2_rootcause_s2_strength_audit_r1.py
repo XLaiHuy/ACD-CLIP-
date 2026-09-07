@@ -23,6 +23,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from kornia.filters import gaussian_blur2d
+from scipy import ndimage
 from scipy.stats import rankdata
 from torch.utils.data import DataLoader, Subset
 
@@ -871,6 +872,190 @@ def module_phase() -> dict:
     }
     write_csv(OUT_MODULE_CSV, rows)
     dump_json(OUT_MODULE_JSON, artifact)
+    del model
+    torch.cuda.empty_cache()
+    return artifact
+
+
+def merged_from_pre_lora(model, tokens_lbc: torch.Tensor, stage: int) -> torch.Tensor:
+    with torch.autocast(device_type=tokens_lbc.device.type, enabled=False):
+        t = tokens_lbc.float()
+        adapter = model.image_adapter["lora_adapters"][stage]
+        delta_out = adapter(t)
+        delta_out = delta_out * t.norm(dim=-1, keepdim=True) / delta_out.norm(dim=-1, keepdim=True).clamp_min(1e-6)
+        return model.image_adapter["m_i_w"][stage](t, delta_out)
+
+
+def context_plan(mask: np.ndarray):
+    occ = exact_occupancy(mask[None])[0]
+    nmask = native_mask(mask[None])[0]
+    _, _, near, far = morphology(nmask)
+    target = (occ == 0) & near
+    anomaly = occ > 0
+    target_dilated = ndimage.binary_dilation(target, structure=np.ones((3, 3), dtype=bool))
+    context = anomaly & target_dilated
+    context_indices = np.flatnonzero(context.reshape(-1))
+    far_indices = np.flatnonzero(((occ == 0) & far).reshape(-1))
+    n = min(int(context_indices.size), int(far_indices.size))
+    return occ, target, context_indices[:n], far_indices, n
+
+
+CONTEXT_POINTS = (
+    "pre_lora",
+    "convlora_output",
+    "post_seg_projection",
+    "dfg_qk_compatibility",
+    "stage_logits_pre_blur",
+    "stage_logits_post_blur",
+    "stage_map_post_resize",
+)
+
+
+def context_point_values(model, tokens_lbc: torch.Tensor, text: torch.Tensor, stage: int, *, beta_override: float | None = None):
+    merged = merged_from_pre_lora(model, tokens_lbc, stage)
+    group = merged.permute(1, 0, 2)
+    raw_seg = model.image_adapter["seg_proj"][stage](group)
+    norm_seg = F.normalize(model.image_adapter["seg_layer_norms"][stage](raw_seg), dim=-1)
+    native, blurred, resized, diag = stage_from_seg(model, norm_seg, text, stage, beta_override=beta_override)
+    group_text = text.unsqueeze(1).repeat(1, norm_seg.shape[0], 1, 1).permute(1, 0, 2, 3) if text.ndim == 3 else text.permute(1, 0, 2, 3)
+    return {
+        "pre_lora": feature_margin(model, tokens_lbc, text, stage).view(-1, NATIVE, NATIVE),
+        "convlora_output": feature_margin(model, merged, text, stage).view(-1, NATIVE, NATIVE),
+        "post_seg_projection": direct_margin(norm_seg, text[stage]).view(-1, NATIVE, NATIVE),
+        "dfg_qk_compatibility": diag["qk_margin"].view(-1, 1, 1).expand(-1, NATIVE, NATIVE),
+        "stage_logits_pre_blur": (native[:, 1] - native[:, 0]),
+        "stage_logits_post_blur": (blurred[:, 1] - blurred[:, 0]),
+        "stage_map_post_resize": (resized[:, 1] - resized[:, 0]),
+    }
+
+
+def target_value(score: torch.Tensor | np.ndarray, target_native: np.ndarray, resolution: str) -> float | None:
+    array = score.detach().float().cpu().numpy() if torch.is_tensor(score) else np.asarray(score, dtype=np.float32)
+    if resolution == "full":
+        target = np.repeat(np.repeat(target_native, PATCH_FOOTPRINT, axis=0), PATCH_FOOTPRINT, axis=1)
+    else:
+        target = target_native
+    values = array[target]
+    return float(values.mean()) if values.size else None
+
+
+def context_phase() -> dict:
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is required for context counterfactual")
+    device = torch.device("cuda:0")
+    model = make_model(device)
+    load_endpoint(model, SAFE_ANCHOR)
+    details = []
+    for cohort_id, path in (("A", COHORT_A), ("B", COHORT_B)):
+        rows = load_cohort(path, cohort_id)
+        datasets, indices = selected_datasets(rows)
+        policy = PrecisionPolicy("fp16")
+        capture = {}
+        handles = install_capture_hooks(model, capture)
+        try:
+            with torch.no_grad():
+                for category in spill.CLASS_NAMES["VisA"]:
+                    loader = DataLoader(Subset(datasets[category], indices[category]), batch_size=BATCH, shuffle=False, num_workers=0)
+                    text, _, _ = spill.get_hybrid_soft_prompt_single_class_text_embedding(model, "VisA", category, device, return_kg=False)
+                    for batch in loader:
+                        capture.clear()
+                        image = batch["image"].to(device, non_blocking=True)
+                        with policy.autocast(device):
+                            seg_tokens, _ = model(image)
+                            _, _, _, base_diag = production_from_tokens(model, seg_tokens, text)
+                            base_points = []
+                            for stage in range(3):
+                                base_points.append({
+                                    "pre_lora": feature_margin(model, capture[f"pre_lora_{stage}"], text, stage).view(-1, NATIVE, NATIVE),
+                                    "convlora_output": feature_margin(model, capture[f"post_convlora_{stage}"], text, stage).view(-1, NATIVE, NATIVE),
+                                    "post_seg_projection": direct_margin(seg_tokens[stage], text[stage]).view(-1, NATIVE, NATIVE),
+                                    "dfg_qk_compatibility": base_diag[stage]["qk_margin"].view(-1, 1, 1).expand(-1, NATIVE, NATIVE),
+                                })
+                                native, blurred, resized, _ = stage_from_seg(model, seg_tokens[stage], text, stage)
+                                base_points[-1].update({
+                                    "stage_logits_pre_blur": native[:, 1] - native[:, 0],
+                                    "stage_logits_post_blur": blurred[:, 1] - blurred[:, 0],
+                                    "stage_map_post_resize": resized[:, 1] - resized[:, 0],
+                                })
+                            for image_index, current_mask in enumerate((batch["mask"][:, 0].numpy() > .5).astype(np.uint8)):
+                                if not int(batch["label"][image_index]):
+                                    continue
+                                occ, target, context_indices, far_indices, count = context_plan(current_mask)
+                                if count == 0:
+                                    continue
+                                target_values = {"cohort": cohort_id, "file_name": str(batch["file_name"][image_index]), "stage": None, "target_count": int(target.sum()), "context_count": int(count)}
+                                # Each stage is replayed from the exact pre-LoRA
+                                # tensor. Replacements are canonical spatial
+                                # tokens, never prediction-score selected.
+                                for stage in range(3):
+                                    source = capture[f"pre_lora_{stage}"][:, image_index:image_index + 1, :].clone()
+                                    candidate = source.clone()
+                                    control = source.clone()
+                                    flat_far = far_indices.tolist()
+                                    flat_context = context_indices.tolist()
+                                    # Candidate: anomaly-containing neighbours
+                                    # receive same-image zero-far features.
+                                    for j, flat_index in enumerate(flat_context):
+                                        src = flat_far[j % len(flat_far)]
+                                        candidate[flat_index, 0] = source[src, 0]
+                                    # Control A: the same number of already-far
+                                    # tokens are replaced by a cyclic far token.
+                                    for j, flat_index in enumerate(flat_far[:count]):
+                                        src = flat_far[(j + 1) % len(flat_far)]
+                                        control[flat_index, 0] = source[src, 0]
+                                    candidate_points = context_point_values(model, candidate, text, stage)
+                                    control_points = context_point_values(model, control, text, stage)
+                                    stage_base = {key: value[image_index:image_index + 1] for key, value in base_points[stage].items()}
+                                    for point in CONTEXT_POINTS:
+                                        resolution = "full" if point == "stage_map_post_resize" else "native"
+                                        baseline_value = target_value(stage_base[point][0], target, resolution)
+                                        candidate_value = target_value(candidate_points[point][0], target, resolution)
+                                        control_value = target_value(control_points[point][0], target, resolution)
+                                        details.append({
+                                            "cohort": cohort_id, "file_name": str(batch["file_name"][image_index]), "stage": stage + 1, "point": point,
+                                            "target_count": int(target.sum()), "context_count": int(count), "resolution": resolution,
+                                            "baseline": baseline_value, "control_a": control_value, "candidate": candidate_value,
+                                            "candidate_minus_control": None if candidate_value is None or control_value is None else candidate_value - control_value,
+                                            "candidate_minus_baseline": None if candidate_value is None or baseline_value is None else candidate_value - baseline_value,
+                                            "control_minus_baseline": None if control_value is None or baseline_value is None else control_value - baseline_value,
+                                        })
+                        del image, seg_tokens
+                        if device.type == "cuda":
+                            torch.cuda.empty_cache()
+        finally:
+            for handle in handles:
+                handle.remove()
+    aggregate = []
+    for cohort_id in ("A", "B"):
+        for stage in (1, 2, 3):
+            for point in CONTEXT_POINTS:
+                subset = [row for row in details if row["cohort"] == cohort_id and row["stage"] == stage and row["point"] == point]
+                row = {"cohort": cohort_id, "stage": stage, "point": point, "resolution": subset[0]["resolution"] if subset else None, "image_count": len(subset), "target_count_total": int(sum(x["target_count"] for x in subset)), "context_count_total": int(sum(x["context_count"] for x in subset))}
+                for field in ("baseline", "control_a", "candidate", "candidate_minus_control", "candidate_minus_baseline", "control_minus_baseline"):
+                    values = np.asarray([x[field] for x in subset if x[field] is not None], dtype=np.float64)
+                    row[f"{field}_mean"] = float(values.mean()) if values.size else None
+                    row[f"{field}_median"] = float(np.median(values)) if values.size else None
+                    row[f"{field}_p95"] = float(np.quantile(values, .95)) if values.size else None
+                aggregate.append(row)
+    first_sensitive = "NOT_ESTABLISHED"
+    for point in CONTEXT_POINTS:
+        a = [x["candidate_minus_control_mean"] for x in aggregate if x["cohort"] == "A" and x["point"] == point and x["candidate_minus_control_mean"] is not None]
+        b = [x["candidate_minus_control_mean"] for x in aggregate if x["cohort"] == "B" and x["point"] == point and x["candidate_minus_control_mean"] is not None]
+        if a and b and np.mean(a) < 0 and np.mean(b) < 0:
+            first_sensitive = point
+            break
+    support = "YES" if first_sensitive != "NOT_ESTABLISHED" else "NO"
+    labels = {"convlora_output": "CONVLORA_AMPLIFIES_CONTEXT", "post_seg_projection": "SEG_PROJECTION_AMPLIFIES_CONTEXT", "dfg_qk_compatibility": "DFG_AMPLIFIES_CONTEXT", "stage_logits_pre_blur": "DFG_AMPLIFIES_CONTEXT", "stage_logits_post_blur": "MIXED", "stage_map_post_resize": "MIXED"}
+    artifact = {
+        "protocol_id": "H2_ROOTCAUSE_S2_STRENGTH_AUDIT_R1", "details": details, "rows": aggregate,
+        "intervention": "For each anomalous ZERO_NEAR target, keep target token unchanged and replace canonical neighbouring occupancy>0 tokens with same-image canonical ZERO_FAR tokens; Control A replaces the same number of ZERO_FAR tokens cyclically; Control B is the untouched baseline.",
+        "target_selection": "exact occupancy==0 and existing native near mask; no prediction-score selection",
+        "contextual_propagation_support": support,
+        "first_context_sensitive_module": first_sensitive,
+        "interpretation": labels.get(first_sensitive, "NOT_ESTABLISHED") if support == "YES" else "NOT_ESTABLISHED",
+    }
+    write_csv(OUT_CONTEXT_CSV, aggregate)
+    dump_json(OUT_CONTEXT_JSON, artifact)
     del model
     torch.cuda.empty_cache()
     return artifact
