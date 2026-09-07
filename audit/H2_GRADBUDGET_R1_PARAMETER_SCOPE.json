@@ -1,0 +1,47 @@
+{
+  "module_order": [
+    "image_adapter.lora_adapters.0",
+    "image_adapter.lora_adapters.1",
+    "image_adapter.lora_adapters.2"
+  ],
+  "parameter_count": 27,
+  "selected_module_names": [
+    "image_adapter.lora_adapters.1",
+    "image_adapter.lora_adapters.2"
+  ],
+  "selected_parameter_count": 18,
+  "selected_parameter_names": [
+    "image_adapter.lora_adapters.1.conv_lora_blocks.0.conv_lora_A.weight",
+    "image_adapter.lora_adapters.1.conv_lora_blocks.0.conv_lora_B.weight",
+    "image_adapter.lora_adapters.1.conv_lora_blocks.0.lora_A",
+    "image_adapter.lora_adapters.1.conv_lora_blocks.0.lora_B",
+    "image_adapter.lora_adapters.1.conv_lora_blocks.1.conv_lora_A.weight",
+    "image_adapter.lora_adapters.1.conv_lora_blocks.1.conv_lora_B.weight",
+    "image_adapter.lora_adapters.1.conv_lora_blocks.1.lora_A",
+    "image_adapter.lora_adapters.1.conv_lora_blocks.1.lora_B",
+    "image_adapter.lora_adapters.1.fusion_conv.weight",
+    "image_adapter.lora_adapters.2.conv_lora_blocks.0.conv_lora_A.weight",
+    "image_adapter.lora_adapters.2.conv_lora_blocks.0.conv_lora_B.weight",
+    "image_adapter.lora_adapters.2.conv_lora_blocks.0.lora_A",
+    "image_adapter.lora_adapters.2.conv_lora_blocks.0.lora_B",
+    "image_adapter.lora_adapters.2.conv_lora_blocks.1.conv_lora_A.weight",
+    "image_adapter.lora_adapters.2.conv_lora_blocks.1.conv_lora_B.weight",
+    "image_adapter.lora_adapters.2.conv_lora_blocks.1.lora_A",
+    "image_adapter.lora_adapters.2.conv_lora_blocks.1.lora_B",
+    "image_adapter.lora_adapters.2.fusion_conv.weight"
+  ],
+  "selected_stages": [
+    "stage2",
+    "stage3"
+  ],
+  "stage_levels": [
+    8,
+    16,
+    24
+  ],
+  "stage_mapping": {
+    "stage1": "image_adapter.lora_adapters.0",
+    "stage2": "image_adapter.lora_adapters.1",
+    "stage3": "image_adapter.lora_adapters.2"
+  }
+}

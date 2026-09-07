@@ -407,10 +407,20 @@ focal_loss = FocalLoss()
 dice_loss = BinaryDiceLoss()
 
 
+def calculate_seg_loss_components(patch_preds, mask):
+    """Expose the historical segmentation-loss terms without changing them."""
+    return {
+        "focal": focal_loss(patch_preds, mask),
+        "normal_dice": dice_loss(patch_preds[:, 0, :, :], 1 - mask),
+        "abnormal_dice": dice_loss(patch_preds[:, 1, :, :], mask),
+    }
+
+
 def calculate_seg_loss(patch_preds, mask):
-    loss = focal_loss(patch_preds, mask)
-    loss += dice_loss(patch_preds[:, 0, :, :], 1 - mask)
-    loss += dice_loss(patch_preds[:, 1, :, :], mask)
+    components = calculate_seg_loss_components(patch_preds, mask)
+    loss = components["focal"]
+    loss += components["normal_dice"]
+    loss += components["abnormal_dice"]
     return loss
 
 

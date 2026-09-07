@@ -1,0 +1,86 @@
+{
+  "PASS": true,
+  "finite": {
+    "losses": true,
+    "selected_gradients": true
+  },
+  "gradient_identity": {
+    "abnormal_gradient_definition": "unscaled task gradient minus unscaled rest-task gradient on the same graph",
+    "component_norms": {
+      "abnormal": 0.08669023960828781,
+      "rest": 0.048589423298835754,
+      "rest_plus_abnormal": 0.092255599796772,
+      "task": 0.092255599796772
+    },
+    "disabled_alpha": 1.0,
+    "disabled_budget_active": false,
+    "old_vs_ref_selected": {
+      "cosine": 1.0000001192092896,
+      "left_norm": 0.092255599796772,
+      "max_abs": 0.0,
+      "max_rel": 0.0,
+      "right_norm": 0.092255599796772
+    },
+    "ref_vs_direct_rest_plus_abnormal": {
+      "cosine": 1.0000001192092896,
+      "left_norm": 0.092255599796772,
+      "max_abs": 4.656612873077393e-10,
+      "max_rel": 0.119140625,
+      "right_norm": 0.092255599796772
+    },
+    "ref_vs_direct_task_expression": {
+      "cosine": 1.0000001192092896,
+      "left_norm": 0.092255599796772,
+      "max_abs": 0.0,
+      "max_rel": 0.0,
+      "right_norm": 0.092255599796772
+    },
+    "ref_vs_disabled_budget": {
+      "cosine": 1.0000001192092896,
+      "left_norm": 0.092255599796772,
+      "max_abs": 4.656612873077393e-10,
+      "max_rel": 0.119140625,
+      "right_norm": 0.092255599796772
+    },
+    "safe_anchor_application_calls": 1,
+    "scope": "stage2+stage3 Conv-LoRA only",
+    "selected_parameter_count": 18
+  },
+  "loss_identity": {
+    "anchor_excluded_from_gradbudget_task": true,
+    "candidate_task_expression": "rest_task + abnormal_dice",
+    "dtypes": {
+      "abnormal_dice": "torch.float32",
+      "focal": "torch.float32",
+      "normal_dice": "torch.float32",
+      "rest_task": "torch.float32",
+      "task_loss": "torch.float32"
+    },
+    "old_task_expression": "loss_main + 0.01*kg_loss + 0.002*k_loss",
+    "old_task_vs_ref_task_abs": 0.0,
+    "old_total_task_plus_anchor_identity_abs": 0.0,
+    "rest_plus_abnormal_vs_task_abs": 1.1920928955078125e-07,
+    "rest_task_expression": "classification + focal + normal_dice + 0.01*kg_loss + 0.002*k_loss"
+  },
+  "protocol_id": "H2_NEXT_MECHANISM_BOUNDED_R1_LATE_CONVLORA_ABNORMAL_DICE",
+  "synthetic_active_budget_test": {
+    "alpha": 0.24999999999997916,
+    "budget_active": true,
+    "computed_alpha": 0.24999999999997916,
+    "cosine_abn_rest": 1.0,
+    "effective_abn_norm": 2.99999999999975,
+    "effective_ratio": 0.9999999999995833,
+    "eps": 1e-12,
+    "g_abn_norm": 12.0,
+    "g_rest_norm": 3.0,
+    "gradients_unscaled": true,
+    "raw_ratio": 3.9999999999986664
+  },
+  "unscaled_alpha_test": {
+    "alpha": 0.5604947398736909,
+    "gradients_unscaled": true,
+    "matches_unscaled_norm_ratio": true,
+    "raw_ratio": 1.784138063856445,
+    "scale_factor": 1024.0
+  }
+}
