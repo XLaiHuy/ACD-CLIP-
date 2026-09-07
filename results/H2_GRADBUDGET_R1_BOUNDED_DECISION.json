@@ -1,0 +1,168 @@
+{
+  "BOUNDED_SCREEN": "INVALID_NUMERICAL",
+  "BRANCH": "research/h2-late-convlora-gradbudget-r1",
+  "DECISION_ARTIFACT_PARENT_HEAD": "55647cf62d652c356046c7590b5452f274f56361",
+  "NO_MEDICAL_MVTEC": true,
+  "NO_TARGET": true,
+  "START_E1_SHA256": "7f9176b7ef53b572935567c574535075a573175b2aa83505d043a71d45b12b35",
+  "START_HEAD": "47158bd1a64d23f5f4752fb066e5dd4b91ef07d9",
+  "WAITING_FOR_USER_APPROVAL": true,
+  "attempted_successful_skips": {
+    "A_GRADBUDGET_SHORT_R1_CANDIDATE": {
+      "attempted": 500,
+      "nonfinite_grad_skips": 0,
+      "nonfinite_loss_skips": 0,
+      "successful": 500
+    },
+    "A_GRADBUDGET_SHORT_R1_CONTROL": {
+      "attempted": 500,
+      "nonfinite_grad_skips": 1,
+      "nonfinite_loss_skips": 0,
+      "successful": 499
+    }
+  },
+  "batch_parity": {
+    "attempted_500_identity": true,
+    "first_16": "PASS"
+  },
+  "confirmatory_support": false,
+  "direct_gates": {
+    "activity_fraction_gt_zero": true,
+    "effective_abnormal_rest_lower_than_raw_when_alpha_lt_one": true,
+    "late_stage2_plus_stage3_convlora_drift_lower_than_control": false,
+    "stage1_outside_selected_scope": true
+  },
+  "endpoint_deltas_candidate_minus_control": {
+    "final_ap": 0.009913566408548402,
+    "final_auroc": -0.0830329865654793,
+    "interior_mean": 0.07968910038471222,
+    "interior_median": 7.445024493790697e-06,
+    "near_background_gt_interior_inversion": 0.02833689956382046,
+    "near_background_gt_positive_inversion": 0.024765275702703482,
+    "near_background_p95": 0.26728615909814835,
+    "near_background_p99": 0.40810784697532654,
+    "positive_mean": 0.0674976110458374,
+    "positive_median": -2.279361979162786e-06,
+    "stage1_ap": 0.06504883576883658,
+    "stage1_auroc": -0.06412889730013582,
+    "stage2_ap": -0.01019965799528244,
+    "stage2_auroc": -0.17745919347644468,
+    "stage2_convlora_drift": 3.222007312077281,
+    "stage3_ap": -0.055002713661532254,
+    "stage3_auroc": -0.06925059853540105,
+    "stage3_convlora_drift": 2.3487650693484277
+  },
+  "gradient_preflight": {
+    "finite": true,
+    "gradients_unscaled": true,
+    "optimizer_steps": 0,
+    "rows": 16
+  },
+  "loss_control_gradient_identity": {
+    "abnormal_gradient_definition": "unscaled task gradient minus unscaled rest-task gradient on the same graph",
+    "control_historical_task_gradient": true,
+    "loss_parity": "PASS",
+    "safe_anchor_once": true
+  },
+  "numerical_validity": {
+    "candidate_arm_contract": true,
+    "candidate_nonfinite_grad_skips": 0,
+    "candidate_successful_steps": 500,
+    "control_arm_contract": true,
+    "control_nonfinite_grad_skips": 1,
+    "control_successful_steps": 499,
+    "endpoint_finite": true,
+    "equal_successful_count": false,
+    "exact_attempt_identity": true,
+    "valid": false
+  },
+  "parameter_scope": {
+    "selected_module_names": [
+      "image_adapter.lora_adapters.1",
+      "image_adapter.lora_adapters.2"
+    ],
+    "selected_parameter_count": 18,
+    "selected_stages": [
+      "stage2",
+      "stage3"
+    ]
+  },
+  "protocol_id": "H2_NEXT_MECHANISM_BOUNDED_R1_LATE_CONVLORA_ABNORMAL_DICE",
+  "red_team_interpretations": {
+    "DRIFT_REDUCTION_ALONE_IS_NOT_SUFFICIENT": false,
+    "MECHANISM_NOT_ESTABLISHED": false,
+    "OVER_REGULARIZATION": false
+  },
+  "scientific_gates": {
+    "batch_identity": true,
+    "final_ap_not_below_control": true,
+    "final_auroc_not_below_control": false,
+    "interior_mean_not_below_control": true,
+    "interior_median_not_below_control": true,
+    "late_drift_reduced": false,
+    "mechanism_activity": true,
+    "near_background_p95_not_above_control": false,
+    "near_background_p99_not_above_control": false,
+    "numerical_validity": false,
+    "positive_mean_not_below_control": true,
+    "positive_median_not_below_control": false,
+    "stage1_ap_not_below_control": true,
+    "stage1_auroc_not_below_control": false
+  },
+  "telemetry": {
+    "A_GRADBUDGET_SHORT_R1_CANDIDATE": {
+      "active_rows": 290,
+      "activity_fraction": 0.58,
+      "alpha": {
+        "max": 1.0,
+        "median": 0.9786697100322713,
+        "min": 0.014924001237923508,
+        "p10": 0.2704272171850208,
+        "p90": 1.0
+      },
+      "arm": "A_GRADBUDGET_SHORT_R1_CANDIDATE",
+      "effective_ratio": {
+        "median": 0.9999999999809996,
+        "p10": 0.9186340276612296,
+        "p90": 0.9999999999954856
+      },
+      "effective_ratio_lower_than_raw_when_active": true,
+      "finite": true,
+      "gradients_unscaled": true,
+      "raw_ratio": {
+        "median": 1.0217962310673046,
+        "p10": 0.9186340276612296,
+        "p90": 3.6980261253485227
+      },
+      "rows": 500,
+      "safe_anchor_once_each_success": true
+    },
+    "A_GRADBUDGET_SHORT_R1_CONTROL": {
+      "active_rows": 0,
+      "activity_fraction": 0.0,
+      "alpha": {
+        "max": 1.0,
+        "median": 1.0,
+        "min": 1.0,
+        "p10": 1.0,
+        "p90": 1.0
+      },
+      "arm": "A_GRADBUDGET_SHORT_R1_CONTROL",
+      "effective_ratio": {
+        "median": 1.0716114624430388,
+        "p10": 0.94813769832077,
+        "p90": 2.877426872237398
+      },
+      "effective_ratio_lower_than_raw_when_active": true,
+      "finite": true,
+      "gradients_unscaled": true,
+      "raw_ratio": {
+        "median": 1.0716114624430388,
+        "p10": 0.94813769832077,
+        "p90": 2.877426872237398
+      },
+      "rows": 499,
+      "safe_anchor_once_each_success": true
+    }
+  }
+}
