@@ -752,7 +752,10 @@ def task_gradient_phase() -> dict:
         write_csv(OUT_TASK_CSV, []); dump_json(OUT_TASK_JSON, artifact); return artifact
     payload = torch.load(SAFE_ANCHOR, map_location="cpu", weights_only=False)
     fixed = s2.fixed_train_batches(payload, None)
-    probe = fixed[0]
+    source_batch_index = next(i for i, batch in enumerate(fixed) if any(any(r["valid"] for r in s2.component_geometry(batch["mask"][j, 0].numpy() > .5)) for j in range(len(batch["label"])) if int(batch["label"][j]) == 1))
+    source_batch = fixed[source_batch_index]
+    source_item_index = next(j for j in range(len(source_batch["label"])) if int(source_batch["label"][j]) == 1 and any(r["valid"] for r in s2.component_geometry(source_batch["mask"][j, 0].numpy() > .5)))
+    probe = {key: (value[source_item_index:source_item_index + 1] if isinstance(value, (torch.Tensor, list, tuple)) else value) for key, value in source_batch.items()}
     rows = []
     for arm_info in traj["replay_arms"]:
         arm = "CONTROL" if "CONTROL" in arm_info["arm"] else "CANDIDATE"
@@ -812,19 +815,28 @@ def directional_phase() -> dict:
     stage2_params = [p for _, p in stage2_named]
     family_indices = {}
     for i, name in enumerate(stage2_names): family_indices.setdefault(name.split(".", 1)[0], []).append(i)
-    accumulated = {name: torch.zeros_like(p, dtype=torch.float32) for name, p in stage2_named}
+    # The parent only needs the 16-batch LOCR direction as CPU tensors.  Keep
+    # all other parameters frozen for the directional forward so autograd does
+    # not retain the full 24-block ViT graph on a 24GB card.
+    model.requires_grad_(False)
+    for _, parameter in stage2_named:
+        parameter.requires_grad_(True)
+    accumulated = {name: torch.zeros_like(p, dtype=torch.float32, device="cpu") for name, p in stage2_named}
     preflight_rows = []
     for batch_index in range(16):
         gradient_path = RUN_ROOT / f"directional_locr_batch_{batch_index}.pth"
         result = torch.load(gradient_path, map_location="cpu", weights_only=False)
         preflight_rows.append({"raw_locr_loss": result["raw_locr_loss"], "active": result["active"], "valid_components": result["valid_components"]})
         for name, grad in result["gradients"].items():
-            if grad is not None: accumulated[name].add_(grad.float())
+            if grad is not None: accumulated[name].add_(grad.float().to(accumulated[name].device))
         del result
     family_grad = {}
     for family, indices in family_indices.items():
         family_grad[family] = [accumulated[stage2_names[i]].detach().float().clone() for i in indices]
-    probe = fixed[0]
+    source_batch_index = next(i for i, batch in enumerate(fixed) if any(any(r["valid"] for r in s2.component_geometry(batch["mask"][j, 0].numpy() > .5)) for j in range(len(batch["label"])) if int(batch["label"][j]) == 1))
+    source_batch = fixed[source_batch_index]
+    source_item_index = next(j for j in range(len(source_batch["label"])) if int(source_batch["label"][j]) == 1 and any(r["valid"] for r in s2.component_geometry(source_batch["mask"][j, 0].numpy() > .5)))
+    probe = {key: (value[source_item_index:source_item_index + 1] if isinstance(value, (torch.Tensor, list, tuple)) else value) for key, value in source_batch.items()}
     model.zero_grad(set_to_none=True)
     image = probe["image"].to("cuda:0")
     class_names = list(probe["class_name"])
@@ -860,7 +872,7 @@ def directional_phase() -> dict:
                 value = 0.0
                 for i in family_indices[family]:
                     g = grads[i]
-                    if g is not None: value += float((g.float() * (-accumulated[stage2_names[i]] / norm)).sum().detach().cpu())
+                    if g is not None: value += float((g.float().detach().cpu() * (-accumulated[stage2_names[i]] / norm)).sum())
                 directional[name] = value
         else:
             for name in objectives: directional[name] = 0.0
@@ -883,7 +895,7 @@ def directional_phase() -> dict:
         elif any(r["profile"] in ("COUPLED_SUPPRESSION", "CROSS_STAGE_COUPLED") for r in available): evidence = "SUPPORTED"
         else: evidence = "WEAK"
         module_assessment[module] = {"evidence": evidence, "families": families, "profiles": {r["family"]: r["profile"] for r in available}}
-    artifact = {"protocol_id": "H2_STAGEWISE_CAUSAL_LOCALIZATION_AUDIT_R1", "rows": rows, "module_assessment": module_assessment, "preflight_batches": 16, "probe_batch_count": 1, "direction": "unit descent direction d_f=-g_LOCR_f/||g_LOCR_f||; no parameter update", "preflight_summary": preflight_rows}
+    artifact = {"protocol_id": "H2_STAGEWISE_CAUSAL_LOCALIZATION_AUDIT_R1", "rows": rows, "module_assessment": module_assessment, "preflight_batches": 16, "probe_batch_count": 1, "probe_batch_index": source_batch_index, "probe_item_index": source_item_index, "direction": "unit descent direction d_f=-g_LOCR_f/||g_LOCR_f||; no parameter update", "preflight_summary": preflight_rows}
     write_csv(OUT_DIR_CSV, rows); dump_json(OUT_DIR_JSON, artifact)
     return artifact
 

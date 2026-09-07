@@ -1,0 +1,394 @@
+{
+  "direction": "unit descent direction d_f=-g_LOCR_f/||g_LOCR_f||; no parameter update",
+  "module_assessment": {
+    "attention": {
+      "evidence": "SUPPORTED",
+      "families": [
+        "vision_text_q",
+        "vision_text_k"
+      ],
+      "profiles": {
+        "vision_text_k": "COUPLED_SUPPRESSION",
+        "vision_text_q": "COUPLED_SUPPRESSION"
+      }
+    },
+    "convlora": {
+      "evidence": "SUPPORTED",
+      "families": [
+        "lora_adapters"
+      ],
+      "profiles": {
+        "lora_adapters": "COUPLED_SUPPRESSION"
+      }
+    },
+    "seg_projection": {
+      "evidence": "SUPPORTED",
+      "families": [
+        "seg_proj"
+      ],
+      "profiles": {
+        "seg_proj": "COUPLED_SUPPRESSION"
+      }
+    },
+    "ss2d": {
+      "evidence": "SUPPORTED",
+      "families": [
+        "dfg_ss2d_branches",
+        "dfg_raw_gamma"
+      ],
+      "profiles": {
+        "dfg_raw_gamma": "INACTIVE",
+        "dfg_ss2d_branches": "COUPLED_SUPPRESSION"
+      }
+    }
+  },
+  "preflight_batches": 16,
+  "preflight_summary": [
+    {
+      "active": false,
+      "raw_locr_loss": 0.0,
+      "valid_components": 0
+    },
+    {
+      "active": true,
+      "raw_locr_loss": 0.7980071493269254,
+      "valid_components": 3
+    },
+    {
+      "active": true,
+      "raw_locr_loss": 0.3510086555615999,
+      "valid_components": 6
+    },
+    {
+      "active": true,
+      "raw_locr_loss": 0.2667405312919679,
+      "valid_components": 3
+    },
+    {
+      "active": true,
+      "raw_locr_loss": 0.032825300804688595,
+      "valid_components": 3
+    },
+    {
+      "active": true,
+      "raw_locr_loss": 0.2563919126987457,
+      "valid_components": 3
+    },
+    {
+      "active": true,
+      "raw_locr_loss": 0.29857484499613446,
+      "valid_components": 4
+    },
+    {
+      "active": true,
+      "raw_locr_loss": 0.07408576210339864,
+      "valid_components": 3
+    },
+    {
+      "active": true,
+      "raw_locr_loss": 0.006666241562925279,
+      "valid_components": 5
+    },
+    {
+      "active": true,
+      "raw_locr_loss": 0.10758101940155029,
+      "valid_components": 1
+    },
+    {
+      "active": false,
+      "raw_locr_loss": 0.0,
+      "valid_components": 0
+    },
+    {
+      "active": true,
+      "raw_locr_loss": 0.044341751374304295,
+      "valid_components": 2
+    },
+    {
+      "active": true,
+      "raw_locr_loss": 0.06048562959767878,
+      "valid_components": 5
+    },
+    {
+      "active": false,
+      "raw_locr_loss": 0.0,
+      "valid_components": 1
+    },
+    {
+      "active": true,
+      "raw_locr_loss": 0.8257868438959122,
+      "valid_components": 5
+    },
+    {
+      "active": true,
+      "raw_locr_loss": 0.11173957888968289,
+      "valid_components": 6
+    }
+  ],
+  "probe_batch_count": 1,
+  "probe_batch_index": 1,
+  "probe_item_index": 1,
+  "protocol_id": "H2_STAGEWISE_CAUSAL_LOCALIZATION_AUDIT_R1",
+  "rows": [
+    {
+      "active_preflight_batches": 13,
+      "family": "det_layer_norms",
+      "fused_boundary_margin": 0.0,
+      "fused_interior_margin": 0.0,
+      "fused_near_margin": 0.0,
+      "locr_gradient_norm_16_batch_sum": 0.0,
+      "main_task_loss": 0.0,
+      "profile": "INACTIVE",
+      "s1_boundary_margin": 0.0,
+      "s1_far_margin": 0.0,
+      "s1_interior_margin": 0.0,
+      "s1_near_margin": 0.0,
+      "s1_positive_margin": 0.0,
+      "s2_boundary_margin": 0.0,
+      "s2_far_margin": 0.0,
+      "s2_interior_margin": 0.0,
+      "s2_near_margin": 0.0,
+      "s2_positive_margin": 0.0,
+      "s3_boundary_margin": 0.0,
+      "s3_far_margin": 0.0,
+      "s3_interior_margin": 0.0,
+      "s3_near_margin": 0.0,
+      "s3_positive_margin": 0.0,
+      "task_alignment": 0.0
+    },
+    {
+      "active_preflight_batches": 13,
+      "family": "det_proj",
+      "fused_boundary_margin": 0.0,
+      "fused_interior_margin": 0.0,
+      "fused_near_margin": 0.0,
+      "locr_gradient_norm_16_batch_sum": 0.0,
+      "main_task_loss": 0.0,
+      "profile": "INACTIVE",
+      "s1_boundary_margin": 0.0,
+      "s1_far_margin": 0.0,
+      "s1_interior_margin": 0.0,
+      "s1_near_margin": 0.0,
+      "s1_positive_margin": 0.0,
+      "s2_boundary_margin": 0.0,
+      "s2_far_margin": 0.0,
+      "s2_interior_margin": 0.0,
+      "s2_near_margin": 0.0,
+      "s2_positive_margin": 0.0,
+      "s3_boundary_margin": 0.0,
+      "s3_far_margin": 0.0,
+      "s3_interior_margin": 0.0,
+      "s3_near_margin": 0.0,
+      "s3_positive_margin": 0.0,
+      "task_alignment": 0.0
+    },
+    {
+      "active_preflight_batches": 13,
+      "family": "dfg_raw_gamma",
+      "fused_boundary_margin": 0.0,
+      "fused_interior_margin": 0.0,
+      "fused_near_margin": 0.0,
+      "locr_gradient_norm_16_batch_sum": 0.0,
+      "main_task_loss": 0.0,
+      "profile": "INACTIVE",
+      "s1_boundary_margin": 0.0,
+      "s1_far_margin": 0.0,
+      "s1_interior_margin": 0.0,
+      "s1_near_margin": 0.0,
+      "s1_positive_margin": 0.0,
+      "s2_boundary_margin": 0.0,
+      "s2_far_margin": 0.0,
+      "s2_interior_margin": 0.0,
+      "s2_near_margin": 0.0,
+      "s2_positive_margin": 0.0,
+      "s3_boundary_margin": 0.0,
+      "s3_far_margin": 0.0,
+      "s3_interior_margin": 0.0,
+      "s3_near_margin": 0.0,
+      "s3_positive_margin": 0.0,
+      "task_alignment": 0.0
+    },
+    {
+      "active_preflight_batches": 13,
+      "family": "dfg_ss2d_branches",
+      "fused_boundary_margin": 0.0,
+      "fused_interior_margin": 0.0,
+      "fused_near_margin": 0.0,
+      "locr_gradient_norm_16_batch_sum": 5.575559498538496e-06,
+      "main_task_loss": 0.0,
+      "profile": "COUPLED_SUPPRESSION",
+      "s1_boundary_margin": 0.0,
+      "s1_far_margin": 0.0,
+      "s1_interior_margin": 0.0,
+      "s1_near_margin": 0.0,
+      "s1_positive_margin": 0.0,
+      "s2_boundary_margin": -1.355649033030204e-07,
+      "s2_far_margin": -7.088369557095575e-06,
+      "s2_interior_margin": 0.0,
+      "s2_near_margin": -1.355649033030204e-07,
+      "s2_positive_margin": -1.355649033030204e-07,
+      "s3_boundary_margin": 0.0,
+      "s3_far_margin": 0.0,
+      "s3_interior_margin": 0.0,
+      "s3_near_margin": 0.0,
+      "s3_positive_margin": 0.0,
+      "task_alignment": 0.0
+    },
+    {
+      "active_preflight_batches": 13,
+      "family": "lora_adapters",
+      "fused_boundary_margin": -4.195068717410322,
+      "fused_interior_margin": -4.688250292558223,
+      "fused_near_margin": -3.6340084886178374,
+      "locr_gradient_norm_16_batch_sum": 8.341964721679688,
+      "main_task_loss": 1.8787975828745402,
+      "profile": "COUPLED_SUPPRESSION",
+      "s1_boundary_margin": 0.0,
+      "s1_far_margin": 0.0,
+      "s1_interior_margin": 0.0,
+      "s1_near_margin": 0.0,
+      "s1_positive_margin": 0.0,
+      "s2_boundary_margin": -0.5250353043375071,
+      "s2_far_margin": -0.010647899682226125,
+      "s2_interior_margin": -0.5646336519130273,
+      "s2_near_margin": -0.47574551272555254,
+      "s2_positive_margin": -0.5380765700538177,
+      "s3_boundary_margin": -12.342314697569236,
+      "s3_far_margin": -0.24994563509244472,
+      "s3_interior_margin": -14.015130394138396,
+      "s3_near_margin": -10.360333166085184,
+      "s3_positive_margin": -12.889696726109833,
+      "task_alignment": 1.8787975828745402
+    },
+    {
+      "active_preflight_batches": 13,
+      "family": "m_i_w",
+      "fused_boundary_margin": -0.2479535937309265,
+      "fused_interior_margin": 0.06558337807655334,
+      "fused_near_margin": -0.5657910704612732,
+      "locr_gradient_norm_16_batch_sum": 5.787503719329834,
+      "main_task_loss": 0.4205414652824402,
+      "profile": "COUPLED_SUPPRESSION",
+      "s1_boundary_margin": 0.0,
+      "s1_far_margin": 0.0,
+      "s1_interior_margin": 0.0,
+      "s1_near_margin": 0.0,
+      "s1_positive_margin": 0.0,
+      "s2_boundary_margin": -0.036519069224596024,
+      "s2_far_margin": 0.006104833446443081,
+      "s2_interior_margin": -0.040472984313964844,
+      "s2_near_margin": -0.03133362904191017,
+      "s2_positive_margin": -0.03782046586275101,
+      "s3_boundary_margin": 0.5807707905769348,
+      "s3_far_margin": -2.0565147399902344,
+      "s3_interior_margin": 0.27467697858810425,
+      "s3_near_margin": 0.8679364919662476,
+      "s3_positive_margin": 0.4909597635269165,
+      "task_alignment": 0.4205414652824402
+    },
+    {
+      "active_preflight_batches": 13,
+      "family": "seg_layer_norms",
+      "fused_boundary_margin": -0.02459051413461566,
+      "fused_interior_margin": -0.024259802885353565,
+      "fused_near_margin": -0.02502449182793498,
+      "locr_gradient_norm_16_batch_sum": 0.3057675361633301,
+      "main_task_loss": 0.0014397194609045982,
+      "profile": "COUPLED_SUPPRESSION",
+      "s1_boundary_margin": 0.0,
+      "s1_far_margin": 0.0,
+      "s1_interior_margin": 0.0,
+      "s1_near_margin": 0.0,
+      "s1_positive_margin": 0.0,
+      "s2_boundary_margin": -0.07377631589770317,
+      "s2_far_margin": -0.08382787182927132,
+      "s2_interior_margin": -0.07278618030250072,
+      "s2_near_margin": -0.07511509954929352,
+      "s2_positive_margin": -0.07346748746931553,
+      "s3_boundary_margin": 0.0,
+      "s3_far_margin": 0.0,
+      "s3_interior_margin": 0.0,
+      "s3_near_margin": 0.0,
+      "s3_positive_margin": 0.0,
+      "task_alignment": 0.0014397194609045982
+    },
+    {
+      "active_preflight_batches": 13,
+      "family": "seg_proj",
+      "fused_boundary_margin": -0.05952896410599351,
+      "fused_interior_margin": -0.06388049223460257,
+      "fused_near_margin": -0.054086077492684126,
+      "locr_gradient_norm_16_batch_sum": 17.597747802734375,
+      "main_task_loss": 0.012733300740364939,
+      "profile": "COUPLED_SUPPRESSION",
+      "s1_boundary_margin": 0.0,
+      "s1_far_margin": 0.0,
+      "s1_interior_margin": 0.0,
+      "s1_near_margin": 0.0,
+      "s1_positive_margin": 0.0,
+      "s2_boundary_margin": -0.1785452626645565,
+      "s2_far_margin": -0.018602099793497473,
+      "s2_interior_margin": -0.19163783732801676,
+      "s2_near_margin": -0.16234320728108287,
+      "s2_positive_margin": -0.1828343840315938,
+      "s3_boundary_margin": 0.0,
+      "s3_far_margin": 0.0,
+      "s3_interior_margin": 0.0,
+      "s3_near_margin": 0.0,
+      "s3_positive_margin": 0.0,
+      "task_alignment": 0.012733300740364939
+    },
+    {
+      "active_preflight_batches": 13,
+      "family": "vision_text_k",
+      "fused_boundary_margin": -0.0063346633687615395,
+      "fused_interior_margin": -0.005565037485212088,
+      "fused_near_margin": -0.007300516590476036,
+      "locr_gradient_norm_16_batch_sum": 0.04083559662103653,
+      "main_task_loss": -0.0010284828022122383,
+      "profile": "COUPLED_SUPPRESSION",
+      "s1_boundary_margin": 0.0,
+      "s1_far_margin": 0.0,
+      "s1_interior_margin": 0.0,
+      "s1_near_margin": 0.0,
+      "s1_positive_margin": 0.0,
+      "s2_boundary_margin": -0.01901601254940033,
+      "s2_far_margin": -0.04256762936711311,
+      "s2_interior_margin": -0.01665368676185608,
+      "s2_near_margin": -0.021907581016421318,
+      "s2_positive_margin": -0.01826287992298603,
+      "s3_boundary_margin": 0.0,
+      "s3_far_margin": 0.0,
+      "s3_interior_margin": 0.0,
+      "s3_near_margin": 0.0,
+      "s3_positive_margin": 0.0,
+      "task_alignment": -0.0010284828022122383
+    },
+    {
+      "active_preflight_batches": 13,
+      "family": "vision_text_q",
+      "fused_boundary_margin": -0.00011503548012115061,
+      "fused_interior_margin": -0.00013665050209965557,
+      "fused_near_margin": -8.635124686406925e-05,
+      "locr_gradient_norm_16_batch_sum": 0.0025850562378764153,
+      "main_task_loss": 4.640044426196255e-05,
+      "profile": "COUPLED_SUPPRESSION",
+      "s1_boundary_margin": 0.0,
+      "s1_far_margin": 0.0,
+      "s1_interior_margin": 0.0,
+      "s1_near_margin": 0.0,
+      "s1_positive_margin": 0.0,
+      "s2_boundary_margin": -0.0003448800998739898,
+      "s2_far_margin": 0.00035576813388615847,
+      "s2_interior_margin": -0.0004125536070205271,
+      "s2_near_margin": -0.0002648357185535133,
+      "s2_positive_margin": -0.0003684775729198009,
+      "s3_boundary_margin": 0.0,
+      "s3_far_margin": 0.0,
+      "s3_interior_margin": 0.0,
+      "s3_near_margin": 0.0,
+      "s3_positive_margin": 0.0,
+      "task_alignment": 4.640044426196255e-05
+    }
+  ]
+}
