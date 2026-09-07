@@ -96,6 +96,7 @@ def telemetry_summary(rows: list[dict[str, str]], arm: str) -> dict:
         },
         "raw_ratio": {
             "median": float(np.median(raw)),
+            "mean": float(np.mean(raw)),
             "p10": float(np.quantile(raw, .10)),
             "p90": float(np.quantile(raw, .90)),
         },
@@ -332,14 +333,17 @@ def main() -> None:
     for arm, summary in telemetry.items():
         rows.append({"arm": arm, "record": "gradient_telemetry", "metric": "activity_fraction", "value": summary["activity_fraction"]})
         rows.append({"arm": arm, "record": "gradient_telemetry", "metric": "alpha_median", "value": summary["alpha"]["median"]})
+        rows.append({"arm": arm, "record": "gradient_telemetry", "metric": "alpha_p10", "value": summary["alpha"]["p10"]})
+        rows.append({"arm": arm, "record": "gradient_telemetry", "metric": "alpha_p90", "value": summary["alpha"]["p90"]})
         rows.append({"arm": arm, "record": "gradient_telemetry", "metric": "raw_ratio_median", "value": summary["raw_ratio"]["median"]})
+        rows.append({"arm": arm, "record": "gradient_telemetry", "metric": "raw_ratio_mean", "value": summary["raw_ratio"]["mean"]})
     for name, value in gates["direct"].items():
         rows.append({"arm": "GATES", "record": "direct_gate", "metric": name, "value": value})
     for name, value in gates["scientific"].items():
         rows.append({"arm": "GATES", "record": "scientific_gate", "metric": name, "value": value})
     fields = sorted({key for row in rows for key in row})
     with (REPO / "audit/H2_GRADBUDGET_R1_ENDPOINT.csv").open("w", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer = csv.DictWriter(handle, fieldnames=fields, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
     print(json.dumps({

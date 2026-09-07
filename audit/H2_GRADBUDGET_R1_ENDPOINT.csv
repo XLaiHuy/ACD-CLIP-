@@ -67,10 +67,16 @@ ap,arm,auroc,count,difference_l2,linear_cka_to_e1,mean,median,metric,p95,p99,par
 ,A_GRADBUDGET_SHORT_R1_CANDIDATE,,,,0.6354034858678491,,,stage_3,,,,0.9896256327629089,0.9896122813224792,geometry,,,3,
 ,A_GRADBUDGET_SHORT_R1_CONTROL,,,,,,,activity_fraction,,,,,,gradient_telemetry,,,,0.0
 ,A_GRADBUDGET_SHORT_R1_CONTROL,,,,,,,alpha_median,,,,,,gradient_telemetry,,,,1.0
+,A_GRADBUDGET_SHORT_R1_CONTROL,,,,,,,alpha_p10,,,,,,gradient_telemetry,,,,1.0
+,A_GRADBUDGET_SHORT_R1_CONTROL,,,,,,,alpha_p90,,,,,,gradient_telemetry,,,,1.0
 ,A_GRADBUDGET_SHORT_R1_CONTROL,,,,,,,raw_ratio_median,,,,,,gradient_telemetry,,,,1.0716114624430388
+,A_GRADBUDGET_SHORT_R1_CONTROL,,,,,,,raw_ratio_mean,,,,,,gradient_telemetry,,,,1.848731989433003
 ,A_GRADBUDGET_SHORT_R1_CANDIDATE,,,,,,,activity_fraction,,,,,,gradient_telemetry,,,,0.58
 ,A_GRADBUDGET_SHORT_R1_CANDIDATE,,,,,,,alpha_median,,,,,,gradient_telemetry,,,,0.9786697100322713
+,A_GRADBUDGET_SHORT_R1_CANDIDATE,,,,,,,alpha_p10,,,,,,gradient_telemetry,,,,0.2704272171850208
+,A_GRADBUDGET_SHORT_R1_CANDIDATE,,,,,,,alpha_p90,,,,,,gradient_telemetry,,,,1.0
 ,A_GRADBUDGET_SHORT_R1_CANDIDATE,,,,,,,raw_ratio_median,,,,,,gradient_telemetry,,,,1.0217962310673046
+,A_GRADBUDGET_SHORT_R1_CANDIDATE,,,,,,,raw_ratio_mean,,,,,,gradient_telemetry,,,,2.294730703771179
 ,GATES,,,,,,,activity_fraction_gt_zero,,,,,,direct_gate,,,,True
 ,GATES,,,,,,,effective_abnormal_rest_lower_than_raw_when_alpha_lt_one,,,,,,direct_gate,,,,True
 ,GATES,,,,,,,late_stage2_plus_stage3_convlora_drift_lower_than_control,,,,,,direct_gate,,,,False

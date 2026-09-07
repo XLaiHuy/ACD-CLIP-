@@ -437,6 +437,8 @@ def compare_gradient_lists(left, right) -> dict[str, Any]:
     left_norm = norm_of(left)
     right_norm = norm_of(right)
     for left_value, right_value in zip(left, right):
+        if left_value is None and right_value is None:
+            continue
         left_value = torch.zeros_like(right_value) if left_value is None else left_value.detach().float()
         right_value = torch.zeros_like(left_value) if right_value is None else right_value.detach().float()
         difference = (left_value - right_value).abs()
@@ -472,10 +474,17 @@ def loss_parity(payload: dict[str, Any], scope: dict[str, Any]) -> dict[str, Any
     ref_total = ref_task + ANCHOR_LAMBDA * anchor_loss
     # The parity graph is retained until every component gradient comparison is complete.
     all_pairs, selected_pairs = scope_parameters(model, scope)
-    all_parameters = [parameter for _, parameter in all_pairs]
     selected_parameters = [parameter for _, parameter in selected_pairs]
+    full_pairs = [
+        (name, parameter)
+        for name, parameter in sorted(model.named_parameters())
+        if parameter.requires_grad
+    ]
+    full_parameters = [parameter for _, parameter in full_pairs]
     old_selected = torch.autograd.grad(old_task, selected_parameters, retain_graph=True, allow_unused=True)
     ref_selected = torch.autograd.grad(ref_task, selected_parameters, retain_graph=True, allow_unused=True)
+    old_full = torch.autograd.grad(old_task, full_parameters, retain_graph=True, allow_unused=True)
+    ref_full = torch.autograd.grad(ref_task, full_parameters, retain_graph=True, allow_unused=True)
     rest_selected = torch.autograd.grad(parts["rest_task"], selected_parameters, retain_graph=True, allow_unused=True)
     residual_abn = [
         None if task_value is None and rest_value is None else
@@ -502,6 +511,7 @@ def loss_parity(payload: dict[str, Any], scope: dict[str, Any]) -> dict[str, Any
         eps=GRAD_EPS,
     )
     old_vs_ref = compare_gradient_lists(old_selected, ref_selected)
+    old_vs_ref_full = compare_gradient_lists(old_full, ref_full)
     ref_vs_disabled = compare_gradient_lists(ref_selected, disabled)
     with torch.no_grad():
         scaled_rest = [None if value is None else value * 1024.0 for value in rest_selected]
@@ -534,6 +544,11 @@ def loss_parity(payload: dict[str, Any], scope: dict[str, Any]) -> dict[str, Any
             "scope": "stage2+stage3 Conv-LoRA only",
             "selected_parameter_count": len(selected_parameters),
             "old_vs_ref_selected": old_vs_ref,
+            "old_vs_ref_full_trainable": {
+                **old_vs_ref_full,
+                "gradient_norm_diff": abs(old_vs_ref_full["left_norm"] - old_vs_ref_full["right_norm"]),
+                "trainable_parameter_count": len(full_parameters),
+            },
             "ref_vs_direct_rest_plus_abnormal": compare_gradient_lists(ref_selected, direct_sum),
             "ref_vs_direct_task_expression": compare_gradient_lists(ref_selected, direct_task_selected),
             "abnormal_gradient_definition": "unscaled task gradient minus unscaled rest-task gradient on the same graph",
