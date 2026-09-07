@@ -163,6 +163,9 @@ def parent_scientific_config(config: Mapping[str, Any]) -> dict[str, Any]:
         "cir_alpha": 0.0,
         "cir_peer_count": 8,
         "cir_spatial_radius": 3,
+        "use_nfur": False,
+        "nfur_hidden_channels": None,
+        "nfur_delta_bound": None,
     })
     return parent
 

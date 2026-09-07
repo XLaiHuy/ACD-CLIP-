@@ -533,6 +533,10 @@ def train(
         family_telemetry_interval: int = 0,
         abort_on_nonfinite: bool = False,
         dtype_trace_path: str | None = None,
+        nfur_lr: float | None = None,
+        resume_validate_identity: bool = True,
+        run_state_path: str | None = None,
+        last_completed_stage_path: str | None = None,
 ):
     precision_policy = precision_policy or resolve_precision_policy(
         "fp16" if use_amp else "fp32"
@@ -550,14 +554,24 @@ def train(
             scheduler=scheduler,
             scaler=scaler,
             dataloader_generator=data_generator,
-            expected_scientific_config=checkpoint_config,
-            expected_parent_config=parent_checkpoint_config,
+            expected_scientific_config=checkpoint_config if resume_validate_identity else None,
+            expected_parent_config=parent_checkpoint_config if resume_validate_identity else None,
             expected_total_epoch=total_epoch,
             expected_seed=seed,
             expected_clip_sha256=clip_sha256,
             expected_manifest_sha256=dataset_manifest_sha256,
             expected_git_sha=current_git_sha(repo),
         )
+    if hasattr(model, "nfur_refiner") and not any(
+            group.get("name") == "nfur_refiner" for group in optimizer.param_groups
+    ):
+        if nfur_lr is None:
+            nfur_lr = get_optimizer_lr(optimizer, "image_adapter")
+        optimizer.add_param_group({
+            "name": "nfur_refiner",
+            "params": model.nfur_refiner.parameters(),
+            "lr": float(nfur_lr),
+        })
     if not 0.0 <= float(anchor_family_budget) <= 1.0:
         raise ValueError("anchor_family_budget must be in [0, 1]")
     if anchor_gradient_budget and (anchor is None or anchor_lambda <= 0.0):
@@ -1355,6 +1369,27 @@ def train(
             tf32_enabled=tf32_enabled,
         ))
         _atomic_torch_save(model_dict, ckp_path)
+        if run_state_path is not None:
+            state_path = os.path.abspath(run_state_path)
+            temporary_state_path = state_path + f".tmp.{os.getpid()}"
+            with open(temporary_state_path, "w", encoding="utf-8") as handle:
+                json.dump({
+                    "status": "RUNNING",
+                    "stage": "FULL_TRAIN",
+                    "last_completed_epoch": epoch_one_based,
+                    "global_step": global_step,
+                    "checkpoint": ckp_path,
+                    "checkpoint_sha256": sha256_file(ckp_path),
+                    "updated_by": "train.train",
+                }, handle, indent=2, sort_keys=True)
+                handle.write("\n")
+            os.replace(temporary_state_path, state_path)
+        if last_completed_stage_path is not None:
+            stage_path = os.path.abspath(last_completed_stage_path)
+            temporary_stage_path = stage_path + f".tmp.{os.getpid()}"
+            with open(temporary_stage_path, "w", encoding="utf-8") as handle:
+                handle.write(f"FULL_TRAIN_E{epoch_one_based}\n")
+            os.replace(temporary_stage_path, stage_path)
     return model
 
 
