@@ -1,0 +1,1380 @@
+{
+  "audit_labels": {
+    "BOUNDARY_ARTIFACT_RISK": "LOW",
+    "FOCAL_REDUNDANCY": "LOW",
+    "HARD_BACKGROUND_TAIL_PREMISE": "SUPPORTED",
+    "THBR_TRAINING_AUTHORIZED": true
+  },
+  "bounded_screen": "ONE_500_ATTEMPT_SOURCE_ONLY_CONTROL_CANDIDATE_SCREEN",
+  "calibration": {
+    "R_median_thbr_over_existing_task_gradient": 0.2670493421165961,
+    "formula": "lambda_thbr=0.05/R",
+    "lambda_thbr": 0.18723131689337608,
+    "target_ratio": 0.05
+  },
+  "confirmatory_run": {
+    "authorized": false,
+    "reason": "Strict bounded-screen gates are not all satisfied; no confirmatory or target evaluation run is authorized."
+  },
+  "decision": "FAIL",
+  "endpoint_summary": {
+    "candidate": {
+      "background_inversions": {
+        "near_background_above_interior_median_fraction": 0.4056690543214694,
+        "near_background_above_positive_median_fraction": 0.44505142283787175,
+        "near_background_interior_pairwise_inversion_rate": 0.46287,
+        "near_background_positive_pairwise_inversion_rate": 0.47063,
+        "pairwise_sampling": {
+          "same_pairs_for_all_arms": true,
+          "sample_size": 200000,
+          "seed": 1729
+        }
+      },
+      "coverage": {
+        "boundary": {
+          "count": 26381,
+          "max": 0.9544354677200317,
+          "mean": 0.03296359624828937,
+          "median": 1.2855592103733215e-05,
+          "p95": 0.21750368177890778,
+          "p99": 0.7169126749038701
+        },
+        "far_background": {
+          "count": 25673194,
+          "max": 0.285770446062088,
+          "mean": 3.0744032819377325e-06,
+          "median": 6.6534857623423704e-09,
+          "p95": 1.5349430171340828e-08,
+          "p99": 6.437156230276742e-08,
+          "p99.5": 3.193329405348777e-07
+        },
+        "interior": {
+          "count": 23650,
+          "max": 0.9999083280563354,
+          "mean": 0.23581148696917173,
+          "median": 2.8688589736702852e-05,
+          "p95": 0.9979151725769043,
+          "p99": 0.9998024785518647
+        },
+        "near_background": {
+          "count": 35879,
+          "max": 0.8560919761657715,
+          "mean": 0.009302073799737373,
+          "median": 4.9369896260031965e-06,
+          "p95": 0.028036781214177568,
+          "p99": 0.265714013576509,
+          "p99.5": 0.39266710817814215
+        },
+        "negative": {
+          "count": 25709073,
+          "max": 0.8560919761657715,
+          "mean": 1.6051876228761782e-05,
+          "median": 6.6534857623423704e-09,
+          "p95": 1.546981742706066e-08,
+          "p99": 7.614510622033777e-08,
+          "p99.5": 5.36874949830235e-07
+        },
+        "positive": {
+          "count": 50031,
+          "max": 0.9999083280563354,
+          "mean": 0.12885119824602814,
+          "median": 1.411908942827722e-05,
+          "p95": 0.9874479174613953,
+          "p99": 0.9994166254997253
+        }
+      },
+      "feature_geometry_drift_from_e10": [
+        {
+          "linear_cka_to_e10": 0.9843174927142678,
+          "pooled_feature_cosine_to_e10_mean": 0.9976817440126663,
+          "pooled_feature_cosine_to_e10_median": 0.9977700150404938,
+          "pooled_feature_cosine_to_e10_p01": 0.9969171984155907,
+          "stage": 1
+        },
+        {
+          "linear_cka_to_e10": 0.9190633542921267,
+          "pooled_feature_cosine_to_e10_mean": 0.9974758717444518,
+          "pooled_feature_cosine_to_e10_median": 0.9976552517718176,
+          "pooled_feature_cosine_to_e10_p01": 0.9958739864591539,
+          "stage": 2
+        },
+        {
+          "linear_cka_to_e10": 0.8147168574466861,
+          "pooled_feature_cosine_to_e10_mean": 0.9859600057683796,
+          "pooled_feature_cosine_to_e10_median": 0.9863287131770595,
+          "pooled_feature_cosine_to_e10_p01": 0.9813518031085613,
+          "stage": 3
+        }
+      ],
+      "matched_cardinality": {
+        "K": {
+          "count": 48,
+          "max": 9646.0,
+          "mean": 1042.3125,
+          "median": 516.5,
+          "p95": 4591.4,
+          "p99": 8384.990000000003
+        },
+        "definition": "For each anomalous image, K=min(GT anomaly pixels, GT background pixels); compare top-K background scores with bottom-K anomaly scores.",
+        "hard_background_mean": {
+          "count": 48,
+          "max": 0.13266736268997192,
+          "mean": 0.00653261198951501,
+          "median": 8.303547656396404e-05,
+          "p95": 0.02790281781926751,
+          "p99": 0.09115454904735099
+        },
+        "violation_fraction": {
+          "count": 48,
+          "max": 1.0,
+          "mean": 0.5188707719437502,
+          "median": 0.44216353361780647,
+          "p95": 1.0,
+          "p99": 1.0
+        },
+        "weak_anomaly_mean": {
+          "count": 48,
+          "max": 0.6279780268669128,
+          "mean": 0.04235945382881378,
+          "median": 7.517000994994305e-05,
+          "p95": 0.17511473447084422,
+          "p99": 0.6264094567298889
+        }
+      },
+      "parameter_drift_from_e10": {
+        "anchor_families": {
+          "det_layer_norms": {
+            "difference_l2": 0.6505132293269478,
+            "parameter_count": 4608,
+            "reference_l2": 46.03123321843667,
+            "relative_l2": 0.014131996556338204
+          },
+          "det_proj": {
+            "difference_l2": 7.051489347452599,
+            "parameter_count": 1379328,
+            "reference_l2": 56.76695818297597,
+            "relative_l2": 0.12421819969151164
+          },
+          "dfg_raw_gamma": {
+            "difference_l2": 0.0,
+            "parameter_count": 3,
+            "reference_l2": 0.0,
+            "relative_l2": 0.0
+          },
+          "dfg_ss2d_branches": {
+            "difference_l2": 0.14078279698367913,
+            "parameter_count": 3550464,
+            "reference_l2": 89.48697082562158,
+            "relative_l2": 0.0015732211704653067
+          },
+          "direction_logits": {
+            "difference_l2": 0.0,
+            "parameter_count": 12,
+            "reference_l2": 0.03059022654600658,
+            "relative_l2": 0.0
+          },
+          "lora_adapters": {
+            "difference_l2": 16.54147058284779,
+            "parameter_count": 6514176,
+            "reference_l2": 152.3930677040007,
+            "relative_l2": 0.10854477065175278
+          },
+          "m_i_w": {
+            "difference_l2": 0.4521751045783464,
+            "parameter_count": 3072,
+            "reference_l2": 11.053888967404681,
+            "relative_l2": 0.040906427223188546
+          },
+          "seg_layer_norms": {
+            "difference_l2": 0.4366759902001813,
+            "parameter_count": 4608,
+            "reference_l2": 46.8225951576404,
+            "relative_l2": 0.00932618084772957
+          },
+          "seg_proj": {
+            "difference_l2": 7.270728653313596,
+            "parameter_count": 1379328,
+            "reference_l2": 49.80383642075343,
+            "relative_l2": 0.1459873209744111
+          },
+          "vision_text_k": {
+            "difference_l2": 6.376342332923387,
+            "parameter_count": 589824,
+            "reference_l2": 60.55401470001029,
+            "relative_l2": 0.10530007571772616
+          },
+          "vision_text_q": {
+            "difference_l2": 3.0233298585641135,
+            "parameter_count": 589824,
+            "reference_l2": 67.93448669432834,
+            "relative_l2": 0.04450360936953282
+          }
+        },
+        "requested_families": {
+          "Conv-LoRA": {
+            "difference_l2": 16.54147058284779,
+            "parameter_count": 6514176,
+            "reference_l2": 152.3930677040007,
+            "relative_l2": 0.10854477065175278
+          },
+          "DFG_QK": {
+            "difference_l2": 7.056788574154405,
+            "parameter_count": 1179648,
+            "reference_l2": 91.00485250090205,
+            "relative_l2": 0.07754299227158747
+          },
+          "SS2D": {
+            "difference_l2": 0.14078279698367913,
+            "parameter_count": 3550479,
+            "reference_l2": 89.48697605410302,
+            "relative_l2": 0.001573221078546258
+          },
+          "image_projection": {
+            "difference_l2": 10.168840291522919,
+            "parameter_count": 2770944,
+            "reference_l2": 100.67933240632367,
+            "relative_l2": 0.10100226181956899
+          }
+        }
+      },
+      "ranking": {
+        "final": {
+          "ap": 0.40420780029019554,
+          "auroc": 0.810724053624802
+        },
+        "stage_1": {
+          "ap": 0.3483213165107075,
+          "auroc": 0.8269249417868847
+        },
+        "stage_2": {
+          "ap": 0.3989903112985672,
+          "auroc": 0.7642608154347326
+        },
+        "stage_3": {
+          "ap": 0.28404693577621226,
+          "auroc": 0.7389219002701222
+        }
+      },
+      "top_P_composition": {
+        "definition": "P equals each anomalous image's GT anomaly-pixel count; report composition of the top-P predicted anomaly-score pixels.",
+        "mean": {
+          "anomaly_boundary_fraction": 0.30717005513432666,
+          "anomaly_fraction": 0.4799433866733924,
+          "far_background_fraction": 0.2220366249290029,
+          "near_background_fraction": 0.29801998839760463
+        },
+        "median": {
+          "anomaly_boundary_fraction": 0.36209722795303645,
+          "anomaly_fraction": 0.5578364663821935,
+          "far_background_fraction": 0.07623489830249273,
+          "near_background_fraction": 0.2837858567264918
+        },
+        "per_image": [
+          {
+            "P": 503,
+            "anomaly_boundary_fraction": 0.36381709741550694,
+            "anomaly_fraction": 0.6998011928429424,
+            "far_background_fraction": 0.07554671968190854,
+            "near_background_fraction": 0.22465208747514911
+          },
+          {
+            "P": 667,
+            "anomaly_boundary_fraction": 0.4077961019490255,
+            "anomaly_fraction": 0.5772113943028486,
+            "far_background_fraction": 0.095952023988006,
+            "near_background_fraction": 0.3268365817091454
+          },
+          {
+            "P": 12,
+            "anomaly_boundary_fraction": 0.4166666666666667,
+            "anomaly_fraction": 0.4166666666666667,
+            "far_background_fraction": 0.0,
+            "near_background_fraction": 0.5833333333333334
+          },
+          {
+            "P": 429,
+            "anomaly_boundary_fraction": 0.0,
+            "anomaly_fraction": 0.0,
+            "far_background_fraction": 1.0,
+            "near_background_fraction": 0.0
+          },
+          {
+            "P": 462,
+            "anomaly_boundary_fraction": 0.42857142857142855,
+            "anomaly_fraction": 0.6558441558441559,
+            "far_background_fraction": 0.04329004329004329,
+            "near_background_fraction": 0.3008658008658009
+          },
+          {
+            "P": 6963,
+            "anomaly_boundary_fraction": 0.0,
+            "anomaly_fraction": 0.0,
+            "far_background_fraction": 1.0,
+            "near_background_fraction": 0.0
+          },
+          {
+            "P": 594,
+            "anomaly_boundary_fraction": 0.4612794612794613,
+            "anomaly_fraction": 0.4663299663299663,
+            "far_background_fraction": 0.02861952861952862,
+            "near_background_fraction": 0.5050505050505051
+          },
+          {
+            "P": 955,
+            "anomaly_boundary_fraction": 0.437696335078534,
+            "anomaly_fraction": 0.437696335078534,
+            "far_background_fraction": 0.07015706806282722,
+            "near_background_fraction": 0.49214659685863876
+          },
+          {
+            "P": 282,
+            "anomaly_boundary_fraction": 0.3900709219858156,
+            "anomaly_fraction": 0.4432624113475177,
+            "far_background_fraction": 0.25886524822695034,
+            "near_background_fraction": 0.2978723404255319
+          },
+          {
+            "P": 1274,
+            "anomaly_boundary_fraction": 0.4662480376766091,
+            "anomaly_fraction": 0.6577708006279435,
+            "far_background_fraction": 0.10832025117739404,
+            "near_background_fraction": 0.23390894819466249
+          },
+          {
+            "P": 4256,
+            "anomaly_boundary_fraction": 0.13933270676691728,
+            "anomaly_fraction": 0.8848684210526315,
+            "far_background_fraction": 0.030780075187969925,
+            "near_background_fraction": 0.0843515037593985
+          },
+          {
+            "P": 181,
+            "anomaly_boundary_fraction": 0.4530386740331492,
+            "anomaly_fraction": 0.6243093922651933,
+            "far_background_fraction": 0.0055248618784530384,
+            "near_background_fraction": 0.3701657458563536
+          },
+          {
+            "P": 676,
+            "anomaly_boundary_fraction": 0.28846153846153844,
+            "anomaly_fraction": 0.757396449704142,
+            "far_background_fraction": 0.05473372781065089,
+            "near_background_fraction": 0.1878698224852071
+          },
+          {
+            "P": 246,
+            "anomaly_boundary_fraction": 0.45528455284552843,
+            "anomaly_fraction": 0.6707317073170732,
+            "far_background_fraction": 0.044715447154471545,
+            "near_background_fraction": 0.2845528455284553
+          },
+          {
+            "P": 1355,
+            "anomaly_boundary_fraction": 0.21918819188191882,
+            "anomaly_fraction": 0.7690036900369004,
+            "far_background_fraction": 0.09003690036900369,
+            "near_background_fraction": 0.14095940959409595
+          },
+          {
+            "P": 741,
+            "anomaly_boundary_fraction": 0.3319838056680162,
+            "anomaly_fraction": 0.3319838056680162,
+            "far_background_fraction": 0.08367071524966262,
+            "near_background_fraction": 0.5843454790823212
+          },
+          {
+            "P": 2032,
+            "anomaly_boundary_fraction": 0.04429133858267716,
+            "anomaly_fraction": 0.09694881889763779,
+            "far_background_fraction": 0.8489173228346457,
+            "near_background_fraction": 0.054133858267716536
+          },
+          {
+            "P": 1459,
+            "anomaly_boundary_fraction": 0.2563399588759424,
+            "anomaly_fraction": 0.8313913639479096,
+            "far_background_fraction": 0.023303632625085675,
+            "near_background_fraction": 0.1453050034270048
+          },
+          {
+            "P": 766,
+            "anomaly_boundary_fraction": 0.34856396866840733,
+            "anomaly_fraction": 0.44386422976501305,
+            "far_background_fraction": 0.206266318537859,
+            "near_background_fraction": 0.34986945169712796
+          },
+          {
+            "P": 959,
+            "anomaly_boundary_fraction": 0.0,
+            "anomaly_fraction": 0.0,
+            "far_background_fraction": 1.0,
+            "near_background_fraction": 0.0
+          },
+          {
+            "P": 325,
+            "anomaly_boundary_fraction": 0.37846153846153846,
+            "anomaly_fraction": 0.5384615384615384,
+            "far_background_fraction": 0.1076923076923077,
+            "near_background_fraction": 0.35384615384615387
+          },
+          {
+            "P": 103,
+            "anomaly_boundary_fraction": 0.6796116504854369,
+            "anomaly_fraction": 0.7475728155339806,
+            "far_background_fraction": 0.038834951456310676,
+            "near_background_fraction": 0.21359223300970873
+          },
+          {
+            "P": 126,
+            "anomaly_boundary_fraction": 0.5079365079365079,
+            "anomaly_fraction": 0.6111111111111112,
+            "far_background_fraction": 0.03968253968253968,
+            "near_background_fraction": 0.3492063492063492
+          },
+          {
+            "P": 35,
+            "anomaly_boundary_fraction": 0.0,
+            "anomaly_fraction": 0.0,
+            "far_background_fraction": 0.2571428571428571,
+            "near_background_fraction": 0.7428571428571429
+          },
+          {
+            "P": 9646,
+            "anomaly_boundary_fraction": 0.20868753887621813,
+            "anomaly_fraction": 0.29183081069873523,
+            "far_background_fraction": 0.5638606676342526,
+            "near_background_fraction": 0.14430852166701225
+          },
+          {
+            "P": 461,
+            "anomaly_boundary_fraction": 0.44251626898047725,
+            "anomaly_fraction": 0.824295010845987,
+            "far_background_fraction": 0.0021691973969631237,
+            "near_background_fraction": 0.1735357917570499
+          },
+          {
+            "P": 869,
+            "anomaly_boundary_fraction": 0.3521288837744534,
+            "anomaly_fraction": 0.7203682393555811,
+            "far_background_fraction": 0.07825086306098965,
+            "near_background_fraction": 0.20138089758342922
+          },
+          {
+            "P": 551,
+            "anomaly_boundary_fraction": 0.24682395644283123,
+            "anomaly_fraction": 0.24682395644283123,
+            "far_background_fraction": 0.6460980036297641,
+            "near_background_fraction": 0.10707803992740472
+          },
+          {
+            "P": 499,
+            "anomaly_boundary_fraction": 0.0,
+            "anomaly_fraction": 0.0,
+            "far_background_fraction": 1.0,
+            "near_background_fraction": 0.0
+          },
+          {
+            "P": 86,
+            "anomaly_boundary_fraction": 0.12790697674418605,
+            "anomaly_fraction": 0.12790697674418605,
+            "far_background_fraction": 0.19767441860465115,
+            "near_background_fraction": 0.6744186046511628
+          },
+          {
+            "P": 4772,
+            "anomaly_boundary_fraction": 0.18357082984073764,
+            "anomaly_fraction": 0.8868398994132439,
+            "far_background_fraction": 0.03101424979044426,
+            "near_background_fraction": 0.08214585079631181
+          },
+          {
+            "P": 939,
+            "anomaly_boundary_fraction": 0.34717784877529284,
+            "anomaly_fraction": 0.8083067092651757,
+            "far_background_fraction": 0.004259850905218318,
+            "near_background_fraction": 0.18743343982960597
+          },
+          {
+            "P": 92,
+            "anomaly_boundary_fraction": 0.3804347826086957,
+            "anomaly_fraction": 0.3804347826086957,
+            "far_background_fraction": 0.043478260869565216,
+            "near_background_fraction": 0.5760869565217391
+          },
+          {
+            "P": 123,
+            "anomaly_boundary_fraction": 0.43902439024390244,
+            "anomaly_fraction": 0.43902439024390244,
+            "far_background_fraction": 0.016260162601626018,
+            "near_background_fraction": 0.5447154471544715
+          },
+          {
+            "P": 229,
+            "anomaly_boundary_fraction": 0.4366812227074236,
+            "anomaly_fraction": 0.6069868995633187,
+            "far_background_fraction": 0.10480349344978165,
+            "near_background_fraction": 0.28820960698689957
+          },
+          {
+            "P": 195,
+            "anomaly_boundary_fraction": 0.5025641025641026,
+            "anomaly_fraction": 0.6051282051282051,
+            "far_background_fraction": 0.06153846153846154,
+            "near_background_fraction": 0.3333333333333333
+          },
+          {
+            "P": 420,
+            "anomaly_boundary_fraction": 0.43333333333333335,
+            "anomaly_fraction": 0.6880952380952381,
+            "far_background_fraction": 0.05238095238095238,
+            "near_background_fraction": 0.25952380952380955
+          },
+          {
+            "P": 57,
+            "anomaly_boundary_fraction": 0.15789473684210525,
+            "anomaly_fraction": 0.15789473684210525,
+            "far_background_fraction": 0.17543859649122806,
+            "near_background_fraction": 0.6666666666666666
+          },
+          {
+            "P": 1234,
+            "anomaly_boundary_fraction": 0.0,
+            "anomaly_fraction": 0.0,
+            "far_background_fraction": 1.0,
+            "near_background_fraction": 0.0
+          },
+          {
+            "P": 636,
+            "anomaly_boundary_fraction": 0.39937106918238996,
+            "anomaly_fraction": 0.8852201257861635,
+            "far_background_fraction": 0.0,
+            "near_background_fraction": 0.11477987421383648
+          },
+          {
+            "P": 48,
+            "anomaly_boundary_fraction": 0.2916666666666667,
+            "anomaly_fraction": 0.2916666666666667,
+            "far_background_fraction": 0.14583333333333334,
+            "near_background_fraction": 0.5625
+          },
+          {
+            "P": 26,
+            "anomaly_boundary_fraction": 0.0,
+            "anomaly_fraction": 0.0,
+            "far_background_fraction": 0.07692307692307693,
+            "near_background_fraction": 0.9230769230769231
+          },
+          {
+            "P": 618,
+            "anomaly_boundary_fraction": 0.39158576051779936,
+            "anomaly_fraction": 0.4919093851132686,
+            "far_background_fraction": 0.14563106796116504,
+            "near_background_fraction": 0.36245954692556637
+          },
+          {
+            "P": 411,
+            "anomaly_boundary_fraction": 0.12408759124087591,
+            "anomaly_fraction": 0.1411192214111922,
+            "far_background_fraction": 0.6399026763990268,
+            "near_background_fraction": 0.21897810218978103
+          },
+          {
+            "P": 534,
+            "anomaly_boundary_fraction": 0.3857677902621723,
+            "anomaly_fraction": 0.795880149812734,
+            "far_background_fraction": 0.04681647940074907,
+            "near_background_fraction": 0.15730337078651685
+          },
+          {
+            "P": 1408,
+            "anomaly_boundary_fraction": 0.5660511363636364,
+            "anomaly_fraction": 0.6761363636363636,
+            "far_background_fraction": 0.006392045454545455,
+            "near_background_fraction": 0.3174715909090909
+          },
+          {
+            "P": 530,
+            "anomaly_boundary_fraction": 0.360377358490566,
+            "anomaly_fraction": 0.6547169811320754,
+            "far_background_fraction": 0.062264150943396226,
+            "near_background_fraction": 0.2830188679245283
+          },
+          {
+            "P": 246,
+            "anomaly_boundary_fraction": 0.491869918699187,
+            "anomaly_fraction": 0.6544715447154471,
+            "far_background_fraction": 0.044715447154471545,
+            "near_background_fraction": 0.3008130081300813
+          }
+        ]
+      }
+    },
+    "control": {
+      "background_inversions": {
+        "near_background_above_interior_median_fraction": 0.40848407146241533,
+        "near_background_above_positive_median_fraction": 0.44524652303575907,
+        "near_background_interior_pairwise_inversion_rate": 0.45184,
+        "near_background_positive_pairwise_inversion_rate": 0.462775,
+        "pairwise_sampling": {
+          "same_pairs_for_all_arms": true,
+          "sample_size": 200000,
+          "seed": 1729
+        }
+      },
+      "coverage": {
+        "boundary": {
+          "count": 26381,
+          "max": 0.9367494583129883,
+          "mean": 0.026743360616588854,
+          "median": 1.32119585032342e-05,
+          "p95": 0.1370120346546173,
+          "p99": 0.648054397106171
+        },
+        "far_background": {
+          "count": 25673194,
+          "max": 0.2914848327636719,
+          "mean": 1.896760655207952e-06,
+          "median": 6.010923314647698e-09,
+          "p95": 1.633938317979755e-08,
+          "p99": 7.85622091825644e-08,
+          "p99.5": 4.3647631287058175e-07
+        },
+        "interior": {
+          "count": 23650,
+          "max": 0.9999086856842041,
+          "mean": 0.22395577676443815,
+          "median": 3.0360319215105847e-05,
+          "p95": 0.9970997005701066,
+          "p99": 0.999782212972641
+        },
+        "near_background": {
+          "count": 35879,
+          "max": 0.6959066987037659,
+          "mean": 0.006860642829394855,
+          "median": 5.296614290273283e-06,
+          "p95": 0.01981563437730071,
+          "p99": 0.19876170814037405,
+          "p99.5": 0.31594967007637037
+        },
+        "negative": {
+          "count": 25709073,
+          "max": 0.6959066987037659,
+          "mean": 1.1468671326600492e-05,
+          "median": 6.010923314647698e-09,
+          "p95": 1.6596692020698356e-08,
+          "p99": 9.476410411934921e-08,
+          "p99.5": 7.029574362604762e-07
+        },
+        "positive": {
+          "count": 50031,
+          "max": 0.9999086856842041,
+          "mean": 0.1199670347765424,
+          "median": 1.4796668438066263e-05,
+          "p95": 0.9812389612197876,
+          "p99": 0.999337661266327
+        }
+      },
+      "feature_geometry_drift_from_e10": [
+        {
+          "linear_cka_to_e10": 0.9596848632247973,
+          "pooled_feature_cosine_to_e10_mean": 0.9968226743201059,
+          "pooled_feature_cosine_to_e10_median": 0.9969905995705078,
+          "pooled_feature_cosine_to_e10_p01": 0.9951836786910043,
+          "stage": 1
+        },
+        {
+          "linear_cka_to_e10": 0.9235597034965232,
+          "pooled_feature_cosine_to_e10_mean": 0.997325841603027,
+          "pooled_feature_cosine_to_e10_median": 0.9973632938024612,
+          "pooled_feature_cosine_to_e10_p01": 0.9959373006334942,
+          "stage": 2
+        },
+        {
+          "linear_cka_to_e10": 0.6583413641139322,
+          "pooled_feature_cosine_to_e10_mean": 0.9471447068735651,
+          "pooled_feature_cosine_to_e10_median": 0.9476971099423641,
+          "pooled_feature_cosine_to_e10_p01": 0.9317263929203075,
+          "stage": 3
+        }
+      ],
+      "matched_cardinality": {
+        "K": {
+          "count": 48,
+          "max": 9646.0,
+          "mean": 1042.3125,
+          "median": 516.5,
+          "p95": 4591.4,
+          "p99": 8384.990000000003
+        },
+        "definition": "For each anomalous image, K=min(GT anomaly pixels, GT background pixels); compare top-K background scores with bottom-K anomaly scores.",
+        "hard_background_mean": {
+          "count": 48,
+          "max": 0.045861318707466125,
+          "mean": 0.003944049556350193,
+          "median": 0.00013238463725429028,
+          "p95": 0.02297179764136671,
+          "p99": 0.03852993609383704
+        },
+        "violation_fraction": {
+          "count": 48,
+          "max": 1.0,
+          "mean": 0.5071427768915364,
+          "median": 0.40555550953804864,
+          "p95": 1.0,
+          "p99": 1.0
+        },
+        "weak_anomaly_mean": {
+          "count": 48,
+          "max": 0.6082794666290283,
+          "mean": 0.03754500518388137,
+          "median": 6.351179763441905e-05,
+          "p95": 0.1635008700191974,
+          "p99": 0.5933662003278732
+        }
+      },
+      "parameter_drift_from_e10": {
+        "anchor_families": {
+          "det_layer_norms": {
+            "difference_l2": 0.7056722647377386,
+            "parameter_count": 4608,
+            "reference_l2": 46.03123321843667,
+            "relative_l2": 0.01533029239927248
+          },
+          "det_proj": {
+            "difference_l2": 6.15614842867299,
+            "parameter_count": 1379328,
+            "reference_l2": 56.76695818297597,
+            "relative_l2": 0.10844598029772852
+          },
+          "dfg_raw_gamma": {
+            "difference_l2": 0.0,
+            "parameter_count": 3,
+            "reference_l2": 0.0,
+            "relative_l2": 0.0
+          },
+          "dfg_ss2d_branches": {
+            "difference_l2": 0.05774632513756412,
+            "parameter_count": 3550464,
+            "reference_l2": 89.48697082562158,
+            "relative_l2": 0.0006453042784305579
+          },
+          "direction_logits": {
+            "difference_l2": 0.0,
+            "parameter_count": 12,
+            "reference_l2": 0.03059022654600658,
+            "relative_l2": 0.0
+          },
+          "lora_adapters": {
+            "difference_l2": 15.47723775086328,
+            "parameter_count": 6514176,
+            "reference_l2": 152.3930677040007,
+            "relative_l2": 0.10156129792547618
+          },
+          "m_i_w": {
+            "difference_l2": 0.39989480045270004,
+            "parameter_count": 3072,
+            "reference_l2": 11.053888967404681,
+            "relative_l2": 0.03617684252410132
+          },
+          "seg_layer_norms": {
+            "difference_l2": 0.39074306849462637,
+            "parameter_count": 4608,
+            "reference_l2": 46.8225951576404,
+            "relative_l2": 0.008345181790524181
+          },
+          "seg_proj": {
+            "difference_l2": 6.7060917048420725,
+            "parameter_count": 1379328,
+            "reference_l2": 49.80383642075343,
+            "relative_l2": 0.13465010301992764
+          },
+          "vision_text_k": {
+            "difference_l2": 4.953151907381444,
+            "parameter_count": 589824,
+            "reference_l2": 60.55401470001029,
+            "relative_l2": 0.08179725047001057
+          },
+          "vision_text_q": {
+            "difference_l2": 2.2881264839698963,
+            "parameter_count": 589824,
+            "reference_l2": 67.93448669432834,
+            "relative_l2": 0.03368136855534562
+          }
+        },
+        "requested_families": {
+          "Conv-LoRA": {
+            "difference_l2": 15.47723775086328,
+            "parameter_count": 6514176,
+            "reference_l2": 152.3930677040007,
+            "relative_l2": 0.10156129792547618
+          },
+          "DFG_QK": {
+            "difference_l2": 5.4561191908022755,
+            "parameter_count": 1179648,
+            "reference_l2": 91.00485250090205,
+            "relative_l2": 0.05995415673849033
+          },
+          "SS2D": {
+            "difference_l2": 0.05774632513756412,
+            "parameter_count": 3550479,
+            "reference_l2": 89.48697605410302,
+            "relative_l2": 0.0006453042407271781
+          },
+          "image_projection": {
+            "difference_l2": 9.147699097140787,
+            "parameter_count": 2770944,
+            "reference_l2": 100.67933240632367,
+            "relative_l2": 0.09085975123695018
+          }
+        }
+      },
+      "ranking": {
+        "final": {
+          "ap": 0.41505513140962347,
+          "auroc": 0.8480070679319838
+        },
+        "stage_1": {
+          "ap": 0.35330901247118,
+          "auroc": 0.859137786127972
+        },
+        "stage_2": {
+          "ap": 0.3958028783246141,
+          "auroc": 0.7901790499811097
+        },
+        "stage_3": {
+          "ap": 0.30831925244677083,
+          "auroc": 0.8259746737428567
+        }
+      },
+      "top_P_composition": {
+        "definition": "P equals each anomalous image's GT anomaly-pixel count; report composition of the top-P predicted anomaly-score pixels.",
+        "mean": {
+          "anomaly_boundary_fraction": 0.316971633900729,
+          "anomaly_fraction": 0.4924721200158717,
+          "far_background_fraction": 0.208200868917937,
+          "near_background_fraction": 0.29932701106619125
+        },
+        "median": {
+          "anomaly_boundary_fraction": 0.35296226607893505,
+          "anomaly_fraction": 0.5944444904619514,
+          "far_background_fraction": 0.07805310991195683,
+          "near_background_fraction": 0.26187572590011615
+        },
+        "per_image": [
+          {
+            "P": 503,
+            "anomaly_boundary_fraction": 0.36381709741550694,
+            "anomaly_fraction": 0.7037773359840954,
+            "far_background_fraction": 0.0775347912524851,
+            "near_background_fraction": 0.21868787276341947
+          },
+          {
+            "P": 667,
+            "anomaly_boundary_fraction": 0.41679160419790107,
+            "anomaly_fraction": 0.5922038980509745,
+            "far_background_fraction": 0.07196401799100449,
+            "near_background_fraction": 0.335832083958021
+          },
+          {
+            "P": 12,
+            "anomaly_boundary_fraction": 0.25,
+            "anomaly_fraction": 0.25,
+            "far_background_fraction": 0.0,
+            "near_background_fraction": 0.75
+          },
+          {
+            "P": 429,
+            "anomaly_boundary_fraction": 0.0,
+            "anomaly_fraction": 0.0,
+            "far_background_fraction": 1.0,
+            "near_background_fraction": 0.0
+          },
+          {
+            "P": 462,
+            "anomaly_boundary_fraction": 0.4329004329004329,
+            "anomaly_fraction": 0.658008658008658,
+            "far_background_fraction": 0.047619047619047616,
+            "near_background_fraction": 0.2943722943722944
+          },
+          {
+            "P": 6963,
+            "anomaly_boundary_fraction": 0.0,
+            "anomaly_fraction": 0.0,
+            "far_background_fraction": 1.0,
+            "near_background_fraction": 0.0
+          },
+          {
+            "P": 594,
+            "anomaly_boundary_fraction": 0.5202020202020202,
+            "anomaly_fraction": 0.5252525252525253,
+            "far_background_fraction": 0.05387205387205387,
+            "near_background_fraction": 0.4208754208754209
+          },
+          {
+            "P": 955,
+            "anomaly_boundary_fraction": 0.44293193717277485,
+            "anomaly_fraction": 0.44293193717277485,
+            "far_background_fraction": 0.06492146596858639,
+            "near_background_fraction": 0.49214659685863876
+          },
+          {
+            "P": 282,
+            "anomaly_boundary_fraction": 0.40425531914893614,
+            "anomaly_fraction": 0.46808510638297873,
+            "far_background_fraction": 0.2375886524822695,
+            "near_background_fraction": 0.29432624113475175
+          },
+          {
+            "P": 1274,
+            "anomaly_boundary_fraction": 0.46938775510204084,
+            "anomaly_fraction": 0.6569858712715856,
+            "far_background_fraction": 0.11067503924646782,
+            "near_background_fraction": 0.23233908948194662
+          },
+          {
+            "P": 4256,
+            "anomaly_boundary_fraction": 0.13698308270676693,
+            "anomaly_fraction": 0.8745300751879699,
+            "far_background_fraction": 0.041588345864661654,
+            "near_background_fraction": 0.08388157894736842
+          },
+          {
+            "P": 181,
+            "anomaly_boundary_fraction": 0.43646408839779005,
+            "anomaly_fraction": 0.5966850828729282,
+            "far_background_fraction": 0.0055248618784530384,
+            "near_background_fraction": 0.39779005524861877
+          },
+          {
+            "P": 676,
+            "anomaly_boundary_fraction": 0.3224852071005917,
+            "anomaly_fraction": 0.7973372781065089,
+            "far_background_fraction": 0.04142011834319527,
+            "near_background_fraction": 0.16124260355029585
+          },
+          {
+            "P": 246,
+            "anomaly_boundary_fraction": 0.46747967479674796,
+            "anomaly_fraction": 0.6829268292682927,
+            "far_background_fraction": 0.052845528455284556,
+            "near_background_fraction": 0.26422764227642276
+          },
+          {
+            "P": 1355,
+            "anomaly_boundary_fraction": 0.2154981549815498,
+            "anomaly_fraction": 0.7675276752767528,
+            "far_background_fraction": 0.08413284132841328,
+            "near_background_fraction": 0.14833948339483394
+          },
+          {
+            "P": 741,
+            "anomaly_boundary_fraction": 0.349527665317139,
+            "anomaly_fraction": 0.349527665317139,
+            "far_background_fraction": 0.08097165991902834,
+            "near_background_fraction": 0.5695006747638327
+          },
+          {
+            "P": 2032,
+            "anomaly_boundary_fraction": 0.045275590551181105,
+            "anomaly_fraction": 0.09891732283464567,
+            "far_background_fraction": 0.8469488188976378,
+            "near_background_fraction": 0.054133858267716536
+          },
+          {
+            "P": 1459,
+            "anomaly_boundary_fraction": 0.25154215215901304,
+            "anomaly_fraction": 0.8272789581905414,
+            "far_background_fraction": 0.02467443454420836,
+            "near_background_fraction": 0.14804660726525018
+          },
+          {
+            "P": 766,
+            "anomaly_boundary_fraction": 0.3563968668407311,
+            "anomaly_fraction": 0.45822454308093996,
+            "far_background_fraction": 0.1801566579634465,
+            "near_background_fraction": 0.36161879895561355
+          },
+          {
+            "P": 959,
+            "anomaly_boundary_fraction": 0.0,
+            "anomaly_fraction": 0.0,
+            "far_background_fraction": 1.0,
+            "near_background_fraction": 0.0
+          },
+          {
+            "P": 325,
+            "anomaly_boundary_fraction": 0.4276923076923077,
+            "anomaly_fraction": 0.6584615384615384,
+            "far_background_fraction": 0.12615384615384614,
+            "near_background_fraction": 0.2153846153846154
+          },
+          {
+            "P": 103,
+            "anomaly_boundary_fraction": 0.6990291262135923,
+            "anomaly_fraction": 0.7669902912621359,
+            "far_background_fraction": 0.02912621359223301,
+            "near_background_fraction": 0.20388349514563106
+          },
+          {
+            "P": 126,
+            "anomaly_boundary_fraction": 0.5158730158730159,
+            "anomaly_fraction": 0.6190476190476191,
+            "far_background_fraction": 0.031746031746031744,
+            "near_background_fraction": 0.3492063492063492
+          },
+          {
+            "P": 35,
+            "anomaly_boundary_fraction": 0.05714285714285714,
+            "anomaly_fraction": 0.05714285714285714,
+            "far_background_fraction": 0.2571428571428571,
+            "near_background_fraction": 0.6857142857142857
+          },
+          {
+            "P": 9646,
+            "anomaly_boundary_fraction": 0.20080862533692723,
+            "anomaly_fraction": 0.27804271200497616,
+            "far_background_fraction": 0.5820029027576198,
+            "near_background_fraction": 0.1399543852374041
+          },
+          {
+            "P": 461,
+            "anomaly_boundary_fraction": 0.44685466377440347,
+            "anomaly_fraction": 0.8286334056399133,
+            "far_background_fraction": 0.0,
+            "near_background_fraction": 0.17136659436008678
+          },
+          {
+            "P": 869,
+            "anomaly_boundary_fraction": 0.3486766398158803,
+            "anomaly_fraction": 0.7180667433831991,
+            "far_background_fraction": 0.0805523590333717,
+            "near_background_fraction": 0.20138089758342922
+          },
+          {
+            "P": 551,
+            "anomaly_boundary_fraction": 0.29945553539019965,
+            "anomaly_fraction": 0.29945553539019965,
+            "far_background_fraction": 0.4627949183303085,
+            "near_background_fraction": 0.23774954627949182
+          },
+          {
+            "P": 499,
+            "anomaly_boundary_fraction": 0.29458917835671344,
+            "anomaly_fraction": 0.35070140280561124,
+            "far_background_fraction": 0.5050100200400801,
+            "near_background_fraction": 0.14428857715430862
+          },
+          {
+            "P": 86,
+            "anomaly_boundary_fraction": 0.11627906976744186,
+            "anomaly_fraction": 0.11627906976744186,
+            "far_background_fraction": 0.20930232558139536,
+            "near_background_fraction": 0.6744186046511628
+          },
+          {
+            "P": 4772,
+            "anomaly_boundary_fraction": 0.1791701592623638,
+            "anomaly_fraction": 0.8816010058675607,
+            "far_background_fraction": 0.03290025146689019,
+            "near_background_fraction": 0.08549874266554904
+          },
+          {
+            "P": 939,
+            "anomaly_boundary_fraction": 0.34824281150159747,
+            "anomaly_fraction": 0.8093716719914803,
+            "far_background_fraction": 0.004259850905218318,
+            "near_background_fraction": 0.18636847710330137
+          },
+          {
+            "P": 92,
+            "anomaly_boundary_fraction": 0.40217391304347827,
+            "anomaly_fraction": 0.40217391304347827,
+            "far_background_fraction": 0.05434782608695652,
+            "near_background_fraction": 0.5434782608695652
+          },
+          {
+            "P": 123,
+            "anomaly_boundary_fraction": 0.3902439024390244,
+            "anomaly_fraction": 0.3902439024390244,
+            "far_background_fraction": 0.06504065040650407,
+            "near_background_fraction": 0.5447154471544715
+          },
+          {
+            "P": 229,
+            "anomaly_boundary_fraction": 0.4497816593886463,
+            "anomaly_fraction": 0.6200873362445415,
+            "far_background_fraction": 0.09606986899563319,
+            "near_background_fraction": 0.2838427947598253
+          },
+          {
+            "P": 195,
+            "anomaly_boundary_fraction": 0.5128205128205128,
+            "anomaly_fraction": 0.6256410256410256,
+            "far_background_fraction": 0.07179487179487179,
+            "near_background_fraction": 0.30256410256410254
+          },
+          {
+            "P": 420,
+            "anomaly_boundary_fraction": 0.4166666666666667,
+            "anomaly_fraction": 0.6619047619047619,
+            "far_background_fraction": 0.07857142857142857,
+            "near_background_fraction": 0.25952380952380955
+          },
+          {
+            "P": 57,
+            "anomaly_boundary_fraction": 0.15789473684210525,
+            "anomaly_fraction": 0.15789473684210525,
+            "far_background_fraction": 0.24561403508771928,
+            "near_background_fraction": 0.5964912280701754
+          },
+          {
+            "P": 1234,
+            "anomaly_boundary_fraction": 0.0,
+            "anomaly_fraction": 0.0,
+            "far_background_fraction": 1.0,
+            "near_background_fraction": 0.0
+          },
+          {
+            "P": 636,
+            "anomaly_boundary_fraction": 0.3915094339622642,
+            "anomaly_fraction": 0.8773584905660378,
+            "far_background_fraction": 0.0,
+            "near_background_fraction": 0.12264150943396226
+          },
+          {
+            "P": 48,
+            "anomaly_boundary_fraction": 0.2916666666666667,
+            "anomaly_fraction": 0.2916666666666667,
+            "far_background_fraction": 0.14583333333333334,
+            "near_background_fraction": 0.5625
+          },
+          {
+            "P": 26,
+            "anomaly_boundary_fraction": 0.0,
+            "anomaly_fraction": 0.0,
+            "far_background_fraction": 0.038461538461538464,
+            "near_background_fraction": 0.9615384615384616
+          },
+          {
+            "P": 618,
+            "anomaly_boundary_fraction": 0.4110032362459547,
+            "anomaly_fraction": 0.511326860841424,
+            "far_background_fraction": 0.11326860841423948,
+            "near_background_fraction": 0.37540453074433655
+          },
+          {
+            "P": 411,
+            "anomaly_boundary_fraction": 0.15571776155717762,
+            "anomaly_fraction": 0.1922141119221411,
+            "far_background_fraction": 0.5620437956204379,
+            "near_background_fraction": 0.24574209245742093
+          },
+          {
+            "P": 534,
+            "anomaly_boundary_fraction": 0.3782771535580524,
+            "anomaly_fraction": 0.7846441947565543,
+            "far_background_fraction": 0.05056179775280899,
+            "near_background_fraction": 0.1647940074906367
+          },
+          {
+            "P": 1408,
+            "anomaly_boundary_fraction": 0.5646306818181818,
+            "anomaly_fraction": 0.6711647727272727,
+            "far_background_fraction": 0.006392045454545455,
+            "near_background_fraction": 0.3224431818181818
+          },
+          {
+            "P": 530,
+            "anomaly_boundary_fraction": 0.33584905660377357,
+            "anomaly_fraction": 0.6150943396226415,
+            "far_background_fraction": 0.1018867924528302,
+            "near_background_fraction": 0.2830188679245283
+          },
+          {
+            "P": 246,
+            "anomaly_boundary_fraction": 0.540650406504065,
+            "anomaly_fraction": 0.7032520325203252,
+            "far_background_fraction": 0.02032520325203252,
+            "near_background_fraction": 0.2764227642276423
+          }
+        ]
+      }
+    }
+  },
+  "loss_parity": {
+    "exact_disabled_path_all_batches": true,
+    "max_abs_gradient_difference": 0.0,
+    "max_abs_loss_difference": 0.0,
+    "pass": true
+  },
+  "margin": null,
+  "matched_rule": "K=min(GT anomaly pixels, GT background pixels); top-K background scores paired with bottom-K anomaly scores; hard background sorted descending and weak anomaly sorted ascending",
+  "mechanism": {
+    "anomaly_response_finite_and_non_degenerate": true,
+    "candidate_nonzero_thbr_attempts": 494,
+    "candidate_success_rows_with_thbr_values": 499,
+    "matched_cardinality_violation_candidate_lt_control": false,
+    "mechanism_established": false,
+    "near_or_far_p95_p99_decreased": true,
+    "no_near_far_p99_tail_increase": false,
+    "thbr_loss_nonzero_on_anomalous_attempts": true
+  },
+  "metric_deltas_candidate_minus_control": {
+    "boundary_max": 0.017686009407043457,
+    "boundary_mean": 0.006220235631700519,
+    "boundary_median": -3.563663995009847e-07,
+    "boundary_p95": 0.08049164712429047,
+    "boundary_p99": 0.06885827779769915,
+    "far_background_max": -0.005714386701583862,
+    "far_background_mean": 1.1776426267297805e-06,
+    "far_background_median": 6.425624476946723e-10,
+    "far_background_p95": -9.899530084567232e-10,
+    "far_background_p99": -1.4190646879796986e-08,
+    "final_ap": -0.010847331119427928,
+    "final_auroc": -0.03728301430718173,
+    "interior_max": -3.5762786865234375e-07,
+    "interior_mean": 0.011855710204733583,
+    "interior_median": -1.6717294784029946e-06,
+    "interior_p95": 0.0008154720067977683,
+    "interior_p99": 2.0265579223632812e-05,
+    "matched_violation_mean": 0.01172799505221378,
+    "matched_violation_median": 0.03660802407975783,
+    "matched_violation_p95": 0.0,
+    "matched_violation_p99": 0.0,
+    "near_background_above_interior_median_fraction": -0.0028150171409459523,
+    "near_background_above_positive_median_fraction": -0.00019510019788732125,
+    "near_background_interior_pairwise_inversion_rate": 0.011029999999999984,
+    "near_background_max": 0.16018527746200562,
+    "near_background_mean": 0.002441430970342518,
+    "near_background_median": -3.596246642700862e-07,
+    "near_background_p95": 0.008221146836876858,
+    "near_background_p99": 0.06695230543613492,
+    "near_background_positive_pairwise_inversion_rate": 0.007855000000000001,
+    "negative_max": 0.16018527746200562,
+    "negative_mean": 4.58320490216129e-06,
+    "negative_median": 6.425624476946723e-10,
+    "negative_p95": -1.1268745936376945e-09,
+    "negative_p99": -1.8618997899011447e-08,
+    "positive_max": -3.5762786865234375e-07,
+    "positive_mean": 0.008884163469485742,
+    "positive_median": -6.775790097890422e-07,
+    "positive_p95": 0.006208956241607666,
+    "positive_p99": 7.896423339837089e-05,
+    "stage_1_ap": -0.0049876959604724935,
+    "stage_1_auroc": -0.03221284434108729,
+    "stage_2_ap": 0.0031874329739531304,
+    "stage_2_auroc": -0.025918234546377095,
+    "stage_3_ap": -0.02427231667055857,
+    "stage_3_auroc": -0.08705277347273455,
+    "top_P_anomaly_boundary_fraction": -0.009801578766402363,
+    "top_P_anomaly_fraction": -0.012528733342479281,
+    "top_P_far_background_fraction": 0.013835756011065903,
+    "top_P_near_background_fraction": -0.0013070226685866215
+  },
+  "numerical_validity": {
+    "candidate": {
+      "nonfinite_grad_skips": 0,
+      "nonfinite_loss_skips": 0,
+      "numerical_failure": null
+    },
+    "control": {
+      "nonfinite_grad_skips": 1,
+      "nonfinite_loss_skips": 0,
+      "numerical_failure": null
+    },
+    "endpoint_finite": true,
+    "screen_numerical_valid": true
+  },
+  "prohibitions_observed": [
+    "No Medical or MVTec data loaded.",
+    "No target inference, target tuning, sweep, retry, or automatic follow-up.",
+    "Exactly one candidate mechanism: THBR matched hard-background/weak-anomaly loss.",
+    "No architecture, optimizer, learning-rate, precision, DFG, SS2D, prompt, or fusion changes.",
+    "Functional Feature Anchor, GradBudget, freeze, governor, and PCGrad were not introduced."
+  ],
+  "protocol_id": "H2_THBR_R1",
+  "provenance": {
+    "branch": "research/h2-thbr-r1",
+    "effective_worktree_clean_excluding_decision_outputs": true,
+    "local_head": "7543fd135ac9908fa39476b9c53566d404e6fd47",
+    "remote": "https://github.com/XLaiHuy/ACD-CLIP-.git",
+    "remote_head": "7543fd135ac9908fa39476b9c53566d404e6fd47"
+  },
+  "red_team": {
+    "case": "TAIL_GATE_FAILURE_WITH_PERFORMANCE_DROP",
+    "confirmatory_run_justified": false,
+    "interpretation": "Far-background tail improves, but the near-background p95/p99 tail worsens while both final AP and AUROC fall; THBR does not solve the measured bottleneck."
+  },
+  "score_space": "training seg_pred[:,1] post-fusion abnormal probability; endpoint uses existing equal-fusion 7x7-blur logit evaluator semantics",
+  "stage_metrics": {
+    "A_THBR_R1_CANDIDATE": {
+      "final": {
+        "ap": 0.40420780029019554,
+        "auroc": 0.810724053624802
+      },
+      "stage_1": {
+        "ap": 0.3483213165107075,
+        "auroc": 0.8269249417868847
+      },
+      "stage_2": {
+        "ap": 0.3989903112985672,
+        "auroc": 0.7642608154347326
+      },
+      "stage_3": {
+        "ap": 0.28404693577621226,
+        "auroc": 0.7389219002701222
+      }
+    },
+    "A_THBR_R1_CONTROL": {
+      "final": {
+        "ap": 0.41505513140962347,
+        "auroc": 0.8480070679319838
+      },
+      "stage_1": {
+        "ap": 0.35330901247118,
+        "auroc": 0.859137786127972
+      },
+      "stage_2": {
+        "ap": 0.3958028783246141,
+        "auroc": 0.7901790499811097
+      },
+      "stage_3": {
+        "ap": 0.30831925244677083,
+        "auroc": 0.8259746737428567
+      }
+    }
+  },
+  "strict_scientific_gates": {
+    "audit_authorized": true,
+    "equal_successful_count": true,
+    "exact_batch_identity": true,
+    "final_ap_candidate_ge_control": false,
+    "final_auroc_candidate_ge_control": false,
+    "interior_mean_candidate_ge_control": true,
+    "interior_median_candidate_ge_control": false,
+    "loss_parity": true,
+    "near_background_interior_inversion_candidate_le_control": false,
+    "near_background_p95_candidate_le_control": false,
+    "near_background_p99_candidate_le_control": false,
+    "near_background_positive_inversion_candidate_le_control": false,
+    "numerical_validity": true,
+    "positive_mean_candidate_ge_control": true,
+    "positive_median_candidate_ge_control": true
+  },
+  "temperature": null,
+  "training_counts": {
+    "candidate_attempted": 500,
+    "candidate_extra_natural_skips": [],
+    "candidate_paired_skip_indices": [
+      243
+    ],
+    "candidate_successful": 499,
+    "control_attempted": 500,
+    "control_natural_skip_indices": [
+      243
+    ],
+    "control_successful": 499,
+    "exact_batch_identity_match": true,
+    "paired_skip_status_match": true
+  }
+}
