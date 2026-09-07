@@ -1405,6 +1405,285 @@ def run_training_arm(payload: dict, arm: str, manifest: dict, control_rows: list
     return summary
 
 
+def state_group_drift(reference_state: dict, final_state: dict, prefix: str) -> dict:
+    names = sorted(name for name in reference_state if name.startswith(prefix) and name in final_state)
+    if not names:
+        return {"parameter_count": 0, "l2_delta": None, "reference_l2": None, "relative_l2_delta": None, "cosine_to_e10": None, "names": []}
+    ref = torch.cat([reference_state[name].detach().float().reshape(-1) for name in names])
+    cur = torch.cat([final_state[name].detach().float().reshape(-1) for name in names])
+    delta_value = cur - ref
+    ref_norm = float(ref.norm().cpu())
+    cur_norm = float(cur.norm().cpu())
+    delta_norm = float(delta_value.norm().cpu())
+    cosine = float(torch.dot(ref, cur).div(ref.norm() * cur.norm()).cpu()) if ref_norm > 0 and cur_norm > 0 else None
+    return {
+        "parameter_count": int(sum(reference_state[name].numel() for name in names)),
+        "l2_delta": delta_norm,
+        "reference_l2": ref_norm,
+        "final_l2": cur_norm,
+        "relative_l2_delta": delta_norm / ref_norm if ref_norm > 0 else None,
+        "cosine_to_e10": cosine,
+        "names": names,
+    }
+
+
+def endpoint_arm_metrics(data: dict, arm: str) -> dict:
+    mask, labels = data["mask"], data["labels"]
+    stage_metrics = []
+    for stage in range(3):
+        score = data["resized_stage_prob"][:, stage]
+        metric = spill.fusion_map_metrics(score, mask, labels, f"stage_{stage + 1}_resized")
+        metric.update({"arm": arm, "stage": stage + 1})
+        if stage == 1:
+            regional = spill.region_summary(score, mask)
+            metric["near_mean"] = regional["near"]["mean"]
+        stage_metrics.append(metric)
+    final_score = data["resized_fused_prob"]
+    final_metric = spill.fusion_map_metrics(final_score, mask, labels, "final_production_fused")
+    final_metric.update({"arm": arm, "stage": "final"})
+    final_regional = spill.region_summary(final_score, mask)
+    final_metric.update({
+        "near_mean": final_regional["near"]["mean"],
+        "far_mean": final_regional["far"]["mean"],
+    })
+    distance_profiles = {}
+    distance_rows = []
+    for map_name, score in (
+        ("stage_1_resized", data["resized_stage_prob"][:, 0]),
+        ("stage_2_resized", data["resized_stage_prob"][:, 1]),
+        ("stage_3_resized", data["resized_stage_prob"][:, 2]),
+        ("final_production_fused", final_score),
+    ):
+        current_rows, summary = spill.distance_rows(score, mask, f"{arm}_{map_name}", "518x518")
+        distance_rows.extend([{**row, "arm": arm, "map": map_name} for row in current_rows])
+        distance_profiles[map_name] = {row["bin"]: row for row in current_rows if row["bin"] != "ALL_OUTSIDE"}
+        distance_profiles[map_name]["ALL_OUTSIDE"] = summary
+    return {
+        "arm": arm,
+        "checkpoint": data["checkpoint"],
+        "checkpoint_sha256": data["checkpoint_sha256"],
+        "stage_metrics": stage_metrics,
+        "final_metric": final_metric,
+        "distance_profiles": distance_profiles,
+        "distance_rows": distance_rows,
+        "maps": data,
+    }
+
+
+def endpoint_phase(payload: dict) -> dict:
+    if not all_training_gates_pass():
+        raise RuntimeError("endpoint requires all pre-training gates")
+    if not OUT_CONTROL_CSV.is_file() or not OUT_CANDIDATE_CSV.is_file():
+        raise RuntimeError("both control and candidate CSVs are required before endpoint")
+    control_path = RUN_ROOT / ARM_CONTROL / "final.pth"
+    candidate_path = RUN_ROOT / ARM_CANDIDATE / "final.pth"
+    if not control_path.is_file() or not candidate_path.is_file():
+        raise RuntimeError("both final training checkpoints are required before endpoint")
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is required for endpoint evaluation")
+    torch.backends.cuda.matmul.allow_tf32 = False
+    torch.backends.cudnn.allow_tf32 = False
+    device = torch.device("cuda:0")
+    rows, _ = spill.load_rows()
+    model = spill.make_model(device)
+    control_data = spill.evaluate_maps(model, control_path, rows, device, full=False)
+    control = endpoint_arm_metrics(control_data, "CONTROL")
+    del control_data
+    torch.cuda.empty_cache()
+    candidate_data = spill.evaluate_maps(model, candidate_path, rows, device, full=False)
+    candidate = endpoint_arm_metrics(candidate_data, "CANDIDATE")
+    del candidate_data, model
+    torch.cuda.empty_cache()
+    e10_payload = torch.load(SAFE_ANCHOR, map_location="cpu", weights_only=False)
+    e10_state = e10_payload["model_state"]["image_adapter"]
+    drift = {}
+    for arm, path in (("CONTROL", control_path), ("CANDIDATE", candidate_path)):
+        final_payload = torch.load(path, map_location="cpu", weights_only=False)
+        final_state = final_payload["model_state"]["image_adapter"]
+        drift[arm] = {
+            "stage1_convlora": state_group_drift(e10_state, final_state, "lora_adapters.0."),
+            "stage2_convlora": state_group_drift(e10_state, final_state, "lora_adapters.1."),
+            "stage3_convlora": state_group_drift(e10_state, final_state, "lora_adapters.2."),
+            "stage2_projection": state_group_drift(e10_state, final_state, "seg_proj.1."),
+            "stage2_dfg_q": state_group_drift(e10_state, final_state, "vision_text_q.1."),
+            "stage2_dfg_k": state_group_drift(e10_state, final_state, "vision_text_k.1."),
+            "stage2_ss2d": state_group_drift(e10_state, final_state, "dfg_ss2d_branches.1."),
+            "stage2_ss2d_gamma": state_group_drift(e10_state, final_state, "dfg_raw_gamma.1."),
+            "checkpoint_epoch": final_payload.get("epoch"),
+            "checkpoint_global_step": final_payload.get("global_step"),
+            "checkpoint_sha256": spill.sha256_file(path),
+        }
+    endpoint_json = {
+        "protocol_id": "EXPLORATORY_SOURCE_ONLY_MECHANISM_R1",
+        "phase": "25_fixed_source_endpoint",
+        "cohort": {"count": 96, "source": str(COHORT.relative_to(REPO)), "source_sha256": spill.sha256_file(COHORT)},
+        "fusion": "equal pre-softmax stage-logit fusion only",
+        "control": {k: v for k, v in control.items() if k != "maps"},
+        "candidate": {k: v for k, v in candidate.items() if k != "maps"},
+        "parameter_geometry_drift": drift,
+        "no_target_inference": True,
+        "medical_inference": False,
+        "mvtec_inference": False,
+    }
+    csv_rows = []
+    for arm_data in (control, candidate):
+        for metric in arm_data["stage_metrics"]:
+            csv_rows.append({"scope": "stage", "arm": arm_data["arm"], **{k: v for k, v in metric.items() if k not in ("arm",)}})
+        csv_rows.append({"scope": "final", "arm": arm_data["arm"], **{k: v for k, v in arm_data["final_metric"].items() if k not in ("arm",)}})
+        for map_name, bins in arm_data["distance_profiles"].items():
+            for bin_name, metric in bins.items():
+                csv_rows.append({"scope": "distance", "arm": arm_data["arm"], "map": map_name, **metric})
+        for name, metric in drift[arm_data["arm"]].items():
+            if isinstance(metric, dict):
+                csv_rows.append({"scope": "drift", "arm": arm_data["arm"], "family": name, **{k: v for k, v in metric.items() if k != "names"}})
+    write_csv(OUT_ENDPOINT_CSV, csv_rows)
+    dump_json(OUT_ENDPOINT_JSON, endpoint_json)
+    return endpoint_json
+
+
+def decision_phase() -> dict:
+    endpoint = json.loads(OUT_ENDPOINT_JSON.read_text())
+    control_rows = list(csv.DictReader(OUT_CONTROL_CSV.open(newline="")))
+    candidate_rows = list(csv.DictReader(OUT_CANDIDATE_CSV.open(newline="")))
+    identity_fields = ("attempt_index", "epoch", "batch", "file_names", "labels", "image_sha256", "mask_sha256", "image_sha256_per_item", "mask_sha256_per_item")
+    exact_batch_match = len(control_rows) == len(candidate_rows) == MAX_ATTEMPTS and all(all(left[field] == right[field] for field in identity_fields) for left, right in zip(control_rows, candidate_rows))
+    control_success = sum(int(row["successful_update"]) for row in control_rows)
+    candidate_success = sum(int(row["successful_update"]) for row in candidate_rows)
+    control_natural = sum(int(row["natural_skip"]) for row in control_rows)
+    candidate_natural = sum(int(row["natural_skip"]) for row in candidate_rows)
+    candidate_forced = sum(int(row["forced_parity_skip"]) for row in candidate_rows)
+    additional_natural = [row["attempt_index"] for row in candidate_rows if row["natural_skip"] == "1" and control_rows[int(row["attempt_index"])] ["natural_skip"] != "1"]
+    control = endpoint["control"]
+    candidate = endpoint["candidate"]
+    control_final = control["final_metric"]
+    candidate_final = candidate["final_metric"]
+    control_stage2 = control["stage_metrics"][1]
+    candidate_stage2 = candidate["stage_metrics"][1]
+    active_rows = [row for row in candidate_rows if int(row["active_component_count"]) > 0 and float(row["weighted_s2_locr_loss"]) > 0.0]
+    def ge(left, right, tol=0.0):
+        return left >= right - tol
+    def le(left, right, tol=0.0):
+        return left <= right + tol
+    gates = {
+        "training_authorization": all_training_gates_pass(),
+        "numerical_validity": not additional_natural and all(row["parameters_finite"] == "1" and row["optimizer_state_finite"] == "1" for row in control_rows + candidate_rows),
+        "exact_attempted_batch_identity": exact_batch_match,
+        "successful_step_count_match": control_success == candidate_success == MAX_ATTEMPTS,
+        "s2_locr_active": len(active_rows) > 0,
+        "stage2_near_p95_decreases": candidate_stage2["near_p95"] < control_stage2["near_p95"],
+        "stage2_near_p99_decreases": candidate_stage2["near_p99"] < control_stage2["near_p99"],
+        "final_near_p95_not_increased": le(candidate_final["near_p95"], control_final["near_p95"]),
+        "final_near_p99_not_increased": le(candidate_final["near_p99"], control_final["near_p99"]),
+        "final_ap_non_decrease": ge(candidate_final["ap"], control_final["ap"]),
+        "final_auroc_non_decrease": ge(candidate_final["auroc"], control_final["auroc"]),
+        "positive_mean_non_decrease": ge(candidate_final["positive_mean"], control_final["positive_mean"], 1e-6),
+        "positive_median_non_decrease": ge(candidate_final["positive_median"], control_final["positive_median"], 1e-6),
+        "interior_mean_non_decrease": ge(candidate_final["interior_mean"], control_final["interior_mean"], 1e-6),
+        "interior_median_non_decrease": ge(candidate_final["interior_median"], control_final["interior_median"], 1e-6),
+        "near_positive_inversion_not_increased": le(candidate_final["near_gt_positive_inversion"], control_final["near_gt_positive_inversion"], 1e-6),
+        "near_interior_inversion_not_increased": le(candidate_final["near_gt_interior_inversion"], control_final["near_gt_interior_inversion"], 1e-6),
+    }
+    bounded_pass = all(gates.values())
+    if not gates["training_authorization"]:
+        bounded_screen = "PREFLIGHT_REJECTED"
+    elif not gates["numerical_validity"]:
+        bounded_screen = "INVALID_NUMERICAL"
+    elif bounded_pass:
+        bounded_screen = "PASS"
+    else:
+        bounded_screen = "FAIL"
+    if bounded_screen == "PASS":
+        mechanism = "SUPPORTED"
+        confirmatory = "YES"
+        recommendation = "RECOMMEND_SEPARATE_CROSS_DOMAIN_STAGE_WISE_GENERALIZATION_AUDIT"
+        interpretation = "CASE_A"
+    elif bounded_screen == "INVALID_NUMERICAL":
+        mechanism = "NOT_ESTABLISHED"
+        confirmatory = "NO"
+        recommendation = "NOT_TRIGGERED"
+        interpretation = "NUMERICAL_INVALIDITY"
+    else:
+        mechanism = "NOT_SUPPORTED"
+        confirmatory = "NO"
+        recommendation = "NOT_TRIGGERED"
+        interpretation = "CASE_F_OR_MECHANISM_GATE_FAILURE"
+    final_metrics = {
+        "final_auroc_control": control_final["auroc"],
+        "final_auroc_candidate": candidate_final["auroc"],
+        "final_auroc_delta": candidate_final["auroc"] - control_final["auroc"],
+        "final_ap_control": control_final["ap"],
+        "final_ap_candidate": candidate_final["ap"],
+        "final_ap_delta": candidate_final["ap"] - control_final["ap"],
+        "stage2_near_bg_p95_control": control_stage2["near_p95"],
+        "stage2_near_bg_p95_candidate": candidate_stage2["near_p95"],
+        "stage2_near_bg_p95_delta": candidate_stage2["near_p95"] - control_stage2["near_p95"],
+        "stage2_near_bg_p99_control": control_stage2["near_p99"],
+        "stage2_near_bg_p99_candidate": candidate_stage2["near_p99"],
+        "stage2_near_bg_p99_delta": candidate_stage2["near_p99"] - control_stage2["near_p99"],
+        "final_near_bg_p95_delta": candidate_final["near_p95"] - control_final["near_p95"],
+        "final_near_bg_p99_delta": candidate_final["near_p99"] - control_final["near_p99"],
+        "positive_mean_delta": candidate_final["positive_mean"] - control_final["positive_mean"],
+        "positive_median_delta": candidate_final["positive_median"] - control_final["positive_median"],
+        "interior_mean_delta": candidate_final["interior_mean"] - control_final["interior_mean"],
+        "interior_median_delta": candidate_final["interior_median"] - control_final["interior_median"],
+        "boundary_mean_delta": candidate_final["boundary_mean"] - control_final["boundary_mean"],
+        "near_positive_inversion_delta": candidate_final["near_gt_positive_inversion"] - control_final["near_gt_positive_inversion"],
+        "near_interior_inversion_delta": candidate_final["near_gt_interior_inversion"] - control_final["near_gt_interior_inversion"],
+    }
+    decision = {
+        "protocol_id": "EXPLORATORY_SOURCE_ONLY_MECHANISM_R1",
+        "interpretation_case": interpretation,
+        "training_authorization": "YES" if gates["training_authorization"] else "NO",
+        "control_attempted": len(control_rows), "control_natural_skips": control_natural, "control_successful": control_success,
+        "candidate_attempted": len(candidate_rows), "candidate_natural_skips": candidate_natural, "candidate_forced_parity_skips": candidate_forced, "candidate_successful": candidate_success,
+        "candidate_additional_natural_skip_attempts": additional_natural,
+        "exact_batch_match": exact_batch_match,
+        "successful_count_match": control_success == candidate_success,
+        "active_candidate_attempts": len(active_rows),
+        "gates": gates,
+        "final_metrics": final_metrics,
+        "numerical_validity": "PASS" if gates["numerical_validity"] else "FAIL",
+        "s2_locr_mechanism": mechanism,
+        "bounded_screen": bounded_screen,
+        "full_confirmatory_run_justified": confirmatory,
+        "post_run_recommendation": recommendation,
+        "new_full_training_run": False,
+        "medical_inference_run": False,
+        "mvtec_inference_run": False,
+        "target_tuning_used": False,
+        "hyperparameter_sweep": False,
+        "waiting_for_user_approval": True,
+    }
+    markdown_lines = [
+        "# H2 S2-LOCR R1 Bounded Decision", "",
+        f"* `S2_LOCR_TRAINING_AUTHORIZED={decision['training_authorization']}`",
+        f"* `NUMERICAL_VALIDITY={decision['numerical_validity']}`",
+        f"* `BOUNDED_SCREEN={bounded_screen}`",
+        f"* `S2_LOCR_MECHANISM={mechanism}`",
+        f"* `FULL_CONFIRMATORY_RUN_JUSTIFIED={confirmatory}`",
+        f"* `INTERPRETATION={interpretation}`", "",
+        "## Pairing",
+        f"* attempts: control={len(control_rows)}, candidate={len(candidate_rows)}",
+        f"* successful: control={control_success}, candidate={candidate_success}",
+        f"* exact batch identity: `{exact_batch_match}`",
+        f"* candidate additional natural skips: `{additional_natural}`", "",
+        "## Gate results",
+    ]
+    markdown_lines.extend(f"* `{name}={'PASS' if value else 'FAIL'}`" for name, value in gates.items())
+    markdown_lines.extend([
+        "", "## Interpretation", "",
+        "The result is a source-only exploratory mechanism screen. It does not establish novelty or authorize a confirmatory full run automatically.",
+        f"", f"Post-run recommendation flag: `{recommendation}`.", "",
+        "## Prohibitions and scope",
+        "Medical inference: NO; MVTec inference: NO; target tuning: NO; hyperparameter sweep: NO; E15/E20 full training: NO.",
+        "WAITING_FOR_USER_APPROVAL=YES",
+    ])
+    OUT_DECISION_MD.parent.mkdir(parents=True, exist_ok=True)
+    OUT_DECISION_MD.write_text("\n".join(markdown_lines) + "\n")
+    dump_json(OUT_DECISION_JSON, decision)
+    return decision
+
+
 def auxiliary_locality_phase(payload: dict) -> dict:
     check_coverage()
     if not torch.cuda.is_available():
@@ -1680,7 +1959,7 @@ def loss_parity_phase(payload: dict) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--phase", choices=("identity", "oracle", "coverage", "locality", "preflight", "calibration", "parity", "manifest", "control", "candidate"), required=True)
+    parser.add_argument("--phase", choices=("identity", "oracle", "coverage", "locality", "preflight", "calibration", "parity", "manifest", "control", "candidate", "endpoint", "decision"), required=True)
     args = parser.parse_args()
     rows, _ = spill.load_rows()
     if args.phase in {"identity", "oracle"}:
@@ -1714,6 +1993,10 @@ def main() -> None:
             raise RuntimeError("manifest and control artifacts are required before candidate")
         manifest = json.loads(OUT_MANIFEST_JSON.read_text())
         run_training_arm(torch.load(SAFE_ANCHOR, map_location="cpu", weights_only=False), ARM_CANDIDATE, manifest, load_control_rows())
+    elif args.phase == "endpoint":
+        endpoint_phase(torch.load(SAFE_ANCHOR, map_location="cpu", weights_only=False))
+    elif args.phase == "decision":
+        decision_phase()
 
 
 if __name__ == "__main__":
