@@ -52,6 +52,8 @@ PATCH = 37
 PATCH_SIZE = 14
 BATCH = 8
 PAIR_SEED = 1729
+METRIC_PIXEL_CAP = 200_000
+PER_IMAGE_METRIC_CAP = 2048
 PARENT_HEAD = "f44cca2e163585dba3bbffc99c45518501db4852"
 SAFE_ANCHOR = Path("/workspace/h2_safe_anchor_e20_medical_selected/adapter_10.pth")
 SAFE_SHA = "64b72dc3d1155285c826781bee4c5970bd45218e95b21675fd19d9a6b2ab54a7"
@@ -137,6 +139,38 @@ def finite(value):
 def delta(a, b):
     a, b = finite(a), finite(b)
     return None if a is None or b is None else a - b
+
+
+def audit_binary_metrics(scores: np.ndarray, labels: np.ndarray) -> dict:
+    """Memory-bounded deterministic pixel AP/AUROC calculation.
+
+    The retained endpoint arrays are full-resolution.  The cgroup available to
+    this audit cannot hold the several transient float64/cumulative arrays
+    created by the historical helper while sorting 25M+ pixels.  Therefore the
+    fixed, seed-1729 cap is applied identically to every arm and intervention;
+    it is a computational cap, not a tuned scientific parameter.
+    """
+    x = np.asarray(scores, dtype=np.float32).reshape(-1)
+    y = np.asarray(labels, dtype=np.uint8).reshape(-1)
+    if x.size > METRIC_PIXEL_CAP:
+        rng = np.random.default_rng(PAIR_SEED)
+        chosen = rng.choice(x.size, size=METRIC_PIXEL_CAP, replace=False)
+        chosen.sort()
+        x, y = x[chosen], y[chosen]
+    valid = np.isfinite(x)
+    x, y = x[valid], y[valid]
+    if not x.size or y.min() == y.max():
+        return {"auroc": None, "ap": None, "pixel_count": int(x.size), "pixel_metric_cap": METRIC_PIXEL_CAP}
+    order = np.argsort(-x, kind="stable")
+    sy = y[order]
+    tp = np.cumsum(sy, dtype=np.float64)
+    fp = np.cumsum(1 - sy, dtype=np.float64)
+    positives, negatives = float(tp[-1]), float(fp[-1])
+    ap = float((tp / np.maximum(tp + fp, 1.0) * sy).sum() / positives)
+    ends = np.r_[np.flatnonzero(x[order][1:] != x[order][:-1]), len(sy) - 1]
+    tpr = np.r_[0.0, tp[ends] / positives]
+    fpr = np.r_[0.0, fp[ends] / negatives]
+    return {"auroc": float(np.trapezoid(tpr, fpr)), "ap": ap, "pixel_count": int(x.size), "pixel_metric_cap": METRIC_PIXEL_CAP}
 
 
 def current_branch() -> str:
@@ -274,7 +308,7 @@ def production_exact(model, vision, text):
     return {"native_logits": native, "resized_logits": resized, "native_prob": F.softmax(native, 2)[:, :, 1].permute(1, 0, 2, 3), "resized_prob": F.softmax(resized, 2)[:, :, 1].permute(1, 0, 2, 3), "fused_prob": F.softmax(fused_resized, 1)[:, 1], "fused_margin": fused_resized[:, 1] - fused_resized[:, 0]}
 
 
-def evaluate_exact(checkpoint: Path, rows: list[dict], device: torch.device, requires_grad: bool = False) -> dict:
+def evaluate_exact(checkpoint: Path, rows: list[dict], device: torch.device, requires_grad: bool = False, minimal: bool = True) -> dict:
     model = spill.make_model(device)
     spill.load_endpoint(model, checkpoint)
     if requires_grad:
@@ -283,7 +317,9 @@ def evaluate_exact(checkpoint: Path, rows: list[dict], device: torch.device, req
         model.requires_grad_(False)
     datasets, indices = spill.load_selection_datasets(rows)
     policy = PrecisionPolicy("fp16")
-    chunks = {k: [] for k in ("native_logits", "resized_logits", "native_prob", "resized_prob", "fused_prob", "fused_margin", "mask")}
+    # Scalar margins retain the exact two-class softmax/fusion algebra while
+    # keeping the 518x518 endpoint audit within host memory.
+    chunks = {k: [] for k in ("native_margin", "resized_margin", "mask")}
     names, labels, categories = [], [], []
     context = torch.enable_grad() if requires_grad else torch.no_grad()
     with context:
@@ -299,10 +335,10 @@ def evaluate_exact(checkpoint: Path, rows: list[dict], device: torch.device, req
                 for key in chunks:
                     if key == "mask":
                         chunks[key].append((batch["mask"][:, 0].numpy() > .5).astype(np.uint8))
-                    elif key in ("native_logits", "resized_logits"):
-                        chunks[key].append(maps[key].permute(1, 0, 2, 3, 4).float().detach().cpu().numpy())
-                    else:
-                        chunks[key].append(maps[key].float().detach().cpu().numpy())
+                    elif key == "native_margin":
+                        chunks[key].append((maps["native_logits"][:, :, 1] - maps["native_logits"][:, :, 0]).permute(1, 0, 2, 3).float().detach().cpu().numpy())
+                    elif key == "resized_margin":
+                        chunks[key].append((maps["resized_logits"][:, :, 1] - maps["resized_logits"][:, :, 0]).permute(1, 0, 2, 3).float().detach().cpu().numpy())
                 names.extend(list(batch["file_name"]))
                 labels.extend(batch["label"].numpy().astype(np.uint8).tolist())
                 categories.extend([category] * len(batch["file_name"]))
@@ -313,6 +349,11 @@ def evaluate_exact(checkpoint: Path, rows: list[dict], device: torch.device, req
     if names != expected:
         raise RuntimeError("exact evaluator order mismatch")
     out = {key: np.concatenate(value, axis=0) for key, value in chunks.items()}
+    out["fused_margin"] = out["resized_margin"].mean(axis=1)
+    out["fused_prob"] = 1.0 / (1.0 + np.exp(-np.clip(out["fused_margin"], -80.0, 80.0)))
+    if not minimal:
+        out["native_prob"] = 1.0 / (1.0 + np.exp(-np.clip(out["native_margin"], -80.0, 80.0)))
+        out["resized_prob"] = 1.0 / (1.0 + np.exp(-np.clip(out["resized_margin"], -80.0, 80.0)))
     out.update({"names": np.asarray(names, dtype=object), "categories": np.asarray(categories, dtype=object), "labels": np.asarray(labels, dtype=np.uint8), "checkpoint": str(checkpoint), "checkpoint_sha256": sha_file(checkpoint)})
     del model
     if device.type == "cuda":
@@ -326,20 +367,37 @@ def anomaly_near_metrics(score: np.ndarray, mask: np.ndarray) -> dict:
     for s, m in zip(score, mask):
         b, i, n, _ = spill.morphology(m)
         if m.any() and n.any():
-            positive.append(s[m].reshape(-1)); negative.append(s[n].reshape(-1))
-            if i.any(): interior.append(s[i].reshape(-1))
-            if b.any(): boundary.append(s[b].reshape(-1))
+            positive.append(s[m].reshape(-1)[:PER_IMAGE_METRIC_CAP]); negative.append(s[n].reshape(-1)[:PER_IMAGE_METRIC_CAP])
+            if i.any(): interior.append(s[i].reshape(-1)[:PER_IMAGE_METRIC_CAP])
+            if b.any(): boundary.append(s[b].reshape(-1)[:PER_IMAGE_METRIC_CAP])
     def bm(left, right):
         if not left or not right:
             return {"auroc": None, "ap": None, "pixel_count": 0}
         x = np.concatenate(left + right); y = np.concatenate([np.ones(sum(len(v) for v in left), dtype=np.uint8), np.zeros(sum(len(v) for v in right), dtype=np.uint8)])
-        return spill.binary_metrics(x, y)
+        return audit_binary_metrics(x, y)
     result = {"anomaly_vs_near": bm(positive, negative), "interior_vs_near": bm(interior, negative), "boundary_vs_near": bm(boundary, negative)}
     return result
 
 
 def region_fields(score: np.ndarray, mask: np.ndarray) -> dict:
-    s = spill.region_summary(score, mask)
+    # Compute one region at a time; spill.region_summary retains six full
+    # concatenated region arrays and exceeds the audit cgroup on 518x518 maps.
+    def stream_stats(region_name):
+        chunks = []
+        for current, current_mask in zip(score, mask):
+            b, i, n, f = spill.morphology(current_mask)
+            region = {"positive": current_mask.astype(bool), "interior": i, "boundary": b, "near": n, "far": f}[region_name]
+            if region.any(): chunks.append(current[region].reshape(-1)[:PER_IMAGE_METRIC_CAP])
+        if not chunks: return {"mean": None, "median": None, "p95": None, "p99": None}
+        values = np.concatenate(chunks).astype(np.float32, copy=False)
+        if values.size > METRIC_PIXEL_CAP:
+            region_seed = {"positive": 11, "interior": 13, "boundary": 17, "near": 19, "far": 23}[region_name]
+            rng = np.random.default_rng(PAIR_SEED + region_seed)
+            values = values[rng.choice(values.size, METRIC_PIXEL_CAP, replace=False)]
+        values = values[np.isfinite(values)]
+        if not values.size: return {"mean": None, "median": None, "p95": None, "p99": None}
+        return {"mean": float(values.mean()), "median": float(np.median(values)), "p95": float(np.quantile(values, .95)), "p99": float(np.quantile(values, .99))}
+    s = {name: stream_stats(name) for name in ("positive", "interior", "boundary", "near", "far")}
     out = {}
     for region in ("positive", "interior", "boundary", "near", "far"):
         for stat in ("mean", "median", "p95", "p99"):
@@ -350,7 +408,7 @@ def region_fields(score: np.ndarray, mask: np.ndarray) -> dict:
 
 
 def fused_metric(score, mask, labels, name="final") -> dict:
-    out = {"map": name, **spill.binary_metrics(score, mask)}
+    out = {"map": name, **audit_binary_metrics(score, mask)}
     out.update(region_fields(score, mask))
     out.update(anomaly_near_metrics(score, mask))
     return out
@@ -371,9 +429,9 @@ def local_or_far(base: np.ndarray, mask: np.ndarray, stage: int, far_control: bo
         chosen = far_idx[:n] if far_control else near_idx[:n]
         selected_counts.append(int(n))
         if n:
-            other = (base[(stage + 1) % 3, i].reshape(2, -1) + base[(stage + 2) % 3, i].reshape(2, -1)) / 2.0
-            flat = out[stage, i].reshape(2, -1)
-            flat[:, chosen] = other[:, chosen]
+            other = (base[i, (stage + 1) % 3].reshape(-1) + base[i, (stage + 2) % 3].reshape(-1)) / 2.0
+            flat = out[i, stage].reshape(-1)
+            flat[chosen] = other[chosen]
     return out, selected_counts
 
 
@@ -387,15 +445,15 @@ def oracle_phase() -> dict:
     unique_support = {}
     for cohort, rows in rows_by.items():
         data = evaluate_exact(SAFE_ANCHOR, rows, device)
-        base = data["resized_logits"]
-        base_fused = F.softmax(torch.from_numpy(base.mean(1)), dim=1).numpy()[:, 1]
+        base = data["resized_margin"]
+        base_fused = 1.0 / (1.0 + np.exp(-np.clip(base.mean(1), -80.0, 80.0)))
         cohort_metrics = {}
         baseline = fused_metric(base_fused, data["mask"], data["labels"], "baseline")
         cohort_metrics["baseline"] = baseline
         for stage in range(3):
             for kind in ("local", "far"):
                 altered, counts = local_or_far(base, data["mask"], stage, far_control=kind == "far")
-                fused = F.softmax(torch.from_numpy(altered.mean(1)), dim=1).numpy()[:, 1]
+                fused = 1.0 / (1.0 + np.exp(-np.clip(altered.mean(1), -80.0, 80.0)))
                 key = f"{kind}_s{stage+1}"
                 metric = fused_metric(fused, data["mask"], data["labels"], key)
                 metric["replacement_pixel_count_mean"] = float(np.mean(counts))
@@ -444,8 +502,8 @@ def occupancy_phase() -> dict:
     bins = [("EXACT_0", 0.0, 0.0, "eq0"), ("LOW", 0.0, .25, "open_left"), ("MID_LOW", .25, .5, "open_left"), ("MID_HIGH", .5, .75, "open_left"), ("HIGH", .75, 1.0, "open_left"), ("EXACT_1", 1.0, 1.0, "eq1")]
     rows, structured = [], []
     for stage in range(3):
-        prob = data["native_prob"][:, stage]
-        margin = data["native_logits"][:, stage, 1] - data["native_logits"][:, stage, 0]
+        prob = 1.0 / (1.0 + np.exp(-np.clip(data["native_margin"][:, stage], -80.0, 80.0)))
+        margin = data["native_margin"][:, stage]
         for name, low, high, mode in bins:
             occ = (occupancy == 0) if mode == "eq0" else (occupancy == 1 if mode == "eq1" else ((occupancy > low) & (occupancy <= high)))
             for distance_region in ("all", "positive", "near", "far", "boundary", "interior"):
@@ -460,7 +518,7 @@ def occupancy_phase() -> dict:
                 rows.append(row)
     for cohort, indices in (("A", range(96)), ("B", range(96, 192))):
         for stage in range(3):
-            z = data["native_prob"][list(indices), stage]
+            z = 1.0 / (1.0 + np.exp(-np.clip(data["native_margin"][list(indices), stage], -80.0, 80.0)))
             o = occupancy[list(indices)]
             near_vals = z[(o == 0) & np.stack([spill.morphology(native_masks[i])[2] for i in indices])]
             far_vals = z[(o == 0) & np.stack([spill.morphology(native_masks[i])[3] for i in indices])]
