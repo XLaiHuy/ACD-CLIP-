@@ -1,0 +1,213 @@
+{
+  "counterfactual_constraints": "Only additive learned residuals use bypass; DFG/segmentation projection use input/output or directional attribution; no arbitrary uniform attention or identity projection is introduced.",
+  "edges": [
+    {
+      "from": "clip_patch_stage1",
+      "to": "convlora_raw"
+    },
+    {
+      "from": "convlora_raw",
+      "to": "post_convlora"
+    },
+    {
+      "from": "post_convlora",
+      "to": "pre_seg_projection"
+    },
+    {
+      "from": "pre_seg_projection",
+      "to": "post_seg_projection"
+    },
+    {
+      "from": "post_seg_projection",
+      "to": "dfg_input"
+    },
+    {
+      "from": "dfg_input",
+      "to": "dfg_qk_compatibility"
+    },
+    {
+      "from": "dfg_input",
+      "to": "ss2d_input"
+    },
+    {
+      "from": "ss2d_input",
+      "to": "ss2d_output"
+    },
+    {
+      "from": "dfg_qk_compatibility",
+      "to": "stage_logits_pre_blur"
+    },
+    {
+      "from": "ss2d_output",
+      "to": "stage_logits_pre_blur"
+    },
+    {
+      "from": "stage_logits_pre_blur",
+      "to": "stage_logits_post_blur"
+    },
+    {
+      "from": "stage_logits_post_blur",
+      "to": "stage_map_post_resize"
+    },
+    {
+      "from": "stage_map_post_resize",
+      "to": "final_fusion_logits"
+    },
+    {
+      "from": "clip_patch_stage2",
+      "to": "convlora_raw"
+    },
+    {
+      "from": "clip_patch_stage3",
+      "to": "convlora_raw"
+    }
+  ],
+  "graph_reconstructed_before_interpretation": true,
+  "nodes": [
+    {
+      "id": "clip_patch_stage1",
+      "kind": "feature",
+      "resolution": "37x37",
+      "score_space": "feature; projected margin for audit",
+      "semantics": "ViT transformer output after selected frozen resblock and before Stage-1 trainable image adaptation",
+      "shape": "[B,1369,1024]",
+      "source": "model/adapter.py:238-270"
+    },
+    {
+      "id": "clip_patch_stage2",
+      "kind": "feature",
+      "resolution": "37x37",
+      "score_space": "feature; projected margin for audit",
+      "semantics": "selected resblock output before Stage-2 adapter; stream already includes prior stage replacement",
+      "shape": "[B,1369,1024]",
+      "source": "model/adapter.py:238-270"
+    },
+    {
+      "id": "clip_patch_stage3",
+      "kind": "feature",
+      "resolution": "37x37",
+      "score_space": "feature; projected margin for audit",
+      "semantics": "selected resblock output before Stage-3 adapter; stream already includes prior stage replacements",
+      "shape": "[B,1369,1024]",
+      "source": "model/adapter.py:238-270"
+    },
+    {
+      "id": "convlora_raw",
+      "kind": "feature",
+      "resolution": "37x37",
+      "score_space": "feature; projected margin for audit",
+      "semantics": "learned Conv-LoRA output before norm matching and AddWeight",
+      "shape": "[B,1369,1024]",
+      "source": "model/adapter.py:270-291; model/adapter_modules.py:79-92"
+    },
+    {
+      "id": "post_convlora",
+      "kind": "feature",
+      "resolution": "37x37",
+      "score_space": "feature; projected margin for audit",
+      "semantics": "normalized learned adapter merged with base through m_i_w",
+      "shape": "[B,1369,1024]",
+      "source": "model/adapter.py:270-291"
+    },
+    {
+      "id": "pre_seg_projection",
+      "kind": "feature",
+      "resolution": "37x37",
+      "score_space": "feature; projected margin for audit",
+      "semantics": "group token representation entering seg_proj",
+      "shape": "[B,1369,1024]",
+      "source": "model/adapter.py:293-300"
+    },
+    {
+      "id": "post_seg_projection",
+      "kind": "feature",
+      "resolution": "37x37",
+      "score_space": "normalized feature; direct text margin",
+      "semantics": "MLP projection, LayerNorm, then L2 normalization",
+      "shape": "[B,1369,768]",
+      "source": "model/adapter.py:300-309"
+    },
+    {
+      "id": "dfg_input",
+      "kind": "feature",
+      "resolution": "37x37",
+      "score_space": "normalized feature; direct text margin",
+      "semantics": "same normalized segmentation tokens entering DFG",
+      "shape": "[B,1369,768]",
+      "source": "model/adapter.py:535-555"
+    },
+    {
+      "id": "dfg_qk_compatibility",
+      "kind": "compatibility",
+      "resolution": "global/broadcast",
+      "score_space": "abnormal-minus-normal Q/K compatibility",
+      "semantics": "global DFG query/key compatibility before weighted text-value fusion",
+      "shape": "[B] broadcast to 37x37",
+      "source": "model/adapter.py:555-607"
+    },
+    {
+      "id": "ss2d_input",
+      "kind": "feature",
+      "resolution": "global/broadcast",
+      "score_space": "direct text margin",
+      "semantics": "GAP visual vector entering the SS2D residual path",
+      "shape": "[B,768] broadcast to 37x37",
+      "source": "model/adapter.py:544-552"
+    },
+    {
+      "id": "ss2d_output",
+      "kind": "feature",
+      "resolution": "global/broadcast",
+      "score_space": "direct text margin",
+      "semantics": "SS2D branch output before its DFG weight residual",
+      "shape": "[B,768] broadcast to 37x37",
+      "source": "model/adapter_modules.py:166-188"
+    },
+    {
+      "id": "stage_logits_pre_blur",
+      "kind": "logit",
+      "resolution": "37x37",
+      "score_space": "normal/abnormal logit margin",
+      "semantics": "per-stage production logits before Gaussian blur",
+      "shape": "[B,2,37,37]",
+      "source": "model/adapter.py:365-369"
+    },
+    {
+      "id": "stage_logits_post_blur",
+      "kind": "logit",
+      "resolution": "37x37",
+      "score_space": "normal/abnormal logit margin",
+      "semantics": "per-stage logits after existing Gaussian7 sigma1",
+      "shape": "[B,2,37,37]",
+      "source": "model/adapter.py:372-379"
+    },
+    {
+      "id": "stage_map_post_resize",
+      "kind": "logit",
+      "resolution": "518x518",
+      "score_space": "normal/abnormal logit margin",
+      "semantics": "per-stage logits after existing bilinear resize align_corners=True",
+      "shape": "[B,2,518,518]",
+      "source": "model/adapter.py:372-379"
+    },
+    {
+      "id": "final_fusion_logits",
+      "kind": "logit",
+      "resolution": "518x518",
+      "score_space": "equal pre-softmax normal/abnormal margin",
+      "semantics": "equal mean of post-resize stage logits; evaluator emits sigmoid margin",
+      "shape": "[B,2,518,518]",
+      "source": "h2_clean/stage_fusion.py; model/adapter.py:382-385"
+    }
+  ],
+  "normalization": {
+    "feature_margin": "10*(cosine(image_feature,text_abnormal)-cosine(image_feature,text_normal))",
+    "final_probability": "sigmoid(final_logit_margin)",
+    "image_scale": 10.0,
+    "logit_margin": "abnormal_logit-normal_logit"
+  },
+  "parent_head": "3c97eed761df4669d4143aa7b5d7b586f97d001c",
+  "production_graph": "CLIP resblocks -> Conv-LoRA normalized residual/AddWeight -> seg_proj -> LayerNorm -> L2 -> DFG Q/K and optional SS2D weight residual -> two-class stage logits -> Gaussian7/sigma1 -> bilinear518 -> equal pre-softmax stage fusion -> softmax",
+  "protocol_id": "H2_ROOTCAUSE_S2_STRENGTH_AUDIT_R1",
+  "spatial_mapping": "518 = 37*14; occupancy is exact mean over each 14x14 input footprint; native region masks retain the existing nearest-37x37 semantics"
+}

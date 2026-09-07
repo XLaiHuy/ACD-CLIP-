@@ -1,0 +1,52 @@
+{
+  "branch": "research/h2-rootcause-s2-strength-audit-r1",
+  "cohort_a": {
+    "canonical_sha256": "a07ee8ac03ee49ca0fa11cf0e018b7861214212b361c5235219730747465c05e",
+    "count": 96,
+    "path": "audit/H2_STAGEWISE_CAUSAL_R1_COHORT_A.json"
+  },
+  "cohort_b": {
+    "canonical_sha256": "68cf348efbb31b1b4e7460e227f93cc47653f9bca9f5795b0af6314b8b4ed1c6",
+    "count": 96,
+    "path": "audit/H2_STAGEWISE_CAUSAL_R1_COHORT_B.json"
+  },
+  "cohort_disjoint": true,
+  "head_at_identity": "263067e7c37fda95e3f6377fa00701e20548b15e",
+  "parent_decision_preserved": {
+    "bounded_screen": null,
+    "interpretation": null,
+    "mechanism": null
+  },
+  "parent_head": "3c97eed761df4669d4143aa7b5d7b586f97d001c",
+  "protocol_id": "H2_ROOTCAUSE_S2_STRENGTH_AUDIT_R1",
+  "protocol_prohibitions": {
+    "architecture_change": false,
+    "lambda_sweep": false,
+    "medical_inference": false,
+    "mvtec_inference": false,
+    "new_training": false,
+    "r1_decision_modified": false,
+    "target_tuning": false
+  },
+  "retained_endpoints": {
+    "candidate": {
+      "arm": "CANDIDATE",
+      "committed_sha256": "bc79ac7ed75de405a592458563e3a98d742aaa4ab12b4e7a2d5d9adeb21938a3",
+      "epoch": 12,
+      "path": "/workspace/h2_s2_locr_r1/A_S2_LOCR_R1_CANDIDATE/final.pth",
+      "sha256": "bc79ac7ed75de405a592458563e3a98d742aaa4ab12b4e7a2d5d9adeb21938a3"
+    },
+    "control": {
+      "arm": "CONTROL",
+      "committed_sha256": "2d4e8d43b2b47edb05ebcc6e3faf25bfd8f7ffd93517d42eb05e8441683e5ba5",
+      "epoch": 12,
+      "path": "/workspace/h2_s2_locr_r1/A_S2_LOCR_R1_CONTROL/final.pth",
+      "sha256": "2d4e8d43b2b47edb05ebcc6e3faf25bfd8f7ffd93517d42eb05e8441683e5ba5"
+    }
+  },
+  "safe_anchor": {
+    "path": "/workspace/h2_safe_anchor_e20_medical_selected/adapter_10.pth",
+    "sha256": "64b72dc3d1155285c826781bee4c5970bd45218e95b21675fd19d9a6b2ab54a7"
+  },
+  "status": "PASS"
+}
