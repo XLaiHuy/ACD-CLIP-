@@ -29,14 +29,14 @@ The screen used the exact E10 Safe-Anchor full state, one matched 500-attempt Vi
 - `true_freeze=True`
 - `final_ap_not_below_control_minus_1e6=False`
 - `final_auroc_not_below_control_minus_1e6=True`
-- `positive_mean_not_below_control=True`
-- `positive_median_not_below_control=True`
-- `interior_mean_not_below_control=True`
-- `interior_median_not_below_control=True`
-- `near_background_p95_not_above_control=False`
-- `near_background_p99_not_above_control=False`
-- `near_background_gt_positive_inversion_not_above_control=True`
-- `near_background_gt_interior_inversion_not_above_control=True`
+- `positive_mean_not_below_control_minus_1e6=True`
+- `positive_median_not_below_control_minus_1e6=True`
+- `interior_mean_not_below_control_minus_1e6=True`
+- `interior_median_not_below_control_minus_1e6=True`
+- `near_background_p95_not_above_control_plus_1e6=False`
+- `near_background_p99_not_above_control_plus_1e6=False`
+- `near_background_gt_positive_inversion_not_above_control_plus_1e6=True`
+- `near_background_gt_interior_inversion_not_above_control_plus_1e6=True`
 
 ## Endpoint deltas (candidate minus control)
 

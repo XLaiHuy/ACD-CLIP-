@@ -1091,7 +1091,26 @@
         "pcb1/Data/Images/Anomaly/017.JPG",
         "pcb1/Data/Images/Anomaly/072.JPG"
       ],
-      "geometry_to_e1": [],
+      "geometry_to_e1": [
+        {
+          "linear_cka_to_e1": 1.0,
+          "pooled_feature_cosine_to_e1_mean": 1.0,
+          "pooled_feature_cosine_to_e1_median": 1.0,
+          "stage": 1
+        },
+        {
+          "linear_cka_to_e1": 1.0,
+          "pooled_feature_cosine_to_e1_mean": 1.0,
+          "pooled_feature_cosine_to_e1_median": 1.0,
+          "stage": 2
+        },
+        {
+          "linear_cka_to_e1": 1.0,
+          "pooled_feature_cosine_to_e1_mean": 1.0,
+          "pooled_feature_cosine_to_e1_median": 1.0,
+          "stage": 3
+        }
+      ],
       "geometry_to_e10": [
         {
           "linear_cka_to_e10": 0.6325047530871927,
@@ -1543,7 +1562,26 @@
         "pcb1/Data/Images/Anomaly/072.JPG"
       ],
       "geometry_to_e1": [],
-      "geometry_to_e10": [],
+      "geometry_to_e10": [
+        {
+          "linear_cka_to_e10": 1.0,
+          "pooled_feature_cosine_to_e10_mean": 1.0,
+          "pooled_feature_cosine_to_e10_median": 1.0,
+          "stage": 1
+        },
+        {
+          "linear_cka_to_e10": 1.0,
+          "pooled_feature_cosine_to_e10_mean": 1.0,
+          "pooled_feature_cosine_to_e10_median": 1.0,
+          "stage": 2
+        },
+        {
+          "linear_cka_to_e10": 1.0,
+          "pooled_feature_cosine_to_e10_mean": 1.0,
+          "pooled_feature_cosine_to_e10_median": 1.0,
+          "stage": 3
+        }
+      ],
       "inversion_rates": {
         "definition": "1 - pixel-level AUROC for near-background versus comparison region; ties receive half credit",
         "near_background_gt_interior": 0.4591523453241684,
@@ -1825,6 +1863,7 @@
     }
   },
   "calibration_subset_evaluated": false,
+  "candidate_forced_parity_skip_set": [],
   "candidate_minus_control": {
     "final_ap": -0.0058612052382776,
     "final_auroc": 0.044960530197924786,
@@ -1843,6 +1882,8 @@
     "stage3_ap": -0.03678393515844569,
     "stage3_auroc": 0.128030440761998
   },
+  "candidate_natural_skip_set": [],
+  "control_natural_skip_set": [],
   "endpoint_fusion_weights": {
     "A_LATE_FREEZE_R1_CONTROL": [
       0.3333333333333333,
@@ -1886,6 +1927,13 @@
     ]
   },
   "protocol_id": "H2_LATE_CONVLORA_FREEZE_R1",
+  "protocol_prohibitions_verified": {
+    "hyperparameter_sweep": false,
+    "medical_inference_run": false,
+    "mvtec_inference_run": false,
+    "new_full_training_run": false,
+    "target_tuning_used": false
+  },
   "training_summaries": {
     "A_LATE_FREEZE_R1_CONTROL": {
       "arm": "A_LATE_FREEZE_R1_CONTROL",

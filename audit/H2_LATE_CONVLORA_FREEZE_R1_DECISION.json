@@ -11,7 +11,9 @@
     "natural_skips": 0,
     "successful": 500
   },
+  "candidate_forced_parity_skip_set": [],
   "candidate_frozen_param_byte_identity": true,
+  "candidate_natural_skip_set": [],
   "candidate_pre_suppression_stage2_gradient_nonzero_fraction": 1.0,
   "candidate_pre_suppression_stage3_gradient_nonzero_fraction": 1.0,
   "candidate_stage2_drift": 0.0,
@@ -25,6 +27,7 @@
     "natural_skips": 0,
     "successful": 500
   },
+  "control_natural_skip_set": [],
   "control_stage2_drift": 12.053261674891617,
   "control_stage3_drift": 7.916185463326486,
   "direct_gates": {
@@ -48,6 +51,7 @@
     "control": 0.8438308373977176,
     "delta": 0.044960530197924786
   },
+  "hyperparameter_sweep": false,
   "interior_deltas": {
     "mean": 0.011896312236785889,
     "median": 3.992695565102622e-05
@@ -59,13 +63,17 @@
   },
   "late_convlora_causal_hypothesis": "NOT_SUPPORTED",
   "mechanism_test": "SUPPORTED",
+  "medical_inference_run": false,
+  "mvtec_inference_run": false,
   "near_background_deltas": {
     "p95": 0.03233134001493454,
     "p99": 0.05800473690032959
   },
+  "new_full_training_run": false,
   "no_target_inference": true,
   "numerical_validity": "PASS",
   "parameter_scope_identity": "image_adapter.lora_adapters.stage2+stage3.all_parameters",
+  "parameter_scope_identity_status": "PASS",
   "parent_head": "47158bd1a64d23f5f4752fb066e5dd4b91ef07d9",
   "positive_deltas": {
     "mean": 0.008315116167068481,
@@ -76,15 +84,15 @@
     "exact_500_attempted_batch_stream": true,
     "final_ap_not_below_control_minus_1e6": false,
     "final_auroc_not_below_control_minus_1e6": true,
-    "interior_mean_not_below_control": true,
-    "interior_median_not_below_control": true,
-    "near_background_gt_interior_inversion_not_above_control": true,
-    "near_background_gt_positive_inversion_not_above_control": true,
-    "near_background_p95_not_above_control": false,
-    "near_background_p99_not_above_control": false,
+    "interior_mean_not_below_control_minus_1e6": true,
+    "interior_median_not_below_control_minus_1e6": true,
+    "near_background_gt_interior_inversion_not_above_control_plus_1e6": true,
+    "near_background_gt_positive_inversion_not_above_control_plus_1e6": true,
+    "near_background_p95_not_above_control_plus_1e6": false,
+    "near_background_p99_not_above_control_plus_1e6": false,
     "numerical_validity": true,
-    "positive_mean_not_below_control": true,
-    "positive_median_not_below_control": true,
+    "positive_mean_not_below_control_minus_1e6": true,
+    "positive_median_not_below_control_minus_1e6": true,
     "successful_count_match": true,
     "true_freeze": true
   },
@@ -105,6 +113,7 @@
   "start_epoch": 10,
   "start_global_step": 3607,
   "successful_count_match": true,
+  "target_tuning_used": false,
   "true_freeze_implementation": true,
   "waiting_for_user_approval": "YES"
 }

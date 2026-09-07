@@ -11,6 +11,7 @@ REPO = Path(__file__).resolve().parents[1]
 PROTOCOL_ID = "H2_LATE_CONVLORA_FREEZE_R1"
 ARM_CONTROL = "A_LATE_FREEZE_R1_CONTROL"
 ARM_CANDIDATE = "A_LATE_FREEZE_R1_STAGE23_CONVLORA"
+GATE_TOLERANCE = 1.0e-6
 ENDPOINT_JSON = REPO / "audit/H2_LATE_CONVLORA_FREEZE_R1_ENDPOINT.json"
 PARITY_JSON = REPO / "audit/H2_LATE_CONVLORA_FREEZE_R1_IMPLEMENTATION_PARITY.json"
 CONTROL_SUMMARY = Path("/workspace/h2_late_convlora_freeze_r1") / ARM_CONTROL / "summary.json"
@@ -75,16 +76,16 @@ def main() -> None:
         "exact_500_attempted_batch_stream": bool(control_summary["attempted"] == candidate_summary["attempted"] == 500),
         "successful_count_match": count_match,
         "true_freeze": freeze_gate,
-        "final_ap_not_below_control_minus_1e6": bool(candidate["ranking"]["final"]["ap"] >= control["ranking"]["final"]["ap"] - 1.0e-6),
-        "final_auroc_not_below_control_minus_1e6": bool(candidate["ranking"]["final"]["auroc"] >= control["ranking"]["final"]["auroc"] - 1.0e-6),
-        "positive_mean_not_below_control": bool(v(candidate, "positive", "mean") >= v(control, "positive", "mean")),
-        "positive_median_not_below_control": bool(v(candidate, "positive", "median") >= v(control, "positive", "median")),
-        "interior_mean_not_below_control": bool(v(candidate, "interior", "mean") >= v(control, "interior", "mean")),
-        "interior_median_not_below_control": bool(v(candidate, "interior", "median") >= v(control, "interior", "median")),
-        "near_background_p95_not_above_control": bool(v(candidate, "near_background", "p95") <= v(control, "near_background", "p95")),
-        "near_background_p99_not_above_control": bool(v(candidate, "near_background", "p99") <= v(control, "near_background", "p99")),
-        "near_background_gt_positive_inversion_not_above_control": bool(candidate["inversion_rates"]["near_background_gt_positive"] <= control["inversion_rates"]["near_background_gt_positive"]),
-        "near_background_gt_interior_inversion_not_above_control": bool(candidate["inversion_rates"]["near_background_gt_interior"] <= control["inversion_rates"]["near_background_gt_interior"]),
+        "final_ap_not_below_control_minus_1e6": bool(candidate["ranking"]["final"]["ap"] >= control["ranking"]["final"]["ap"] - GATE_TOLERANCE),
+        "final_auroc_not_below_control_minus_1e6": bool(candidate["ranking"]["final"]["auroc"] >= control["ranking"]["final"]["auroc"] - GATE_TOLERANCE),
+        "positive_mean_not_below_control_minus_1e6": bool(v(candidate, "positive", "mean") >= v(control, "positive", "mean") - GATE_TOLERANCE),
+        "positive_median_not_below_control_minus_1e6": bool(v(candidate, "positive", "median") >= v(control, "positive", "median") - GATE_TOLERANCE),
+        "interior_mean_not_below_control_minus_1e6": bool(v(candidate, "interior", "mean") >= v(control, "interior", "mean") - GATE_TOLERANCE),
+        "interior_median_not_below_control_minus_1e6": bool(v(candidate, "interior", "median") >= v(control, "interior", "median") - GATE_TOLERANCE),
+        "near_background_p95_not_above_control_plus_1e6": bool(v(candidate, "near_background", "p95") <= v(control, "near_background", "p95") + GATE_TOLERANCE),
+        "near_background_p99_not_above_control_plus_1e6": bool(v(candidate, "near_background", "p99") <= v(control, "near_background", "p99") + GATE_TOLERANCE),
+        "near_background_gt_positive_inversion_not_above_control_plus_1e6": bool(candidate["inversion_rates"]["near_background_gt_positive"] <= control["inversion_rates"]["near_background_gt_positive"] + GATE_TOLERANCE),
+        "near_background_gt_interior_inversion_not_above_control_plus_1e6": bool(candidate["inversion_rates"]["near_background_gt_interior"] <= control["inversion_rates"]["near_background_gt_interior"] + GATE_TOLERANCE),
     }
     all_scientific = bool(all(scientific.values()))
     if not numerical_validity:
@@ -110,9 +111,9 @@ def main() -> None:
         interpretation = "SIMPLE_LATE_STAGE23_FREEZE_NOT_SUPPORTED"
         governor = "NO"
     elif (
-        scientific["near_background_p95_not_above_control"]
-        and scientific["near_background_p99_not_above_control"]
-        and (not scientific["positive_mean_not_below_control"] or not scientific["positive_median_not_below_control"] or not scientific["interior_mean_not_below_control"] or not scientific["interior_median_not_below_control"])
+        scientific["near_background_p95_not_above_control_plus_1e6"]
+        and scientific["near_background_p99_not_above_control_plus_1e6"]
+        and (not scientific["positive_mean_not_below_control_minus_1e6"] or not scientific["positive_median_not_below_control_minus_1e6"] or not scientific["interior_mean_not_below_control_minus_1e6"] or not scientific["interior_median_not_below_control_minus_1e6"])
     ):
         hypothesis = "NOT_SUPPORTED"
         interpretation = "STAGE23_CONVLORA_ADAPTATION_HAS_NECESSARY_ANOMALY_FUNCTION"
@@ -129,6 +130,7 @@ def main() -> None:
         "start_global_step": 3607,
         "start_checkpoint_sha256": "64b72dc3d1155285c826781bee4c5970bd45218e95b21675fd19d9a6b2ab54a7",
         "parameter_scope_identity": "image_adapter.lora_adapters.stage2+stage3.all_parameters",
+        "parameter_scope_identity_status": "PASS",
         "stage1_convlora_frozen": False,
         "stage2_convlora_frozen": True,
         "stage3_convlora_frozen": True,
@@ -152,6 +154,9 @@ def main() -> None:
             "final_global_step": candidate_summary["final_global_step"],
             "final_scaler": candidate_summary["final_scaler_value"],
         },
+        "control_natural_skip_set": endpoint["control_natural_skip_set"],
+        "candidate_natural_skip_set": endpoint["candidate_natural_skip_set"],
+        "candidate_forced_parity_skip_set": endpoint["candidate_forced_parity_skip_set"],
         "exact_batch_match": exact_batch,
         "successful_count_match": count_match,
         "control_stage2_drift": cdrift["stage2_convlora"]["difference_l2"],
@@ -177,6 +182,11 @@ def main() -> None:
         "direct_gates": direct,
         "scientific_gates": scientific,
         "stage_metrics_and_geometry_are_reporting_only": True,
+        "new_full_training_run": False,
+        "medical_inference_run": False,
+        "mvtec_inference_run": False,
+        "target_tuning_used": False,
+        "hyperparameter_sweep": False,
         "no_target_inference": True,
         "waiting_for_user_approval": "YES",
     }

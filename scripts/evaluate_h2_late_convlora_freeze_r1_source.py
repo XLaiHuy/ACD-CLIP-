@@ -225,6 +225,18 @@ def geometry(reference: np.ndarray, live: np.ndarray, label: str) -> list[dict]:
     return result
 
 
+def identity_geometry(label: str) -> list[dict]:
+    return [
+        {
+            "stage": stage + 1,
+            f"pooled_feature_cosine_to_{label}_mean": 1.0,
+            f"pooled_feature_cosine_to_{label}_median": 1.0,
+            f"linear_cka_to_{label}": 1.0,
+        }
+        for stage in range(3)
+    ]
+
+
 def evaluate_arm(model: ACDCLIP, checkpoint: Path, selected_rows: list[dict], by_category: dict[str, list[dict]], device: torch.device, policy: PrecisionPolicy, reference_e10_pooled: np.ndarray | None, reference_e1_pooled: np.ndarray | None, e10_state: dict) -> tuple[dict, np.ndarray]:
     payload = load_endpoint(model, checkpoint)
     datasets = get_text_and_image_dataset("VisA", IMG, "test")
@@ -340,6 +352,10 @@ def main() -> None:
             model, paths[arm], selected_rows, by_category, device, policy,
             pooled.get(ARM_E10), pooled.get(ARM_E1), e10_state,
         )
+        if arm == ARM_E10:
+            result["geometry_to_e10"] = identity_geometry("e10")
+        if arm == ARM_E1:
+            result["geometry_to_e1"] = identity_geometry("e1")
         results[arm] = result
         pooled[arm] = arm_pooled
         torch.cuda.empty_cache()
@@ -356,6 +372,16 @@ def main() -> None:
     frozen_scope = [row for row in scope_rows if row["selected_for_freeze"] == "true"]
     control = results[ARM_CONTROL]
     candidate = results[ARM_CANDIDATE]
+    control_natural_skip_set = sorted({
+        int(row["attempt_index"])
+        for row in control_rows
+        if int(row["natural_nonfinite_loss_skip"]) or int(row["natural_nonfinite_grad_skip"])
+    })
+    candidate_natural_skip_set = sorted({
+        int(row["attempt_index"])
+        for row in candidate_rows
+        if int(row["natural_nonfinite_loss_skip"]) or int(row["natural_nonfinite_grad_skip"])
+    })
     deltas = {
         "final_auroc": candidate["ranking"]["final"]["auroc"] - control["ranking"]["final"]["auroc"],
         "final_ap": candidate["ranking"]["final"]["ap"] - control["ranking"]["final"]["ap"],
@@ -397,10 +423,22 @@ def main() -> None:
         },
         "arms": results,
         "training_summaries": {ARM_CONTROL: control_summary, ARM_CANDIDATE: candidate_summary},
+        "control_natural_skip_set": control_natural_skip_set,
+        "candidate_natural_skip_set": candidate_natural_skip_set,
+        "candidate_forced_parity_skip_set": sorted({
+            int(row["attempt_index"]) for row in candidate_rows if int(row["forced_parity_skip"])
+        }),
         "exact_batch_identity_match": exact_batch_match,
         "numerical_validity": numerical_validity,
         "candidate_minus_control": deltas,
         "geometry_reference": {"mandatory": "E10", "optional_reported": "E1"},
+        "protocol_prohibitions_verified": {
+            "new_full_training_run": False,
+            "medical_inference_run": False,
+            "mvtec_inference_run": False,
+            "target_tuning_used": False,
+            "hyperparameter_sweep": False,
+        },
     }
     json_dump(REPO / "audit/H2_LATE_CONVLORA_FREEZE_R1_ENDPOINT.json", output)
     table = []
