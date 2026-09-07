@@ -390,7 +390,9 @@ def text_margin_tokens(features: torch.Tensor, text: torch.Tensor) -> torch.Tens
 
 
 def feature_margin(model, features_lbc: torch.Tensor, text: torch.Tensor, stage: int) -> torch.Tensor:
-    features = features_lbc.permute(1, 0, 2)
+    # Hooks retain the historical AMP dtype; the diagnostic projection is
+    # evaluated in the same FP32 island used by the production adapter path.
+    features = features_lbc.permute(1, 0, 2).float()
     projected = model.image_adapter["seg_proj"][stage](features)
     projected = model.image_adapter["seg_layer_norms"][stage](projected)
     projected = F.normalize(projected, dim=-1)
