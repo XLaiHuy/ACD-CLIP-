@@ -585,9 +585,9 @@ def point_region_arrays(score: np.ndarray, mask: np.ndarray, resolution: str):
 
 
 def point_resolution(point: str) -> str:
-    if point in ("stage_map_post_resize", "final_fusion_logits"):
+    if point == "final_fusion_logits" or point.endswith("_map_post_resize"):
         return "full"
-    if point in ("dfg_qk_compatibility", "ss2d_input", "ss2d_output"):
+    if point.endswith(("_dfg_qk_compatibility", "_ss2d_input", "_ss2d_output")):
         return "global"
     return "native"
 
