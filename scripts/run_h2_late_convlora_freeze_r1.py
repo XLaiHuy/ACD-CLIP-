@@ -326,7 +326,7 @@ def write_scope(payload: dict) -> dict:
         if freeze:
             selected.append(full_name)
     with SCOPE_CSV.open("w", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=["parameter_name", "module_name", "stage", "shape", "requires_grad", "selected_for_freeze"])
+        writer = csv.DictWriter(handle, fieldnames=["parameter_name", "module_name", "stage", "shape", "requires_grad", "selected_for_freeze"], lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
     if not selected or any("lora_adapters.0." in name for name in selected):
@@ -639,6 +639,7 @@ def run_arm(payload: dict, identity: dict, scope: dict, manifest: list[dict], ro
                 if not control_forced:
                     numerical_failure = numerical_failure or "candidate_extra_natural_nonfinite_loss_skip" if candidate else numerical_failure
                 optimizer.zero_grad(set_to_none=True)
+                row["scaler_after"] = float(scaler.get_scale())
                 rows.append(row)
                 continue
             scaler.scale(task_loss).backward(retain_graph=True)
@@ -668,6 +669,7 @@ def run_arm(payload: dict, identity: dict, scope: dict, manifest: list[dict], ro
                 if scaler is not None:
                     scaler.update()
                 optimizer.zero_grad(set_to_none=True)
+                row["scaler_after"] = float(scaler.get_scale())
                 rows.append(row)
                 continue
             consecutive_grad_skips = 0
@@ -691,6 +693,7 @@ def run_arm(payload: dict, identity: dict, scope: dict, manifest: list[dict], ro
                 if control_skip_type[attempt] == "grad":
                     scaler.update()
                 optimizer.zero_grad(set_to_none=True)
+                row["scaler_after"] = float(scaler.get_scale())
                 rows.append(row)
                 continue
             if candidate:
@@ -702,6 +705,7 @@ def run_arm(payload: dict, identity: dict, scope: dict, manifest: list[dict], ro
                 "status": "success",
                 "successful_update": 1,
                 "global_step_after": START_GLOBAL_STEP + successful,
+                "scaler_after": float(scaler.get_scale()),
                 "safe_anchor_effective_ratio": anchor_metrics["global_effective_ratio"],
                 "safe_anchor_max_family_ratio": anchor_metrics["max_effective_active_family_ratio"],
                 "parameters_finite": int(finite_model_parameters(model)),
@@ -783,8 +787,8 @@ def run_arm(payload: dict, identity: dict, scope: dict, manifest: list[dict], ro
     audit_path = REPO / "audit" / f"H2_LATE_CONVLORA_FREEZE_R1_{'CANDIDATE' if candidate else 'CONTROL'}.csv"
     with audit_path.open("w", newline="") as handle:
         fields = list(rows[0])
-        csv.DictWriter(handle, fieldnames=fields).writeheader()
-        csv.DictWriter(handle, fieldnames=fields).writerows(rows)
+        csv.DictWriter(handle, fieldnames=fields, lineterminator="\n").writeheader()
+        csv.DictWriter(handle, fieldnames=fields, lineterminator="\n").writerows(rows)
     del model
     torch.cuda.empty_cache()
     if attempted != MAX_ATTEMPTS or batch_mismatch is not None:
