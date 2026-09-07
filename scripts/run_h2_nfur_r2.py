@@ -297,7 +297,7 @@ def identity_stage(config: dict) -> dict:
 
 
 def source_metrics(model: ACDCLIP, config: dict, max_batches: int = 4) -> dict:
-    from sklearn.metrics import average_precision_score, roc_auc_score
+    from torchmetrics.functional import auroc, average_precision
     device = next(model.parameters()).device
     dataset, loader, _, _ = make_loader("VisA", "train", config, 91011, False, 0)
     scores = []
@@ -326,11 +326,15 @@ def source_metrics(model: ACDCLIP, config: dict, max_batches: int = 4) -> dict:
             image_targets.extend(batch["label"].cpu().numpy().astype(np.uint8).tolist())
     score = np.concatenate(scores)
     target = np.concatenate(targets)
+    target_tensor = torch.from_numpy(target.astype(np.int64))
+    score_tensor = torch.from_numpy(score.astype(np.float32))
+    image_target_tensor = torch.tensor(image_targets, dtype=torch.int64)
+    image_score_tensor = torch.tensor(image_scores, dtype=torch.float32)
     metrics = {
-        "pixel_auroc": float(roc_auc_score(target, score) * 100.0) if np.unique(target).size > 1 else None,
-        "pixel_ap": float(average_precision_score(target, score) * 100.0),
-        "image_auroc": float(roc_auc_score(image_targets, image_scores) * 100.0) if np.unique(image_targets).size > 1 else None,
-        "image_ap": float(average_precision_score(image_targets, image_scores) * 100.0),
+        "pixel_auroc": float(auroc(score_tensor, target_tensor, task="binary").item() * 100.0) if np.unique(target).size > 1 else None,
+        "pixel_ap": float(average_precision(score_tensor, target_tensor, task="binary").item() * 100.0),
+        "image_auroc": float(auroc(image_score_tensor, image_target_tensor, task="binary").item() * 100.0) if np.unique(image_targets).size > 1 else None,
+        "image_ap": float(average_precision(image_score_tensor, image_target_tensor, task="binary").item() * 100.0),
         "samples": int(len(image_targets)),
         "pixels": int(len(target)),
     }
@@ -414,8 +418,18 @@ def smoke_stage(config: dict) -> dict:
     smoke_root = RUN_ROOT / "smoke100"
     (smoke_root / "control").mkdir(parents=True, exist_ok=True)
     (smoke_root / "nfur").mkdir(parents=True, exist_ok=True)
-    control = smoke_model(config, False, smoke_root / "control")
-    nfur = smoke_model(config, True, smoke_root / "nfur")
+    control_checkpoint = smoke_root / "control" / "adapter_11.pth"
+    nfur_checkpoint = smoke_root / "nfur" / "adapter_11.pth"
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    if control_checkpoint.is_file() and nfur_checkpoint.is_file():
+        control = create_model_from_config(config, device, use_nfur=False)
+        nfur = create_model_from_config(config, device, use_nfur=True)
+        load_model_states(control, load_payload(control_checkpoint))
+        load_model_states(nfur, load_payload(nfur_checkpoint))
+        nfur.set_nfur_enabled(True)
+    else:
+        control = smoke_model(config, False, smoke_root / "control")
+        nfur = smoke_model(config, True, smoke_root / "nfur")
     control_metrics = source_metrics(control, config)
     nfur_metrics = source_metrics(nfur, config)
     head = nfur.nfur_refiner
