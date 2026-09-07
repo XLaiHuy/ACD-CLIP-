@@ -12,6 +12,7 @@
   "morphology_radius_sweep": "NO",
   "most_responsible_stage": "STAGE2",
   "mvtec_evaluation_executed": "NO",
+  "native_stage_interior_ratio_status": "UNDEFINED_EMPTY_INTERIOR_UNDER_EXACT_7X7_MORPHOLOGY",
   "new_loss_or_regularizer": "NO",
   "optimizer_step_executed": "NO",
   "primary_diagnosis": "STAGE_LOCAL_SPILLOVER_LIKELY",
@@ -28,6 +29,54 @@
     "upsampling_amplification_likely": false
   },
   "spillover_confidence": "HIGH",
+  "stage_severity_ranked": [
+    {
+      "S_stage": 1.0,
+      "checkpoint": "SAFE_ANCHOR_E10",
+      "near_p95_over_interior_p95": 0.9557073918377835,
+      "near_p99_over_interior_p99": 0.9997995615005493,
+      "normalized_p95": 1.0,
+      "normalized_p99": 1.0,
+      "raw_native_near_p95": 0.8523407816886641,
+      "raw_native_near_p99": 1.0,
+      "raw_resized_near_p95": 0.9557069361209868,
+      "raw_resized_near_p99": 0.9997995615005493,
+      "severity_metric": "requested_near_tail_over_interior_tail_ratios_at_current_production_518x518_stage_maps",
+      "severity_resolution": "518x518",
+      "stage": 2
+    },
+    {
+      "S_stage": 0.08093477605575207,
+      "checkpoint": "SAFE_ANCHOR_E10",
+      "near_p95_over_interior_p95": 0.07234773073209154,
+      "near_p99_over_interior_p99": 0.23786997739392482,
+      "normalized_p95": 0.06719807528327575,
+      "normalized_p99": 0.09467147682822839,
+      "raw_native_near_p95": 0.0011794463032856087,
+      "raw_native_near_p99": 0.9919175791740418,
+      "raw_resized_near_p95": 0.016371519491076417,
+      "raw_resized_near_p99": 0.08413800165057189,
+      "severity_metric": "requested_near_tail_over_interior_tail_ratios_at_current_production_518x518_stage_maps",
+      "severity_resolution": "518x518",
+      "stage": 3
+    },
+    {
+      "S_stage": 0.0,
+      "checkpoint": "SAFE_ANCHOR_E10",
+      "near_p95_over_interior_p95": 0.008711424420635487,
+      "near_p99_over_interior_p99": 0.1581939292851369,
+      "normalized_p95": 0.0,
+      "normalized_p99": 0.0,
+      "raw_native_near_p95": 5.902594930375901e-05,
+      "raw_native_near_p99": 0.9999686217308045,
+      "raw_resized_near_p95": 0.008704146370291693,
+      "raw_resized_near_p99": 0.15817969173193,
+      "severity_metric": "requested_near_tail_over_interior_tail_ratios_at_current_production_518x518_stage_maps",
+      "severity_resolution": "518x518",
+      "stage": 1
+    }
+  ],
+  "stage_severity_resolution": "518x518 current-production resized stage maps",
   "target_inference_or_tuning": "NO",
   "threshold_or_topk_sweep": "NO",
   "thresholds_used_for_labels": {
