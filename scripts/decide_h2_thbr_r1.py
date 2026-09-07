@@ -103,6 +103,9 @@ def main() -> None:
     if endpoint_delta["near_background_p95"] < 0 and endpoint_delta["near_background_p99"] < 0 and endpoint_delta["top_P_anomaly_fraction"] < 0 and endpoint_delta["final_ap"] < 0:
         red_team_case = "B_BACKGROUND_TAIL_IMPROVES_WITH_ANOMALY_COVERAGE_LOSS"
         red_team_interpretation = "Background tail p95/p99 improve, but top-P anomaly coverage and final AP fall; treat as over-suppression/tradeoff and do not confirm."
+    elif endpoint_delta["final_ap"] < 0 and endpoint_delta["final_auroc"] < 0 and not mechanism["no_near_far_p99_tail_increase"]:
+        red_team_case = "TAIL_GATE_FAILURE_WITH_PERFORMANCE_DROP"
+        red_team_interpretation = "Far-background tail improves, but the near-background p95/p99 tail worsens while both final AP and AUROC fall; THBR does not solve the measured bottleneck."
     elif endpoint_delta["final_ap"] > 0 and endpoint_delta["final_auroc"] < 0:
         red_team_case = "C_AP_UP_AUROC_DOWN"
         red_team_interpretation = "AP rises while AUROC falls; strict performance gate fails."
