@@ -21,7 +21,7 @@ external `/workspace/h8_med_msse_r1_run/` cache.
 
 | candidate | result | evidence |
 |---|---|---|
-| shared E1 | valid full-state | `runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth`, SHA-256 `7f9176b7ef53b572935567c574535075a57317b2aa83505d043a71d45b12b35` |
+| shared E1 | valid full-state | `runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth`, SHA-256 `7f9176b7ef53b572935567c574535075a573175b2aa83505d043a71d45b12b35` |
 | clean H E15 | valid full-state, wrong horizon | `runs/h2_clean_factorial_e20_20260902_ampfix/H/adapter_15.pth`, SHA-256 `6830137b52fc16321192909fe7b3ca7565664afe61a8592fe7b7a78d2dff4771` |
 | clean H E8 | not found | no non-pointer E8 full-state checkpoint in the searched `/workspace`, `/tmp`, or `/root` inventories |
 | archival E8-looking files | excluded | Git-LFS pointer stubs or adapter-only/forensic copies; not resumable scientific parents |

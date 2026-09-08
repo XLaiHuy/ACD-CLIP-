@@ -24,7 +24,7 @@ START_CANDIDATES = (
     REPO / "runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth",
     Path("/tmp/h2-thbr-evidence/runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth"),
 )
-EXPECTED_START_SHA256 = "7f9176b7ef53b572935567c574535075a57317b2aa83505d043a71d45b12b35"
+EXPECTED_START_SHA256 = "7f9176b7ef53b572935567c574535075a573175b2aa83505d043a71d45b12b35"
 BASE_COMMIT = "31167af5ee3dfff80b74af1e9ee0da4ecc475d2e"
 DEFAULT_ROOT = Path("/workspace/anchor_ref_e8_r1_run")
 ANCHOR_LAMBDA = 0.0021633926715180626
