@@ -1,0 +1,59 @@
+{
+  "status": "NO_VALID_CLEAN_E8_FULL_STATE_FOUND_REPRODUCTION_REQUIRED",
+  "branch": "research/anchor_ref_e8_r1",
+  "training_implementation_base_commit": "31167af5ee3dfff80b74af1e9ee0da4ecc475d2e",
+  "preserved_h8_commit": "ee9fe31c2e3c8b92e7b878f0568b0fd6511a5d12",
+  "historical_clean_protocol": {
+    "config": "configs/h2_clean_factorial_v1.json",
+    "launcher": "scripts/run_h2_clean_factorial.sh",
+    "base_h2_commit": "e03966997d4cecfd985943a4053a93e1e40197ec",
+    "anchor_through_e8": false,
+    "cir": false,
+    "stage2_suppression": false,
+    "highres": false,
+    "multiscale": false,
+    "seed": 0,
+    "source_dataset": "VisA"
+  },
+  "checkpoint_inventory": {
+    "shared_e1": {
+      "path": "runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth",
+      "epoch": 1,
+      "type": "full_state",
+      "sha256": "7f9176b7ef53b572935567c574535075a57317b2aa83505d043a71d45b12b35"
+    },
+    "clean_h_e15": {
+      "path": "runs/h2_clean_factorial_e20_20260902_ampfix/H/adapter_15.pth",
+      "epoch": 15,
+      "type": "full_state",
+      "sha256": "6830137b52fc16321192909fe7b3ca7565664afe61a8592fe7b7a78d2dff4771"
+    },
+    "clean_h_e8": {
+      "found": false,
+      "type": "none"
+    },
+    "excluded_intervention_states": ["A-E8", "C-E8", "AC-E8", "H7", "H8"]
+  },
+  "required_full_state_fields_verified_on_available_clean_states": [
+    "model_state",
+    "image_adapter",
+    "text_adapter",
+    "soft_prompt",
+    "optimizer_state",
+    "scheduler_state",
+    "scaler_state",
+    "epoch",
+    "seed",
+    "python_random_state",
+    "numpy_random_state",
+    "torch_cpu_rng_state",
+    "torch_cuda_rng_state_all",
+    "dataloader_generator_state"
+  ],
+  "retraining_e1_e8_necessary": true,
+  "proposed_parent": "runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth",
+  "proposed_reference": "new clean H/Baseline image_adapter snapshot at E8",
+  "proposed_training": "clean H E2-E8, then Family-Safe Anchor E9-E15",
+  "medical_protocol": "frozen Medical stride-1 E15; raw exact metrics; no selection or tuning",
+  "mvtec_protocol": "deferred until Medical E15 is frozen"
+}
