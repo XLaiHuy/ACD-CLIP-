@@ -20,12 +20,23 @@ import h2_clean.contract as contract
 import train as train_module
 
 
-START = REPO / "runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth"
+START_CANDIDATES = (
+    REPO / "runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth",
+    Path("/tmp/h2-thbr-evidence/runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth"),
+)
 EXPECTED_START_SHA256 = "7f9176b7ef53b572935567c574535075a57317b2aa83505d043a71d45b12b35"
 BASE_COMMIT = "31167af5ee3dfff80b74af1e9ee0da4ecc475d2e"
 DEFAULT_ROOT = Path("/workspace/anchor_ref_e8_r1_run")
 ANCHOR_LAMBDA = 0.0021633926715180626
 ANCHOR_RHO = 0.10
+
+
+def resolve_start() -> Path:
+    for candidate in START_CANDIDATES:
+        if candidate.is_file() and sha256(candidate) == EXPECTED_START_SHA256:
+            return candidate
+    searched = ", ".join(str(path) for path in START_CANDIDATES)
+    raise RuntimeError(f"shared E1 parent missing or hash mismatch; searched: {searched}")
 
 
 def sha256(path: Path) -> str:
@@ -235,8 +246,8 @@ def main() -> None:
         print("Prepared only. Use --run all after the committed recovery audit has been reviewed.")
         print(f"Run root: {args.root}")
         return
-    if not START.is_file() or sha256(START) != EXPECTED_START_SHA256:
-        raise RuntimeError(f"shared E1 parent missing or hash mismatch: {START}")
+    patch_resume_identity()
+    start = resolve_start()
     if not args.root.exists():
         args.root.mkdir(parents=True)
     elif any(args.root.iterdir()) and args.run == "all":
@@ -248,7 +259,7 @@ def main() -> None:
     if args.run in ("all", "clean"):
         if clean_root.exists() and any(clean_root.iterdir()):
             raise RuntimeError(f"refusing to overwrite clean output: {clean_root}")
-        run_phase(training_args(clean_root, epoch=8, resume=START))
+        run_phase(training_args(clean_root, epoch=8, resume=start))
 
     if args.run in ("all", "anchor"):
         e8_path = clean_root / "adapter_8.pth"
@@ -280,7 +291,7 @@ def main() -> None:
             "training_implementation_base_commit": BASE_COMMIT,
             "git_head_at_run": e15_payload.get("git_sha"),
             "parent": {
-                "path": str(START), "sha256": EXPECTED_START_SHA256, "epoch": 1,
+                "path": str(start), "sha256": EXPECTED_START_SHA256, "epoch": 1,
                 "type": "full_state_shared_clean_parent",
             },
             "clean_e8": {
