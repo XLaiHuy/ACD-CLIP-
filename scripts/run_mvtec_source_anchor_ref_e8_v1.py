@@ -277,6 +277,7 @@ def main() -> None:
     clean_root = args.root / "clean_h_e8"
     anchor_root = args.root / "anchor_e8"
     theta_path = args.root / "theta_ref_e8.pth"
+    source_e1 = source_root / "adapter_1.pth"
 
     if args.run == "all":
         run_phase(source_training_args(source_root, epoch=1, resume=None))
@@ -296,9 +297,17 @@ def main() -> None:
     theta_record = write_theta_ref(theta_path, e8_path, e8_payload)
 
     if args.run in ("all", "anchor"):
-        run_phase(source_training_args(anchor_root, epoch=15, resume=e8_path, anchor=True, reference=theta_path))
+        e15_existing = anchor_root / "adapter_15.pth"
+        if e15_existing.is_file():
+            print(f"Anchor E15 already exists; finalizing without retraining: {e15_existing}")
+        else:
+            run_phase(source_training_args(anchor_root, epoch=15, resume=e8_path, anchor=True, reference=theta_path))
 
     e15_path = anchor_root / "adapter_15.pth"
+    for anchor_epoch in range(9, 16):
+        anchor_checkpoint = anchor_root / f"adapter_{anchor_epoch}.pth"
+        anchor_payload = base.assert_full_state(anchor_checkpoint, anchor_epoch)
+        assert_source_config(anchor_payload, epoch=anchor_epoch, anchored=True)
     e15_payload = base.assert_full_state(e15_path, 15)
     assert_source_config(e15_payload, epoch=15, anchored=True)
     cfg = e15_payload["resolved_scientific_config"]
