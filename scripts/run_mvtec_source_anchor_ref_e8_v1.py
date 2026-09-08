@@ -64,12 +64,15 @@ def audit_manifest(run_root: Path) -> dict:
     missing_images, missing_masks = [], []
     anomaly_without_masks, normal_unexpected_masks, train_good = [], [], []
     for index, row in enumerate(rows, start=1):
-        if set(row) != {"image_path", "label", "mask_path", "class_name"}:
-            raise RuntimeError(f"unexpected manifest keys at row {index}: {sorted(row)}")
         category = row["class_name"]
         label = int(row["label"])
         image_path = str(row["image_path"])
-        mask_path = row["mask_path"]
+        mask_path = row.get("mask_path")
+        expected_keys = {"image_path", "label", "class_name"}
+        if label == 1:
+            expected_keys.add("mask_path")
+        if set(row) != expected_keys:
+            raise RuntimeError(f"unexpected manifest keys at row {index}: {sorted(row)}")
         category_counts[category]["total"] += 1
         category_counts[category]["normal" if label == 0 else "anomaly"] += 1
         image_paths.append(image_path)

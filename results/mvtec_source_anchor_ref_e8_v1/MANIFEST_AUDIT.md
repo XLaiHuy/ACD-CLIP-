@@ -27,7 +27,7 @@ The original manifest is used directly. No alias, rewrite, split, subsampling, o
 | Duplicate anomaly mask paths | 0 |
 | Train/good records | 0 |
 
-All normal records resolve to `<category>/test/good/*`; all anomaly records resolve to `<category>/test/<defect_type>/*`; anomaly masks resolve to `<category>/ground_truth/<defect_type>/*_mask.png`. Label values are exactly `{0, 1}`.
+The original row schema is preserved: normal rows have `image_path`, `label`, and `class_name` (no `mask_path` key); anomaly rows additionally have `mask_path`. All normal records resolve to `<category>/test/good/*`; all anomaly records resolve to `<category>/test/<defect_type>/*`; anomaly masks resolve to `<category>/ground_truth/<defect_type>/*_mask.png`. Label values are exactly `{0, 1}`.
 
 ## Category audit
 

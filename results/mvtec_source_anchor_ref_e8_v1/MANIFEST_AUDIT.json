@@ -21,5 +21,6 @@
     "label_values": [0, 1]
   },
   "manifest_wiring": "none; original manifest used directly",
+  "row_schema": {"normal": ["image_path", "label", "class_name"], "anomaly": ["image_path", "label", "mask_path", "class_name"]},
   "audit_status": "PASS"
 }
