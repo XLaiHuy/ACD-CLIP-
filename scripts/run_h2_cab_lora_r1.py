@@ -984,11 +984,11 @@ def train_arm(payload: dict, manifest: dict, arm: str, control_rows: list[dict] 
     return summary
 
 
-def paired_screen_phase(payload: dict) -> dict:
+def assemble_screen_phase() -> dict:
+    """Assemble paired artifacts from already completed arm summaries."""
     set_stage("PAIRED_SCREEN")
-    manifest = json.loads(OUT_MANIFEST_JSON.read_text())
-    control = train_arm(payload, manifest, CONTROL)
-    candidate = train_arm(payload, manifest, CANDIDATE, control["rows"])
+    control = json.loads((RUN_ROOT / CONTROL / "summary.json").read_text())
+    candidate = json.loads((RUN_ROOT / CANDIDATE / "summary.json").read_text())
     if len(control["rows"]) != MAX_ATTEMPTS or len(candidate["rows"]) != MAX_ATTEMPTS:
         raise RuntimeError("paired screen did not complete exactly 500 attempts per arm")
     paired = []
@@ -1012,6 +1012,13 @@ def paired_screen_phase(payload: dict) -> dict:
     dump_json(RUN_ROOT / "paired_screen_summary.json", artifact)
     set_stage("PAIRED_SCREEN", "PASS")
     return artifact
+
+
+def paired_screen_phase(payload: dict) -> dict:
+    manifest = json.loads(OUT_MANIFEST_JSON.read_text())
+    control = train_arm(payload, manifest, CONTROL)
+    candidate = train_arm(payload, manifest, CANDIDATE, control["rows"])
+    return assemble_screen_phase()
 
 
 def full_region_values(score: np.ndarray, mask: np.ndarray) -> dict[str, np.ndarray]:
@@ -1155,7 +1162,7 @@ def decision_phase(payload: dict) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--phase", choices=("identity", "counterfactual", "preflight", "calibration", "manifest", "control", "candidate", "screen", "endpoint", "decision"), required=True)
+    parser.add_argument("--phase", choices=("identity", "counterfactual", "preflight", "calibration", "manifest", "control", "candidate", "assemble", "screen", "endpoint", "decision"), required=True)
     args = parser.parse_args()
     identity = validate_parent_and_start()
     payload = identity["payload"]
@@ -1169,9 +1176,11 @@ def main() -> None:
         lambda_calibration_phase()
     elif args.phase == "manifest":
         make_attempt_manifest(payload)
-    elif args.phase in {"control", "candidate", "screen"}:
+    elif args.phase in {"control", "candidate", "assemble", "screen"}:
         if args.phase == "screen":
             paired_screen_phase(payload)
+        elif args.phase == "assemble":
+            assemble_screen_phase()
         else:
             manifest = json.loads(OUT_MANIFEST_JSON.read_text())
             if args.phase == "control":
