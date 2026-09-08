@@ -143,10 +143,16 @@ def patch_resume_identity() -> None:
         if source_epoch == 1:
             pass
         elif source_epoch == 8:
-            if actual.get("use_safe_anchor") or actual.get("use_cir_training"):
-                raise RuntimeError("E8 parent is contaminated by Anchor or CIR")
-            for key in contract.RESUME_BRANCH_KEYS:
-                actual[key] = expected.get(key)
+            # The historical restore path validates the same payload once
+            # before entering train() and once inside restore_full_checkpoint.
+            # The first validation bridges only in-memory branch metadata;
+            # accept that already-bridged form on the second validation.
+            already_bridged = all(actual.get(key) == expected.get(key) for key in contract.RESUME_BRANCH_KEYS)
+            if not already_bridged:
+                if actual.get("use_safe_anchor") or actual.get("use_cir_training"):
+                    raise RuntimeError("E8 parent is contaminated by Anchor or CIR")
+                for key in contract.RESUME_BRANCH_KEYS:
+                    actual[key] = expected.get(key)
         else:
             raise RuntimeError(f"unexpected resume boundary for E8 experiment: E{source_epoch}")
 
