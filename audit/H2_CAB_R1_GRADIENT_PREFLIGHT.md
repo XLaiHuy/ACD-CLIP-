@@ -1,0 +1,1662 @@
+# H2 CAB-LoRA R1 Gradient Preflight
+
+{
+  "CAB_ACTIVITY": "PASS",
+  "CAB_GRADIENT_SCOPE": "PASS",
+  "active_batch_count": 15,
+  "active_batch_fraction": 0.9375,
+  "active_token_fraction": {
+    "count": 16,
+    "max": 1.0,
+    "mean": 0.5583457341269842,
+    "median": 0.5277777777777778,
+    "p50": 0.5277777777777778,
+    "p95": 1.0,
+    "p99": 1.0
+  },
+  "all_finite": true,
+  "batch_count": 16,
+  "d_post_distribution": {
+    "mean": {
+      "count": 15,
+      "max": 0.8544874787330627,
+      "mean": 0.6663012768462221,
+      "median": 0.6487814571176257,
+      "p50": 0.6487814571176257,
+      "p95": 0.8044193685054778,
+      "p99": 0.8444738566875457
+    },
+    "median": {
+      "count": 15,
+      "max": 0.854771614074707,
+      "mean": 0.6734461943308513,
+      "median": 0.6744302809238434,
+      "p50": 0.6744302809238434,
+      "p95": 0.8295440256595611,
+      "p99": 0.8497260963916778
+    },
+    "p95": {
+      "count": 15,
+      "max": 1.0030861079692839,
+      "mean": 0.8497280108928681,
+      "median": 0.8439661145210265,
+      "p50": 0.8439661145210265,
+      "p95": 1.0026271605491637,
+      "p99": 1.0029943184852599
+    },
+    "p99": {
+      "count": 15,
+      "max": 1.0530308485031126,
+      "mean": 0.8747422374884287,
+      "median": 0.8936791855096817,
+      "p50": 0.8936791855096817,
+      "p95": 1.0396577979326247,
+      "p99": 1.050356238389015
+    }
+  },
+  "d_pre_distribution": {
+    "mean": {
+      "count": 15,
+      "max": 0.778985321521759,
+      "mean": 0.6412950841806553,
+      "median": 0.6190635015567144,
+      "p50": 0.6190635015567144,
+      "p95": 0.7414465680718422,
+      "p99": 0.7714775708317756
+    },
+    "median": {
+      "count": 15,
+      "max": 0.7709369659423828,
+      "mean": 0.6642815272013346,
+      "median": 0.6731337904930115,
+      "p50": 0.6731337904930115,
+      "p95": 0.7646308720111847,
+      "p99": 0.7696757471561432
+    },
+    "p95": {
+      "count": 15,
+      "max": 0.9380552887916563,
+      "mean": 0.7980411195755005,
+      "median": 0.7961032330989838,
+      "p50": 0.7961032330989838,
+      "p95": 0.9192439666390417,
+      "p99": 0.9342930243611334
+    },
+    "p99": {
+      "count": 15,
+      "max": 0.981731607913971,
+      "mean": 0.8213380778630575,
+      "median": 0.8167463213205337,
+      "p50": 0.8167463213205337,
+      "p95": 0.9698739312291146,
+      "p99": 0.9793600725769996
+    }
+  },
+  "gradient_scope_max_norm": {
+    "prompt_text": 0.0,
+    "stage1_convlora": 0.0,
+    "stage2_convlora": 0.4871971905231476,
+    "stage2_dfg_k": 0.0,
+    "stage2_dfg_q": 0.0,
+    "stage2_merge_weight": 0.0,
+    "stage2_projection": 0.0,
+    "stage2_ss2d": 0.0,
+    "stage3_convlora": 0.0
+  },
+  "gradient_scope_rows": [
+    {
+      "batch_index": 1,
+      "prompt_text": 0.0,
+      "stage1_convlora": 0.0,
+      "stage2_convlora": 0.20716139674186707,
+      "stage2_dfg_k": 0.0,
+      "stage2_dfg_q": 0.0,
+      "stage2_merge_weight": 0.0,
+      "stage2_projection": 0.0,
+      "stage2_ss2d": 0.0,
+      "stage3_convlora": 0.0
+    },
+    {
+      "batch_index": 2,
+      "prompt_text": 0.0,
+      "stage1_convlora": 0.0,
+      "stage2_convlora": 0.31554797291755676,
+      "stage2_dfg_k": 0.0,
+      "stage2_dfg_q": 0.0,
+      "stage2_merge_weight": 0.0,
+      "stage2_projection": 0.0,
+      "stage2_ss2d": 0.0,
+      "stage3_convlora": 0.0
+    },
+    {
+      "batch_index": 3,
+      "prompt_text": 0.0,
+      "stage1_convlora": 0.0,
+      "stage2_convlora": 0.4871971905231476,
+      "stage2_dfg_k": 0.0,
+      "stage2_dfg_q": 0.0,
+      "stage2_merge_weight": 0.0,
+      "stage2_projection": 0.0,
+      "stage2_ss2d": 0.0,
+      "stage3_convlora": 0.0
+    },
+    {
+      "batch_index": 4,
+      "prompt_text": 0.0,
+      "stage1_convlora": 0.0,
+      "stage2_convlora": 0.24465115368366241,
+      "stage2_dfg_k": 0.0,
+      "stage2_dfg_q": 0.0,
+      "stage2_merge_weight": 0.0,
+      "stage2_projection": 0.0,
+      "stage2_ss2d": 0.0,
+      "stage3_convlora": 0.0
+    }
+  ],
+  "phase": "pre-optimizer-step gradient and activity audit",
+  "positive_delta_distribution": {
+    "mean": {
+      "count": 15,
+      "max": 0.09372517466545105,
+      "mean": 0.044389571449744,
+      "median": 0.03677312657237053,
+      "p50": 0.03677312657237053,
+      "p95": 0.0830065757036209,
+      "p99": 0.09158145487308501
+    },
+    "median": {
+      "count": 15,
+      "max": 0.08265218138694763,
+      "mean": 0.031019439299901325,
+      "median": 0.01052960753440857,
+      "p50": 0.01052960753440857,
+      "p95": 0.0810035914182663,
+      "p99": 0.08232246339321136
+    },
+    "p95": {
+      "count": 15,
+      "max": 0.14054066538810725,
+      "mean": 0.10316712816556292,
+      "median": 0.10823667049407959,
+      "p50": 0.10823667049407959,
+      "p95": 0.13856330871582026,
+      "p99": 0.14014519405364986
+    },
+    "p99": {
+      "count": 15,
+      "max": 0.1562022340297699,
+      "mean": 0.10961748274167378,
+      "median": 0.11658237159252166,
+      "p50": 0.11658237159252166,
+      "p95": 0.148466908454895,
+      "p99": 0.15465516891479492
+    }
+  },
+  "protocol_id": "H2_CAB_LORA_R1_BOUNDED",
+  "ratios": [
+    0.0,
+    0.06965922782020367,
+    0.15263286764470996,
+    0.6400081167177548,
+    1.7032633188795505,
+    0.10188811146782964,
+    0.34224720306478956,
+    0.458740642976308,
+    0.2982797821254829,
+    1.9564893227967879,
+    1.9616839515332491,
+    2.354640194560395,
+    0.10542121033407437,
+    0.3157010720022369,
+    0.6287696150417633,
+    0.46908108240680463
+  ],
+  "raw_cab_to_task_ratio_median": 0.40049392302054876,
+  "rows": [
+    {
+      "active_token_fraction": 0.0,
+      "batch_index": 0,
+      "cab_active": false,
+      "cab_loss": 0.0,
+      "d_post": {
+        "count": 0,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "p50": null,
+        "p95": null,
+        "p99": null
+      },
+      "d_pre": {
+        "count": 0,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "p50": null,
+        "p95": null,
+        "p99": null
+      },
+      "file_names": [
+        "pcb1/Data/Images/Normal/0417.JPG",
+        "pcb2/Data/Images/Normal/0935.JPG",
+        "macaroni1/Data/Images/Normal/0178.JPG",
+        "pcb2/Data/Images/Normal/0968.JPG",
+        "capsules/Data/Images/Anomaly/040.JPG",
+        "capsules/Data/Images/Normal/026.JPG"
+      ],
+      "locality": {
+        "context_change_mean": 0.0,
+        "context_change_p95": 0.0,
+        "footprint_max_abs_diff": 0.0,
+        "pair_count": 0,
+        "protected_pixel_fraction_mean": 0.0,
+        "rows": [],
+        "token_count": 0
+      },
+      "positive_delta": {
+        "count": 0,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "p50": null,
+        "p95": null,
+        "p99": null
+      },
+      "raw_cab_to_task_ratio": 0.0,
+      "stage2_cab_raw_grad_norm": 0.0,
+      "stage2_task_grad_norm": 0.06839890033006668,
+      "task_loss": 0.777701457341512,
+      "token_count": 0
+    },
+    {
+      "active_token_fraction": 0.75,
+      "batch_index": 1,
+      "cab_active": true,
+      "cab_loss": 0.06745027378201485,
+      "d_post": {
+        "count": 12,
+        "max": 0.92613685131073,
+        "mean": 0.7773800790309906,
+        "median": 0.7488475739955902,
+        "p50": 0.7488475739955902,
+        "p95": 0.92239550948143,
+        "p99": 0.92538858294487
+      },
+      "d_pre": {
+        "count": 12,
+        "max": 0.9781945943832397,
+        "mean": 0.7253585308790207,
+        "median": 0.7009174525737762,
+        "p50": 0.7009174525737762,
+        "p95": 0.9111819714307784,
+        "p99": 0.9647920697927476
+      },
+      "file_names": [
+        "pipe_fryum/Data/Images/Normal/050.JPG",
+        "pcb1/Data/Images/Anomaly/061.JPG",
+        "pcb4/Data/Images/Anomaly/077.JPG",
+        "chewinggum/Data/Images/Normal/352.JPG",
+        "pcb3/Data/Images/Anomaly/003.JPG",
+        "capsules/Data/Images/Anomaly/064.JPG"
+      ],
+      "locality": {
+        "context_change_mean": 0.8903295993804932,
+        "context_change_p95": 1.211949110031128,
+        "footprint_max_abs_diff": 0.0,
+        "pair_count": 4,
+        "protected_pixel_fraction_mean": 0.013878743608473337,
+        "rows": [
+          {
+            "batch_index": 1,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.6642932891845703,
+            "protected_pixel_fraction": 0.008765522279035792,
+            "token_indices": [
+              654,
+              655
+            ]
+          },
+          {
+            "batch_index": 2,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.8866742849349976,
+            "protected_pixel_fraction": 0.013148283418553688,
+            "token_indices": [
+              910,
+              1020
+            ]
+          },
+          {
+            "batch_index": 4,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.6835559010505676,
+            "protected_pixel_fraction": 0.017531044558071585,
+            "token_indices": [
+              507,
+              508,
+              545,
+              616
+            ]
+          },
+          {
+            "batch_index": 5,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 1.211949110031128,
+            "protected_pixel_fraction": 0.016070124178232285,
+            "token_indices": [
+              7,
+              8,
+              81,
+              84
+            ]
+          }
+        ],
+        "token_count": 12
+      },
+      "positive_delta": {
+        "count": 12,
+        "max": 0.1306731104850769,
+        "mean": 0.060493215918540955,
+        "median": 0.07105329632759094,
+        "p50": 0.07105329632759094,
+        "p95": 0.1099279165267944,
+        "p99": 0.12652407169342042
+      },
+      "raw_cab_to_task_ratio": 0.06965922782020367,
+      "stage2_cab_raw_grad_norm": 0.10288208723068237,
+      "stage2_task_grad_norm": 1.4769340753555298,
+      "task_loss": 1.0581585268179576,
+      "token_count": 12
+    },
+    {
+      "active_token_fraction": 0.4,
+      "batch_index": 2,
+      "cab_active": true,
+      "cab_loss": 0.01524343118071556,
+      "d_post": {
+        "count": 15,
+        "max": 0.9000057578086853,
+        "mean": 0.7001604159673055,
+        "median": 0.7096695303916931,
+        "p50": 0.7096695303916931,
+        "p95": 0.877129316329956,
+        "p99": 0.8954304695129395
+      },
+      "d_pre": {
+        "count": 15,
+        "max": 0.8908603191375732,
+        "mean": 0.7175817767779032,
+        "median": 0.7619282603263855,
+        "p50": 0.7619282603263855,
+        "p95": 0.8810076236724853,
+        "p99": 0.8888897800445557
+      },
+      "file_names": [
+        "candle/Data/Images/Anomaly/025.JPG",
+        "pcb1/Data/Images/Anomaly/020.JPG",
+        "macaroni2/Data/Images/Normal/0294.JPG",
+        "candle/Data/Images/Anomaly/039.JPG",
+        "candle/Data/Images/Anomaly/088.JPG",
+        "pipe_fryum/Data/Images/Anomaly/025.JPG"
+      ],
+      "locality": {
+        "context_change_mean": 1.1651874820391337,
+        "context_change_p95": 1.6424894332885742,
+        "footprint_max_abs_diff": 0.0,
+        "pair_count": 5,
+        "protected_pixel_fraction_mean": 0.016070124178232288,
+        "rows": [
+          {
+            "batch_index": 0,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 1.294755260149638,
+            "protected_pixel_fraction": 0.015339663988312637,
+            "token_indices": [
+              696,
+              770,
+              772
+            ]
+          },
+          {
+            "batch_index": 1,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.7852156162261963,
+            "protected_pixel_fraction": 0.017531044558071585,
+            "token_indices": [
+              829,
+              834,
+              835,
+              866
+            ]
+          },
+          {
+            "batch_index": 3,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.9290338158607483,
+            "protected_pixel_fraction": 0.006574141709276844,
+            "token_indices": [
+              1272
+            ]
+          },
+          {
+            "batch_index": 4,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 1.149045467376709,
+            "protected_pixel_fraction": 0.02556610664718773,
+            "token_indices": [
+              507,
+              512,
+              577,
+              584
+            ]
+          },
+          {
+            "batch_index": 5,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 1.6424894332885742,
+            "protected_pixel_fraction": 0.015339663988312637,
+            "token_indices": [
+              581,
+              728,
+              729
+            ]
+          }
+        ],
+        "token_count": 15
+      },
+      "positive_delta": {
+        "count": 15,
+        "max": 0.0918465256690979,
+        "mean": 0.019171766440073647,
+        "median": 0.0,
+        "p50": 0.0,
+        "p95": 0.09159931540489197,
+        "p99": 0.09179708361625671
+      },
+      "raw_cab_to_task_ratio": 0.15263286764470996,
+      "stage2_cab_raw_grad_norm": 0.09336257725954056,
+      "stage2_task_grad_norm": 0.6116806864738464,
+      "task_loss": 1.2310533324877422,
+      "token_count": 15
+    },
+    {
+      "active_token_fraction": 0.5714285714285714,
+      "batch_index": 3,
+      "cab_active": true,
+      "cab_loss": 0.04436682164669037,
+      "d_post": {
+        "count": 7,
+        "max": 0.7495713829994202,
+        "mean": 0.6057682292801994,
+        "median": 0.5866314172744751,
+        "p50": 0.5866314172744751,
+        "p95": 0.7108414471149443,
+        "p99": 0.7418253958225249
+      },
+      "d_pre": {
+        "count": 7,
+        "max": 0.6924914121627808,
+        "mean": 0.6084215385573251,
+        "median": 0.6125789284706116,
+        "p50": 0.6125789284706116,
+        "p95": 0.6923979103565217,
+        "p99": 0.6924727118015289
+      },
+      "file_names": [
+        "cashew/Data/Images/Anomaly/071.JPG",
+        "macaroni1/Data/Images/Anomaly/064.JPG",
+        "pcb3/Data/Images/Normal/0484.JPG",
+        "pcb3/Data/Images/Normal/0871.JPG",
+        "macaroni1/Data/Images/Anomaly/015.JPG",
+        "candle/Data/Images/Anomaly/037.JPG"
+      ],
+      "locality": {
+        "context_change_mean": 0.7824539967945644,
+        "context_change_p95": 0.8747798204421997,
+        "footprint_max_abs_diff": 0.0,
+        "pair_count": 4,
+        "protected_pixel_fraction_mean": 0.00858290723155588,
+        "rows": [
+          {
+            "batch_index": 0,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.6960146427154541,
+            "protected_pixel_fraction": 0.010226442658875092,
+            "token_indices": [
+              531,
+              567
+            ]
+          },
+          {
+            "batch_index": 1,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.6519634127616882,
+            "protected_pixel_fraction": 0.006574141709276844,
+            "token_indices": [
+              392
+            ]
+          },
+          {
+            "batch_index": 4,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.8088458180427551,
+            "protected_pixel_fraction": 0.006574141709276844,
+            "token_indices": [
+              232
+            ]
+          },
+          {
+            "batch_index": 5,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.8747798204421997,
+            "protected_pixel_fraction": 0.01095690284879474,
+            "token_indices": [
+              1043,
+              1079,
+              1080
+            ]
+          }
+        ],
+        "token_count": 7
+      },
+      "positive_delta": {
+        "count": 7,
+        "max": 0.1300867199897766,
+        "mean": 0.02866084235055106,
+        "median": 0.010485291481018066,
+        "p50": 0.010485291481018066,
+        "p95": 0.10181028246879571,
+        "p99": 0.1244314324855804
+      },
+      "raw_cab_to_task_ratio": 0.6400081167177548,
+      "stage2_cab_raw_grad_norm": 0.24683672189712524,
+      "stage2_task_grad_norm": 0.3856774866580963,
+      "task_loss": 1.1840705275535583,
+      "token_count": 7
+    },
+    {
+      "active_token_fraction": 1.0,
+      "batch_index": 4,
+      "cab_active": true,
+      "cab_loss": 0.09372517466545105,
+      "d_post": {
+        "count": 4,
+        "max": 0.7774398922920227,
+        "mean": 0.6821602284908295,
+        "median": 0.6745322048664093,
+        "p50": 0.6745322048664093,
+        "p95": 0.7683322191238403,
+        "p99": 0.7756183576583863
+      },
+      "d_pre": {
+        "count": 4,
+        "max": 0.7148543000221252,
+        "mean": 0.5884350538253784,
+        "median": 0.5918800234794617,
+        "p50": 0.5918800234794617,
+        "p95": 0.7023777276277542,
+        "p99": 0.712358985543251
+      },
+      "file_names": [
+        "capsules/Data/Images/Anomaly/006.JPG",
+        "capsules/Data/Images/Normal/324.JPG",
+        "pcb3/Data/Images/Normal/0024.JPG",
+        "pcb3/Data/Images/Normal/0159.JPG",
+        "pcb1/Data/Images/Anomaly/064.JPG",
+        "pcb4/Data/Images/Normal/0619.JPG"
+      ],
+      "locality": {
+        "context_change_mean": 1.9576458930969238,
+        "context_change_p95": 1.9576458930969238,
+        "footprint_max_abs_diff": 0.0,
+        "pair_count": 1,
+        "protected_pixel_fraction_mean": 0.02191380569758948,
+        "rows": [
+          {
+            "batch_index": 4,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 1.9576458930969238,
+            "protected_pixel_fraction": 0.02191380569758948,
+            "token_indices": [
+              683,
+              686,
+              723,
+              874
+            ]
+          }
+        ],
+        "token_count": 4
+      },
+      "positive_delta": {
+        "count": 4,
+        "max": 0.14701074361801147,
+        "mean": 0.09372517466545105,
+        "median": 0.08265218138694763,
+        "p50": 0.08265218138694763,
+        "p95": 0.137715870141983,
+        "p99": 0.14515176892280576
+      },
+      "raw_cab_to_task_ratio": 1.7032633188795505,
+      "stage2_cab_raw_grad_norm": 0.24465115368366241,
+      "stage2_task_grad_norm": 0.14363671839237213,
+      "task_loss": 0.891962359348933,
+      "token_count": 4
+    },
+    {
+      "active_token_fraction": 0.5,
+      "batch_index": 5,
+      "cab_active": true,
+      "cab_loss": 0.05072209984064102,
+      "d_post": {
+        "count": 8,
+        "max": 0.8637577891349792,
+        "mean": 0.5935500785708427,
+        "median": 0.585871696472168,
+        "p50": 0.585871696472168,
+        "p95": 0.8439661145210265,
+        "p99": 0.8597994542121887
+      },
+      "d_pre": {
+        "count": 8,
+        "max": 0.7523412108421326,
+        "mean": 0.5575625523924828,
+        "median": 0.5561979711055756,
+        "p50": 0.5561979711055756,
+        "p95": 0.7306054204702377,
+        "p99": 0.7479940527677535
+      },
+      "file_names": [
+        "pcb2/Data/Images/Normal/0427.JPG",
+        "macaroni1/Data/Images/Normal/0631.JPG",
+        "pcb4/Data/Images/Anomaly/028.JPG",
+        "capsules/Data/Images/Anomaly/038.JPG",
+        "pcb4/Data/Images/Anomaly/033.JPG",
+        "pipe_fryum/Data/Images/Anomaly/088.JPG"
+      ],
+      "locality": {
+        "context_change_mean": 0.651289701461792,
+        "context_change_p95": 0.7593883275985718,
+        "footprint_max_abs_diff": 0.0,
+        "pair_count": 2,
+        "protected_pixel_fraction_mean": 0.01789627465303141,
+        "rows": [
+          {
+            "batch_index": 2,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.7593883275985718,
+            "protected_pixel_fraction": 0.020452885317750184,
+            "token_indices": [
+              317,
+              388,
+              392,
+              429
+            ]
+          },
+          {
+            "batch_index": 4,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.5431910753250122,
+            "protected_pixel_fraction": 0.015339663988312637,
+            "token_indices": [
+              488,
+              525,
+              527,
+              562
+            ]
+          }
+        ],
+        "token_count": 8
+      },
+      "positive_delta": {
+        "count": 8,
+        "max": 0.11697119474411011,
+        "mean": 0.05072209984064102,
+        "median": 0.04065161943435669,
+        "p50": 0.04065161943435669,
+        "p95": 0.1150270789861679,
+        "p99": 0.11658237159252166
+      },
+      "raw_cab_to_task_ratio": 0.10188811146782964,
+      "stage2_cab_raw_grad_norm": 0.0798524022102356,
+      "stage2_task_grad_norm": 0.7837263941764832,
+      "task_loss": 0.890052338441213,
+      "token_count": 8
+    },
+    {
+      "active_token_fraction": 0.6,
+      "batch_index": 6,
+      "cab_active": true,
+      "cab_loss": 0.06755402684211731,
+      "d_post": {
+        "count": 10,
+        "max": 1.04163658618927,
+        "mean": 0.7513925015926362,
+        "median": 0.7733285427093506,
+        "p50": 0.7733285427093506,
+        "p95": 1.0030861079692839,
+        "p99": 1.0339264905452727
+      },
+      "d_pre": {
+        "count": 10,
+        "max": 0.9926506876945496,
+        "mean": 0.7146135628223419,
+        "median": 0.7467442452907562,
+        "p50": 0.7467442452907562,
+        "p95": 0.9380552887916563,
+        "p99": 0.981731607913971
+      },
+      "file_names": [
+        "capsules/Data/Images/Anomaly/028.JPG",
+        "pcb1/Data/Images/Anomaly/023.JPG",
+        "macaroni2/Data/Images/Anomaly/085.JPG",
+        "capsules/Data/Images/Anomaly/062.JPG",
+        "fryum/Data/Images/Normal/307.JPG",
+        "pipe_fryum/Data/Images/Normal/148.JPG"
+      ],
+      "locality": {
+        "context_change_mean": 1.040322130918503,
+        "context_change_p95": 1.431193470954895,
+        "footprint_max_abs_diff": 0.0,
+        "pair_count": 4,
+        "protected_pixel_fraction_mean": 0.01241782322863404,
+        "rows": [
+          {
+            "batch_index": 0,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.817355751991272,
+            "protected_pixel_fraction": 0.015339663988312637,
+            "token_indices": [
+              503,
+              614,
+              615
+            ]
+          },
+          {
+            "batch_index": 1,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.936643660068512,
+            "protected_pixel_fraction": 0.006574141709276844,
+            "token_indices": [
+              942
+            ]
+          },
+          {
+            "batch_index": 2,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 1.431193470954895,
+            "protected_pixel_fraction": 0.008765522279035792,
+            "token_indices": [
+              621,
+              622
+            ]
+          },
+          {
+            "batch_index": 3,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 1.0380308628082275,
+            "protected_pixel_fraction": 0.018991964937910884,
+            "token_indices": [
+              26,
+              137,
+              171,
+              173
+            ]
+          }
+        ],
+        "token_count": 10
+      },
+      "positive_delta": {
+        "count": 10,
+        "max": 0.16011762619018555,
+        "mean": 0.051060819625854494,
+        "median": 0.0264987051486969,
+        "p50": 0.0264987051486969,
+        "p95": 0.14054066538810725,
+        "p99": 0.1562022340297699
+      },
+      "raw_cab_to_task_ratio": 0.34224720306478956,
+      "stage2_cab_raw_grad_norm": 0.10857057571411133,
+      "stage2_task_grad_norm": 0.3172285258769989,
+      "task_loss": 1.147268146276474,
+      "token_count": 10
+    },
+    {
+      "active_token_fraction": 0.5555555555555556,
+      "batch_index": 7,
+      "cab_active": true,
+      "cab_loss": 0.021861915787061054,
+      "d_post": {
+        "count": 9,
+        "max": 0.9610030651092529,
+        "mean": 0.666809426413642,
+        "median": 0.8187322020530701,
+        "p50": 0.8187322020530701,
+        "p95": 0.9206058740615845,
+        "p99": 0.9529236268997192
+      },
+      "d_pre": {
+        "count": 9,
+        "max": 0.8759811520576477,
+        "mean": 0.6550116274091933,
+        "median": 0.7586293816566467,
+        "p50": 0.7586293816566467,
+        "p95": 0.8742235541343689,
+        "p99": 0.875629632472992
+      },
+      "file_names": [
+        "cashew/Data/Images/Normal/272.JPG",
+        "pcb3/Data/Images/Anomaly/090.JPG",
+        "pcb1/Data/Images/Normal/0208.JPG",
+        "macaroni2/Data/Images/Anomaly/019.JPG",
+        "candle/Data/Images/Anomaly/070.JPG",
+        "capsules/Data/Images/Anomaly/080.JPG"
+      ],
+      "locality": {
+        "context_change_mean": 0.9538294076919556,
+        "context_change_p95": 1.0503647327423096,
+        "footprint_max_abs_diff": 0.0,
+        "pair_count": 3,
+        "protected_pixel_fraction_mean": 0.01582663744825907,
+        "rows": [
+          {
+            "batch_index": 1,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.7909759283065796,
+            "protected_pixel_fraction": 0.013148283418553688,
+            "token_indices": [
+              576,
+              578,
+              615
+            ]
+          },
+          {
+            "batch_index": 4,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 1.0050389766693115,
+            "protected_pixel_fraction": 0.010226442658875092,
+            "token_indices": [
+              388,
+              424
+            ]
+          },
+          {
+            "batch_index": 5,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 1.0503647327423096,
+            "protected_pixel_fraction": 0.02410518626734843,
+            "token_indices": [
+              869,
+              903,
+              977,
+              983
+            ]
+          }
+        ],
+        "token_count": 9
+      },
+      "positive_delta": {
+        "count": 9,
+        "max": 0.08941590785980225,
+        "mean": 0.028927134142981634,
+        "median": 0.005996346473693848,
+        "p50": 0.005996346473693848,
+        "p95": 0.08655414581298827,
+        "p99": 0.08884355545043945
+      },
+      "raw_cab_to_task_ratio": 0.458740642976308,
+      "stage2_cab_raw_grad_norm": 0.07309788465499878,
+      "stage2_task_grad_norm": 0.15934468805789948,
+      "task_loss": 1.1827567517757416,
+      "token_count": 9
+    },
+    {
+      "active_token_fraction": 0.4375,
+      "batch_index": 8,
+      "cab_active": true,
+      "cab_loss": 0.03677312657237053,
+      "d_post": {
+        "count": 16,
+        "max": 1.028759479522705,
+        "mean": 0.6119472682476044,
+        "median": 0.5983473658561707,
+        "p50": 0.5983473658561707,
+        "p95": 1.0024304687976837,
+        "p99": 1.0234936773777008
+      },
+      "d_pre": {
+        "count": 16,
+        "max": 0.938541054725647,
+        "mean": 0.5931328423321247,
+        "median": 0.5801321268081665,
+        "p50": 0.5801321268081665,
+        "p95": 0.8994602411985397,
+        "p99": 0.9307248920202255
+      },
+      "file_names": [
+        "pcb4/Data/Images/Anomaly/063.JPG",
+        "chewinggum/Data/Images/Anomaly/085.JPG",
+        "capsules/Data/Images/Anomaly/014.JPG",
+        "capsules/Data/Images/Normal/580.JPG",
+        "macaroni2/Data/Images/Normal/0631.JPG",
+        "pipe_fryum/Data/Images/Anomaly/074.JPG"
+      ],
+      "locality": {
+        "context_change_mean": 0.899748120456934,
+        "context_change_p95": 1.3624238967895508,
+        "footprint_max_abs_diff": 0.0,
+        "pair_count": 4,
+        "protected_pixel_fraction_mean": 0.018261504747991236,
+        "rows": [
+          {
+            "batch_index": 0,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.6548975706100464,
+            "protected_pixel_fraction": 0.019722425127830533,
+            "token_indices": [
+              494,
+              531,
+              870,
+              872
+            ]
+          },
+          {
+            "batch_index": 1,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 1.3624238967895508,
+            "protected_pixel_fraction": 0.016070124178232285,
+            "token_indices": [
+              160,
+              161,
+              196,
+              199
+            ]
+          },
+          {
+            "batch_index": 2,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 1.192144513130188,
+            "protected_pixel_fraction": 0.015339663988312637,
+            "token_indices": [
+              397,
+              434,
+              471,
+              473
+            ]
+          },
+          {
+            "batch_index": 5,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.38952650129795074,
+            "protected_pixel_fraction": 0.02191380569758948,
+            "token_indices": [
+              718,
+              752,
+              862,
+              863
+            ]
+          }
+        ],
+        "token_count": 16
+      },
+      "positive_delta": {
+        "count": 16,
+        "max": 0.13726067543029785,
+        "mean": 0.03677312657237053,
+        "median": 0.0,
+        "p50": 0.0,
+        "p95": 0.12394216656684875,
+        "p99": 0.13459697365760803
+      },
+      "raw_cab_to_task_ratio": 0.2982797821254829,
+      "stage2_cab_raw_grad_norm": 0.06362010538578033,
+      "stage2_task_grad_norm": 0.2132900357246399,
+      "task_loss": 1.1106863518555958,
+      "token_count": 16
+    },
+    {
+      "active_token_fraction": 1.0,
+      "batch_index": 9,
+      "cab_active": true,
+      "cab_loss": 0.07841289043426514,
+      "d_post": {
+        "count": 1,
+        "max": 0.7829616069793701,
+        "mean": 0.7829616069793701,
+        "median": 0.7829616069793701,
+        "p50": 0.7829616069793701,
+        "p95": 0.7829616069793701,
+        "p99": 0.7829616069793701
+      },
+      "d_pre": {
+        "count": 1,
+        "max": 0.704548716545105,
+        "mean": 0.704548716545105,
+        "median": 0.704548716545105,
+        "p50": 0.704548716545105,
+        "p95": 0.704548716545105,
+        "p99": 0.704548716545105
+      },
+      "file_names": [
+        "macaroni1/Data/Images/Normal/0685.JPG",
+        "fryum/Data/Images/Normal/377.JPG",
+        "pcb3/Data/Images/Normal/0294.JPG",
+        "pcb4/Data/Images/Normal/0674.JPG",
+        "macaroni1/Data/Images/Anomaly/063.JPG",
+        "pcb3/Data/Images/Normal/0694.JPG"
+      ],
+      "locality": {
+        "context_change_mean": 0.7239676713943481,
+        "context_change_p95": 0.7239676713943481,
+        "footprint_max_abs_diff": 0.0,
+        "pair_count": 1,
+        "protected_pixel_fraction_mean": 0.006574141709276844,
+        "rows": [
+          {
+            "batch_index": 4,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.7239676713943481,
+            "protected_pixel_fraction": 0.006574141709276844,
+            "token_indices": [
+              493
+            ]
+          }
+        ],
+        "token_count": 1
+      },
+      "positive_delta": {
+        "count": 1,
+        "max": 0.07841289043426514,
+        "mean": 0.07841289043426514,
+        "median": 0.07841289043426514,
+        "p50": 0.07841289043426514,
+        "p95": 0.07841289043426514,
+        "p99": 0.07841289043426514
+      },
+      "raw_cab_to_task_ratio": 1.9564893227967879,
+      "stage2_cab_raw_grad_norm": 0.23383378982543945,
+      "stage2_task_grad_norm": 0.11951702833175659,
+      "task_loss": 0.7432909508546194,
+      "token_count": 1
+    },
+    {
+      "active_token_fraction": 0.5,
+      "batch_index": 10,
+      "cab_active": true,
+      "cab_loss": 0.010971501469612122,
+      "d_post": {
+        "count": 4,
+        "max": 0.6093945503234863,
+        "mean": 0.5086840987205505,
+        "median": 0.49776512384414673,
+        "p50": 0.49776512384414673,
+        "p95": 0.5950038909912109,
+        "p99": 0.6065164184570312
+      },
+      "d_pre": {
+        "count": 4,
+        "max": 0.5883353352546692,
+        "mean": 0.5130220353603363,
+        "median": 0.5283840000629425,
+        "p50": 0.5283840000629425,
+        "p95": 0.5815321624279022,
+        "p99": 0.5869747006893158
+      },
+      "file_names": [
+        "pcb1/Data/Images/Normal/0215.JPG",
+        "pcb3/Data/Images/Normal/1002.JPG",
+        "pcb2/Data/Images/Anomaly/059.JPG",
+        "pcb1/Data/Images/Normal/0784.JPG",
+        "pcb3/Data/Images/Normal/0569.JPG",
+        "pcb3/Data/Images/Normal/0735.JPG"
+      ],
+      "locality": {
+        "context_change_mean": 0.7358407378196716,
+        "context_change_p95": 0.7358407378196716,
+        "footprint_max_abs_diff": 0.0,
+        "pair_count": 1,
+        "protected_pixel_fraction_mean": 0.017531044558071585,
+        "rows": [
+          {
+            "batch_index": 2,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.7358407378196716,
+            "protected_pixel_fraction": 0.017531044558071585,
+            "token_indices": [
+              874,
+              875,
+              906,
+              943
+            ]
+          }
+        ],
+        "token_count": 4
+      },
+      "positive_delta": {
+        "count": 4,
+        "max": 0.022826790809631348,
+        "mean": 0.010971501469612122,
+        "median": 0.01052960753440857,
+        "p50": 0.01052960753440857,
+        "p95": 0.022561654448509216,
+        "p99": 0.02277376353740692
+      },
+      "raw_cab_to_task_ratio": 1.9616839515332491,
+      "stage2_cab_raw_grad_norm": 0.3828544616699219,
+      "stage2_task_grad_norm": 0.1951662302017212,
+      "task_loss": 0.8369802236557007,
+      "token_count": 4
+    },
+    {
+      "active_token_fraction": 0.3333333333333333,
+      "batch_index": 11,
+      "cab_active": true,
+      "cab_loss": 0.023913120230038963,
+      "d_post": {
+        "count": 12,
+        "max": 0.9063860774040222,
+        "mean": 0.5982302327950796,
+        "median": 0.6744302809238434,
+        "p50": 0.6744302809238434,
+        "p95": 0.8428516179323196,
+        "p99": 0.8936791855096817
+      },
+      "d_pre": {
+        "count": 12,
+        "max": 0.8150955438613892,
+        "mean": 0.6125719249248505,
+        "median": 0.7317444086074829,
+        "p50": 0.7317444086074829,
+        "p95": 0.7961032330989838,
+        "p99": 0.8112970817089081
+      },
+      "file_names": [
+        "pcb1/Data/Images/Anomaly/086.JPG",
+        "pcb1/Data/Images/Normal/0619.JPG",
+        "pcb3/Data/Images/Anomaly/044.JPG",
+        "chewinggum/Data/Images/Anomaly/073.JPG",
+        "pipe_fryum/Data/Images/Normal/093.JPG",
+        "chewinggum/Data/Images/Normal/050.JPG"
+      ],
+      "locality": {
+        "context_change_mean": 0.8702305356661478,
+        "context_change_p95": 0.9682272672653198,
+        "footprint_max_abs_diff": 0.0,
+        "pair_count": 3,
+        "protected_pixel_fraction_mean": 0.020209398587776966,
+        "rows": [
+          {
+            "batch_index": 0,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.7209478616714478,
+            "protected_pixel_fraction": 0.02191380569758948,
+            "token_indices": [
+              424,
+              460,
+              535,
+              642
+            ]
+          },
+          {
+            "batch_index": 2,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.9682272672653198,
+            "protected_pixel_fraction": 0.015339663988312637,
+            "token_indices": [
+              635,
+              636,
+              638,
+              639
+            ]
+          },
+          {
+            "batch_index": 3,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.921516478061676,
+            "protected_pixel_fraction": 0.02337472607742878,
+            "token_indices": [
+              652,
+              656,
+              727,
+              762
+            ]
+          }
+        ],
+        "token_count": 12
+      },
+      "positive_delta": {
+        "count": 12,
+        "max": 0.09684634208679199,
+        "mean": 0.02391312023003896,
+        "median": 0.0,
+        "p50": 0.0,
+        "p95": 0.09379064738750457,
+        "p99": 0.09623520314693451
+      },
+      "raw_cab_to_task_ratio": 2.354640194560395,
+      "stage2_cab_raw_grad_norm": 0.16756436228752136,
+      "stage2_task_grad_norm": 0.07116346806287766,
+      "task_loss": 1.1794341504573822,
+      "token_count": 12
+    },
+    {
+      "active_token_fraction": 0.25,
+      "batch_index": 12,
+      "cab_active": true,
+      "cab_loss": 0.024172600358724594,
+      "d_post": {
+        "count": 16,
+        "max": 0.7988978624343872,
+        "mean": 0.6031535118818283,
+        "median": 0.579901248216629,
+        "p50": 0.579901248216629,
+        "p95": 0.7772962898015976,
+        "p99": 0.7945775479078293
+      },
+      "d_pre": {
+        "count": 16,
+        "max": 0.830260694026947,
+        "mean": 0.6270523704588413,
+        "median": 0.6241966187953949,
+        "p50": 0.6241966187953949,
+        "p95": 0.7626888304948807,
+        "p99": 0.8167463213205337
+      },
+      "file_names": [
+        "chewinggum/Data/Images/Anomaly/063.JPG",
+        "cashew/Data/Images/Normal/050.JPG",
+        "macaroni1/Data/Images/Anomaly/044.JPG",
+        "pcb4/Data/Images/Normal/0964.JPG",
+        "pipe_fryum/Data/Images/Anomaly/040.JPG",
+        "candle/Data/Images/Anomaly/092.JPG"
+      ],
+      "locality": {
+        "context_change_mean": 1.0190751403570175,
+        "context_change_p95": 1.2511318922042847,
+        "footprint_max_abs_diff": 0.0,
+        "pair_count": 4,
+        "protected_pixel_fraction_mean": 0.019174579985390797,
+        "rows": [
+          {
+            "batch_index": 0,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.8638924360275269,
+            "protected_pixel_fraction": 0.02410518626734843,
+            "token_indices": [
+              212,
+              361,
+              363,
+              427
+            ]
+          },
+          {
+            "batch_index": 2,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.7159535884857178,
+            "protected_pixel_fraction": 0.016800584368151936,
+            "token_indices": [
+              948,
+              949,
+              985,
+              1061
+            ]
+          },
+          {
+            "batch_index": 4,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 1.2453227043151855,
+            "protected_pixel_fraction": 0.020452885317750184,
+            "token_indices": [
+              574,
+              575,
+              646,
+              651
+            ]
+          },
+          {
+            "batch_index": 5,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 1.25113183259964,
+            "protected_pixel_fraction": 0.015339663988312637,
+            "token_indices": [
+              509,
+              583,
+              620,
+              621
+            ]
+          }
+        ],
+        "token_count": 16
+      },
+      "positive_delta": {
+        "count": 16,
+        "max": 0.1309196949005127,
+        "mean": 0.024172600358724594,
+        "median": 0.0,
+        "p50": 0.0,
+        "p95": 0.1284739226102829,
+        "p99": 0.13043054044246674
+      },
+      "raw_cab_to_task_ratio": 0.10542121033407437,
+      "stage2_cab_raw_grad_norm": 0.03936954587697983,
+      "stage2_task_grad_norm": 0.3734499514102936,
+      "task_loss": 0.9064758817354838,
+      "token_count": 16
+    },
+    {
+      "active_token_fraction": 1.0,
+      "batch_index": 13,
+      "cab_active": true,
+      "cab_loss": 0.07730024307966232,
+      "d_post": {
+        "count": 5,
+        "max": 0.9491654634475708,
+        "mean": 0.8544874787330627,
+        "median": 0.854771614074707,
+        "p50": 0.854771614074707,
+        "p95": 0.9450808763504028,
+        "p99": 0.9483485460281372
+      },
+      "d_pre": {
+        "count": 5,
+        "max": 0.8939814567565918,
+        "mean": 0.778985321521759,
+        "median": 0.7709369659423828,
+        "p50": 0.7709369659423828,
+        "p95": 0.8863675475120545,
+        "p99": 0.8924586749076844
+      },
+      "file_names": [
+        "cashew/Data/Images/Normal/352.JPG",
+        "fryum/Data/Images/Normal/006.JPG",
+        "candle/Data/Images/Normal/0457.JPG",
+        "pcb1/Data/Images/Normal/0755.JPG",
+        "capsules/Data/Images/Anomaly/074.JPG",
+        "pcb3/Data/Images/Anomaly/096.JPG"
+      ],
+      "locality": {
+        "context_change_mean": 1.06693834066391,
+        "context_change_p95": 1.1201591491699219,
+        "footprint_max_abs_diff": 0.0,
+        "pair_count": 2,
+        "protected_pixel_fraction_mean": 0.013513513513513514,
+        "rows": [
+          {
+            "batch_index": 4,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 1.1201591491699219,
+            "protected_pixel_fraction": 0.020452885317750184,
+            "token_indices": [
+              318,
+              391,
+              428,
+              434
+            ]
+          },
+          {
+            "batch_index": 5,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.8540551066398621,
+            "protected_pixel_fraction": 0.006574141709276844,
+            "token_indices": [
+              642
+            ]
+          }
+        ],
+        "token_count": 5
+      },
+      "positive_delta": {
+        "count": 5,
+        "max": 0.0857744812965393,
+        "mean": 0.07550215721130371,
+        "median": 0.08029705286026001,
+        "p50": 0.08029705286026001,
+        "p95": 0.0853045105934143,
+        "p99": 0.08568048715591431
+      },
+      "raw_cab_to_task_ratio": 0.3157010720022369,
+      "stage2_cab_raw_grad_norm": 0.19327478110790253,
+      "stage2_task_grad_norm": 0.6122081875801086,
+      "task_loss": 0.8904886047045389,
+      "token_count": 5
+    },
+    {
+      "active_token_fraction": 0.7857142857142857,
+      "batch_index": 14,
+      "cab_active": true,
+      "cab_loss": 0.058141596615314484,
+      "d_post": {
+        "count": 14,
+        "max": 1.082381010055542,
+        "mean": 0.6487814571176257,
+        "median": 0.6018164157867432,
+        "p50": 0.6018164157867432,
+        "p95": 0.9356302022933959,
+        "p99": 1.0530308485031126
+      },
+      "d_pre": {
+        "count": 14,
+        "max": 0.9872170686721802,
+        "mean": 0.604064907346453,
+        "median": 0.62227001786232,
+        "p50": 0.62227001786232,
+        "p95": 0.8599206030368804,
+        "p99": 0.9617577755451201
+      },
+      "file_names": [
+        "pcb1/Data/Images/Anomaly/046.JPG",
+        "capsules/Data/Images/Anomaly/056.JPG",
+        "cashew/Data/Images/Anomaly/087.JPG",
+        "pcb4/Data/Images/Normal/0804.JPG",
+        "pcb3/Data/Images/Anomaly/054.JPG",
+        "candle/Data/Images/Normal/0024.JPG"
+      ],
+      "locality": {
+        "context_change_mean": 0.9062800833157131,
+        "context_change_p95": 1.3027890920639038,
+        "footprint_max_abs_diff": 0.0,
+        "pair_count": 4,
+        "protected_pixel_fraction_mean": 0.016983199415631846,
+        "rows": [
+          {
+            "batch_index": 0,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.6449861526489258,
+            "protected_pixel_fraction": 0.026296566837107377,
+            "token_indices": [
+              468,
+              472,
+              613,
+              623
+            ]
+          },
+          {
+            "batch_index": 1,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 1.2560452222824097,
+            "protected_pixel_fraction": 0.017531044558071585,
+            "token_indices": [
+              731,
+              732,
+              733,
+              800
+            ]
+          },
+          {
+            "batch_index": 2,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.6195543706417084,
+            "protected_pixel_fraction": 0.015339663988312637,
+            "token_indices": [
+              683,
+              685,
+              722,
+              723
+            ]
+          },
+          {
+            "batch_index": 4,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 1.3027890920639038,
+            "protected_pixel_fraction": 0.008765522279035792,
+            "token_indices": [
+              562,
+              563
+            ]
+          }
+        ],
+        "token_count": 14
+      },
+      "positive_delta": {
+        "count": 14,
+        "max": 0.14053058624267578,
+        "mean": 0.05867031642368862,
+        "median": 0.058714598417282104,
+        "p50": 0.058714598417282104,
+        "p95": 0.12360918521881102,
+        "p99": 0.13714630603790282
+      },
+      "raw_cab_to_task_ratio": 0.6287696150417633,
+      "stage2_cab_raw_grad_norm": 0.22667060792446136,
+      "stage2_task_grad_norm": 0.36049866676330566,
+      "task_loss": 1.4009748895963032,
+      "token_count": 14
+    },
+    {
+      "active_token_fraction": 0.25,
+      "batch_index": 15,
+      "cab_active": true,
+      "cab_loss": 0.02466680606206258,
+      "d_post": {
+        "count": 12,
+        "max": 0.8374395370483398,
+        "mean": 0.6090525388717651,
+        "median": 0.6140860915184021,
+        "p50": 0.6140860915184021,
+        "p95": 0.8183086216449738,
+        "p99": 0.8336133539676667
+      },
+      "d_pre": {
+        "count": 12,
+        "max": 0.7520812153816223,
+        "mean": 0.6190635015567144,
+        "median": 0.6731337904930115,
+        "p50": 0.6731337904930115,
+        "p95": 0.7501459628343582,
+        "p99": 0.7516941648721694
+      },
+      "file_names": [
+        "macaroni2/Data/Images/Normal/0900.JPG",
+        "macaroni2/Data/Images/Normal/0784.JPG",
+        "macaroni2/Data/Images/Anomaly/060.JPG",
+        "chewinggum/Data/Images/Anomaly/033.JPG",
+        "pcb4/Data/Images/Anomaly/057.JPG",
+        "chewinggum/Data/Images/Anomaly/054.JPG"
+      ],
+      "locality": {
+        "context_change_mean": 0.8544464111328125,
+        "context_change_p95": 1.1933887004852295,
+        "footprint_max_abs_diff": 0.0,
+        "pair_count": 3,
+        "protected_pixel_fraction_mean": 0.018261504747991233,
+        "rows": [
+          {
+            "batch_index": 3,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.6654163599014282,
+            "protected_pixel_fraction": 0.019722425127830533,
+            "token_indices": [
+              341,
+              414,
+              415,
+              433
+            ]
+          },
+          {
+            "batch_index": 4,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 0.7045341730117798,
+            "protected_pixel_fraction": 0.013148283418553688,
+            "token_indices": [
+              352,
+              389,
+              426,
+              463
+            ]
+          },
+          {
+            "batch_index": 5,
+            "donor_rule": "cyclic next image in same VisA source batch",
+            "footprint_max_abs_diff": 0.0,
+            "outside_footprint_mean_abs_diff": 1.1933887004852295,
+            "protected_pixel_fraction": 0.02191380569758948,
+            "token_indices": [
+              423,
+              426,
+              571,
+              572
+            ]
+          }
+        ],
+        "token_count": 12
+      },
+      "positive_delta": {
+        "count": 12,
+        "max": 0.10975778102874756,
+        "mean": 0.02466680606206258,
+        "median": 0.0,
+        "p50": 0.0,
+        "p95": 0.10823667049407959,
+        "p99": 0.10945355892181396
+      },
+      "raw_cab_to_task_ratio": 0.46908108240680463,
+      "stage2_cab_raw_grad_norm": 0.06937377899885178,
+      "stage2_task_grad_norm": 0.14789293706417084,
+      "task_loss": 1.2625482281049094,
+      "token_count": 12
+    }
+  ]
+}
