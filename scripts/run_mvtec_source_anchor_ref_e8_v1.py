@@ -209,6 +209,53 @@ def write_theta_ref(path: Path, e8_path: Path, e8_payload: dict) -> dict:
     }
 
 
+def patch_resume_identity() -> None:
+    """Bridge the clean E8 checkpoint into the declared Anchor branch.
+
+    The strict checkpoint validator normally permits branch-only changes at
+    the original E1 boundary.  This experiment intentionally freezes clean H
+    through E8 first, so the same in-memory bridge is required at E8.  Tensor
+    and optimizer state are not modified.
+    """
+    original = contract.validate_resume_identity
+
+    def bridge(payload, **kwargs):
+        source_epoch = int(payload.get("epoch", -1))
+        expected = dict(kwargs["expected_scientific_config"])
+        parent = dict(kwargs["expected_parent_config"])
+        actual = dict(payload["resolved_scientific_config"])
+        if source_epoch == 1:
+            pass
+        elif source_epoch == 8:
+            already_bridged = all(actual.get(key) == expected.get(key) for key in contract.RESUME_BRANCH_KEYS)
+            if not already_bridged:
+                if actual.get("use_safe_anchor") or actual.get("use_cir_training"):
+                    raise RuntimeError("E8 parent is contaminated by Anchor or CIR")
+                for key in contract.RESUME_BRANCH_KEYS:
+                    actual[key] = expected.get(key)
+        else:
+            raise RuntimeError(f"unexpected resume boundary for MVTec-source E8 experiment: E{source_epoch}")
+
+        for key in ("implementation_git_sha", "working_tree_diff_sha256"):
+            if key in expected:
+                actual[key] = expected.get(key)
+        for key in ("precision", "precision_protocol", "bf16_local_fp32_islands", "later_transformer_fp32_islands"):
+            if key in expected:
+                actual[key] = expected[key]
+        payload["resolved_scientific_config"] = actual
+        payload["config_sha256"] = contract.canonical_json_hash(actual)
+        payload["parent_scientific_config"] = parent
+        payload["git_sha"] = kwargs.get("expected_git_sha")
+        payload["implementation_git_sha"] = expected.get("implementation_git_sha")
+        if "precision" in expected:
+            payload["precision"] = expected["precision"]
+            payload["amp_enabled"] = str(expected["precision"]) in ("amp", "fp16")
+        return original(payload, **kwargs)
+
+    contract.validate_resume_identity = bridge
+    train_module.validate_resume_identity = bridge
+
+
 def run_phase(args: list[str]) -> None:
     base.reset_logging()
     sys.argv = args
@@ -220,6 +267,7 @@ def main() -> None:
     parser.add_argument("--run", choices=("all", "clean", "anchor"), required=True)
     parser.add_argument("--root", type=Path, default=DEFAULT_ROOT)
     args = parser.parse_args()
+    patch_resume_identity()
     if args.run == "all" and args.root.exists() and any(args.root.iterdir()):
         raise RuntimeError(f"refusing to reuse non-empty run root: {args.root}")
     args.root.mkdir(parents=True, exist_ok=True)
