@@ -1,0 +1,95 @@
+{
+  "experiment_id": "mvtec_source_anchor_ref_e8_v1",
+  "branch": "research/mvtec-source-anchor-ref-e8-v1",
+  "parent_branch": "research/anchor_ref_e8_r1",
+  "parent_sha": "b946a3effffaed4a7d25826e96494d5d91edab8d",
+  "source_dataset": "MVTec",
+  "target_dataset": "VisA",
+  "training_implementation_base_commit": "31167af5ee3dfff80b74af1e9ee0da4ecc475d2e",
+  "training_git_sha": "75a600159d59072362f5f3259142c36d2348084e",
+  "evaluator_git_sha": "1f7426f18a311db4b572329048bb191f151f323a",
+  "protocol_version": "H2_CLEAN_REPRO_ANCHOR_CIR_V2_REDTEAM",
+  "checkpoint_version": 3,
+  "source_manifest": {
+    "path": "dataset/hub/MVTec.jsonl",
+    "sha256": "3a5e304ea16bba82e6e525d188698e91ca92b718696f8c257ed435d235b4cc2c",
+    "source_root": "data/mvtec_ad",
+    "source_root_resolved": "/workspace/datasets/mvtec",
+    "records": {"total": 1725, "normal": 467, "anomaly": 1258},
+    "categories": 15,
+    "wiring": "original manifest used directly; no alias, rewrite, split, subsampling, or diff"
+  },
+  "target_manifest": {
+    "path": "dataset/hub/VisA.jsonl",
+    "sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842"
+  },
+  "method": {
+    "model": "ViT-L-14-336",
+    "img_size": 518,
+    "n_groups": 3,
+    "lora_rank": 16,
+    "lora_alpha": 2.0,
+    "conv_lora_rank": 8,
+    "conv_lora_alpha": 2.0,
+    "conv_kernel_size_list": [3, 5],
+    "method_family": "HPA-DSR",
+    "hybrid_soft_prompt": {"active": true, "ctx_len": 4, "alpha_max": 0.2, "freeze_epochs": 3},
+    "anchor": {"active": true, "lambda": 0.0021633926715180626, "family_budget_rho": 0.1, "reference_epoch": 8},
+    "cir": {"training_active": false, "alpha": 0.0},
+    "dfg": {"mode": "attn", "attn_dim": 256, "attn_tau": 8.0, "ss2d": true, "gamma_max": 0.2, "fusion": "weight_residual", "beta": 0.1, "beta_schedule": "warmup010", "beta_target": 0.1},
+    "optimizer": {"image_lr": 0.001, "text_lr": 0.0005, "soft_prompt_lr": 0.00005, "lr_schedule": "StepLR", "lr_gamma": 0.9, "grad_clip_norm": 1.0, "batch_size": 6, "seed": 0}
+  },
+  "training_schedule": {
+    "source_e1_fresh": true,
+    "clean_h_epochs": [1, 2, 3, 4, 5, 6, 7, 8],
+    "anchor_epochs": [9, 10, 11, 12, 13, 14, 15],
+    "primary_epoch": 15,
+    "selection_rule": "E15 pre-specified; no target-based epoch selection"
+  },
+  "theta_ref": {
+    "source_checkpoint_sha256": "69fe1382c8240d37dca9acb8ac9cc7e10fe10a3c4d6285af7df37cb80fc48fce",
+    "file_sha256": "c5482dbde2d50144f6c12459bbc72781d3c34bf37f2cadfc505bdb9cfec08373",
+    "internal_reference_sha256": "d815ea099b1e019fc8508c854c7d2b77b1eebf88742a28666c94342d9ae63a90"
+  },
+  "checkpoint_sha256": {
+    "source_E1": "dee88a98d3dd4a6cb5f9e927f015281744a30ccf3f857c62e28653cf0826c09d",
+    "clean_E2": "d8dae560fe01c6aec787b88ebd2bd6963906a97a9edfb10e300140aad6265de9",
+    "clean_E3": "41fe12462207999fabc41a2c8de03ea4daeb27391c12628af207b1415cf1171a",
+    "clean_E4": "fbb783c2dad5b8f4728c2c7dcd55f7be07c22866d24fd55d516afcce5058dff8",
+    "clean_E5": "5edd4bb50eca5997081ecaadc65e5499bf36310ce40d763aa1ba5d04832059d4",
+    "clean_E6": "1cfd5ccc0d225e0adc9d6678e15fd223b1270a444e17635dd3109b913e351126",
+    "clean_E7": "10c17077310faca37468eb2f31c447aa507962ec8838cc4585f6c8d9b835b434",
+    "clean_E8": "69fe1382c8240d37dca9acb8ac9cc7e10fe10a3c4d6285af7df37cb80fc48fce",
+    "anchor_E9": "2fc9a64f9ec7a2a6625f47013dbe075c961ef48f799c461a120199b2f342fd83",
+    "anchor_E10": "108d58aa982f65bc2ffe90f0806b06fdf6c0a099f047fcd972362bfbd0e99fc6",
+    "anchor_E11": "b7d7b38fe2f2a2039f12fdc410afcd1218b5bfdb31cf1539a8f8bb5d51227a36",
+    "anchor_E12": "178ae9908f5fc613c8d0b75627f10710f65bb74d0b87e8bb9aa5c50aa143ec2d",
+    "anchor_E13": "960ab565a197b65b6f380af7b8f62e04578601b4e6351f51d311b36da6c60b1b",
+    "anchor_E14": "4fe9593fd3c9b8b6e586ca9ed3a80a62edfe4f694e6d3059fde2152668156615",
+    "anchor_E15": "e6f941427dad066bd8a0c2465b5800d88075ea28fddca75f3dcbbf163353e327"
+  },
+  "training_numerical_audit": {
+    "non_finite_loss": {"E1": 0, "E2": 0, "E3": 0, "E4": 0, "E5": 0, "E6": 0, "E7": 0, "E8": 0, "E9": 0, "E10": 0, "E11": 0, "E12": 0, "E13": 0, "E14": 0, "E15": 0},
+    "non_finite_grad": {"E1": 1, "E2": 2, "E3": 0, "E4": 0, "E5": 0, "E6": 0, "E7": 0, "E8": 0, "E9": 0, "E10": 0, "E11": 0, "E12": 1, "E13": 1, "E14": 0, "E15": 0}
+  },
+  "evaluator": {
+    "protocol": "matched_industrial_transfer_benchmark_exact",
+    "pixel_stride": 1,
+    "epochs": [10, 11, 12, 13, 14, 15],
+    "primary_epoch": 15,
+    "batch_size": 8,
+    "num_workers": 6,
+    "torch_compatibility_env": "TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD=1",
+    "output_root": "/workspace/mvtec_source_anchor_ref_e8_v1_run/visa_eval"
+  },
+  "artifacts": {
+    "run_root": "/workspace/mvtec_source_anchor_ref_e8_v1_run",
+    "training_manifest": "run_manifest.json",
+    "visa_complete": true,
+    "all_checkpoints_complete": true
+  },
+  "recovery_notes": [
+    "The first Anchor launcher invocation stopped at the E8 resume contract before any Anchor checkpoint was written; its log was preserved as train.failed_resume_contract.log.",
+    "The E8 branch bridge was committed as 75a600159d59072362f5f3259142c36d2348084e and the completed Anchor checkpoints were then finalized without retraining."
+  ]
+}

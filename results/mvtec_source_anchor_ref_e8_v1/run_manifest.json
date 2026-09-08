@@ -1,0 +1,273 @@
+{
+  "anchor_e15": {
+    "anchor": true,
+    "cir": false,
+    "epoch": 15,
+    "global_step": 4315,
+    "path": "/workspace/mvtec_source_anchor_ref_e8_v1_run/anchor_e8/adapter_15.pth",
+    "sha256": "e6f941427dad066bd8a0c2465b5800d88075ea28fddca75f3dcbbf163353e327"
+  },
+  "branch": "research/mvtec-source-anchor-ref-e8-v1",
+  "clean_e8": {
+    "anchor": false,
+    "cir": false,
+    "epoch": 8,
+    "global_step": 2301,
+    "path": "/workspace/mvtec_source_anchor_ref_e8_v1_run/clean_h_e8/adapter_8.pth",
+    "sha256": "69fe1382c8240d37dca9acb8ac9cc7e10fe10a3c4d6285af7df37cb80fc48fce"
+  },
+  "experiment_id": "mvtec_source_anchor_ref_e8_v1",
+  "git_head_at_run": "75a600159d59072362f5f3259142c36d2348084e",
+  "manifest_audit": {
+    "audit_status": "PASS",
+    "categories": [
+      "bottle",
+      "cable",
+      "capsule",
+      "carpet",
+      "grid",
+      "hazelnut",
+      "leather",
+      "metal_nut",
+      "pill",
+      "screw",
+      "tile",
+      "toothbrush",
+      "transistor",
+      "wood",
+      "zipper"
+    ],
+    "category_counts": {
+      "bottle": {
+        "anomaly": 63,
+        "normal": 20,
+        "total": 83
+      },
+      "cable": {
+        "anomaly": 92,
+        "normal": 58,
+        "total": 150
+      },
+      "capsule": {
+        "anomaly": 109,
+        "normal": 23,
+        "total": 132
+      },
+      "carpet": {
+        "anomaly": 89,
+        "normal": 28,
+        "total": 117
+      },
+      "grid": {
+        "anomaly": 57,
+        "normal": 21,
+        "total": 78
+      },
+      "hazelnut": {
+        "anomaly": 70,
+        "normal": 40,
+        "total": 110
+      },
+      "leather": {
+        "anomaly": 92,
+        "normal": 32,
+        "total": 124
+      },
+      "metal_nut": {
+        "anomaly": 93,
+        "normal": 22,
+        "total": 115
+      },
+      "pill": {
+        "anomaly": 141,
+        "normal": 26,
+        "total": 167
+      },
+      "screw": {
+        "anomaly": 119,
+        "normal": 41,
+        "total": 160
+      },
+      "tile": {
+        "anomaly": 84,
+        "normal": 33,
+        "total": 117
+      },
+      "toothbrush": {
+        "anomaly": 30,
+        "normal": 12,
+        "total": 42
+      },
+      "transistor": {
+        "anomaly": 40,
+        "normal": 60,
+        "total": 100
+      },
+      "wood": {
+        "anomaly": 60,
+        "normal": 19,
+        "total": 79
+      },
+      "zipper": {
+        "anomaly": 119,
+        "normal": 32,
+        "total": 151
+      }
+    },
+    "checks": {
+      "anomaly_without_masks": 0,
+      "duplicate_image_paths": 0,
+      "duplicate_mask_paths": 0,
+      "missing_images": 0,
+      "missing_masks": 0,
+      "normal_unexpected_masks": 0,
+      "train_good_records": 0
+    },
+    "defect_types": {
+      "bottle": [
+        "broken_large",
+        "broken_small",
+        "contamination"
+      ],
+      "cable": [
+        "bent_wire",
+        "cable_swap",
+        "combined",
+        "cut_inner_insulation",
+        "cut_outer_insulation",
+        "missing_cable",
+        "missing_wire",
+        "poke_insulation"
+      ],
+      "capsule": [
+        "crack",
+        "faulty_imprint",
+        "poke",
+        "scratch",
+        "squeeze"
+      ],
+      "carpet": [
+        "color",
+        "cut",
+        "hole",
+        "metal_contamination",
+        "thread"
+      ],
+      "grid": [
+        "bent",
+        "broken",
+        "glue",
+        "metal_contamination",
+        "thread"
+      ],
+      "hazelnut": [
+        "crack",
+        "cut",
+        "hole",
+        "print"
+      ],
+      "leather": [
+        "color",
+        "cut",
+        "fold",
+        "glue",
+        "poke"
+      ],
+      "metal_nut": [
+        "bent",
+        "color",
+        "flip",
+        "scratch"
+      ],
+      "pill": [
+        "color",
+        "combined",
+        "contamination",
+        "crack",
+        "faulty_imprint",
+        "pill_type",
+        "scratch"
+      ],
+      "screw": [
+        "manipulated_front",
+        "scratch_head",
+        "scratch_neck",
+        "thread_side",
+        "thread_top"
+      ],
+      "tile": [
+        "crack",
+        "glue_strip",
+        "gray_stroke",
+        "oil",
+        "rough"
+      ],
+      "toothbrush": [
+        "defective"
+      ],
+      "transistor": [
+        "bent_lead",
+        "cut_lead",
+        "damaged_case",
+        "misplaced"
+      ],
+      "wood": [
+        "color",
+        "combined",
+        "hole",
+        "liquid",
+        "scratch"
+      ],
+      "zipper": [
+        "broken_teeth",
+        "combined",
+        "fabric_border",
+        "fabric_interior",
+        "rough",
+        "split_teeth",
+        "squeezed_teeth"
+      ]
+    },
+    "manifest": "/workspace/ACD-CLIP-/dataset/hub/MVTec.jsonl",
+    "manifest_sha256": "3a5e304ea16bba82e6e525d188698e91ca92b718696f8c257ed435d235b4cc2c",
+    "manifest_wiring": "none; original dataset/hub/MVTec.jsonl used directly",
+    "records": {
+      "anomaly": 1258,
+      "normal": 467,
+      "total": 1725
+    },
+    "source_root": "/workspace/ACD-CLIP-/data/mvtec_ad",
+    "source_root_resolved": "/workspace/datasets/mvtec"
+  },
+  "source_dataset": "MVTec",
+  "source_e1": {
+    "epoch": 1,
+    "path": "/workspace/mvtec_source_anchor_ref_e8_v1_run/source_e1/adapter_1.pth",
+    "sha256": "dee88a98d3dd4a6cb5f9e927f015281744a30ccf3f857c62e28653cf0826c09d"
+  },
+  "status": "TRAINING_COMPLETE",
+  "target_dataset": "VisA",
+  "theta_ref": {
+    "path": "/workspace/mvtec_source_anchor_ref_e8_v1_run/theta_ref_e8.pth",
+    "reference_sha256": "d815ea099b1e019fc8508c854c7d2b77b1eebf88742a28666c94342d9ae63a90",
+    "sha256": "c5482dbde2d50144f6c12459bbc72781d3c34bf37f2cadfc505bdb9cfec08373",
+    "source_checkpoint": "/workspace/mvtec_source_anchor_ref_e8_v1_run/clean_h_e8/adapter_8.pth",
+    "source_checkpoint_sha256": "69fe1382c8240d37dca9acb8ac9cc7e10fe10a3c4d6285af7df37cb80fc48fce",
+    "source_epoch": 8
+  },
+  "training_implementation_base_commit": "31167af5ee3dfff80b74af1e9ee0da4ecc475d2e",
+  "visa_status": "COMPLETE_E10_E15_FROZEN",
+  "visa_evaluation": {
+    "status": "COMPLETE_E10_E15_FROZEN",
+    "evaluator_repository": "/workspace/ACD-CLIP-",
+    "evaluator_git_sha": "1f7426f18a311db4b572329048bb191f151f323a",
+    "protocol": "matched_industrial_transfer_benchmark_exact",
+    "pixel_stride": 1,
+    "target_manifest_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+    "epochs": [10, 11, 12, 13, 14, 15],
+    "primary_epoch": 15,
+    "selection_rule": "E15 pre-specified; no target-based epoch selection",
+    "trajectory_csv": "/workspace/mvtec_source_anchor_ref_e8_v1_run/visa_eval/trajectory.csv",
+    "per_class_csv": "/workspace/mvtec_source_anchor_ref_e8_v1_run/visa_eval/per_class_all_metrics.csv"
+  }
+}

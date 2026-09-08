@@ -1,26 +1,226 @@
 {
-  "branch": "research/mvtec-source-anchor-ref-e8-v1",
-  "parent_branch": "research/anchor_ref_e8_r1",
-  "parent_sha": "b946a3effffaed4a7d25826e96494d5d91edab8d",
-  "new_branch_initial_sha": "b946a3effffaed4a7d25826e96494d5d91edab8d",
-  "manifest": "dataset/hub/MVTec.jsonl",
-  "manifest_sha256": "3a5e304ea16bba82e6e525d188698e91ca92b718696f8c257ed435d235b4cc2c",
-  "manifest_matches_head": true,
-  "source_root": "data/mvtec_ad",
-  "source_root_resolved": "/workspace/datasets/mvtec",
-  "records": {"total": 1725, "normal": 467, "anomaly": 1258},
-  "categories": ["bottle", "cable", "capsule", "carpet", "grid", "hazelnut", "leather", "metal_nut", "pill", "screw", "tile", "toothbrush", "transistor", "wood", "zipper"],
+  "audit_status": "PASS",
+  "categories": [
+    "bottle",
+    "cable",
+    "capsule",
+    "carpet",
+    "grid",
+    "hazelnut",
+    "leather",
+    "metal_nut",
+    "pill",
+    "screw",
+    "tile",
+    "toothbrush",
+    "transistor",
+    "wood",
+    "zipper"
+  ],
+  "category_counts": {
+    "bottle": {
+      "anomaly": 63,
+      "normal": 20,
+      "total": 83
+    },
+    "cable": {
+      "anomaly": 92,
+      "normal": 58,
+      "total": 150
+    },
+    "capsule": {
+      "anomaly": 109,
+      "normal": 23,
+      "total": 132
+    },
+    "carpet": {
+      "anomaly": 89,
+      "normal": 28,
+      "total": 117
+    },
+    "grid": {
+      "anomaly": 57,
+      "normal": 21,
+      "total": 78
+    },
+    "hazelnut": {
+      "anomaly": 70,
+      "normal": 40,
+      "total": 110
+    },
+    "leather": {
+      "anomaly": 92,
+      "normal": 32,
+      "total": 124
+    },
+    "metal_nut": {
+      "anomaly": 93,
+      "normal": 22,
+      "total": 115
+    },
+    "pill": {
+      "anomaly": 141,
+      "normal": 26,
+      "total": 167
+    },
+    "screw": {
+      "anomaly": 119,
+      "normal": 41,
+      "total": 160
+    },
+    "tile": {
+      "anomaly": 84,
+      "normal": 33,
+      "total": 117
+    },
+    "toothbrush": {
+      "anomaly": 30,
+      "normal": 12,
+      "total": 42
+    },
+    "transistor": {
+      "anomaly": 40,
+      "normal": 60,
+      "total": 100
+    },
+    "wood": {
+      "anomaly": 60,
+      "normal": 19,
+      "total": 79
+    },
+    "zipper": {
+      "anomaly": 119,
+      "normal": 32,
+      "total": 151
+    }
+  },
   "checks": {
-    "missing_images": 0,
-    "missing_masks": 0,
     "anomaly_without_masks": 0,
-    "normal_unexpected_masks": 0,
     "duplicate_image_paths": 0,
     "duplicate_mask_paths": 0,
-    "train_good_records": 0,
-    "label_values": [0, 1]
+    "missing_images": 0,
+    "missing_masks": 0,
+    "normal_unexpected_masks": 0,
+    "train_good_records": 0
   },
-  "manifest_wiring": "none; original manifest used directly",
-  "row_schema": {"normal": ["image_path", "label", "class_name"], "anomaly": ["image_path", "label", "mask_path", "class_name"]},
-  "audit_status": "PASS"
+  "defect_types": {
+    "bottle": [
+      "broken_large",
+      "broken_small",
+      "contamination"
+    ],
+    "cable": [
+      "bent_wire",
+      "cable_swap",
+      "combined",
+      "cut_inner_insulation",
+      "cut_outer_insulation",
+      "missing_cable",
+      "missing_wire",
+      "poke_insulation"
+    ],
+    "capsule": [
+      "crack",
+      "faulty_imprint",
+      "poke",
+      "scratch",
+      "squeeze"
+    ],
+    "carpet": [
+      "color",
+      "cut",
+      "hole",
+      "metal_contamination",
+      "thread"
+    ],
+    "grid": [
+      "bent",
+      "broken",
+      "glue",
+      "metal_contamination",
+      "thread"
+    ],
+    "hazelnut": [
+      "crack",
+      "cut",
+      "hole",
+      "print"
+    ],
+    "leather": [
+      "color",
+      "cut",
+      "fold",
+      "glue",
+      "poke"
+    ],
+    "metal_nut": [
+      "bent",
+      "color",
+      "flip",
+      "scratch"
+    ],
+    "pill": [
+      "color",
+      "combined",
+      "contamination",
+      "crack",
+      "faulty_imprint",
+      "pill_type",
+      "scratch"
+    ],
+    "screw": [
+      "manipulated_front",
+      "scratch_head",
+      "scratch_neck",
+      "thread_side",
+      "thread_top"
+    ],
+    "tile": [
+      "crack",
+      "glue_strip",
+      "gray_stroke",
+      "oil",
+      "rough"
+    ],
+    "toothbrush": [
+      "defective"
+    ],
+    "transistor": [
+      "bent_lead",
+      "cut_lead",
+      "damaged_case",
+      "misplaced"
+    ],
+    "wood": [
+      "color",
+      "combined",
+      "hole",
+      "liquid",
+      "scratch"
+    ],
+    "zipper": [
+      "broken_teeth",
+      "combined",
+      "fabric_border",
+      "fabric_interior",
+      "rough",
+      "split_teeth",
+      "squeezed_teeth"
+    ]
+  },
+  "manifest": "/workspace/ACD-CLIP-/dataset/hub/MVTec.jsonl",
+  "manifest_sha256": "3a5e304ea16bba82e6e525d188698e91ca92b718696f8c257ed435d235b4cc2c",
+  "manifest_wiring": "none; original dataset/hub/MVTec.jsonl used directly",
+  "row_schema": {
+    "normal": ["image_path", "label", "class_name"],
+    "anomaly": ["image_path", "label", "mask_path", "class_name"]
+  },
+  "label_values": [0, 1],
+  "records": {
+    "anomaly": 1258,
+    "normal": 467,
+    "total": 1725
+  },
+  "source_root": "/workspace/ACD-CLIP-/data/mvtec_ad",
+  "source_root_resolved": "/workspace/datasets/mvtec"
 }
