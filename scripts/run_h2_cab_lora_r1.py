@@ -828,6 +828,10 @@ def lambda_calibration_phase() -> dict:
 
 def make_attempt_manifest(payload: dict) -> dict:
     set_stage("ATTEMPT_MANIFEST")
+    # Dataset transforms use the checkpoint-restored Python/NumPy/Torch RNGs;
+    # restore them before materializing hashes so training replays the exact
+    # augmented tensors rather than only the DataLoader permutation.
+    restore_rng(payload)
     dataset = spill.get_text_and_image_dataset("VisA", IMG, "train")
     attempts, epoch = [], 11
     while len(attempts) < MAX_ATTEMPTS:
