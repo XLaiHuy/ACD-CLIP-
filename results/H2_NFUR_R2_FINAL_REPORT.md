@@ -4,10 +4,15 @@
   "branch": "research/h2-nfur-r2-e20-medical-selected",
   "compute_overhead": {
     "head": "Conv2d(772,32,3)+GELU+Conv2d(32,1,1)",
-    "parameters": 222401
+    "parameters": 222401,
+    "added_parameters": 222401,
+    "trainable_parameter_count_per_nfur_epoch": 14324432,
+    "trainable_parameter_count_source": "training summary E11-E20",
+    "inference_overhead": "not_measured; implementation adds one native 37x37 Conv/GELU/Conv residual head and associated tensor operations",
+    "memory_overhead": "not_measured"
   },
-  "final_interpretation": "MIXED_TRADEOFF",
-  "mechanism": "small native score-space residual addresses contextual coupling while preserving exact OFF identity; no finer-than-37x37 feature was available",
+  "final_interpretation": "NFUR_NOT_SUPPORTED",
+  "mechanism": "NFUR-R2 was implemented and active during E11-E20, but Medical selection chose retained pre-NFUR E6; the selected checkpoint has no learned NFUR state. No finer-than-37x37 feature was available.",
   "medical": {
     "delta_vs_h2_anchor_a_e15": {
       "image_ap": -0.4017353057861328,
@@ -39,7 +44,14 @@
     },
     "selected_epoch": 6,
     "target_validation_used": true,
-    "trajectory_artifact": "results/H2_NFUR_R2_E1_E20_MEDICAL.json"
+    "trajectory_artifact": "results/H2_NFUR_R2_E1_E20_MEDICAL.json",
+    "delta_vs_phase2b": {
+      "pixel_auroc": -2.818250764427404,
+      "pixel_ap": -2.208385095195986,
+      "image_auroc": 0.8454566605885816,
+      "image_ap": 1.7016282176971487,
+      "caveat": "descriptive only; protocol/evaluator mismatch noted above"
+    }
   },
   "medical_artifact": "/workspace/ACD-CLIP-/results/H2_NFUR_R2_E1_E20_MEDICAL.json",
   "mvtec": {
@@ -75,5 +87,125 @@
   "parent_head": "284b12b6dc7802bcbafc02d7809549c40758f94b",
   "protocol_id": "H2_NFUR_R2_E20_MEDICAL_SELECTED",
   "published_surpass_claim_allowed": false,
-  "published_surpass_claim_why": "Medical epoch selection used target validation and Phase2B uses a non-identical older evaluator; MVTec is a post-selection holdout, so no clean published-surpass claim is authorized."
+  "published_surpass_claim_why": "No published-surpass claim: Medical epoch selection used target validation; the selected E6 checkpoint is pre-NFUR; Phase2B is a non-identical older evaluator; and MVTec is a post-selection holdout with only a mixed internal comparison.",
+  "interpretation_basis": {
+    "medical_primary": "NFUR is not supported by the authorized primary target-validation result: selected E6 is pre-NFUR and is below H2 Anchor A E15 on pixel AUROC, pixel AP, image AUROC, and image AP.",
+    "mvtec_holdout": "The post-selection MVTec holdout is mixed versus H2 Anchor A E15 (+pixel AUROC, +image AP, -pixel AP, -image AUROC), so it does not overturn the Medical result.",
+    "enum": "NFUR_NOT_SUPPORTED"
+  },
+  "selected_model": {
+    "selected_epoch": 6,
+    "checkpoint": "/workspace/h2_nfur_r2_e20_medical_selected/adapter_6.pth",
+    "checkpoint_sha256": "63b78996c64da084c13024e838b89d9f6d5c0ad186eb330b6bd57d86a7a218db",
+    "nfur_checkpoint_state": false,
+    "learned_nfur_active": false,
+    "selection_outcome": "Medical rule selected the retained pre-NFUR prefix checkpoint E6."
+  },
+  "published_acd_clip_context": {
+    "medical": {
+      "pixel_auroc": 91.55,
+      "pixel_ap": 43.03
+    },
+    "mvtec": {
+      "pixel_auroc": 91.4,
+      "pixel_ap": 43.6
+    },
+    "protocol_match": "partial",
+    "role": "contextual published comparator only; not an exact-protocol benchmark claim",
+    "source": "audit/H2_GENERALIZATION_GAP_RECONSTRUCTION.md"
+  },
+  "safe_anchor_retained_baseline": {
+    "label": "H2 H E15 retained Safe Anchor baseline",
+    "medical": {
+      "pixel_auroc": 90.815,
+      "pixel_ap": 35.874,
+      "image_auroc": 76.149,
+      "image_ap": 76.25
+    },
+    "mvtec": {
+      "pixel_auroc": 86.868623,
+      "pixel_ap": 41.612306,
+      "image_auroc": 89.526,
+      "image_ap": 95.207
+    },
+    "role": "retained internal baseline/context",
+    "source": "results/ACD_CLIP_PHASE_COMPARISON_PUBLISHED.md"
+  },
+  "comparators": {
+    "published_acd_clip": "see published_acd_clip_context; contextual only because protocol match is partial",
+    "phase2b": "see medical.phase2b_context; descriptive only because the older result used rounded pixel_stride=4 versus raw exact pixel_stride=1 here",
+    "h2_anchor_a_e15": "see medical.delta_vs_h2_anchor_a_e15 and mvtec.delta_vs_h2_anchor_a_e15",
+    "safe_anchor_retained_baseline": "see safe_anchor_retained_baseline",
+    "nfur_r2_selected": "see selected_model and medical.selected"
+  },
+  "mechanism_observations": {
+    "source": "results/H2_NFUR_R2_E20_TRAINING_SUMMARY.json (E11-E20) and audit/H2_NFUR_R2_SMOKE100.json",
+    "training_nfur_epochs": [
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "uncertainty_distribution": {
+      "uncertainty_mean": {
+        "min": 0.19428957854281503,
+        "max": 0.27271679782636277,
+        "mean": 0.2105524062243525
+      },
+      "uncertainty_p95": {
+        "min": 0.4721667089620786,
+        "max": 0.49716946647768206,
+        "mean": 0.48441208752073417
+      },
+      "stage_disagreement_mean": {
+        "min": 0.33668597748405055,
+        "max": 0.49333407484263264,
+        "mean": 0.36892784019916675
+      },
+      "margin_uncertainty_mean": {
+        "min": 0.051889692678263315,
+        "max": 0.052926844599917325,
+        "mean": 0.0521769722753367
+      }
+    },
+    "correction_magnitude": {
+      "delta_native_abs_mean": {
+        "min": 0.22176468811659633,
+        "max": 0.24974348790262543,
+        "mean": 0.24687549867057773
+      },
+      "delta_native_abs_p95": {
+        "min": 0.22491796975155617,
+        "max": 0.25,
+        "mean": 0.2474701895154084
+      },
+      "gated_correction_abs_mean": {
+        "min": 0.048380627299444826,
+        "max": 0.05938875260185631,
+        "mean": 0.05156911021787634
+      },
+      "gated_correction_abs_p95": {
+        "min": 0.10740116305444183,
+        "max": 0.12343231491600047,
+        "mean": 0.11880872737789794
+      }
+    },
+    "activity": {
+      "nfur_activity_batches": 3610,
+      "attempted_training_batches": 3610,
+      "smoke_paired_batches": true,
+      "smoke_nfur_nonzero_activity": true
+    },
+    "degree_affected": "not_recorded; the run logged aggregate uncertainty/correction statistics, not the fraction of pixels affected",
+    "near_background_behavior": "not measured",
+    "interior_preservation": "not measured",
+    "selected_model_note": "Not applicable for selected E6 because nfur_checkpoint_state=false."
+  },
+  "why": "Medical was the authorized primary selection target, and its selected E6 checkpoint is pre-NFUR and below H2 Anchor A E15 on all four reported Medical metrics; the post-selection MVTec result is mixed."
 }
