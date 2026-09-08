@@ -1,0 +1,30 @@
+{
+  "CAB_LAMBDA_CALIBRATION": "PASS",
+  "R": 0.40049392302054876,
+  "lambda_cab": 0.062422919707366666,
+  "no_sweep": true,
+  "phase": "single deterministic source-only calibration",
+  "protocol_id": "H2_CAB_LORA_R1_BOUNDED",
+  "ratio_definition": "median over fixed 16 VisA source batches of ||g_CAB||_Stage2ConvLoRA/(||g_task||_Stage2ConvLoRA+1e-12)",
+  "rationale": "CAB is an upstream representation-level relative bound; 2.5% is a conservative frozen target to reduce anomaly-suppression risk and is independently chosen rather than reusing S2-LOCR's 5%.",
+  "raw_ratios": [
+    0.0,
+    0.06965922782020367,
+    0.15263286764470996,
+    0.6400081167177548,
+    1.7032633188795505,
+    0.10188811146782964,
+    0.34224720306478956,
+    0.458740642976308,
+    0.2982797821254829,
+    1.9564893227967879,
+    1.9616839515332491,
+    2.354640194560395,
+    0.10542121033407437,
+    0.3157010720022369,
+    0.6287696150417633,
+    0.46908108240680463
+  ],
+  "rounded_for_training": false,
+  "target_effective_ratio": 0.025
+}
