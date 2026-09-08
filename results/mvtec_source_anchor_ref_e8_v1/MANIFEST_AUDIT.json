@@ -1,0 +1,25 @@
+{
+  "branch": "research/mvtec-source-anchor-ref-e8-v1",
+  "parent_branch": "research/anchor_ref_e8_r1",
+  "parent_sha": "b946a3effffaed4a7d25826e96494d5d91edab8d",
+  "new_branch_initial_sha": "b946a3effffaed4a7d25826e96494d5d91edab8d",
+  "manifest": "dataset/hub/MVTec.jsonl",
+  "manifest_sha256": "3a5e304ea16bba82e6e525d188698e91ca92b718696f8c257ed435d235b4cc2c",
+  "manifest_matches_head": true,
+  "source_root": "data/mvtec_ad",
+  "source_root_resolved": "/workspace/datasets/mvtec",
+  "records": {"total": 1725, "normal": 467, "anomaly": 1258},
+  "categories": ["bottle", "cable", "capsule", "carpet", "grid", "hazelnut", "leather", "metal_nut", "pill", "screw", "tile", "toothbrush", "transistor", "wood", "zipper"],
+  "checks": {
+    "missing_images": 0,
+    "missing_masks": 0,
+    "anomaly_without_masks": 0,
+    "normal_unexpected_masks": 0,
+    "duplicate_image_paths": 0,
+    "duplicate_mask_paths": 0,
+    "train_good_records": 0,
+    "label_values": [0, 1]
+  },
+  "manifest_wiring": "none; original manifest used directly",
+  "audit_status": "PASS"
+}
