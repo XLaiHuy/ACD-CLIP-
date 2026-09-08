@@ -1,0 +1,67 @@
+{
+  "experiment_id": "anchor_ref_e8_r1",
+  "source_dataset": "VisA",
+  "branch": "research/anchor_ref_e8_r1",
+  "training_implementation_base_commit": "31167af5ee3dfff80b74af1e9ee0da4ecc475d2e",
+  "run_code_commit": "5deda32a9724aafe6fabce3d8fe764bfd3caad13",
+  "implementation_commit": "56c3ff4e3eb52646581eebb775ec01eda2d428c5",
+  "checkpoint_base_h2_commit": "e03966997d4cecfd985943a4053a93e1e40197ec",
+  "checkpoint_version": 3,
+  "protocol_version": "H2_CLEAN_REPRO_ANCHOR_CIR_V2_REDTEAM",
+  "model": "ViT-L-14-336",
+  "img_size": 518,
+  "n_groups": 3,
+  "anchor": {
+    "active": true,
+    "reference_source_epoch": 8,
+    "reference_file_sha256": "2af518565a1e81e85e3d06e6121d8636b1da51c522e1e0ec33f43c255be19e08",
+    "reference_internal_sha256": "27778e59f729a561ac9fee39213a9c748cef742db953e07cfcfa83840d9c8f22",
+    "source_checkpoint": "clean_h_e8/adapter_8.pth",
+    "source_checkpoint_sha256": "aa50a3825b8c74c17afebafe668a12187273c6e0783bd26d7423db8adcd95d87",
+    "lambda": 0.0021633926715180626,
+    "family_budget_rho": 0.1
+  },
+  "cir": {
+    "training_active": false,
+    "alpha": 0.0
+  },
+  "checkpoint_sha256": {
+    "E10": "369495e68bc6d5c2c6d75debf0e7110b9cdf01c2e42040c34b8fad1ab0ff8ffd",
+    "E11": "92da9bac8da853d7a543017f246a0d531b169e8784445cfa180e06fc47cdd165",
+    "E12": "bbc04912910410f048161caffc6912fbc992810b5417101051273a9c128c3c29",
+    "E13": "284f7b779ea7c461460e1a52f6d02d855a610e0ee4f9dc8223b491dcc0d881cc",
+    "E14": "f38bd07524306782247f237a4256d34110d3081d683149a1f60193e16f16f14d",
+    "E15": "17e4752845fe2e45a518df546918d7e7b012d15f6bc5252d353be880605112a4"
+  },
+  "shared_checkpoint_metadata": {
+    "clip_sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+    "dataset_manifest_sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842",
+    "config_sha256": "398d4de64855f6c4ff303fe7ba0408da8dfc9e87b9502f189efe3bb4899c59cb"
+  },
+  "training_numerical_audit": {
+    "non_finite_loss": {"E9": 0, "E10": 0, "E11": 0, "E12": 0, "E13": 0, "E14": 0, "E15": 0},
+    "non_finite_grad": {"E9": 0, "E10": 0, "E11": 0, "E12": 0, "E13": 0, "E14": 1, "E15": 0}
+  },
+  "medical_evaluator": {
+    "repo_commit": "6bd932fbce0a425af5c8d3f7230dd7dc041568bd",
+    "protocol": "phase2cd_frozen_raw_exact",
+    "pixel_stride": 1,
+    "image_scope": ["Brain", "Liver", "Retina"],
+    "pixel_datasets": ["Brain", "Liver", "Retina", "Colon_clinicDB", "Colon_colonDB", "Colon_Kvasir"],
+    "torch_compatibility_env": "TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD=1",
+    "data_root": "/workspace/ACD-CLIP-/data",
+    "temporary_checkout_data_symlink": "created for evaluation and removed after completion"
+  },
+  "mvtec_evaluator": {
+    "repository_commit": "5deda32a9724aafe6fabce3d8fe764bfd3caad13",
+    "protocol": "matched_industrial_transfer_benchmark_exact",
+    "pixel_stride": 1,
+    "classes": 15
+  },
+  "artifacts": {
+    "run_root": "/workspace/anchor_ref_e8_r1_run",
+    "medical_complete": true,
+    "mvtec_complete": true,
+    "medical_frozen_before_mvtec": true
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "anchor_e15": {
+    "anchor": true,
+    "cir": false,
+    "config_sha256": "398d4de64855f6c4ff303fe7ba0408da8dfc9e87b9502f189efe3bb4899c59cb",
+    "epoch": 15,
+    "global_step": 5410,
+    "path": "/workspace/anchor_ref_e8_r1_run/anchor_e8/adapter_15.pth",
+    "sha256": "17e4752845fe2e45a518df546918d7e7b012d15f6bc5252d353be880605112a4"
+  },
+  "branch": "research/anchor_ref_e8_r1",
+  "clean_e8": {
+    "anchor": false,
+    "cir": false,
+    "config_sha256": "b0cc63a9994bb6d4b5a00cbb42de3bd5fffa0bb79b0a19ddade65ab5f01db178",
+    "epoch": 8,
+    "global_step": 2884,
+    "path": "/workspace/anchor_ref_e8_r1_run/clean_h_e8/adapter_8.pth",
+    "sha256": "aa50a3825b8c74c17afebafe668a12187273c6e0783bd26d7423db8adcd95d87"
+  },
+  "experiment_id": "anchor_ref_e8_r1",
+  "git_head_at_run": "5deda32a9724aafe6fabce3d8fe764bfd3caad13",
+  "medical_status": "COMPLETE_E10_E15_FROZEN",
+  "mvtec_status": "COMPLETE_E10_E15_FROZEN",
+  "parent": {
+    "epoch": 1,
+    "path": "/tmp/h2-thbr-evidence/runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth",
+    "sha256": "7f9176b7ef53b572935567c574535075a573175b2aa83505d043a71d45b12b35",
+    "type": "full_state_shared_clean_parent"
+  },
+  "status": "TRAINING_COMPLETE",
+  "theta_ref": {
+    "path": "/workspace/anchor_ref_e8_r1_run/theta_ref_e8.pth",
+    "reference_sha256": "27778e59f729a561ac9fee39213a9c748cef742db953e07cfcfa83840d9c8f22",
+    "sha256": "2af518565a1e81e85e3d06e6121d8636b1da51c522e1e0ec33f43c255be19e08",
+    "source_checkpoint": "/workspace/anchor_ref_e8_r1_run/clean_h_e8/adapter_8.pth",
+    "source_checkpoint_sha256": "aa50a3825b8c74c17afebafe668a12187273c6e0783bd26d7423db8adcd95d87",
+    "source_epoch": 8
+  },
+  "training_implementation_base_commit": "31167af5ee3dfff80b74af1e9ee0da4ecc475d2e"
+}
