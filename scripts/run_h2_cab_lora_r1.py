@@ -400,6 +400,13 @@ def context_counterfactual(images: torch.Tensor, positions: list[list[int]]) -> 
     }
 
 
+def single_image_batch(batch: dict, index: int) -> dict:
+    return {
+        key: (value[index:index + 1] if torch.is_tensor(value) else [value[index]])
+        for key, value in batch.items()
+    }
+
+
 def task_terms(model, batch: dict, device: torch.device, policy: PrecisionPolicy) -> dict:
     image = batch["image"].to(device, non_blocking=True)
     mask = batch["mask"].to(device, non_blocking=True)
@@ -434,23 +441,24 @@ def task_terms(model, batch: dict, device: torch.device, policy: PrecisionPolicy
     }
 
 
-def cab_terms(model, image: torch.Tensor, mask: torch.Tensor, pre: torch.Tensor, policy: PrecisionPolicy, requires_grad: bool) -> tuple[torch.Tensor, dict, dict]:
-    positions = valid_token_positions(mask)
-    valid_indices = [index for index, tokens in enumerate(positions) if tokens]
-    if not valid_indices:
+def empty_cab_detail() -> dict:
+    return {"token_count": 0, "active_token_count": 0, "active_token_fraction": 0.0, "cab_excess_mean": 0.0, "d_pre": stats([]), "d_post": stats([]), "positive_delta": stats([]), "positive_delta_sum": 0.0, "requires_grad": False, "finite": True}
+
+
+def cab_pair_terms(model, pre: torch.Tensor, counter_pre: torch.Tensor, tokens: list[int], requires_grad: bool) -> tuple[torch.Tensor, dict]:
+    if not tokens:
         zero = pre.sum() * 0.0
-        return zero, {"token_count": 0, "active_token_count": 0, "active_token_fraction": 0.0, "cab_excess_mean": 0.0, "d_pre": stats([]), "d_post": stats([]), "positive_delta": stats([])}, {"pair_count": 0, "token_count": 0, "footprint_max_abs_diff": 0.0, "context_change_mean": 0.0, "context_change_p95": 0.0, "protected_pixel_fraction_mean": 0.0, "rows": []}
-    counterfactual, locality = context_counterfactual(image, positions)
-    counter_pre = capture_stage2_input(model, counterfactual[valid_indices], policy, no_grad=True)
-    real_post = replay_stage2_post(model, pre[ :, valid_indices, :])
-    counter_post = replay_stage2_post(model, counter_pre)
+        return zero if requires_grad else zero.detach(), empty_cab_detail()
+    context = torch.enable_grad() if requires_grad else torch.no_grad()
+    with context:
+        real_post = replay_stage2_post(model, pre)
+        counter_post = replay_stage2_post(model, counter_pre)
     real_pre_values, counter_pre_values, real_post_values, counter_post_values = [], [], [], []
-    for local_index, batch_index in enumerate(valid_indices):
-        for token in positions[batch_index]:
-            real_pre_values.append(pre[token, batch_index])
-            counter_pre_values.append(counter_pre[token, local_index])
-            real_post_values.append(real_post[token, local_index])
-            counter_post_values.append(counter_post[token, local_index])
+    for token in tokens:
+        real_pre_values.append(pre[token, 0])
+        counter_pre_values.append(counter_pre[token, 0])
+        real_post_values.append(real_post[token, 0])
+        counter_post_values.append(counter_post[token, 0])
     real_pre_values = torch.stack(real_pre_values).float()
     counter_pre_values = torch.stack(counter_pre_values).float()
     real_post_values = torch.stack(real_post_values).float()
@@ -472,8 +480,76 @@ def cab_terms(model, image: torch.Tensor, mask: torch.Tensor, pre: torch.Tensor,
         "positive_delta_sum": float(positive_delta.detach().float().sum().item()),
         "requires_grad": bool(loss.requires_grad),
         "finite": bool(torch.isfinite(d_pre).all().item() and torch.isfinite(d_post).all().item() and torch.isfinite(loss).item()),
+        "_d_pre_values": d_pre.detach().cpu().tolist(),
+        "_d_post_values": d_post.detach().cpu().tolist(),
+        "_positive_delta_values": positive_delta.detach().cpu().tolist(),
     }
-    return loss if requires_grad else loss.detach(), detail, locality
+    return loss if requires_grad else loss.detach(), detail
+
+
+def aggregate_cab_details(details: list[dict]) -> dict:
+    token_count = sum(item["token_count"] for item in details)
+    active_count = sum(item["active_token_count"] for item in details)
+    def pooled(key: str):
+        values = []
+        for item in details:
+            values.extend(item.get(f"_{key}_values", []))
+        return stats(values)
+    return {
+        "token_count": token_count,
+        "active_token_count": active_count,
+        "active_token_fraction": active_count / token_count if token_count else 0.0,
+        "cab_excess_mean": float(sum(item["cab_excess_mean"] * item["token_count"] for item in details) / token_count) if token_count else 0.0,
+        "d_pre": pooled("d_pre"), "d_post": pooled("d_post"), "positive_delta": pooled("positive_delta"),
+        "finite": all(item["finite"] for item in details),
+    }
+
+
+def batch_gradient_terms(model, batch: dict, device: torch.device, policy: PrecisionPolicy, trainable_params, stage2_indices, candidate: bool) -> dict:
+    """Compute one batch using one-image graphs to fit the historical GPU."""
+    image = batch["image"].to(device, non_blocking=True)
+    mask = batch["mask"].to(device, non_blocking=True)
+    positions = valid_token_positions(mask)
+    counterfactual, locality = context_counterfactual(image, positions)
+    batch_size = int(image.shape[0])
+    valid_indices = [i for i, values in enumerate(positions) if values]
+    valid_count = max(1, len(valid_indices))
+    task_accum = [torch.zeros_like(parameter, dtype=torch.float32) for parameter in trainable_params]
+    cab_accum = [torch.zeros_like(trainable_params[index], dtype=torch.float32) for index in stage2_indices]
+    task_values, cab_details = [], []
+    for index in range(batch_size):
+        one = single_image_batch(batch, index)
+        terms = task_terms(model, one, device, policy)
+        task_grads = torch.autograd.grad(terms["task"], trainable_params, allow_unused=True)
+        for target, gradient in zip(task_accum, task_grads):
+            if gradient is not None:
+                target.add_(gradient.detach().float(), alpha=1.0 / batch_size)
+        task_values.append(float(terms["task"].detach().float().cpu()) / batch_size)
+        if positions[index]:
+            counter_pre = capture_stage2_input(model, counterfactual[index:index + 1], policy, no_grad=True)
+            cab_loss, detail = cab_pair_terms(model, terms["pre"], counter_pre, positions[index], requires_grad=candidate)
+            if candidate:
+                cab_grads = torch.autograd.grad(cab_loss, [trainable_params[j] for j in stage2_indices], allow_unused=True)
+                for target, gradient in zip(cab_accum, cab_grads):
+                    if gradient is not None:
+                        target.add_(gradient.detach().float(), alpha=1.0 / valid_count)
+            detail["weighted_loss"] = float(cab_loss.detach().float().cpu()) / valid_count
+            cab_details.append(detail)
+        else:
+            cab_details.append(empty_cab_detail())
+        del terms, task_grads
+        if candidate and positions[index]:
+            del cab_loss, counter_pre
+        torch.cuda.empty_cache()
+    return {
+        "task_gradients": task_accum,
+        "cab_stage2_gradients": cab_accum,
+        "task_loss": float(sum(task_values)),
+        "cab_loss": float(sum(item.get("weighted_loss", 0.0) for item in cab_details)),
+        "cab_detail": aggregate_cab_details(cab_details),
+        "locality": locality,
+        "positions": positions,
+    }
 
 
 def stage2_lora_parameters(model):
@@ -508,7 +584,7 @@ def identity_phase(payload: dict) -> dict:
     protocol_artifacts()
     device = torch.device("cuda:0")
     policy = PrecisionPolicy("fp16")
-    batch = first_source_batch(payload)
+    batch = single_image_batch(first_source_batch(payload), 0)
     model = make_model_for_training(payload, device)
     terms_a = task_terms(model, batch, device, policy)
     outputs_a = production_outputs(model, terms_a["pre"], terms_a["text"], terms_a["image"], payload, policy, use_full_forward=False)
@@ -641,17 +717,39 @@ def gradient_preflight_phase(payload: dict) -> dict:
     trainable_params = [parameter for _, parameter in trainable]
     stage2_pairs = stage2_lora_parameters(model)
     stage2_params = [parameter for _, parameter in stage2_pairs]
-    rows, scope_rows = [], []
-    for batch_index, batch in enumerate(fixed_source_batches(payload, 16)):
-        terms = task_terms(model, batch, device, policy)
-        cab_loss, detail, locality = cab_terms(model, terms["image"], terms["mask"], terms["pre"], policy, True)
-        task_grad = torch.autograd.grad(terms["task"], stage2_params, retain_graph=True, allow_unused=True)
-        cab_grad = torch.autograd.grad(cab_loss, stage2_params, retain_graph=True, allow_unused=True)
-        all_cab = torch.autograd.grad(cab_loss, trainable_params, allow_unused=True)
+    rows, ratios = [], []
+    fixed_batches = fixed_source_batches(payload, 16)
+    for batch_index, batch in enumerate(fixed_batches):
+        result = batch_gradient_terms(model, batch, device, policy, trainable_params, [index for index, (name, _) in enumerate(trainable) if name.startswith("image_adapter.lora_adapters.1.")], True)
+        detail = result["cab_detail"]
         if not detail["finite"]:
             raise RuntimeError(f"nonfinite CAB preflight batch {batch_index}")
-        scope = {}
-        for group_name, predicate in {
+        stage2_indices_local = [index for index, (name, _) in enumerate(trainable) if name.startswith("image_adapter.lora_adapters.1.")]
+        task_norm = grad_norm([result["task_gradients"][index] for index in stage2_indices_local])
+        cab_norm = grad_norm(result["cab_stage2_gradients"])
+        ratio = cab_norm / (task_norm + GRAD_EPS)
+        result["ratio"] = ratio
+        ratios.append(ratio)
+        rows.append({"batch_index": batch_index, "file_names": list(batch["file_name"]), "task_loss": result["task_loss"], "cab_loss": result["cab_loss"], "cab_active": detail["active_token_count"] > 0, "active_token_fraction": detail["active_token_fraction"], "token_count": detail["token_count"], "d_pre": detail["d_pre"], "d_post": detail["d_post"], "positive_delta": detail["positive_delta"], "stage2_task_grad_norm": task_norm, "stage2_cab_raw_grad_norm": cab_norm, "raw_cab_to_task_ratio": ratio, "locality": result["locality"]})
+        del result
+        torch.cuda.empty_cache()
+    # Scope the raw CAB graph directly on one active source image. Because
+    # the pre tensor and merge coefficient are detached in cab_pair_terms,
+    # any nonzero gradient outside Stage-2 Conv-LoRA is an implementation bug.
+    scope_rows = []
+    for batch_index, batch in enumerate(fixed_batches):
+        positions = valid_token_positions(batch["mask"])
+        active_index = next((index for index, values in enumerate(positions) if values), None)
+        if active_index is None:
+            continue
+        image = batch["image"].to(device, non_blocking=True)
+        mask = batch["mask"].to(device, non_blocking=True)
+        counterfactual, _ = context_counterfactual(image, positions)
+        terms = task_terms(model, single_image_batch(batch, active_index), device, policy)
+        counter_pre = capture_stage2_input(model, counterfactual[active_index:active_index + 1], policy, no_grad=True)
+        cab_loss, detail = cab_pair_terms(model, terms["pre"], counter_pre, positions[active_index], True)
+        all_cab = torch.autograd.grad(cab_loss, trainable_params, allow_unused=True)
+        predicates = {
             "stage2_convlora": lambda n: n.startswith("image_adapter.lora_adapters.1."),
             "stage2_projection": lambda n: n.startswith("image_adapter.seg_proj.1."),
             "stage2_dfg_q": lambda n: n.startswith("image_adapter.vision_text_q.1."),
@@ -661,26 +759,15 @@ def gradient_preflight_phase(payload: dict) -> dict:
             "stage3_convlora": lambda n: n.startswith("image_adapter.lora_adapters.2."),
             "prompt_text": lambda n: n.startswith("text_adapter.") or n.startswith("soft_prompt."),
             "stage2_merge_weight": lambda n: n.startswith("image_adapter.m_i_w.1."),
-        }.items():
-            scope[group_name] = grad_norm([gradient for (name, _), gradient in zip(trainable, all_cab) if predicate(name)])
+        }
+        scope = {group: grad_norm([gradient for (name, _), gradient in zip(trainable, all_cab) if predicate(name)]) for group, predicate in predicates.items()}
         scope_rows.append({"batch_index": batch_index, **scope})
-        rows.append({"batch_index": batch_index, "file_names": list(batch["file_name"]), "task_loss": float(terms["task"].detach().float().cpu()), "cab_loss": float(cab_loss.detach().float().cpu()), "cab_active": detail["active_token_count"] > 0, "active_token_fraction": detail["active_token_fraction"], "token_count": detail["token_count"], "d_pre": detail["d_pre"], "d_post": detail["d_post"], "positive_delta": detail["positive_delta"], "locality": locality})
-        del terms, cab_loss, task_grad, cab_grad, all_cab
+        del terms, cab_loss, all_cab, counter_pre
         torch.cuda.empty_cache()
-    ratios = []
-    for batch, item in zip(fixed_source_batches(payload, 16), rows):
-        # Recompute the two norms in a separate graph for a transparent ratio
-        # table; this is still preflight and does not step an optimizer.
-        terms = task_terms(model, batch, device, policy)
-        cab_loss, detail, _ = cab_terms(model, terms["image"], terms["mask"], terms["pre"], policy, True)
-        task_grad = torch.autograd.grad(terms["task"], stage2_params, retain_graph=True, allow_unused=True)
-        cab_grad = torch.autograd.grad(cab_loss, stage2_params, allow_unused=True)
-        task_norm, cab_norm = grad_norm(task_grad), grad_norm(cab_grad)
-        ratio = cab_norm / (task_norm + GRAD_EPS)
-        ratios.append(ratio)
-        item.update({"stage2_task_grad_norm": task_norm, "stage2_cab_raw_grad_norm": cab_norm, "raw_cab_to_task_ratio": ratio})
-        del terms, cab_loss, task_grad, cab_grad
-        torch.cuda.empty_cache()
+        if len(scope_rows) >= 4:
+            break
+    if not scope_rows:
+        raise RuntimeError("no active batch available for CAB gradient scope audit")
     scope_max = {key: max(row[key] for row in scope_rows) for key in scope_rows[0] if key != "batch_index"}
     scope_pass = scope_max["stage2_convlora"] > 0.0 and all(value == 0.0 for key, value in scope_max.items() if key != "stage2_convlora")
     active_count = sum(int(row["cab_active"]) for row in rows)
@@ -785,6 +872,7 @@ def train_arm(payload: dict, manifest: dict, arm: str, control_rows: list[dict] 
     anchor = SafeImageAdapterAnchor.from_checkpoint(SAFE_ANCHOR, device)
     trainable = [(name, parameter) for name, parameter in sorted(model.named_parameters()) if parameter.requires_grad]
     trainable_params = [parameter for _, parameter in trainable]
+    stage2_indices = [index for index, (name, _) in enumerate(trainable) if name.startswith("image_adapter.lora_adapters.1.")]
     image_named = [(name, parameter) for name, parameter in sorted(model.image_adapter.named_parameters()) if parameter.requires_grad]
     image_names = [name for name, _ in image_named]
     image_params = [parameter for _, parameter in image_named]
@@ -806,26 +894,23 @@ def train_arm(payload: dict, manifest: dict, arm: str, control_rows: list[dict] 
             if int(expected["attempt_index"]) != attempt or int(expected["batch"]) != batch_index or not manifest_row_identity(expected, batch):
                 raise RuntimeError(f"attempt manifest mismatch arm={arm} attempt={attempt} epoch={epoch} batch={batch_index}")
             optimizer.zero_grad(set_to_none=True)
-            terms = task_terms(model, batch, device, policy)
-            cab_loss, cab_detail, locality = cab_terms(model, terms["image"], terms["mask"], terms["pre"], policy, requires_grad=candidate)
-            task_grads = torch.autograd.grad(terms["task"], trainable_params, retain_graph=False, allow_unused=True)
+            result = batch_gradient_terms(model, batch, device, policy, trainable_params, stage2_indices, candidate)
+            combined = list(result["task_gradients"])
             if candidate:
-                cab_grads = torch.autograd.grad(cab_loss, trainable_params, allow_unused=True)
-            else:
-                cab_grads = [None] * len(trainable_params)
-            combined = combined_gradients(task_grads, cab_grads, candidate, lambda_cab)
+                for local_index, global_index in enumerate(stage2_indices):
+                    combined[global_index] = combined[global_index] + lambda_cab * result["cab_stage2_gradients"][local_index]
             anchor_loss = anchor.loss(model.image_adapter)
-            finite = bool(torch.isfinite(terms["task"]).item() and torch.isfinite(cab_loss).item() and torch.isfinite(anchor_loss).item() and all(g is None or torch.isfinite(g).all().item() for g in combined))
+            finite = bool(np.isfinite(result["task_loss"]) and np.isfinite(result["cab_loss"]) and torch.isfinite(anchor_loss).item() and all(g is None or torch.isfinite(g).all().item() for g in combined))
             forced = bool(candidate and int(expected["attempt_index"]) in control_by_attempt and control_by_attempt[int(expected["attempt_index"])] ["status"] != "success")
             row = {
                 "attempt_index": attempt, "epoch": epoch, "batch": batch_index, "arm": arm,
                 "file_names": json.dumps(list(batch["file_name"]), separators=(",", ":")),
                 "labels": json.dumps([int(x) for x in batch["label"].tolist()], separators=(",", ":")),
                 "image_sha256": expected["image_sha256"], "mask_sha256": expected["mask_sha256"],
-                "task_loss": float(terms["task"].detach().float().cpu()), "cab_loss": float(cab_loss.detach().float().cpu()),
-                "cab_excess_mean": cab_detail["cab_excess_mean"], "cab_active_token_fraction": cab_detail["active_token_fraction"], "cab_token_count": cab_detail["token_count"],
-                "d_pre_mean": cab_detail["d_pre"]["mean"], "d_post_mean": cab_detail["d_post"]["mean"], "positive_delta_p95": cab_detail["positive_delta"]["p95"],
-                "context_change_mean": locality["context_change_mean"], "footprint_max_abs_diff": locality["footprint_max_abs_diff"],
+                "task_loss": result["task_loss"], "cab_loss": result["cab_loss"],
+                "cab_excess_mean": result["cab_detail"]["cab_excess_mean"], "cab_active_token_fraction": result["cab_detail"]["active_token_fraction"], "cab_token_count": result["cab_detail"]["token_count"],
+                "d_pre_mean": result["cab_detail"]["d_pre"]["mean"], "d_post_mean": result["cab_detail"]["d_post"]["mean"], "positive_delta_p95": result["cab_detail"]["positive_delta"]["p95"],
+                "context_change_mean": result["locality"]["context_change_mean"], "footprint_max_abs_diff": result["locality"]["footprint_max_abs_diff"],
                 "finite_before_update": int(finite), "status": "pending", "successful_update": 0, "natural_skip": 0, "forced_parity_skip": 0,
                 "global_step_before": global_step, "global_step_after": global_step,
             }
@@ -845,9 +930,11 @@ def train_arm(payload: dict, manifest: dict, arm: str, control_rows: list[dict] 
                     parameter.grad = None if gradient is None else (gradient * scale).to(dtype=parameter.dtype)
                 scaler.scale(torch.ones((), device=device))
                 scaler.unscale_(optimizer)
-                image_task_map = {}
-                for name, gradient in zip([name[len("image_adapter."):] for name, _ in trainable if name.startswith("image_adapter.")], [gradient for name, gradient in zip(trainable, combined) if name[0].startswith("image_adapter.")]):
-                    image_task_map[name] = gradient
+                image_indices = [index for index, (name, _) in enumerate(trainable) if name.startswith("image_adapter.")]
+                image_task_map = {
+                    name: combined[index]
+                    for (name, _), index in zip(image_named, image_indices)
+                }
                 raw_anchor = torch.autograd.grad(anchor_loss, image_params, allow_unused=True)
                 anchor_metrics = apply_family_safe_anchor_budget(model.image_adapter, sorted(model.named_parameters()), task_gradients=image_task_map, raw_anchor_gradients=dict(zip(image_names, raw_anchor)), anchor_lambda=ANCHOR_LAMBDA, rho=ANCHOR_FAMILY_BUDGET, total_trainable_parameters=None)
                 torch.nn.utils.clip_grad_norm_(model.image_adapter.parameters(), 1.0)
@@ -866,7 +953,7 @@ def train_arm(payload: dict, manifest: dict, arm: str, control_rows: list[dict] 
             rows.append(row)
             attempt += 1
             processed += 1
-            del terms, cab_loss, task_grads, cab_grads, combined, anchor_loss
+            del result, combined, anchor_loss
             torch.cuda.empty_cache()
             if attempt >= MAX_ATTEMPTS:
                 break
