@@ -6,6 +6,7 @@ RUN_ROOT="${RUN_ROOT:-/tmp/r3_alpha_screen_20260909}"
 E1="${ROOT}/runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth"
 FORKER="${ROOT}/scripts/r3_fork_shared_e1.py"
 PY="${PYTHON:-/workspace/.venv-acd-r3/bin/python}"
+export CUBLAS_WORKSPACE_CONFIG="${CUBLAS_WORKSPACE_CONFIG:-:4096:8}"
 
 test -s "${E1}"
 if [[ -e "${RUN_ROOT}" ]]; then

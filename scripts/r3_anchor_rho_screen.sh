@@ -8,6 +8,7 @@ FORKER="${ROOT}/scripts/r3_fork_shared_e1.py"
 PY="${PYTHON:-/workspace/.venv-acd-r3/bin/python}"
 ALPHA="${ALPHA:-0.20}"
 RHO_CANDIDATES="${RHO_CANDIDATES:-005 0075 010 015}"
+export CUBLAS_WORKSPACE_CONFIG="${CUBLAS_WORKSPACE_CONFIG:-:4096:8}"
 
 test -s "${E1}"
 if [[ -e "${RUN_ROOT}" ]]; then
