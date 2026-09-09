@@ -1,0 +1,18 @@
+{
+  "protocol": "R3_SOURCE_ALPHA_SCREEN_V1",
+  "parent": "shared_e1_authoritative",
+  "source_dataset": "VisA",
+  "candidate_hybrid_alpha_max": [0.15, 0.2],
+  "anchor": true,
+  "anchor_lambda": 0.0021633926715180626,
+  "anchor_family_budget": 0.1,
+  "cir": false,
+  "stage_s1": {
+    "epochs": 5,
+    "max_batches_per_epoch": 50,
+    "seed": 0,
+    "selection_primary": "held_out_source_pixel_ap_with_locked_tta_f",
+    "guardrails": ["source_pixel_auc", "finite_outputs", "image_metrics", "no_target_labels"]
+  },
+  "stage_s2": "Run full E15 confirmation only for the top one or two source candidates; do not choose the alpha from Medical."
+}
