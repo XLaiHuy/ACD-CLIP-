@@ -1,0 +1,72 @@
+{
+  "protocol": "R3_LOCKED_TTA_F_TARGET_V1",
+  "policy": ["identity", "hflip", "vflip", "hvflip"],
+  "checkpoint": "runs/h2_clean_factorial_e20_20260902_ampfix/A/adapter_15.pth",
+  "checkpoint_epoch": 15,
+  "checkpoint_sha256": "727dc4813db1ef0c5a6db3a4cf15e916ad1413dcf629913358419d2734edecfe",
+  "runtime_seconds": 18787.844135929015,
+  "finite_outputs": true,
+  "target_selection_or_tuning": false,
+  "raw_json_sha256": "3ab746654fb1e5599cec63a994e4a5d4c35d953619720b67801004fc3229dcb3",
+  "medical_macro_percent": {
+    "pixel_auc": 91.75512323421079,
+    "pixel_ap": 40.2459204527138,
+    "image_auc": 74.68376755714417,
+    "image_ap": 76.70050263404846
+  },
+  "medical_reference_percent": {
+    "pixel_auc": 91.25178605739472,
+    "pixel_ap": 39.46836969631676,
+    "image_auc": 75.2827266852061,
+    "image_ap": 76.34336352348328
+  },
+  "medical_delta_percent_points": {
+    "pixel_auc": 0.5033371768160606,
+    "pixel_ap": 0.7775507563970336,
+    "image_auc": -0.5989591280619294,
+    "image_ap": 0.35713898284118736
+  },
+  "medical_rows_percent": {
+    "Brain": {"pixel_auc": 95.6857737847118, "pixel_ap": 36.9803614258052, "image_auc": 80.48859238624573, "image_ap": 93.94561052322388},
+    "Liver": {"pixel_auc": 96.96224579269199, "pixel_ap": 6.552965687540589, "image_auc": 64.72270488739014, "image_ap": 56.56718611717224},
+    "Retina": {"pixel_auc": 95.19065569765371, "pixel_ap": 54.58068499824077, "image_auc": 78.84000539779663, "image_ap": 79.58871126174927},
+    "Colon_clinicDB": {"pixel_auc": 89.1051803678334, "pixel_ap": 51.11475881890615, "image_auc": 0.0, "image_ap": 0.0},
+    "Colon_colonDB": {"pixel_auc": 86.34809121811014, "pixel_ap": 36.9483221961948, "image_auc": 0.0, "image_ap": 0.0},
+    "Colon_Kvasir": {"pixel_auc": 87.23879254426373, "pixel_ap": 55.29842958959528, "image_auc": 0.0, "image_ap": 0.0}
+  },
+  "mvtec_macro_percent": {
+    "pixel_auc": 90.41629629847156,
+    "pixel_ap": 47.29750359996327,
+    "image_auc": 90.77691078186035,
+    "image_ap": 95.27245442072551
+  },
+  "mvtec_reference_percent": {
+    "pixel_auc": 90.041289,
+    "pixel_ap": 45.159349,
+    "image_auc": 89.816913,
+    "image_ap": 94.779362
+  },
+  "mvtec_delta_percent_points": {
+    "pixel_auc": 0.37500729847156,
+    "pixel_ap": 2.138154599963272,
+    "image_auc": 0.95999778186035,
+    "image_ap": 0.49309242072551
+  },
+  "mvtec_rows_percent": {
+    "bottle": {"pixel_auc": 94.69342981593631, "pixel_ap": 65.98930894044064, "image_auc": 96.82539701461792, "image_ap": 99.11895990371704},
+    "cable": {"pixel_auc": 71.40338101426916, "pixel_ap": 26.679987580963534, "image_auc": 88.34333419799805, "image_ap": 92.63792037963867},
+    "capsule": {"pixel_auc": 96.67723520284737, "pixel_ap": 40.3275975296765, "image_auc": 88.47227096557617, "image_ap": 97.55594730377197},
+    "carpet": {"pixel_auc": 99.58006258642449, "pixel_ap": 80.08843947021045, "image_auc": 98.55537414550781, "image_ap": 99.55961108207703},
+    "grid": {"pixel_auc": 97.69312248392976, "pixel_ap": 34.245733175508555, "image_auc": 92.81537532806396, "image_ap": 97.62301445007324},
+    "hazelnut": {"pixel_auc": 97.60281511253726, "pixel_ap": 60.16789131278484, "image_auc": 85.67857146263123, "image_ap": 92.13212728500366},
+    "leather": {"pixel_auc": 99.48326082766603, "pixel_ap": 59.905751268963705, "image_auc": 100.0, "image_ap": 100.0},
+    "metal_nut": {"pixel_auc": 61.90827931959429, "pixel_ap": 20.61083983150726, "image_auc": 77.46822834014893, "image_ap": 94.68427300453186},
+    "pill": {"pixel_auc": 87.59619880674384, "pixel_ap": 36.271918755025965, "image_auc": 91.68030023574829, "image_ap": 98.41853976249695},
+    "screw": {"pixel_auc": 97.73868484319469, "pixel_ap": 30.453969955655346, "image_auc": 85.11990308761597, "image_ap": 94.69142556190491},
+    "tile": {"pixel_auc": 93.49230444727809, "pixel_ap": 73.86712913833767, "image_auc": 98.80952835083008, "image_ap": 99.56823587417603},
+    "toothbrush": {"pixel_auc": 97.98281205704143, "pixel_ap": 54.96627579300585, "image_auc": 98.0555534362793, "image_ap": 99.22840595245361},
+    "transistor": {"pixel_auc": 68.13400990409534, "pixel_ap": 10.58015232693556, "image_auc": 69.83332633972168, "image_ap": 66.71104431152344},
+    "wood": {"pixel_auc": 95.59829515770228, "pixel_ap": 66.54792285407531, "image_auc": 96.66666984558105, "image_ap": 99.04157519340515},
+    "zipper": {"pixel_auc": 96.6605528978133, "pixel_ap": 48.75963606635782, "image_auc": 93.32982897758484, "image_ap": 98.11573624610901}
+  }
+}
