@@ -53,9 +53,13 @@ def inverse_map(value: torch.Tensor, name: str) -> torch.Tensor:
     return transform_image(value, name)
 
 
-def build_model(device: torch.device, checkpoint: Path) -> tuple[ACDCLIP, dict]:
-    if sha256_file(checkpoint) != CHECKPOINT_SHA256:
-        raise ValueError("checkpoint SHA256 does not match canonical A15")
+def build_model(
+        device: torch.device,
+        checkpoint: Path,
+        expected_checkpoint_sha256: str | None = CHECKPOINT_SHA256,
+) -> tuple[ACDCLIP, dict]:
+    if expected_checkpoint_sha256 is not None and sha256_file(checkpoint) != expected_checkpoint_sha256:
+        raise ValueError("checkpoint SHA256 does not match expected value")
     if sha256_file(Path("model/ViT-L-14-336px.pt")) != CLIP_SHA256:
         raise ValueError("CLIP SHA256 does not match canonical artifact")
     clip_model = create_model(
@@ -128,6 +132,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--expected-sha256", type=str, default=CHECKPOINT_SHA256)
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--num-workers", type=int, default=2)
     args = parser.parse_args()
@@ -140,7 +145,7 @@ def main() -> None:
         raise ValueError(f"refusing to overwrite {args.output}")
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model, checkpoint_payload = build_model(device, args.checkpoint)
+    model, checkpoint_payload = build_model(device, args.checkpoint, args.expected_sha256)
     with torch.no_grad():
         text_embeddings = get_multiple_adapted_text_embedding(model, "VisA", device)
 
