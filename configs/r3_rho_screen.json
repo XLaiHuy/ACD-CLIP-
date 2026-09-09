@@ -1,0 +1,17 @@
+{
+  "protocol": "R3_SOURCE_RHO_SCREEN_V1",
+  "parent": "shared_e1_authoritative",
+  "source_dataset": "VisA",
+  "candidate_anchor_family_budget_rho": [0.05, 0.075, 0.1, 0.15],
+  "anchor_lambda": 0.0021633926715180626,
+  "cir": false,
+  "alpha": "locked by the preceding source-only alpha gate",
+  "stage_s1": {
+    "epochs": 5,
+    "max_batches_per_epoch": 50,
+    "seed": 0,
+    "selection_primary": "held_out_source_pixel_ap_with_locked_tta_f",
+    "diagnostics": "anchor_family_epoch telemetry, finite outputs, non-finite skips, and family-safe budget status"
+  },
+  "stage_s2": "Run full E15 confirmation only for the top source candidate; do not select rho from Medical or MVTec."
+}
