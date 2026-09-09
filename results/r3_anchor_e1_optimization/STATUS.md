@@ -1,6 +1,6 @@
 # R3 Anchor + E1 Optimization Status
 
-Status: `ALPHA_020_LOCKED_SOURCE_GATE_PASS`
+Status: `RHO_010_LOCKED_SOURCE_GATE_PASS`
 
 This branch is the reproducible R3 workspace for the source-only E1 anchor
 optimization study. The dataset and runtime gates are recorded before any
@@ -30,10 +30,13 @@ new training or target-guided decision.
 - Source-only alpha S1 screen complete; `hybrid_alpha_max=0.20` is locked by
   source TTA-F Pixel AP. The gate is recorded in
   `results/r3_anchor_e1_optimization/ALPHA_SOURCE_GATE.md`.
+- Source-only rho S1 screen complete; `rho=0.10` is locked by source TTA-F
+  Pixel AP. The gate is recorded in
+  `results/r3_anchor_e1_optimization/RHO_SOURCE_GATE.md`.
 
 ## In progress
 
-- Full E15 confirmation of the locked alpha candidate is in progress. No
+- Full E15 confirmation of the locked alpha/rho candidate is in progress. No
   target labels or target metrics may affect alpha/rho/lambda selection.
 
 ## Frozen anchors

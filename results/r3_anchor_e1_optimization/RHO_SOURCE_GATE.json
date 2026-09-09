@@ -1,0 +1,114 @@
+{
+  "protocol": "R3_SOURCE_RHO_SCREEN_V1",
+  "selection_stage": "S1",
+  "selection_primary": "held_out_source_pixel_ap_with_locked_tta_f",
+  "source_dataset": "VisA",
+  "held_out_categories": ["candle", "macaroni1", "pcb3", "pipe_fryum"],
+  "train_scope": "VisA full training split; held-out categories are an evaluation slice",
+  "parent_checkpoint": "runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth",
+  "parent_checkpoint_sha256": "7f9176b7ef53b572935567c574535075a573175b2aa83505d043a71d45b12b35",
+  "code_sha": "4649d6755d8d8cc59a8878e4a860f89fc236e0ca",
+  "fixed": {
+    "hybrid_alpha_max": 0.2,
+    "anchor_lambda": 0.0021633926715180626,
+    "cir": false,
+    "tta_policy": "TTA-F",
+    "tta_transforms": ["identity", "hflip", "vflip", "hvflip"],
+    "epochs": 5,
+    "max_batches_per_epoch": 50,
+    "seed": 0,
+    "target_selection_or_tuning": false
+  },
+  "candidates": {
+    "rho_005": {
+      "anchor_family_budget_rho": 0.05,
+      "fork_checkpoint_sha256": "3d1415e7ad3efce2cb5d7937e11e06026764f71f882e9bf5fe0aaa6efc46f9b0",
+      "checkpoint": "/tmp/r3_anchor_rho_screen_20260909/rho_005/adapter_5.pth",
+      "checkpoint_sha256": "1493c21badf12f2ed128c97d1ab0c21e9a42d3b5d8d79729674870daa723766f",
+      "checkpoint_epoch": 5,
+      "source_json": "/tmp/r3_anchor_rho_screen_20260909/rho_005_source.json",
+      "source_json_sha256": "bb52c05b0aa1b84f51a22572b2708c91b4b9eebe08fd06efca54cdbef73098d1",
+      "runtime_seconds": 980.6892621299485,
+      "finite_outputs": true,
+      "family_partition_complete": true,
+      "final_global_effective_ratio": 1.2980152665732579e-05,
+      "final_max_effective_active_family_ratio": 0.02280399243207443,
+      "tta_f": {
+        "pixel_ap": 20.938760992980967,
+        "pixel_auc": 94.56035054597396,
+        "image_ap": 91.49820059537888,
+        "image_auc": 89.34125900268555
+      }
+    },
+    "rho_0075": {
+      "anchor_family_budget_rho": 0.075,
+      "fork_checkpoint_sha256": "afbc9b41998e5d997ec2228dc20ab1265072d8f60e9adfdea6582b3328da8e96",
+      "checkpoint": "/tmp/r3_anchor_rho_screen_20260909/rho_0075/adapter_5.pth",
+      "checkpoint_sha256": "981bd79a7f6b92c464ac78f9fb4e5aedbaab1d21ea3712f41893e5aec61b3e37",
+      "checkpoint_epoch": 5,
+      "source_json": "/tmp/r3_anchor_rho_screen_20260909/rho_0075_source.json",
+      "source_json_sha256": "245cd99e40103737fa93327ee8043cf7e2f368201afbdd24fb8ea09239f40025",
+      "runtime_seconds": 1789.3485230319202,
+      "finite_outputs": true,
+      "family_partition_complete": true,
+      "final_global_effective_ratio": 8.036274373421363e-06,
+      "final_max_effective_active_family_ratio": 0.042479775995136325,
+      "tta_f": {
+        "pixel_ap": 22.575380952823945,
+        "pixel_auc": 95.09727594432947,
+        "image_ap": 91.94091260433197,
+        "image_auc": 89.60366100072861
+      }
+    },
+    "rho_010": {
+      "anchor_family_budget_rho": 0.1,
+      "fork_checkpoint_sha256": "cf6c6b3e675758fe6187847f85e1daaa7ee3acd1c17aaaa94ff581574335f285",
+      "checkpoint": "/tmp/r3_anchor_rho_screen_20260909/rho_010/adapter_5.pth",
+      "checkpoint_sha256": "2d0a40297d8c0b812277dd9cd65301f534682d142a84004272376408738128e1",
+      "checkpoint_epoch": 5,
+      "source_json": "/tmp/r3_anchor_rho_screen_20260909/rho_010_source.json",
+      "source_json_sha256": "0b304770f19a79733868e1871e3ab02586e987029002bdfcc2ee656b554ad7d8",
+      "runtime_seconds": 984.3147829290247,
+      "finite_outputs": true,
+      "family_partition_complete": true,
+      "final_global_effective_ratio": 7.549033103997641e-06,
+      "final_max_effective_active_family_ratio": 0.09999967565603718,
+      "tta_f": {
+        "pixel_ap": 24.63351677707159,
+        "pixel_auc": 95.65506939612135,
+        "image_ap": 90.66293984651566,
+        "image_auc": 88.09864223003387
+      }
+    },
+    "rho_015": {
+      "anchor_family_budget_rho": 0.15,
+      "fork_checkpoint_sha256": "08d6174b27a1b1d6f90f49205290e242c5990b92a6b4defca8aebc1ecab8dd3f",
+      "checkpoint": "/tmp/r3_anchor_rho_screen_20260909/rho_015/adapter_5.pth",
+      "checkpoint_sha256": "e426512b4846e3311e38665898d5bdc2bb45acf2c75f515c9550fc3ebf7c7a95",
+      "checkpoint_epoch": 5,
+      "source_json": "/tmp/r3_anchor_rho_screen_20260909/rho_015_source.json",
+      "source_json_sha256": "5772b95ab9bc3aa1e66f957dc9d028fb6cb2a0ae59d2ff85d44fba4e9be2941e",
+      "runtime_seconds": 1016.1614833530039,
+      "finite_outputs": true,
+      "family_partition_complete": true,
+      "final_global_effective_ratio": 1.2124485417610048e-05,
+      "final_max_effective_active_family_ratio": 0.1499996153499459,
+      "tta_f": {
+        "pixel_ap": 21.43682951041361,
+        "pixel_auc": 93.38731476256865,
+        "image_ap": 92.6252007484436,
+        "image_auc": 90.75101464986801
+      }
+    }
+  },
+  "selection": {
+    "locked_anchor_family_budget_rho": 0.1,
+    "winner": "rho_010",
+    "source_pixel_ap_delta_pp_vs_rho_0075": 2.058135824247645,
+    "source_pixel_ap_delta_pp_vs_rho_005": 3.694755784090623,
+    "source_pixel_ap_delta_pp_vs_rho_015": 3.19668726665798,
+    "guardrails_pass": true,
+    "decision_basis": "rho_010 has the highest source TTA-F Pixel AP; no target labels or target metrics were used",
+    "stage_s2": "Full E15 confirmation is required for the locked candidate before any target evaluation"
+  }
+}
