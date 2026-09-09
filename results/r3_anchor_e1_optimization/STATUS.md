@@ -1,6 +1,6 @@
 # R3 Anchor + E1 Optimization Status
 
-Status: `MIGRATION_PASS_SOURCE_PROTOCOL_PENDING`
+Status: `TTA_F_LOCKED_TARGET_REPLAY_IN_PROGRESS`
 
 This branch is the reproducible R3 workspace for the source-only E1 anchor
 optimization study. The dataset and runtime gates are recorded before any
@@ -24,11 +24,11 @@ new training or target-guided decision.
   `benchmark_exact`, `pixel_stride=1`, `cls_only` image-score contract.
 - Full MVTec migration parity replay with the established industrial image
   score is complete; metrics and provenance are in `results/r3_migration_parity/`.
+- Source-only TTA gate complete; `TTA-F` is locked by source Pixel AP.
 
 ## In progress
 
-- Source-only candidate-selection protocol and deterministic category-held-out
-  VisA gate.
+- Full target replay of the locked TTA-F policy on Medical and MVTec.
 
 ## Frozen anchors
 
@@ -42,4 +42,5 @@ new training or target-guided decision.
 
 No target-label selection, tuning, or new training has been performed on this
 branch yet. The last valid checkpoint remains the canonical A15; the
-authoritative shared E1 is unchanged.
+authoritative shared E1 is unchanged. Current job:
+`/tmp/r3_locked_tta_target_20260909/metrics.json`.
