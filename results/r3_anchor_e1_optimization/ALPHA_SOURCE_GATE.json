@@ -1,0 +1,67 @@
+{
+  "protocol": "R3_SOURCE_ALPHA_SCREEN_V1",
+  "selection_stage": "S1",
+  "selection_primary": "held_out_source_pixel_ap_with_locked_tta_f",
+  "source_dataset": "VisA",
+  "held_out_categories": ["candle", "macaroni1", "pcb3", "pipe_fryum"],
+  "train_scope": "VisA full training split; held-out categories are an evaluation slice",
+  "parent_checkpoint": "runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth",
+  "parent_checkpoint_sha256": "7f9176b7ef53b572935567c574535075a573175b2aa83505d043a71d45b12b35",
+  "code_sha": "d65c35b672576dbe4818e40d68ecde3e0d830928",
+  "fixed": {
+    "anchor": true,
+    "anchor_lambda": 0.0021633926715180626,
+    "cir": false,
+    "anchor_family_budget_rho": 0.1,
+    "tta_policy": "TTA-F",
+    "tta_transforms": ["identity", "hflip", "vflip", "hvflip"],
+    "epochs": 5,
+    "max_batches_per_epoch": 50,
+    "seed": 0,
+    "target_selection_or_tuning": false
+  },
+  "candidates": {
+    "alpha_015": {
+      "hybrid_alpha_max": 0.15,
+      "fork_checkpoint_sha256": "7f18f9e4932a39e6af4a685c70625ad194527e744c19bbe2113435052a8591f8",
+      "checkpoint": "/tmp/r3_alpha_screen_20260909_v2/alpha_015/adapter_5.pth",
+      "checkpoint_sha256": "e28aafd9092d25eeee0d9b72a8cc549ec73ec46ec5e363b5156db75f888a2ccf",
+      "checkpoint_epoch": 5,
+      "source_json": "/tmp/r3_alpha_screen_20260909_v2/alpha_015_source.json",
+      "source_json_sha256": "cb0681a1053eb4cacdbaa4702618e8495532b853c6df95b396524d5b4e9c0cef",
+      "runtime_seconds": 995.6226214839844,
+      "finite_outputs": true,
+      "tta_f": {
+        "pixel_ap": 23.912369874715925,
+        "pixel_auc": 95.41431482630838,
+        "image_ap": 90.24759978055954,
+        "image_auc": 86.7123544216156
+      }
+    },
+    "alpha_020": {
+      "hybrid_alpha_max": 0.2,
+      "fork_checkpoint_sha256": "a85bdc302ee8f3eaaee9cda9be8435b8e15209ba1ed3c5dccbf928fe14634b48",
+      "checkpoint": "/tmp/r3_alpha_screen_20260909_v2/alpha_020/adapter_5.pth",
+      "checkpoint_sha256": "8e20d7fc2720b489be6e8d7ee0e17afd713b5e3cc78915f5b822b0e6610d73fd",
+      "checkpoint_epoch": 5,
+      "source_json": "/tmp/r3_alpha_screen_20260909_v2/alpha_020_source.json",
+      "source_json_sha256": "1c39bf1052571db908aa8248293a08fc8a3108338abc7bde97c73874e5258c9a",
+      "runtime_seconds": 974.5091471649939,
+      "finite_outputs": true,
+      "tta_f": {
+        "pixel_ap": 24.63351677707159,
+        "pixel_auc": 95.65506939612135,
+        "image_ap": 90.66293984651566,
+        "image_auc": 88.09864223003387
+      }
+    }
+  },
+  "selection": {
+    "locked_hybrid_alpha_max": 0.2,
+    "winner": "alpha_020",
+    "source_pixel_ap_delta_pp_vs_alpha_015": 0.721146902355665,
+    "guardrails_pass": true,
+    "decision_basis": "alpha_020 has the higher source TTA-F Pixel AP; no target labels or target metrics were used",
+    "stage_s2": "Full E15 confirmation is required for the locked candidate before any target evaluation"
+  }
+}
