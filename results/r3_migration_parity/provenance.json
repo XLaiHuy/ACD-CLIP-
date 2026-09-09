@@ -1,0 +1,61 @@
+{
+  "status": "PASS",
+  "date_utc": "2026-09-09",
+  "branch": "research/r3-anchor-e1-optimization",
+  "parent_h2_head": "88abf174dea1744b8977b934142a9809aff6e96f",
+  "historical_full_run_implementation_sha": "31167af5ee3dfff80b74af1e9ee0da4ecc475d2e",
+  "checkpoint": {
+    "path": "runs/h2_clean_factorial_e20_20260902_ampfix/A/adapter_15.pth",
+    "sha256": "727dc4813db1ef0c5a6db3a4cf15e916ad1413dcf629913358419d2734edecfe",
+    "epoch": 15,
+    "arm": "A"
+  },
+  "shared_e1": {
+    "path": "runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth",
+    "sha256": "7f9176b7ef53b572935567c574535075a573175b2aa83505d043a71d45b12b35"
+  },
+  "clip": {
+    "path": "model/ViT-L-14-336px.pt",
+    "sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02"
+  },
+  "dataset_manifests": {
+    "VisA": {"path": "dataset/hub/VisA.jsonl", "sha256": "468463d2d6234fa7537c6da32b027758527676a12a54a4028c5a282cdd726842"},
+    "Brain": {"path": "dataset/hub/Brain.jsonl", "sha256": "89092dd5f3e36d2e611b115b2a97e4e9ee83af183ebec298abac983a7a323e4e"},
+    "Liver": {"path": "dataset/hub/Liver.jsonl", "sha256": "1483b5a43f011a3ef02211d5fa81c5b09031423bd0ca5c0ef6cbf0375fee4fc8"},
+    "Retina": {"path": "dataset/hub/Retina.jsonl", "sha256": "d0de975045262b321851ac3770eb7b5e68d4d7fb3bdba833b1cbbbe32f212e24"},
+    "Colon_clinicDB": {"path": "dataset/hub/Colon_clinicDB.jsonl", "sha256": "1f057657a64221672a5123c3e87b926d226b9eb6a3276768385ca3a7554cdb5c"},
+    "Colon_colonDB": {"path": "dataset/hub/Colon_colonDB.jsonl", "sha256": "e3be9a5e158bef9a2c7f481827339798152c78e92590df9631c4281a6b6c31c3"},
+    "Colon_Kvasir": {"path": "dataset/hub/Colon_Kvasir.jsonl", "sha256": "ac948309511f02e8ec66b9c3b5dbc4a4be5e85d22dbd17742c74212ceee2ee94"},
+    "MVTec": {"path": "dataset/hub/MVTec.jsonl", "sha256": "3a5e304ea16bba82e6e525d188698e91ca92b718696f8c257ed435d235b4cc2c"}
+  },
+  "dataset_roots": {
+    "VisA": "/workspace/datasets/med-visa/data/VisA_20220922",
+    "Medical": "/workspace/datasets/med-visa/data/{MedAD,Colon}",
+    "MVTec": "/workspace/datasets/mvtec-ad"
+  },
+  "runtime": {
+    "python": "3.11.16",
+    "torch": "2.7.1+cu128",
+    "torchvision": "0.22.1+cu128",
+    "cuda_runtime": "12.8",
+    "gpu": "NVIDIA GeForce RTX 5060 Ti",
+    "compute_capability": "12.0",
+    "driver": "595.84",
+    "torch_load_compatibility": "explicit weights_only=False for trusted full checkpoints",
+    "batch_size": 8,
+    "num_workers": 2,
+    "no_target_selection_or_tuning": true
+  },
+  "commands": {
+    "medical_log": "/tmp/r3_migration_parity_20260909_cls_only/A/test.log",
+    "medical_run_logs": "/tmp/r3_migration_parity_20260909_cls_only/*.run.log",
+    "mvtec_log": "/tmp/r3_migration_parity_20260909/A/test.log",
+    "config": "ViT-L-14-336, img_size=518, n_groups=3, LoRA=(16,2), Conv-LoRA=(8,2), kernels=(3,5), DFG attn dim=256 tau=8, SS2D weight_residual gamma=0.2 beta=0.1 warmup010 target=0.1, epoch=15"
+  },
+  "protocol_notes": [
+    "Medical benchmark_exact uses cls_only image scores as required by the frozen H2 contract.",
+    "MVTec benchmark_exact retains the established 0.9 classification + 0.1 pmax image blend.",
+    "The earlier Medical replay with legacy blending is diagnostic only and is not used for parity status.",
+    "No checkpoint weights were modified; output directories contain only temporary symlinked checkpoint references and logs."
+  ]
+}

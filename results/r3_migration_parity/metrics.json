@@ -1,0 +1,49 @@
+{
+  "status": "PASS",
+  "evaluator_mode": "benchmark_exact",
+  "pixel_stride": 1,
+  "checkpoint_epoch": 15,
+  "arm": "A",
+  "medical_image_score_rule": "cls_only",
+  "medical": {
+    "macro_from_reported_rows_percent": {
+      "pixel_auc": 91.2528365,
+      "pixel_ap": 39.468876333333334,
+      "image_auc": 75.282542,
+      "image_ap": 76.343149
+    },
+    "rows_percent": {
+      "Brain": {"pixel_auc": 95.460389, "pixel_ap": 36.196984, "image_auc": 80.208081, "image_ap": 93.901241},
+      "Liver": {"pixel_auc": 96.380289, "pixel_ap": 5.467177, "image_auc": 66.969782, "image_ap": 58.159947},
+      "Retina": {"pixel_auc": 95.362743, "pixel_ap": 55.070083, "image_auc": 78.669763, "image_ap": 76.968259},
+      "Colon_clinicDB": {"pixel_auc": 88.657194, "pixel_ap": 50.466449, "image_auc": 0.0, "image_ap": 0.0},
+      "Colon_colonDB": {"pixel_auc": 85.05427, "pixel_ap": 35.475376, "image_auc": 0.0, "image_ap": 0.0},
+      "Colon_Kvasir": {"pixel_auc": 86.602134, "pixel_ap": 54.137189, "image_auc": 0.0, "image_ap": 0.0}
+    },
+    "reference_percent": {
+      "pixel_auc": 91.25178605739472,
+      "pixel_ap": 39.46836969631676,
+      "image_auc": 75.2827266852061,
+      "image_ap": 76.34336352348328
+    },
+    "delta_percent_points": {
+      "pixel_auc": 0.001050442605280004,
+      "pixel_ap": 0.000506637016574513,
+      "image_auc": -0.000184685206098799,
+      "image_ap": -0.000214523483280006
+    }
+  },
+  "mvtec": {
+    "macro_percent": {"pixel_auc": 90.041286, "pixel_ap": 45.15933, "image_auc": 89.816913, "image_ap": 94.779362},
+    "reference_percent": {"pixel_auc": 90.041289, "pixel_ap": 45.159349, "image_auc": 89.816913, "image_ap": 94.779362},
+    "delta_percent_points": {"pixel_auc": -0.000003, "pixel_ap": -0.000019, "image_auc": 0.0, "image_ap": 0.0},
+    "class_count": 15,
+    "classes": ["bottle", "cable", "capsule", "carpet", "grid", "hazelnut", "leather", "metal_nut", "pill", "screw", "tile", "toothbrush", "transistor", "wood", "zipper"]
+  },
+  "interpretation": {
+    "green_threshold_percent_points": 0.30,
+    "yellow_threshold_percent_points": 0.75,
+    "all_primary_metrics_green": true,
+    "note": "Medical macro is the mean of six pixel-bearing rows and three rows with both image labels; row values are the exact evaluator display precision captured in the log."
+  }
+}

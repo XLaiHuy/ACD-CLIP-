@@ -105,6 +105,7 @@ def get_streaming_metrics(
         pixel_stride: int = 1,
         round_result: bool = True,
         spool_root: str | Path | None = None,
+        image_score_rule: str = "legacy",
 ):
     pixel_spool = (
         ExactBinaryAccumulator(spool_root)
@@ -146,10 +147,15 @@ def get_streaming_metrics(
 
         flat_seg = torch.flatten(seg_pred, start_dim=1)
         pmax_pred, _ = torch.max(flat_seg, dim=1)
-        if DOMAINS[dataset] == "Medical":
-            pred_image = pred_image * 0.5 + pmax_pred * 0.5
+        if image_score_rule == "cls_only":
+            pass
+        elif image_score_rule == "legacy":
+            if DOMAINS[dataset] == "Medical":
+                pred_image = pred_image * 0.5 + pmax_pred * 0.5
+            else:
+                pred_image = pred_image * 0.9 + pmax_pred * 0.1
         else:
-            pred_image = pred_image * 0.9 + pmax_pred * 0.1
+            raise ValueError(f"unsupported image_score_rule={image_score_rule!r}")
 
         if pixel_stride > 1:
             seg_pred_eval = seg_pred[:, ::pixel_stride, ::pixel_stride]
@@ -358,7 +364,9 @@ def main():
         ckp_files = [file for file in ckp_files if get_epoch_from_checkpoint(file) in selected_epochs]
     assert len(ckp_files) > 0, "adapter checkpoint not found"
     for file in ckp_files:
-        checkpoint = torch.load(file, map_location=device)
+        # These trusted research checkpoints contain metadata and full-state
+        # payloads; keep loading semantics stable across PyTorch versions.
+        checkpoint = torch.load(file, map_location=device, weights_only=False)
         if checkpoint.get("dfg_mode", args.dfg_mode) != args.dfg_mode:
             raise ValueError(
                 f"Checkpoint DFG mode is {checkpoint['dfg_mode']!r}, "
@@ -531,6 +539,7 @@ def main():
                         pixel_stride=1,
                         round_result=False,
                         spool_root=Path(args.save_path) / ".h2_exact_spool" / f"{args.dataset}_{class_name}",
+                        image_score_rule=("cls_only" if DOMAINS[args.dataset] == "Medical" else "legacy"),
                     )
                 elif args.metric_thresholds is None:
                     masks, labels, preds, preds_image, file_names = get_predictions(

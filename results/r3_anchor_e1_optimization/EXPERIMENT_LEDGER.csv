@@ -1,0 +1,4 @@
+run_id,date_utc,phase,arm,dataset,seed,epoch,checkpoint_sha256,code_sha,config_hash,status,notes
+R3-PROVISION-001,2026-09-09,provisioning,N/A,VisA+Medical+MVTec,0,N/A,N/A,88abf174dea1744b8977b934142a9809aff6e96f,N/A,PASS,"Kaggle archives validated and promoted; see R3_DATA_PROVISIONING.md"
+R3-SMOKE-001,2026-09-09,migration_smoke,A,VisA,0,15,727dc4813db1ef0c5a6db3a4cf15e916ad1413dcf629913358419d2734edecfe,88abf174dea1744b8977b934142a9809aff6e96f,N/A,PASS,"Finite model outputs and canonical checkpoint metadata verified"
+R3-MIGRATION-001,2026-09-09,migration_parity,A,Medical+MVTec,0,15,727dc4813db1ef0c5a6db3a4cf15e916ad1413dcf629913358419d2734edecfe,88abf174dea1744b8977b934142a9809aff6e96f,N/A,IN_PROGRESS,"Full benchmark_exact replay; Medical cls_only rerun active"
