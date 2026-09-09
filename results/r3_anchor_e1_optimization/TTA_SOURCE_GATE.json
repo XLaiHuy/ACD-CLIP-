@@ -1,0 +1,24 @@
+{
+  "protocol": "R3_SOURCE_CATEGORY_HELD_OUT_V1",
+  "checkpoint": "runs/h2_clean_factorial_e20_20260902_ampfix/A/adapter_15.pth",
+  "checkpoint_sha256": "727dc4813db1ef0c5a6db3a4cf15e916ad1413dcf629913358419d2734edecfe",
+  "held_out_categories": ["candle", "macaroni1", "pcb3", "pipe_fryum"],
+  "selection_primary": "source_pixel_ap_macro",
+  "locked_policy": "TTA-F",
+  "results": {
+    "TTA-I": {"transforms": ["identity"], "latency_multiplier": 1, "pixel_auc": 96.8915367659549, "pixel_ap": 49.28306266779157, "image_auc": 94.49257254600525, "image_ap": 94.98703926801682},
+    "TTA-H": {"transforms": ["identity", "hflip"], "latency_multiplier": 2, "pixel_auc": 97.00061667191355, "pixel_ap": 50.051155506088634, "image_auc": 95.16212791204453, "image_ap": 95.53841054439545},
+    "TTA-F": {"transforms": ["identity", "hflip", "vflip", "hvflip"], "latency_multiplier": 4, "pixel_auc": 96.89903317601814, "pixel_ap": 51.62321937447537, "image_auc": 95.70054411888123, "image_ap": 96.07181996107101}
+  },
+  "per_class": {
+    "TTA-F": {
+      "candle": {"pixel_auc": 99.60911659312943, "pixel_ap": 53.43150056422205, "image_auc": 97.19999432563782, "image_ap": 96.73178791999817},
+      "macaroni1": {"pixel_auc": 99.55175954048843, "pixel_ap": 22.47388810147917, "image_auc": 94.74000334739685, "image_ap": 95.12511491775513},
+      "pcb3": {"pixel_auc": 88.6512640642849, "pixel_ap": 45.70205868336118, "image_auc": 91.78217649459839, "image_ap": 93.03404092788696},
+      "pipe_fryum": {"pixel_auc": 99.78399250616981, "pixel_ap": 84.88543014883909, "image_auc": 99.08000230789185, "image_ap": 99.3963360786438}
+    }
+  },
+  "runtime_seconds": 1844.2417673409218,
+  "finite_outputs": true,
+  "target_selection_or_tuning": false
+}

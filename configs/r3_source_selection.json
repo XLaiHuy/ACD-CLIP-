@@ -1,0 +1,19 @@
+{
+  "protocol": "R3_SOURCE_CATEGORY_HELD_OUT_V1",
+  "source_dataset": "VisA",
+  "manifest": "dataset/hub/VisA.jsonl",
+  "held_out_categories": ["candle", "macaroni1", "pcb3", "pipe_fryum"],
+  "train_categories": ["capsules", "pcb4", "pcb2", "chewinggum", "macaroni2", "cashew", "fryum", "pcb1"],
+  "selection_primary": "source_pixel_ap_macro",
+  "guardrails": ["source_pixel_auc_macro", "source_image_metrics", "finite_outputs", "no_leakage"],
+  "tta_candidates": {
+    "TTA-I": ["identity"],
+    "TTA-H": ["identity", "hflip"],
+    "TTA-F": ["identity", "hflip", "vflip", "hvflip"]
+  },
+  "target_policy": "Medical and MVTec are not consulted until one source candidate is locked.",
+  "notes": [
+    "The held-out categories are excluded from the declared training-category list for future source screens.",
+    "The canonical A15 checkpoint was trained on the historical full VisA manifest, so this phase is a source-side diagnostic gate for inference-only TTA, not a claim of independent training generalization."
+  ]
+}

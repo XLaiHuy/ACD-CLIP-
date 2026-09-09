@@ -13,9 +13,14 @@ import argparse
 import copy
 import json
 import subprocess
+import sys
 from pathlib import Path
 
 import torch
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from h2_clean.contract import canonical_json_hash, parent_scientific_config, sha256_file, state_dict_sha256
 
