@@ -1,6 +1,6 @@
 # R3 Anchor + E1 Optimization Status
 
-Status: `PROVISIONED_MIGRATION_IN_PROGRESS`
+Status: `MIGRATION_PASS_SOURCE_PROTOCOL_PENDING`
 
 This branch is the reproducible R3 workspace for the source-only E1 anchor
 optimization study. The dataset and runtime gates are recorded before any
@@ -18,12 +18,17 @@ new training or target-guided decision.
 - A15 model forward smoke passed at `518x518` with finite segmentation and
   detection outputs.
 
-## In progress
+## Completed
 
 - Full six-dataset Medical migration parity replay with the frozen
   `benchmark_exact`, `pixel_stride=1`, `cls_only` image-score contract.
-- Full MVTec migration parity replay is complete; final metrics and
-  provenance will be committed under `results/r3_migration_parity/`.
+- Full MVTec migration parity replay with the established industrial image
+  score is complete; metrics and provenance are in `results/r3_migration_parity/`.
+
+## In progress
+
+- Source-only candidate-selection protocol and deterministic category-held-out
+  VisA gate.
 
 ## Frozen anchors
 
@@ -35,5 +40,6 @@ new training or target-guided decision.
 - CLIP SHA256:
   `3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02`
 
-No target-label selection, tuning, or new training has been performed on
-this branch yet.
+No target-label selection, tuning, or new training has been performed on this
+branch yet. The last valid checkpoint remains the canonical A15; the
+authoritative shared E1 is unchanged.
