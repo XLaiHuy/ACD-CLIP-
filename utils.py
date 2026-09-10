@@ -414,6 +414,56 @@ def calculate_seg_loss(patch_preds, mask):
     return loss
 
 
+def hard_background_patch_ranking_loss(
+        patch_preds: torch.Tensor,
+        mask: torch.Tensor,
+        topk_fraction: float = 0.05,
+        margin: float = 0.05,
+) -> torch.Tensor:
+    """Rank hard background patches below hard foreground patches.
+
+    This is a training-only loss.  It uses the abnormal probability map to
+    select the highest-scoring background patches in each image.  Images with
+    annotated foreground rank those patches below the strongest foreground
+    patches; normal images suppress their hard background scores directly.
+    The inference graph is unchanged.
+    """
+    if not 0.0 < float(topk_fraction) <= 1.0:
+        raise ValueError("topk_fraction must be in (0, 1]")
+    if float(margin) < 0.0:
+        raise ValueError("margin must be non-negative")
+    if patch_preds.ndim != 4 or patch_preds.shape[1] != 2:
+        raise ValueError("patch_preds must have shape [batch, 2, height, width]")
+    if mask.ndim != 4 or mask.shape[1] != 1:
+        raise ValueError("mask must have shape [batch, 1, height, width]")
+    if patch_preds.shape[0] != mask.shape[0] or patch_preds.shape[-2:] != mask.shape[-2:]:
+        raise ValueError("patch_preds and mask spatial shapes must match")
+
+    abnormal = patch_preds[:, 1].float()
+    binary_mask = mask[:, 0] > 0.5
+    losses = []
+    for scores, foreground in zip(abnormal, binary_mask):
+        background_scores = scores[~foreground]
+        if background_scores.numel() == 0:
+            losses.append(scores.new_zeros((), dtype=torch.float32))
+            continue
+        background_k = max(1, int(np.ceil(background_scores.numel() * float(topk_fraction))))
+        hard_background = torch.topk(
+            background_scores, k=min(background_k, background_scores.numel()), sorted=False
+        ).values
+        foreground_scores = scores[foreground]
+        if foreground_scores.numel() == 0:
+            losses.append(hard_background.mean())
+            continue
+        foreground_k = max(1, int(np.ceil(foreground_scores.numel() * float(topk_fraction))))
+        hard_foreground = torch.topk(
+            foreground_scores, k=min(foreground_k, foreground_scores.numel()), sorted=False
+        ).values
+        ranking_violation = hard_background - hard_foreground.mean() + float(margin)
+        losses.append(F.relu(ranking_violation).mean())
+    return torch.stack(losses).mean()
+
+
 def metrics_eval_gpu(
         pixel_label: torch.Tensor,
         image_label: torch.Tensor,

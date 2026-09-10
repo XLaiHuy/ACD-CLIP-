@@ -16,6 +16,7 @@ from tqdm import tqdm
 from dataset import get_text_and_image_dataset
 from utils import (
     calculate_seg_loss,
+    hard_background_patch_ranking_loss,
     get_hybrid_soft_prompt_single_class_text_embedding,
     get_multiple_adapted_single_class_text_embedding,
     get_soft_prompt_single_class_text_embedding,
@@ -330,6 +331,10 @@ def train(
         anchor_gradient_budget: bool = False,
         anchor_family_budget: float = ANCHOR_FAMILY_BUDGET_DEFAULT,
         anchor_family_audit: bool = False,
+        use_hard_background_patch_ranking: bool = False,
+        hard_background_ranking_lambda: float = 0.0,
+        hard_background_topk_fraction: float = 0.05,
+        hard_background_margin: float = 0.05,
 ):
     scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
     if resume_payload is not None:
@@ -356,6 +361,14 @@ def train(
         )
     if anchor_lambda > 0.0 and anchor is None:
         raise ValueError("anchor_lambda > 0 requires a SafeImageAdapterAnchor")
+    if hard_background_ranking_lambda < 0.0:
+        raise ValueError("hard_background_ranking_lambda must be non-negative")
+    if use_hard_background_patch_ranking and hard_background_ranking_lambda <= 0.0:
+        raise ValueError("hard background patch ranking requires a positive lambda")
+    if not 0.0 < hard_background_topk_fraction <= 1.0:
+        raise ValueError("hard_background_topk_fraction must be in (0, 1]")
+    if hard_background_margin < 0.0:
+        raise ValueError("hard_background_margin must be non-negative")
     for epoch in range(int(start_epoch), total_epoch):
         epoch_one_based = epoch + 1
         # Historical H2 keeps all modules in eval mode; trainable adapter
@@ -430,6 +443,7 @@ def train(
         anchor_loss_list = []
         anchor_gradient_ratio_list = []
         cir_stats_list = []
+        background_ranking_loss_list = []
         non_finite_loss_skips = 0
         non_finite_grad_skips = 0
         tqdm_train_loader = tqdm(train_loader)
@@ -526,7 +540,16 @@ def train(
                     cir_spatial_radius=cir_spatial_radius,
                 )
                 seg_loss = calculate_seg_loss(seg_pred, mask)
-                loss_main = cls_loss + seg_loss
+                if use_hard_background_patch_ranking:
+                    background_ranking_loss = hard_background_patch_ranking_loss(
+                        seg_pred,
+                        mask,
+                        topk_fraction=hard_background_topk_fraction,
+                        margin=hard_background_margin,
+                    )
+                else:
+                    background_ranking_loss = torch.zeros((), device=device)
+                loss_main = cls_loss + seg_loss + hard_background_ranking_lambda * background_ranking_loss
                 anchor_loss = anchor.loss(model.image_adapter) if anchor is not None else torch.zeros((), device=device)
                 if anchor_gradient_budget:
                     task_loss = loss_main + lambda_kg * kg_loss + lambda_k * k_loss
@@ -558,6 +581,7 @@ def train(
                         "cls_loss": cls_loss,
                         "seg_pred": seg_pred,
                         "seg_loss": seg_loss,
+                        "background_ranking_loss": background_ranking_loss,
                         "kg_loss": kg_loss,
                         "k_loss": k_loss,
                         "loss": loss,
@@ -583,6 +607,7 @@ def train(
                 logger.warning(
                     "non-finite loss at epoch %d batch=%d skip=%d "
                     "loss_finite=%s cls_loss_finite=%s seg_loss_finite=%s "
+                    "background_ranking_loss_finite=%s "
                     "anchor_loss_finite=%s cls_pred_finite=%s seg_pred_finite=%s diag=%s",
                     epoch_one_based,
                     batch_idx,
@@ -590,6 +615,7 @@ def train(
                     bool(torch.isfinite(loss).all().item()),
                     bool(torch.isfinite(cls_loss).all().item()),
                     bool(torch.isfinite(seg_loss).all().item()),
+                    bool(torch.isfinite(background_ranking_loss).all().item()),
                     bool(torch.isfinite(anchor_loss).all().item()),
                     bool(torch.isfinite(cls_pred).all().item()),
                     bool(torch.isfinite(seg_pred).all().item()),
@@ -608,6 +634,7 @@ def train(
                     )
                 continue
             seg_loss_list.append(seg_loss.item())
+            background_ranking_loss_list.append(background_ranking_loss.item())
             kg_loss_list.append(kg_loss.item())
             k_loss_list.append(k_loss.item())
             anchor_loss_list.append(anchor_loss.item())
@@ -726,6 +753,7 @@ def train(
                         "loss": loss,
                         "cls_loss": cls_loss,
                         "seg_loss": seg_loss,
+                        "background_ranking_loss": background_ranking_loss,
                         "kg_loss": kg_loss,
                         "k_loss": k_loss,
                         "cls_pred": cls_pred,
@@ -775,6 +803,8 @@ def train(
                 "mean_seg_loss": f"{np.mean(seg_loss_list):.4f}",
                 "mean_loss": f"{np.mean(loss_list):.4f}",
             }
+            if use_hard_background_patch_ranking:
+                postfix["bg_rank"] = f"{background_ranking_loss.item():.4f}"
             if use_hybrid_soft_prompt:
                 postfix["kg_loss"] = f"{kg_loss.item():.5f}"
                 if lambda_k > 0:
@@ -794,11 +824,19 @@ def train(
                 postfix["image_lr"] = get_optimizer_lr(optimizer, "image_adapter")
             tqdm_train_loader.set_postfix(postfix)
         logger.info(
-            "mean_loss=%s, mean_loss_main=%s, mean_cls_loss=%s, mean_seg_loss=%s",
+            "mean_loss=%s, mean_loss_main=%s, mean_cls_loss=%s, mean_seg_loss=%s "
+            "mean_background_ranking_loss=%s background_ranking_enabled=%s "
+            "background_ranking_lambda=%s background_ranking_topk_fraction=%s "
+            "background_ranking_margin=%s",
             np.mean(loss_list),
             np.mean(loss_main_list),
             np.mean(cls_loss_list),
             np.mean(seg_loss_list),
+            np.mean(background_ranking_loss_list),
+            use_hard_background_patch_ranking,
+            hard_background_ranking_lambda,
+            hard_background_topk_fraction,
+            hard_background_margin,
         )
         if use_soft_prompt or use_hybrid_soft_prompt:
             logger.info(
@@ -899,6 +937,10 @@ def train(
             "anchor_family_budget": float(anchor_family_budget),
             "lambda_kg": lambda_kg,
             "lambda_k": lambda_k,
+            "use_hard_background_patch_ranking": bool(use_hard_background_patch_ranking),
+            "hard_background_ranking_lambda": float(hard_background_ranking_lambda),
+            "hard_background_topk_fraction": float(hard_background_topk_fraction),
+            "hard_background_margin": float(hard_background_margin),
             "k_reg_detached_wk": bool(lambda_k > 0),
             "k_reg_per_stage": bool(lambda_k > 0),
             "text_adapter": model.text_adapter.state_dict(),
@@ -1029,6 +1071,10 @@ def main():
     parser.add_argument("--anchor_gradient_budget", action="store_true", help="cap Anchor gradients independently within each image-adapter family")
     parser.add_argument("--anchor_family_budget", type=float, default=ANCHOR_FAMILY_BUDGET_DEFAULT, help="maximum effective Anchor/task gradient ratio per active family")
     parser.add_argument("--anchor_family_audit", action="store_true", help="emit per-step and per-epoch Anchor family telemetry")
+    parser.add_argument("--use_hard_background_patch_ranking", action="store_true", help="enable training-only hard-background patch ranking")
+    parser.add_argument("--hard_background_ranking_lambda", type=float, default=0.0)
+    parser.add_argument("--hard_background_topk_fraction", type=float, default=0.05)
+    parser.add_argument("--hard_background_margin", type=float, default=0.05)
     parser.add_argument("--use_cir_training", action="store_true")
     parser.add_argument("--cir_alpha", type=float, default=0.0)
     parser.add_argument("--cir_peer_count", type=int, default=8)
@@ -1061,6 +1107,14 @@ def main():
         raise ValueError("invalid CIR peer geometry")
     if args.use_cir_training and args.dfg_mode != "attn":
         raise ValueError("exact CIR-V2 requires --dfg_mode attn")
+    if args.hard_background_ranking_lambda < 0.0:
+        raise ValueError("--hard_background_ranking_lambda must be non-negative")
+    if args.use_hard_background_patch_ranking and args.hard_background_ranking_lambda <= 0.0:
+        raise ValueError("--use_hard_background_patch_ranking requires a positive lambda")
+    if not 0.0 < args.hard_background_topk_fraction <= 1.0:
+        raise ValueError("--hard_background_topk_fraction must be in (0, 1]")
+    if args.hard_background_margin < 0.0:
+        raise ValueError("--hard_background_margin must be non-negative")
     seed_everything(args.seed, deterministic_algorithms=args.deterministic_algorithms)
     repo = os.path.dirname(os.path.abspath(__file__))
     clip_path = os.path.join(repo, "model", "ViT-L-14-336px.pt")
@@ -1308,6 +1362,10 @@ def main():
         anchor_gradient_budget=args.anchor_gradient_budget,
         anchor_family_budget=args.anchor_family_budget,
         anchor_family_audit=args.anchor_family_audit,
+        use_hard_background_patch_ranking=args.use_hard_background_patch_ranking,
+        hard_background_ranking_lambda=args.hard_background_ranking_lambda,
+        hard_background_topk_fraction=args.hard_background_topk_fraction,
+        hard_background_margin=args.hard_background_margin,
     )
 
 

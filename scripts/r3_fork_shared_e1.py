@@ -57,6 +57,10 @@ def main() -> None:
     parser.add_argument("--anchor-lambda", type=float, default=None)
     parser.add_argument("--anchor-family-budget", type=float, default=None)
     parser.add_argument("--enable-anchor", action="store_true")
+    parser.add_argument("--use-hard-background-patch-ranking", action="store_true")
+    parser.add_argument("--hard-background-ranking-lambda", type=float, default=None)
+    parser.add_argument("--hard-background-topk-fraction", type=float, default=None)
+    parser.add_argument("--hard-background-margin", type=float, default=None)
     args = parser.parse_args()
 
     source_sha = sha256_file(args.source)
@@ -94,6 +98,18 @@ def main() -> None:
             "anchor_gradient_budget": True,
             "anchor_reference_sha256": source_sha,
         })
+    if args.use_hard_background_patch_ranking:
+        config["use_hard_background_patch_ranking"] = True
+        overrides["use_hard_background_patch_ranking"] = True
+    if args.hard_background_ranking_lambda is not None:
+        config["hard_background_ranking_lambda"] = float(args.hard_background_ranking_lambda)
+        overrides["hard_background_ranking_lambda"] = float(args.hard_background_ranking_lambda)
+    if args.hard_background_topk_fraction is not None:
+        config["hard_background_topk_fraction"] = float(args.hard_background_topk_fraction)
+        overrides["hard_background_topk_fraction"] = float(args.hard_background_topk_fraction)
+    if args.hard_background_margin is not None:
+        config["hard_background_margin"] = float(args.hard_background_margin)
+        overrides["hard_background_margin"] = float(args.hard_background_margin)
 
     repo = Path(__file__).resolve().parents[1]
     branch_sha = current_git_sha(repo)
