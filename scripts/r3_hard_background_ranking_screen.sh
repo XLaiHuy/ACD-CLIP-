@@ -6,7 +6,7 @@ RUN_ROOT="${RUN_ROOT:-/tmp/r3_hard_background_ranking_screen_20260910}"
 E1="${ROOT}/runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth"
 FORKER="${ROOT}/scripts/r3_fork_shared_e1.py"
 PY="${PYTHON:-/workspace/.venv-acd-r3/bin/python}"
-RANKING_LAMBDAS="${RANKING_LAMBDAS:-002 005 010}"
+RANKING_LAMBDAS="${RANKING_LAMBDAS:-002 005}"
 export CUBLAS_WORKSPACE_CONFIG="${CUBLAS_WORKSPACE_CONFIG:-:4096:8}"
 export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
 
@@ -38,7 +38,6 @@ for lambda_tag in ${RANKING_LAMBDAS}; do
   case "${lambda_tag}" in
     002) lambda_value="0.02" ;;
     005) lambda_value="0.05" ;;
-    010) lambda_value="0.10" ;;
     *) echo "unknown ranking lambda tag: ${lambda_tag}" >&2; exit 2 ;;
   esac
   fork="${RUN_ROOT}/fork_${lambda_tag}/adapter_1.pth"

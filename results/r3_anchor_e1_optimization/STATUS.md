@@ -1,6 +1,6 @@
 # R3 Anchor + E1 Optimization Status
 
-Status: `E15_TARGET_AUDIT_COMPLETE_BELOW_TARGET`
+Status: `R3_FINAL_FREEZE_KEEP_PREVIOUS_BEST`
 
 This branch is the reproducible R3 workspace for the source-only E1 anchor
 optimization study. The dataset and runtime gates are recorded before any
@@ -42,13 +42,19 @@ new training or target-guided decision.
   `runs/r3_anchor_e1_optimization/e15_confirmation/adapter_15.pth`; the
   source replay and full provenance are recorded in
   `E15_SOURCE_CONFIRMATION.md` and `E15_SOURCE_CONFIRMATION.json`.
+- The single permitted hard-background patch-ranking novelty screen completed
+  on the approved source candidates `lambda=0.02` and `lambda=0.05`. Both
+  failed the locked source Pixel AP gate; neither candidate was target-
+  evaluated. The negative result is recorded in
+  `HARD_BACKGROUND_SOURCE_GATE.md` and `HARD_BACKGROUND_SOURCE_GATE.json`.
+- R3 is frozen at the best previously verified A15 configuration. The
+  requested final metrics, target delta, failed idea, and claim boundary are
+  recorded in `FINAL_FREEZE_SUMMARY.md` and `FINAL_FREEZE_SUMMARY.json`.
 
 ## In progress
 
-- One source-only selected novelty mechanism is required because the locked
-  E15 target audit is below the `43.03%` Medical Pixel AP target. The novelty
-  must have no inference-time overhead and must not use target labels or
-  target metrics for selection.
+- None. The strict stop policy is satisfied: no further novelty mechanism or
+  open-ended search will be launched.
 
 ## Frozen anchors
 

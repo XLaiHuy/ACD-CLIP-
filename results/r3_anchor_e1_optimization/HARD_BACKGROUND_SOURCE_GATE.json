@@ -1,0 +1,119 @@
+{
+  "protocol": "R3_SOURCE_HARD_BACKGROUND_PATCH_RANKING_V1",
+  "selection_stage": "S1",
+  "selection_primary": "held_out_source_pixel_ap_with_locked_tta_f",
+  "source_dataset": "VisA",
+  "held_out_categories": ["candle", "macaroni1", "pcb3", "pipe_fryum"],
+  "train_scope": "VisA full training split; held-out categories are an evaluation slice",
+  "parent_checkpoint": "runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth",
+  "parent_checkpoint_sha256": "7f9176b7ef53b572935567c574535075a573175b2aa83505d043a71d45b12b35",
+  "code_sha": "4989bfcc34f5f134e88fdfe338a128e2d5feb0ee",
+  "fixed": {
+    "novelty_mechanism": "training-only hard-background patch ranking",
+    "inference_overhead": "none",
+    "hybrid_alpha_max": 0.2,
+    "anchor": true,
+    "anchor_lambda": 0.0021633926715180626,
+    "anchor_family_budget_rho": 0.1,
+    "cir": false,
+    "tta_policy": "TTA-F",
+    "tta_transforms": ["identity", "hflip", "vflip", "hvflip"],
+    "epochs": 5,
+    "max_batches_per_epoch": 50,
+    "seed": 0,
+    "target_selection_or_tuning": false
+  },
+  "locked_source_baseline": {
+    "name": "alpha_020_locked_source_baseline",
+    "checkpoint": "/tmp/r3_alpha_screen_20260909_v2/alpha_020/adapter_5.pth",
+    "checkpoint_sha256": "8e20d7fc2720b489be6e8d7ee0e17afd713b5e3cc78915f5b822b0e6610d73fd",
+    "source_json": "/tmp/r3_alpha_screen_20260909_v2/alpha_020_source.json",
+    "source_json_sha256": "1c39bf1052571db908aa8248293a08fc8a3108338abc7bde97c73874e5258c9a",
+    "tta_f": {
+      "pixel_ap": 24.63351677707159,
+      "pixel_auc": 95.65506939612135,
+      "image_ap": 90.66293984651566,
+      "image_auc": 88.09864223003387
+    }
+  },
+  "candidates": {
+    "lambda_002": {
+      "hard_background_ranking_lambda": 0.02,
+      "hard_background_topk_fraction": 0.05,
+      "hard_background_margin": 0.05,
+      "fork_checkpoint": "/tmp/r3_hard_background_ranking_screen_20260910/fork_002/adapter_1.pth",
+      "checkpoint": "/tmp/r3_hard_background_ranking_screen_20260910/lambda_002/adapter_5.pth",
+      "checkpoint_sha256": "2fe93652c62daf1c87bccf9dc751cbc0e33d1f86421d5b0e4fecc571e5aa1902",
+      "checkpoint_epoch": 5,
+      "global_step": 558,
+      "source_json": "/tmp/r3_hard_background_ranking_screen_20260910/lambda_002_source.json",
+      "source_json_sha256": "fde91ce7f3953831a5a709a23a4baf0c131add32d004647749605ee6bc729f89",
+      "checkpoint_config_sha256": "bfa550f6dd05393a2f725ca09a1be6270ff2d328553d310bc4d859c48977fc38",
+      "runtime_seconds": 1288.4675593430875,
+      "finite_outputs": true,
+      "training_stability": {
+        "non_finite_loss_skips": [0, 0, 0, 0],
+        "non_finite_gradient_skips": [0, 0, 0, 1],
+        "final_family_partition_complete": true,
+        "final_max_effective_active_family_ratio": 0.099999773703644
+      },
+      "tta_f": {
+        "pixel_ap": 23.817962118821484,
+        "pixel_auc": 94.76153243093235,
+        "image_ap": 91.79876297712326,
+        "image_auc": 89.911288022995
+      },
+      "delta_vs_locked_source_baseline": {
+        "pixel_ap": -0.8155546582501074,
+        "pixel_auc": -0.8935369651889999,
+        "image_ap": 1.135823130607605,
+        "image_auc": 1.8126457929611206
+      },
+      "decision": "FAIL_SOURCE_GATE"
+    },
+    "lambda_005": {
+      "hard_background_ranking_lambda": 0.05,
+      "hard_background_topk_fraction": 0.05,
+      "hard_background_margin": 0.05,
+      "fork_checkpoint": "/tmp/r3_hard_background_ranking_screen_20260910/fork_005/adapter_1.pth",
+      "checkpoint": "/tmp/r3_hard_background_ranking_screen_20260910/lambda_005/adapter_5.pth",
+      "checkpoint_sha256": "5194b4454f12d5d0308ecb4294ae0bcfcb86c56d7423fc3c2a5327cb16f04978",
+      "checkpoint_epoch": 5,
+      "global_step": 559,
+      "source_json": "/tmp/r3_hard_background_ranking_screen_20260910/lambda_005_source.json",
+      "source_json_sha256": "a7b0242305595279698cc6bd41b7a303eb4b477ea683bba742f2b4214f1115fa",
+      "checkpoint_config_sha256": "a104551cddf17f3e9eef4fb955b14aaaeb57f34611ec55601ad07255b02a5499",
+      "runtime_seconds": 1182.882,
+      "finite_outputs": true,
+      "training_stability": {
+        "non_finite_loss_skips": [0, 0, 0, 0],
+        "non_finite_gradient_skips": [0, 0, 0, 0],
+        "final_family_partition_complete": true,
+        "final_max_effective_active_family_ratio": 0.09999977437695626
+      },
+      "tta_f": {
+        "pixel_ap": 20.61786653249076,
+        "pixel_auc": 95.28827825607667,
+        "image_ap": 90.02575129270554,
+        "image_auc": 87.20148652791977
+      },
+      "delta_vs_locked_source_baseline": {
+        "pixel_ap": -4.015650244580833,
+        "pixel_auc": -0.3667911400446826,
+        "image_ap": -0.6371885538101196,
+        "image_auc": -0.8971557021141052
+      },
+      "decision": "FAIL_SOURCE_GATE"
+    }
+  },
+  "selection": {
+    "best_candidate": "lambda_002",
+    "best_source_pixel_ap": 23.817962118821484,
+    "best_source_pixel_ap_delta_pp_vs_locked_baseline": -0.8155546582501074,
+    "source_gate": "FAIL",
+    "decision_basis": "Neither approved candidate clearly exceeds the locked source baseline under source TTA-F Pixel AP.",
+    "target_evaluation_performed": false,
+    "target_labels_or_metrics_used": false,
+    "next_action": "Record the hard-background ranking idea as a negative experiment and freeze the best previously verified model."
+  }
+}

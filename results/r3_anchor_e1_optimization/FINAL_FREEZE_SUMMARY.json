@@ -1,0 +1,30 @@
+{
+  "best_verified_configuration": {
+    "name": "canonical_h2_a15",
+    "checkpoint": "runs/h2_clean_factorial_e20_20260902/A/adapter_15.pth",
+    "checkpoint_sha256": "727dc4813db1ef0c5a6db3a4cf15e916ad1413dcf629913358419d2734edecfe",
+    "tta_policy": "TTA-F",
+    "target_selection_or_tuning": false
+  },
+  "source_screen_result": {
+    "hard_background_source_gate": "FAIL",
+    "best_candidate": "lambda_002",
+    "best_source_pixel_ap": 23.817962118821484,
+    "locked_source_baseline_pixel_ap": 24.63351677707159,
+    "target_evaluation_of_failed_candidates": false
+  },
+  "medical_pixel_auroc": 91.75512323421079,
+  "medical_pixel_ap": 40.2459204527138,
+  "medical_image_auroc": 74.68376755714417,
+  "medical_image_ap": 76.70050263404846,
+  "mvtec_pixel_auroc": 90.41629629847156,
+  "mvtec_pixel_ap": 47.29750359996327,
+  "mvtec_image_auroc": 90.77691078186035,
+  "mvtec_image_ap": 95.27245442072551,
+  "published_context_target": 43.03,
+  "target_delta": -2.7840795472862,
+  "final_decision": "KEEP_PREVIOUS_BEST",
+  "failed_novelty_ideas": ["hard_background_patch_ranking_lambda_0.02", "hard_background_patch_ranking_lambda_0.05"],
+  "remaining_untested_ideas": [],
+  "claim_boundary": "Reproducible source-only negative result for hard-background ranking plus locked audit of the previously verified A15 model; no target-driven novelty selection."
+}
