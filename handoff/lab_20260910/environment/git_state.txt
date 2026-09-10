@@ -1,0 +1,134 @@
+SOURCE_MACHINE_HEAD=aa77c76baa49cd2fb621fde7a11a8850313782de
+HANDOFF_BRANCH=handoff/lab-transfer-20260910
+HANDOFF_BRANCH_HEAD_BEFORE_COMMIT=
+aa77c76baa49cd2fb621fde7a11a8850313782de
+git status --short --branch
+## handoff/lab-transfer-20260910
+ M dataset/info.py
+?? dataset/hub/MVTec_all_supervised.jsonl
+?? handoff/
+git log -5 --oneline
+aa77c76 r3: freeze after negative novelty gate
+4989bfc r3: add training-only hard-background ranking novelty
+c19f257 r3: record E15 locked target audit
+e84b5b2 r3: support locked E15 target audit
+d445c30 r3: record E15 source confirmation
+git remote -v
+origin	https://github.com/XLaiHuy/ACD-CLIP-.git (fetch)
+origin	https://github.com/XLaiHuy/ACD-CLIP-.git (push)
+git branch -vv
+* handoff/lab-transfer-20260910         aa77c76 r3: freeze after negative novelty gate
+  research/h2-clean-repro-anchor-cir-v1 88abf17 [origin/research/h2-clean-repro-anchor-cir-v1] Fix missing MVTec macro forensic evidence row
+  research/r3-anchor-e1-optimization    aa77c76 [origin/research/r3-anchor-e1-optimization] r3: freeze after negative novelty gate
+git lfs env
+git-lfs/3.4.1 (GitHub; linux amd64; go 1.22.2)
+git version 2.43.0
+
+Endpoint=https://github.com/XLaiHuy/ACD-CLIP-.git/info/lfs (auth=basic)
+LocalWorkingDir=/workspace/ACD-CLIP-
+LocalGitDir=/workspace/ACD-CLIP-/.git
+LocalGitStorageDir=/workspace/ACD-CLIP-/.git
+LocalMediaDir=/workspace/ACD-CLIP-/.git/lfs/objects
+LocalReferenceDirs=
+TempDir=/workspace/ACD-CLIP-/.git/lfs/tmp
+ConcurrentTransfers=8
+TusTransfers=false
+BasicTransfersOnly=false
+SkipDownloadErrors=false
+FetchRecentAlways=false
+FetchRecentRefsDays=7
+FetchRecentCommitsDays=0
+FetchRecentRefsIncludeRemotes=true
+PruneOffsetDays=3
+PruneVerifyRemoteAlways=false
+PruneRemoteName=origin
+LfsStorageDir=/workspace/ACD-CLIP-/.git/lfs
+AccessDownload=basic
+AccessUpload=basic
+DownloadTransfers=basic,lfs-standalone-file,ssh
+UploadTransfers=basic,lfs-standalone-file,ssh
+GIT_EXEC_PATH=/usr/lib/git-core
+GIT_PAGER=cat
+git config filter.lfs.process = "git-lfs filter-process"
+git config filter.lfs.smudge = "git-lfs smudge -- %f"
+git config filter.lfs.clean = "git-lfs clean -- %f"
+git lfs ls-files
+4a35544ffa - forensic_archive/seed1/h2_ha_replication_e15_seed1/A/adapter_10.pth
+8debe92819 - forensic_archive/seed1/h2_ha_replication_e15_seed1/A/adapter_11.pth
+534f1e85c1 - forensic_archive/seed1/h2_ha_replication_e15_seed1/A/adapter_12.pth
+bdc10f8665 - forensic_archive/seed1/h2_ha_replication_e15_seed1/A/adapter_13.pth
+6856ab407a - forensic_archive/seed1/h2_ha_replication_e15_seed1/A/adapter_14.pth
+40db05af5f - forensic_archive/seed1/h2_ha_replication_e15_seed1/A/adapter_15.pth
+f6f871d4af - forensic_archive/seed1/h2_ha_replication_e15_seed1/A/adapter_2.pth
+56e135394d - forensic_archive/seed1/h2_ha_replication_e15_seed1/A/adapter_3.pth
+232e55c0c2 - forensic_archive/seed1/h2_ha_replication_e15_seed1/A/adapter_4.pth
+8eb38252d9 - forensic_archive/seed1/h2_ha_replication_e15_seed1/A/adapter_5.pth
+50735628ab - forensic_archive/seed1/h2_ha_replication_e15_seed1/A/adapter_6.pth
+69eda2d541 - forensic_archive/seed1/h2_ha_replication_e15_seed1/A/adapter_7.pth
+5e357be1e4 - forensic_archive/seed1/h2_ha_replication_e15_seed1/A/adapter_8.pth
+c13855e3d4 - forensic_archive/seed1/h2_ha_replication_e15_seed1/A/adapter_9.pth
+c4f3166b41 - forensic_archive/seed1/h2_ha_replication_e15_seed1/H/adapter_10.pth
+8dc1766f7e - forensic_archive/seed1/h2_ha_replication_e15_seed1/H/adapter_11.pth
+42ec2d4e93 - forensic_archive/seed1/h2_ha_replication_e15_seed1/H/adapter_12.pth
+eecf9189d0 - forensic_archive/seed1/h2_ha_replication_e15_seed1/H/adapter_13.pth
+dd0863a053 - forensic_archive/seed1/h2_ha_replication_e15_seed1/H/adapter_14.pth
+2547b62134 - forensic_archive/seed1/h2_ha_replication_e15_seed1/H/adapter_15.pth
+681dec73c3 - forensic_archive/seed1/h2_ha_replication_e15_seed1/H/adapter_2.pth
+a948aef9b3 - forensic_archive/seed1/h2_ha_replication_e15_seed1/H/adapter_3.pth
+4ffbc6f36e - forensic_archive/seed1/h2_ha_replication_e15_seed1/H/adapter_4.pth
+4fc88a91f5 - forensic_archive/seed1/h2_ha_replication_e15_seed1/H/adapter_5.pth
+5f713f5903 - forensic_archive/seed1/h2_ha_replication_e15_seed1/H/adapter_6.pth
+906b1f5e70 - forensic_archive/seed1/h2_ha_replication_e15_seed1/H/adapter_7.pth
+d68276d1ac - forensic_archive/seed1/h2_ha_replication_e15_seed1/H/adapter_8.pth
+eacafd5858 - forensic_archive/seed1/h2_ha_replication_e15_seed1/H/adapter_9.pth
+c893693d42 - forensic_archive/seed1/h2_ha_replication_e15_seed1/shared_e1/adapter_1.pth
+f2e3678093 - forensic_archive/seed2/h2_ha_replication_e15_seed2/A/adapter_10.pth
+1d828d75f3 - forensic_archive/seed2/h2_ha_replication_e15_seed2/A/adapter_11.pth
+6a58b9741a - forensic_archive/seed2/h2_ha_replication_e15_seed2/A/adapter_12.pth
+b92b0ba016 - forensic_archive/seed2/h2_ha_replication_e15_seed2/A/adapter_13.pth
+06b8600d09 - forensic_archive/seed2/h2_ha_replication_e15_seed2/A/adapter_14.pth
+caba459d53 - forensic_archive/seed2/h2_ha_replication_e15_seed2/A/adapter_15.pth
+baeaa49d10 - forensic_archive/seed2/h2_ha_replication_e15_seed2/A/adapter_2.pth
+6405d6df1d - forensic_archive/seed2/h2_ha_replication_e15_seed2/A/adapter_3.pth
+790af42d69 - forensic_archive/seed2/h2_ha_replication_e15_seed2/A/adapter_4.pth
+c96e4246ba - forensic_archive/seed2/h2_ha_replication_e15_seed2/A/adapter_5.pth
+0ccb248cae - forensic_archive/seed2/h2_ha_replication_e15_seed2/A/adapter_6.pth
+0d09bd382d - forensic_archive/seed2/h2_ha_replication_e15_seed2/A/adapter_7.pth
+0f50d46f7a - forensic_archive/seed2/h2_ha_replication_e15_seed2/A/adapter_8.pth
+c861da2bf2 - forensic_archive/seed2/h2_ha_replication_e15_seed2/A/adapter_9.pth
+516a3ad4ca - forensic_archive/seed2/h2_ha_replication_e15_seed2/H/adapter_10.pth
+1a09c336ed - forensic_archive/seed2/h2_ha_replication_e15_seed2/H/adapter_11.pth
+30e0afc3f8 - forensic_archive/seed2/h2_ha_replication_e15_seed2/H/adapter_12.pth
+6fabc55a6b - forensic_archive/seed2/h2_ha_replication_e15_seed2/H/adapter_13.pth
+8d39cea2c6 - forensic_archive/seed2/h2_ha_replication_e15_seed2/H/adapter_14.pth
+c2a3725edd - forensic_archive/seed2/h2_ha_replication_e15_seed2/H/adapter_15.pth
+03b7d84f65 - forensic_archive/seed2/h2_ha_replication_e15_seed2/H/adapter_2.pth
+7e3620902c - forensic_archive/seed2/h2_ha_replication_e15_seed2/H/adapter_3.pth
+51db4da8bc - forensic_archive/seed2/h2_ha_replication_e15_seed2/H/adapter_4.pth
+46b4902c3a - forensic_archive/seed2/h2_ha_replication_e15_seed2/H/adapter_5.pth
+dccc7fd90d - forensic_archive/seed2/h2_ha_replication_e15_seed2/H/adapter_6.pth
+b9b97b904e - forensic_archive/seed2/h2_ha_replication_e15_seed2/H/adapter_7.pth
+2b410cb8ce - forensic_archive/seed2/h2_ha_replication_e15_seed2/H/adapter_8.pth
+e264564f1b - forensic_archive/seed2/h2_ha_replication_e15_seed2/H/adapter_9.pth
+9da4ec04ac - forensic_archive/seed2/h2_ha_replication_e15_seed2/shared_e1/adapter_1.pth
+3035c92b35 * model/ViT-L-14-336px.pt
+2d4b61cd36 - phase1_best_checkpoints/baseline_mainbase/e09_best_pixel_adapter.pth
+c6ca74338f - phase1_best_checkpoints/baseline_mainbase/e10_best_pixel_auc_adapter.pth
+033b5b2776 - phase1_best_checkpoints/phase1a_v1_tau4/e15_best_pixel_adapter.pth
+7fcdfe86f2 - phase1_best_checkpoints/phase1a_v1_tau4/e17_best_image_adapter.pth
+661bd5c804 - phase1_best_checkpoints/phase1a_v2_tau8/e10_best_image_adapter.pth
+75330c1902 - phase1_best_checkpoints/phase1a_v2_tau8/e13_best_pixel_adapter.pth
+7d027ce371 - phase1_best_checkpoints/phase1b_v3_ss2d_g02/e11_best_pixel_adapter.pth
+85631dd7bb - phase1_best_checkpoints/phase1b_v3_ss2d_g02/e12_best_image_adapter.pth
+d23f7f5d52 - phase1_best_checkpoints/phase1b_v3c_betawarm010_old/e09_best_old_before_fp32_adapter.pth
+6c1d888af5 - phase1_best_checkpoints/phase1b_v3c_fp32attn_final/e09_best_final_anchor_adapter.pth
+727dc4813d * runs/h2_clean_factorial_e20_20260902_ampfix/A/adapter_15.pth
+de3d160efc * runs/h2_clean_factorial_e20_20260902_ampfix/A/adapter_20.pth
+2364984ad9 * runs/h2_clean_factorial_e20_20260902_ampfix/AC/adapter_15.pth
+b0b1b20e93 * runs/h2_clean_factorial_e20_20260902_ampfix/AC/adapter_20.pth
+3530d7cb9f * runs/h2_clean_factorial_e20_20260902_ampfix/C/adapter_15.pth
+80be0b3c3e * runs/h2_clean_factorial_e20_20260902_ampfix/C/adapter_20.pth
+6830137b52 * runs/h2_clean_factorial_e20_20260902_ampfix/H/adapter_15.pth
+a3857d0180 * runs/h2_clean_factorial_e20_20260902_ampfix/H/adapter_20.pth
+7f9176b7ef * runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth
+c11a73a8c3 * runs/r3_anchor_e1_optimization/e15_confirmation/adapter_15.pth

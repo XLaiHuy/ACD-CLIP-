@@ -1,6 +1,25 @@
 import os
 
 
+MVTEC_CLASS_NAMES = [
+    "bottle",
+    "cable",
+    "capsule",
+    "carpet",
+    "grid",
+    "hazelnut",
+    "leather",
+    "metal_nut",
+    "pill",
+    "screw",
+    "tile",
+    "transistor",
+    "toothbrush",
+    "wood",
+    "zipper",
+]
+
+
 BASE_PATH = "."
 candidate_paths = [
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
@@ -22,6 +41,7 @@ DATA_PATH = {
     "BTAD": f"{BASE_PATH}/data/BTech_Dataset_transformed",
     "MPDD": f"{BASE_PATH}/data/MPDD",
     "MVTec": f"{BASE_PATH}/data/mvtec_ad",
+    "MVTec_all_supervised": f"{BASE_PATH}/data/mvtec_ad",
     "VisA": f"{BASE_PATH}/data/VisA_20220922",
     "RSDD": f"{BASE_PATH}/data/RSDD"
 }
@@ -34,23 +54,8 @@ CLASS_NAMES = {
     "Colon_colonDB": ["Colon_colonDB"],
     "Colon_Kvasir": ["Colon_Kvasir"],
     "Colon_cvc300": ["CVC-300"],
-    "MVTec": [
-        "bottle",
-        "cable",
-        "capsule",
-        "carpet",
-        "grid",
-        "hazelnut",
-        "leather",
-        "metal_nut",
-        "pill",
-        "screw",
-        "tile",
-        "transistor",
-        "toothbrush",
-        "wood",
-        "zipper",
-    ],
+    "MVTec": MVTEC_CLASS_NAMES,
+    "MVTec_all_supervised": MVTEC_CLASS_NAMES,
     "VisA": [
         "candle",
         "pcb3",
@@ -86,6 +91,7 @@ DOMAINS = {
     "BTAD": "Industrial",
     "MPDD": "Industrial",
     "MVTec": "Industrial",
+    "MVTec_all_supervised": "Industrial",
     "RSDD": "Industrial",
     "Brain": "Medical",
     "Liver": "Medical",
@@ -95,6 +101,7 @@ DOMAINS = {
     "Colon_Kvasir": "Medical",
     "Colon_cvc300": "Medical",
 }
+
 REAL_NAMES = {
     "Brain": {"Brain": "scan"},
     "Liver": {"Liver": "scan"},
@@ -158,6 +165,9 @@ REAL_NAMES = {
         "Damage": "Damage"
     }
 }
+# The all-supervised source uses the same class vocabulary and text names as
+# the ordinary MVTec benchmark, but has a distinct manifest and dataset key.
+REAL_NAMES["MVTec_all_supervised"] = REAL_NAMES["MVTec"]
 PROMPTS = {
     "prompt_normal": ["{}", "a {}", "the {}"],
     "prompt_abnormal": [
