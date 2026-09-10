@@ -1,0 +1,56 @@
+{
+  "status": "COMPLETE_BELOW_TARGET",
+  "configured_protocol": "R3_LOCKED_TTA_F_TARGET_E15_V1",
+  "raw_protocol": "R3_LOCKED_TTA_F_TARGET_V1",
+  "policy": ["identity", "hflip", "vflip", "hvflip"],
+  "checkpoint": "runs/r3_anchor_e1_optimization/e15_confirmation/adapter_15.pth",
+  "checkpoint_epoch": 15,
+  "checkpoint_sha256": "c11a73a8c3b20257c0a0f7cfe1328939e7a72f988a3fe3d6644062e167ee9f77",
+  "runtime_seconds": 21616.22163812793,
+  "finite_outputs": true,
+  "target_selection_or_tuning": false,
+  "raw_json_sha256": "427ccb174c59b6f9141d64dcd90fa2add187616b73a8308a54e9a3484522e944",
+  "medical_target_threshold": {
+    "metric": "Medical Pixel AP",
+    "observed_percent": 37.80321738630865,
+    "target_percent": 43.03,
+    "met": false
+  },
+  "medical_macro_percent": {
+    "pixel_auc": 91.33649133372289,
+    "pixel_ap": 37.80321738630865,
+    "image_auc": 75.98401705423991,
+    "image_ap": 77.71385908126831
+  },
+  "medical_reference_percent": {
+    "pixel_auc": 91.25178605739472,
+    "pixel_ap": 39.46836969631676,
+    "image_auc": 75.2827266852061,
+    "image_ap": 76.34336352348328
+  },
+  "medical_delta_percent_points": {
+    "pixel_auc": 0.08470527632816527,
+    "pixel_ap": -1.6651523100081107,
+    "image_auc": 0.7012903690338135,
+    "image_ap": 1.3704955577850342
+  },
+  "mvtec_macro_percent": {
+    "pixel_auc": 90.28975588328008,
+    "pixel_ap": 46.294598102711305,
+    "image_auc": 89.08549626668294,
+    "image_ap": 94.61404879887898
+  },
+  "mvtec_reference_percent": {
+    "pixel_auc": 90.041289,
+    "pixel_ap": 45.159349,
+    "image_auc": 89.816913,
+    "image_ap": 94.779362
+  },
+  "mvtec_delta_percent_points": {
+    "pixel_auc": 0.2484668832800736,
+    "pixel_ap": 1.135249102711306,
+    "image_auc": -0.7314167333170616,
+    "image_ap": -0.1653132011210232
+  },
+  "next_phase": "one source-only selected novelty mechanism; no target-guided tuning; no inference-time overhead"
+}

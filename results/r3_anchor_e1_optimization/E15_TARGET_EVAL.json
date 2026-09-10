@@ -1,0 +1,213 @@
+{
+  "checkpoint": "/workspace/ACD-CLIP-/runs/r3_anchor_e1_optimization/e15_confirmation/adapter_15.pth",
+  "checkpoint_epoch": 15,
+  "checkpoint_sha256": "c11a73a8c3b20257c0a0f7cfe1328939e7a72f988a3fe3d6644062e167ee9f77",
+  "finite_outputs": true,
+  "policy": [
+    "identity",
+    "hflip",
+    "vflip",
+    "hvflip"
+  ],
+  "protocol": "R3_LOCKED_TTA_F_TARGET_V1",
+  "results": {
+    "Brain": {
+      "macro": {
+        "image_ap": 94.29553747177124,
+        "image_auc": 82.0281982421875,
+        "pixel_ap": 35.8515131187232,
+        "pixel_auc": 96.03695483323095
+      },
+      "per_class": {
+        "Brain": {
+          "image_ap": 94.29553747177124,
+          "image_auc": 82.0281982421875,
+          "pixel_ap": 35.8515131187232,
+          "pixel_auc": 96.03695483323095
+        }
+      }
+    },
+    "Colon_Kvasir": {
+      "macro": {
+        "image_ap": 0.0,
+        "image_auc": 0.0,
+        "pixel_ap": 59.50958932320003,
+        "pixel_auc": 87.98176961996653
+      },
+      "per_class": {
+        "Colon_Kvasir": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 59.50958932320003,
+          "pixel_auc": 87.98176961996653
+        }
+      }
+    },
+    "Colon_clinicDB": {
+      "macro": {
+        "image_ap": 0.0,
+        "image_auc": 0.0,
+        "pixel_ap": 51.800213038393636,
+        "pixel_auc": 89.45988989960847
+      },
+      "per_class": {
+        "Colon_clinicDB": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 51.800213038393636,
+          "pixel_auc": 89.45988989960847
+        }
+      }
+    },
+    "Colon_colonDB": {
+      "macro": {
+        "image_ap": 0.0,
+        "image_auc": 0.0,
+        "pixel_ap": 34.25504412807601,
+        "pixel_auc": 84.07175919299594
+      },
+      "per_class": {
+        "Colon_colonDB": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 34.25504412807601,
+          "pixel_auc": 84.07175919299594
+        }
+      }
+    },
+    "Liver": {
+      "macro": {
+        "image_ap": 59.15072560310364,
+        "image_auc": 67.44225025177002,
+        "pixel_ap": 6.222032854415168,
+        "pixel_auc": 96.78557199538322
+      },
+      "per_class": {
+        "Liver": {
+          "image_ap": 59.15072560310364,
+          "image_auc": 67.44225025177002,
+          "pixel_ap": 6.222032854415168,
+          "pixel_auc": 96.78557199538322
+        }
+      }
+    },
+    "MVTec": {
+      "macro": {
+        "image_ap": 94.61404879887898,
+        "image_auc": 89.08549626668294,
+        "pixel_ap": 46.294598102711305,
+        "pixel_auc": 90.28975588328008
+      },
+      "per_class": {
+        "bottle": {
+          "image_ap": 99.30996298789978,
+          "image_auc": 97.53967523574829,
+          "pixel_ap": 61.51121905267468,
+          "pixel_auc": 91.68339892082066
+        },
+        "cable": {
+          "image_ap": 84.69758033752441,
+          "image_auc": 75.05622506141663,
+          "pixel_ap": 24.86474166874839,
+          "pixel_auc": 73.13643888164457
+        },
+        "capsule": {
+          "image_ap": 98.5600471496582,
+          "image_auc": 93.01954507827759,
+          "pixel_ap": 44.315885037816436,
+          "pixel_auc": 96.78252579893336
+        },
+        "carpet": {
+          "image_ap": 99.40555095672607,
+          "image_auc": 97.95345067977905,
+          "pixel_ap": 81.26967132415815,
+          "pixel_auc": 99.44670414825167
+        },
+        "grid": {
+          "image_ap": 98.14305305480957,
+          "image_auc": 94.15204524993896,
+          "pixel_ap": 30.30142385110695,
+          "pixel_auc": 93.77945845128303
+        },
+        "hazelnut": {
+          "image_ap": 86.66036128997803,
+          "image_auc": 75.74999928474426,
+          "pixel_ap": 44.246019166164885,
+          "pixel_auc": 96.37073943575935
+        },
+        "leather": {
+          "image_ap": 100.0,
+          "image_auc": 100.0,
+          "pixel_ap": 65.74289816201528,
+          "pixel_auc": 99.55832317975968
+        },
+        "metal_nut": {
+          "image_ap": 92.79453754425049,
+          "image_auc": 71.94526791572571,
+          "pixel_ap": 19.229930959350984,
+          "pixel_auc": 61.97219320618156
+        },
+        "pill": {
+          "image_ap": 98.06482195854187,
+          "image_auc": 90.34369587898254,
+          "pixel_ap": 41.767264910471354,
+          "pixel_auc": 92.83289219858733
+        },
+        "screw": {
+          "image_ap": 93.24364066123962,
+          "image_auc": 81.71756863594055,
+          "pixel_ap": 22.31564290529652,
+          "pixel_auc": 97.63917953119304
+        },
+        "tile": {
+          "image_ap": 99.09430742263794,
+          "image_auc": 97.58297204971313,
+          "pixel_ap": 73.81914726162671,
+          "pixel_auc": 93.89026032626865
+        },
+        "toothbrush": {
+          "image_ap": 100.0,
+          "image_auc": 100.0,
+          "pixel_ap": 60.010894806776726,
+          "pixel_auc": 98.58187253033104
+        },
+        "transistor": {
+          "image_ap": 72.8523313999176,
+          "image_auc": 73.58332872390747,
+          "pixel_ap": 10.822574544402315,
+          "pixel_auc": 67.43864915615663
+        },
+        "wood": {
+          "image_ap": 98.57070446014404,
+          "image_auc": 95.17543315887451,
+          "pixel_ap": 66.72560547073392,
+          "pixel_auc": 96.08968776513157
+        },
+        "zipper": {
+          "image_ap": 97.81383275985718,
+          "image_auc": 92.46323704719543,
+          "pixel_ap": 47.47605241932618,
+          "pixel_auc": 95.14401471889902
+        }
+      }
+    },
+    "Retina": {
+      "macro": {
+        "image_ap": 79.69531416893005,
+        "image_auc": 78.4816026687622,
+        "pixel_ap": 39.180911855043846,
+        "pixel_auc": 93.68300246115223
+      },
+      "per_class": {
+        "Retina": {
+          "image_ap": 79.69531416893005,
+          "image_auc": 78.4816026687622,
+          "pixel_ap": 39.180911855043846,
+          "pixel_auc": 93.68300246115223
+        }
+      }
+    }
+  },
+  "runtime_seconds": 21616.22163812793,
+  "target_selection_or_tuning": false
+}

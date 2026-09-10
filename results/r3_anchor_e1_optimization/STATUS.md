@@ -1,6 +1,6 @@
 # R3 Anchor + E1 Optimization Status
 
-Status: `E15_SOURCE_CONFIRMATION_PASS`
+Status: `E15_TARGET_AUDIT_COMPLETE_BELOW_TARGET`
 
 This branch is the reproducible R3 workspace for the source-only E1 anchor
 optimization study. The dataset and runtime gates are recorded before any
@@ -27,6 +27,10 @@ new training or target-guided decision.
 - Source-only TTA gate complete; `TTA-F` is locked by source Pixel AP.
 - Locked target TTA-F replay complete on Medical and all 15 MVTec categories;
   target results are recorded as a post-lock audit only.
+- Locked E15 target audit completed with finite outputs and no target-guided
+  selection or tuning. Medical Pixel AP was `37.803217%`, below the `43.03%`
+  target; the result and exact provenance are in `E15_TARGET_AUDIT.md` and
+  `E15_TARGET_EVAL.json`.
 - Source-only alpha S1 screen complete; `hybrid_alpha_max=0.20` is locked by
   source TTA-F Pixel AP. The gate is recorded in
   `results/r3_anchor_e1_optimization/ALPHA_SOURCE_GATE.md`.
@@ -41,9 +45,10 @@ new training or target-guided decision.
 
 ## In progress
 
-- Locked target audit of the confirmed E15 checkpoint is pending. This is a
-  post-lock audit only; no target labels or target metrics may affect the
-  already locked alpha, rho, lambda, or TTA policy.
+- One source-only selected novelty mechanism is required because the locked
+  E15 target audit is below the `43.03%` Medical Pixel AP target. The novelty
+  must have no inference-time overhead and must not use target labels or
+  target metrics for selection.
 
 ## Frozen anchors
 
