@@ -1,0 +1,86 @@
+{
+  "protocol": "R3_SOURCE_E15_CONFIRMATION_V1",
+  "stage": "S2",
+  "status": "PASS",
+  "source_dataset": "VisA",
+  "held_out_categories": [
+    "candle",
+    "macaroni1",
+    "pcb3",
+    "pipe_fryum"
+  ],
+  "train_scope": "VisA full training split; held-out categories are an evaluation slice",
+  "parent_checkpoint": "runs/h2_clean_factorial_e20_20260902_ampfix/shared_e1/adapter_1.pth",
+  "parent_checkpoint_sha256": "7f9176b7ef53b572935567c574535075a573175b2aa83505d043a71d45b12b35",
+  "fork_checkpoint_sha256": "89ec0da0acf6aef898317ed5e310eb075e72a2997c992a22e0d0cb8eb690cbaa",
+  "checkpoint": "runs/r3_anchor_e1_optimization/e15_confirmation/adapter_15.pth",
+  "checkpoint_sha256": "c11a73a8c3b20257c0a0f7cfe1328939e7a72f988a3fe3d6644062e167ee9f77",
+  "checkpoint_epoch": 15,
+  "code_sha": "4126a5cbdc7f10acde64a9b432eb41f358e8e59c",
+  "fixed": {
+    "hybrid_alpha_max": 0.2,
+    "anchor_family_budget_rho": 0.1,
+    "anchor_lambda": 0.0021633926715180626,
+    "cir": false,
+    "tta_policy": "TTA-F",
+    "tta_transforms": [
+      "identity",
+      "hflip",
+      "vflip",
+      "hvflip"
+    ],
+    "batch_size": 6,
+    "epochs": 15,
+    "max_batches_per_epoch": null,
+    "seed": 0,
+    "deterministic_algorithms": true,
+    "target_selection_or_tuning": false
+  },
+  "anchor_audit_final_step": {
+    "family_partition_complete": true,
+    "rho": 0.1,
+    "global_effective_ratio": 1.4887726792835684e-05,
+    "max_effective_active_family_ratio": 0.08280756825020887,
+    "global_task_grad_norm": 0.8800209760665894,
+    "final_epoch_non_finite_gradient_skips": 0,
+    "final_epoch_non_finite_loss_skips": 0
+  },
+  "training_wall_clock_seconds": 20814.0,
+  "source_tta_json": "results/r3_anchor_e1_optimization/E15_SOURCE_TTA.json",
+  "source_tta_json_sha256": "9ec70d857e7702c3ac0456c80ba19faf08bf69be6f61b25a4b9ffb0f68698e4f",
+  "source_tta_runtime_seconds": 842.0973497180967,
+  "source_tta_f": {
+    "pixel_ap": 54.584001494597956,
+    "pixel_auc": 97.34997273129946,
+    "image_ap": 96.66284024715424,
+    "image_auc": 96.22074365615845
+  },
+  "source_tta_all_policies": {
+    "TTA-I": {
+      "pixel_ap": 51.8835339211309,
+      "pixel_auc": 97.1556879065399,
+      "image_ap": 96.11829966306686,
+      "image_auc": 95.75396329164505
+    },
+    "TTA-H": {
+      "pixel_ap": 52.527502133929644,
+      "pixel_auc": 97.26577749741165,
+      "image_ap": 96.25955522060394,
+      "image_auc": 95.84242254495621
+    },
+    "TTA-F": {
+      "pixel_ap": 54.584001494597956,
+      "pixel_auc": 97.34997273129946,
+      "image_ap": 96.66284024715424,
+      "image_auc": 96.22074365615845
+    }
+  },
+  "non_finite_gradient_skips_total": 2,
+  "non_finite_loss_skips_total": 0,
+  "recovery": {
+    "initial_failure": "CUDA OOM at epoch 4 batch 81 during backward",
+    "recovery": "Resumed from valid epoch 3 checkpoint with PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True",
+    "recovery_commit": "fdedb73d10ae35a143deaf22ac921d43972b77f5"
+  },
+  "target_selection_or_tuning": false
+}

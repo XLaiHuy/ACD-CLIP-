@@ -1,0 +1,134 @@
+{
+  "checkpoint": "/tmp/r3_full_e15_confirmation_20260909/final/adapter_15.pth",
+  "checkpoint_epoch": 15,
+  "checkpoint_sha256": "c11a73a8c3b20257c0a0f7cfe1328939e7a72f988a3fe3d6644062e167ee9f77",
+  "finite_outputs": true,
+  "held_out_categories": [
+    "candle",
+    "macaroni1",
+    "pcb3",
+    "pipe_fryum"
+  ],
+  "protocol": "R3_SOURCE_CATEGORY_HELD_OUT_V1",
+  "results": {
+    "TTA-F": {
+      "latency_multiplier": 4,
+      "macro": {
+        "image_ap": 96.66284024715424,
+        "image_auc": 96.22074365615845,
+        "pixel_ap": 54.584001494597956,
+        "pixel_auc": 97.34997273129946
+      },
+      "per_class": {
+        "candle": {
+          "image_ap": 97.27292656898499,
+          "image_auc": 97.72999286651611,
+          "pixel_ap": 52.046809573618106,
+          "pixel_auc": 99.6242423649996
+        },
+        "macaroni1": {
+          "image_ap": 95.62275409698486,
+          "image_auc": 94.93000507354736,
+          "pixel_ap": 25.982871379392495,
+          "pixel_auc": 99.78598661800432
+        },
+        "pcb3": {
+          "image_ap": 94.02235150337219,
+          "image_auc": 92.70297288894653,
+          "pixel_ap": 47.29758096681966,
+          "pixel_auc": 90.09981091516856
+        },
+        "pipe_fryum": {
+          "image_ap": 99.7333288192749,
+          "image_auc": 99.52000379562378,
+          "pixel_ap": 93.00874405856156,
+          "pixel_auc": 99.88985102702536
+        }
+      },
+      "transforms": [
+        "identity",
+        "hflip",
+        "vflip",
+        "hvflip"
+      ]
+    },
+    "TTA-H": {
+      "latency_multiplier": 2,
+      "macro": {
+        "image_ap": 96.25955522060394,
+        "image_auc": 95.84242254495621,
+        "pixel_ap": 52.527502133929644,
+        "pixel_auc": 97.26577749741165
+      },
+      "per_class": {
+        "candle": {
+          "image_ap": 97.24935293197632,
+          "image_auc": 97.64999151229858,
+          "pixel_ap": 51.416698784549894,
+          "pixel_auc": 99.60306461477153
+        },
+        "macaroni1": {
+          "image_ap": 94.89224553108215,
+          "image_auc": 94.27000284194946,
+          "pixel_ap": 21.536266561726524,
+          "pixel_auc": 99.54839366892227
+        },
+        "pcb3": {
+          "image_ap": 93.21182370185852,
+          "image_auc": 92.02969670295715,
+          "pixel_ap": 46.14021741766307,
+          "pixel_auc": 90.06207321000788
+        },
+        "pipe_fryum": {
+          "image_ap": 99.68479871749878,
+          "image_auc": 99.41999912261963,
+          "pixel_ap": 91.0168257717791,
+          "pixel_auc": 99.84957849594488
+        }
+      },
+      "transforms": [
+        "identity",
+        "hflip"
+      ]
+    },
+    "TTA-I": {
+      "latency_multiplier": 1,
+      "macro": {
+        "image_ap": 96.11829966306686,
+        "image_auc": 95.75396329164505,
+        "pixel_ap": 51.8835339211309,
+        "pixel_auc": 97.1556879065399
+      },
+      "per_class": {
+        "candle": {
+          "image_ap": 97.22593426704407,
+          "image_auc": 97.67000675201416,
+          "pixel_ap": 50.25043861445375,
+          "pixel_auc": 99.40865224799053
+        },
+        "macaroni1": {
+          "image_ap": 94.89077925682068,
+          "image_auc": 94.47000026702881,
+          "pixel_ap": 21.592404075416507,
+          "pixel_auc": 99.57738113208988
+        },
+        "pcb3": {
+          "image_ap": 92.6349401473999,
+          "image_auc": 91.41584038734436,
+          "pixel_ap": 45.65863581800799,
+          "pixel_auc": 89.80973461020095
+        },
+        "pipe_fryum": {
+          "image_ap": 99.72154498100281,
+          "image_auc": 99.46000576019287,
+          "pixel_ap": 90.03265717664536,
+          "pixel_auc": 99.82698363587822
+        }
+      },
+      "transforms": [
+        "identity"
+      ]
+    }
+  },
+  "runtime_seconds": 842.0973497180967
+}
