@@ -39,17 +39,18 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--expected-sha256", type=str, default=CHECKPOINT_SHA256)
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--num-workers", type=int, default=2)
     args = parser.parse_args()
-    if sha256_file(args.checkpoint) != CHECKPOINT_SHA256:
-        raise ValueError("target checkpoint is not canonical A15")
+    if sha256_file(args.checkpoint) != args.expected_sha256:
+        raise ValueError("target checkpoint SHA256 does not match expected value")
     if args.output.exists():
         raise ValueError(f"refusing to overwrite {args.output}")
     args.output.parent.mkdir(parents=True, exist_ok=True)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model, checkpoint_payload = build_model(device, args.checkpoint)
+    model, checkpoint_payload = build_model(device, args.checkpoint, args.expected_sha256)
     results = {}
     start = time.perf_counter()
     for dataset_name in ("Brain", "Liver", "Retina", "Colon_clinicDB", "Colon_colonDB", "Colon_Kvasir", "MVTec"):

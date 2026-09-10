@@ -1,0 +1,18 @@
+{
+  "protocol": "R3_LOCKED_TTA_F_TARGET_E15_V1",
+  "checkpoint": "runs/r3_anchor_e1_optimization/e15_confirmation/adapter_15.pth",
+  "checkpoint_sha256": "c11a73a8c3b20257c0a0f7cfe1328939e7a72f988a3fe3d6644062e167ee9f77",
+  "checkpoint_epoch": 15,
+  "tta_policy": "TTA-F",
+  "tta_transforms": [
+    "identity",
+    "hflip",
+    "vflip",
+    "hvflip"
+  ],
+  "medical_image_score": "classification_score_only",
+  "industrial_image_score": "0.9 classification_score + 0.1 segmentation_pmax",
+  "selection_or_tuning": false,
+  "batch_size": 8,
+  "num_workers": 2
+}
