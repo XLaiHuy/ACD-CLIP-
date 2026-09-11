@@ -30,8 +30,9 @@ if tmux has-session -t "${SESSION}" 2>/dev/null; then
   echo "refusing to reuse existing tmux session: ${SESSION}" >&2
   exit 2
 fi
+python_assignment="PYTHON=$(printf '%q' "${PYTHON:-python}")"
 worker_assignment="NUM_WORKERS=$(printf '%q' "${NUM_WORKERS}")"
 launcher_command="$(printf '%q' "${LAUNCHER}")"
 tmux new-session -d -s "${SESSION}" -c "${ROOT}" \
-  "${worker_assignment} bash ${launcher_command}"
+  "${python_assignment} ${worker_assignment} bash ${launcher_command}"
 printf 'started_session=%s source=%s launcher=%s\n' "${SESSION}" "${SOURCE}" "${LAUNCHER}"
