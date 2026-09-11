@@ -114,3 +114,21 @@ print(
 )
 PY
 }
+
+record_run_environment() {
+  local output="$1"
+  mkdir -p "$(dirname "${output}")"
+  {
+    echo "recorded_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    echo "repo_root=${ROOT}"
+    echo "git_branch=$(git -C "${ROOT}" branch --show-current)"
+    echo "git_sha=$(git -C "${ROOT}" rev-parse HEAD)"
+    echo "dataset=${DATASET:-unknown}"
+    echo "python=$(${PYTHON} --version 2>&1)"
+    echo "torch=$(${PYTHON} -c 'import torch; print(torch.__version__)' 2>&1)"
+    echo "torch_cuda=$(${PYTHON} -c 'import torch; print(torch.version.cuda)' 2>&1)"
+    echo "clip_sha256=$(sha256sum "${ROOT}/model/ViT-L-14-336px.pt" | awk '{print $1}')"
+    echo "dataset_manifest_sha256=$(sha256sum "${ROOT}/dataset/hub/${DATASET:-unknown}.jsonl" 2>/dev/null | awk '{print $1}' || true)"
+    nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader 2>/dev/null || true
+  } > "${output}"
+}

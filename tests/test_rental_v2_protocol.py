@@ -27,6 +27,7 @@ def test_protocol_distinguishes_anchor_from_resume_and_freezes_tta_policy():
     assert "tmux" in (RENTAL / "launch_training_tmux_v2.sh").read_text()
     assert "python_assignment" in (RENTAL / "launch_training_tmux_v2.sh").read_text()
     assert "find -L" in (RENTAL / "common_v2.sh").read_text()
+    assert "record_run_environment" in (RENTAL / "common_v2.sh").read_text()
     assert "find -L" in (RENTAL / "preflight_v2.sh").read_text()
     assert "peak_cuda_memory_allocated_gb=" in (RENTAL / "smoke_e1_e2_continuation.sh").read_text()
 
