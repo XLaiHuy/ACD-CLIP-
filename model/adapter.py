@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
-from kornia.filters import gaussian_blur2d
 from torch import nn
 from torch.utils.checkpoint import checkpoint
 
@@ -15,6 +14,48 @@ from h2_clean.cir_v2 import (
     cir_logits_from_native_weights,
     peer_delta_from_native_margins,
 )
+
+
+def gaussian_blur2d(
+        input: torch.Tensor,
+        kernel_size: tuple[int, int] | int,
+        sigma: tuple[float, float],
+) -> torch.Tensor:
+    """Apply Kornia's default separable reflect Gaussian blur with Torch.
+
+    The evaluator only uses Kornia's ``gaussian_blur2d`` with fixed odd
+    kernels and scalar sigmas. Kornia 0.8 imports its optional Rust image
+    backend while importing the filter package; that extension aborts on
+    CPUs without the instruction set it was built for. Keeping this small
+    equivalent implementation local avoids that process-level failure while
+    preserving the operation used by the model.
+    """
+    if isinstance(kernel_size, int):
+        kernel_size = (kernel_size, kernel_size)
+    if len(kernel_size) != 2 or len(sigma) != 2:
+        raise ValueError("kernel_size and sigma must contain two values")
+    ky, kx = (int(value) for value in kernel_size)
+    sy, sx = (float(value) for value in sigma)
+    if ky <= 0 or kx <= 0 or ky % 2 == 0 or kx % 2 == 0:
+        raise ValueError("Gaussian kernel sizes must be positive odd integers")
+    if sy <= 0 or sx <= 0:
+        raise ValueError("Gaussian sigmas must be positive")
+
+    def kernel1d(size: int, std: float) -> torch.Tensor:
+        center = float(size // 2)
+        coordinates = torch.arange(
+            size, device=input.device, dtype=input.dtype
+        ) - center
+        values = torch.exp(-(coordinates.square()) / (2.0 * std * std))
+        return values / values.sum()
+
+    channels = input.shape[1]
+    kernel_x = kernel1d(kx, sx).reshape(1, 1, 1, kx).expand(channels, 1, 1, kx)
+    kernel_y = kernel1d(ky, sy).reshape(1, 1, ky, 1).expand(channels, 1, ky, 1)
+    out = F.pad(input, (kx // 2, kx // 2, 0, 0), mode="reflect")
+    out = F.conv2d(out, kernel_x, groups=channels)
+    out = F.pad(out, (0, 0, ky // 2, ky // 2), mode="reflect")
+    return F.conv2d(out, kernel_y, groups=channels)
 
 
 class AddWeight(nn.Module):

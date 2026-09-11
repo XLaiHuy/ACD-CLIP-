@@ -1316,6 +1316,8 @@ def main():
             anchor = SafeImageAdapterAnchor.from_checkpoint(args.resume, device)
         logger.info("resume=%s epoch=%s global_step=%s", args.resume, start_epoch, global_step)
     logger.info("training ...")
+    if torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats(device)
     model = train(
         model=model,
         dataset_name=args.dataset,
@@ -1367,6 +1369,12 @@ def main():
         hard_background_topk_fraction=args.hard_background_topk_fraction,
         hard_background_margin=args.hard_background_margin,
     )
+    if torch.cuda.is_available():
+        logger.info(
+            "peak_cuda_memory_allocated_bytes=%d peak_cuda_memory_allocated_gb=%.6f",
+            torch.cuda.max_memory_allocated(device),
+            torch.cuda.max_memory_allocated(device) / (1024 ** 3),
+        )
 
 
 if __name__ == "__main__":
