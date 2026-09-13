@@ -1,0 +1,223 @@
+{
+  "checkpoint": "/workspace/ACD-CLIP-rental/runs/fresh_visa_source_20260911/adapter_7.pth",
+  "checkpoint_epoch": 7,
+  "checkpoint_sha256": "835422e1098feb38c03f2f2685383c694b33e46d6a21be82fee53dddaf7a086a",
+  "datasets": [
+    "Brain",
+    "Liver",
+    "Retina",
+    "Colon_clinicDB",
+    "Colon_colonDB",
+    "Colon_Kvasir",
+    "MVTec"
+  ],
+  "finite_outputs": true,
+  "implementation": "sequential_reference",
+  "policy": [
+    "identity",
+    "hflip",
+    "vflip",
+    "hvflip"
+  ],
+  "protocol": "RENTAL_LOCKED_FOUR_VIEW_BASELINE_V1",
+  "results": {
+    "Brain": {
+      "macro": {
+        "image_ap": 94.97493505477905,
+        "image_auc": 83.46534967422485,
+        "pixel_ap": 52.044235638856506,
+        "pixel_auc": 96.5129512847885
+      },
+      "per_class": {
+        "Brain": {
+          "image_ap": 94.97493505477905,
+          "image_auc": 83.46534967422485,
+          "pixel_ap": 52.044235638856506,
+          "pixel_auc": 96.5129512847885
+        }
+      }
+    },
+    "Colon_Kvasir": {
+      "macro": {
+        "image_ap": 0.0,
+        "image_auc": 0.0,
+        "pixel_ap": 55.85061628842938,
+        "pixel_auc": 85.1135896069104
+      },
+      "per_class": {
+        "Colon_Kvasir": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 55.85061628842938,
+          "pixel_auc": 85.1135896069104
+        }
+      }
+    },
+    "Colon_clinicDB": {
+      "macro": {
+        "image_ap": 0.0,
+        "image_auc": 0.0,
+        "pixel_ap": 51.22722489858534,
+        "pixel_auc": 88.78135965407262
+      },
+      "per_class": {
+        "Colon_clinicDB": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 51.22722489858534,
+          "pixel_auc": 88.78135965407262
+        }
+      }
+    },
+    "Colon_colonDB": {
+      "macro": {
+        "image_ap": 0.0,
+        "image_auc": 0.0,
+        "pixel_ap": 34.237768468108804,
+        "pixel_auc": 81.53367272836726
+      },
+      "per_class": {
+        "Colon_colonDB": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 34.237768468108804,
+          "pixel_auc": 81.53367272836726
+        }
+      }
+    },
+    "Liver": {
+      "macro": {
+        "image_ap": 63.1777286529541,
+        "image_auc": 72.79020547866821,
+        "pixel_ap": 7.708334416034182,
+        "pixel_auc": 96.3726402512581
+      },
+      "per_class": {
+        "Liver": {
+          "image_ap": 63.1777286529541,
+          "image_auc": 72.79020547866821,
+          "pixel_ap": 7.708334416034182,
+          "pixel_auc": 96.3726402512581
+        }
+      }
+    },
+    "MVTec": {
+      "macro": {
+        "image_ap": 95.32287836074829,
+        "image_auc": 90.18002430597942,
+        "pixel_ap": 42.928771768223605,
+        "pixel_auc": 83.67820857230996
+      },
+      "per_class": {
+        "bottle": {
+          "image_ap": 98.44844341278076,
+          "image_auc": 94.60318088531494,
+          "pixel_ap": 55.3236526166656,
+          "pixel_auc": 86.99376183755324
+        },
+        "cable": {
+          "image_ap": 89.07331228256226,
+          "image_auc": 83.11469554901123,
+          "pixel_ap": 22.48846379885558,
+          "pixel_auc": 80.21099868528147
+        },
+        "capsule": {
+          "image_ap": 98.35702180862427,
+          "image_auc": 92.70043969154358,
+          "pixel_ap": 25.38372570081166,
+          "pixel_auc": 90.4767827988478
+        },
+        "carpet": {
+          "image_ap": 99.37687516212463,
+          "image_auc": 97.51204252243042,
+          "pixel_ap": 77.03302488908294,
+          "pixel_auc": 96.84802333633897
+        },
+        "grid": {
+          "image_ap": 99.04505014419556,
+          "image_auc": 97.24311828613281,
+          "pixel_ap": 29.27115282549351,
+          "pixel_auc": 80.5664005500501
+        },
+        "hazelnut": {
+          "image_ap": 94.56748366355896,
+          "image_auc": 90.14285802841187,
+          "pixel_ap": 66.33322539856883,
+          "pixel_auc": 98.21790400018338
+        },
+        "leather": {
+          "image_ap": 100.0,
+          "image_auc": 100.0,
+          "pixel_ap": 66.13879917534489,
+          "pixel_auc": 99.55278226053893
+        },
+        "metal_nut": {
+          "image_ap": 92.6054060459137,
+          "image_auc": 70.38123607635498,
+          "pixel_ap": 14.110305986350685,
+          "pixel_auc": 33.679711420010335
+        },
+        "pill": {
+          "image_ap": 98.1235146522522,
+          "image_auc": 90.34370183944702,
+          "pixel_ap": 39.976587010303305,
+          "pixel_auc": 89.75667931857726
+        },
+        "screw": {
+          "image_ap": 93.97993087768555,
+          "image_auc": 82.96782970428467,
+          "pixel_ap": 40.84808984701995,
+          "pixel_auc": 98.78894222788371
+        },
+        "tile": {
+          "image_ap": 98.88175129890442,
+          "image_auc": 96.78932428359985,
+          "pixel_ap": 69.76750087017913,
+          "pixel_auc": 85.25074466672898
+        },
+        "toothbrush": {
+          "image_ap": 98.79067540168762,
+          "image_auc": 96.66666388511658,
+          "pixel_ap": 46.88162106065904,
+          "pixel_auc": 95.91431641597717
+        },
+        "transistor": {
+          "image_ap": 73.60522747039795,
+          "image_auc": 77.58333086967468,
+          "pixel_ap": 8.00482802768886,
+          "pixel_auc": 58.35454613014611
+        },
+        "wood": {
+          "image_ap": 98.70160818099976,
+          "image_auc": 96.49122953414917,
+          "pixel_ap": 56.869098870899194,
+          "pixel_auc": 83.49066273255352
+        },
+        "zipper": {
+          "image_ap": 96.28687500953674,
+          "image_auc": 86.16071343421936,
+          "pixel_ap": 25.501500445430946,
+          "pixel_auc": 77.07087220397817
+        }
+      }
+    },
+    "Retina": {
+      "macro": {
+        "image_ap": 80.27620315551758,
+        "image_auc": 80.17115592956543,
+        "pixel_ap": 38.54975945103555,
+        "pixel_auc": 86.1262096824408
+      },
+      "per_class": {
+        "Retina": {
+          "image_ap": 80.27620315551758,
+          "image_auc": 80.17115592956543,
+          "pixel_ap": 38.54975945103555,
+          "pixel_auc": 86.1262096824408
+        }
+      }
+    }
+  },
+  "runtime_seconds": 4768.095346282003,
+  "target_selection_or_tuning": false
+}

@@ -113,6 +113,8 @@ are present in the JSON artifacts.
 
 ## Artifact locations
 
+The compact, Git-tracked result and provenance files are in `handoff/rental_20260911/compact_results/`. They are direct copies of the authoritative runtime outputs below.
+
 The complete uncommitted runtime outputs remain in the workspace:
 
 - Run V training: `runs/fresh_visa_source_20260911/`

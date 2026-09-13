@@ -1,0 +1,589 @@
+{
+  "checkpoint": "/workspace/ACD-CLIP-rental/runs/fresh_visa_source_20260911/adapter_7.pth",
+  "checkpoint_sha256": "835422e1098feb38c03f2f2685383c694b33e46d6a21be82fee53dddaf7a086a",
+  "datasets": [
+    "Brain",
+    "Liver",
+    "Retina",
+    "Colon_clinicDB",
+    "Colon_colonDB",
+    "Colon_Kvasir",
+    "MVTec"
+  ],
+  "policy": [
+    "identity",
+    "hflip",
+    "vflip",
+    "hvflip"
+  ],
+  "protocol": "RENTAL_DELTA_TTA_V1",
+  "results": {
+    "Brain": {
+      "delta_tta": {
+        "Average": {
+          "image_ap": -0.003933945220950363,
+          "image_auc": -0.04069832577515342,
+          "pixel_ap": 2.876050638856505,
+          "pixel_auc": 1.4350682847884997
+        },
+        "Brain": {
+          "image_ap": -0.003933945220950363,
+          "image_auc": -0.04069832577515342,
+          "pixel_ap": 2.876050638856505,
+          "pixel_auc": 1.4350682847884997
+        }
+      },
+      "four_view": {
+        "Average": {
+          "image_ap": 94.97493505477905,
+          "image_auc": 83.46534967422485,
+          "pixel_ap": 52.044235638856506,
+          "pixel_auc": 96.5129512847885
+        },
+        "Brain": {
+          "image_ap": 94.97493505477905,
+          "image_auc": 83.46534967422485,
+          "pixel_ap": 52.044235638856506,
+          "pixel_auc": 96.5129512847885
+        }
+      },
+      "reported_image_metrics": true,
+      "single_view": {
+        "Average": {
+          "image_ap": 94.978869,
+          "image_auc": 83.506048,
+          "pixel_ap": 49.168185,
+          "pixel_auc": 95.077883
+        },
+        "Brain": {
+          "image_ap": 94.978869,
+          "image_auc": 83.506048,
+          "pixel_ap": 49.168185,
+          "pixel_auc": 95.077883
+        }
+      }
+    },
+    "Colon_Kvasir": {
+      "delta_tta": {
+        "Average": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 2.6820822884293776,
+          "pixel_auc": 1.5437476069104008
+        },
+        "Colon_Kvasir": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 2.6820822884293776,
+          "pixel_auc": 1.5437476069104008
+        }
+      },
+      "four_view": {
+        "Average": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 55.85061628842938,
+          "pixel_auc": 85.1135896069104
+        },
+        "Colon_Kvasir": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 55.85061628842938,
+          "pixel_auc": 85.1135896069104
+        }
+      },
+      "reported_image_metrics": false,
+      "single_view": {
+        "Average": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 53.168534,
+          "pixel_auc": 83.569842
+        },
+        "Colon_Kvasir": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 53.168534,
+          "pixel_auc": 83.569842
+        }
+      }
+    },
+    "Colon_clinicDB": {
+      "delta_tta": {
+        "Average": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 2.825987898585339,
+          "pixel_auc": 1.3422346540726124
+        },
+        "Colon_clinicDB": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 2.825987898585339,
+          "pixel_auc": 1.3422346540726124
+        }
+      },
+      "four_view": {
+        "Average": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 51.22722489858534,
+          "pixel_auc": 88.78135965407262
+        },
+        "Colon_clinicDB": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 51.22722489858534,
+          "pixel_auc": 88.78135965407262
+        }
+      },
+      "reported_image_metrics": false,
+      "single_view": {
+        "Average": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 48.401237,
+          "pixel_auc": 87.439125
+        },
+        "Colon_clinicDB": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 48.401237,
+          "pixel_auc": 87.439125
+        }
+      }
+    },
+    "Colon_colonDB": {
+      "delta_tta": {
+        "Average": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 3.309695468108803,
+          "pixel_auc": 0.9646507283672605
+        },
+        "Colon_colonDB": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 3.309695468108803,
+          "pixel_auc": 0.9646507283672605
+        }
+      },
+      "four_view": {
+        "Average": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 34.237768468108804,
+          "pixel_auc": 81.53367272836726
+        },
+        "Colon_colonDB": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 34.237768468108804,
+          "pixel_auc": 81.53367272836726
+        }
+      },
+      "reported_image_metrics": false,
+      "single_view": {
+        "Average": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 30.928073,
+          "pixel_auc": 80.569022
+        },
+        "Colon_colonDB": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 30.928073,
+          "pixel_auc": 80.569022
+        }
+      }
+    },
+    "Liver": {
+      "delta_tta": {
+        "Average": {
+          "image_ap": -0.9129883470458964,
+          "image_auc": 1.621383478668207,
+          "pixel_ap": 1.5141424160341819,
+          "pixel_auc": 1.8235652512581026
+        },
+        "Liver": {
+          "image_ap": -0.9129883470458964,
+          "image_auc": 1.621383478668207,
+          "pixel_ap": 1.5141424160341819,
+          "pixel_auc": 1.8235652512581026
+        }
+      },
+      "four_view": {
+        "Average": {
+          "image_ap": 63.1777286529541,
+          "image_auc": 72.79020547866821,
+          "pixel_ap": 7.708334416034182,
+          "pixel_auc": 96.3726402512581
+        },
+        "Liver": {
+          "image_ap": 63.1777286529541,
+          "image_auc": 72.79020547866821,
+          "pixel_ap": 7.708334416034182,
+          "pixel_auc": 96.3726402512581
+        }
+      },
+      "reported_image_metrics": true,
+      "single_view": {
+        "Average": {
+          "image_ap": 64.090717,
+          "image_auc": 71.168822,
+          "pixel_ap": 6.194192,
+          "pixel_auc": 94.549075
+        },
+        "Liver": {
+          "image_ap": 64.090717,
+          "image_auc": 71.168822,
+          "pixel_ap": 6.194192,
+          "pixel_auc": 94.549075
+        }
+      }
+    },
+    "MVTec": {
+      "delta_tta": {
+        "Average": {
+          "image_ap": 0.7900953607482961,
+          "image_auc": 1.7640683059794213,
+          "pixel_ap": 2.885988768223605,
+          "pixel_auc": 1.585463572309962
+        },
+        "bottle": {
+          "image_ap": 0.22192641278076053,
+          "image_auc": 0.7142958853149395,
+          "pixel_ap": 2.6514476166655996,
+          "pixel_auc": 2.2003118375532296
+        },
+        "cable": {
+          "image_ap": 6.563401282562253,
+          "image_auc": 4.703891549011232,
+          "pixel_ap": 1.2514177988555808,
+          "pixel_auc": 1.229763685281469
+        },
+        "capsule": {
+          "image_ap": 0.5637588086242715,
+          "image_auc": 3.111284691543574,
+          "pixel_ap": 5.4495757008116605,
+          "pixel_auc": 4.234158798847787
+        },
+        "carpet": {
+          "image_ap": -0.05886583787535926,
+          "image_auc": -0.4012764775695814,
+          "pixel_ap": 3.9484838890829366,
+          "pixel_auc": 2.4397623363389727
+        },
+        "grid": {
+          "image_ap": 0.313699144195553,
+          "image_auc": 1.0025142861328078,
+          "pixel_ap": 0.9786588254935076,
+          "pixel_auc": 3.893183550050111
+        },
+        "hazelnut": {
+          "image_ap": 2.3560706635589668,
+          "image_auc": 3.535724028411863,
+          "pixel_ap": 3.4482613985688317,
+          "pixel_auc": 0.1896620001833753
+        },
+        "leather": {
+          "image_ap": 0.011688000000006582,
+          "image_auc": 0.03396899999999903,
+          "pixel_ap": 2.426090175344889,
+          "pixel_auc": 3.908275260538929
+        },
+        "metal_nut": {
+          "image_ap": 1.2384000459136928,
+          "image_auc": 3.4701940763549857,
+          "pixel_ap": 0.8484869863506859,
+          "pixel_auc": 3.724246420010335
+        },
+        "pill": {
+          "image_ap": 0.1854476522521935,
+          "image_auc": 1.1729418394470201,
+          "pixel_ap": 4.025543010303302,
+          "pixel_auc": 4.27135531857725
+        },
+        "screw": {
+          "image_ap": 1.8660308776855459,
+          "image_auc": 3.873753704284667,
+          "pixel_ap": 9.22737584701995,
+          "pixel_auc": 0.20059222788370334
+        },
+        "tile": {
+          "image_ap": 0.5112532989044212,
+          "image_auc": 1.4430042835998478,
+          "pixel_ap": 1.9104258701791395,
+          "pixel_auc": 1.0135586667289829
+        },
+        "toothbrush": {
+          "image_ap": -0.11567459831238125,
+          "image_auc": -0.5555631148834266,
+          "pixel_ap": 1.4188720606590408,
+          "pixel_auc": 0.30657841597717095
+        },
+        "transistor": {
+          "image_ap": -3.6741495296020474,
+          "image_auc": -2.708340130325311,
+          "pixel_ap": -1.4886239723111387,
+          "pixel_auc": -4.871588869853888
+        },
+        "wood": {
+          "image_ap": -0.0526908190002473,
+          "image_auc": 0.26316053414916496,
+          "pixel_ap": 3.0208468708991916,
+          "pixel_auc": 0.8016217325535138
+        },
+        "zipper": {
+          "image_ap": 1.9211410095367398,
+          "image_auc": 6.801468434219359,
+          "pixel_ap": 4.172966445430944,
+          "pixel_auc": 0.24047320397816918
+        }
+      },
+      "four_view": {
+        "Average": {
+          "image_ap": 95.32287836074829,
+          "image_auc": 90.18002430597942,
+          "pixel_ap": 42.928771768223605,
+          "pixel_auc": 83.67820857230996
+        },
+        "bottle": {
+          "image_ap": 98.44844341278076,
+          "image_auc": 94.60318088531494,
+          "pixel_ap": 55.3236526166656,
+          "pixel_auc": 86.99376183755324
+        },
+        "cable": {
+          "image_ap": 89.07331228256226,
+          "image_auc": 83.11469554901123,
+          "pixel_ap": 22.48846379885558,
+          "pixel_auc": 80.21099868528147
+        },
+        "capsule": {
+          "image_ap": 98.35702180862427,
+          "image_auc": 92.70043969154358,
+          "pixel_ap": 25.38372570081166,
+          "pixel_auc": 90.4767827988478
+        },
+        "carpet": {
+          "image_ap": 99.37687516212463,
+          "image_auc": 97.51204252243042,
+          "pixel_ap": 77.03302488908294,
+          "pixel_auc": 96.84802333633897
+        },
+        "grid": {
+          "image_ap": 99.04505014419556,
+          "image_auc": 97.24311828613281,
+          "pixel_ap": 29.27115282549351,
+          "pixel_auc": 80.5664005500501
+        },
+        "hazelnut": {
+          "image_ap": 94.56748366355896,
+          "image_auc": 90.14285802841187,
+          "pixel_ap": 66.33322539856883,
+          "pixel_auc": 98.21790400018338
+        },
+        "leather": {
+          "image_ap": 100.0,
+          "image_auc": 100.0,
+          "pixel_ap": 66.13879917534489,
+          "pixel_auc": 99.55278226053893
+        },
+        "metal_nut": {
+          "image_ap": 92.6054060459137,
+          "image_auc": 70.38123607635498,
+          "pixel_ap": 14.110305986350685,
+          "pixel_auc": 33.679711420010335
+        },
+        "pill": {
+          "image_ap": 98.1235146522522,
+          "image_auc": 90.34370183944702,
+          "pixel_ap": 39.976587010303305,
+          "pixel_auc": 89.75667931857726
+        },
+        "screw": {
+          "image_ap": 93.97993087768555,
+          "image_auc": 82.96782970428467,
+          "pixel_ap": 40.84808984701995,
+          "pixel_auc": 98.78894222788371
+        },
+        "tile": {
+          "image_ap": 98.88175129890442,
+          "image_auc": 96.78932428359985,
+          "pixel_ap": 69.76750087017913,
+          "pixel_auc": 85.25074466672898
+        },
+        "toothbrush": {
+          "image_ap": 98.79067540168762,
+          "image_auc": 96.66666388511658,
+          "pixel_ap": 46.88162106065904,
+          "pixel_auc": 95.91431641597717
+        },
+        "transistor": {
+          "image_ap": 73.60522747039795,
+          "image_auc": 77.58333086967468,
+          "pixel_ap": 8.00482802768886,
+          "pixel_auc": 58.35454613014611
+        },
+        "wood": {
+          "image_ap": 98.70160818099976,
+          "image_auc": 96.49122953414917,
+          "pixel_ap": 56.869098870899194,
+          "pixel_auc": 83.49066273255352
+        },
+        "zipper": {
+          "image_ap": 96.28687500953674,
+          "image_auc": 86.16071343421936,
+          "pixel_ap": 25.501500445430946,
+          "pixel_auc": 77.07087220397817
+        }
+      },
+      "reported_image_metrics": false,
+      "single_view": {
+        "Average": {
+          "image_ap": 94.532783,
+          "image_auc": 88.415956,
+          "pixel_ap": 40.042783,
+          "pixel_auc": 82.092745
+        },
+        "bottle": {
+          "image_ap": 98.226517,
+          "image_auc": 93.888885,
+          "pixel_ap": 52.672205,
+          "pixel_auc": 84.79345
+        },
+        "cable": {
+          "image_ap": 82.509911,
+          "image_auc": 78.410804,
+          "pixel_ap": 21.237046,
+          "pixel_auc": 78.981235
+        },
+        "capsule": {
+          "image_ap": 97.793263,
+          "image_auc": 89.589155,
+          "pixel_ap": 19.93415,
+          "pixel_auc": 86.242624
+        },
+        "carpet": {
+          "image_ap": 99.435741,
+          "image_auc": 97.913319,
+          "pixel_ap": 73.084541,
+          "pixel_auc": 94.408261
+        },
+        "grid": {
+          "image_ap": 98.731351,
+          "image_auc": 96.240604,
+          "pixel_ap": 28.292494,
+          "pixel_auc": 76.673217
+        },
+        "hazelnut": {
+          "image_ap": 92.211413,
+          "image_auc": 86.607134,
+          "pixel_ap": 62.884964,
+          "pixel_auc": 98.028242
+        },
+        "leather": {
+          "image_ap": 99.988312,
+          "image_auc": 99.966031,
+          "pixel_ap": 63.712709,
+          "pixel_auc": 95.644507
+        },
+        "metal_nut": {
+          "image_ap": 91.367006,
+          "image_auc": 66.911042,
+          "pixel_ap": 13.261819,
+          "pixel_auc": 29.955465
+        },
+        "pill": {
+          "image_ap": 97.938067,
+          "image_auc": 89.17076,
+          "pixel_ap": 35.951044,
+          "pixel_auc": 85.485324
+        },
+        "screw": {
+          "image_ap": 92.1139,
+          "image_auc": 79.094076,
+          "pixel_ap": 31.620714,
+          "pixel_auc": 98.58835
+        },
+        "tile": {
+          "image_ap": 98.370498,
+          "image_auc": 95.34632,
+          "pixel_ap": 67.857075,
+          "pixel_auc": 84.237186
+        },
+        "toothbrush": {
+          "image_ap": 98.90635,
+          "image_auc": 97.222227,
+          "pixel_ap": 45.462749,
+          "pixel_auc": 95.607738
+        },
+        "transistor": {
+          "image_ap": 77.279377,
+          "image_auc": 80.291671,
+          "pixel_ap": 9.493452,
+          "pixel_auc": 63.226135
+        },
+        "wood": {
+          "image_ap": 98.754299,
+          "image_auc": 96.228069,
+          "pixel_ap": 53.848252,
+          "pixel_auc": 82.689041
+        },
+        "zipper": {
+          "image_ap": 94.365734,
+          "image_auc": 79.359245,
+          "pixel_ap": 21.328534,
+          "pixel_auc": 76.830399
+        }
+      }
+    },
+    "Retina": {
+      "delta_tta": {
+        "Average": {
+          "image_ap": 2.517211155517572,
+          "image_auc": 1.6356169295654297,
+          "pixel_ap": 6.605983451035549,
+          "pixel_auc": -2.247434317559197
+        },
+        "Retina": {
+          "image_ap": 2.517211155517572,
+          "image_auc": 1.6356169295654297,
+          "pixel_ap": 6.605983451035549,
+          "pixel_auc": -2.247434317559197
+        }
+      },
+      "four_view": {
+        "Average": {
+          "image_ap": 80.27620315551758,
+          "image_auc": 80.17115592956543,
+          "pixel_ap": 38.54975945103555,
+          "pixel_auc": 86.1262096824408
+        },
+        "Retina": {
+          "image_ap": 80.27620315551758,
+          "image_auc": 80.17115592956543,
+          "pixel_ap": 38.54975945103555,
+          "pixel_auc": 86.1262096824408
+        }
+      },
+      "reported_image_metrics": true,
+      "single_view": {
+        "Average": {
+          "image_ap": 77.758992,
+          "image_auc": 78.535539,
+          "pixel_ap": 31.943776,
+          "pixel_auc": 88.373644
+        },
+        "Retina": {
+          "image_ap": 77.758992,
+          "image_auc": 78.535539,
+          "pixel_ap": 31.943776,
+          "pixel_auc": 88.373644
+        }
+      }
+    }
+  }
+}
