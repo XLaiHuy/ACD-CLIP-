@@ -1,0 +1,205 @@
+{
+  "checkpoint": "/workspace/ACD-CLIP-rental/runs/fresh_mvtec_all_source_20260911/adapter_1.pth",
+  "checkpoint_epoch": 1,
+  "checkpoint_sha256": "733d67f0a5d82d69cda29ab5023d3802b70579f22c275954194c69582a9a67f4",
+  "datasets": [
+    "Brain",
+    "Liver",
+    "Retina",
+    "Colon_clinicDB",
+    "Colon_colonDB",
+    "Colon_Kvasir",
+    "VisA"
+  ],
+  "finite_outputs": true,
+  "implementation": "sequential_reference",
+  "policy": [
+    "identity",
+    "hflip",
+    "vflip",
+    "hvflip"
+  ],
+  "protocol": "RENTAL_LOCKED_FOUR_VIEW_BASELINE_V1",
+  "results": {
+    "Brain": {
+      "macro": {
+        "image_ap": 94.74306106567383,
+        "image_auc": 81.58934712409973,
+        "pixel_ap": 54.38939867394067,
+        "pixel_auc": 96.77733360597185
+      },
+      "per_class": {
+        "Brain": {
+          "image_ap": 94.74306106567383,
+          "image_auc": 81.58934712409973,
+          "pixel_ap": 54.38939867394067,
+          "pixel_auc": 96.77733360597185
+        }
+      }
+    },
+    "Colon_Kvasir": {
+      "macro": {
+        "image_ap": 0.0,
+        "image_auc": 0.0,
+        "pixel_ap": 32.08039271037077,
+        "pixel_auc": 69.9672544532553
+      },
+      "per_class": {
+        "Colon_Kvasir": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 32.08039271037077,
+          "pixel_auc": 69.9672544532553
+        }
+      }
+    },
+    "Colon_clinicDB": {
+      "macro": {
+        "image_ap": 0.0,
+        "image_auc": 0.0,
+        "pixel_ap": 27.686400800782646,
+        "pixel_auc": 73.71847823352769
+      },
+      "per_class": {
+        "Colon_clinicDB": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 27.686400800782646,
+          "pixel_auc": 73.71847823352769
+        }
+      }
+    },
+    "Colon_colonDB": {
+      "macro": {
+        "image_ap": 0.0,
+        "image_auc": 0.0,
+        "pixel_ap": 20.94254795293178,
+        "pixel_auc": 73.3307095509511
+      },
+      "per_class": {
+        "Colon_colonDB": {
+          "image_ap": 0.0,
+          "image_auc": 0.0,
+          "pixel_ap": 20.94254795293178,
+          "pixel_auc": 73.3307095509511
+        }
+      }
+    },
+    "Liver": {
+      "macro": {
+        "image_ap": 55.240076780319214,
+        "image_auc": 65.5251145362854,
+        "pixel_ap": 6.030707501554536,
+        "pixel_auc": 95.81738996746077
+      },
+      "per_class": {
+        "Liver": {
+          "image_ap": 55.240076780319214,
+          "image_auc": 65.5251145362854,
+          "pixel_ap": 6.030707501554536,
+          "pixel_auc": 95.81738996746077
+        }
+      }
+    },
+    "Retina": {
+      "macro": {
+        "image_ap": 75.15296936035156,
+        "image_auc": 75.3326952457428,
+        "pixel_ap": 40.40415374818578,
+        "pixel_auc": 91.14371117346512
+      },
+      "per_class": {
+        "Retina": {
+          "image_ap": 75.15296936035156,
+          "image_auc": 75.3326952457428,
+          "pixel_ap": 40.40415374818578,
+          "pixel_auc": 91.14371117346512
+        }
+      }
+    },
+    "VisA": {
+      "macro": {
+        "image_ap": 88.22002013524373,
+        "image_auc": 85.39254019657771,
+        "pixel_ap": 24.279997745131357,
+        "pixel_auc": 94.4761860757862
+      },
+      "per_class": {
+        "candle": {
+          "image_ap": 93.53398084640503,
+          "image_auc": 92.00999736785889,
+          "pixel_ap": 33.22516978379863,
+          "pixel_auc": 98.56118951191134
+        },
+        "capsules": {
+          "image_ap": 93.7919020652771,
+          "image_auc": 89.85000848770142,
+          "pixel_ap": 39.73591017441307,
+          "pixel_auc": 97.198683312884
+        },
+        "cashew": {
+          "image_ap": 88.15837502479553,
+          "image_auc": 74.89999532699585,
+          "pixel_ap": 19.537495659322865,
+          "pixel_auc": 90.38094654386676
+        },
+        "chewinggum": {
+          "image_ap": 98.43558073043823,
+          "image_auc": 95.79999446868896,
+          "pixel_ap": 81.36237597935988,
+          "pixel_auc": 99.22561166558998
+        },
+        "fryum": {
+          "image_ap": 92.96244382858276,
+          "image_auc": 85.33999919891357,
+          "pixel_ap": 23.236225001388185,
+          "pixel_auc": 92.04138548194277
+        },
+        "macaroni1": {
+          "image_ap": 88.80510330200195,
+          "image_auc": 86.05999946594238,
+          "pixel_ap": 8.120436191273049,
+          "pixel_auc": 96.84810813183438
+        },
+        "macaroni2": {
+          "image_ap": 62.007659673690796,
+          "image_auc": 62.95999884605408,
+          "pixel_ap": 1.4303966636823933,
+          "pixel_auc": 96.62876313135004
+        },
+        "pcb1": {
+          "image_ap": 91.84808135032654,
+          "image_auc": 90.72999954223633,
+          "pixel_ap": 11.751820148710824,
+          "pixel_auc": 93.35292355386386
+        },
+        "pcb2": {
+          "image_ap": 78.2023549079895,
+          "image_auc": 77.2100031375885,
+          "pixel_ap": 12.18309475488596,
+          "pixel_auc": 92.65991819125061
+        },
+        "pcb3": {
+          "image_ap": 74.80974793434143,
+          "image_auc": 74.85147714614868,
+          "pixel_ap": 13.316862034624252,
+          "pixel_auc": 89.24471666948746
+        },
+        "pcb4": {
+          "image_ap": 97.01220393180847,
+          "image_auc": 97.09901213645935,
+          "pixel_ap": 34.01114673826535,
+          "pixel_auc": 98.16890727485472
+        },
+        "pipe_fryum": {
+          "image_ap": 99.07280802726746,
+          "image_auc": 97.89999723434448,
+          "pixel_ap": 13.449039811851899,
+          "pixel_auc": 89.40307944059843
+        }
+      }
+    }
+  },
+  "runtime_seconds": 4891.708669276995,
+  "target_selection_or_tuning": false
+}

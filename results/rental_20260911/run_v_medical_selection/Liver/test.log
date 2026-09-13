@@ -1,0 +1,163 @@
+2026-09-12 01:03:52 test.py 323: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Liver', 'batch_size': 6, 'cuda_device': 0, 'save_path': '/workspace/ACD-CLIP-rental/results/rental_20260911/run_v_medical_selection/Liver', 'num_workers': 2, 'epochs': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], 'metric_thresholds': None, 'evaluator_mode': 'benchmark_exact', 'pixel_stride': 1, 'max_samples': None, 'max_samples_per_label': None}
+2026-09-12 01:03:52 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-09-12 01:04:03 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-09-12 01:04:04 test.py 483: -----------------------------------------------
+2026-09-12 01:04:04 test.py 484: load model from epoch 1
+2026-09-12 01:04:04 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.0 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 01:04:04 test.py 495: -----------------------------------------------
+2026-09-12 01:07:17 test.py 579: final results:
+class name pixel AUC   pixel AP image AUC   image AP 
+   Liver    92.382589  4.281265  68.918657  58.769447
+ Average    92.382589  4.281265  68.918657  58.769447
+2026-09-12 01:07:18 test.py 483: -----------------------------------------------
+2026-09-12 01:07:18 test.py 484: load model from epoch 2
+2026-09-12 01:07:18 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.0 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 01:07:18 test.py 495: -----------------------------------------------
+2026-09-12 01:10:33 test.py 579: final results:
+class name pixel AUC   pixel AP image AUC   image AP 
+   Liver    94.103391  4.636656  76.610553  69.386905
+ Average    94.103391  4.636656  76.610553  69.386905
+2026-09-12 01:10:33 test.py 483: -----------------------------------------------
+2026-09-12 01:10:33 test.py 484: load model from epoch 3
+2026-09-12 01:10:33 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.0 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 01:10:33 test.py 495: -----------------------------------------------
+2026-09-12 01:13:49 test.py 579: final results:
+class name pixel AUC   pixel AP image AUC   image AP 
+   Liver    93.675961  4.650802  72.568291  66.240305
+ Average    93.675961  4.650802  72.568291  66.240305
+2026-09-12 01:13:50 test.py 483: -----------------------------------------------
+2026-09-12 01:13:50 test.py 484: load model from epoch 4
+2026-09-12 01:13:50 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.05 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 01:13:50 test.py 495: -----------------------------------------------
+2026-09-12 01:17:07 test.py 579: final results:
+class name pixel AUC  pixel AP image AUC   image AP 
+   Liver    93.82686  5.599988  76.697588  70.105112
+ Average    93.82686  5.599988  76.697588  70.105112
+2026-09-12 01:17:07 test.py 483: -----------------------------------------------
+2026-09-12 01:17:07 test.py 484: load model from epoch 5
+2026-09-12 01:17:07 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.1 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 01:17:07 test.py 495: -----------------------------------------------
+2026-09-12 01:20:23 test.py 579: final results:
+class name pixel AUC   pixel AP image AUC   image AP 
+   Liver    92.126681  4.560304  76.075339  66.119701
+ Average    92.126681  4.560304  76.075339  66.119701
+2026-09-12 01:20:23 test.py 483: -----------------------------------------------
+2026-09-12 01:20:23 test.py 484: load model from epoch 6
+2026-09-12 01:20:23 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 01:20:23 test.py 495: -----------------------------------------------
+2026-09-12 01:23:43 test.py 579: final results:
+class name pixel AUC  pixel AP image AUC   image AP 
+   Liver    91.905965  5.78706  76.419568  64.938283
+ Average    91.905965  5.78706  76.419568  64.938283
+2026-09-12 01:23:43 test.py 483: -----------------------------------------------
+2026-09-12 01:23:43 test.py 484: load model from epoch 7
+2026-09-12 01:23:43 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 01:23:43 test.py 495: -----------------------------------------------
+2026-09-12 01:27:04 test.py 579: final results:
+class name pixel AUC   pixel AP image AUC   image AP 
+   Liver    94.549075  6.194192  71.168822  64.090717
+ Average    94.549075  6.194192  71.168822  64.090717
+2026-09-12 01:27:05 test.py 483: -----------------------------------------------
+2026-09-12 01:27:05 test.py 484: load model from epoch 8
+2026-09-12 01:27:05 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 01:27:05 test.py 495: -----------------------------------------------
+2026-09-12 01:30:25 test.py 579: final results:
+class name pixel AUC  pixel AP image AUC   image AP 
+   Liver    94.302604  5.7805   69.010508  62.797236
+ Average    94.302604  5.7805   69.010508  62.797236
+2026-09-12 01:30:26 test.py 483: -----------------------------------------------
+2026-09-12 01:30:26 test.py 484: load model from epoch 9
+2026-09-12 01:30:26 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 01:30:26 test.py 495: -----------------------------------------------
+2026-09-12 01:33:45 test.py 579: final results:
+class name pixel AUC   pixel AP image AUC  image AP 
+   Liver    90.945105  4.550207  70.70955  62.716651
+ Average    90.945105  4.550207  70.70955  62.716651
+2026-09-12 01:33:46 test.py 483: -----------------------------------------------
+2026-09-12 01:33:46 test.py 484: load model from epoch 10
+2026-09-12 01:33:46 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 01:33:46 test.py 495: -----------------------------------------------
+2026-09-12 01:37:06 test.py 579: final results:
+class name pixel AUC   pixel AP image AUC   image AP 
+   Liver    71.757708  2.413133  69.692785  58.891368
+ Average    71.757708  2.413133  69.692785  58.891368
+2026-09-12 01:37:06 test.py 483: -----------------------------------------------
+2026-09-12 01:37:06 test.py 484: load model from epoch 11
+2026-09-12 01:37:06 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 01:37:06 test.py 495: -----------------------------------------------
+2026-09-12 01:40:26 test.py 579: final results:
+class name pixel AUC   pixel AP image AUC   image AP 
+   Liver    90.096571  4.915869  69.810021  60.828829
+ Average    90.096571  4.915869  69.810021  60.828829
+2026-09-12 01:40:27 test.py 483: -----------------------------------------------
+2026-09-12 01:40:27 test.py 484: load model from epoch 12
+2026-09-12 01:40:27 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 01:40:27 test.py 495: -----------------------------------------------
+2026-09-12 01:43:44 test.py 579: final results:
+class name pixel AUC   pixel AP image AUC   image AP 
+   Liver    93.592246  5.417834  69.325912  60.723954
+ Average    93.592246  5.417834  69.325912  60.723954
+2026-09-12 01:43:44 test.py 483: -----------------------------------------------
+2026-09-12 01:43:44 test.py 484: load model from epoch 13
+2026-09-12 01:43:44 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 01:43:44 test.py 495: -----------------------------------------------
+2026-09-12 01:47:03 test.py 579: final results:
+class name pixel AUC  pixel AP image AUC   image AP 
+   Liver     93.6065  5.441067  69.366568  60.141486
+ Average     93.6065  5.441067  69.366568  60.141486
+2026-09-12 01:47:04 test.py 483: -----------------------------------------------
+2026-09-12 01:47:04 test.py 484: load model from epoch 14
+2026-09-12 01:47:04 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 01:47:04 test.py 495: -----------------------------------------------
+2026-09-12 01:50:22 test.py 579: final results:
+class name pixel AUC pixel AP image AUC  image AP
+   Liver    94.28092  5.74293  67.64015  58.70558
+ Average    94.28092  5.74293  67.64015  58.70558
+2026-09-12 01:50:23 test.py 483: -----------------------------------------------
+2026-09-12 01:50:23 test.py 484: load model from epoch 15
+2026-09-12 01:50:23 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 01:50:23 test.py 495: -----------------------------------------------
+2026-09-12 01:53:38 test.py 579: final results:
+class name pixel AUC   pixel AP image AUC   image AP 
+   Liver    96.098161  5.361119  69.746983  60.395652
+ Average    96.098161  5.361119  69.746983  60.395652
+2026-09-12 01:53:39 test.py 483: -----------------------------------------------
+2026-09-12 01:53:39 test.py 484: load model from epoch 16
+2026-09-12 01:53:39 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 01:53:39 test.py 495: -----------------------------------------------
+2026-09-12 01:56:55 test.py 579: final results:
+class name pixel AUC   pixel AP image AUC   image AP 
+   Liver    96.242154  5.577442  69.536543  60.236031
+ Average    96.242154  5.577442  69.536543  60.236031
+2026-09-12 01:56:55 test.py 483: -----------------------------------------------
+2026-09-12 01:56:55 test.py 484: load model from epoch 17
+2026-09-12 01:56:55 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 01:56:55 test.py 495: -----------------------------------------------
+2026-09-12 02:00:15 test.py 579: final results:
+class name pixel AUC   pixel AP image AUC   image AP 
+   Liver    96.489905  5.717501  67.765468  58.345163
+ Average    96.489905  5.717501  67.765468  58.345163
+2026-09-12 02:00:15 test.py 483: -----------------------------------------------
+2026-09-12 02:00:15 test.py 484: load model from epoch 18
+2026-09-12 02:00:15 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 02:00:15 test.py 495: -----------------------------------------------
+2026-09-12 02:03:36 test.py 579: final results:
+class name pixel AUC   pixel AP image AUC   image AP 
+   Liver    95.331051  5.595412  69.300085  58.575284
+ Average    95.331051  5.595412  69.300085  58.575284
+2026-09-12 02:03:37 test.py 483: -----------------------------------------------
+2026-09-12 02:03:37 test.py 484: load model from epoch 19
+2026-09-12 02:03:37 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 02:03:37 test.py 495: -----------------------------------------------
+2026-09-12 02:06:55 test.py 579: final results:
+class name pixel AUC  pixel AP image AUC   image AP 
+   Liver    94.041787  5.12357  69.331467  59.153712
+ Average    94.041787  5.12357  69.331467  59.153712
+2026-09-12 02:06:55 test.py 483: -----------------------------------------------
+2026-09-12 02:06:55 test.py 484: load model from epoch 20
+2026-09-12 02:06:55 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 02:06:55 test.py 495: -----------------------------------------------
+2026-09-12 02:10:13 test.py 579: final results:
+class name pixel AUC  pixel AP image AUC   image AP 
+   Liver    96.024171  4.90155  69.475794  58.945477
+ Average    96.024171  4.90155  69.475794  58.945477

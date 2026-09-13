@@ -1,0 +1,22 @@
+2026-09-13 02:45:43 test.py 323: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': True, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'VisA', 'batch_size': 6, 'cuda_device': 0, 'save_path': '/workspace/ACD-CLIP-rental/results/rental_20260911/run_m_selected_epoch1/single_view/VisA', 'num_workers': 2, 'epochs': None, 'metric_thresholds': None, 'evaluator_mode': 'benchmark_exact', 'pixel_stride': 1, 'max_samples': None, 'max_samples_per_label': None}
+2026-09-13 02:45:43 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-09-13 02:45:53 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-09-13 02:45:54 test.py 483: -----------------------------------------------
+2026-09-13 02:45:54 test.py 484: load model from epoch 1
+2026-09-13 02:45:54 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.0 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-13 02:45:54 test.py 495: -----------------------------------------------
+2026-09-13 02:50:42 test.py 579: final results:
+class name pixel AUC   pixel AP  image AUC   image AP 
+    candle  98.436827   34.23323  89.700001  92.159694
+      pcb3  89.473731  11.320025  68.445539  66.735989
+  capsules  95.475567  31.754755  87.733334  92.687351
+pipe_fryum  87.038425   9.582344  96.760005  98.540926
+      pcb4  97.959765   30.80269  94.861388  94.361365
+ macaroni2  95.610875   0.587625  62.059999   60.59534
+      pcb2   91.48593  12.053847  75.339997  78.144622
+chewinggum  99.044457  80.099742  95.239997  98.189896
+ macaroni1  95.800512   6.296916  83.629996  84.583521
+    cashew  89.301304  19.149014  74.180001  87.985581
+     fryum  91.431141  19.816999  86.180001  92.969906
+      pcb1  92.903817  10.352201  87.739998  89.057881
+   Average  93.663529  22.170782  83.489188  86.334339

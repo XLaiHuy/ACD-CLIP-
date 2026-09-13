@@ -1,0 +1,137 @@
+/workspace/ACD-CLIP-rental/model/tokenizer.py:10: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+{
+  "batch_size": 6,
+  "checkpoint": "/tmp/acd-clip-preflight-tta-20260911-b/adapter_1.pth",
+  "checkpoint_sha256": "419ccafcb553528338cf90fd9e039f0300ff489f1551a01949bf0ed2e0aba979",
+  "class_name": "candle",
+  "dataset": "VisA",
+  "num_batches": 2,
+  "optimized_candidates_parity": {
+    "batched_four_view": "FAIL",
+    "microbatched_two_plus_two": "FAIL",
+    "safe_inference_mode": "PASS"
+  },
+  "policy": [
+    "identity",
+    "hflip",
+    "vflip",
+    "hvflip"
+  ],
+  "protocol": "RENTAL_TTA_PARITY_BENCHMARK_V1",
+  "scenarios": {
+    "baseline_sequential": {
+      "metrics": {
+        "image_ap": 65.3156578540802,
+        "image_auroc": 28.125,
+        "pixel_ap": 0.4421723130480669,
+        "pixel_auroc": 81.72969737045044
+      },
+      "output_path": "baseline_sequential_outputs.pt",
+      "parity": "REFERENCE",
+      "peak_cuda_bytes": 3998372352,
+      "runtime_seconds": 4.81160314099543
+    },
+    "batched_four_view": {
+      "metric_differences": {
+        "image_ap": 0.0,
+        "image_auroc": 0.0,
+        "pixel_ap": 8.206111138608918e-06,
+        "pixel_auroc": 0.00026732211954083596
+      },
+      "metrics": {
+        "image_ap": 65.3156578540802,
+        "image_auroc": 28.125,
+        "pixel_ap": 0.44218051915920553,
+        "pixel_auroc": 81.72996469256998
+      },
+      "output_differences": {
+        "image_scores": {
+          "max_abs": 5.960464477539063e-08,
+          "mean_abs": 3.973643103449831e-08
+        },
+        "logits": {
+          "max_abs": 4.895846359431744e-07,
+          "mean_abs": 2.57409141113385e-07
+        },
+        "maps": {
+          "max_abs": 7.569789886474609e-06,
+          "mean_abs": 3.74390197066532e-07
+        }
+      },
+      "output_path": "batched_four_view_outputs.pt",
+      "parity": "FAIL",
+      "peak_cuda_bytes": 9487053312,
+      "runtime_seconds": 4.592560362005315
+    },
+    "microbatched_two_plus_two": {
+      "metric_differences": {
+        "image_ap": 0.0,
+        "image_auroc": 0.0,
+        "pixel_ap": 7.645707730763451e-06,
+        "pixel_auroc": 0.00027755792659434064
+      },
+      "metrics": {
+        "image_ap": 65.3156578540802,
+        "image_auroc": 28.125,
+        "pixel_ap": 0.4421799587557977,
+        "pixel_auroc": 81.72997492837703
+      },
+      "output_differences": {
+        "image_scores": {
+          "max_abs": 2.9802322387695312e-08,
+          "mean_abs": 2.4835268064293814e-08
+        },
+        "logits": {
+          "max_abs": 7.972121238708496e-07,
+          "mean_abs": 4.5748552679469867e-07
+        },
+        "maps": {
+          "max_abs": 9.626150131225586e-06,
+          "mean_abs": 3.178178076268523e-07
+        }
+      },
+      "output_path": "microbatched_two_plus_two_outputs.pt",
+      "parity": "FAIL",
+      "peak_cuda_bytes": 5776411136,
+      "runtime_seconds": 4.732885062003334
+    },
+    "safe_inference_mode": {
+      "metric_differences": {
+        "image_ap": 0.0,
+        "image_auroc": 0.0,
+        "pixel_ap": 0.0,
+        "pixel_auroc": 0.0
+      },
+      "metrics": {
+        "image_ap": 65.3156578540802,
+        "image_auroc": 28.125,
+        "pixel_ap": 0.4421723130480669,
+        "pixel_auroc": 81.72969737045044
+      },
+      "output_differences": {
+        "image_scores": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0
+        },
+        "logits": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0
+        },
+        "maps": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0
+        }
+      },
+      "output_path": "safe_inference_mode_outputs.pt",
+      "parity": "PASS",
+      "peak_cuda_bytes": 3998372352,
+      "runtime_seconds": 4.712577212994802
+    }
+  },
+  "tolerance": {
+    "metric_abs": 0.0001,
+    "output_atol": 1e-05,
+    "output_rtol": 0.0001
+  }
+}

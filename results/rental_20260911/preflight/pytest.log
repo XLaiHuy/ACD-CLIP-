@@ -1,0 +1,17 @@
+......................................................                   [100%]
+=============================== warnings summary ===============================
+model/tokenizer.py:10
+  /workspace/ACD-CLIP-rental/model/tokenizer.py:10: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+    from pkg_resources import packaging
+
+tests/test_resume.py::test_full_state_resume_matches_uninterrupted
+tests/test_resume.py::test_full_state_resume_matches_uninterrupted
+  /workspace/ACD-CLIP-rental/tests/test_resume.py:35: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+    scaler = torch.cuda.amp.GradScaler(enabled=False)
+
+tests/test_resume_identity.py: 12 warnings
+  /workspace/ACD-CLIP-rental/tests/test_resume_identity.py:30: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+    scaler = torch.cuda.amp.GradScaler(enabled=False)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+54 passed, 15 warnings in 9.09s

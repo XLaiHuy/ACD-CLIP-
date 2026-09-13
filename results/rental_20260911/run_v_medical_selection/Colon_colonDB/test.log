@@ -1,0 +1,163 @@
+2026-09-12 03:57:24 test.py 323: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': False, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Colon_colonDB', 'batch_size': 6, 'cuda_device': 0, 'save_path': '/workspace/ACD-CLIP-rental/results/rental_20260911/run_v_medical_selection/Colon_colonDB', 'num_workers': 2, 'epochs': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], 'metric_thresholds': None, 'evaluator_mode': 'benchmark_exact', 'pixel_stride': 1, 'max_samples': None, 'max_samples_per_label': None}
+2026-09-12 03:57:24 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-09-12 03:57:35 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-09-12 03:57:35 test.py 483: -----------------------------------------------
+2026-09-12 03:57:35 test.py 484: load model from epoch 1
+2026-09-12 03:57:35 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.0 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 03:57:35 test.py 495: -----------------------------------------------
+2026-09-12 03:58:25 test.py 579: final results:
+  class name  pixel AUC  pixel AP image AUC image AP
+Colon_colonDB   79.4907  26.96834     0.0      0.0  
+      Average   79.4907  26.96834     0.0      0.0  
+2026-09-12 03:58:26 test.py 483: -----------------------------------------------
+2026-09-12 03:58:26 test.py 484: load model from epoch 2
+2026-09-12 03:58:26 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.0 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 03:58:26 test.py 495: -----------------------------------------------
+2026-09-12 03:59:16 test.py 579: final results:
+  class name  pixel AUC   pixel AP  image AUC image AP
+Colon_colonDB  80.420105  28.710354     0.0      0.0  
+      Average  80.420105  28.710354     0.0      0.0  
+2026-09-12 03:59:16 test.py 483: -----------------------------------------------
+2026-09-12 03:59:16 test.py 484: load model from epoch 3
+2026-09-12 03:59:16 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.0 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 03:59:16 test.py 495: -----------------------------------------------
+2026-09-12 04:00:06 test.py 579: final results:
+  class name  pixel AUC   pixel AP  image AUC image AP
+Colon_colonDB  76.950284  24.906968     0.0      0.0  
+      Average  76.950284  24.906968     0.0      0.0  
+2026-09-12 04:00:06 test.py 483: -----------------------------------------------
+2026-09-12 04:00:06 test.py 484: load model from epoch 4
+2026-09-12 04:00:06 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.05 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 04:00:06 test.py 495: -----------------------------------------------
+2026-09-12 04:00:57 test.py 579: final results:
+  class name  pixel AUC   pixel AP  image AUC image AP
+Colon_colonDB  78.149121  27.294542     0.0      0.0  
+      Average  78.149121  27.294542     0.0      0.0  
+2026-09-12 04:00:58 test.py 483: -----------------------------------------------
+2026-09-12 04:00:58 test.py 484: load model from epoch 5
+2026-09-12 04:00:58 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.1 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 04:00:58 test.py 495: -----------------------------------------------
+2026-09-12 04:01:48 test.py 579: final results:
+  class name  pixel AUC   pixel AP  image AUC image AP
+Colon_colonDB  76.333085  26.556442     0.0      0.0  
+      Average  76.333085  26.556442     0.0      0.0  
+2026-09-12 04:01:49 test.py 483: -----------------------------------------------
+2026-09-12 04:01:49 test.py 484: load model from epoch 6
+2026-09-12 04:01:49 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 04:01:49 test.py 495: -----------------------------------------------
+2026-09-12 04:02:41 test.py 579: final results:
+  class name  pixel AUC   pixel AP  image AUC image AP
+Colon_colonDB  75.196656  26.934737     0.0      0.0  
+      Average  75.196656  26.934737     0.0      0.0  
+2026-09-12 04:02:41 test.py 483: -----------------------------------------------
+2026-09-12 04:02:41 test.py 484: load model from epoch 7
+2026-09-12 04:02:41 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 04:02:41 test.py 495: -----------------------------------------------
+2026-09-12 04:03:33 test.py 579: final results:
+  class name  pixel AUC   pixel AP  image AUC image AP
+Colon_colonDB  80.569022  30.928073     0.0      0.0  
+      Average  80.569022  30.928073     0.0      0.0  
+2026-09-12 04:03:33 test.py 483: -----------------------------------------------
+2026-09-12 04:03:33 test.py 484: load model from epoch 8
+2026-09-12 04:03:33 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 04:03:33 test.py 495: -----------------------------------------------
+2026-09-12 04:04:25 test.py 579: final results:
+  class name  pixel AUC   pixel AP  image AUC image AP
+Colon_colonDB  79.902087  28.424795     0.0      0.0  
+      Average  79.902087  28.424795     0.0      0.0  
+2026-09-12 04:04:25 test.py 483: -----------------------------------------------
+2026-09-12 04:04:25 test.py 484: load model from epoch 9
+2026-09-12 04:04:25 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 04:04:25 test.py 495: -----------------------------------------------
+2026-09-12 04:05:17 test.py 579: final results:
+  class name  pixel AUC   pixel AP  image AUC image AP
+Colon_colonDB  76.974788  27.164586     0.0      0.0  
+      Average  76.974788  27.164586     0.0      0.0  
+2026-09-12 04:05:17 test.py 483: -----------------------------------------------
+2026-09-12 04:05:17 test.py 484: load model from epoch 10
+2026-09-12 04:05:17 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 04:05:17 test.py 495: -----------------------------------------------
+2026-09-12 04:06:09 test.py 579: final results:
+  class name  pixel AUC   pixel AP  image AUC image AP
+Colon_colonDB  75.097891  25.066227     0.0      0.0  
+      Average  75.097891  25.066227     0.0      0.0  
+2026-09-12 04:06:10 test.py 483: -----------------------------------------------
+2026-09-12 04:06:10 test.py 484: load model from epoch 11
+2026-09-12 04:06:10 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 04:06:10 test.py 495: -----------------------------------------------
+2026-09-12 04:07:02 test.py 579: final results:
+  class name  pixel AUC   pixel AP image AUC image AP
+Colon_colonDB  77.784444  27.61907     0.0      0.0  
+      Average  77.784444  27.61907     0.0      0.0  
+2026-09-12 04:07:02 test.py 483: -----------------------------------------------
+2026-09-12 04:07:02 test.py 484: load model from epoch 12
+2026-09-12 04:07:02 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 04:07:02 test.py 495: -----------------------------------------------
+2026-09-12 04:07:54 test.py 579: final results:
+  class name  pixel AUC   pixel AP  image AUC image AP
+Colon_colonDB  79.239906  28.679525     0.0      0.0  
+      Average  79.239906  28.679525     0.0      0.0  
+2026-09-12 04:07:54 test.py 483: -----------------------------------------------
+2026-09-12 04:07:54 test.py 484: load model from epoch 13
+2026-09-12 04:07:54 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 04:07:54 test.py 495: -----------------------------------------------
+2026-09-12 04:08:46 test.py 579: final results:
+  class name  pixel AUC  pixel AP  image AUC image AP
+Colon_colonDB  77.72594  27.870194     0.0      0.0  
+      Average  77.72594  27.870194     0.0      0.0  
+2026-09-12 04:08:46 test.py 483: -----------------------------------------------
+2026-09-12 04:08:46 test.py 484: load model from epoch 14
+2026-09-12 04:08:46 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 04:08:46 test.py 495: -----------------------------------------------
+2026-09-12 04:09:39 test.py 579: final results:
+  class name  pixel AUC   pixel AP  image AUC image AP
+Colon_colonDB  77.814323  24.897845     0.0      0.0  
+      Average  77.814323  24.897845     0.0      0.0  
+2026-09-12 04:09:39 test.py 483: -----------------------------------------------
+2026-09-12 04:09:39 test.py 484: load model from epoch 15
+2026-09-12 04:09:39 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 04:09:39 test.py 495: -----------------------------------------------
+2026-09-12 04:10:31 test.py 579: final results:
+  class name  pixel AUC   pixel AP  image AUC image AP
+Colon_colonDB  81.747137  28.438713     0.0      0.0  
+      Average  81.747137  28.438713     0.0      0.0  
+2026-09-12 04:10:31 test.py 483: -----------------------------------------------
+2026-09-12 04:10:31 test.py 484: load model from epoch 16
+2026-09-12 04:10:31 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 04:10:31 test.py 495: -----------------------------------------------
+2026-09-12 04:11:23 test.py 579: final results:
+  class name  pixel AUC   pixel AP image AUC image AP
+Colon_colonDB  80.382467  26.45887     0.0      0.0  
+      Average  80.382467  26.45887     0.0      0.0  
+2026-09-12 04:11:23 test.py 483: -----------------------------------------------
+2026-09-12 04:11:23 test.py 484: load model from epoch 17
+2026-09-12 04:11:23 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 04:11:23 test.py 495: -----------------------------------------------
+2026-09-12 04:12:16 test.py 579: final results:
+  class name  pixel AUC   pixel AP  image AUC image AP
+Colon_colonDB  81.965595  26.292149     0.0      0.0  
+      Average  81.965595  26.292149     0.0      0.0  
+2026-09-12 04:12:16 test.py 483: -----------------------------------------------
+2026-09-12 04:12:16 test.py 484: load model from epoch 18
+2026-09-12 04:12:16 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 04:12:16 test.py 495: -----------------------------------------------
+2026-09-12 04:13:08 test.py 579: final results:
+  class name  pixel AUC   pixel AP  image AUC image AP
+Colon_colonDB  79.799663  23.571139     0.0      0.0  
+      Average  79.799663  23.571139     0.0      0.0  
+2026-09-12 04:13:09 test.py 483: -----------------------------------------------
+2026-09-12 04:13:09 test.py 484: load model from epoch 19
+2026-09-12 04:13:09 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 04:13:09 test.py 495: -----------------------------------------------
+2026-09-12 04:14:01 test.py 579: final results:
+  class name  pixel AUC  pixel AP  image AUC image AP
+Colon_colonDB  79.47375  24.176114     0.0      0.0  
+      Average  79.47375  24.176114     0.0      0.0  
+2026-09-12 04:14:01 test.py 483: -----------------------------------------------
+2026-09-12 04:14:01 test.py 484: load model from epoch 20
+2026-09-12 04:14:01 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.2 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-12 04:14:01 test.py 495: -----------------------------------------------
+2026-09-12 04:14:53 test.py 579: final results:
+  class name  pixel AUC   pixel AP  image AUC image AP
+Colon_colonDB  80.456694  26.300776     0.0      0.0  
+      Average  80.456694  26.300776     0.0      0.0  

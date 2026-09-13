@@ -4,3 +4,10 @@ runs/r3_anchor_e1_optimization/**/*.pth filter=lfs diff=lfs merge=lfs -text
 forensic_archive/**/*.pth filter=lfs diff=lfs merge=lfs -text
 forensic_archive/machine_env/source_nvidia_smi.txt whitespace=-trailing-space
 model/ViT-L-14-336px.pt filter=lfs diff=lfs merge=lfs -text
+runs/fresh_visa_source_20260911/adapter_1.pth filter=lfs diff=lfs merge=lfs -text
+runs/fresh_visa_source_20260911/adapter_7.pth filter=lfs diff=lfs merge=lfs -text
+runs/fresh_visa_source_20260911/adapter_20.pth filter=lfs diff=lfs merge=lfs -text
+runs/fresh_mvtec_all_source_20260911/adapter_1.pth filter=lfs diff=lfs merge=lfs -text
+runs/fresh_mvtec_all_source_20260911/adapter_20.pth filter=lfs diff=lfs merge=lfs -text
+runs/fresh_visa_source_20260911/train.log filter=lfs diff=lfs merge=lfs -text
+runs/fresh_mvtec_all_source_20260911/train.log filter=lfs diff=lfs merge=lfs -text

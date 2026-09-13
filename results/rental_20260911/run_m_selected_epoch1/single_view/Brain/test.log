@@ -1,0 +1,11 @@
+2026-09-13 02:24:05 test.py 323: args: {'model_name': 'ViT-L-14-336', 'img_size': 518, 'n_groups': 3, 'lora_rank': 16, 'lora_alpha': 2.0, 'conv_lora_rank': 8, 'conv_lora_alpha': 2.0, 'conv_kernel_size_list': [3, 5], 'use_soft_prompt': False, 'use_hybrid_soft_prompt': True, 'hybrid_alpha': None, 'soft_prompt_ctx_len': 4, 'soft_prompt_init': 'phrase', 'soft_prompt_init_phrase': 'a photo of a', 'dfg_mode': 'attn', 'dfg_attn_dim': 256, 'dfg_attn_tau': 8.0, 'use_ss2d_dfg': True, 'dfg_gamma_max': 0.2, 'dfg_ss2d_fusion': 'weight_residual', 'dfg_beta': 0.1, 'dfg_beta_schedule': 'warmup010', 'dfg_beta_target': 0.1, 'dataset': 'Brain', 'batch_size': 6, 'cuda_device': 0, 'save_path': '/workspace/ACD-CLIP-rental/results/rental_20260911/run_m_selected_epoch1/single_view/Brain', 'num_workers': 2, 'epochs': None, 'metric_thresholds': None, 'evaluator_mode': 'benchmark_exact', 'pixel_stride': 1, 'max_samples': None, 'max_samples_per_label': None}
+2026-09-13 02:24:05 clip.py 106: Loading pretrained ViT-L-14-336 from OpenAI.
+2026-09-13 02:24:15 model.py 418: Resizing position embedding grid-size from (24, 24) to (37, 37)
+2026-09-13 02:24:16 test.py 483: -----------------------------------------------
+2026-09-13 02:24:16 test.py 484: load model from epoch 1
+2026-09-13 02:24:16 test.py 486: effective_prompt_mode=hybrid effective_alpha=0.0 hard_branch_lora_used=True soft_branch_lora_used=False use_soft_prompt=False use_hybrid_soft_prompt=True
+2026-09-13 02:24:16 test.py 495: -----------------------------------------------
+2026-09-13 02:32:46 test.py 579: final results:
+class name pixel AUC   pixel AP  image AUC   image AP 
+   Brain    96.281352  52.059834  80.830359  94.554949
+ Average    96.281352  52.059834  80.830359  94.554949
