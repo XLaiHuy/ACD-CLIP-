@@ -2,6 +2,7 @@
 
 Date: 2026-09-13 UTC
 Branch: `experiment/fresh-source-rental-20260911`
+Git SHA (implementation base): `d6b4e324832a577c1d537b87aa2e792361997fc6`
 
 ## Status
 
@@ -85,6 +86,11 @@ are present in the JSON artifacts.
   Colon_Kvasir 1000.
 - Preflight finished with `READY_TO_LAUNCH=YES`, anchor-only path confirmed,
   CUDA/AMP smoke pass, and E1-to-E20 continuation pass.
+- Non-finite skip counts were V: 6 gradient skips, 0 loss skips; M: 9
+  gradient skips, 0 loss skips. All were handled by the validated skip policy;
+  neither run reached the abort threshold.
+- Training wall time from the run logs was approximately V: 5:00:13 and M:
+  12:31:14 (E1 fresh start through E20 completion).
 - Run V: 20/20 checkpoints; E1 global step 359; E20 global step 7214;
   E20 scheduler last epoch 20. E1 SHA256:
   `5af82e501d3cc6fb5a4bb60e93c5ce2614b08bbde54888d05272c7dac645b3db`.
